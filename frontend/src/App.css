@@ -1,12 +1,39 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ============================================================================
+   OmniBus BlockChainCore - Cyberpunk/Hacker Theme
+   Based on OmniBus explorer_static.html design
+   ============================================================================ */
 
-/* Custom animations */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: 'Courier New', 'Courier', monospace;
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
 @keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -14,51 +41,261 @@
   }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(0, 255, 136, 0.8); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.5s ease-out;
 }
 
-.animate-slideIn {
-  animation: slideIn 0.3s ease-in-out;
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
 }
 
-/* Smooth transitions */
-* {
-  @apply transition-colors duration-200;
-}
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111827;
+  background: rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: #00ff88;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: #00dd77;
 }
 
-/* Glass morphism effect */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* ============================================================================
+   Tables
+   ============================================================================ */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table thead tr {
+  background: rgba(0, 255, 136, 0.1);
+  border-bottom: 2px solid #00ff88;
+}
+
+table th {
+  color: #00ff88;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+table td {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  font-size: 12px;
+}
+
+table tr:hover {
+  background: rgba(0, 255, 136, 0.05);
+}
+
+/* ============================================================================
+   Cards & Sections
+   ============================================================================ */
+
+.section-header {
+  background: rgba(0, 255, 136, 0.1);
+  border-bottom: 2px solid #00ff88;
+  padding: 15px 20px;
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.block-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 3px solid #00ff88;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.block-title {
+  color: #00ff88;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.block-detail {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.block-detail-label {
+  color: #888;
+  display: inline-block;
+  width: 120px;
+}
+
+.block-detail-value {
+  color: #e0e0e0;
+}
+
+/* ============================================================================
+   Status Colors
+   ============================================================================ */
+
+.status-good {
+  color: #00ff88;
+}
+
+.status-bad {
+  color: #ff6b6b;
+}
+
+.status-warning {
+  color: #ffa500;
+}
+
+/* ============================================================================
+   Badge Styles
+   ============================================================================ */
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-success {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  border: 1px solid #00ff88;
+}
+
+.badge-info {
+  background: rgba(0, 128, 255, 0.2);
+  color: #0080ff;
+  border: 1px solid #0080ff;
+}
+
+.badge-warning {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  border: 1px solid #ffa500;
+}
+
+.badge-danger {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+/* ============================================================================
+   Input Styling
+   ============================================================================ */
+
+input, textarea, select {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #333;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+input::placeholder {
+  color: #666;
+}
+
+/* ============================================================================
+   Button Styling
+   ============================================================================ */
+
+button {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  color: #00ff88;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: rgba(0, 255, 136, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Hash/Code Display
+   ============================================================================ */
+
+.hash, code {
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 4px;
+  border-radius: 2px;
+  word-break: break-all;
+}
+
+/* ============================================================================
+   Grid Layouts
+   ============================================================================ */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr;
+  }
 }
