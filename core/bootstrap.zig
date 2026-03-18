@@ -1,4 +1,5 @@
 const std = @import("std");
+const array_list = std.array_list;
 
 /// Seed Node Configuration
 pub const SeedNodeConfig = struct {
@@ -13,7 +14,7 @@ pub const SeedNodeConfig = struct {
 /// Bootstrap Node - Entry point for network
 pub const BootstrapNode = struct {
     config: SeedNodeConfig,
-    peers: std.ArrayList(Peer),
+    peers: array_list.Managed(Peer),
     status: NodeStatus,
     created_at: i64,
 
@@ -37,7 +38,7 @@ pub const BootstrapNode = struct {
     pub fn init(config: SeedNodeConfig) BootstrapNode {
         return BootstrapNode{
             .config = config,
-            .peers = std.ArrayList(Peer).init(config.allocator),
+            .peers = array_list.Managed(Peer).init(config.allocator),
             .status = NodeStatus.starting,
             .created_at = std.time.timestamp(),
         };
@@ -133,7 +134,7 @@ pub const BootstrapStats = struct {
 /// Multiple Seed Nodes for redundancy
 pub const SeedNodePool = struct {
     primary: BootstrapNode,
-    secondary: std.ArrayList(BootstrapNode),
+    secondary: array_list.Managed(BootstrapNode),
     allocator: std.mem.Allocator,
 
     pub fn init(primary_config: SeedNodeConfig, allocator: std.mem.Allocator) SeedNodePool {
@@ -141,7 +142,7 @@ pub const SeedNodePool = struct {
 
         return SeedNodePool{
             .primary = primary,
-            .secondary = std.ArrayList(BootstrapNode).init(allocator),
+            .secondary = array_list.Managed(BootstrapNode).init(allocator),
             .allocator = allocator,
         };
     }

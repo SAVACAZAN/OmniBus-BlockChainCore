@@ -1,4 +1,5 @@
 const std = @import("std");
+const array_list = std.array_list;
 
 /// Network Node - P2P participant
 pub const NetworkNode = struct {
@@ -41,15 +42,15 @@ pub const NetworkNode = struct {
 /// P2P Network - Manages all connected nodes
 pub const P2PNetwork = struct {
     local_node: NetworkNode,
-    connected_nodes: std.ArrayList(NetworkNode),
-    seed_nodes: std.ArrayList(NetworkNode),
+    connected_nodes: array_list.Managed(NetworkNode),
+    seed_nodes: array_list.Managed(NetworkNode),
     allocator: std.mem.Allocator,
 
     pub fn init(local_node: NetworkNode, allocator: std.mem.Allocator) P2PNetwork {
         return P2PNetwork{
             .local_node = local_node,
-            .connected_nodes = std.ArrayList(NetworkNode).init(allocator),
-            .seed_nodes = std.ArrayList(NetworkNode).init(allocator),
+            .connected_nodes = array_list.Managed(NetworkNode).init(allocator),
+            .seed_nodes = array_list.Managed(NetworkNode).init(allocator),
             .allocator = allocator,
         };
     }
@@ -127,7 +128,7 @@ pub const P2PNetwork = struct {
 
     /// Get all miners
     pub fn getMiners(self: *const P2PNetwork, allocator: std.mem.Allocator) ![]NetworkNode {
-        var miners = std.ArrayList(NetworkNode).init(allocator);
+        var miners = array_list.Managed(NetworkNode).init(allocator);
 
         for (self.connected_nodes.items) |node| {
             if (node.is_miner) {

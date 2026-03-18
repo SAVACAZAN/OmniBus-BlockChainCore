@@ -101,7 +101,7 @@ pub fn main() !void {
                     std.debug.print("  - Status: {}\n", .{stats.status});
                 }
             }
-            std.time.sleep(10 * std.time.ns_per_s);
+            std.Thread.sleep(10 * std.time.ns_per_s);
             continue;
         }
 
@@ -129,6 +129,6 @@ pub fn main() !void {
         }
 
         // Sleep for block time (10 seconds)
-        std.time.sleep(10 * std.time.ns_per_s);
+        std.Thread.sleep(10 * std.time.ns_per_s);
     }
 }

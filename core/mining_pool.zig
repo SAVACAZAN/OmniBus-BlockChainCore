@@ -1,9 +1,10 @@
 const std = @import("std");
+const array_list = std.array_list;
 
 /// Mining Pool - Coordinates multiple miners
 pub const MiningPool = struct {
     pool_id: []const u8,
-    miners: std.ArrayList(Miner),
+    miners: array_list.Managed(Miner),
     total_hashrate: u64,
     blocks_found: u64,
     pool_reward_address: []const u8,
@@ -28,7 +29,7 @@ pub const MiningPool = struct {
     pub fn init(pool_id: []const u8, reward_address: []const u8, allocator: std.mem.Allocator) MiningPool {
         return MiningPool{
             .pool_id = pool_id,
-            .miners = std.ArrayList(Miner).init(allocator),
+            .miners = array_list.Managed(Miner).init(allocator),
             .total_hashrate = 0,
             .blocks_found = 0,
             .pool_reward_address = reward_address,

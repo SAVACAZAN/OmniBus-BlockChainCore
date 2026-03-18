@@ -1,25 +1,26 @@
 const std = @import("std");
 const block_mod = @import("block.zig");
 const transaction_mod = @import("transaction.zig");
+const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
 
 pub const Blockchain = struct {
-    chain: std.ArrayList(Block),
-    mempool: std.ArrayList(Transaction),
+    chain: array_list.Managed(Block),
+    mempool: array_list.Managed(Transaction),
     difficulty: u32,
     allocator: std.mem.Allocator,
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
-        var chain = std.ArrayList(Block).init(allocator);
-        const mempool = std.ArrayList(Transaction).init(allocator);
+        var chain = array_list.Managed(Block).init(allocator);
+        const mempool = array_list.Managed(Transaction).init(allocator);
 
         // Create genesis block
         const genesis = Block{
             .index = 0,
             .timestamp = 0,
-            .transactions = std.ArrayList(Transaction).init(allocator),
+            .transactions = array_list.Managed(Transaction).init(allocator),
             .previous_hash = "0",
             .nonce = 0,
             .hash = "genesis_hash_placeholder",
@@ -104,7 +105,7 @@ pub const Blockchain = struct {
         try self.chain.append(block);
 
         // Reset mempool for next block
-        self.mempool = std.ArrayList(Transaction).init(self.allocator);
+        self.mempool = array_list.Managed(Transaction).init(self.allocator);
 
         return block;
     }

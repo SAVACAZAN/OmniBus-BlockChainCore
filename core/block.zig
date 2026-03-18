@@ -1,12 +1,13 @@
 const std = @import("std");
 const transaction_mod = @import("transaction.zig");
+const array_list = std.array_list;
 
 pub const Transaction = transaction_mod.Transaction;
 
 pub const Block = struct {
     index: u32,
     timestamp: i64,
-    transactions: std.ArrayList(Transaction),
+    transactions: array_list.Managed(Transaction),
     previous_hash: []const u8,
     nonce: u64,
     hash: []const u8,
