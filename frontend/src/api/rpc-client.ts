@@ -88,6 +88,22 @@ export class OmniBusRpcClient {
     return this.request("getmempool");
   }
 
+  async getTransactionCount(): Promise<number> {
+    return this.request("gettransactioncount");
+  }
+
+  async getTransactionHistory(limit: number = 20): Promise<any[]> {
+    return this.request("gettransactionhistory", [limit]);
+  }
+
+  async getMinerBalances(): Promise<any[]> {
+    return this.request("getminerbalances");
+  }
+
+  async getMiners(): Promise<any[]> {
+    return this.request("getminers");
+  }
+
   // Custom methods for UI
   async getBlockchainStats(): Promise<{
     blockCount: number;
