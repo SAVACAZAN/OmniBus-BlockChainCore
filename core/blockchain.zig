@@ -13,7 +13,7 @@ pub const Blockchain = struct {
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = std.ArrayList(Block).init(allocator);
-        var mempool = std.ArrayList(Transaction).init(allocator);
+        const mempool = std.ArrayList(Transaction).init(allocator);
 
         // Create genesis block
         const genesis = Block{

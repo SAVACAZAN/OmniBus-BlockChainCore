@@ -53,7 +53,7 @@ pub const RPCServer = struct {
 
     // JSON-RPC response formatter (simplified)
     pub fn formatResponse(self: *RPCServer, method: []const u8, result: []const u8) ![]u8 {
-        var buffer = try self.allocator.alloc(u8, 1024);
+        const buffer = try self.allocator.alloc(u8, 1024);
 
         const response = try std.fmt.bufPrint(buffer,
             "{{\"jsonrpc\":\"2.0\",\"method\":\"{s}\",\"result\":\"{s}\",\"id\":1}}",
@@ -66,7 +66,7 @@ pub const RPCServer = struct {
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    _ = gpa.allocator();
 
     var stdout = std.io.getStdOut().writer();
 

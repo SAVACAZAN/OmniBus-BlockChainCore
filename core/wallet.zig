@@ -85,6 +85,7 @@ pub const Wallet = struct {
     }
 
     pub fn send(self: *Wallet, to_address: []const u8, amount: u64) !void {
+        _ = to_address;
         if (amount > self.balance) {
             return error.InsufficientBalance;
         }
