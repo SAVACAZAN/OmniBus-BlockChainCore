@@ -89,7 +89,37 @@ export class OmniBusRpcClient {
   }
 
   async getTransactionCount(): Promise<number> {
+    // Real transaction count = actual mining reward transactions
     return this.request("gettransactioncount");
+  }
+
+  async getBlockchainStatsExtended(): Promise<{
+    blockCount: number;
+    mempoolSize: number;
+    balance: number;
+    transactionCount: number;
+    activeMinerCount: number;
+  }> {
+    try {
+      const [blockCount, mempoolSize, balance, transactionCount, miners] = await Promise.all([
+        this.getBlockCount(),
+        this.getMempoolSize(),
+        this.getBalance(),
+        this.getTransactionCount(),
+        this.getMinerBalances(),
+      ]);
+
+      return {
+        blockCount,
+        mempoolSize,
+        balance,
+        transactionCount,
+        activeMinerCount: miners.length,
+      };
+    } catch (error) {
+      console.error("Failed to fetch extended stats:", error);
+      throw error;
+    }
   }
 
   async getTransactionHistory(limit: number = 20): Promise<any[]> {

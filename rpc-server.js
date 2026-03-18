@@ -226,7 +226,14 @@ const rpcMethods = {
 
   getmempooltransactions: () => [],
 
-  gettransactioncount: () => blockCount, // One mining reward per block
+  gettransactioncount: () => {
+    // REAL: Total transactions = all transactions across all blocks
+    let totalTxCount = 0;
+    blockData.forEach(block => {
+      totalTxCount += (block.transactions ? block.transactions.length : 0);
+    });
+    return totalTxCount;
+  },
 
   gettransactionhistory: (params) => {
     const limit = params[0] || 20;

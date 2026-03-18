@@ -229,18 +229,20 @@ export const App: React.FC = () => {
               <div className="section-body">
                 <div className="stat-grid">
                   <div className="stat-card">
-                    <div className="stat-label">Reward Per Block</div>
-                    <div className="stat-value">50 OMNI</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-label">Mining Transactions</div>
-                    <div className="stat-value">{transactions.length}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-label">Avg Blocks/Miner</div>
+                    <div className="stat-label">Reward Per Miner/Block</div>
                     <div className="stat-value">
-                      {miners.length > 0 ? (stats.blockCount / miners.length).toFixed(1) : "0"}
+                      {miners.length > 0 ? (50 / miners.length).toFixed(2) : "50"} OMNI
                     </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-label">REAL Transactions</div>
+                    <div className="stat-value">
+                      {stats.blockCount * miners.length || transactions.length}
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-label">Tx Per Block</div>
+                    <div className="stat-value">{miners.length}</div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-label">Network Status</div>
