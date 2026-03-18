@@ -21,7 +21,7 @@ export class OmniBusRpcClient {
   private baseUrl: string;
   private requestId: number = 1;
 
-  constructor(baseUrl: string = "http://localhost:8332") {
+  constructor(baseUrl: string = "/api") {
     this.baseUrl = baseUrl;
   }
 
