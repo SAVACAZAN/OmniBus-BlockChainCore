@@ -4,6 +4,8 @@ const transaction_mod = @import("transaction.zig");
 const sub_block_mod = @import("sub_block.zig");
 const shard_config = @import("shard_config.zig");
 const binary_codec = @import("binary_codec.zig");
+const prune_config = @import("prune_config.zig");
+const archive_manager_mod = @import("archive_manager.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -13,22 +15,37 @@ pub const SubBlockPool = sub_block_mod.SubBlockPool;
 pub const ShardConfig = shard_config.ShardConfig;
 pub const BinaryEncoder = binary_codec.BinaryEncoder;
 pub const BinaryDecoder = binary_codec.BinaryDecoder;
+pub const PruneConfig = prune_config.PruneConfig;
+pub const PruneStats = prune_config.PruneStats;
+pub const ArchiveManager = archive_manager_mod.ArchiveManager;
 
-/// Blockchain v2 - with sub-blocks and sharding support
+/// Blockchain v2 - with sub-blocks, sharding, and pruning support
 pub const BlockchainV2 = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
     sub_block_pool: SubBlockPool,
     shard_config: ShardConfig,
+    prune_config: PruneConfig,
+    archive_mgr: ?ArchiveManager = null,
+    prune_stats: PruneStats = .{},
     difficulty: u32,
     allocator: std.mem.Allocator,
     current_block_number: u32 = 0,
 
     pub fn init(allocator: std.mem.Allocator, shard_id: u8) !BlockchainV2 {
+        return try BlockchainV2.initWithPruning(allocator, shard_id, .{});
+    }
+
+    pub fn initWithPruning(allocator: std.mem.Allocator, shard_id: u8, prune_cfg: PruneConfig) !BlockchainV2 {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
         const sub_pool = SubBlockPool.init(allocator, 0);
         const shards = try ShardConfig.init(allocator, shard_id);
+        var cfg = prune_cfg;
+        cfg.allocator = allocator;
+
+        // Validate pruning config
+        try cfg.validate();
 
         // Create genesis block
         const genesis = Block{
@@ -42,11 +59,18 @@ pub const BlockchainV2 = struct {
 
         try chain.append(genesis);
 
+        var archive: ?ArchiveManager = null;
+        if (cfg.archive_enabled) {
+            archive = ArchiveManager.init(allocator, cfg.archive_path, cfg.compress_archived);
+        }
+
         return BlockchainV2{
             .chain = chain,
             .mempool = mempool,
             .sub_block_pool = sub_pool,
             .shard_config = shards,
+            .prune_config = cfg,
+            .archive_mgr = archive,
             .difficulty = 4,
             .allocator = allocator,
             .current_block_number = 0,
@@ -277,6 +301,90 @@ pub const BlockchainV2 = struct {
 
     pub fn getBlockCount(self: *const BlockchainV2) u32 {
         return @intCast(self.chain.items.len);
+    }
+
+    /// Prune old blocks based on configuration
+    pub fn pruneOldBlocks(self: *BlockchainV2) !void {
+        if (!self.prune_config.auto_prune_enabled) return;
+
+        if (self.chain.items.len <= self.prune_config.prune_threshold) {
+            return;  // No need to prune yet
+        }
+
+        const blocks_to_keep = self.prune_config.max_blocks_to_keep;
+        const blocks_to_remove = self.chain.items.len - blocks_to_keep;
+
+        std.debug.print("[PRUNE] Starting pruning: removing {d} blocks\n", .{blocks_to_remove});
+
+        // Archive old blocks if enabled
+        if (self.archive_mgr) |*archive| {
+            var encoded_blocks = std.ArrayList(u8).init(self.allocator);
+            defer encoded_blocks.deinit();
+
+            // Encode blocks to be removed
+            for (0..blocks_to_remove) |i| {
+                const encoded = try self.encodeBlockBinary(&self.chain.items[i]);
+                try encoded_blocks.appendSlice(encoded);
+            }
+
+            try archive.archiveBlocks(0, @intCast(blocks_to_remove - 1), encoded_blocks.items);
+        }
+
+        // Remove old blocks from chain
+        for (0..blocks_to_remove) |_| {
+            if (self.chain.items.len > 0) {
+                const removed = self.chain.orderedRemove(0);
+                removed.transactions.deinit();
+
+                self.prune_stats.blocks_pruned += 1;
+                self.prune_stats.space_freed += 50000;  // Estimate ~50KB per block
+            }
+        }
+
+        self.prune_stats.blocks_remaining = @intCast(self.chain.items.len);
+        self.prune_stats.prune_count += 1;
+
+        std.debug.print("[PRUNE] Completed: {d} blocks remaining\n", .{self.prune_stats.blocks_remaining});
+    }
+
+    /// Check if pruning is needed
+    pub fn needsPruning(self: *const BlockchainV2) bool {
+        return self.chain.items.len >= self.prune_config.prune_threshold;
+    }
+
+    /// Get pruning statistics
+    pub fn getPruneStats(self: *const BlockchainV2) PruneStats {
+        return self.prune_stats;
+    }
+
+    /// Get estimated storage size
+    pub fn getEstimatedStorageSize(self: *const BlockchainV2) u64 {
+        // ~50KB per block (after compression)
+        return @as(u64, @intCast(self.chain.items.len)) * 50 * 1024;
+    }
+
+    /// Print blockchain info including pruning stats
+    pub fn printInfo(self: *const BlockchainV2) void {
+        const size = self.getEstimatedStorageSize();
+        const size_mb = size / (1024 * 1024);
+
+        std.debug.print(
+            \\[BLOCKCHAIN] Info:
+            \\  - Blocks: {d}
+            \\  - Transactions: {d}
+            \\  - Estimated size: {d} MB
+            \\  - Shard: {d}
+            \\  - Pruning enabled: {}
+            \\  - Blocks pruned total: {d}
+            \\
+        , .{
+            self.chain.items.len,
+            self.mempool.items.len,
+            size_mb,
+            self.shard_config.current_node_shard,
+            self.prune_config.auto_prune_enabled,
+            self.prune_stats.blocks_pruned,
+        });
     }
 };
 
