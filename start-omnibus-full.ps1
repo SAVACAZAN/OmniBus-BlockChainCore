@@ -177,23 +177,17 @@ Start-Sleep -Seconds 2
 Write-Host ""
 
 # ============================================================================
-# PHASE 5: LAUNCH RPC SERVER
+# PHASE 5: RPC SERVER (Built-in with Seed Node)
 # ============================================================================
 
-Write-Header "Phase 5: Launching RPC Server"
+Write-Header "Phase 5: RPC Server"
 
-Write-ColorOutput $Colors['Info'] "Starting RPC server on http://localhost:$($Config['RPCPort'])..."
-
-$RPCProcess = Start-Process -FilePath "omnibus-node.exe" -ArgumentList @(
-    "--mode", "rpc",
-    "--port", $Config['RPCPort']
-) -PassThru -NoNewWindow -RedirectStandardOutput "logs/rpc-server.log"
-
-Write-ColorOutput $Colors['Success'] "✅ RPC server started (PID: $($RPCProcess.Id))"
-Write-ColorOutput $Colors['Info'] "   Log: logs/rpc-server.log"
+Write-ColorOutput $Colors['Success'] "✅ RPC Server running on seed node"
+Write-ColorOutput $Colors['Info'] "   HTTP: http://localhost:$($Config['RPCPort'])"
 Write-ColorOutput $Colors['Info'] "   Methods: getGenesisStatus, getMiners, startGenesis"
+Write-ColorOutput $Colors['Info'] "   Integration: Built-in with seed node"
 
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 Write-Host ""
 
@@ -267,8 +261,7 @@ Write-ColorOutput $Colors['Success'] "All components launched successfully!"
 Write-Host ""
 
 Write-ColorOutput $Colors['Highlight'] "Running Processes:"
-Write-ColorOutput $Colors['Highlight'] "  - Seed Node (PID: $($SeedProcess.Id))"
-Write-ColorOutput $Colors['Highlight'] "  - RPC Server (PID: $($RPCProcess.Id))"
+Write-ColorOutput $Colors['Highlight'] "  - Seed Node + RPC Server (PID: $($SeedProcess.Id))"
 Write-ColorOutput $Colors['Highlight'] "  - $($Config['MinersCount']) Light Miners (PIDs: $($MinerPIDs -join ', '))"
 Write-Host ""
 
@@ -313,7 +306,6 @@ Read-Host "Press Enter to continue monitoring (press Ctrl+C to stop)"
 # Monitor for key processes
 while ($true) {
     $SeedAlive = Get-Process -Id $SeedProcess.Id -ErrorAction SilentlyContinue
-    $RPCAlive = Get-Process -Id $RPCProcess.Id -ErrorAction SilentlyContinue
     $MinersAlive = @($MinerPIDs | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue }).Count
 
     Clear-Host
@@ -322,10 +314,7 @@ while ($true) {
 
     Write-ColorOutput $Colors['Info'] "Process Status:"
     Write-ColorOutput $(if ($SeedAlive) { $Colors['Success'] } else { $Colors['Error'] }) `
-        "$(if ($SeedAlive) { '✅' } else { '❌' }) Seed Node (PID: $($SeedProcess.Id))"
-
-    Write-ColorOutput $(if ($RPCAlive) { $Colors['Success'] } else { $Colors['Error'] }) `
-        "$(if ($RPCAlive) { '✅' } else { '❌' }) RPC Server (PID: $($RPCProcess.Id))"
+        "$(if ($SeedAlive) { '✅' } else { '❌' }) Seed Node + RPC (PID: $($SeedProcess.Id))"
 
     Write-ColorOutput $(if ($MinersAlive -ge 3) { $Colors['Success'] } else { $Colors['Warning'] }) `
         "$(if ($MinersAlive -ge 3) { '✅' } else { '⚠️ ' }) Miners: $MinersAlive/$($Config['MinersCount']) connected"

@@ -198,24 +198,17 @@ sleep 2
 echo ""
 
 # ============================================================================
-# PHASE 5: LAUNCH RPC SERVER
+# PHASE 5: LAUNCH RPC SERVER (runs with seed node)
 # ============================================================================
 
-write_header "Phase 5: Launching RPC Server"
+write_header "Phase 5: RPC Server"
 
-write_info "Starting RPC server on http://localhost:$RPC_PORT..."
-
-./omnibus-node \
-    --mode rpc \
-    --port $RPC_PORT \
-    > logs/rpc-server.log 2>&1 &
-RPC_PID=$!
-
-write_success "RPC server started (PID: $RPC_PID)"
-write_info "   Log: logs/rpc-server.log"
+write_success "RPC Server running on seed node (port $RPC_PORT)"
+write_info "   HTTP: http://localhost:$RPC_PORT"
 write_info "   Methods: getGenesisStatus, getMiners, startGenesis"
+write_info "   Integration: Built-in with seed node"
 
-sleep 2
+sleep 1
 echo ""
 
 # ============================================================================
@@ -288,8 +281,7 @@ write_success "All components launched successfully!"
 echo ""
 
 echo -e "${MAGENTA}Running Processes:${NC}"
-echo -e "${MAGENTA}  - Seed Node (PID: $SEED_PID)${NC}"
-echo -e "${MAGENTA}  - RPC Server (PID: $RPC_PID)${NC}"
+echo -e "${MAGENTA}  - Seed Node + RPC Server (PID: $SEED_PID)${NC}"
 echo -e "${MAGENTA}  - $MINERS_COUNT Light Miners${NC}"
 echo ""
 
@@ -339,15 +331,9 @@ while true; do
     write_info "Process Status:"
 
     if ps -p $SEED_PID > /dev/null 2>&1; then
-        write_success "Seed Node (PID: $SEED_PID)"
+        write_success "Seed Node + RPC (PID: $SEED_PID)"
     else
-        write_error "Seed Node (PID: $SEED_PID) - NOT RUNNING"
-    fi
-
-    if ps -p $RPC_PID > /dev/null 2>&1; then
-        write_success "RPC Server (PID: $RPC_PID)"
-    else
-        write_error "RPC Server (PID: $RPC_PID) - NOT RUNNING"
+        write_error "Seed Node + RPC (PID: $SEED_PID) - NOT RUNNING"
     fi
 
     MINERS_ALIVE=0

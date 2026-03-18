@@ -1,0 +1,86 @@
+{
+  "genesis_timestamp": "2026-03-18T10:10:12Z",
+  "total_supply_omni": 21000000,
+  "miners": [
+    {
+      "miner_id": 0,
+      "miner_name": "miner-0",
+      "address": "ob_omni_miner01xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 1,
+      "miner_name": "miner-1",
+      "address": "ob_omni_miner02xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 2,
+      "miner_name": "miner-2",
+      "address": "ob_omni_miner03xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 3,
+      "miner_name": "miner-3",
+      "address": "ob_omni_miner04xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 4,
+      "miner_name": "miner-4",
+      "address": "ob_omni_miner05xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 5,
+      "miner_name": "miner-5",
+      "address": "ob_omni_miner06xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 6,
+      "miner_name": "miner-6",
+      "address": "ob_omni_miner07xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 7,
+      "miner_name": "miner-7",
+      "address": "ob_omni_miner08xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 8,
+      "miner_name": "miner-8",
+      "address": "ob_omni_miner09xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 9,
+      "miner_name": "miner-9",
+      "address": "ob_omni_miner10xxxxxxxxxxxxx",
+      "allocated_omni": 2100000,
+      "allocated_sat": 210000000000000,
+      "status": "genesis_allocated"
+    }
+  ]
+}

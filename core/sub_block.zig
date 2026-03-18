@@ -149,7 +149,7 @@ test "sub-block pool" {
     var pool = SubBlockPool.init(testing.allocator, 100);
     defer pool.deinit();
 
-    var sub1 = SubBlock.init(testing.allocator, 0, 100, 0, "miner-1");
+    const sub1 = SubBlock.init(testing.allocator, 0, 100, 0, "miner-1");
     try pool.addSubBlock(sub1);
 
     try testing.expectEqual(pool.sub_blocks.items.len, 1);
@@ -157,7 +157,7 @@ test "sub-block pool" {
 
     // Add 9 more
     for (1..10) |i| {
-        var sub = SubBlock.init(testing.allocator, @intCast(i), 100, @intCast(i % 7), "miner-1");
+        const sub = SubBlock.init(testing.allocator, @intCast(i), 100, @intCast(i % 7), "miner-1");
         try pool.addSubBlock(sub);
     }
 
