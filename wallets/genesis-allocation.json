@@ -1,85 +1,885 @@
 {
-  "genesis_timestamp": "2026-03-18T11:26:06.551Z",
+  "genesis_timestamp": "2026-03-18T11:28:34.240Z",
   "total_supply_omni": 21000000,
   "miners": [
     {
       "miner_id": 0,
       "miner_name": "miner-0",
-      "address": "ob_omni_miner01xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner001xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 1,
       "miner_name": "miner-1",
-      "address": "ob_omni_miner02xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner002xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 2,
       "miner_name": "miner-2",
-      "address": "ob_omni_miner03xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner003xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 3,
       "miner_name": "miner-3",
-      "address": "ob_omni_miner04xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner004xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 4,
       "miner_name": "miner-4",
-      "address": "ob_omni_miner05xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner005xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 5,
       "miner_name": "miner-5",
-      "address": "ob_omni_miner06xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner006xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 6,
       "miner_name": "miner-6",
-      "address": "ob_omni_miner07xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner007xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 7,
       "miner_name": "miner-7",
-      "address": "ob_omni_miner08xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner008xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 8,
       "miner_name": "miner-8",
-      "address": "ob_omni_miner09xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner009xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     },
     {
       "miner_id": 9,
       "miner_name": "miner-9",
-      "address": "ob_omni_miner10xxxxxxxxxxxxx",
-      "allocated_omni": 2100000,
-      "allocated_sat": 210000000000000,
+      "address": "ob_omni_miner010xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 10,
+      "miner_name": "miner-10",
+      "address": "ob_omni_miner011xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 11,
+      "miner_name": "miner-11",
+      "address": "ob_omni_miner012xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 12,
+      "miner_name": "miner-12",
+      "address": "ob_omni_miner013xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 13,
+      "miner_name": "miner-13",
+      "address": "ob_omni_miner014xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 14,
+      "miner_name": "miner-14",
+      "address": "ob_omni_miner015xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 15,
+      "miner_name": "miner-15",
+      "address": "ob_omni_miner016xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 16,
+      "miner_name": "miner-16",
+      "address": "ob_omni_miner017xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 17,
+      "miner_name": "miner-17",
+      "address": "ob_omni_miner018xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 18,
+      "miner_name": "miner-18",
+      "address": "ob_omni_miner019xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 19,
+      "miner_name": "miner-19",
+      "address": "ob_omni_miner020xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 20,
+      "miner_name": "miner-20",
+      "address": "ob_omni_miner021xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 21,
+      "miner_name": "miner-21",
+      "address": "ob_omni_miner022xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 22,
+      "miner_name": "miner-22",
+      "address": "ob_omni_miner023xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 23,
+      "miner_name": "miner-23",
+      "address": "ob_omni_miner024xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 24,
+      "miner_name": "miner-24",
+      "address": "ob_omni_miner025xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 25,
+      "miner_name": "miner-25",
+      "address": "ob_omni_miner026xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 26,
+      "miner_name": "miner-26",
+      "address": "ob_omni_miner027xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 27,
+      "miner_name": "miner-27",
+      "address": "ob_omni_miner028xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 28,
+      "miner_name": "miner-28",
+      "address": "ob_omni_miner029xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 29,
+      "miner_name": "miner-29",
+      "address": "ob_omni_miner030xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 30,
+      "miner_name": "miner-30",
+      "address": "ob_omni_miner031xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 31,
+      "miner_name": "miner-31",
+      "address": "ob_omni_miner032xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 32,
+      "miner_name": "miner-32",
+      "address": "ob_omni_miner033xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 33,
+      "miner_name": "miner-33",
+      "address": "ob_omni_miner034xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 34,
+      "miner_name": "miner-34",
+      "address": "ob_omni_miner035xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 35,
+      "miner_name": "miner-35",
+      "address": "ob_omni_miner036xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 36,
+      "miner_name": "miner-36",
+      "address": "ob_omni_miner037xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 37,
+      "miner_name": "miner-37",
+      "address": "ob_omni_miner038xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 38,
+      "miner_name": "miner-38",
+      "address": "ob_omni_miner039xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 39,
+      "miner_name": "miner-39",
+      "address": "ob_omni_miner040xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 40,
+      "miner_name": "miner-40",
+      "address": "ob_omni_miner041xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 41,
+      "miner_name": "miner-41",
+      "address": "ob_omni_miner042xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 42,
+      "miner_name": "miner-42",
+      "address": "ob_omni_miner043xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 43,
+      "miner_name": "miner-43",
+      "address": "ob_omni_miner044xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 44,
+      "miner_name": "miner-44",
+      "address": "ob_omni_miner045xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 45,
+      "miner_name": "miner-45",
+      "address": "ob_omni_miner046xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 46,
+      "miner_name": "miner-46",
+      "address": "ob_omni_miner047xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 47,
+      "miner_name": "miner-47",
+      "address": "ob_omni_miner048xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 48,
+      "miner_name": "miner-48",
+      "address": "ob_omni_miner049xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 49,
+      "miner_name": "miner-49",
+      "address": "ob_omni_miner050xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 50,
+      "miner_name": "miner-50",
+      "address": "ob_omni_miner051xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 51,
+      "miner_name": "miner-51",
+      "address": "ob_omni_miner052xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 52,
+      "miner_name": "miner-52",
+      "address": "ob_omni_miner053xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 53,
+      "miner_name": "miner-53",
+      "address": "ob_omni_miner054xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 54,
+      "miner_name": "miner-54",
+      "address": "ob_omni_miner055xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 55,
+      "miner_name": "miner-55",
+      "address": "ob_omni_miner056xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 56,
+      "miner_name": "miner-56",
+      "address": "ob_omni_miner057xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 57,
+      "miner_name": "miner-57",
+      "address": "ob_omni_miner058xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 58,
+      "miner_name": "miner-58",
+      "address": "ob_omni_miner059xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 59,
+      "miner_name": "miner-59",
+      "address": "ob_omni_miner060xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 60,
+      "miner_name": "miner-60",
+      "address": "ob_omni_miner061xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 61,
+      "miner_name": "miner-61",
+      "address": "ob_omni_miner062xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 62,
+      "miner_name": "miner-62",
+      "address": "ob_omni_miner063xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 63,
+      "miner_name": "miner-63",
+      "address": "ob_omni_miner064xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 64,
+      "miner_name": "miner-64",
+      "address": "ob_omni_miner065xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 65,
+      "miner_name": "miner-65",
+      "address": "ob_omni_miner066xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 66,
+      "miner_name": "miner-66",
+      "address": "ob_omni_miner067xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 67,
+      "miner_name": "miner-67",
+      "address": "ob_omni_miner068xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 68,
+      "miner_name": "miner-68",
+      "address": "ob_omni_miner069xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 69,
+      "miner_name": "miner-69",
+      "address": "ob_omni_miner070xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 70,
+      "miner_name": "miner-70",
+      "address": "ob_omni_miner071xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 71,
+      "miner_name": "miner-71",
+      "address": "ob_omni_miner072xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 72,
+      "miner_name": "miner-72",
+      "address": "ob_omni_miner073xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 73,
+      "miner_name": "miner-73",
+      "address": "ob_omni_miner074xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 74,
+      "miner_name": "miner-74",
+      "address": "ob_omni_miner075xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 75,
+      "miner_name": "miner-75",
+      "address": "ob_omni_miner076xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 76,
+      "miner_name": "miner-76",
+      "address": "ob_omni_miner077xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 77,
+      "miner_name": "miner-77",
+      "address": "ob_omni_miner078xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 78,
+      "miner_name": "miner-78",
+      "address": "ob_omni_miner079xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 79,
+      "miner_name": "miner-79",
+      "address": "ob_omni_miner080xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 80,
+      "miner_name": "miner-80",
+      "address": "ob_omni_miner081xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 81,
+      "miner_name": "miner-81",
+      "address": "ob_omni_miner082xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 82,
+      "miner_name": "miner-82",
+      "address": "ob_omni_miner083xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 83,
+      "miner_name": "miner-83",
+      "address": "ob_omni_miner084xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 84,
+      "miner_name": "miner-84",
+      "address": "ob_omni_miner085xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 85,
+      "miner_name": "miner-85",
+      "address": "ob_omni_miner086xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 86,
+      "miner_name": "miner-86",
+      "address": "ob_omni_miner087xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 87,
+      "miner_name": "miner-87",
+      "address": "ob_omni_miner088xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 88,
+      "miner_name": "miner-88",
+      "address": "ob_omni_miner089xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 89,
+      "miner_name": "miner-89",
+      "address": "ob_omni_miner090xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 90,
+      "miner_name": "miner-90",
+      "address": "ob_omni_miner091xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 91,
+      "miner_name": "miner-91",
+      "address": "ob_omni_miner092xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 92,
+      "miner_name": "miner-92",
+      "address": "ob_omni_miner093xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 93,
+      "miner_name": "miner-93",
+      "address": "ob_omni_miner094xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 94,
+      "miner_name": "miner-94",
+      "address": "ob_omni_miner095xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 95,
+      "miner_name": "miner-95",
+      "address": "ob_omni_miner096xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 96,
+      "miner_name": "miner-96",
+      "address": "ob_omni_miner097xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 97,
+      "miner_name": "miner-97",
+      "address": "ob_omni_miner098xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 98,
+      "miner_name": "miner-98",
+      "address": "ob_omni_miner099xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 99,
+      "miner_name": "miner-99",
+      "address": "ob_omni_miner100xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 100,
+      "miner_name": "miner-100",
+      "address": "ob_omni_miner101xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 101,
+      "miner_name": "miner-101",
+      "address": "ob_omni_miner102xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 102,
+      "miner_name": "miner-102",
+      "address": "ob_omni_miner103xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 103,
+      "miner_name": "miner-103",
+      "address": "ob_omni_miner104xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 104,
+      "miner_name": "miner-104",
+      "address": "ob_omni_miner105xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 105,
+      "miner_name": "miner-105",
+      "address": "ob_omni_miner106xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 106,
+      "miner_name": "miner-106",
+      "address": "ob_omni_miner107xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 107,
+      "miner_name": "miner-107",
+      "address": "ob_omni_miner108xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 108,
+      "miner_name": "miner-108",
+      "address": "ob_omni_miner109xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
+      "status": "genesis_allocated"
+    },
+    {
+      "miner_id": 109,
+      "miner_name": "miner-109",
+      "address": "ob_omni_miner110xxxxxxxxxxxxx",
+      "allocated_omni": 0,
+      "allocated_sat": 0,
       "status": "genesis_allocated"
     }
   ]

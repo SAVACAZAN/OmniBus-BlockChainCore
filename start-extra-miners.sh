@@ -11,6 +11,7 @@ SEED_PORT="9000"
 EXTRA_MINERS=100
 LOGS_DIR="./logs"
 PIDS_FILE=".extra_miners_pids"
+EXTRA_MINERS_REGISTRY=".extra_miners_registry.json"
 
 echo "==================================================="
 echo "🚀 OmniBus Extra Miners - Starting 100 Nodes"
@@ -18,6 +19,9 @@ echo "==================================================="
 
 # Create logs directory
 mkdir -p "$LOGS_DIR"
+
+# Create dynamic miners registry for RPC to discover
+echo '{"extra_miners": [' > "$EXTRA_MINERS_REGISTRY"
 
 # Clear previous PIDs
 > "$PIDS_FILE"
