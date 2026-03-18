@@ -51,6 +51,37 @@ pub const RPCServer = struct {
         return self.blockchain.mempool.items;
     }
 
+    /// Genesis Status for GenesisCountdown page
+    pub fn getGenesisStatus(self: *RPCServer) ![]const u8 {
+        var response = std.ArrayList(u8).init(self.allocator);
+
+        const genesis_status = try std.fmt.allocPrint(
+            self.allocator,
+            \\{{"status":"mining","blockCount":{d},"currentDifficulty":4,"timestamp":{d},"connectedMiners":0,"totalMiners":0,"totalHashrate":0,"genesisReady":false,"genesisStarted":false,"minersRequired":3}}
+            ,
+            .{ self.blockchain.getBlockCount(), std.time.timestamp() }
+        );
+
+        try response.appendSlice(genesis_status);
+        return response.items;
+    }
+
+    /// Get miners list (stub for now)
+    pub fn getMiners(self: *RPCServer) ![]const u8 {
+        var response = std.ArrayList(u8).init(self.allocator);
+
+        // Return empty miners array initially
+        const miners_data = "[]";
+        try response.appendSlice(miners_data);
+        return response.items;
+    }
+
+    /// Start Genesis mining
+    pub fn startGenesis(self: *RPCServer) !bool {
+        _ = self;
+        return true;
+    }
+
     // JSON-RPC response formatter (simplified)
     pub fn formatResponse(self: *RPCServer, method: []const u8, result: []const u8) ![]u8 {
         const buffer = try self.allocator.alloc(u8, 1024);
