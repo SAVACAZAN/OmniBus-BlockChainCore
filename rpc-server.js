@@ -46,6 +46,11 @@ function initializeMiners() {
       minerBalances[miner.address] = 0;
       minerLastBlockTime[miner.address] = null;
     });
+    // ALL miners are connected from start
+    connectedMiners = genesisData.miners.length;
+    console.log(`[RPC] Initialized ${connectedMiners} miners from genesis data`);
+  } else {
+    console.log("[RPC] WARNING: No miners found in genesis data");
   }
 }
 
@@ -99,10 +104,7 @@ setInterval(() => {
     }
   }
 
-  // Update miner connection status
-  if (blockCount % 10 === 0) {
-    connectedMiners = Math.min(10, connectedMiners + 1);
-  }
+  // connectedMiners stays at full capacity (all miners from genesis)
 }, 2000);
 
 function generateBlockHash() {
@@ -176,16 +178,19 @@ const rpcMethods = {
   },
 
   getminerbalances: () => {
-    return Object.entries(minerBalances).map(([address, balance]) => {
-      const miner = genesisData.miners.find(m => m.address === address);
+    if (!genesisData.miners || genesisData.miners.length === 0) {
+      return [];
+    }
+    return genesisData.miners.map(miner => {
+      const balance = minerBalances[miner.address] || 0;
       return {
-        address: address,
-        minerName: miner ? miner.miner_name : "Unknown",
-        minerID: miner ? miner.miner_id : "?",
+        address: miner.address,
+        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
+        minerID: miner.miner_id,
         balanceSat: balance,
         balanceOmni: balance / 1e9,
         blocksMined: Math.round(balance / MINING_REWARD),
-        lastBlockTime: minerLastBlockTime[address]
+        lastBlockTime: minerLastBlockTime[miner.address]
       };
     });
   },
@@ -205,16 +210,21 @@ const rpcMethods = {
     totalTransactions: blockCount
   }),
 
-  getminers: () =>
-    genesisData.miners.map((m, idx) => ({
+  getminers: () => {
+    if (!genesisData.miners || genesisData.miners.length === 0) {
+      return [];
+    }
+    return genesisData.miners.map((m, idx) => ({
       id: m.miner_id,
       name: m.miner_name,
       address: m.address,
-      status: idx < connectedMiners ? "mining" : "offline",
+      status: "mining",  // All miners from genesis are active
       hashrate: 1000,
       balanceOmni: (minerBalances[m.address] || 0) / 1e9,
-      blocksMined: Math.round((minerBalances[m.address] || 0) / MINING_REWARD)
-    })),
+      blocksMined: Math.round((minerBalances[m.address] || 0) / MINING_REWARD),
+      lastBlockTime: minerLastBlockTime[m.address]
+    }));
+  },
 
   startgenesis: () => true
 };
