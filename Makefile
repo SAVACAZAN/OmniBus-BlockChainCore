@@ -25,7 +25,14 @@ help:
 	@echo "  make install-frontend - npm install for frontend"
 	@echo "  make build-frontend   - Build React explorer & wallet"
 	@echo ""
-	@echo "Running:"
+	@echo "Running (with Network):"
+	@echo "  make run-seed-primary - Start primary seed node (port 9000)"
+	@echo "  make run-seed-2       - Start secondary seed node (port 9001)"
+	@echo "  make run-miner-1      - Start miner 1 (2000 H/s)"
+	@echo "  make run-miner-2      - Start miner 2 (1500 H/s)"
+	@echo "  make run-miner-3      - Start miner 3 (1800 H/s)"
+	@echo ""
+	@echo "Legacy:"
 	@echo "  make run-node         - Start blockchain node (mining)"
 	@echo "  make run-rpc          - Start JSON-RPC server"
 	@echo "  make run-frontend     - Start React dev server"
@@ -61,10 +68,31 @@ build-frontend: install-frontend
 	cd $(FRONTEND_DIR) && $(NPM) run build
 	@echo "✅ Frontend built to $(FRONTEND_DIR)/dist"
 
-# Running
+# Running - Network Setup
+run-seed-primary: build-core
+	@echo "Starting Primary Seed Node..."
+	./omnibus-node --mode seed --node-id seed-1 --primary --port 9000
+
+run-seed-2: build-core
+	@echo "Starting Secondary Seed Node..."
+	./omnibus-node --mode seed --node-id seed-2 --port 9001
+
+run-miner-1: build-core
+	@echo "Starting Miner 1 (2000 H/s)..."
+	./omnibus-node --mode miner --node-id miner-1 --host 127.0.0.1 --port 9011 --seed-host 127.0.0.1 --seed-port 9000 --hashrate 2000
+
+run-miner-2: build-core
+	@echo "Starting Miner 2 (1500 H/s)..."
+	./omnibus-node --mode miner --node-id miner-2 --host 127.0.0.1 --port 9012 --seed-host 127.0.0.1 --seed-port 9000 --hashrate 1500
+
+run-miner-3: build-core
+	@echo "Starting Miner 3 (1800 H/s)..."
+	./omnibus-node --mode miner --node-id miner-3 --host 127.0.0.1 --port 9013 --seed-host 127.0.0.1 --seed-port 9000 --hashrate 1800
+
+# Running - Legacy
 run-node: build-core
 	@echo "Starting OmniBus Blockchain Node..."
-	./omnibus-node
+	./omnibus-node --mode seed --node-id seed-1 --primary --port 9000
 
 run-rpc: build-rpc
 	@echo "Starting JSON-RPC Server..."
