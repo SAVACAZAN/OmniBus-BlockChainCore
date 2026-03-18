@@ -202,7 +202,7 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
 
     $FrontendProcess = Start-Process -FilePath "cmd.exe" -ArgumentList @(
         "/c",
-        "cd frontend && npm start"
+        "cd frontend && npm run dev"
     ) -PassThru -NoNewWindow -RedirectStandardOutput "logs/frontend.log"
 
     Write-ColorOutput $Colors['Success'] "✅ Frontend started (PID: $($FrontendProcess.Id))"
@@ -212,7 +212,7 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
     Start-Sleep -Seconds 3
 } else {
     Write-ColorOutput $Colors['Warning'] "⚠️  npm not found - skipping frontend"
-    Write-ColorOutput $Colors['Info'] "   Start manually: cd frontend && npm start"
+    Write-ColorOutput $Colors['Info'] "   Start manually: cd frontend && npm run dev"
 }
 
 Write-Host ""

@@ -220,7 +220,7 @@ write_header "Phase 6: Launching Frontend"
 if command -v npm &> /dev/null; then
     write_info "Starting frontend on http://localhost:$FRONTEND_PORT..."
 
-    (cd frontend && npm start > ../logs/frontend.log 2>&1) &
+    (cd frontend && npm run dev > ../logs/frontend.log 2>&1) &
     FRONTEND_PID=$!
 
     write_success "Frontend started (PID: $FRONTEND_PID)"
@@ -230,7 +230,7 @@ if command -v npm &> /dev/null; then
     sleep 3
 else
     write_warning "npm not found - skipping frontend"
-    write_info "   Start manually: cd frontend && npm start"
+    write_info "   Start manually: cd frontend && npm run dev"
 fi
 
 echo ""
