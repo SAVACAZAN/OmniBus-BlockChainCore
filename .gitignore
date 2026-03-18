@@ -1,0 +1,45 @@
+# Zig build artifacts
+zig-cache/
+zig-out/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Executables
+omnibus-node
+omnibus-rpc
+omnibus-agent
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build
+build/
+target/
+
+# Environment
+.env
+.env.local
+
+# Temporary
+*.tmp
+tmp/
