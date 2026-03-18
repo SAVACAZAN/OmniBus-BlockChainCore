@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * OmniBus RPC Server - Node.js Bridge
- * Real Mining Transaction Tracking
+ * OmniBus Mining Pool - Dynamic Miner Registration
+ * Accepts miners at runtime, no hardcoded lists
  */
 
 const http = require("http");
@@ -9,23 +9,8 @@ const fs = require("fs");
 
 // Configuration
 const RPC_PORT = 8332;
-const WALLETS_FILE = "./wallets/genesis-allocation.json";
 const MINING_REWARD = 5000000000; // 50 OMNI per block in SAT
-
-// Load genesis data
-let genesisData = {
-  miners: [],
-  totalSupply: 21000000,
-};
-
-try {
-  if (fs.existsSync(WALLETS_FILE)) {
-    const data = fs.readFileSync(WALLETS_FILE, "utf8");
-    genesisData = JSON.parse(data);
-  }
-} catch (err) {
-  console.error("Failed to load genesis data:", err.message);
-}
+const MINER_ACTIVITY_TIMEOUT = 30000; // 30 seconds - if no keepalive, mark offline
 
 // Real blockchain state
 let blockCount = 1;
@@ -33,72 +18,56 @@ let balance = 0;
 let mempoolSize = 0;
 let startTime = Date.now();
 
-// DYNAMIC: Track only ACTIVE miners (those currently mining)
-let activeMinerSet = new Set();  // Real-time active miners
-const MINER_ACTIVITY_TIMEOUT = 30000; // 30 seconds - if not mining, mark offline
+// DYNAMIC MINING POOL: Miners register themselves at runtime
+let minerRegistry = new Map();  // address → { id, name, hashrate, joinedAt, lastKeepalive }
+let activeMinerSet = new Set();  // Currently mining addresses
+let minerBalances = {};          // address → balance in SAT
+let minerLastBlockTime = {};     // address → last reward timestamp
 
-// Mining transactions history - tracks REAL block rewards
+// Mining transactions history
 let blockData = [];
-let minerBalances = {};
-let minerLastBlockTime = {};
 
-// Initialize miner tracking
-function initializeMiners() {
-  if (genesisData.miners && genesisData.miners.length > 0) {
-    genesisData.miners.forEach((miner, idx) => {
-      minerBalances[miner.address] = 0;
-      minerLastBlockTime[miner.address] = null;
-    });
-    // ALL miners are connected from start
-    connectedMiners = genesisData.miners.length;
-    console.log(`[RPC] Initialized ${connectedMiners} miners from genesis data`);
-  } else {
-    console.log("[RPC] WARNING: No miners found in genesis data");
-  }
-}
+console.log(`[POOL] OmniBus Mining Pool v1.0`);
+console.log(`[POOL] Listening on port ${RPC_PORT}`);
+console.log(`[POOL] Waiting for miners to register...`);
 
-initializeMiners();
-
-// Simulate real mining - EQUAL reward distribution to ALL active miners
+// Mining loop - EQUAL distribution to ALL active registered miners
 setInterval(() => {
   blockCount++;
   const blockTimestamp = Date.now();
-  const allMiners = genesisData.miners || [];
 
-  // DYNAMIC EQUAL DISTRIBUTION: Divide block reward equally among all active miners
+  // Only mine if we have active miners
   if (activeMinerSet.size > 0) {
-    // Reward per miner = total block reward / number of active miners
     const rewardPerMiner = MINING_REWARD / activeMinerSet.size;
-
-    // Distribute to each active miner
     const transactions = [];
+
+    // Distribute block reward equally to all active miners
     for (let minerAddress of activeMinerSet) {
-      const miner = allMiners.find(m => m.address === minerAddress);
-      if (!miner) continue;
+      const minerInfo = minerRegistry.get(minerAddress);
+      if (!minerInfo) continue;
 
       const minerRewardTx = {
-        id: blockCount + Array.from(activeMinerSet).indexOf(minerAddress),
-        txid: `mining_reward_${blockCount}_${miner.miner_id}`,
+        id: blockCount * 10000 + minerRegistry.size,
+        txid: `mining_reward_${blockCount}_${minerInfo.id}`,
         type: "coinbase",
         from: "SYSTEM",
         to: minerAddress,
-        amount: rewardPerMiner / 1e9,
-        amountSat: rewardPerMiner,
+        amount: rewardPerMiner / 1e9,      // OMNI
+        amountSat: rewardPerMiner,         // SAT
         timestamp: blockTimestamp,
         blockHeight: blockCount - 1,
         status: "confirmed",
-        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
-        minerID: miner.miner_id
+        minerName: minerInfo.name,
+        minerID: minerInfo.id
       };
 
-      // Update balance
       minerBalances[minerAddress] = (minerBalances[minerAddress] || 0) + rewardPerMiner;
       minerLastBlockTime[minerAddress] = blockTimestamp;
       transactions.push(minerRewardTx);
       balance += rewardPerMiner;
     }
 
-    // Store block with all reward transactions
+    // Store block
     blockData.push({
       index: blockCount - 1,
       timestamp: blockTimestamp,
@@ -110,63 +79,28 @@ setInterval(() => {
       activeMinersCount: activeMinerSet.size
     });
 
-    if (blockData.length > 100) {
-      blockData.shift();
-    }
-  } else if (allMiners.length > 0) {
-    // No active miners yet - distribute to ALL genesis miners equally
-    const rewardPerMiner = MINING_REWARD / allMiners.length;
-    const transactions = [];
-
-    allMiners.forEach(miner => {
-      const minerRewardTx = {
-        id: blockCount + miner.miner_id,
-        txid: `mining_reward_${blockCount}_${miner.miner_id}`,
-        type: "coinbase",
-        from: "SYSTEM",
-        to: miner.address,
-        amount: rewardPerMiner / 1e9,
-        amountSat: rewardPerMiner,
-        timestamp: blockTimestamp,
-        blockHeight: blockCount - 1,
-        status: "confirmed",
-        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
-        minerID: miner.miner_id
-      };
-
-      minerBalances[miner.address] = (minerBalances[miner.address] || 0) + rewardPerMiner;
-      minerLastBlockTime[miner.address] = blockTimestamp;
-      activeMinerSet.add(miner.address);
-      transactions.push(minerRewardTx);
-      balance += rewardPerMiner;
-    });
-
-    blockData.push({
-      index: blockCount - 1,
-      timestamp: blockTimestamp,
-      hash: generateBlockHash(),
-      transactions: transactions,
-      miner: `${allMiners.length} miners`,
-      minerAddress: "DISTRIBUTED",
-      reward: MINING_REWARD,
-      activeMinersCount: allMiners.length
-    });
-
+    // Keep last 100 blocks
     if (blockData.length > 100) {
       blockData.shift();
     }
   }
 }, 2000);
 
-// DYNAMIC: Cleanup inactive miners (haven't mined in 30 seconds)
+// Cleanup inactive miners (no keepalive for 30+ seconds)
 setInterval(() => {
   const now = Date.now();
   const inactiveBefore = now - MINER_ACTIVITY_TIMEOUT;
+  let disconnected = [];
 
-  for (let address of activeMinerSet) {
-    if (minerLastBlockTime[address] && minerLastBlockTime[address] < inactiveBefore) {
+  for (let [address, minerInfo] of minerRegistry.entries()) {
+    if (minerInfo.lastKeepalive < inactiveBefore) {
       activeMinerSet.delete(address);
+      disconnected.push(minerInfo.name);
     }
+  }
+
+  if (disconnected.length > 0) {
+    console.log(`[POOL] Disconnected: ${disconnected.join(", ")}`);
   }
 }, 5000);
 
@@ -247,65 +181,146 @@ const rpcMethods = {
     return allTransactions.reverse().slice(0, limit);
   },
 
-  getminerbalances: () => {
-    if (!genesisData.miners || genesisData.miners.length === 0) {
-      return [];
+  // Pool-specific RPC methods
+  registerminer: (params) => {
+    // params: [{ id: "miner-1", name: "Miner-1", address: "ob_omni_...", hashrate: 1000 }]
+    if (!params || !params[0]) {
+      return { success: false, error: "Missing miner registration data" };
     }
 
-    // DYNAMIC: Return ONLY active miners
-    return genesisData.miners
-      .filter(m => activeMinerSet.has(m.address))
-      .map(miner => {
-        const balance = minerBalances[miner.address] || 0;
-        const rewardPerMiner = MINING_REWARD / (activeMinerSet.size || 1);
-        return {
-          address: miner.address,
-          minerName: miner.miner_name || `Miner-${miner.miner_id}`,
-          minerID: miner.miner_id,
-          balanceSat: balance,
-          balanceOmni: balance / 1e9,
-          blocksMined: Math.round(balance / rewardPerMiner),
-          lastBlockTime: minerLastBlockTime[miner.address],
-          isActive: true
-        };
-      });
+    const minerData = params[0];
+    const { id, name, address, hashrate } = minerData;
+
+    if (!address) {
+      return { success: false, error: "Missing miner address" };
+    }
+
+    // Register miner
+    minerRegistry.set(address, {
+      id: id || `miner-${minerRegistry.size}`,
+      name: name || `Miner-${minerRegistry.size}`,
+      hashrate: hashrate || 1000,
+      joinedAt: Date.now(),
+      lastKeepalive: Date.now()
+    });
+
+    // Activate miner
+    activeMinerSet.add(address);
+    if (!minerBalances[address]) {
+      minerBalances[address] = 0;
+    }
+
+    const minerInfo = minerRegistry.get(address);
+    console.log(`[POOL] ✓ Miner joined: ${minerInfo.name} (${hashrate || 1000} H/s)`);
+
+    return {
+      success: true,
+      message: `${minerInfo.name} registered`,
+      minerCount: minerRegistry.size,
+      activeMiners: activeMinerSet.size
+    };
   },
 
-  getgenesiesstatus: () => ({
-    status: "mining",
+  minerkeepalive: (params) => {
+    // params: [address]
+    if (!params || !params[0]) {
+      return { success: false, error: "Missing miner address" };
+    }
+
+    const address = params[0];
+    const minerInfo = minerRegistry.get(address);
+
+    if (!minerInfo) {
+      return { success: false, error: "Miner not registered" };
+    }
+
+    // Update keepalive timestamp
+    minerInfo.lastKeepalive = Date.now();
+    activeMinerSet.add(address);
+
+    return {
+      success: true,
+      message: "Keepalive received",
+      isActive: true
+    };
+  },
+
+  getminerstatus: () => ({
+    poolStatus: "running",
     blockCount: blockCount,
     currentDifficulty: 4,
     timestamp: Date.now(),
-    connectedMiners: connectedMiners,
-    totalMiners: 10,
-    totalHashrate: connectedMiners * 1000,
-    genesisReady: connectedMiners >= 3,
-    genesisStarted: blockCount > 1,
-    minersRequired: 3,
+    totalRegisteredMiners: minerRegistry.size,
+    activeMiningMiners: activeMinerSet.size,
+    totalHashrate: Array.from(minerRegistry.values()).reduce((sum, m) => sum + (m.hashrate || 1000), 0),
+    poolReady: activeMinerSet.size >= 1,
+    miningStarted: blockCount > 1,
     totalMiningRewards: balance / 1e9,
-    totalTransactions: blockCount
+    totalTransactions: blockData.reduce((sum, block) => sum + (block.transactions ? block.transactions.length : 0), 0),
+    blockReward: MINING_REWARD / 1e9  // 50 OMNI
   }),
 
-  getminers: () => {
-    if (!genesisData.miners || genesisData.miners.length === 0) {
-      return [];
+  getminerbalances: () => {
+    const result = [];
+
+    // Return only active miners with their balances
+    for (let [address, minerInfo] of minerRegistry.entries()) {
+      if (activeMinerSet.has(address)) {
+        const balance = minerBalances[address] || 0;
+        const rewardPerMiner = MINING_REWARD / (activeMinerSet.size || 1);
+
+        result.push({
+          address: address,
+          minerName: minerInfo.name,
+          minerID: minerInfo.id,
+          balanceSat: balance,
+          balanceOmni: balance / 1e9,
+          blocksMined: Math.round(balance / rewardPerMiner),
+          lastBlockTime: minerLastBlockTime[address] || minerInfo.joinedAt,
+          isActive: true,
+          joinedAt: minerInfo.joinedAt
+        });
+      }
     }
 
-    // DYNAMIC: Return ONLY active miners (those that have mined recently)
-    return genesisData.miners
-      .filter(m => activeMinerSet.has(m.address))
-      .map((m) => ({
-        id: m.miner_id,
-        name: m.miner_name,
-        address: m.address,
-        status: "mining",
-        hashrate: 1000,
-        balanceOmni: (minerBalances[m.address] || 0) / 1e9,
-        blocksMined: Math.round((minerBalances[m.address] || 0) / (MINING_REWARD / (activeMinerSet.size || 1))),
-        lastBlockTime: minerLastBlockTime[m.address],
-        isActive: true
-      }));
+    return result;
   },
+
+  getminers: () => {
+    const result = [];
+
+    // Return only active miners
+    for (let [address, minerInfo] of minerRegistry.entries()) {
+      if (activeMinerSet.has(address)) {
+        result.push({
+          id: minerInfo.id,
+          name: minerInfo.name,
+          address: address,
+          status: "mining",
+          hashrate: minerInfo.hashrate || 1000,
+          balanceOmni: (minerBalances[address] || 0) / 1e9,
+          blocksMined: minerLastBlockTime[address] ?
+            Math.round((minerBalances[address] || 0) / (MINING_REWARD / (activeMinerSet.size || 1))) : 0,
+          lastBlockTime: minerLastBlockTime[address] || minerInfo.joinedAt,
+          isActive: true,
+          joinedAt: minerInfo.joinedAt
+        });
+      }
+    }
+
+    return result;
+  },
+
+  getpoolstats: () => ({
+    version: "1.0",
+    status: "operational",
+    registeredMiners: minerRegistry.size,
+    activeMiningMiners: activeMinerSet.size,
+    blockHeight: blockCount,
+    totalRewards: balance / 1e9,
+    totalTransactions: blockData.reduce((sum, block) => sum + (block.transactions ? block.transactions.length : 0), 0),
+    uptime: Date.now() - startTime
+  }),
 
   startgenesis: () => true
 };
@@ -376,12 +391,32 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(RPC_PORT, "127.0.0.1", () => {
-  console.log(`[RPC] JSON-RPC 2.0 Server`);
-  console.log(`  - Listening on: http://localhost:${RPC_PORT}`);
-  console.log(
-    `  - Methods: getblockcount, getblock, getbalance, getmempoolsize`
-  );
-  console.log(`  - Genesis: getgenesiesstatus, getminers, startgenesis`);
+  console.log("");
+  console.log(`╔════════════════════════════════════════════════════════════╗`);
+  console.log(`║         OmniBus Mining Pool - Dynamic Registry             ║`);
+  console.log(`║                     v1.0 Operational                       ║`);
+  console.log(`╚════════════════════════════════════════════════════════════╝`);
+  console.log("");
+  console.log(`[POOL] JSON-RPC 2.0 Server on http://localhost:${RPC_PORT}`);
+  console.log("");
+  console.log(`[POOL] MINING POOL METHODS:`);
+  console.log(`       • registerminer       - Register a new miner`);
+  console.log(`       • minerkeepalive      - Send keepalive signal`);
+  console.log(`       • getminerstatus     - Pool status + reward rate`);
+  console.log(`       • getminerbalances   - All active miner balances`);
+  console.log(`       • getminers          - All active miners`);
+  console.log(`       • getpoolstats       - Detailed pool stats`);
+  console.log("");
+  console.log(`[POOL] BLOCKCHAIN METHODS:`);
+  console.log(`       • getblockcount      - Current block number`);
+  console.log(`       • getblock           - Get block by index`);
+  console.log(`       • getlatestblock     - Get last block`);
+  console.log(`       • getbalance         - Total pool balance`);
+  console.log(`       • gettransactioncount - Total tx count`);
+  console.log(`       • gettransactionhistory - Recent transactions`);
+  console.log("");
+  console.log(`[POOL] STATUS: Waiting for miners to register...`);
+  console.log("");
 });
 
 process.on("SIGINT", () => {

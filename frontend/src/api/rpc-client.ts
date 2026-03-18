@@ -134,6 +134,22 @@ export class OmniBusRpcClient {
     return this.request("getminers");
   }
 
+  async getPoolStats(): Promise<any> {
+    return this.request("getpoolstats");
+  }
+
+  async getMinerStatus(): Promise<any> {
+    return this.request("getminerstatus");
+  }
+
+  async registerMiner(minerData: any): Promise<any> {
+    return this.request("registerminer", [minerData]);
+  }
+
+  async minerKeepalive(address: string): Promise<any> {
+    return this.request("minerkeepalive", [address]);
+  }
+
   // Custom methods for UI
   async getBlockchainStats(): Promise<{
     blockCount: number;
