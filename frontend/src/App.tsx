@@ -91,7 +91,7 @@ export const App: React.FC = () => {
               <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-lg p-6">
                 <h3 className="text-lg font-bold mb-2">⚡ Sub-Microsecond</h3>
                 <p className="text-gray-300 text-sm">
-                  Bare-metal execution with <40μs latency and deterministic
+                  Bare-metal execution with {'<'}40μs latency and deterministic
                   consensus
                 </p>
               </div>
