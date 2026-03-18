@@ -31,8 +31,11 @@ try {
 let blockCount = 1;
 let balance = 0;
 let mempoolSize = 0;
-let connectedMiners = 0;
 let startTime = Date.now();
+
+// DYNAMIC: Track only ACTIVE miners (those currently mining)
+let activeMinerSet = new Set();  // Real-time active miners
+const MINER_ACTIVITY_TIMEOUT = 30000; // 30 seconds - if not mining, mark offline
 
 // Mining transactions history - tracks REAL block rewards
 let blockData = [];
@@ -56,56 +59,116 @@ function initializeMiners() {
 
 initializeMiners();
 
-// Simulate real mining - each block is a mining reward transaction
+// Simulate real mining - EQUAL reward distribution to ALL active miners
 setInterval(() => {
   blockCount++;
   const blockTimestamp = Date.now();
+  const allMiners = genesisData.miners || [];
 
-  // Select miner based on connected miners
-  if (genesisData.miners && genesisData.miners.length > 0) {
-    const minerIdx = (blockCount - 1) % Math.min(connectedMiners || 1, genesisData.miners.length);
-    const miner = genesisData.miners[minerIdx];
+  // DYNAMIC EQUAL DISTRIBUTION: Divide block reward equally among all active miners
+  if (activeMinerSet.size > 0) {
+    // Reward per miner = total block reward / number of active miners
+    const rewardPerMiner = MINING_REWARD / activeMinerSet.size;
 
-    // Create real mining reward transaction
-    const minerRewardTx = {
-      id: blockCount,
-      txid: "mining_reward_" + blockCount,
-      type: "coinbase",
-      from: "SYSTEM",
-      to: miner.address,
-      amount: MINING_REWARD / 1e9, // Convert to OMNI
-      amountSat: MINING_REWARD,
-      timestamp: blockTimestamp,
-      blockHeight: blockCount - 1,
-      status: "confirmed",
-      minerName: miner.miner_name || `Miner-${minerIdx}`,
-      minerID: miner.miner_id || minerIdx
-    };
+    // Distribute to each active miner
+    const transactions = [];
+    for (let minerAddress of activeMinerSet) {
+      const miner = allMiners.find(m => m.address === minerAddress);
+      if (!miner) continue;
 
-    // Update miner balance
-    minerBalances[miner.address] = (minerBalances[miner.address] || 0) + MINING_REWARD;
-    minerLastBlockTime[miner.address] = blockTimestamp;
-    balance += MINING_REWARD; // Total balance increases with mining
+      const minerRewardTx = {
+        id: blockCount + Array.from(activeMinerSet).indexOf(minerAddress),
+        txid: `mining_reward_${blockCount}_${miner.miner_id}`,
+        type: "coinbase",
+        from: "SYSTEM",
+        to: minerAddress,
+        amount: rewardPerMiner / 1e9,
+        amountSat: rewardPerMiner,
+        timestamp: blockTimestamp,
+        blockHeight: blockCount - 1,
+        status: "confirmed",
+        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
+        minerID: miner.miner_id
+      };
 
-    // Store block data with transaction
+      // Update balance
+      minerBalances[minerAddress] = (minerBalances[minerAddress] || 0) + rewardPerMiner;
+      minerLastBlockTime[minerAddress] = blockTimestamp;
+      transactions.push(minerRewardTx);
+      balance += rewardPerMiner;
+    }
+
+    // Store block with all reward transactions
     blockData.push({
       index: blockCount - 1,
       timestamp: blockTimestamp,
       hash: generateBlockHash(),
-      transactions: [minerRewardTx],
-      miner: miner.miner_name || `Miner-${minerIdx}`,
-      minerAddress: miner.address,
-      reward: MINING_REWARD
+      transactions: transactions,
+      miner: `${activeMinerSet.size} miners`,
+      minerAddress: "DISTRIBUTED",
+      reward: MINING_REWARD,
+      activeMinersCount: activeMinerSet.size
     });
 
-    // Keep only last 100 blocks
+    if (blockData.length > 100) {
+      blockData.shift();
+    }
+  } else if (allMiners.length > 0) {
+    // No active miners yet - distribute to ALL genesis miners equally
+    const rewardPerMiner = MINING_REWARD / allMiners.length;
+    const transactions = [];
+
+    allMiners.forEach(miner => {
+      const minerRewardTx = {
+        id: blockCount + miner.miner_id,
+        txid: `mining_reward_${blockCount}_${miner.miner_id}`,
+        type: "coinbase",
+        from: "SYSTEM",
+        to: miner.address,
+        amount: rewardPerMiner / 1e9,
+        amountSat: rewardPerMiner,
+        timestamp: blockTimestamp,
+        blockHeight: blockCount - 1,
+        status: "confirmed",
+        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
+        minerID: miner.miner_id
+      };
+
+      minerBalances[miner.address] = (minerBalances[miner.address] || 0) + rewardPerMiner;
+      minerLastBlockTime[miner.address] = blockTimestamp;
+      activeMinerSet.add(miner.address);
+      transactions.push(minerRewardTx);
+      balance += rewardPerMiner;
+    });
+
+    blockData.push({
+      index: blockCount - 1,
+      timestamp: blockTimestamp,
+      hash: generateBlockHash(),
+      transactions: transactions,
+      miner: `${allMiners.length} miners`,
+      minerAddress: "DISTRIBUTED",
+      reward: MINING_REWARD,
+      activeMinersCount: allMiners.length
+    });
+
     if (blockData.length > 100) {
       blockData.shift();
     }
   }
-
-  // connectedMiners stays at full capacity (all miners from genesis)
 }, 2000);
+
+// DYNAMIC: Cleanup inactive miners (haven't mined in 30 seconds)
+setInterval(() => {
+  const now = Date.now();
+  const inactiveBefore = now - MINER_ACTIVITY_TIMEOUT;
+
+  for (let address of activeMinerSet) {
+    if (minerLastBlockTime[address] && minerLastBlockTime[address] < inactiveBefore) {
+      activeMinerSet.delete(address);
+    }
+  }
+}, 5000);
 
 function generateBlockHash() {
   const timestamp = Date.now();
@@ -181,18 +244,24 @@ const rpcMethods = {
     if (!genesisData.miners || genesisData.miners.length === 0) {
       return [];
     }
-    return genesisData.miners.map(miner => {
-      const balance = minerBalances[miner.address] || 0;
-      return {
-        address: miner.address,
-        minerName: miner.miner_name || `Miner-${miner.miner_id}`,
-        minerID: miner.miner_id,
-        balanceSat: balance,
-        balanceOmni: balance / 1e9,
-        blocksMined: Math.round(balance / MINING_REWARD),
-        lastBlockTime: minerLastBlockTime[miner.address]
-      };
-    });
+
+    // DYNAMIC: Return ONLY active miners
+    return genesisData.miners
+      .filter(m => activeMinerSet.has(m.address))
+      .map(miner => {
+        const balance = minerBalances[miner.address] || 0;
+        const rewardPerMiner = MINING_REWARD / (activeMinerSet.size || 1);
+        return {
+          address: miner.address,
+          minerName: miner.miner_name || `Miner-${miner.miner_id}`,
+          minerID: miner.miner_id,
+          balanceSat: balance,
+          balanceOmni: balance / 1e9,
+          blocksMined: Math.round(balance / rewardPerMiner),
+          lastBlockTime: minerLastBlockTime[miner.address],
+          isActive: true
+        };
+      });
   },
 
   getgenesiesstatus: () => ({
@@ -214,16 +283,21 @@ const rpcMethods = {
     if (!genesisData.miners || genesisData.miners.length === 0) {
       return [];
     }
-    return genesisData.miners.map((m, idx) => ({
-      id: m.miner_id,
-      name: m.miner_name,
-      address: m.address,
-      status: "mining",  // All miners from genesis are active
-      hashrate: 1000,
-      balanceOmni: (minerBalances[m.address] || 0) / 1e9,
-      blocksMined: Math.round((minerBalances[m.address] || 0) / MINING_REWARD),
-      lastBlockTime: minerLastBlockTime[m.address]
-    }));
+
+    // DYNAMIC: Return ONLY active miners (those that have mined recently)
+    return genesisData.miners
+      .filter(m => activeMinerSet.has(m.address))
+      .map((m) => ({
+        id: m.miner_id,
+        name: m.miner_name,
+        address: m.address,
+        status: "mining",
+        hashrate: 1000,
+        balanceOmni: (minerBalances[m.address] || 0) / 1e9,
+        blocksMined: Math.round((minerBalances[m.address] || 0) / (MINING_REWARD / (activeMinerSet.size || 1))),
+        lastBlockTime: minerLastBlockTime[m.address],
+        isActive: true
+      }));
   },
 
   startgenesis: () => true
