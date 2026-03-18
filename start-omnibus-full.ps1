@@ -182,10 +182,16 @@ Write-Host ""
 
 Write-Header "Phase 5: RPC Server"
 
-Write-ColorOutput $Colors['Success'] "✅ RPC Server running on seed node"
+Write-ColorOutput $Colors['Info'] "Starting RPC server on http://localhost:$($Config['RPCPort'])..."
+
+$RPCProcess = Start-Process -FilePath "node" -ArgumentList @(
+    "rpc-server.js"
+) -PassThru -NoNewWindow -RedirectStandardOutput "logs/rpc-server.log"
+
+Write-ColorOutput $Colors['Success'] "✅ RPC Server started (PID: $($RPCProcess.Id))"
 Write-ColorOutput $Colors['Info'] "   HTTP: http://localhost:$($Config['RPCPort'])"
-Write-ColorOutput $Colors['Info'] "   Methods: getGenesisStatus, getMiners, startGenesis"
-Write-ColorOutput $Colors['Info'] "   Integration: Built-in with seed node"
+Write-ColorOutput $Colors['Info'] "   Methods: getblockcount, getbalance, getgenesiesstatus"
+Write-ColorOutput $Colors['Info'] "   Log: logs/rpc-server.log"
 
 Start-Sleep -Seconds 1
 

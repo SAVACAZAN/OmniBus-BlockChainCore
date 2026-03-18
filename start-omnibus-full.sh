@@ -203,10 +203,15 @@ echo ""
 
 write_header "Phase 5: RPC Server"
 
-write_success "RPC Server running on seed node (port $RPC_PORT)"
+write_info "Starting RPC server on http://localhost:$RPC_PORT..."
+
+node rpc-server.js > logs/rpc-server.log 2>&1 &
+RPC_PID=$!
+
+write_success "RPC Server started (PID: $RPC_PID)"
 write_info "   HTTP: http://localhost:$RPC_PORT"
-write_info "   Methods: getGenesisStatus, getMiners, startGenesis"
-write_info "   Integration: Built-in with seed node"
+write_info "   Methods: getblockcount, getbalance, getgenesiesstatus"
+write_info "   Log: logs/rpc-server.log"
 
 sleep 1
 echo ""
