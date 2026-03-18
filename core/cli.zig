@@ -153,7 +153,7 @@ test "parse seed node arguments" {
     var cli = CLI.init(testing.allocator);
 
     const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--node-id", "seed-1", "--primary", "--port", "9000" };
-    var config = try cli.parseArgs(&args);
+    const config = try cli.parseArgs(&args);
 
     try testing.expectEqual(config.mode, node_launcher.NodeMode.seed);
     try testing.expectEqualStrings(config.node_id, "seed-1");
@@ -165,7 +165,7 @@ test "parse miner node arguments" {
     var cli = CLI.init(testing.allocator);
 
     const args = [_][]const u8{ "omnibus-node", "--mode", "miner", "--node-id", "miner-1", "--seed-host", "127.0.0.1", "--seed-port", "9000", "--hashrate", "2000" };
-    var config = try cli.parseArgs(&args);
+    const config = try cli.parseArgs(&args);
 
     try testing.expectEqual(config.mode, node_launcher.NodeMode.miner);
     try testing.expectEqualStrings(config.node_id, "miner-1");

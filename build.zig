@@ -7,35 +7,43 @@ pub fn build(b: *std.Build) void {
     // Blockchain node executable
     const blockchain_exe = b.addExecutable(.{
         .name = "omnibus-node",
-        .root_source_file = b.path("core/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = .{
+            .source_file = b.path("core/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        },
     });
     b.installArtifact(blockchain_exe);
 
     // RPC server executable
     const rpc_exe = b.addExecutable(.{
         .name = "omnibus-rpc",
-        .root_source_file = b.path("core/rpc_server.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = .{
+            .source_file = b.path("core/rpc_server.zig"),
+            .target = target,
+            .optimize = optimize,
+        },
     });
     b.installArtifact(rpc_exe);
 
     // Agent system executable
     const agent_exe = b.addExecutable(.{
         .name = "omnibus-agent",
-        .root_source_file = b.path("agent/agent_manager.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = .{
+            .source_file = b.path("agent/agent_manager.zig"),
+            .target = target,
+            .optimize = optimize,
+        },
     });
     b.installArtifact(agent_exe);
 
     // Tests
     const tests = b.addTest(.{
-        .root_source_file = b.path("test/blockchain_test.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = .{
+            .source_file = b.path("test/blockchain_test.zig"),
+            .target = target,
+            .optimize = optimize,
+        },
     });
     const run_tests = b.addRunArtifact(tests);
     const test_step = b.step("test", "Run tests");

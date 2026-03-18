@@ -44,15 +44,15 @@ help:
 # Core Blockchain Build
 build-core:
 	@echo "Building OmniBus Blockchain Node..."
-	$(ZIG) build-exe $(ZIG_FLAGS) core/main.zig -o omnibus-node
+	$(ZIG) build-exe $(ZIG_FLAGS) core/main.zig --name omnibus-node
 
 build-rpc:
 	@echo "Building RPC Server..."
-	$(ZIG) build-exe $(ZIG_FLAGS) core/rpc_server.zig -o omnibus-rpc
+	$(ZIG) build-exe $(ZIG_FLAGS) core/rpc_server.zig --name omnibus-rpc
 
 build-agent:
 	@echo "Building Agent System..."
-	$(ZIG) build-exe $(ZIG_FLAGS) agent/agent_manager.zig -o omnibus-agent
+	$(ZIG) build-exe $(ZIG_FLAGS) agent/agent_manager.zig --name omnibus-agent
 
 build: build-core build-rpc build-agent
 	@echo "✅ All Zig components built successfully"

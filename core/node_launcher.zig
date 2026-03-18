@@ -70,7 +70,7 @@ pub const NodeLauncher = struct {
         std.debug.print("[LAUNCHER] Connecting to seed {s}:{d}\n", .{ self.config.seed_host.?, self.config.seed_port.? });
 
         // Create local network node
-        var local_node = network.NetworkNode.init(
+        const local_node = network.NetworkNode.init(
             self.config.node_id,
             self.config.host,
             self.config.port,
@@ -104,7 +104,7 @@ pub const NodeLauncher = struct {
     /// Register miner with pool (for seed node)
     pub fn registerMinerWithPool(self: *NodeLauncher, miner_id: []const u8, address: []const u8, hashrate: u64) !void {
         if (self.mining_pool == null) {
-            var pool = mining_pool.MiningPool.init(self.config.node_id, address, self.config.allocator);
+            const pool = mining_pool.MiningPool.init(self.config.node_id, address, self.config.allocator);
             self.mining_pool = pool;
         }
 
@@ -185,7 +185,7 @@ pub const NodeLauncher = struct {
     /// Periodic maintenance (remove stale peers, etc.)
     pub fn maintenance(self: *NodeLauncher) void {
         if (self.bootstrap_node) |*node| {
-            node.removeStaleP eers();
+            node.removeStalePeers();
         }
     }
 

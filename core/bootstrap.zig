@@ -75,7 +75,7 @@ pub const BootstrapNode = struct {
     }
 
     /// Remove stale peers (no heartbeat for 60s)
-    pub fn removeStaleP eers(self: *BootstrapNode) void {
+    pub fn removeStalePeers(self: *BootstrapNode) void {
         const now = std.time.timestamp();
         const stale_threshold: i64 = 60; // 60 seconds
 
