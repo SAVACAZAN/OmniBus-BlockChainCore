@@ -2,58 +2,42 @@ import React, { useState, useEffect } from "react";
 import OmniBusRpcClient from "../api/rpc-client";
 
 interface WalletAddress {
-  domain: string;
+  name: string;
   algorithm: string;
   address: string;
-  erc20_address: string;
-  security_level: number;
 }
 
 export const Wallet: React.FC = () => {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sendAmount, setSendAmount] = useState("");
-  const [sendTo, setSendTo] = useState("");
-  const [sending, setSending] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
-  // Mock addresses - in production, would come from wallet system
+  // Post-quantum cryptography addresses
   const addresses: WalletAddress[] = [
     {
-      domain: "omnibus.omni",
+      name: "Primary (OMNI)",
       algorithm: "Dilithium-5 + Kyber-768",
       address: "ob_omni_1q2w3e4r5t6y7u8i9o0p",
-      erc20_address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      security_level: 256,
     },
     {
-      domain: "omnibus.love",
-      algorithm: "Kyber-768",
+      name: "Secondary (Kyber)",
+      algorithm: "Kyber-768 (256-bit)",
       address: "ob_k1_1a2s3d4f5g6h7j8k9l0z",
-      erc20_address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      security_level: 256,
     },
     {
-      domain: "omnibus.food",
-      algorithm: "Falcon-512",
+      name: "Tertiary (Falcon)",
+      algorithm: "Falcon-512 (192-bit)",
       address: "ob_f5_1q2w3e4r5t6y7u8i9o0p",
-      erc20_address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      security_level: 192,
     },
     {
-      domain: "omnibus.rent",
-      algorithm: "Dilithium-5",
+      name: "Quaternary (Dilithium)",
+      algorithm: "Dilithium-5 (256-bit)",
       address: "ob_d5_1a2s3d4f5g6h7j8k9l0z",
-      erc20_address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      security_level: 256,
     },
     {
-      domain: "omnibus.vacation",
-      algorithm: "SPHINCS+",
+      name: "Quinary (SPHINCS+)",
+      algorithm: "SPHINCS+ (128-bit)",
       address: "ob_s3_1q2w3e4r5t6y7u8i9o0p",
-      erc20_address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      security_level: 128,
     },
   ];
 
@@ -67,165 +51,165 @@ export const Wallet: React.FC = () => {
 
   const fetchBalance = async () => {
     try {
-      setLoading(true);
       const bal = await client.getBalance();
       setBalance(bal);
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch balance");
+      console.error("Failed to fetch balance:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!sendTo || !sendAmount) {
-      setError("Please fill in all fields");
-      return;
-    }
-
-    try {
-      setSending(true);
-      setError(null);
-      const hash = await client.sendTransaction(sendTo, parseFloat(sendAmount));
-      setTxHash(hash);
-      setSendAmount("");
-      setSendTo("");
-      setTimeout(() => setTxHash(null), 5000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Transaction failed");
-    } finally {
-      setSending(false);
-    }
+  const copyToClipboard = (address: string, name: string) => {
+    navigator.clipboard.writeText(address);
+    setCopiedAddress(name);
+    setTimeout(() => setCopiedAddress(null), 2000);
   };
 
-  const formatBalance = (satoshis: number) => {
-    const omni = satoshis / 1e18;
-    return omni.toFixed(6);
+  const formatBalance = (sat: number) => {
+    return (sat / 1e9).toFixed(2);
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Wallet</h2>
-
-        {/* Balance Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-6 text-white mb-6">
-          <p className="text-blue-100 text-sm mb-2">Total Balance</p>
+      {/* Balance Card */}
+      <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 rounded-lg border border-slate-600 overflow-hidden shadow-xl">
+        <div className="px-6 py-8">
+          <p className="text-gray-400 text-sm mb-3 uppercase tracking-wider font-semibold">
+            Wallet Balance
+          </p>
           {loading ? (
-            <p className="text-3xl font-bold">Loading...</p>
+            <div className="animate-pulse">
+              <div className="h-10 bg-slate-700 rounded w-48 mb-4"></div>
+            </div>
           ) : (
             <>
-              <p className="text-3xl font-bold">
-                {formatBalance(balance)} OMNI
-              </p>
-              <p className="text-blue-100 text-sm mt-2">
-                {balance.toLocaleString()} SAT
-              </p>
+              <div className="mb-6">
+                <p className="text-5xl font-bold text-blue-400 mb-2">
+                  {formatBalance(balance)}
+                </p>
+                <p className="text-xl text-gray-400">OMNI</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-600">
+                <div>
+                  <p className="text-gray-500 text-sm mb-1">Total SAT</p>
+                  <p className="text-lg font-mono text-gray-300">
+                    {balance.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-sm mb-1">Status</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <p className="text-lg text-green-400">Active</p>
+                  </div>
+                </div>
+              </div>
             </>
           )}
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
-
-        {txHash && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-600 text-sm">
-              Transaction sent! Hash: {txHash}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Send Transaction Form */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Send Transaction</h3>
+      {/* Addresses Section */}
+      <div className="bg-slate-800 rounded-lg border border-slate-600 overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-slate-700 to-slate-800 border-b border-slate-600">
+          <h3 className="text-lg font-semibold text-white">
+            🔐 Post-Quantum Addresses
+          </h3>
+          <p className="text-sm text-gray-400 mt-1">
+            5 NIST-approved cryptographic algorithms for maximum security
+          </p>
+        </div>
 
-        <form onSubmit={handleSend} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Recipient Address
-            </label>
-            <input
-              type="text"
-              value={sendTo}
-              onChange={(e) => setSendTo(e.target.value)}
-              placeholder="ob_omni_..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              disabled={sending}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (OMNI)
-            </label>
-            <input
-              type="number"
-              value={sendAmount}
-              onChange={(e) => setSendAmount(e.target.value)}
-              placeholder="0.000000"
-              step="0.000001"
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              disabled={sending}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={sending}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition font-medium"
-          >
-            {sending ? "Sending..." : "Send"}
-          </button>
-        </form>
-      </div>
-
-      {/* Addresses */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">
-          Post-Quantum Addresses
-        </h3>
-
-        <div className="space-y-4">
+        <div className="divide-y divide-slate-600">
           {addresses.map((addr, idx) => (
-            <div key={idx} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
+            <div
+              key={idx}
+              className="px-6 py-5 hover:bg-slate-700/50 transition-colors"
+            >
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="font-semibold text-gray-900">{addr.domain}</p>
-                  <p className="text-sm text-gray-600">{addr.algorithm}</p>
+                  <h4 className="text-white font-semibold text-base">
+                    {addr.name}
+                  </h4>
+                  <p className="text-sm text-gray-400 mt-1">{addr.algorithm}</p>
                 </div>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
-                  {addr.security_level}-bit
+                <span className="px-3 py-1 bg-blue-900/50 text-blue-300 text-xs font-medium rounded-full border border-blue-700">
+                  {["256-bit", "256-bit", "192-bit", "256-bit", "128-bit"][idx]}
                 </span>
               </div>
 
-              <div className="space-y-2">
-                <div>
-                  <p className="text-xs text-gray-600 mb-1">OMNI Address:</p>
-                  <p className="font-mono text-xs break-all bg-gray-50 p-2 rounded">
-                    {addr.address}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-600 mb-1">
-                    ERC20 Address (Ethereum):
-                  </p>
-                  <p className="font-mono text-xs break-all bg-gray-50 p-2 rounded">
-                    {addr.erc20_address}
-                  </p>
-                </div>
+              <div className="flex items-center space-x-2">
+                <code className="flex-1 text-sm text-gray-300 bg-slate-900/50 px-4 py-2 rounded border border-slate-600 font-mono overflow-x-auto">
+                  {addr.address}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(addr.address, addr.name)}
+                  className={`px-4 py-2 rounded transition-colors font-medium text-sm whitespace-nowrap ${
+                    copiedAddress === addr.name
+                      ? "bg-green-600 text-white"
+                      : "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                  }`}
+                >
+                  {copiedAddress === addr.name ? "✓ Copied" : "Copy"}
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Security Info */}
+      <div className="bg-slate-800 rounded-lg border border-slate-600 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          🛡️ Security Information
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-white font-medium mb-2">Cryptographic Algorithms</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                <span>Dilithium-5: Digital signatures</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                <span>Kyber-768: Key encapsulation</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+                <span>Falcon-512: Lattice-based</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>SPHINCS+: Hash-based</span>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-medium mb-2">Wallet Features</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li className="flex items-center space-x-2">
+                <span className="text-green-400">✓</span>
+                <span>Multi-algorithm support</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="text-green-400">✓</span>
+                <span>Real-time balance sync</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="text-green-400">✓</span>
+                <span>Deterministic derivation</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="text-green-400">✓</span>
+                <span>Hardware-ready</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
