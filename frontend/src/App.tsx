@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import Stats from "./components/Stats";
 import BlockExplorer from "./components/BlockExplorer";
 import Wallet from "./components/Wallet";
-import Trading from "./pages/Trading";
 import "./App.css";
 
-type Page = "dashboard" | "explorer" | "wallet" | "trading";
+type Page = "dashboard" | "explorer" | "wallet";
 
 export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
@@ -55,16 +54,6 @@ export const App: React.FC = () => {
                 }`}
               >
                 Wallet
-              </button>
-              <button
-                onClick={() => setCurrentPage("trading")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  currentPage === "trading"
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-700"
-                }`}
-              >
-                Trading
               </button>
             </div>
 
@@ -128,8 +117,6 @@ export const App: React.FC = () => {
         {currentPage === "explorer" && <BlockExplorer />}
 
         {currentPage === "wallet" && <Wallet />}
-
-        {currentPage === "trading" && <Trading pair="BTC-USDT" />}
       </main>
 
       {/* Footer */}
