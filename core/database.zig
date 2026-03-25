@@ -131,24 +131,145 @@ pub const PersistentBlockchain = struct {
         self.db.deinit();
     }
 
-    /// Initialize database from file (future: RocksDB)
-    pub fn loadFromDisk(allocator: std.mem.Allocator, _path: []const u8) !PersistentBlockchain {
-        // TODO: Implement file I/O for RocksDB-compatible format
-        _ = _path;
+    /// Incarca database din fisier (format binar simplu, fara dependente externe)
+    /// Format fisier: [magic:4][version:1][block_count:4]
+    ///   per bloc: [height:8][data_len:4][data...]
+    ///   [addr_count:4]
+    ///   per adresa: [addr_len:1][addr...][balance:8]
+    pub fn loadFromDisk(allocator: std.mem.Allocator, path: []const u8) !PersistentBlockchain {
+        var pbc = PersistentBlockchain.init(allocator);
 
-        return PersistentBlockchain.init(allocator);
+        const file = std.fs.cwd().openFile(path, .{}) catch |err| {
+            if (err == error.FileNotFound) return pbc; // fisier nou — ok
+            return err;
+        };
+        defer file.close();
+
+        // Read entire file into memory
+        const stat = file.stat() catch return pbc;
+        if (stat.size == 0) return pbc;
+        const buf = allocator.alloc(u8, stat.size) catch return pbc;
+        defer allocator.free(buf);
+        const read_len = file.readAll(buf) catch return pbc;
+        if (read_len < 9) return pbc; // magic(4) + version(1) + block_count(4)
+
+        var pos: usize = 0;
+
+        // Magic + version
+        if (!std.mem.eql(u8, buf[0..4], "OMNI")) return pbc;
+        pos = 4;
+        if (buf[pos] != 1) return pbc;
+        pos += 1;
+
+        // Block count
+        if (pos + 4 > read_len) return pbc;
+        const block_count = std.mem.readInt(u32, buf[pos..][0..4], .little);
+        pos += 4;
+
+        var i: u32 = 0;
+        while (i < block_count) : (i += 1) {
+            if (pos + 12 > read_len) break; // height(8) + data_len(4)
+            const height = std.mem.readInt(u64, buf[pos..][0..8], .little);
+            pos += 8;
+            const data_len = std.mem.readInt(u32, buf[pos..][0..4], .little);
+            pos += 4;
+            if (pos + data_len > read_len) break;
+            const data = buf[pos .. pos + data_len];
+            pos += data_len;
+            pbc.db.storeBlock(height, data) catch break;
+        }
+
+        // Address balances
+        if (pos + 4 > read_len) {
+            std.debug.print("[DB] Loaded from {s}: {d} blocks, 0 addresses\n",
+                .{ path, block_count });
+            return pbc;
+        }
+        const addr_count = std.mem.readInt(u32, buf[pos..][0..4], .little);
+        pos += 4;
+
+        var j: u32 = 0;
+        while (j < addr_count) : (j += 1) {
+            if (pos + 1 > read_len) break;
+            const addr_len = buf[pos];
+            pos += 1;
+            if (pos + addr_len + 8 > read_len) break;
+            const addr = buf[pos .. pos + addr_len];
+            pos += addr_len;
+            const balance = std.mem.readInt(u64, buf[pos..][0..8], .little);
+            pos += 8;
+            pbc.db.updateBalance(addr, balance) catch break;
+        }
+
+        std.debug.print("[DB] Loaded from {s}: {d} blocks, {d} addresses\n",
+            .{ path, block_count, addr_count });
+        return pbc;
     }
 
-    /// Save database to disk (future: RocksDB)
-    pub fn saveToDisk(self: *PersistentBlockchain, _path: []const u8) !void {
-        // TODO: Implement file I/O for RocksDB-compatible format
-        _ = _path;
+    /// Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
+    pub fn saveToDisk(self: *PersistentBlockchain, path: []const u8) !void {
+        const tmp_path = try std.fmt.allocPrint(self.allocator, "{s}.tmp", .{path});
+        defer self.allocator.free(tmp_path);
+
+        // Build output buffer in memory
+        var out = std.array_list.Managed(u8).init(self.allocator);
+        defer out.deinit();
+
+        // Magic + version
+        try out.appendSlice("OMNI");
+        try out.append(1);
+
+        // Block count + blocks
+        const stats = self.db.getStats();
+        var hdr4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &hdr4, @intCast(stats.total_blocks), .little);
+        try out.appendSlice(&hdr4);
+
+        var height: u64 = 0;
+        while (height < stats.total_blocks) : (height += 1) {
+            if (self.db.getBlock(height)) |data| {
+                var h8: [8]u8 = undefined;
+                var l4: [4]u8 = undefined;
+                std.mem.writeInt(u64, &h8, height, .little);
+                std.mem.writeInt(u32, &l4, @intCast(data.len), .little);
+                try out.appendSlice(&h8);
+                try out.appendSlice(&l4);
+                try out.appendSlice(data);
+            }
+        }
+
+        // Address balances
+        const addr_store = &self.db.addresses.store.data;
+        var cnt4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &cnt4, @intCast(addr_store.count()), .little);
+        try out.appendSlice(&cnt4);
+        var it = addr_store.iterator();
+        while (it.next()) |entry| {
+            const key = entry.key_ptr.*;
+            const val_str = entry.value_ptr.*;
+            if (key.len <= 5) continue;
+            const addr = key[5..]; // strip "addr:" prefix
+            const balance = std.fmt.parseInt(u64, val_str, 10) catch 0;
+            try out.append(@intCast(addr.len));
+            try out.appendSlice(addr);
+            var b8: [8]u8 = undefined;
+            std.mem.writeInt(u64, &b8, balance, .little);
+            try out.appendSlice(&b8);
+        }
+
+        // Write atomically: tmp file then rename
+        const file = try std.fs.cwd().createFile(tmp_path, .{});
+        try file.writeAll(out.items);
+        file.close();
+        try std.fs.cwd().rename(tmp_path, path);
+
+        std.debug.print("[DB] Saved to {s}: {d} blocks, {d} addresses\n",
+            .{ path, stats.total_blocks, addr_store.count() });
     }
 
-    /// Compact database (future: RocksDB Compact)
+    /// Compact — sterge blocuri vechi pastrand ultimele N (viitor RocksDB)
     pub fn compact(self: *PersistentBlockchain) !void {
-        // TODO: Implement RocksDB-compatible compaction
-        _ = self;
+        _ = self; // TODO: RocksDB compaction
     }
 
     /// Checkpoint entire blockchain state
@@ -237,7 +358,7 @@ test "database checkpoints" {
     defer db.deinit();
 
     const cp1 = try db.saveCheckpoint("state_v1");
-    const cp2 = try db.saveCheckpoint("state_v2");
+    _ = try db.saveCheckpoint("state_v2");
 
     const loaded1 = db.loadCheckpoint(cp1);
     try testing.expect(loaded1 != null);

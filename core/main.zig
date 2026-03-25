@@ -5,10 +5,14 @@ const wallet_mod      = @import("wallet.zig");
 const cli_mod         = @import("cli.zig");
 const node_launcher   = @import("node_launcher.zig");
 const vault_reader    = @import("vault_reader.zig");
+const database_mod    = @import("database.zig");
 
-const Blockchain = blockchain_mod.Blockchain;
-const Wallet     = wallet_mod.Wallet;
-const CLI        = cli_mod.CLI;
+const Blockchain          = blockchain_mod.Blockchain;
+const Wallet              = wallet_mod.Wallet;
+const CLI                 = cli_mod.CLI;
+const PersistentBlockchain = database_mod.PersistentBlockchain;
+
+const DB_PATH = "omnibus-chain.dat";
 
 // Thread RPC — pornit din main, detach
 const RPCThreadArgs = struct { bc: *Blockchain, wallet: *Wallet, alloc: std.mem.Allocator };
@@ -49,6 +53,13 @@ pub fn main() !void {
 
     // ── Mnemonic — SuperVault Named Pipe → env var → dev default ─────────────
     const mnemonic = try vault_reader.readMnemonic(allocator);
+
+    // ── Init database (persistent storage) ───────────────────────────────────
+    var pbc = try PersistentBlockchain.loadFromDisk(allocator, DB_PATH);
+    defer pbc.deinit();
+    const loaded_stats = pbc.getStats();
+    std.debug.print("[DB] Loaded: {d} blocks, {d} addresses from {s}\n",
+        .{ loaded_stats.total_blocks, loaded_stats.total_addresses, DB_PATH });
 
     // ── Init blockchain ───────────────────────────────────────────────────────
     var bc = try Blockchain.init(allocator);
@@ -110,6 +121,10 @@ pub fn main() !void {
 
         if (block_count % 10 == 0) {
             std.debug.print("[MINING] {d} blocks | difficulty: {d}\n", .{ block_count, bc.difficulty });
+            // Auto-save state to disk every 10 blocks
+            pbc.saveToDisk(DB_PATH) catch |err| {
+                std.debug.print("[DB] Save failed: {}\n", .{err});
+            };
         }
 
         maint_count += 1;

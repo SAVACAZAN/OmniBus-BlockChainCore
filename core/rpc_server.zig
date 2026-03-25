@@ -201,6 +201,69 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
             .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount });
     }
 
+    if (std.mem.eql(u8, method, "gettransactions")) {
+        // params: [address] (optional) — returneaza TX din mempool + toate blocurile
+        const filter_addr = extractArrayStr(body, 0) orelse
+                            extractStr(body, "address") orelse "";
+
+        // Construim JSON array acumuland string-uri
+        var entries: []u8 = try alloc.dupe(u8, "");
+        var count: usize = 0;
+
+        // 1. TX din mempool (pending)
+        for (ctx.bc.mempool.items) |tx| {
+            const matches = filter_addr.len == 0 or
+                std.mem.eql(u8, tx.from_address, filter_addr) or
+                std.mem.eql(u8, tx.to_address, filter_addr);
+            if (!matches) continue;
+
+            const direction: []const u8 = if (filter_addr.len > 0 and
+                std.mem.eql(u8, tx.from_address, filter_addr)) "sent" else "received";
+            const sep: []const u8 = if (count == 0) "" else ",";
+            const entry = try std.fmt.allocPrint(alloc,
+                "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\"," ++
+                "\"amount\":{d},\"timestamp\":{d},\"status\":\"pending\"," ++
+                "\"direction\":\"{s}\",\"blockHeight\":-1}}",
+                .{ sep, tx.hash, tx.from_address, tx.to_address,
+                   tx.amount, tx.timestamp, direction });
+            const new_entries = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, entry });
+            alloc.free(entries);
+            alloc.free(entry);
+            entries = new_entries;
+            count += 1;
+        }
+
+        // 2. TX din blocuri confirmate
+        for (ctx.bc.chain.items) |blk| {
+            for (blk.transactions.items) |tx| {
+                const matches = filter_addr.len == 0 or
+                    std.mem.eql(u8, tx.from_address, filter_addr) or
+                    std.mem.eql(u8, tx.to_address, filter_addr);
+                if (!matches) continue;
+
+                const direction: []const u8 = if (filter_addr.len > 0 and
+                    std.mem.eql(u8, tx.from_address, filter_addr)) "sent" else "received";
+                const sep: []const u8 = if (count == 0) "" else ",";
+                const entry = try std.fmt.allocPrint(alloc,
+                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\"," ++
+                    "\"amount\":{d},\"timestamp\":{d},\"status\":\"confirmed\"," ++
+                    "\"direction\":\"{s}\",\"blockHeight\":{d}}}",
+                    .{ sep, tx.hash, tx.from_address, tx.to_address,
+                       tx.amount, tx.timestamp, direction, blk.index });
+                const new_entries = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, entry });
+                alloc.free(entries);
+                alloc.free(entry);
+                entries = new_entries;
+                count += 1;
+            }
+        }
+
+        defer alloc.free(entries);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d}}}}}",
+            .{ id, filter_addr, entries, count });
+    }
+
     // Method not found
     return errorJson(-32601, "Method not found", id, alloc);
 }

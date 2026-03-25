@@ -54,18 +54,48 @@ pub const Blockchain = struct {
     }
 
     pub fn validateTransaction(self: *Blockchain, tx: *const Transaction) !bool {
-        // Basic transaction validation
-        if (tx.amount == 0) {
-            return false;
-        }
-
-        if (tx.from_address.len == 0 or tx.to_address.len == 0) {
-            return false;
-        }
-
-        // TODO: Verify signature with public key
         _ = self;
+
+        // 1. Amount trebuie > 0
+        if (tx.amount == 0) return false;
+
+        // 2. Adrese nu pot fi goale
+        if (tx.from_address.len == 0 or tx.to_address.len == 0) return false;
+
+        // 3. Prefix valid (isValid verifică prefix + amount)
+        if (!tx.isValid()) return false;
+
+        // 4. Dacă TX are semnătură — verifică integritatea hash-ului
+        //    (signature = 128 hex chars = 64 bytes R||S, hash = 64 hex chars)
+        //    Nu putem verifica semnătura fără public key, dar verificăm că
+        //    hash-ul stocat corespunde conținutului TX (anti-tampering)
+        if (tx.signature.len == 128 and tx.hash.len == 64) {
+            const expected_hash = tx.calculateHash();
+            // Reconvertim hash stocat din hex
+            var stored_hash: [32]u8 = undefined;
+            var ok = true;
+            for (0..32) |i| {
+                const hi = charToNibble(tx.hash[i * 2]) catch { ok = false; break; };
+                const lo = charToNibble(tx.hash[i * 2 + 1]) catch { ok = false; break; };
+                stored_hash[i] = (hi << 4) | lo;
+            }
+            if (!ok) return false;
+            if (!std.mem.eql(u8, &stored_hash, &expected_hash)) return false;
+        } else if (tx.signature.len > 0) {
+            // Semnătură incompletă — respinge
+            return false;
+        }
+
         return true;
+    }
+
+    fn charToNibble(c: u8) !u8 {
+        return switch (c) {
+            '0'...'9' => c - '0',
+            'a'...'f' => c - 'a' + 10,
+            'A'...'F' => c - 'A' + 10,
+            else => error.InvalidChar,
+        };
     }
 
     pub fn mineBlock(self: *Blockchain) !Block {

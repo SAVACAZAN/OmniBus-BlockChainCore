@@ -14,18 +14,11 @@ pub const KeyValueStore = struct {
     }
 
     pub fn deinit(self: *KeyValueStore) void {
-        var iter = self.data.keyIterator();
-        while (iter.next()) |key| {
-            self.allocator.free(key.*);
+        var iter = self.data.iterator();
+        while (iter.next()) |entry| {
+            self.allocator.free(entry.key_ptr.*);
+            self.allocator.free(entry.value_ptr.*);
         }
-
-        iter = self.data.keyIterator();
-        while (iter.next()) |_| {
-            if (self.data.get(iter.next() orelse break)) |value| {
-                self.allocator.free(value);
-            }
-        }
-
         self.data.deinit();
     }
 
