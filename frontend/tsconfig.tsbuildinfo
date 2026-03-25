@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/api/rpc-client.ts","./src/components/BlockExplorer.tsx","./src/components/Stats.tsx","./src/components/Wallet.tsx","./src/pages/GenesisCountdown.tsx"],"errors":true,"version":"5.9.3"}

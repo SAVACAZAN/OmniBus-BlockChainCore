@@ -16,13 +16,30 @@ const MINER_ACTIVITY_TIMEOUT = 30000; // 30 seconds - if no keepalive, mark offl
 let blockCount = 1;
 let balance = 0;
 let mempoolSize = 0;
+let mempoolTransactions = [];  // TX-uri in asteptare
 let startTime = Date.now();
 
 // DYNAMIC MINING POOL: Miners register themselves at runtime
 let minerRegistry = new Map();  // address → { id, name, hashrate, joinedAt, lastKeepalive }
 let activeMinerSet = new Set();  // Currently mining addresses
-let minerBalances = {};          // address → balance in SAT
 let minerLastBlockTime = {};     // address → last reward timestamp
+
+// Balance persistent pe disc
+const BALANCES_FILE = '/home/kiss/OmniBus-BlockChainCore/balances.json';
+let minerBalances = {};          // address → balance in SAT
+try {
+  const raw = fs.readFileSync(BALANCES_FILE, 'utf8');
+  minerBalances = JSON.parse(raw);
+  const addrs = Object.keys(minerBalances).length;
+  if (addrs > 0) console.log(`[POOL] Loaded balances for ${addrs} addresses from disk`);
+} catch (e) {
+  minerBalances = {};
+}
+
+function saveBalances() {
+  try { fs.writeFileSync(BALANCES_FILE, JSON.stringify(minerBalances, null, 2)); }
+  catch (e) { console.error('[POOL] Failed to save balances:', e.message); }
+}
 
 // Mining transactions history
 let blockData = [];
@@ -65,6 +82,20 @@ setInterval(() => {
       minerLastBlockTime[minerAddress] = blockTimestamp;
       transactions.push(minerRewardTx);
       balance += rewardPerMiner;
+    }
+    saveBalances();
+
+    // Preia TX-urile din mempool si le confirma
+    const pendingTxs = mempoolTransactions.splice(0, mempoolTransactions.length);
+    mempoolSize = 0;
+    pendingTxs.forEach(tx => {
+      tx.status = 'confirmed';
+      tx.blockHeight = blockCount - 1;
+      tx.confirmedAt = blockTimestamp;
+      transactions.push(tx);
+    });
+    if (pendingTxs.length > 0) {
+      console.log(`[BLOCK ${blockCount-1}] Confirmed ${pendingTxs.length} TX(s) from mempool`);
     }
 
     // Store block
@@ -154,7 +185,71 @@ const rpcMethods = {
     return { index: blockCount - 1, timestamp: Date.now(), transactions: [], hash: generateBlockHash() };
   },
 
-  getbalance: () => balance,
+  // getBalance(address) — raspuns complet pentru wallet Python
+  // Accepta: getBalance(["ob_omni_..."])  sau  getbalance() fara adresa (total pool)
+  getbalance: (params) => {
+    const address = params && params[0] ? params[0] : null;
+
+    if (address) {
+      // Balance per adresa — din minerBalances
+      const balSat = minerBalances[address] || 0;
+
+      // Colecteaza tranzactiile pentru aceasta adresa
+      const addrTxs = [];
+      for (const block of blockData) {
+        if (block.transactions) {
+          for (const tx of block.transactions) {
+            if (tx.to === address || tx.from === address) {
+              addrTxs.push({
+                txid: tx.txid,
+                type: tx.type || "transfer",
+                amount: tx.amount,
+                amountSat: tx.amountSat || Math.round((tx.amount || 0) * 1e9),
+                from: tx.from,
+                to: tx.to,
+                blockHeight: tx.blockHeight || 0,
+                timestamp: tx.timestamp,
+                status: tx.status || "confirmed"
+              });
+            }
+          }
+        }
+      }
+
+      // UTXOs simple (un UTXO agregat per block reward)
+      const utxos = addrTxs
+        .filter(tx => tx.to === address && tx.type === "coinbase")
+        .map((tx, idx) => ({
+          txid: tx.txid,
+          vout: 0,
+          value: tx.amountSat,
+          valueOMNI: tx.amount,
+          blockHeight: tx.blockHeight,
+          status: "confirmed"
+        }));
+
+      return {
+        address: address,
+        balance: balSat,
+        balanceOMNI: balSat / 1e9,
+        confirmed: balSat,
+        unconfirmed: 0,
+        utxos: utxos,
+        transactions: addrTxs.slice(-20),  // ultimele 20
+        txCount: addrTxs.length,
+        nodeHeight: blockCount
+      };
+    }
+
+    // Fara adresa: returneaza balanta totala pool (backwards compat)
+    return {
+      balance: balance,
+      balanceOMNI: balance / 1e9,
+      confirmed: balance,
+      unconfirmed: 0,
+      nodeHeight: blockCount
+    };
+  },
 
   getmempoolsize: () => mempoolSize,
 
@@ -170,15 +265,105 @@ const rpcMethods = {
   },
 
   gettransactionhistory: (params) => {
-    const limit = params[0] || 20;
+    const limit = params[0] || 50;
     const allTransactions = [];
 
-    // Collect all transactions from recent blocks
+    // TX-uri confirmate din blocuri
     blockData.slice(-Math.min(limit, blockData.length)).forEach(block => {
       allTransactions.push(...block.transactions);
     });
 
-    return allTransactions.reverse().slice(0, limit);
+    // TX-uri pending din mempool (cele mai recente)
+    const pending = mempoolTransactions.map(tx => ({ ...tx }));
+
+    // Combinam: pending first, apoi confirmate, cele mai recente primele
+    const combined = [...pending, ...allTransactions.reverse()];
+    return combined.slice(0, limit);
+  },
+
+  // sendtransaction — primeste TX semnat din Python wallet
+  // params: [{ from, to, amount, amountSat, timestamp, signature, hash, pubkey }]
+  sendtransaction: (params) => {
+    if (!params || !params[0]) {
+      return { success: false, error: 'Missing transaction data' };
+    }
+
+    const tx = params[0];
+    const { from, to, amount, amountSat, timestamp, signature, hash, pubkey } = tx;
+
+    // Validare campuri obligatorii
+    if (!from || !to || !amountSat || !signature || !hash) {
+      return { success: false, error: 'Missing required fields: from, to, amountSat, signature, hash' };
+    }
+
+    // Validare prefix adrese OmniBus
+    const validPrefixes = ['ob_omni_', 'ob_k1_', 'ob_f5_', 'ob_d5_', 'ob_s3_', 'ob1q', 'ob_', '0x'];
+    const fromOk = validPrefixes.some(p => from.startsWith(p));
+    const toOk   = validPrefixes.some(p => to.startsWith(p));
+    if (!fromOk || !toOk) {
+      return { success: false, error: 'Invalid address prefix' };
+    }
+
+    // Validare amount
+    const amtSat = Number(amountSat);
+    if (!amtSat || amtSat <= 0) {
+      return { success: false, error: 'Invalid amount' };
+    }
+
+    // Validare balanta sender
+    const senderBalance = minerBalances[from] || 0;
+    if (senderBalance < amtSat) {
+      return {
+        success: false,
+        error: 'Insufficient balance',
+        balance: senderBalance,
+        required: amtSat
+      };
+    }
+
+    // Genereaza txid unic
+    const txid = 'tx_' + Date.now().toString(16) + '_' + Math.random().toString(36).slice(2, 10);
+
+    // Tranzactia pentru mempool
+    const transaction = {
+      txid,
+      type: 'transfer',
+      from,
+      to,
+      amount: amount || amtSat / 1e9,
+      amountSat: amtSat,
+      timestamp: timestamp || Date.now(),
+      signature,
+      hash,
+      pubkey: pubkey || '',
+      status: 'pending',
+      blockHeight: null,
+      receivedAt: Date.now()
+    };
+
+    // Adauga in mempool
+    mempoolTransactions.push(transaction);
+    mempoolSize = mempoolTransactions.length;
+
+    // Debiteaza sender, crediteaza receiver
+    minerBalances[from] = (minerBalances[from] || 0) - amtSat;
+    minerBalances[to]   = (minerBalances[to]   || 0) + amtSat;
+    saveBalances();
+
+    const fromShort = from.slice(0, 14) + '...';
+    const toShort   = to.slice(0, 14) + '...';
+    console.log('[TX] ' + fromShort + ' -> ' + toShort + ' : ' + (amtSat/1e9).toFixed(4) + ' OMNI | ' + txid);
+
+    return {
+      success: true,
+      txid,
+      status: 'pending',
+      from,
+      to,
+      amountSat: amtSat,
+      amountOMNI: amtSat / 1e9,
+      message: 'Transaction added to mempool'
+    };
   },
 
   // Pool-specific RPC methods
@@ -322,6 +507,74 @@ const rpcMethods = {
     uptime: Date.now() - startTime
   }),
 
+  // NEW: Detailed miner connection status
+  getminerconnections: () => {
+    const now = Date.now();
+    const TIMEOUT = 30000; // 30 seconds
+    const result = {
+      timestamp: now,
+      total: minerRegistry.size,
+      active: activeMinerSet.size,
+      inactive: minerRegistry.size - activeMinerSet.size,
+      miners: []
+    };
+
+    for (let [address, minerInfo] of minerRegistry.entries()) {
+      const isActive = activeMinerSet.has(address);
+      const timeSinceKeepalive = now - minerInfo.lastKeepalive;
+      const isAlive = timeSinceKeepalive < TIMEOUT;
+
+      result.miners.push({
+        id: minerInfo.id,
+        name: minerInfo.name,
+        address: address,
+        status: isActive ? "connected" : "disconnected",
+        isAlive: isAlive,
+        lastKeepalive: minerInfo.lastKeepalive,
+        timeSinceKeepaliveMs: timeSinceKeepalive,
+        timeSinceKeepaliveSec: Math.round(timeSinceKeepalive / 1000),
+        joinedAt: minerInfo.joinedAt,
+        uptime: now - minerInfo.joinedAt,
+        balance: (minerBalances[address] || 0) / 1e9,
+        hashrate: minerInfo.hashrate || 1000
+      });
+    }
+
+    // Sort by status (active first)
+    result.miners.sort((a, b) => {
+      if (a.status !== b.status) return a.status === "connected" ? -1 : 1;
+      return b.lastKeepalive - a.lastKeepalive;
+    });
+
+    return result;
+  },
+
+  // NEW: Quick miner list with just essential info
+  getminerlist: () => {
+    const result = {
+      connected: [],
+      disconnected: [],
+      timestamp: Date.now()
+    };
+
+    for (let [address, minerInfo] of minerRegistry.entries()) {
+      const isActive = activeMinerSet.has(address);
+      const minerData = {
+        id: minerInfo.id,
+        name: minerInfo.name,
+        balance: (minerBalances[address] || 0) / 1e9
+      };
+
+      if (isActive) {
+        result.connected.push(minerData);
+      } else {
+        result.disconnected.push(minerData);
+      }
+    }
+
+    return result;
+  },
+
   startgenesis: () => true
 };
 
@@ -390,7 +643,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(RPC_PORT, "127.0.0.1", () => {
+server.listen(RPC_PORT, "0.0.0.0", () => {
   console.log("");
   console.log(`╔════════════════════════════════════════════════════════════╗`);
   console.log(`║         OmniBus Mining Pool - Dynamic Registry             ║`);
@@ -406,6 +659,8 @@ server.listen(RPC_PORT, "127.0.0.1", () => {
   console.log(`       • getminerbalances   - All active miner balances`);
   console.log(`       • getminers          - All active miners`);
   console.log(`       • getpoolstats       - Detailed pool stats`);
+  console.log(`       • getminerconnections - Detailed connection status (NEW)`);
+  console.log(`       • getminerlist       - Simple connected/disconnected list (NEW)`);
   console.log("");
   console.log(`[POOL] BLOCKCHAIN METHODS:`);
   console.log(`       • getblockcount      - Current block number`);

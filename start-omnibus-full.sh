@@ -124,3 +124,8 @@ echo "   tail -f logs/pool.log              # Monitor mining"
 echo "   bash launch-extra-miners.sh 100    # Add more miners"
 echo "   bash stop-all.sh                   # Stop everything"
 echo ""
+
+# Keep script running and processes alive
+echo "💚 System running. Press Ctrl+C to stop all services."
+echo ""
+wait

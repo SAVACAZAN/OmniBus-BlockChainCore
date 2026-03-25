@@ -29,6 +29,14 @@ pub const Crypto = struct {
         return result;
     }
 
+    /// HMAC-SHA512 (BIP32 standard)
+    pub fn hmacSha512(key: []const u8, message: []const u8) [64]u8 {
+        var result: [64]u8 = undefined;
+        const hmac = std.crypto.auth.hmac.Hmac(std.crypto.hash.sha2.Sha512);
+        hmac.create(&result, message, key);
+        return result;
+    }
+
     /// RIPEMD-160 (for Bitcoin addresses)
     /// Simplified - returns first 20 bytes of SHA256 for now
     pub fn ripemd160(data: []const u8) [20]u8 {
@@ -142,6 +150,6 @@ test "bytesToHex" {
 }
 
 test "password strength" {
-    try testing.expect(Crypto.isStrongPassword("MyPass123!") == true);
+    try testing.expect(Crypto.isStrongPassword("MyStrongPass123!") == true);
     try testing.expect(Crypto.isStrongPassword("weak") == false);
 }

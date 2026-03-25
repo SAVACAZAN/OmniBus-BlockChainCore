@@ -1,260 +1,240 @@
 const std = @import("std");
 
-/// Post-Quantum Cryptography Module
-/// NIST Standard Post-Quantum Algorithms
-pub const PQCrypto = struct {
-    /// Kyber-768 (ML-KEM-768) - Key Encapsulation Mechanism
-    /// Security: NIST Level 3 (192-bit)
-    pub const Kyber768 = struct {
-        pub const PUBLIC_KEY_SIZE = 1184;
-        pub const SECRET_KEY_SIZE = 2400;
-        pub const CIPHERTEXT_SIZE = 1088;
-        pub const SHARED_SECRET_SIZE = 32;
+/// Post-Quantum Cryptography via liboqs FFI
+/// liboqs static: /home/kiss/liboqs/build/lib/liboqs.a
+/// Include:       /home/kiss/liboqs/build/include/
+///
+/// Algoritmi (NIST FIPS):
+///   ML-DSA-87               FIPS 204  — OMNI_LOVE (778), OMNI_RENT (780)
+///   Falcon-512              FIPS 206  — OMNI_FOOD (779)
+///   SLH-DSA-SHAKE-256s      FIPS 205  — OMNI_VACATION (781)
+///   ML-KEM-768              FIPS 203  — encryption
 
-        public_key: [PUBLIC_KEY_SIZE]u8,
-        secret_key: [SECRET_KEY_SIZE]u8,
+const c = @cImport({
+    @cInclude("oqs/oqs.h");
+    @cInclude("oqs/sig_ml_dsa.h");
+    @cInclude("oqs/sig_falcon.h");
+    @cInclude("oqs/sig_slh_dsa.h");
+    @cInclude("oqs/kem_ml_kem.h");
+});
 
-        pub fn generateKeyPair() !Kyber768 {
-            var public_key: [PUBLIC_KEY_SIZE]u8 = undefined;
-            var secret_key: [SECRET_KEY_SIZE]u8 = undefined;
+// ─── ML-DSA-87 (Dilithium-5) — FIPS 204 ─────────────────────────────────────
 
-            // Fill with pseudo-random data (TODO: use actual Kyber algorithm)
-            for (0..PUBLIC_KEY_SIZE) |i| {
-                public_key[i] = @as(u8, @truncate((i * 7 + 13) % 256));
-            }
+pub const MlDsa87 = struct {
+    pub const PUBLIC_KEY_SIZE : usize = 2592;
+    pub const SECRET_KEY_SIZE : usize = 4896;
+    pub const SIGNATURE_MAX   : usize = 4627;
 
-            for (0..SECRET_KEY_SIZE) |i| {
-                secret_key[i] = @as(u8, @truncate((i * 11 + 17) % 256));
-            }
+    public_key: [PUBLIC_KEY_SIZE]u8,
+    secret_key: [SECRET_KEY_SIZE]u8,
 
-            return Kyber768{
-                .public_key = public_key,
-                .secret_key = secret_key,
-            };
-        }
+    pub fn generateKeyPair() !MlDsa87 {
+        var kp: MlDsa87 = undefined;
+        const rc = c.OQS_SIG_ml_dsa_87_keypair(&kp.public_key, &kp.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.KeyGenFailed;
+        return kp;
+    }
 
-        pub fn encapsulate(self: *const Kyber768) ![CIPHERTEXT_SIZE]u8 {
-            var ciphertext: [CIPHERTEXT_SIZE]u8 = undefined;
+    pub fn sign(self: *const MlDsa87, message: []const u8, allocator: std.mem.Allocator) ![]u8 {
+        const buf = try allocator.alloc(u8, SIGNATURE_MAX);
+        errdefer allocator.free(buf);
+        var sig_len: usize = SIGNATURE_MAX;
+        const rc = c.OQS_SIG_ml_dsa_87_sign(buf.ptr, &sig_len, message.ptr, message.len, &self.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.SignFailed;
+        return buf[0..sig_len];
+    }
 
-            // TODO: Implement actual Kyber encapsulation
-            for (0..CIPHERTEXT_SIZE) |i| {
-                ciphertext[i] = @as(u8, @truncate((i * 5 + 29) % 256));
-            }
-
-            return ciphertext;
-        }
-
-        pub fn decapsulate(self: *const Kyber768, ciphertext: [CIPHERTEXT_SIZE]u8) ![SHARED_SECRET_SIZE]u8 {
-            _ = ciphertext;
-            var shared_secret: [SHARED_SECRET_SIZE]u8 = undefined;
-
-            // TODO: Implement actual Kyber decapsulation
-            for (0..SHARED_SECRET_SIZE) |i| {
-                shared_secret[i] = @as(u8, @truncate((i * 31 + 7) % 256));
-            }
-
-            return shared_secret;
-        }
-    };
-
-    /// Dilithium-5 (ML-DSA-5) - Digital Signature Algorithm
-    /// Security: NIST Level 5 (256-bit)
-    pub const Dilithium5 = struct {
-        pub const PUBLIC_KEY_SIZE = 2544;
-        pub const SECRET_KEY_SIZE = 4880;
-        pub const SIGNATURE_SIZE = 3293;
-
-        public_key: [PUBLIC_KEY_SIZE]u8,
-        secret_key: [SECRET_KEY_SIZE]u8,
-
-        pub fn generateKeyPair() !Dilithium5 {
-            var public_key: [PUBLIC_KEY_SIZE]u8 = undefined;
-            var secret_key: [SECRET_KEY_SIZE]u8 = undefined;
-
-            // Fill with pseudo-random data
-            for (0..PUBLIC_KEY_SIZE) |i| {
-                public_key[i] = @as(u8, @truncate((i * 23 + 41) % 256));
-            }
-
-            for (0..SECRET_KEY_SIZE) |i| {
-                secret_key[i] = @as(u8, @truncate((i * 37 + 43) % 256));
-            }
-
-            return Dilithium5{
-                .public_key = public_key,
-                .secret_key = secret_key,
-            };
-        }
-
-        pub fn sign(self: *const Dilithium5, message: []const u8) ![SIGNATURE_SIZE]u8 {
-            var signature: [SIGNATURE_SIZE]u8 = undefined;
-
-            // TODO: Implement actual Dilithium signing
-            for (0..SIGNATURE_SIZE) |i| {
-                signature[i] = @as(u8, @truncate((i * 47 + message.len) % 256));
-            }
-
-            return signature;
-        }
-
-        pub fn verify(self: *const Dilithium5, message: []const u8, signature: [SIGNATURE_SIZE]u8) bool {
-            _ = self;
-            _ = message;
-            _ = signature;
-            // TODO: Implement actual Dilithium verification
-            return true;
-        }
-    };
-
-    /// Falcon-512 - Digital Signature Algorithm
-    /// Security: NIST Level 1 (128-bit)
-    pub const Falcon512 = struct {
-        pub const PUBLIC_KEY_SIZE = 897;
-        pub const SECRET_KEY_SIZE = 1281;
-        pub const SIGNATURE_SIZE = 690;
-
-        public_key: [PUBLIC_KEY_SIZE]u8,
-        secret_key: [SECRET_KEY_SIZE]u8,
-
-        pub fn generateKeyPair() !Falcon512 {
-            var public_key: [PUBLIC_KEY_SIZE]u8 = undefined;
-            var secret_key: [SECRET_KEY_SIZE]u8 = undefined;
-
-            // Fill with pseudo-random data
-            for (0..PUBLIC_KEY_SIZE) |i| {
-                public_key[i] = @as(u8, @truncate((i * 19 + 53) % 256));
-            }
-
-            for (0..SECRET_KEY_SIZE) |i| {
-                secret_key[i] = @as(u8, @truncate((i * 61 + 67) % 256));
-            }
-
-            return Falcon512{
-                .public_key = public_key,
-                .secret_key = secret_key,
-            };
-        }
-
-        pub fn sign(self: *const Falcon512, message: []const u8) ![SIGNATURE_SIZE]u8 {
-            var signature: [SIGNATURE_SIZE]u8 = undefined;
-
-            // TODO: Implement actual Falcon signing
-            for (0..SIGNATURE_SIZE) |i| {
-                signature[i] = @as(u8, @truncate((i * 71 + message.len) % 256));
-            }
-
-            return signature;
-        }
-
-        pub fn verify(self: *const Falcon512, message: []const u8, signature: [SIGNATURE_SIZE]u8) bool {
-            _ = self;
-            _ = message;
-            _ = signature;
-            // TODO: Implement actual Falcon verification
-            return true;
-        }
-    };
-
-    /// SPHINCS+ (SLH-DSA-256) - Stateless Hash-Based Signature
-    /// Security: NIST Level 5 (256-bit, post-quantum eternal)
-    pub const SPHINCSPlus = struct {
-        pub const PUBLIC_KEY_SIZE = 64;
-        pub const SECRET_KEY_SIZE = 128;
-        pub const SIGNATURE_SIZE = 17088;
-
-        public_key: [PUBLIC_KEY_SIZE]u8,
-        secret_key: [SECRET_KEY_SIZE]u8,
-
-        pub fn generateKeyPair() !SPHINCSPlus {
-            var public_key: [PUBLIC_KEY_SIZE]u8 = undefined;
-            var secret_key: [SECRET_KEY_SIZE]u8 = undefined;
-
-            // Fill with pseudo-random data
-            for (0..PUBLIC_KEY_SIZE) |i| {
-                public_key[i] = @as(u8, @truncate((i * 73 + 79) % 256));
-            }
-
-            for (0..SECRET_KEY_SIZE) |i| {
-                secret_key[i] = @as(u8, @truncate((i * 83 + 89) % 256));
-            }
-
-            return SPHINCSPlus{
-                .public_key = public_key,
-                .secret_key = secret_key,
-            };
-        }
-
-        pub fn sign(self: *const SPHINCSPlus, message: []const u8) ![SIGNATURE_SIZE]u8 {
-            var signature: [SIGNATURE_SIZE]u8 = undefined;
-
-            // TODO: Implement actual SPHINCS+ signing
-            for (0..SIGNATURE_SIZE) |i| {
-                signature[i] = @as(u8, @truncate((i * 97 + message.len) % 256));
-            }
-
-            return signature;
-        }
-
-        pub fn verify(self: *const SPHINCSPlus, message: []const u8, signature: [SIGNATURE_SIZE]u8) bool {
-            _ = self;
-            _ = message;
-            _ = signature;
-            // TODO: Implement actual SPHINCS+ verification
-            return true;
-        }
-    };
+    pub fn verify(self: *const MlDsa87, message: []const u8, signature: []const u8) bool {
+        const rc = c.OQS_SIG_ml_dsa_87_verify(
+            message.ptr, message.len,
+            signature.ptr, signature.len,
+            &self.public_key,
+        );
+        return rc == c.OQS_SUCCESS;
+    }
 };
 
-// Tests
+// ─── Falcon-512 — FIPS 206 ───────────────────────────────────────────────────
+
+pub const Falcon512 = struct {
+    pub const PUBLIC_KEY_SIZE : usize = 897;
+    pub const SECRET_KEY_SIZE : usize = 1281;
+    pub const SIGNATURE_MAX   : usize = 752;
+
+    public_key: [PUBLIC_KEY_SIZE]u8,
+    secret_key: [SECRET_KEY_SIZE]u8,
+
+    pub fn generateKeyPair() !Falcon512 {
+        var kp: Falcon512 = undefined;
+        const rc = c.OQS_SIG_falcon_512_keypair(&kp.public_key, &kp.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.KeyGenFailed;
+        return kp;
+    }
+
+    pub fn sign(self: *const Falcon512, message: []const u8, allocator: std.mem.Allocator) ![]u8 {
+        const buf = try allocator.alloc(u8, SIGNATURE_MAX);
+        errdefer allocator.free(buf);
+        var sig_len: usize = SIGNATURE_MAX;
+        const rc = c.OQS_SIG_falcon_512_sign(buf.ptr, &sig_len, message.ptr, message.len, &self.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.SignFailed;
+        return buf[0..sig_len];
+    }
+
+    pub fn verify(self: *const Falcon512, message: []const u8, signature: []const u8) bool {
+        const rc = c.OQS_SIG_falcon_512_verify(
+            message.ptr, message.len,
+            signature.ptr, signature.len,
+            &self.public_key,
+        );
+        return rc == c.OQS_SUCCESS;
+    }
+};
+
+// ─── SLH-DSA-SHAKE-256s (SPHINCS+) — FIPS 205 ───────────────────────────────
+
+pub const SlhDsa256s = struct {
+    pub const PUBLIC_KEY_SIZE : usize = 64;
+    pub const SECRET_KEY_SIZE : usize = 128;
+    pub const SIGNATURE_MAX   : usize = 29792;
+
+    public_key: [PUBLIC_KEY_SIZE]u8,
+    secret_key: [SECRET_KEY_SIZE]u8,
+
+    pub fn generateKeyPair() !SlhDsa256s {
+        var kp: SlhDsa256s = undefined;
+        const rc = c.OQS_SIG_slh_dsa_pure_shake_256s_keypair(&kp.public_key, &kp.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.KeyGenFailed;
+        return kp;
+    }
+
+    pub fn sign(self: *const SlhDsa256s, message: []const u8, allocator: std.mem.Allocator) ![]u8 {
+        const buf = try allocator.alloc(u8, SIGNATURE_MAX);
+        errdefer allocator.free(buf);
+        var sig_len: usize = SIGNATURE_MAX;
+        const rc = c.OQS_SIG_slh_dsa_pure_shake_256s_sign(
+            buf.ptr, &sig_len,
+            message.ptr, message.len,
+            &self.secret_key,
+        );
+        if (rc != c.OQS_SUCCESS) return error.SignFailed;
+        return buf[0..sig_len];
+    }
+
+    pub fn verify(self: *const SlhDsa256s, message: []const u8, signature: []const u8) bool {
+        const rc = c.OQS_SIG_slh_dsa_pure_shake_256s_verify(
+            message.ptr, message.len,
+            signature.ptr, signature.len,
+            &self.public_key,
+        );
+        return rc == c.OQS_SUCCESS;
+    }
+};
+
+// ─── ML-KEM-768 (Kyber-768) — FIPS 203 ──────────────────────────────────────
+
+pub const MlKem768 = struct {
+    pub const PUBLIC_KEY_SIZE    : usize = 1184;
+    pub const SECRET_KEY_SIZE    : usize = 2400;
+    pub const CIPHERTEXT_SIZE    : usize = 1088;
+    pub const SHARED_SECRET_SIZE : usize = 32;
+
+    public_key: [PUBLIC_KEY_SIZE]u8,
+    secret_key: [SECRET_KEY_SIZE]u8,
+
+    pub fn generateKeyPair() !MlKem768 {
+        var kp: MlKem768 = undefined;
+        const rc = c.OQS_KEM_ml_kem_768_keypair(&kp.public_key, &kp.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.KeyGenFailed;
+        return kp;
+    }
+
+    pub fn encapsulate(self: *const MlKem768, allocator: std.mem.Allocator) !struct {
+        ciphertext: []u8,
+        shared_secret: [SHARED_SECRET_SIZE]u8,
+    } {
+        const ct = try allocator.alloc(u8, CIPHERTEXT_SIZE);
+        errdefer allocator.free(ct);
+        var ss: [SHARED_SECRET_SIZE]u8 = undefined;
+        const rc = c.OQS_KEM_ml_kem_768_encaps(ct.ptr, &ss, &self.public_key);
+        if (rc != c.OQS_SUCCESS) return error.EncapsFailed;
+        return .{ .ciphertext = ct, .shared_secret = ss };
+    }
+
+    pub fn decapsulate(self: *const MlKem768, ciphertext: []const u8) ![SHARED_SECRET_SIZE]u8 {
+        var ss: [SHARED_SECRET_SIZE]u8 = undefined;
+        const rc = c.OQS_KEM_ml_kem_768_decaps(&ss, ciphertext.ptr, &self.secret_key);
+        if (rc != c.OQS_SUCCESS) return error.DecapsFailed;
+        return ss;
+    }
+};
+
+// ─── Alias-uri compatibile cu codul existent ─────────────────────────────────
+
+pub const PQCrypto = struct {
+    pub const Dilithium5 = MlDsa87;
+    pub const SPHINCSPlus = SlhDsa256s;
+    pub const Kyber768 = MlKem768;
+};
+
+pub const DomainAlgorithm = enum { MlDsa87, Falcon512, SlhDsa256s };
+
+pub fn algorithmForCoinType(coin_type: u32) ?DomainAlgorithm {
+    return switch (coin_type) {
+        778 => .MlDsa87,
+        779 => .Falcon512,
+        780 => .MlDsa87,
+        781 => .SlhDsa256s,
+        else => null,
+    };
+}
+
+// ─── Teste ───────────────────────────────────────────────────────────────────
+
 const testing = std.testing;
 
-test "Kyber-768 key generation" {
-    var kyber = try PQCrypto.Kyber768.generateKeyPair();
-    try testing.expect(kyber.public_key.len == PQCrypto.Kyber768.PUBLIC_KEY_SIZE);
-    try testing.expect(kyber.secret_key.len == PQCrypto.Kyber768.SECRET_KEY_SIZE);
+test "ML-DSA-87 — keypair + sign + verify" {
+    const kp = try MlDsa87.generateKeyPair();
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const msg = "OmniBus OMNI_LOVE transaction";
+    const sig = try kp.sign(msg, arena.allocator());
+    try testing.expect(kp.verify(msg, sig));
+    try testing.expect(!kp.verify("alterat", sig));
 }
 
-test "Kyber-768 encapsulation" {
-    var kyber = try PQCrypto.Kyber768.generateKeyPair();
-    const ciphertext = try kyber.encapsulate();
-    try testing.expect(ciphertext.len == PQCrypto.Kyber768.CIPHERTEXT_SIZE);
+test "Falcon-512 — keypair + sign + verify" {
+    const kp = try Falcon512.generateKeyPair();
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const msg = "OmniBus OMNI_FOOD transaction";
+    const sig = try kp.sign(msg, arena.allocator());
+    try testing.expect(kp.verify(msg, sig));
+    try testing.expect(!kp.verify("mesaj gresit", sig));
 }
 
-test "Kyber-768 decapsulation" {
-    var kyber = try PQCrypto.Kyber768.generateKeyPair();
-    const ciphertext = try kyber.encapsulate();
-    const shared_secret = try kyber.decapsulate(ciphertext);
-    try testing.expect(shared_secret.len == PQCrypto.Kyber768.SHARED_SECRET_SIZE);
+test "SLH-DSA-256s — keypair + sign + verify" {
+    const kp = try SlhDsa256s.generateKeyPair();
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const msg = "OmniBus OMNI_VACATION transaction";
+    const sig = try kp.sign(msg, arena.allocator());
+    try testing.expect(kp.verify(msg, sig));
+    try testing.expect(!kp.verify("alterat", sig));
 }
 
-test "Dilithium-5 key generation" {
-    var dilithium = try PQCrypto.Dilithium5.generateKeyPair();
-    try testing.expect(dilithium.public_key.len == PQCrypto.Dilithium5.PUBLIC_KEY_SIZE);
-    try testing.expect(dilithium.secret_key.len == PQCrypto.Dilithium5.SECRET_KEY_SIZE);
+test "ML-KEM-768 — encaps + decaps shared secret identic" {
+    const kp = try MlKem768.generateKeyPair();
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const enc = try kp.encapsulate(arena.allocator());
+    const dec = try kp.decapsulate(enc.ciphertext);
+    try testing.expectEqualSlices(u8, &enc.shared_secret, &dec);
 }
 
-test "Dilithium-5 signing" {
-    var dilithium = try PQCrypto.Dilithium5.generateKeyPair();
-    const message = "test message";
-    const signature = try dilithium.sign(message);
-    try testing.expect(signature.len == PQCrypto.Dilithium5.SIGNATURE_SIZE);
-}
-
-test "Dilithium-5 verification" {
-    var dilithium = try PQCrypto.Dilithium5.generateKeyPair();
-    const message = "test message";
-    const signature = try dilithium.sign(message);
-    try testing.expect(dilithium.verify(message, signature));
-}
-
-test "Falcon-512 key generation" {
-    var falcon = try PQCrypto.Falcon512.generateKeyPair();
-    try testing.expect(falcon.public_key.len == PQCrypto.Falcon512.PUBLIC_KEY_SIZE);
-    try testing.expect(falcon.secret_key.len == PQCrypto.Falcon512.SECRET_KEY_SIZE);
-}
-
-test "SPHINCS+ key generation" {
-    var sphincs = try PQCrypto.SPHINCSPlus.generateKeyPair();
-    try testing.expect(sphincs.public_key.len == PQCrypto.SPHINCSPlus.PUBLIC_KEY_SIZE);
-    try testing.expect(sphincs.secret_key.len == PQCrypto.SPHINCSPlus.SECRET_KEY_SIZE);
+test "algorithmForCoinType — dispatch" {
+    try testing.expectEqual(DomainAlgorithm.MlDsa87,    algorithmForCoinType(778).?);
+    try testing.expectEqual(DomainAlgorithm.Falcon512,  algorithmForCoinType(779).?);
+    try testing.expectEqual(DomainAlgorithm.MlDsa87,    algorithmForCoinType(780).?);
+    try testing.expectEqual(DomainAlgorithm.SlhDsa256s, algorithmForCoinType(781).?);
+    try testing.expect(algorithmForCoinType(999) == null);
 }

@@ -1,0 +1,62 @@
+[
+  {
+    "minerName": "miner-0",
+    "mnemonic": "word1956 word1845 word430 word1824 word1647 word1336 word1322 word1185 word915 word1412 word1665 word1333",
+    "address": "ob_omni_0818e29cb3edf3ab386c467e909e3a5b",
+    "publicKey": "3a90a29774e9596e4e36ca38bff430a406d2543c1851936af4307d18d68d3735"
+  },
+  {
+    "minerName": "miner-1",
+    "mnemonic": "word1148 word1058 word1808 word1708 above word245 word1433 word1985 word1278 word906 word36 word1564",
+    "address": "ob_omni_cb3aff33fde17377e92e6c9428487afa",
+    "publicKey": "95f4b4b2f79e99ceb1932ea482d5167c1defb8122f9eaf92d34736619a78df0c"
+  },
+  {
+    "minerName": "miner-2",
+    "mnemonic": "word578 word1341 word1870 word887 word484 word871 word1827 word1889 word259 word100 word205 word42",
+    "address": "ob_omni_e86766235ec742f12489dff22645debe",
+    "publicKey": "9450435e67ae300278a63e72d9469afb0ec84b495beeb2cf565340c9a9822156"
+  },
+  {
+    "minerName": "miner-3",
+    "mnemonic": "word63 word584 word602 word1563 word1526 word741 word1746 word1205 word1872 word130 word527 word387",
+    "address": "ob_omni_756d65b27773357e42ff042fa3e61f73",
+    "publicKey": "b0a53c955b1721aa380bada19621e8f6352360e6506ef112c125547eae7235f5"
+  },
+  {
+    "minerName": "miner-4",
+    "mnemonic": "word424 word735 word730 word1876 word1146 word548 word1642 word960 word1020 word1514 word582 word363",
+    "address": "ob_omni_712ef0079172d5f0dd7a9c4f4a11e60d",
+    "publicKey": "3e3e132f48adcae2005da459eedb192e9304b8eb6af013ca7a338a49270f8fda"
+  },
+  {
+    "minerName": "miner-5",
+    "mnemonic": "word66 word924 word1048 word4 word1913 word291 word754 word1560 word213 word808 word452 word1259",
+    "address": "ob_omni_454539e94a4739316563790f046db2c9",
+    "publicKey": "8f0e9d4a4095bbe12f9e6f9641e84554e9525977c9047d814e442e53524348b1"
+  },
+  {
+    "minerName": "miner-6",
+    "mnemonic": "word1844 word384 word1098 word1301 word393 word1612 word1081 word1504 word445 word1169 word254 word1088",
+    "address": "ob_omni_b13f8f468c3b10aeab3e92723a2e47d9",
+    "publicKey": "42679bc277bc59fc6aae1d129864d71adaf2e7e0e0b9a3e64dd59d04f2fad75c"
+  },
+  {
+    "minerName": "miner-7",
+    "mnemonic": "word1963 word1273 word172 word5 word153 word196 word1534 word247 word1242 word1225 word1194 word717",
+    "address": "ob_omni_a6234ce054a396614be8dc6f0aaeb04a",
+    "publicKey": "e0a15c964d2487061f74bfe5b88ca533caf19e2a3a8fe8f1349169dac5c611e2"
+  },
+  {
+    "minerName": "miner-8",
+    "mnemonic": "word805 word1839 word441 word1950 word905 word244 word813 word1762 word1163 word1946 word1147 word246",
+    "address": "ob_omni_56fe202b655cfb91f61487ab83b70e1c",
+    "publicKey": "632cf90de05922f45834a2ee04331674389a6d25784a883cc69ffe87e47411a1"
+  },
+  {
+    "minerName": "miner-9",
+    "mnemonic": "word1372 word1640 word1638 word590 word235 word1366 word1341 word1212 word1978 word1638 word1304 word1981",
+    "address": "ob_omni_0ffaaf2840296efbff884767dd224c54",
+    "publicKey": "6245975e69c451c441d176da78fd9bae4fc5548d3edba449ca917862dacf5cb1"
+  }
+]
