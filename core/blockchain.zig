@@ -6,9 +6,14 @@ const array_list = std.array_list;
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
 
-/// Block reward: 50 OMNI in SAT (halving la 210,000 blocks)
-pub const BLOCK_REWARD_SAT: u64 = 50_000_000_000;
-pub const HALVING_INTERVAL: u64 = 210_000;
+/// Block reward: 0.08333333 OMNI in SAT (9 decimale: 1 OMNI = 1,000,000,000 sat)
+/// Echivalent cu 50 OMNI la 10 minute (600 blocuri × 0.08333333 = 50 OMNI)
+/// Identic economic cu Bitcoin (50 BTC / 10 min), dar la viteza de 1 bloc/secunda
+pub const BLOCK_REWARD_SAT: u64 = 8_333_333; // 0.08333333 OMNI
+pub const HALVING_INTERVAL: u64 = 126_144_000; // 4 ani × 365.25 zile × 86400 sec/zi
+
+/// Numarul total de SAT emisi vreodata: 21,000,000 × 10^9 = 21 × 10^15
+pub const MAX_SUPPLY_SAT: u64 = 21_000_000_000_000_000;
 
 pub fn blockRewardAt(height: u64) u64 {
     const halvings = height / HALVING_INTERVAL;
