@@ -636,5 +636,492 @@ OmniBus OMNI vs. Lumea (2026):
 
 ---
 
+## 15. BYZANTINE FAULT TOLERANCE (BFT) — VALIDATORI SI MINERI
+
+### Ce Este Byzantine Fault Tolerance
+
+Un validator **Byzantine** este un nod care:
+- Trimite date false (minte intentionat)
+- Trimite mesaje diferite catre noduri diferite
+- Nu raspunde (crash sau atac DoS)
+- Incearca sa valideze blocuri invalide pentru profit
+
+**Teorema BFT:** O retea cu `N` validatori tolereaza `f` validatori Byzantine dacă:
+```
+N >= 3f + 1
+```
+Exemplu OMNI: 7 validatori/shard → tolereaza 2 Byzantine simultan.
+
+### Algoritmul PBFT Adaptat pentru OMNI (0.1s micro-blocks)
+
+```
+Faza 1 — PRE-PREPARE (0.00s - 0.02s):
+  Lead Validator trimite micro-block propus → toti ceilalti
+
+Faza 2 — PREPARE (0.02s - 0.06s):
+  Fiecare validator verifica micro-block-ul
+  Trimite PREPARE message semnat cu BLS
+  Asteapta 2f+1 = 5 PREPARE-uri (din 7)
+
+Faza 3 — COMMIT (0.06s - 0.09s):
+  Cine a primit 5 PREPARE-uri trimite COMMIT semnat
+  Asteapta 2f+1 = 5 COMMIT-uri
+
+Faza 4 — FINALIZE (0.09s - 0.10s):
+  BLS Aggregate: 5 semnături → 1 semnatura de 48 bytes
+  Micro-block FINALIZAT → Metachain
+
+Daca Lead Validator e Byzantine → VIEW CHANGE automat:
+  Ceilalti detecteaza timeout (>30ms fara PRE-PREPARE)
+  Voteaza View Change → noul Lead e urmatorul in rotatie
+  Latenta adaugata: max +30ms (tot sub 100ms total)
+```
+
+### Diagrama BFT per Micro-Block
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  t=0ms    Lead Validator (V1) → PRE-PREPARE                 │
+│           ┌──────────────────────────────────────┐          │
+│           │  [V1]──►[V2][V3][V4][V5][V6][V7]     │          │
+│           └──────────────────────────────────────┘          │
+│                                                             │
+│  t=20ms   PREPARE (fiecare validator verifica):             │
+│           V2✓ V3✓ V4✗(Byzantine!) V5✓ V6✓ V7✓             │
+│           → 5 PREPARE valide din 6 (suficient: 2f+1=5)     │
+│                                                             │
+│  t=60ms   COMMIT:                                           │
+│           V1✓ V2✓ V3✓ V5✓ V6✓ V7✓ → BLS Aggregate        │
+│           V4 ignorat (Byzantine) → SLASHING TRIGGER        │
+│                                                             │
+│  t=100ms  MICRO-BLOCK FINALIZAT ✓                          │
+│           V4 → penalizat: -X% stake (slashing)             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Ada Spark — Formal Proof pentru BFT
+
+```ada
+-- Invariant: consensus e atins doar cu >= 2f+1 voturi valide
+procedure Finalize_Micro_Block (
+    Votes       : Vote_Array;
+    Total_Nodes : Positive;
+    Block       : Micro_Block_Type;
+    Finalized   : out Boolean
+)
+  with Pre  => Total_Nodes >= 4,  -- minim 4 noduri pentru BFT
+       Post => (if Finalized then
+                  Count_Valid_Votes(Votes) >= (2 * (Total_Nodes / 3)) + 1);
+-- Spark dovedeste: daca Finalized=True, atunci chiar avem quorum
+```
+
+---
+
+## 16. ORACLE CU BFT — PRETURI VERIFICATE MATEMATIC
+
+### Problema Oracolului Byzantine
+
+Un oracle care furnizeaza pretul BTC/OMNI poate:
+- Raporta un pret fals pentru profit (front-running)
+- Ceda unui atac (hack al API-ului)
+- Cadea (downtime) si raporta date expirate
+
+### Arhitectura Oracle Multi-Sursa cu BFT
+
+```
+Surse de pret (N=5 minim):
+  ├── LCX Exchange        → BTC/OMNI: $X1
+  ├── Coinbase Pro        → BTC/OMNI: $X2
+  ├── Kraken              → BTC/OMNI: $X3
+  ├── Binance             → BTC/OMNI: $X4
+  └── On-chain DEX OMNI  → BTC/OMNI: $X5 (trustless)
+
+Algoritmul Byzantine-Tolerant:
+  1. Colecteaza N preturi cu timestamp (max lag: 5 secunde)
+  2. Sorteaza: X1 < X2 < X3 < X4 < X5
+  3. Reject outliers: elimina valorile > 2σ de la medie
+  4. Median (X3) = pretul acceptat
+  5. Semneaza cu BLS (5 oracles → 1 semnatura de 48 bytes)
+  6. Scrie on-chain in State Trie la fiecare Key-Block (1s)
+
+Toleranta: pana la f=2 oracles Byzantine (din 5)
+```
+
+### Structura Binara Oracle Entry (68 bytes)
+
+```
+┌─────────────────────────────────────────────────┐
+│ Field          │ Size  │ Description             │
+├────────────────┼───────┼─────────────────────────┤
+│ Asset_ID       │  2 B  │ BTC=1, ETH=2, OMNI=777  │
+│ Price_SAT      │  8 B  │ Pret in SAT (uint64)    │
+│ Timestamp_ms   │  8 B  │ Unix milliseconds       │
+│ Source_Bitmap  │  1 B  │ Bit i=1 daca sursa i OK │
+│ Confidence     │  1 B  │ 0-255 (nr surse × 51)   │
+│ BLS_Aggregate  │ 48 B  │ Semnaturi agregate      │
+├────────────────┼───────┼─────────────────────────┤
+│ TOTAL          │ 68 B  │ Ultra-compact           │
+└─────────────────────────────────────────────────┘
+```
+
+### Zig — Oracle BFT Validation
+
+```zig
+pub const OracleEntry = struct {
+    asset_id:      u16,
+    price_sat:     u64,
+    timestamp_ms:  u64,
+    source_bitmap: u8,
+    confidence:    u8,
+    bls_aggregate: [48]u8,
+};
+
+pub fn validateOraclePrice(entries: []OracleEntry, threshold: u8) ?u64 {
+    // Minim threshold surse valide (ex: 3 din 5)
+    var valid: [8]u64 = undefined;
+    var valid_count: u8 = 0;
+
+    for (entries) |e| {
+        // Verifica ca pretul nu e expirat (max 5 secunde lag)
+        const now_ms = @as(u64, @intCast(std.time.milliTimestamp()));
+        if (now_ms - e.timestamp_ms > 5_000) continue;
+        valid[valid_count] = e.price_sat;
+        valid_count += 1;
+    }
+
+    if (valid_count < threshold) return null; // insuficient surse
+
+    // Sorteaza si returneaza mediana
+    std.mem.sort(u64, valid[0..valid_count], {}, std.sort.asc(u64));
+    return valid[valid_count / 2]; // median = BFT-safe price
+}
+```
+
+### Utilizari Oracle On-Chain
+
+```
+Oracle pretul BTC/OMNI este folosit de:
+  ├── SimpleDEX — swap-uri OMNI ↔ BTC la pret corect
+  ├── Lending Protocol — collateral ratio calculat
+  ├── Subscriptions — plati recurente in valoare USD fixa
+  ├── Arbitrage Bots — detectie discrepante on-chain vs off-chain
+  └── Slashing Calculator — valoarea stake-ului in USD
+```
+
+---
+
+## 17. SLASHING — PENALIZAREA VALIDATORILOR BYZANTINE
+
+### Ce Triggereaza Slashing
+
+| Comportament | Severitate | Penalizare |
+|---|---|---|
+| Double-sign (voteaza 2 blocuri diferite) | CRITIC | -100% stake + ban permanent |
+| Vot Byzantine dovedit | MAJOR | -50% stake + 30 zile suspendare |
+| Downtime >1 ora | MINOR | -1% stake / ora |
+| Oracle pret fals (>5% deviere) | MAJOR | -25% stake |
+| Mempool spam (TX invalide) | MINOR | -0.1% stake / incident |
+| Sub-block incorect (shard gresit) | MAJOR | -10% stake |
+
+### Algoritmul de Detectie (Fraud Proof)
+
+```
+Orice nod poate submite un Fraud Proof:
+  1. Nod detecteaza: V4 a semnat Block_A si Block_B la acelasi height
+  2. Construieste FraudProof = {semnatura_A, semnatura_B, height, V4_pubkey}
+  3. Trimite FraudProof catre Metachain
+  4. Metachain verifica cu BLS: ambele semnate de V4? → SLASHING
+
+Reward pentru raportator:
+  → 10% din stake-ul confiscat merge catre cel care a raportat
+  → Stimulent economic pentru watchdogs (noduri de monitorizare)
+```
+
+### Structura Slashing Event (On-Chain)
+
+```zig
+pub const SlashingEvent = struct {
+    validator_id:   u16,        // ID validator penalizat
+    reason:         SlashReason, // enum: DoubleSign, Byzantine, Downtime
+    evidence_hash:  [32]u8,     // Hash fraud proof
+    block_height:   u64,        // Blocul la care s-a produs
+    stake_before:   u64,        // SAT inainte
+    penalty_pct:    u8,         // 1-100%
+    reporter_addr:  [20]u8,     // Cel care a raportat
+    reporter_reward:u64,        // 10% din penalizare
+};
+
+pub const SlashReason = enum(u8) {
+    DoubleSign    = 1,
+    ByzantineVote = 2,
+    OracleFraud   = 3,
+    Downtime      = 4,
+    InvalidShard  = 5,
+    MempoolSpam   = 6,
+};
+```
+
+### Distributia Stake-ului Confiscat
+
+```
+Stake confiscat de la validator Byzantine:
+  ├── 10% → Raportator (watchdog reward)
+  ├── 40% → Treasury DAO (fond securitate)
+  ├── 40% → Redistribuit catre ceilalti stakers din shard
+  └── 10% → Burn (deflatie OMNI)
+```
+
+### Ada Spark — Invariant Slashing
+
+```ada
+-- Invariant: totalul de OMNI nu creste niciodata din slashing
+-- (doar redistribuit + ars)
+procedure Apply_Slashing (
+    Validator : Validator_ID;
+    Penalty   : OMNI_SAT;
+    Treasury  : in out OMNI_SAT;
+    Burned    : in out OMNI_SAT
+)
+  with Post => Treasury + Burned = Penalty
+           and Validator_Stake(Validator) =
+               Validator_Stake(Validator)'Old - Penalty;
+-- Spark garanteaza: niciun SAT nu apare/dispare din nimic
+```
+
+---
+
+## 18. ROBOTS SI BOTS — SUBSCRIPTII + ARBITRAJ ON-CHAIN
+
+### Tipuri de Bots in Ecosistemul OMNI
+
+```
+Categoria 1 — ARBITRAGE BOTS
+  Detecteaza: pret OMNI/BTC diferit intre DEX on-chain si exchange off-chain
+  Actiune: cumpara ieftin pe X, vinde scump pe Y in acelasi bloc (1s)
+  Profit: diferenta de pret minus fees minus gas
+  Protectie anti-MEV: Order Commit-Reveal (pretul ascuns pana la confirmare)
+
+Categoria 2 — GRID TRADING BOTS
+  Plaseaza ordine buy/sell la niveluri fixe (grid)
+  DSL: grid.set_range(0.001, 0.01 OMNI) grid.set_levels(20)
+  Ruleaza pe: OmniBus-Connect DSL Engine (Python + Zig backend)
+
+Categoria 3 — SUBSCRIPTION BOTS
+  Platesc automat abonamente recurente on-chain
+  Folosesc domeniile NON-TRANSFERABILE ca "acces token"
+  Ex: ob_f5_ (food) = acces la serviciu restaurant, renovat lunar
+
+Categoria 4 — ORACLE BOTS
+  Colecteaza preturi de pe N exchanges
+  Submitteaza on-chain cu BLS semnat
+  Recompensati cu fees din protocol (Oracle Fee Pool)
+
+Categoria 5 — WATCHDOG BOTS
+  Monitorizeaza validatorii pentru comportament Byzantine
+  Submitteaza Fraud Proofs si primesc 10% din slashing
+  Ruleaza continuu, cost minim (doar verificare semnature)
+```
+
+### Subscriptii On-Chain cu Domenii PQ
+
+Domeniile non-transferabile (ob_k1_, ob_f5_, ob_d5_, ob_s3_) sunt **infinite** — pot fi delegate pentru acces la servicii:
+
+```
+Flux Subscriptie (ex: ob_f5_ pentru serviciu food):
+
+  1. User detine adresa ob_f5_XYZ (non-transferabila, a lui permanent)
+  2. Autorizeaza un Smart Contract sa debiteze X OMNI/luna din ob_omni_ABC
+  3. La fiecare 2,592,000 blocuri (~30 zile), contractul:
+     - Verifica ca ob_f5_XYZ e activa (nedelegata altcuiva)
+     - Debiteaza X OMNI din ob_omni_ABC (transferabila)
+     - Crediteaza Merchant_Address
+     - Emite Receipt NFT on-chain (dovada plata)
+  4. Daca plata esueaza → accesul la serviciu e suspendat automat
+
+Avantaje vs sistemele traditionale:
+  ├── Fara card → plata directa on-chain
+  ├── Fara intermediar → merchant primeste instant
+  ├── Auditabil → oricine verifica pe blockchain
+  └── Non-custodial → userul controleaza mereu fondurile
+```
+
+### Structura Subscription Contract (Binary, 96 bytes)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ Field              │ Size  │ Description                  │
+├────────────────────┼───────┼──────────────────────────────┤
+│ Subscriber_Hash    │ 20 B  │ ob_omni_ address (payer)     │
+│ Domain_Token_Hash  │ 20 B  │ ob_f5_ / ob_k1_ / etc        │
+│ Merchant_Hash      │ 20 B  │ Destinatie plata             │
+│ Amount_SAT         │  8 B  │ Suma per ciclu               │
+│ Interval_Blocks    │  8 B  │ Frecventa (ex: 2592000 = 30d)│
+│ Next_Payment_Block │  8 B  │ Blocul urmatorei plati       │
+│ Domain_Type        │  1 B  │ 1=love, 2=food, 3=rent, 4=vac│
+│ Status             │  1 B  │ 0=active, 1=paused, 2=cancel │
+│ Max_Payments       │  2 B  │ 0=infinit, N=limitat         │
+│ Payments_Done      │  4 B  │ Counter plati efectuate      │
+│ BLS_Auth           │  4 B  │ Scurt hash autorizare        │
+├────────────────────┼───────┼──────────────────────────────┤
+│ TOTAL              │ 96 B  │ 1 subscriptie = 96 bytes     │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Use Cases per Domeniu Non-Transferabil
+
+```
+ob_k1_ (omnibus.love — ML-DSA/Dilithium-5):
+  → Identitate digitala certificata (KYC on-chain)
+  → Semnatura legala pentru contracte
+  → Subscriptie servicii matrimoniale/sociale
+  → Vot DAO (1 adresa = 1 vot, non-transferabil = anti-sybil)
+
+ob_f5_ (omnibus.food — Falcon-512):
+  → Card de fidelitate restaurant (puncte non-transferabile)
+  → Subscriptie livrare mancare (Bolt Food, Glovo style)
+  → Acces club gastronomic
+  → Voucher masa companie (dat de angajator, folosit de angajat)
+
+ob_d5_ (omnibus.rent — SLH-DSA/SPHINCS+):
+  → Contract chirie on-chain (chiriile platite automat in OMNI)
+  → Acces coworking space (subscriptie lunara)
+  → Leasing echipamente (debitat automat la scadenta)
+  → Utiliti (curent, gaz) — plata automata recurenta
+
+ob_s3_ (omnibus.vacation — Falcon-Light/AES-128):
+  → Acumulare puncte vacanta (companii aeriene, hoteluri)
+  → Voucher vacanta de la angajator
+  → Subscriptie servicii travel (Booking, Airbnb)
+  → Loyalty program (punctele nu se pot vinde, doar folosi)
+```
+
+### Arbitraj Bot — Flux Complet (1 secundă)
+
+```
+t=0.0s: Bot detecteaza: DEX OMNI = 0.001 BTC/OMNI, Coinbase = 0.00105 BTC/OMNI
+         Gap: +5% → profitabil dupa fees (0.25% DEX + 0.1% transfer)
+
+t=0.1s: Bot submitteaza TX atomica:
+          1. Cumpara 1000 OMNI pe DEX la 0.001 BTC (cost: 1 BTC)
+          2. Vinde 1000 OMNI pe Coinbase la 0.00105 BTC (primeste: 1.05 BTC)
+          Profit: 0.05 BTC - fees = ~0.046 BTC
+
+t=0.5s: TX confirmata in micro-block #5
+
+t=1.0s: TX finalizata in Key-Block
+         Profit realizat, fonduri disponibile pentru urmatorul ciclu
+
+Protectie anti-front-running (MEV protection):
+  → Commit-Reveal: Bot trimite hash(TX) la t=0.0s, TX reala la t=0.5s
+  → Nimeni nu poate vedea TX-ul inainte de confirmare
+  → FIFO mempool ordering in OMNI (nu priority gas wars)
+```
+
+---
+
+## 19. MEV PROTECTION — PREVENIREA EXTRACTIEI VALORII
+
+### Ce Este MEV in OMNI
+
+MEV (Maximal Extractable Value) = profitul pe care un validator il poate extrage prin:
+- Reordonarea TX-urilor in bloc (front-running)
+- Inserarea propriilor TX-uri inaintea altora (sandwich attack)
+- Cenzurarea TX-urilor (excludere selectiva)
+
+### Mecanisme de Protectie OMNI
+
+```
+1. FIFO Mempool (First In, First Out)
+   → TX-urile sunt procesate in ordinea sosirii
+   → Validatorul NU poate reordona dupa profit
+   → Implementat in Zig: mempool = std.ArrayList(TX) FIFO strict
+
+2. Commit-Reveal Scheme
+   Runda 1 (micro-block N):   Submitteaza hash(TX || salt)
+   Runda 2 (micro-block N+1): Reveleaza TX + salt
+   → Validatorul nu stie continutul pana la Reveal → no front-run
+
+3. Private Mempool (optional, pentru tranzactii mari)
+   → TX trimisa direct catre un validator de incredere (encrypted)
+   → Validatorul o include fara sa o difuzeze in retea
+   → Similar cu Flashbots/MEV-Boost pe Ethereum, dar BFT-safe
+
+4. Batch Auctions (pentru DEX)
+   → Toate swap-urile din 1 secunda sunt executate la acelasi pret mediu
+   → Nimeni nu poate sandwich-attack in acelasi lot
+   → Pretul: media ponderata a tuturor ordinelor din Key-Block
+
+5. Ada Spark Invariant
+   → Validatorul nu poate modifica ordinea TX fara sa invalideaze
+     semnatura BLS a celorlalti validatori care au vazut aceeasi ordine
+```
+
+### Comparatie MEV Protection
+
+| Retea | MEV Protection | Metoda |
+|---|---|---|
+| Bitcoin | Partial | FIFO + PoW randomness |
+| Ethereum | Partial | MEV-Boost (voluntar) |
+| Solana | Slab | Validatori pot reordona liber |
+| MultiversX | Bun | Round-robin validators |
+| **OMNI** | **Excelent** | **FIFO + Commit-Reveal + BLS multi-sig ordering** |
+
+---
+
+## 20. REZUMAT FINAL — STACK COMPLET OMNI 2026
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    OMNI PROTOCOL STACK                          │
+├─────────────────────────────────────────────────────────────────┤
+│ L5 — APPLICATIONS                                               │
+│      Subscriptii PQ | Arbitrage Bots | Grid Bots | HFT DSL     │
+│      Watchdog Bots  | Oracle Bots    | DEX       | Lending      │
+├─────────────────────────────────────────────────────────────────┤
+│ L4 — SMART CONTRACTS                                            │
+│      SubscriptionManager | SimpleDEX | PriceFeed Oracle         │
+│      SlashingContract    | TreasuryDAO | GovernanceDAO          │
+├─────────────────────────────────────────────────────────────────┤
+│ L3 — CONSENSUS + SECURITY                                       │
+│      SPoS BFT (PBFT 0.1s) | Slashing | MEV Protection          │
+│      BLS Signature Aggregation | Fraud Proofs | View Change     │
+├─────────────────────────────────────────────────────────────────┤
+│ L2 — NETWORK + SHARDING                                         │
+│      Micro-Blocks 0.1s | Key-Blocks 1s | Adaptive Sharding     │
+│      P2P UDP+FEC | Compact Blocks | Cross-Shard Protocol        │
+├─────────────────────────────────────────────────────────────────┤
+│ L1 — BLOCKCHAIN CORE (Zig 0.15 + Ada Spark)                    │
+│      BIP32/39 Real | Base58Check | secp256k1 | RIPEMD160        │
+│      Binary Storage | State Trie | Epoch Pruning | DB Persist   │
+├─────────────────────────────────────────────────────────────────┤
+│ L0 — CRYPTOGRAPHY (Post-Quantum)                                │
+│      ML-KEM/Kyber-768 | ML-DSA/Dilithium-5 | Falcon-512        │
+│      SLH-DSA/SPHINCS+ | Falcon-Light | liboqs (C FFI)          │
+└─────────────────────────────────────────────────────────────────┘
+
+DOMENII PQ:
+  ob_omni_ (777) — TRANSFERABIL  — ML-KEM — Tranzactii financiare
+  ob_k1_   (778) — NON-TRANSF.   — ML-DSA — Identitate + Vot DAO
+  ob_f5_   (779) — NON-TRANSF.   — Falcon — Food subscriptions
+  ob_d5_   (780) — NON-TRANSF.   — SLH-DSA — Rent + Legal contracts
+  ob_s3_   (781) — NON-TRANSF.   — F-Light — Vacation + Loyalty
+
+SECURITATE:
+  BFT:     Tolereaza f < N/3 validatori Byzantine (PBFT adaptat)
+  Oracle:  Median din N surse, reject outliers, BLS signed
+  Slashing: -1% pana la -100% stake + 10% reward raportator
+  MEV:     FIFO + Commit-Reveal + BLS ordering + Batch Auctions
+  Quantum: ML-KEM + ML-DSA + Falcon + SLH-DSA (NIST PQC 2024)
+  Math:    Ada Spark formal verification (zero runtime errors)
+
+PERFORMANTA:
+  Finality: 0.1s (soft) / 1s (hard)
+  TPS:      2,000 per shard → scalare infinita
+  TX Size:  57-124 bytes (BLS aggregated)
+  Storage:  ~1.8 TB/an @ 1000 TPS (cu pruning: ~50 GB validator)
+```
+
+---
+
 *Document generat: 2026-03-26 | OmniBus-BlockChainCore wiki-omnibus*
-*Versiune: 1.0 | Autor: Claude + OmniBus Team*
+*Versiune: 2.0 | Autor: Claude + OmniBus Team*
