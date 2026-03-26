@@ -6,11 +6,23 @@ const array_list = std.array_list;
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
 
+/// Block reward: 50 OMNI in SAT (halving la 210,000 blocks)
+pub const BLOCK_REWARD_SAT: u64 = 50_000_000_000;
+pub const HALVING_INTERVAL: u64 = 210_000;
+
+pub fn blockRewardAt(height: u64) u64 {
+    const halvings = height / HALVING_INTERVAL;
+    if (halvings >= 64) return 0;
+    return BLOCK_REWARD_SAT >> @intCast(halvings);
+}
+
 pub const Blockchain = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
     difficulty: u32,
     allocator: std.mem.Allocator,
+    /// Balantele adreselor (in-memory, sincronizat cu database)
+    balances: std.StringHashMap(u64),
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
@@ -19,11 +31,11 @@ pub const Blockchain = struct {
         // Create genesis block
         const genesis = Block{
             .index = 0,
-            .timestamp = 0,
+            .timestamp = 1743000000,
             .transactions = array_list.Managed(Transaction).init(allocator),
-            .previous_hash = "0",
+            .previous_hash = "0000000000000000000000000000000000000000000000000000000000000000",
             .nonce = 0,
-            .hash = "genesis_hash_placeholder",
+            .hash = "genesis_hash_omnibus_v1",
         };
 
         try chain.append(genesis);
@@ -31,8 +43,9 @@ pub const Blockchain = struct {
         return Blockchain{
             .chain = chain,
             .mempool = mempool,
-            .difficulty = 4, // Start with difficulty 4 (4 leading zeros)
+            .difficulty = 4,
             .allocator = allocator,
+            .balances = std.StringHashMap(u64).init(allocator),
         };
     }
 
@@ -42,6 +55,25 @@ pub const Blockchain = struct {
         }
         self.chain.deinit();
         self.mempool.deinit();
+        self.balances.deinit();
+    }
+
+    /// Returneaza balanta unei adrese (0 daca nu exista)
+    pub fn getAddressBalance(self: *const Blockchain, address: []const u8) u64 {
+        return self.balances.get(address) orelse 0;
+    }
+
+    /// Adauga reward la balanta minerului
+    pub fn creditBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
+        const existing = self.balances.get(address) orelse 0;
+        try self.balances.put(address, existing + amount);
+    }
+
+    /// Scade din balanta (pentru tranzactii)
+    pub fn debitBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
+        const existing = self.balances.get(address) orelse 0;
+        if (existing < amount) return error.InsufficientBalance;
+        try self.balances.put(address, existing - amount);
     }
 
     pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {
@@ -99,6 +131,11 @@ pub const Blockchain = struct {
     }
 
     pub fn mineBlock(self: *Blockchain) !Block {
+        return self.mineBlockForMiner("");
+    }
+
+    /// Mine block + acorda reward minerului + proceseaza TX-urile din mempool
+    pub fn mineBlockForMiner(self: *Blockchain, miner_address: []const u8) !Block {
         if (self.chain.items.len == 0) {
             return error.EmptyChain;
         }
@@ -121,20 +158,34 @@ pub const Blockchain = struct {
         while (true) {
             block.nonce = nonce;
             const hash = try self.calculateBlockHash(&block);
-
-            // Check if hash meets difficulty requirement
             if (try self.isValidHash(hash)) {
                 block.hash = hash;
                 break;
             }
-
             nonce += 1;
+        }
+
+        // Proceseaza tranzactiile: debiteaza sender, crediteaza receiver
+        for (block.transactions.items) |tx| {
+            self.debitBalance(tx.from_address, tx.amount) catch {}; // ignora daca insuficient
+            self.creditBalance(tx.to_address, tx.amount) catch {};
+        }
+
+        // Block reward pentru miner
+        if (miner_address.len > 0) {
+            const reward = blockRewardAt(@intCast(index));
+            if (reward > 0) {
+                self.creditBalance(miner_address, reward) catch {};
+                std.debug.print("[REWARD] Miner {s} +{d} SAT ({d:.2} OMNI) @ block {d}\n",
+                    .{ miner_address[0..@min(16, miner_address.len)], reward,
+                       @as(f64, @floatFromInt(reward)) / 1e9, index });
+            }
         }
 
         // Add block to chain
         try self.chain.append(block);
 
-        // Reset mempool for next block
+        // Reset mempool
         self.mempool = array_list.Managed(Transaction).init(self.allocator);
 
         return block;

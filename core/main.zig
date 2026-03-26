@@ -116,8 +116,10 @@ pub fn main() !void {
             std.debug.print("[MINING] Network ready — mining started\n\n", .{});
         }
 
-        _ = try bc.mineBlock();
+        _ = try bc.mineBlockForMiner(wallet.address);
         block_count += 1;
+        // Sincronizeaza balanta wallet-ului din blockchain
+        wallet.updateBalance(bc.getAddressBalance(wallet.address));
 
         if (block_count % 10 == 0) {
             std.debug.print("[MINING] {d} blocks | difficulty: {d}\n", .{ block_count, bc.difficulty });

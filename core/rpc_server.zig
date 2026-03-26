@@ -44,11 +44,11 @@ pub fn startHTTP(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocator)
     const ctx = try allocator.create(ServerCtx);
     ctx.* = .{ .bc = bc, .wallet = wallet, .allocator = allocator };
 
-    const addr = try std.net.Address.parseIp4("127.0.0.1", PORT);
+    const addr = try std.net.Address.parseIp4("0.0.0.0", PORT);
     var server  = try addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
-    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://127.0.0.1:{d}\n", .{PORT});
+    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://0.0.0.0:{d}\n", .{PORT});
 
     while (true) {
         const conn = server.accept() catch |err| {
@@ -144,12 +144,17 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     }
 
     if (std.mem.eql(u8, method, "getbalance")) {
-        const bal_sat = ctx.wallet.getBalance();
-        const addr    = ctx.wallet.address;
+        // Suporta optional param: adresa specifica sau adresa proprie
+        const req_addr = extractArrayStr(body, 0) orelse
+                         extractStr(body, "address") orelse
+                         ctx.wallet.address;
+        const bal_sat = ctx.bc.getAddressBalance(req_addr);
+        const bal_omni = bal_sat / 1_000_000_000;
+        const bal_frac = bal_sat % 1_000_000_000;
         const height  = ctx.bc.getBlockCount();
         return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":{d},\"confirmed\":{d},\"unconfirmed\":0,\"utxos\":[],\"transactions\":[],\"txCount\":0,\"nodeHeight\":{d}}}}}",
-            .{ id, addr, bal_sat, bal_sat, bal_sat, height });
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":\"{d}.{d:0>9}\",\"confirmed\":{d},\"unconfirmed\":0,\"utxos\":[],\"transactions\":[],\"txCount\":0,\"nodeHeight\":{d}}}}}",
+            .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
     }
 
     if (std.mem.eql(u8, method, "getlatestblock")) {
@@ -262,6 +267,39 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
         return std.fmt.allocPrint(alloc,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d}}}}}",
             .{ id, filter_addr, entries, count });
+    }
+
+    if (std.mem.eql(u8, method, "registerminer")) {
+        // params: [miner_address, node_id]
+        const miner_addr = extractArrayStr(body, 0) orelse
+                           extractStr(body, "address") orelse
+                           return errorJson(-32602, "Missing param: address", id, alloc);
+        const node_id = extractArrayStr(body, 1) orelse
+                        extractStr(body, "node_id") orelse "unknown";
+        const height = ctx.bc.getBlockCount();
+        std.debug.print("[MINER] Registered: {s} (id={s}) @ block {d}\n",
+            .{ miner_addr[0..@min(20, miner_addr.len)], node_id, height });
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"registered\",\"miner\":\"{s}\",\"node_id\":\"{s}\",\"blockHeight\":{d},\"reward\":50}}}}",
+            .{ id, miner_addr, node_id, height });
+    }
+
+    if (std.mem.eql(u8, method, "getpoolstats")) {
+        const height = ctx.bc.getBlockCount();
+        const reward = blockchain_mod.blockRewardAt(height);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blockHeight\":{d},\"blockRewardSAT\":{d},\"blockRewardOMNI\":{d},\"mempoolSize\":{d},\"difficulty\":{d},\"nodeAddress\":\"{s}\"}}}}",
+            .{ id, height, reward, reward / 1_000_000_000, ctx.bc.mempool.items.len, ctx.bc.difficulty, ctx.wallet.address });
+    }
+
+    if (std.mem.eql(u8, method, "getaddressbalance")) {
+        const addr = extractArrayStr(body, 0) orelse
+                     extractStr(body, "address") orelse
+                     return errorJson(-32602, "Missing param: address", id, alloc);
+        const bal = ctx.bc.getAddressBalance(addr);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":{d}}}}}",
+            .{ id, addr, bal, bal / 1_000_000_000 });
     }
 
     // Method not found
