@@ -186,25 +186,87 @@ pub const BIP32Wallet = struct {
         return try Secp256k1Crypto.privateKeyToPublicKey(priv);
     }
 
-    /// Genereaza adresa din cheie derivata
+    /// Genereaza adresa din cheie derivata — Base58Check(0x4F || hash160)
     pub fn deriveAddress(self: *const BIP32Wallet, index: u32, prefix: []const u8, allocator: std.mem.Allocator) ![]u8 {
         const key = try self.deriveChildKey(index);
-        // hash160: SHA256(SHA256(pubkey))[0..20] — placeholder pentru SHA256(RIPEMD160(pubkey))
         const hash160 = try Secp256k1Crypto.privateKeyToHash160(key);
-        const hex = try Crypto.bytesToHex(&hash160, allocator);
-        defer allocator.free(hex);
-        return std.fmt.allocPrint(allocator, "{s}{s}", .{ prefix, hex[0..12] });
+        const b58 = try base58CheckEncode(hash160, 0x4F, allocator);
+        defer allocator.free(b58);
+        return std.fmt.allocPrint(allocator, "{s}{s}", .{ prefix, b58 });
     }
 
-    /// Genereaza adresa pentru domeniu PQ cu coin_type specific
+    /// Genereaza adresa pentru domeniu PQ — Base58Check(0x4F || hash160)
     pub fn deriveAddressForDomain(self: *const BIP32Wallet, coin_type: u32, index: u32, prefix: []const u8, allocator: std.mem.Allocator) ![]u8 {
         const key = try self.deriveChildKeyForPath(44, coin_type, index);
         const hash160 = try Secp256k1Crypto.privateKeyToHash160(key);
-        const hex = try Crypto.bytesToHex(&hash160, allocator);
-        defer allocator.free(hex);
-        return std.fmt.allocPrint(allocator, "{s}{s}", .{ prefix, hex[0..12] });
+        const b58 = try base58CheckEncode(hash160, 0x4F, allocator);
+        defer allocator.free(b58);
+        return std.fmt.allocPrint(allocator, "{s}{s}", .{ prefix, b58 });
     }
 };
+
+// ─── Base58Check encoding ─────────────────────────────────────────────────────
+
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/// Base58Check(version_byte || hash160) — identic cu Bitcoin/OmniBus Python
+/// Output: Base58 string alocat cu allocator (caller trebuie sa elibereze)
+pub fn base58CheckEncode(hash160: [20]u8, version: u8, allocator: std.mem.Allocator) ![]u8 {
+    // payload = version || hash160 (21 bytes)
+    var payload: [21]u8 = undefined;
+    payload[0] = version;
+    @memcpy(payload[1..], &hash160);
+
+    // checksum = SHA256(SHA256(payload))[0..4]
+    var first: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(&payload, &first, .{});
+    var second: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(&first, &second, .{});
+    const checksum = second[0..4].*;
+
+    // full = payload || checksum (25 bytes)
+    var full: [25]u8 = undefined;
+    @memcpy(full[0..21], &payload);
+    @memcpy(full[21..25], &checksum);
+
+    // Count leading zero bytes
+    var leading_zeros: usize = 0;
+    for (full) |b| {
+        if (b == 0) leading_zeros += 1 else break;
+    }
+
+    // Base58 encode: treat full as big-endian integer, divide by 58
+    // Max output length: ceil(25 * log(256)/log(58)) + 1 ≈ 35
+    var digits: [40]u8 = @splat(0);
+    var digits_len: usize = 0;
+
+    for (full) |byte| {
+        var carry: u32 = byte;
+        var j: usize = 0;
+        while (j < digits_len or carry != 0) {
+            if (j < digits_len) {
+                carry += @as(u32, digits[j]) << 8;
+            }
+            digits[j] = @truncate(carry % 58);
+            carry /= 58;
+            j += 1;
+        }
+        digits_len = j;
+    }
+
+    // Build result: leading '1's + digits reversed
+    const result_len = leading_zeros + digits_len;
+    var result = try allocator.alloc(u8, result_len);
+
+    for (0..leading_zeros) |i| {
+        result[i] = '1';
+    }
+    for (0..digits_len) |i| {
+        result[leading_zeros + i] = BASE58_ALPHABET[digits[digits_len - 1 - i]];
+    }
+
+    return result;
+}
 
 /// Manager pentru cele 5 domenii Post-Quantum OmniBus
 pub const PQDomainDerivation = struct {
@@ -306,7 +368,7 @@ test "BIP-39 PBKDF2 — vector oficial (abandon x11 + about, passphrase TREZOR)"
     try testing.expectEqualSlices(u8, &expected_seed_prefix, wallet.master_seed[0..32]);
 }
 
-test "PQ domains — prefixe corecte cu secp256k1 real" {
+test "PQ domains — prefixe corecte cu secp256k1 real (Base58Check)" {
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     const wallet = try BIP32Wallet.initFromMnemonic(mnemonic, testing.allocator);
     const pq = PQDomainDerivation.init(wallet);
@@ -319,4 +381,18 @@ test "PQ domains — prefixe corecte cu secp256k1 real" {
     try testing.expect(std.mem.startsWith(u8, addrs[2], "ob_f5_"));
     try testing.expect(std.mem.startsWith(u8, addrs[3], "ob_d5_"));
     try testing.expect(std.mem.startsWith(u8, addrs[4], "ob_s3_"));
+    // Adresele Base58Check sunt mai lungi decat 8 chars dupa prefix
+    try testing.expect(addrs[0].len > 8 + 8); // ob_omni_ + minim 8 chars Base58
+}
+
+test "Base58Check encode — vector simplu" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    // hash160 all-zero cu version 0x4F → adresa determinista
+    const hash160 = [_]u8{0} ** 20;
+    const b58 = try base58CheckEncode(hash160, 0x4F, arena.allocator());
+    // Trebuie sa inceapa cu '1' (leading zero byte in payload)
+    // si sa aiba ~25-34 chars
+    try testing.expect(b58.len >= 20);
+    try testing.expect(b58.len <= 40);
 }

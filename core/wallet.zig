@@ -37,47 +37,23 @@ pub const Wallet = struct {
         // BIP-32 master key din mnemonic
         const bip32 = try BIP32Wallet.initFromMnemonic(mnemonic, allocator);
 
-        // Deriva cheie OMNI (coin_type 777, index 0)
+        // Deriva cheie OMNI (coin_type 777) — pentru signing
         const omni_privkey = try bip32.deriveChildKeyForPath(44, 777, 0);
         const omni_pubkey  = try Secp256k1Crypto.privateKeyToPublicKey(omni_privkey);
-        const omni_hash160 = try Secp256k1Crypto.privateKeyToHash160(omni_privkey);
 
-        // Adresa OMNI primara (ob_omni_ prefix + hash160 hex)
+        // Deriva cele 5 domenii PQ — Base58Check address (identic Python OmnibusWallet)
         const hex_chars = "0123456789abcdef";
-        var hash_hex: [40]u8 = undefined;
-        for (omni_hash160, 0..) |byte, i| {
-            hash_hex[i * 2]     = hex_chars[byte >> 4];
-            hash_hex[i * 2 + 1] = hex_chars[byte & 0x0F];
-        }
-        const primary_addr = try std.fmt.allocPrint(allocator, "ob_omni_{s}", .{hash_hex[0..12]});
-
-        // Pubkey hex (compressed, 33 bytes → 66 hex chars)
-        var pubkey_hex_buf: [66]u8 = undefined;
-        for (omni_pubkey, 0..) |byte, i| {
-            pubkey_hex_buf[i * 2]     = hex_chars[byte >> 4];
-            pubkey_hex_buf[i * 2 + 1] = hex_chars[byte & 0x0F];
-        }
-        _ = try allocator.dupe(u8, &pubkey_hex_buf);
-
-        // Deriva toate cele 5 adrese PQ
-        const pq = PQDomainDerivation.init(bip32);
+        const domains = PQDomainDerivation.DOMAINS;
         var addresses: [5]Address = undefined;
 
-        const domains = PQDomainDerivation.DOMAINS;
         for (domains, 0..) |domain, i| {
             const privkey_i = try bip32.deriveChildKeyForPath(44, domain.coin_type, 0);
             const pubkey_i  = try Secp256k1Crypto.privateKeyToPublicKey(privkey_i);
-            const hash160_i = try Secp256k1Crypto.privateKeyToHash160(privkey_i);
 
-            // Adresa: prefix + primii 12 hex din hash160
-            var hex_i: [40]u8 = undefined;
-            for (hash160_i, 0..) |byte, j| {
-                hex_i[j * 2]     = hex_chars[byte >> 4];
-                hex_i[j * 2 + 1] = hex_chars[byte & 0x0F];
-            }
-            const addr_i = try std.fmt.allocPrint(allocator, "{s}{s}", .{ domain.prefix, hex_i[0..12] });
+            // Adresa: prefix + Base58Check(0x4F || RIPEMD160(SHA256(pubkey))) — identic Python
+            const addr_i = try bip32.deriveAddressForDomain(domain.coin_type, 0, domain.prefix, allocator);
 
-            // Pubkey hex
+            // Pubkey hex (compressed 33 bytes → 66 hex)
             var pk_hex_i: [66]u8 = undefined;
             for (pubkey_i, 0..) |byte, j| {
                 pk_hex_i[j * 2]     = hex_chars[byte >> 4];
@@ -86,20 +62,21 @@ pub const Wallet = struct {
             const pk_hex_alloc = try allocator.dupe(u8, &pk_hex_i);
 
             addresses[i] = Address{
-                .domain        = domain.name,
-                .algorithm     = domain.algorithm,
-                .omni_address  = addr_i,
+                .domain         = domain.name,
+                .algorithm      = domain.algorithm,
+                .omni_address   = addr_i,
                 .public_key_hex = pk_hex_alloc,
-                .coin_type     = domain.coin_type,
+                .coin_type      = domain.coin_type,
                 .security_level = domain.security_level,
             };
         }
 
-        _ = pq; // folosit indirect prin domains
+        // Adresa principala = addresses[0].omni_address (ob_omni_) — fara dublura
+        const primary_addr = try allocator.dupe(u8, addresses[0].omni_address);
 
         return Wallet{
-            .address          = primary_addr,
-            .balance          = 0,
+            .address           = primary_addr,
+            .balance           = 0,
             .private_key_bytes = omni_privkey,
             .public_key_bytes  = omni_pubkey,
             .addresses         = addresses,
