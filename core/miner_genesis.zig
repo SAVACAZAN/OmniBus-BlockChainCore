@@ -9,7 +9,7 @@ pub const MinerWallet = struct {
     miner_id: u32,
     miner_name: []const u8,
     wallet: Wallet,
-    allocated_tokens: u64,        // SAT (1 OMNI = 100M SAT)
+    allocated_tokens: u64,        // SAT (1 OMNI = 1,000,000,000 SAT — 9 zecimale)
     mining_reward: u64,           // Accumulated rewards
     block_contribution: u32,      // Blocks this miner found
 
@@ -57,7 +57,7 @@ pub const MinerWallet = struct {
                 self.miner_name,
                 self.getPrimaryAddress(),
                 self.getBalance(),
-                @as(f64, @floatFromInt(self.getBalance())) / 100_000_000.0,
+                @as(f64, @floatFromInt(self.getBalance())) / 1_000_000_000.0,
                 self.block_contribution,
             },
         );
@@ -80,7 +80,7 @@ pub const GenesisAllocation = struct {
     pub fn init(allocator: std.mem.Allocator, miners_count: u32) !GenesisAllocation {
         // Total supply: 21M OMNI
         const total_supply_omni: u64 = 21_000_000;
-        const total_supply_sat = total_supply_omni * 100_000_000;  // Convert to SAT
+        const total_supply_sat = total_supply_omni * 1_000_000_000;  // Convert to SAT
 
         // Allocate equally to all miners
         const per_miner = total_supply_sat / miners_count;
@@ -98,10 +98,10 @@ pub const GenesisAllocation = struct {
     pub fn generateMinerWallets(self: *GenesisAllocation) !void {
         std.debug.print(
             "\n[GENESIS] Allocating {d} OMNI ({d} SAT) equally among {d} miners\n",
-            .{ self.total_supply / 100_000_000, self.total_supply, self.miners_count },
+            .{ self.total_supply / 1_000_000_000, self.total_supply, self.miners_count },
         );
         std.debug.print("[GENESIS] Per miner: {d:.4} OMNI ({d} SAT)\n\n", .{
-            @as(f64, @floatFromInt(self.allocation_per_miner)) / 100_000_000.0,
+            @as(f64, @floatFromInt(self.allocation_per_miner)) / 1_000_000_000.0,
             self.allocation_per_miner,
         });
 
@@ -158,7 +158,7 @@ pub const GenesisAllocation = struct {
         const header = try std.fmt.allocPrint(
             allocator,
             "GENESIS_ALLOCATION\nTotal Supply: {d} OMNI\nMiners: {d}\n\n",
-            .{ self.total_supply / 100_000_000, self.miners_count },
+            .{ self.total_supply / 1_000_000_000, self.miners_count },
         );
         try data.appendSlice(header);
 
@@ -190,9 +190,9 @@ pub const GenesisAllocation = struct {
             \\
             \\
         , .{
-            self.total_supply / 100_000_000,
+            self.total_supply / 1_000_000_000,
             self.allocation_per_miner,
-            @as(f64, @floatFromInt(self.allocation_per_miner)) / 100_000_000.0,
+            @as(f64, @floatFromInt(self.allocation_per_miner)) / 1_000_000_000.0,
             self.miners_count,
             self.getTotalAllocated(),
         });
