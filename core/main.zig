@@ -10,6 +10,7 @@ const genesis_mod     = @import("genesis.zig");
 const mempool_mod     = @import("mempool.zig");
 const consensus_mod   = @import("consensus.zig");
 const p2p_mod         = @import("p2p.zig");
+const sub_block_mod   = @import("sub_block.zig");
 
 const Blockchain           = blockchain_mod.Blockchain;
 const Wallet               = wallet_mod.Wallet;
@@ -21,6 +22,7 @@ const Mempool              = mempool_mod.Mempool;
 const ConsensusConfig      = consensus_mod.ConsensusConfig;
 const ConsensusEngine      = consensus_mod.ConsensusEngine;
 const P2PNode              = p2p_mod.P2PNode;
+const SubBlockEngine       = sub_block_mod.SubBlockEngine;
 
 const DB_PATH = "omnibus-chain.dat";
 
@@ -119,6 +121,13 @@ pub fn main() !void {
     }
     p2p.printStatus();
 
+    // ── SubBlock Engine — 10 × 0.1s → 1 Key-Block ────────────────────────────
+    var sb_engine = SubBlockEngine.init(config.node_id, 0, allocator);
+    std.debug.print("[SUB-BLOCK] Engine init | {d} sub-blocks × {d}ms = 1s bloc\n\n", .{
+        sub_block_mod.SUB_BLOCKS_PER_BLOCK,
+        sub_block_mod.SUB_BLOCK_INTERVAL_MS,
+    });
+
     // ── RPC HTTP server pe thread separat ─────────────────────────────────────
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc    = &bc,
@@ -167,42 +176,52 @@ pub fn main() !void {
             std.debug.print("[MINING] Network ready — mining started\n\n", .{});
         }
 
-        // Verifica hash-ul blocului cu consensus engine inainte de adaugare
-        const new_block = try bc.mineBlockForMiner(wallet.address);
-        if (!consensus.isBlockHashValid(new_block.hash, bc.difficulty)) {
-            std.debug.print("[CONSENSUS] Bloc respins: hash invalid\n", .{});
-            continue;
+        // ── Ciclu 10 sub-blocuri × 0.1s → 1 Key-Block ────────────────────────
+        const reward_sat = blockchain_mod.blockRewardAt(block_count);
+
+        // Scoate TX-urile disponibile din mempool pentru acest Key-Block
+        const pending_txs = mempool.popN(1000, allocator) catch &.{};
+        defer if (pending_txs.len > 0) allocator.free(pending_txs);
+
+        var key_block_opt: ?sub_block_mod.KeyBlock = null;
+
+        for (0..sub_block_mod.SUB_BLOCKS_PER_BLOCK) |sub_i| {
+            _ = sub_i;
+            // Distribuie TX-urile uniform intre sub-blocuri
+            key_block_opt = try sb_engine.tick(@constCast(pending_txs), reward_sat);
+            // Sleep 0.1s intre sub-blocuri
+            std.Thread.sleep(sub_block_mod.SUB_BLOCK_INTERVAL_MS * std.time.ns_per_ms);
         }
 
-        block_count += 1;
+        // Key-Block complet → mineaza blocul principal in blockchain
+        if (key_block_opt != null) {
+            const new_block = try bc.mineBlockForMiner(wallet.address);
 
-        // Curata mempool-ul de TX-urile confirmate in bloc
-        mempool.removeConfirmed(new_block.transactions.items);
+            if (!consensus.isBlockHashValid(new_block.hash, bc.difficulty)) {
+                std.debug.print("[CONSENSUS] Bloc respins: hash invalid\n", .{});
+                continue;
+            }
 
-        // Anunta blocul la toti peerii P2P
-        p2p.chain_height = block_count;
-        p2p.broadcastBlock(
-            block_count,
-            new_block.hash,
-            blockchain_mod.blockRewardAt(block_count),
-        );
+            block_count += 1;
 
-        // Curata TX-urile expirate (>5 minute) din mempool
-        if (block_count % 300 == 0) {
-            mempool.evictOld(300);
-        }
+            // Anunta blocul la peerii P2P
+            p2p.chain_height = block_count;
+            p2p.broadcastBlock(block_count, new_block.hash, reward_sat);
 
-        // Sincronizeaza balanta wallet-ului din blockchain
-        wallet.updateBalance(bc.getAddressBalance(wallet.address));
+            // Sincronizeaza balanta
+            wallet.updateBalance(bc.getAddressBalance(wallet.address));
 
-        if (block_count % 10 == 0) {
-            std.debug.print("[MINING] {d} blocks | difficulty: {d} | reward: {d} SAT\n",
-                .{ block_count, bc.difficulty, blockchain_mod.blockRewardAt(block_count) });
-            mempool.printStats();
-            // Auto-save state to disk every 10 blocks
-            pbc.saveToDisk(DB_PATH) catch |err| {
-                std.debug.print("[DB] Save failed: {}\n", .{err});
-            };
+            if (block_count % 10 == 0) {
+                std.debug.print("[MINING] {d} blocks | difficulty: {d} | reward: {d} SAT | balance: {d} SAT\n",
+                    .{ block_count, bc.difficulty, reward_sat, wallet.balance });
+                mempool.printStats();
+                pbc.saveToDisk(DB_PATH) catch |err| {
+                    std.debug.print("[DB] Save failed: {}\n", .{err});
+                };
+            }
+
+            // Curata mempool la fiecare 300 blocuri
+            if (block_count % 300 == 0) mempool.evictOld(300);
         }
 
         maint_count += 1;
@@ -212,9 +231,7 @@ pub fn main() !void {
                 std.debug.print("[NETWORK] peers: {d}  miners: {d}  synced: {}\n",
                     .{ s.total_peers, s.total_miners, s.is_synced });
             }
+            p2p.cleanDeadPeers();
         }
-
-        // Sleep conform block_time din config (1s mainnet)
-        std.Thread.sleep(@as(u64, net_cfg.block_time_ms) * std.time.ns_per_ms);
     }
 }
