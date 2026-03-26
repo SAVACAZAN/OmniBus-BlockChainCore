@@ -6,11 +6,19 @@ const cli_mod         = @import("cli.zig");
 const node_launcher   = @import("node_launcher.zig");
 const vault_reader    = @import("vault_reader.zig");
 const database_mod    = @import("database.zig");
+const genesis_mod     = @import("genesis.zig");
+const mempool_mod     = @import("mempool.zig");
+const consensus_mod   = @import("consensus.zig");
 
-const Blockchain          = blockchain_mod.Blockchain;
-const Wallet              = wallet_mod.Wallet;
-const CLI                 = cli_mod.CLI;
+const Blockchain           = blockchain_mod.Blockchain;
+const Wallet               = wallet_mod.Wallet;
+const CLI                  = cli_mod.CLI;
 const PersistentBlockchain = database_mod.PersistentBlockchain;
+const NetworkConfig        = genesis_mod.NetworkConfig;
+const GenesisState         = genesis_mod.GenesisState;
+const Mempool              = mempool_mod.Mempool;
+const ConsensusConfig      = consensus_mod.ConsensusConfig;
+const ConsensusEngine      = consensus_mod.ConsensusEngine;
 
 const DB_PATH = "omnibus-chain.dat";
 
@@ -28,10 +36,10 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    std.debug.print("=== OmniBus Blockchain Node ===\n", .{});
-    std.debug.print("Version: 1.0.0-dev\n", .{});
-    std.debug.print("Language: Zig 0.15.2\n", .{});
-    std.debug.print("Platform: Windows + Linux\n\n", .{});
+    // ── Network config — mainnet sau testnet ──────────────────────────────────
+    // Schimba in .testnet() pentru development fara sa afectezi trecutul
+    const net_cfg = NetworkConfig.mainnet();
+    net_cfg.print();
 
     // ── CLI args ──────────────────────────────────────────────────────────────
     const args = try std.process.argsAlloc(allocator);
@@ -61,23 +69,51 @@ pub fn main() !void {
     std.debug.print("[DB] Loaded: {d} blocks, {d} addresses from {s}\n",
         .{ loaded_stats.total_blocks, loaded_stats.total_addresses, DB_PATH });
 
-    // ── Init blockchain ───────────────────────────────────────────────────────
-    var bc = try Blockchain.init(allocator);
+    // ── Init blockchain cu Genesis oficial ───────────────────────────────────
+    const gs = GenesisState.init(net_cfg, allocator);
+    var bc = try gs.buildBlockchain();
     defer bc.deinit();
 
-    std.debug.print("[INIT] Blockchain initialized\n", .{});
-    std.debug.print("  Difficulty: {d}  Chain: {d} block(s)\n\n", .{ bc.difficulty, bc.chain.items.len });
+    // Valideaza genesis — daca e gresit, oprim nodul
+    if (!gs.validateGenesisBlock(&bc)) {
+        std.debug.print("[FATAL] Genesis block invalid! Oprire nod.\n", .{});
+        return error.InvalidGenesis;
+    }
+
+    std.debug.print("[INIT] Blockchain initialized cu genesis oficial\n", .{});
+    std.debug.print("  Genesis: {s}\n", .{net_cfg.genesis_hash[0..16]});
+    std.debug.print("  Difficulty: {d}  Chain: {d} block(s)\n\n",
+        .{ bc.difficulty, bc.chain.items.len });
 
     // ── Init wallet ───────────────────────────────────────────────────────────
     var wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
     defer wallet.deinit();
 
     std.debug.print("[WALLET] Address: {s}\n", .{wallet.address});
-    std.debug.print("[WALLET] Balance: {d} SAT\n\n", .{wallet.balance});
+    std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
+        .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
+
+    // ── Init Mempool FIFO ─────────────────────────────────────────────────────
+    var mempool = Mempool.init(allocator);
+    defer mempool.deinit();
+    std.debug.print("[MEMPOOL] FIFO init | Max: {d} TX / {d} KB\n\n",
+        .{ mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES / 1024 });
+
+    // ── Init Consensus Engine ─────────────────────────────────────────────────
+    // Faza 1: ProofOfWork (compatibil cu codul existent)
+    // Upgrade la MajorityVote sau PBFT fara sa schimbi nimic altceva
+    const consensus_cfg = ConsensusConfig.init(.ProofOfWork, 1);
+    const consensus = ConsensusEngine.init(consensus_cfg, allocator);
+    consensus_cfg.print();
 
     // ── RPC HTTP server pe thread separat ─────────────────────────────────────
-    const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{ .bc = &bc, .wallet = &wallet, .alloc = allocator }});
+    const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
+        .bc    = &bc,
+        .wallet = &wallet,
+        .alloc  = allocator,
+    }});
     t.detach();
+    std.debug.print("[RPC] Server pornit pe port {d}\n\n", .{net_cfg.rpc_port});
 
     // ── Node launcher ─────────────────────────────────────────────────────────
     var launcher = node_launcher.NodeLauncher.init(config);
@@ -90,13 +126,14 @@ pub fn main() !void {
     }
 
     std.debug.print("[STATUS] Node running | Blocks: {d} | Mempool: {d}\n\n",
-        .{ bc.chain.items.len, bc.mempool.items.len });
+        .{ bc.chain.items.len, mempool.size() });
 
-    // ── Mining loop ───────────────────────────────────────────────────────────
-    std.debug.print("[LOOP] Starting mining loop (10s blocks)...\n\n", .{});
+    // ── Mining loop (1s per bloc, conform net_cfg) ────────────────────────────
+    std.debug.print("[LOOP] Starting mining loop ({d}ms blocks)...\n\n",
+        .{net_cfg.block_time_ms});
 
-    var block_count:  u32 = 0;
-    var maint_count:  u32 = 0;
+    var block_count: u32 = 0;
+    var maint_count: u32 = 0;
 
     while (launcher.is_running) {
         if (!launcher.readyForMining() and block_count == 0) {
@@ -104,7 +141,8 @@ pub fn main() !void {
             if (maint_count % 6 == 0) {
                 std.debug.print("[NETWORK] Waiting for peers...\n", .{});
                 if (launcher.getBootstrapStatus()) |stats| {
-                    std.debug.print("  peers: {d}  status: {}\n", .{ stats.peer_count, stats.status });
+                    std.debug.print("  peers: {d}  status: {}\n",
+                        .{ stats.peer_count, stats.status });
                 }
             }
             std.Thread.sleep(10 * std.time.ns_per_s);
@@ -116,13 +154,30 @@ pub fn main() !void {
             std.debug.print("[MINING] Network ready — mining started\n\n", .{});
         }
 
-        _ = try bc.mineBlockForMiner(wallet.address);
+        // Verifica hash-ul blocului cu consensus engine inainte de adaugare
+        const new_block = try bc.mineBlockForMiner(wallet.address);
+        if (!consensus.isBlockHashValid(new_block.hash, bc.difficulty)) {
+            std.debug.print("[CONSENSUS] Bloc respins: hash invalid\n", .{});
+            continue;
+        }
+
         block_count += 1;
+
+        // Curata mempool-ul de TX-urile confirmate in bloc
+        mempool.removeConfirmed(new_block.transactions.items);
+
+        // Curata TX-urile expirate (>5 minute) din mempool
+        if (block_count % 300 == 0) {
+            mempool.evictOld(300);
+        }
+
         // Sincronizeaza balanta wallet-ului din blockchain
         wallet.updateBalance(bc.getAddressBalance(wallet.address));
 
         if (block_count % 10 == 0) {
-            std.debug.print("[MINING] {d} blocks | difficulty: {d}\n", .{ block_count, bc.difficulty });
+            std.debug.print("[MINING] {d} blocks | difficulty: {d} | reward: {d} SAT\n",
+                .{ block_count, bc.difficulty, blockchain_mod.blockRewardAt(block_count) });
+            mempool.printStats();
             // Auto-save state to disk every 10 blocks
             pbc.saveToDisk(DB_PATH) catch |err| {
                 std.debug.print("[DB] Save failed: {}\n", .{err});
@@ -138,7 +193,7 @@ pub fn main() !void {
             }
         }
 
-        std.Thread.sleep(10 * std.time.ns_per_s);
+        // Sleep conform block_time din config (1s mainnet)
+        std.Thread.sleep(@as(u64, net_cfg.block_time_ms) * std.time.ns_per_ms);
     }
 }
-
