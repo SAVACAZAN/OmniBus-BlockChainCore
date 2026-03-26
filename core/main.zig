@@ -9,6 +9,7 @@ const database_mod    = @import("database.zig");
 const genesis_mod     = @import("genesis.zig");
 const mempool_mod     = @import("mempool.zig");
 const consensus_mod   = @import("consensus.zig");
+const p2p_mod         = @import("p2p.zig");
 
 const Blockchain           = blockchain_mod.Blockchain;
 const Wallet               = wallet_mod.Wallet;
@@ -19,6 +20,7 @@ const GenesisState         = genesis_mod.GenesisState;
 const Mempool              = mempool_mod.Mempool;
 const ConsensusConfig      = consensus_mod.ConsensusConfig;
 const ConsensusEngine      = consensus_mod.ConsensusEngine;
+const P2PNode              = p2p_mod.P2PNode;
 
 const DB_PATH = "omnibus-chain.dat";
 
@@ -100,11 +102,22 @@ pub fn main() !void {
         .{ mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES / 1024 });
 
     // ── Init Consensus Engine ─────────────────────────────────────────────────
-    // Faza 1: ProofOfWork (compatibil cu codul existent)
-    // Upgrade la MajorityVote sau PBFT fara sa schimbi nimic altceva
     const consensus_cfg = ConsensusConfig.init(.ProofOfWork, 1);
     const consensus = ConsensusEngine.init(consensus_cfg, allocator);
     consensus_cfg.print();
+
+    // ── Init P2P Node ─────────────────────────────────────────────────────────
+    var p2p = P2PNode.init(config.node_id, config.host, p2p_mod.P2P_PORT_DEFAULT, allocator);
+    defer p2p.deinit();
+    // Conecteaza la seed node daca e miner (best-effort, nu blocheaza)
+    if (config.seed_host) |sh| {
+        if (config.seed_port) |sp| {
+            p2p.connectToPeer(sh, sp, "seed-primary") catch |err| {
+                std.debug.print("[P2P] Seed connect failed (va incerca mai tarziu): {}\n", .{err});
+            };
+        }
+    }
+    p2p.printStatus();
 
     // ── RPC HTTP server pe thread separat ─────────────────────────────────────
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
@@ -165,6 +178,14 @@ pub fn main() !void {
 
         // Curata mempool-ul de TX-urile confirmate in bloc
         mempool.removeConfirmed(new_block.transactions.items);
+
+        // Anunta blocul la toti peerii P2P
+        p2p.chain_height = block_count;
+        p2p.broadcastBlock(
+            block_count,
+            new_block.hash,
+            blockchain_mod.blockRewardAt(block_count),
+        );
 
         // Curata TX-urile expirate (>5 minute) din mempool
         if (block_count % 300 == 0) {

@@ -261,19 +261,16 @@ test "network status" {
     var network = P2PNetwork.init(local_node, testing.allocator);
     defer network.deinit();
 
-    for (0..5) |i| {
-        var node_id: [16]u8 = undefined;
-        const id_str = std.fmt.bufPrint(&node_id, "miner-{d}", .{i}) catch "miner";
-
+    const ids = [_][]const u8{ "miner-0", "miner-1", "miner-2", "miner-3", "miner-4" };
+    for (ids) |id| {
         const miner = NetworkNode.init(
-            id_str,
+            id,
             "192.168.1.100",
             9001,
             "1.0.0",
             true,
             testing.allocator,
         );
-
         try network.connectToNode(miner);
     }
 
