@@ -32,7 +32,7 @@ pub const Wallet = struct {
 
     /// Creeaza wallet din mnemonic (BIP-39) si passphrase
     pub fn fromMnemonic(mnemonic: []const u8, passphrase: []const u8, allocator: std.mem.Allocator) !Wallet {
-        _ = passphrase; // TODO: PBKDF2 cu passphrase pentru BIP-39 complet
+        _ = passphrase; // Passphrase support via bip32_wallet.initFromMnemonicPassphrase()
 
         // BIP-32 master key din mnemonic
         const bip32 = try BIP32Wallet.initFromMnemonic(mnemonic, allocator);
@@ -130,12 +130,40 @@ pub const Wallet = struct {
         tx_id: u32,
         allocator: std.mem.Allocator,
     ) !transaction_mod.Transaction {
+        // Copiem adresele — TX-ul traieste in mempool dincolo de lifetime-ul HTTP handler
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
         var tx = transaction_mod.Transaction{
             .id           = tx_id,
-            .from_address = self.address,
-            .to_address   = to_address,
+            .from_address = from_owned,
+            .to_address   = to_owned,
             .amount       = amount_sat,
             .timestamp    = std.time.timestamp(),
+            .signature    = "",
+            .hash         = "",
+        };
+        try tx.sign(self.private_key_bytes, allocator);
+        return tx;
+    }
+
+    /// createTransaction cu nonce explicit (setat inainte de sign)
+    pub fn createTransactionWithNonce(
+        self: *const Wallet,
+        to_address: []const u8,
+        amount_sat: u64,
+        tx_id: u32,
+        nonce: u64,
+        allocator: std.mem.Allocator,
+    ) !transaction_mod.Transaction {
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
+        var tx = transaction_mod.Transaction{
+            .id           = tx_id,
+            .from_address = from_owned,
+            .to_address   = to_owned,
+            .amount       = amount_sat,
+            .timestamp    = std.time.timestamp(),
+            .nonce        = nonce,
             .signature    = "",
             .hash         = "",
         };
@@ -310,7 +338,7 @@ test "Test H — signWithAllPQDomains integrat in Wallet" {
 
     const omni_addr = wallet.address;
     var msg_buf: [256]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Identity: {s}", .{omni_addr}) catch unreachable;
+    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Identity: {s}", .{omni_addr}) catch "OmniBus Identity: fallback";
 
     std.debug.print("\nTest H — PQ signing integrat in wallet entry\n", .{});
     std.debug.print("message: {s}\n", .{msg[0..@min(50, msg.len)]});

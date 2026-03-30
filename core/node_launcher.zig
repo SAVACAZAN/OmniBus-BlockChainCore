@@ -2,6 +2,7 @@ const std = @import("std");
 const bootstrap = @import("bootstrap.zig");
 const network = @import("network.zig");
 const mining_pool = @import("mining_pool.zig");
+const p2p_mod = @import("p2p.zig");
 
 /// Node operation modes
 pub const NodeMode = enum {
@@ -30,12 +31,19 @@ pub const NodeLauncher = struct {
     bootstrap_node: ?bootstrap.BootstrapNode = null,
     p2p_network: ?network.P2PNetwork = null,
     mining_pool: ?mining_pool.MiningPool = null,
+    p2p_node: ?*p2p_mod.P2PNode = null,  // pointer la P2PNode real (TCP)
     is_running: bool = false,
 
     pub fn init(config: NodeConfig) NodeLauncher {
         return NodeLauncher{
             .config = config,
         };
+    }
+
+    /// Ataseaza P2PNode real (TCP) — apelat din main.zig dupa init p2p
+    /// Permite broadcast() sa trimita mesaje TCP reale in loc de print-only
+    pub fn attachP2PNode(self: *NodeLauncher, node: *p2p_mod.P2PNode) void {
+        self.p2p_node = node;
     }
 
     /// Start seed node
@@ -126,14 +134,19 @@ pub const NodeLauncher = struct {
         }
     }
 
-    /// Transition to mining when ready
+    /// Minimum peers/miners required before mining can start
+    /// Blockchain-ul nu porneste mining fara o retea reala
+    pub const MIN_PEERS_FOR_MINING: usize = 10;
+
+    /// Transition to mining when ready (requires MIN_PEERS_FOR_MINING connected)
     pub fn readyForMining(self: *NodeLauncher) bool {
         if (self.bootstrap_node) |node| {
             return node.readyForMining();
         }
 
         if (self.p2p_network) |network_| {
-            return network_.getPeerCount() > 0;
+            // +1 = self (this node counts as 1)
+            return (network_.getPeerCount() + 1) >= MIN_PEERS_FOR_MINING;
         }
 
         return false;
@@ -146,10 +159,16 @@ pub const NodeLauncher = struct {
             std.debug.print("[LAUNCHER] Seed node starting mining\n", .{});
         }
 
-        if (self.p2p_network) |*net| {
-            // Broadcast mining start to network
+        if (self.p2p_node) |p2p| {
+            // Broadcast real via TCP — anunta toti peerii ca minarea a inceput
+            const height = p2p.chain_height;
+            p2p.broadcastBlock(height, "mining_start", 0);
+            std.debug.print("[LAUNCHER] Miner starting mining — broadcast TCP la {d} peeri\n",
+                .{p2p.peers.items.len});
+        } else if (self.p2p_network) |*net| {
+            // Fallback: print-only (p2p_node neatasat)
             try net.broadcast("mining_start");
-            std.debug.print("[LAUNCHER] Miner starting mining\n", .{});
+            std.debug.print("[LAUNCHER] Miner starting mining (no TCP node attached)\n", .{});
         }
     }
 
@@ -160,9 +179,13 @@ pub const NodeLauncher = struct {
             std.debug.print("[LAUNCHER] Seed node stopped mining\n", .{});
         }
 
-        if (self.p2p_network) |*net| {
+        if (self.p2p_node) |p2p| {
+            // Broadcast real via TCP
+            p2p.broadcastBlock(p2p.chain_height, "mining_stop", 0);
+            std.debug.print("[LAUNCHER] Miner stopped mining — broadcast TCP\n", .{});
+        } else if (self.p2p_network) |*net| {
             try net.broadcast("mining_stop");
-            std.debug.print("[LAUNCHER] Miner stopped mining\n", .{});
+            std.debug.print("[LAUNCHER] Miner stopped mining (no TCP node attached)\n", .{});
         }
     }
 
@@ -270,4 +293,92 @@ test "network readiness check" {
     }
 
     try testing.expect(launcher.readyForMining());
+}
+
+test "NodeLauncher — seed fara bootstrap_node: readyForMining=false" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-x",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    // Nu am pornit nodul — readyForMining trebuie false
+    try testing.expect(!launcher.readyForMining());
+}
+
+test "NodeLauncher — miner fara seed_host returneaza SeedNodeAddressRequired" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.miner,
+        .node_id = "miner-x",
+        .host = "127.0.0.1",
+        .port = 9001,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try testing.expectError(error.SeedNodeAddressRequired, launcher.startMinerNode());
+}
+
+test "NodeLauncher — getBootstrapStatus null inainte de startSeedNode" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-x",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try testing.expect(launcher.getBootstrapStatus() == null);
+}
+
+test "NodeLauncher — getNetworkStatus null inainte de startMinerNode" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-x",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try testing.expect(launcher.getNetworkStatus() == null);
+}
+
+test "NodeLauncher — is_running false inainte de start" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-x",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try testing.expect(!launcher.is_running);
+}
+
+test "NodeLauncher — is_running true dupa startSeedNode" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-x",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try launcher.startSeedNode();
+    try testing.expect(launcher.is_running);
+}
+
+test "NodeLauncher — registerMinerWithPool creeaza pool" {
+    var launcher = NodeLauncher.init(NodeConfig{
+        .mode = NodeMode.seed,
+        .node_id = "seed-pool",
+        .host = "127.0.0.1",
+        .port = 9000,
+        .allocator = testing.allocator,
+    });
+    defer launcher.deinit();
+    try launcher.startSeedNode();
+    try launcher.registerMinerWithPool("miner-1", "ob_omni_miner1", 1000);
+    try testing.expect(launcher.mining_pool != null);
 }

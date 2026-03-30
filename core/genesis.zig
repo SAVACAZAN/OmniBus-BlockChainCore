@@ -63,7 +63,7 @@ pub const NetworkConfig = struct {
             .block_time_ms      = 1_000,
             .micro_blocks       = 10,
             .rpc_port           = 8332,
-            .initial_difficulty = 4,
+            .initial_difficulty = 1,
         };
     }
 

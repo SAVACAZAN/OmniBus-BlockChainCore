@@ -1,5 +1,208 @@
 const std = @import("std");
 const array_list = std.array_list;
+const p2p_mod = @import("p2p.zig");
+
+pub const PeerAddr = struct {
+    ip:   [4]u8,
+    port: u16,
+};
+
+/// Mesaj PEX: cerere lista de peeri
+pub const MSG_GET_PEERS: u8 = 0x10;
+/// Mesaj PEX: raspuns cu lista de peeri
+pub const MSG_PEER_LIST: u8 = 0x11;
+
+/// Trimite MSG_GET_PEERS la un peer conectat
+pub fn pexRequest(conn: *p2p_mod.PeerConnection, allocator: std.mem.Allocator) void {
+    _ = allocator;
+    // Payload gol — doar cerem lista
+    conn.send(MSG_GET_PEERS, &.{}) catch |err| {
+        std.debug.print("[PEX] pexRequest send failed: {}\n", .{err});
+    };
+    std.debug.print("[PEX] GET_PEERS trimis la {s}\n", .{conn.node_id[0..@min(conn.node_id.len, 16)]});
+}
+
+/// Proceseaza o lista de peeri primita prin PEX si o adauga in manager
+/// peer_list: slice de PeerAddr primite de la peer
+pub fn pexHandle(
+    manager:   *PeerManager,
+    peer_list: []const PeerAddr,
+    allocator: std.mem.Allocator,
+) void {
+    for (peer_list) |pa| {
+        manager.addPeer(pa, allocator) catch |err| {
+            std.debug.print("[PEX] addPeer failed: {}\n", .{err});
+        };
+    }
+    std.debug.print("[PEX] PEX: adaugate {} peeri noi (total known: {})\n",
+        .{ peer_list.len, manager.known.items.len });
+}
+
+/// Lista de seed nodes pentru bootstrap initial (DNS seeds ca Bitcoin)
+/// Multiple seed-uri din diferite locatii geografice pentru diversitate
+/// si rezistenta la eclipse attacks (Bitcoin are ~10 DNS seeds)
+pub const SEED_PEERS = [_]PeerAddr{
+    .{ .ip = .{ 127, 0, 0, 1 }, .port = 8333 },   // local test
+    .{ .ip = .{ 127, 0, 0, 1 }, .port = 9000 },   // local seed 2
+    .{ .ip = .{ 127, 0, 0, 1 }, .port = 9001 },   // local seed 3
+    .{ .ip = .{ 10, 0, 0, 1 },  .port = 8333 },   // LAN seed 1
+    .{ .ip = .{ 10, 0, 0, 2 },  .port = 8333 },   // LAN seed 2
+    .{ .ip = .{ 192, 168, 1, 100 }, .port = 8333 },// LAN seed 3
+};
+
+/// Minimum diverse peers for eclipse attack resistance
+/// Node should connect to peers from at least MIN_DIVERSE_PEERS different /16 subnets
+pub const MIN_DIVERSE_PEERS: usize = 4;
+
+/// Maximum peers from same /16 subnet (anti-eclipse)
+pub const MAX_PEERS_PER_SUBNET: usize = 2;
+
+/// Check if peer is from a diverse subnet (anti-eclipse attack protection)
+pub fn isDiversePeer(new_peer: PeerAddr, existing_peers: []const PeerAddr) bool {
+    var same_subnet_count: usize = 0;
+    for (existing_peers) |peer| {
+        // /16 subnet = first 2 octets match
+        if (peer.ip[0] == new_peer.ip[0] and peer.ip[1] == new_peer.ip[1]) {
+            same_subnet_count += 1;
+        }
+    }
+    return same_subnet_count < MAX_PEERS_PER_SUBNET;
+}
+
+/// Conecteaza la seed peers hardcodati si salveaza peerii descoperiti in manager.
+/// Best-effort: esecurile de conectare sunt loggate dar ignorate.
+pub fn connectToSeedPeers(manager: *PeerManager, allocator: std.mem.Allocator) void {
+    for (SEED_PEERS) |seed| {
+        const host = std.fmt.allocPrint(
+            allocator,
+            "{d}.{d}.{d}.{d}",
+            .{ seed.ip[0], seed.ip[1], seed.ip[2], seed.ip[3] },
+        ) catch continue;
+        defer allocator.free(host);
+
+        std.debug.print("[BOOTSTRAP] Trying seed {s}:{d}...\n", .{ host, seed.port });
+
+        var node = p2p_mod.P2PNode.init("bootstrap-self", host, seed.port, allocator);
+        defer node.deinit();
+
+        node.connectToPeer(host, seed.port, "seed-node") catch |err| {
+            std.debug.print("[BOOTSTRAP] Seed {s}:{d} unreachable: {}\n",
+                .{ host, seed.port, err });
+            continue;
+        };
+
+        // Peer conectat — trimite PEX request
+        if (node.peers.items.len > 0) {
+            pexRequest(&node.peers.items[0], allocator);
+            // Inregistreaza seed-ul in manager
+            manager.addPeer(seed, allocator) catch {};
+            std.debug.print("[BOOTSTRAP] Seed {s}:{d} adaugat\n", .{ host, seed.port });
+        }
+    }
+}
+
+// ─── PeerManager — gestioneaza lista de peeri cunoscuti ──────────────────────
+
+pub const PeerInfo = struct {
+    addr:         PeerAddr,
+    chain_height: u64,
+    connected:    bool,
+    last_seen:    i64,
+};
+
+pub const PeerManager = struct {
+    known:     array_list.Managed(PeerInfo),
+    allocator: std.mem.Allocator,
+
+    pub fn init(allocator: std.mem.Allocator) PeerManager {
+        return .{
+            .known     = array_list.Managed(PeerInfo).init(allocator),
+            .allocator = allocator,
+        };
+    }
+
+    pub fn deinit(self: *PeerManager) void {
+        self.known.deinit();
+    }
+
+    /// Adauga un peer nou daca nu exista deja (deduplicare dupa IP:port)
+    pub fn addPeer(self: *PeerManager, addr: PeerAddr, allocator: std.mem.Allocator) !void {
+        _ = allocator;
+        for (self.known.items) |existing| {
+            if (std.mem.eql(u8, &existing.addr.ip, &addr.ip) and
+                existing.addr.port == addr.port)
+            {
+                return; // deja cunoscut
+            }
+        }
+        try self.known.append(.{
+            .addr         = addr,
+            .chain_height = 0,
+            .connected    = false,
+            .last_seen    = std.time.timestamp(),
+        });
+        std.debug.print("[PEER_MGR] Peer adaugat {d}.{d}.{d}.{d}:{d}\n", .{
+            addr.ip[0], addr.ip[1], addr.ip[2], addr.ip[3], addr.port,
+        });
+    }
+
+    /// Elimina un peer dupa IP:port
+    pub fn removePeer(self: *PeerManager, addr: PeerAddr) void {
+        var i: usize = 0;
+        while (i < self.known.items.len) {
+            const p = self.known.items[i];
+            if (std.mem.eql(u8, &p.addr.ip, &addr.ip) and p.addr.port == addr.port) {
+                _ = self.known.swapRemove(i);
+                return;
+            }
+            i += 1;
+        }
+    }
+
+    /// Numarul de peeri conectati
+    pub fn getConnectedCount(self: *const PeerManager) usize {
+        var count: usize = 0;
+        for (self.known.items) |p| {
+            if (p.connected) count += 1;
+        }
+        return count;
+    }
+
+    /// Returneaza peer-ul cu cea mai mare inaltime a lantului (best peer)
+    /// Returneaza null daca nu exista peeri conectati
+    pub fn getBestPeer(self: *const PeerManager) ?PeerInfo {
+        var best: ?PeerInfo = null;
+        for (self.known.items) |p| {
+            if (!p.connected) continue;
+            if (best == null or p.chain_height > best.?.chain_height) {
+                best = p;
+            }
+        }
+        return best;
+    }
+
+    /// Actualizeaza inaltimea lantului pentru un peer
+    pub fn updateHeight(self: *PeerManager, addr: PeerAddr, height: u64) void {
+        for (self.known.items) |*p| {
+            if (std.mem.eql(u8, &p.addr.ip, &addr.ip) and p.addr.port == addr.port) {
+                p.chain_height = height;
+                p.last_seen    = std.time.timestamp();
+                return;
+            }
+        }
+    }
+
+    /// Marcheaza peer ca connected/disconnected
+    pub fn setConnected(self: *PeerManager, addr: PeerAddr, connected: bool) void {
+        for (self.known.items) |*p| {
+            if (std.mem.eql(u8, &p.addr.ip, &addr.ip) and p.addr.port == addr.port) {
+                p.connected = connected;
+                p.last_seen = std.time.timestamp();
+                return;
+            }
+        }
+    }
+};
 
 /// Seed Node Configuration
 pub const SeedNodeConfig = struct {
@@ -119,8 +322,17 @@ pub const BootstrapNode = struct {
     }
 
     /// Check if ready to start mining
+    /// Minimum miners required before mining starts (need real network)
+    pub const MIN_MINERS_FOR_MINING: usize = 10;
+
+    /// Extern: set by RPC server when miners register
+    pub var registered_miner_count: u16 = 0;
+
     pub fn readyForMining(self: *const BootstrapNode) bool {
-        return self.status == NodeStatus.synchronized and self.peers.items.len > 0;
+        _ = self;
+        // Use registered miner count (from RPC registerminer) instead of P2P peers
+        // P2P inbound recv is broken on Windows — miners register via RPC instead
+        return (registered_miner_count + 1) >= MIN_MINERS_FOR_MINING;
     }
 };
 
