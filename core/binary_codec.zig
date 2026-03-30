@@ -70,12 +70,12 @@ pub const Varint = struct {
 
 /// Binary encoder for sub-blocks
 pub const BinaryEncoder = struct {
-    buffer: std.ArrayList(u8),
+    buffer: std.array_list.Managed(u8),
     allocator: std.mem.Allocator,
 
     pub fn init(allocator: std.mem.Allocator) BinaryEncoder {
         return BinaryEncoder{
-            .buffer = std.ArrayList(u8).init(allocator),
+            .buffer = std.array_list.Managed(u8).init(allocator),
             .allocator = allocator,
         };
     }
@@ -133,7 +133,6 @@ pub const BinaryEncoder = struct {
 
     fn getVarIntLength(self: *BinaryEncoder, encoded: anytype) !usize {
         _ = self;
-        const T = @TypeOf(encoded);
         for (0..encoded.len) |i| {
             if (encoded[i] < 128) return i + 1;
         }
@@ -212,7 +211,7 @@ test "varint encoding u32" {
 }
 
 test "varint encoding u64" {
-    var encoded = try Varint.encodeU64(1234567890);
+    const encoded = try Varint.encodeU64(1234567890);
     try testing.expect(encoded[0] >= 128);  // Multi-byte
 }
 

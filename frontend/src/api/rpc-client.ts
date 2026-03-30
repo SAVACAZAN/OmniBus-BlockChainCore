@@ -198,6 +198,36 @@ export class OmniBusRpcClient {
     return this.request("minerkeepalive", [address]);
   }
 
+  // ── New RPC endpoints ──────────────────────────────────────────────────
+
+  async getTransactionDetail(txid: string): Promise<any> {
+    return this.request("gettransaction", [txid]);
+  }
+
+  async getAddressHistory(address: string): Promise<any> {
+    return this.request("getaddresshistory", [address]);
+  }
+
+  async listTransactions(count: number = 20): Promise<any> {
+    return this.request("listtransactions", [count]);
+  }
+
+  async estimateFee(): Promise<any> {
+    return this.request("estimatefee");
+  }
+
+  async getNonce(address: string): Promise<any> {
+    return this.request("getnonce", [address]);
+  }
+
+  async getHeaders(fromHeight: number, count: number = 10): Promise<any> {
+    return this.request("getheaders", [fromHeight, count]);
+  }
+
+  async getMerkleProof(txid: string): Promise<any> {
+    return this.request("getmerkleproof", [txid]);
+  }
+
   // Custom methods for UI
   async getBlockchainStats(): Promise<{
     blockCount: number;

@@ -93,6 +93,45 @@ export interface WalletInfo {
   nodeHeight: number;
 }
 
+// ── New RPC Response Types ─────────────────────────────────────────────────
+
+export interface TransactionDetail {
+  txid: string;
+  from: string;
+  to: string;
+  amount: number;
+  fee: number;
+  confirmations: number;
+  blockHeight: number;
+  status: "pending" | "confirmed";
+  locktime?: number;
+  op_return?: string;
+}
+
+export interface AddressHistoryEntry {
+  txid: string;
+  from: string;
+  to: string;
+  amount: number;
+  fee: number;
+  direction: "sent" | "received";
+  confirmations: number;
+  blockHeight: number;
+  status: "pending" | "confirmed";
+  timestamp?: number;
+}
+
+export interface FeeEstimate {
+  medianFee: number;
+  minFee: number;
+  burnPct: number;
+}
+
+export interface NonceInfo {
+  address: string;
+  nonce: number;
+}
+
 // ── Store State ─────────────────────────────────────────────────────────────
 
 export interface BlockchainState {

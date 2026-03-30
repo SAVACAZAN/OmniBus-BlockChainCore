@@ -6,12 +6,13 @@ const shard_config = @import("shard_config.zig");
 const binary_codec = @import("binary_codec.zig");
 const prune_config = @import("prune_config.zig");
 const archive_manager_mod = @import("archive_manager.zig");
+const hex_utils = @import("hex_utils.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
 pub const SubBlock = sub_block_mod.SubBlock;
-pub const SubBlockPool = sub_block_mod.SubBlockPool;
+pub const SubBlockEngine = sub_block_mod.SubBlockEngine;
 pub const ShardConfig = shard_config.ShardConfig;
 pub const BinaryEncoder = binary_codec.BinaryEncoder;
 pub const BinaryDecoder = binary_codec.BinaryDecoder;
@@ -23,7 +24,7 @@ pub const ArchiveManager = archive_manager_mod.ArchiveManager;
 pub const BlockchainV2 = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
-    sub_block_pool: SubBlockPool,
+    sub_block_engine: SubBlockEngine,
     shard_config: ShardConfig,
     prune_config: PruneConfig,
     archive_mgr: ?ArchiveManager = null,
@@ -33,13 +34,13 @@ pub const BlockchainV2 = struct {
     current_block_number: u32 = 0,
 
     pub fn init(allocator: std.mem.Allocator, shard_id: u8) !BlockchainV2 {
-        return try BlockchainV2.initWithPruning(allocator, shard_id, .{});
+        return try BlockchainV2.initWithPruning(allocator, shard_id, PruneConfig.init(allocator));
     }
 
     pub fn initWithPruning(allocator: std.mem.Allocator, shard_id: u8, prune_cfg: PruneConfig) !BlockchainV2 {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
-        const sub_pool = SubBlockPool.init(allocator, 0);
+        const sub_eng = SubBlockEngine.init("miner-local", shard_id, allocator);
         const shards = try ShardConfig.init(allocator, shard_id);
         var cfg = prune_cfg;
         cfg.allocator = allocator;
@@ -54,7 +55,7 @@ pub const BlockchainV2 = struct {
             .transactions = array_list.Managed(Transaction).init(allocator),
             .previous_hash = "0",
             .nonce = 0,
-            .hash = "genesis_hash_placeholder",
+            .hash = "genesis_hash_omnibus_v2",
         };
 
         try chain.append(genesis);
@@ -67,7 +68,7 @@ pub const BlockchainV2 = struct {
         return BlockchainV2{
             .chain = chain,
             .mempool = mempool,
-            .sub_block_pool = sub_pool,
+            .sub_block_engine = sub_eng,
             .shard_config = shards,
             .prune_config = cfg,
             .archive_mgr = archive,
@@ -78,12 +79,15 @@ pub const BlockchainV2 = struct {
     }
 
     pub fn deinit(self: *BlockchainV2) void {
-        for (self.chain.items) |*block| {
+        for (self.chain.items, 0..) |*block, i| {
             block.transactions.deinit();
+            // Blocurile minate (index > 0) au hash alocat pe heap (64 chars)
+            if (i > 0 and block.hash.len == 64) {
+                self.allocator.free(block.hash);
+            }
         }
         self.chain.deinit();
         self.mempool.deinit();
-        self.sub_block_pool.deinit();
     }
 
     /// Add transaction to mempool
@@ -94,11 +98,17 @@ pub const BlockchainV2 = struct {
         try self.mempool.append(tx);
     }
 
-    /// Validate transaction
+    /// Validate transaction (delegates to Transaction.isValid + hash integrity)
     pub fn validateTransaction(self: *BlockchainV2, tx: *const Transaction) !bool {
-        if (tx.amount == 0) return false;
-        if (tx.from_address.len == 0 or tx.to_address.len == 0) return false;
         _ = self;
+        if (!tx.isValid()) return false;
+        // Hash integrity check (if signed)
+        if (tx.signature.len == 128 and tx.hash.len == 64) {
+            const expected = tx.calculateHash();
+            var stored: [32]u8 = undefined;
+            hex_utils.hexToBytes(tx.hash, &stored) catch return false;
+            if (!std.mem.eql(u8, &stored, &expected)) return false;
+        }
         return true;
     }
 
@@ -107,14 +117,12 @@ pub const BlockchainV2 = struct {
         if (sub_id > 9) return error.InvalidSubBlockId;
 
         const shard_id = self.shard_config.getShardForSubBlock(sub_id);
-
         var sub = SubBlock.init(self.allocator, sub_id, self.current_block_number, shard_id, miner_id);
 
-        // Add transactions from mempool to sub-block
-        // Distribute ~1/10th of mempool to each sub-block
+        // Distribute 1/10 din mempool per sub-bloc
         const txs_per_sub = self.mempool.items.len / 10;
-        var start_idx = sub_id * txs_per_sub;
-        var end_idx = if (sub_id == 9) self.mempool.items.len else (sub_id + 1) * txs_per_sub;
+        const start_idx = sub_id * txs_per_sub;
+        const end_idx = if (sub_id == 9) self.mempool.items.len else (sub_id + 1) * txs_per_sub;
 
         if (start_idx < end_idx) {
             for (self.mempool.items[start_idx..end_idx]) |tx| {
@@ -122,62 +130,35 @@ pub const BlockchainV2 = struct {
             }
         }
 
-        // Calculate merkle root
-        sub.merkle_root = try sub.calculateMerkleRoot();
-
-        // Mine sub-block (simple PoW)
-        try self.mineSubBlock(&sub);
-
+        sub.finalize();
         return sub;
     }
 
-    /// Mine sub-block with simple PoW
-    pub fn mineSubBlock(self: *BlockchainV2, sub: *SubBlock) !void {
-        var nonce: u64 = 0;
-        while (true) {
-            sub.nonce = nonce;
-            sub.hash = try sub.calculateHash();
-
-            // Simple difficulty check: hash starts with leading zero
-            if (sub.hash[0] < 128) {
-                break;
-            }
-
-            nonce += 1;
-            if (nonce > 1000000) break;  // Prevent infinite loop
-        }
-    }
-
-    /// Add sub-block to pool
+    /// Add sub-block via engine
     pub fn addSubBlock(self: *BlockchainV2, sub: SubBlock) !void {
-        // Validate shard
         const expected_shard = self.shard_config.getShardForSubBlock(sub.sub_id);
-        if (sub.shard_id != expected_shard) {
-            return error.IncorrectShard;
-        }
-
-        try self.sub_block_pool.addSubBlock(sub);
+        if (sub.shard_id != expected_shard) return error.IncorrectShard;
+        _ = try self.sub_block_engine.current_key_block.addSubBlock(sub);
     }
 
     /// Check if all 10 sub-blocks are collected
     pub fn isSubBlockPoolComplete(self: *const BlockchainV2) bool {
-        return self.sub_block_pool.isFull();
+        return self.sub_block_engine.current_key_block.received == sub_block_mod.SUB_BLOCKS_PER_BLOCK;
     }
 
     /// Create main block from complete sub-block pool
     pub fn createBlockFromSubBlocks(self: *BlockchainV2) !Block {
-        if (!self.isSubBlockPoolComplete()) {
-            return error.IncompleteSubBlocks;
-        }
+        if (!self.isSubBlockPoolComplete()) return error.IncompleteSubBlocks;
 
         const previous_block = self.chain.items[self.chain.items.len - 1];
         const block_index = self.chain.items.len;
 
-        // Collect all transactions from sub-blocks
         var all_transactions = array_list.Managed(Transaction).init(self.allocator);
-        for (self.sub_block_pool.sub_blocks.items) |sub| {
-            for (sub.transactions.items) |tx| {
-                try all_transactions.append(tx);
+        for (self.sub_block_engine.current_key_block.sub_blocks) |maybe_sb| {
+            if (maybe_sb) |sb| {
+                for (sb.transactions.items) |tx| {
+                    try all_transactions.append(tx);
+                }
             }
         }
 
@@ -190,14 +171,12 @@ pub const BlockchainV2 = struct {
             .hash = "",
         };
 
-        // Mine main block
         try self.mineBlock(&block);
-
-        // Add to chain
         try self.chain.append(block);
 
-        // Clear sub-block pool and increment block number
-        self.sub_block_pool.clear();
+        self.sub_block_engine.block_number += 1;
+        self.sub_block_engine.sub_counter = 0;
+        self.sub_block_engine.current_key_block = sub_block_mod.KeyBlock.init(self.sub_block_engine.block_number);
         self.current_block_number += 1;
 
         return block;
@@ -206,63 +185,30 @@ pub const BlockchainV2 = struct {
     /// Mine block (simple PoW)
     pub fn mineBlock(self: *BlockchainV2, block: *Block) !void {
         var nonce: u64 = 0;
-        while (true) {
+        const MAX_NONCE: u64 = 4_294_967_296;
+        while (nonce < MAX_NONCE) {
             block.nonce = nonce;
             const hash = try self.calculateBlockHash(block);
 
-            // Check difficulty (leading zeros)
             if (try self.isValidHash(hash)) {
                 block.hash = hash;
                 break;
             }
 
+            self.allocator.free(hash);
             nonce += 1;
             if (nonce > 10000000) break;
         }
     }
 
-    /// Calculate block hash
+    /// Calculate block hash (shared implementation in hex_utils)
     pub fn calculateBlockHash(self: *BlockchainV2, block: *const Block) ![]const u8 {
-        _ = self;
-        var hasher = std.crypto.hash.sha2.Sha256.init(.{});
-
-        var buffer: [256]u8 = undefined;
-        const str = try std.fmt.bufPrint(&buffer, "{d}{d}{d}{d}", .{
-            block.index,
-            block.timestamp,
-            block.previous_hash.len,
-            block.nonce,
-        });
-
-        hasher.update(str);
-
-        for (block.transactions.items) |tx| {
-            hasher.update(tx.hash);
-        }
-
-        var hash: [32]u8 = undefined;
-        hasher.final(&hash);
-
-        var result: [16]u8 = undefined;
-        for (0..8) |i| {
-            _ = std.fmt.bufPrint(result[i * 2 .. (i + 1) * 2], "{x:0>2}", .{hash[i]}) catch "";
-        }
-
-        return &result;
+        return hex_utils.hashBlock(block.*, self.allocator);
     }
 
-    /// Validate hash meets difficulty
+    /// Validate hash meets difficulty (delegates to shared hex_utils)
     pub fn isValidHash(self: *BlockchainV2, hash: []const u8) !bool {
-        var zero_count: u32 = 0;
-        for (hash) |char| {
-            if (char == '0') {
-                zero_count += 1;
-            } else {
-                break;
-            }
-        }
-
-        return zero_count >= self.difficulty;
+        return hex_utils.isValidHashDifficulty(hash, self.difficulty);
     }
 
     /// Encode block to binary format (93% compression)
@@ -293,7 +239,7 @@ pub const BlockchainV2 = struct {
         return BlockStats{
             .block_count = self.chain.items.len,
             .transaction_count = self.mempool.items.len,
-            .sub_blocks_pending = self.sub_block_pool.sub_blocks.items.len,
+            .sub_blocks_pending = self.sub_block_engine.current_key_block.received,
             .difficulty = self.difficulty,
             .shard_id = self.shard_config.current_node_shard,
         };
@@ -318,7 +264,7 @@ pub const BlockchainV2 = struct {
 
         // Archive old blocks if enabled
         if (self.archive_mgr) |*archive| {
-            var encoded_blocks = std.ArrayList(u8).init(self.allocator);
+            var encoded_blocks = array_list.Managed(u8).init(self.allocator);
             defer encoded_blocks.deinit();
 
             // Encode blocks to be removed
@@ -391,7 +337,7 @@ pub const BlockchainV2 = struct {
 pub const BlockStats = struct {
     block_count: usize,
     transaction_count: usize,
-    sub_blocks_pending: usize,
+    sub_blocks_pending: u8,
     difficulty: u32,
     shard_id: u8,
 };
@@ -416,7 +362,6 @@ test "sub-block creation and pooling" {
     }
 
     try testing.expect(bc.isSubBlockPoolComplete());
-    try testing.expectEqual(bc.sub_block_pool.sub_blocks.items.len, 10);
 }
 
 test "block creation from sub-blocks" {
@@ -425,7 +370,7 @@ test "block creation from sub-blocks" {
 
     // Create 10 sub-blocks
     for (0..10) |i| {
-        var sub = try bc.createSubBlock(@intCast(i), "miner-1");
+        const sub = try bc.createSubBlock(@intCast(i), "miner-1");
         try bc.addSubBlock(sub);
     }
 
@@ -433,5 +378,163 @@ test "block creation from sub-blocks" {
     const block = try bc.createBlockFromSubBlocks();
 
     try testing.expectEqual(block.index, 1);
-    try testing.expect(bc.sub_block_pool.sub_blocks.items.len == 0);  // Pool cleared
+    try testing.expectEqual(bc.sub_block_engine.current_key_block.received, 0);  // Pool cleared
+}
+
+test "BlockchainV2 — difficulty default = 4" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expectEqual(@as(u32, 4), bc.difficulty);
+}
+
+test "BlockchainV2 — genesis index = 0" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expectEqual(@as(u32, 0), bc.chain.items[0].index);
+}
+
+test "BlockchainV2 — validateTransaction amount 0 = false" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_a", .to_address = "ob_omni_b",
+        .amount = 0, .timestamp = 0, .signature = "", .hash = "",
+    };
+    try testing.expect(!try bc.validateTransaction(&tx));
+}
+
+test "BlockchainV2 — validateTransaction adresa goala = false" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const tx = Transaction{
+        .id = 1, .from_address = "", .to_address = "ob_omni_b",
+        .amount = 100, .timestamp = 0, .signature = "", .hash = "",
+    };
+    try testing.expect(!try bc.validateTransaction(&tx));
+}
+
+test "BlockchainV2 — addTransaction valid merge in mempool" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .amount = 1000, .timestamp = 0, .signature = "", .hash = "",
+    };
+    try bc.addTransaction(tx);
+    try testing.expectEqual(@as(usize, 1), bc.mempool.items.len);
+}
+
+test "BlockchainV2 — addTransaction invalid returneaza eroare" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_a", .to_address = "ob_omni_b",
+        .amount = 0, .timestamp = 0, .signature = "", .hash = "",
+    };
+    try testing.expectError(error.InvalidTransaction, bc.addTransaction(tx));
+}
+
+test "BlockchainV2 — isSubBlockPoolComplete false initial" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expect(!bc.isSubBlockPoolComplete());
+}
+
+test "BlockchainV2 — createSubBlock id invalid returneaza eroare" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expectError(error.InvalidSubBlockId, bc.createSubBlock(10, "miner-1"));
+}
+
+test "BlockchainV2 — createBlockFromSubBlocks fara sub-blocuri complete = eroare" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expectError(error.IncompleteSubBlocks, bc.createBlockFromSubBlocks());
+}
+
+test "BlockchainV2 — chain creste dupa createBlockFromSubBlocks" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    for (0..10) |i| {
+        const sub = try bc.createSubBlock(@intCast(i), "miner-1");
+        try bc.addSubBlock(sub);
+    }
+    _ = try bc.createBlockFromSubBlocks();
+    try testing.expectEqual(@as(u32, 2), bc.getBlockCount());
+}
+
+test "BlockchainV2 — calculateBlockHash produce 64 chars" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const genesis = bc.chain.items[0];
+    const h = try bc.calculateBlockHash(&genesis);
+    defer bc.allocator.free(h);
+    try testing.expectEqual(@as(usize, 64), h.len);
+}
+
+test "BlockchainV2 — calculateBlockHash determinist" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const genesis = bc.chain.items[0];
+    const h1 = try bc.calculateBlockHash(&genesis);
+    defer bc.allocator.free(h1);
+    const h2 = try bc.calculateBlockHash(&genesis);
+    defer bc.allocator.free(h2);
+    try testing.expectEqualSlices(u8, h1, h2);
+}
+
+test "BlockchainV2 — isValidHash 4 zerouri leading = valid" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expect(try bc.isValidHash("0000abcdef123456789012345678901234567890123456789012345678901234"));
+}
+
+test "BlockchainV2 — isValidHash 3 zerouri leading = invalid" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expect(!try bc.isValidHash("000abcdef1234567890123456789012345678901234567890123456789012345"));
+}
+
+test "BlockchainV2 — getStats reflecta starea curenta" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    const stats = bc.getStats();
+    try testing.expectEqual(@as(usize, 1), stats.block_count);
+    try testing.expectEqual(@as(u8, 0), stats.sub_blocks_pending);
+    try testing.expectEqual(@as(u32, 4), stats.difficulty);
+}
+
+test "BlockchainV2 — needsPruning false la init" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expect(!bc.needsPruning());
+}
+
+test "BlockchainV2 — getEstimatedStorageSize = 1 bloc × 50KB" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    try testing.expectEqual(@as(u64, 50 * 1024), bc.getEstimatedStorageSize());
+}
+
+test "BlockchainV2 — current_block_number creste dupa mining" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    for (0..10) |i| {
+        const sub = try bc.createSubBlock(@intCast(i), "miner-1");
+        try bc.addSubBlock(sub);
+    }
+    _ = try bc.createBlockFromSubBlocks();
+    try testing.expectEqual(@as(u32, 1), bc.current_block_number);
+}
+
+test "BlockchainV2 — sub_block pool resetat dupa createBlockFromSubBlocks" {
+    var bc = try BlockchainV2.init(testing.allocator, 0);
+    defer bc.deinit();
+    for (0..10) |i| {
+        const sub = try bc.createSubBlock(@intCast(i), "miner-1");
+        try bc.addSubBlock(sub);
+    }
+    _ = try bc.createBlockFromSubBlocks();
+    try testing.expect(!bc.isSubBlockPoolComplete());
+    try testing.expectEqual(@as(u8, 0), bc.sub_block_engine.current_key_block.received);
 }

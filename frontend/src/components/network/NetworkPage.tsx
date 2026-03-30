@@ -1,5 +1,6 @@
 import { NetworkStatus } from "./NetworkStatus";
 import { MinerTable } from "./MinerTable";
+import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 
 export function NetworkPage() {
@@ -37,6 +38,9 @@ export function NetworkPage() {
 
       <NetworkStatus />
       <MinerTable />
+
+      {/* Address Lookup */}
+      <AddressLookup />
 
       {/* Peers */}
       <div className="bg-mempool-card rounded-xl border border-mempool-border overflow-hidden">

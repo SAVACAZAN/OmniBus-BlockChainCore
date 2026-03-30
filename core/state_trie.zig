@@ -22,9 +22,9 @@ pub const AccountState = struct {
         hasher.update(&self.address);
         hasher.update(str);
 
-        var hash: [32]u8 = undefined;
-        hasher.final(&hash);
-        return hash;
+        var result: [32]u8 = undefined;
+        hasher.final(&result);
+        return result;
     }
 
     pub fn print(self: *const AccountState) void {
@@ -40,83 +40,57 @@ pub const AccountState = struct {
 /// ~50 MB for 1M+ accounts vs 1.6 TB for all transaction history!
 pub const StateTrie = struct {
     allocator: std.mem.Allocator,
-    accounts: std.StringHashMap(AccountState),
+    accounts: std.AutoHashMap([20]u8, AccountState),
     root_hash: [32]u8 = [_]u8{0} ** 32,
     block_height: u32 = 0,
 
     pub fn init(allocator: std.mem.Allocator) StateTrie {
         return StateTrie{
             .allocator = allocator,
-            .accounts = std.StringHashMap(AccountState).init(allocator),
+            .accounts = std.AutoHashMap([20]u8, AccountState).init(allocator),
         };
     }
 
     /// Update account balance
     pub fn updateBalance(self: *StateTrie, address: [20]u8, new_balance: u64, block_height: u32) !void {
-        var addr_key = std.ArrayList(u8).init(self.allocator);
-        defer addr_key.deinit();
-        try addr_key.appendSlice(&address);
-
-        var account = self.accounts.get(addr_key.items) orelse AccountState{
+        var account = self.accounts.get(address) orelse AccountState{
             .address = address,
             .balance = 0,
             .nonce = 0,
             .last_updated_block = block_height,
         };
-
         account.balance = new_balance;
         account.last_updated_block = block_height;
-
-        try self.accounts.put(addr_key.items, account);
+        try self.accounts.put(address, account);
     }
 
     /// Increment nonce (for transaction sequencing)
     pub fn incrementNonce(self: *StateTrie, address: [20]u8, block_height: u32) !void {
-        var addr_key = std.ArrayList(u8).init(self.allocator);
-        defer addr_key.deinit();
-        try addr_key.appendSlice(&address);
-
-        var account = self.accounts.get(addr_key.items) orelse AccountState{
+        var account = self.accounts.get(address) orelse AccountState{
             .address = address,
             .balance = 0,
             .nonce = 0,
             .last_updated_block = block_height,
         };
-
         account.nonce += 1;
         account.last_updated_block = block_height;
-
-        try self.accounts.put(addr_key.items, account);
+        try self.accounts.put(address, account);
     }
 
     /// Get account balance
     pub fn getBalance(self: *const StateTrie, address: [20]u8) u64 {
-        var addr_key = std.ArrayList(u8).init(self.allocator);
-        defer addr_key.deinit();
-        addr_key.appendSlice(&address) catch {};
-
-        if (self.accounts.get(addr_key.items)) |account| {
-            return account.balance;
-        }
-
+        if (self.accounts.get(address)) |account| return account.balance;
         return 0;
     }
 
     /// Get account nonce
     pub fn getNonce(self: *const StateTrie, address: [20]u8) u32 {
-        var addr_key = std.ArrayList(u8).init(self.allocator);
-        defer addr_key.deinit();
-        addr_key.appendSlice(&address) catch {};
-
-        if (self.accounts.get(addr_key.items)) |account| {
-            return account.nonce;
-        }
-
+        if (self.accounts.get(address)) |account| return account.nonce;
         return 0;
     }
 
     /// Calculate root hash (merkle root of all accounts)
-    pub fn calculateRootHash(self: *StateTrie) [32]u8 {
+    pub fn calculateRootHash(self: *const StateTrie) [32]u8 {
         var hasher = std.crypto.hash.sha2.Sha256.init(.{});
 
         var it = self.accounts.valueIterator();
@@ -127,8 +101,6 @@ pub const StateTrie = struct {
 
         var root: [32]u8 = undefined;
         hasher.final(&root);
-        self.root_hash = root;
-
         return root;
     }
 
@@ -166,7 +138,7 @@ pub const StateTrie = struct {
 
     /// Get all accounts (for verification)
     pub fn getAllAccounts(self: *const StateTrie, allocator: std.mem.Allocator) ![]AccountState {
-        var accounts = std.ArrayList(AccountState).init(allocator);
+        var accounts = std.array_list.Managed(AccountState).init(allocator);
 
         var it = self.accounts.valueIterator();
         while (it.next()) |account| {

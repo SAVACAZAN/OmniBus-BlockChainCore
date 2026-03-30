@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(timeout 15 ./zig-out/bin/omnibus-node.exe --mode seed --node-id node-1 --port 9000)",
+      "Bash(zig test:*)",
+      "Bash(timeout 20 ./zig-out/bin/omnibus-node.exe --mode seed --node-id node-1 --port 9000)",
+      "Bash(node -c scripts/start-simulated.js)",
+      "Bash(zig zen:*)",
+      "Bash(python3 -c \"import os; zig_path = os.popen\\(''''where zig''''\\).read\\(\\).strip\\(\\).split\\(chr\\(10\\)\\)[0]; lib = os.path.dirname\\(zig_path\\) + ''''/lib/std/hash''''; print\\(lib\\)\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(echo \"EXIT_LIGHT=$?\")",
+      "Bash(echo \"EXIT_CHAIN=$?\")",
+      "Bash(echo \"EXIT CODE: $?\")",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"Exit code: $?\")"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+# OmniBus Blockchain — Docker Compose
+# =====================================
+# Start full network: docker-compose up
+# Start seed only:    docker-compose up seed
+# Start miner only:   docker-compose up miner
+
+version: "3.8"
+
+services:
+  seed:
+    build: .
+    container_name: omnibus-seed
+    command: ["--mode", "seed", "--node-id", "seed-1", "--primary", "--port", "9000"]
+    ports:
+      - "9000:9000"
+      - "8332:8332"
+      - "8334:8334"
+    volumes:
+      - seed-data:/omnibus/data
+    restart: unless-stopped
+
+  miner:
+    build: .
+    container_name: omnibus-miner-1
+    command: ["--mode", "miner", "--node-id", "miner-1", "--seed-host", "seed", "--seed-port", "9000"]
+    environment:
+      - OMNIBUS_MNEMONIC=${OMNIBUS_MNEMONIC:-abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about}
+    ports:
+      - "8333:8333"
+    depends_on:
+      - seed
+    volumes:
+      - miner-data:/omnibus/data
+    restart: unless-stopped
+
+  miner2:
+    build: .
+    container_name: omnibus-miner-2
+    command: ["--mode", "miner", "--node-id", "miner-2", "--seed-host", "seed", "--seed-port", "9000"]
+    environment:
+      - OMNIBUS_MNEMONIC=${OMNIBUS_MNEMONIC2:-zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong}
+    depends_on:
+      - seed
+    volumes:
+      - miner2-data:/omnibus/data
+    restart: unless-stopped
+
+volumes:
+  seed-data:
+  miner-data:
+  miner2-data:

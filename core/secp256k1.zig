@@ -23,7 +23,7 @@ pub const Secp256k1Crypto = struct {
 
     /// Genereaza adresa Bitcoin-style din private key
     /// privkey → pubkey → SHA256 → SHA256[0..20]
-    /// (SHA256[0..20] ca aproximare pentru RIPEMD-160 — TODO fix 3)
+    /// (SHA256[0..20] ca aproximare pentru RIPEMD-160 — see ripemd160.zig for full impl)
     pub fn privateKeyToHash160(private_key: PrivateKey) ![20]u8 {
         const pubkey = try privateKeyToPublicKey(private_key);
 

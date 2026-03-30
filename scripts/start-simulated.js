@@ -6,6 +6,10 @@
  * and registers N miners via RPC. The seed mines blocks and distributes rewards
  * round-robin to all registered miners.
  *
+ * All miner addresses are derived via the real Zig BIP-32 pipeline
+ * (--generate-wallet). No JS fallback — if Zig derivation fails, the miner
+ * is skipped so that every registered address can sign real transactions.
+ *
  * Usage: node scripts/start-simulated.js [miners] [stagger_ms]
  *   miners:     number of virtual miners (default 20)
  *   stagger_ms: delay between registrations (default 2000)
@@ -23,6 +27,14 @@ const NODE_EXE = path.join(ROOT, "zig-out", "bin", "omnibus-node.exe");
 const WALLETS_DIR = path.join(ROOT, "wallets");
 const LOGS_DIR = path.join(ROOT, "data", "logs");
 const RPC_PORT = 8332;
+const RPC_TIMEOUT_MS = 15000;
+
+// Stress test config
+const STRESS_TX_COUNT = 80;       // number of TXs to send
+const STRESS_MIN_SAT = 1000;      // min amount per TX
+const STRESS_MAX_SAT = 100000;    // max amount per TX
+const STRESS_MIN_FEE = 1;         // min fee SAT
+const STRESS_MAX_FEE = 50;        // max fee SAT
 
 const BIP39 = [
   "abandon","ability","able","about","above","absent","absorb","abstract",
@@ -66,20 +78,43 @@ function generateMnemonic() {
   return words.join(" ");
 }
 
-function deriveAddress(mnemonic) {
-  const seed = crypto.pbkdf2Sync(mnemonic, "TREZOR", 2048, 64, "sha512");
-  const key = crypto.createHmac("sha256", seed).update("0").digest();
-  const hash = crypto.createHash("sha256").update(key).digest("hex");
-  return "ob_omni_" + hash.substring(0, 32);
+/**
+ * Derive wallet address using the real Zig BIP-32 pipeline.
+ * Returns the address string, or null if derivation fails.
+ */
+function deriveAddressViaZig(mnemonic) {
+  try {
+    const env = { ...process.env, OMNIBUS_MNEMONIC: mnemonic };
+    const result = execSync(`"${NODE_EXE}" --generate-wallet`, {
+      env,
+      timeout: 15000,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    // --generate-wallet may print to stdout or stderr; try both
+    const output = (result || "").trim();
+    if (!output) return null;
+    const parsed = JSON.parse(output);
+    if (parsed.address && typeof parsed.address === "string") {
+      return parsed.address;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function rpcCall(method, params = []) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
     const res = await fetch(`http://localhost:${RPC_PORT}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", method, params, id: Date.now() }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
     return data.result;
@@ -87,6 +122,10 @@ async function rpcCall(method, params = []) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 let seedProc = null;
 function cleanup() {
@@ -97,6 +136,89 @@ function cleanup() {
 }
 process.on("SIGINT", cleanup);
 process.on("SIGTERM", cleanup);
+
+/**
+ * Stress test: send transactions between registered miners.
+ * Only the seed node wallet can actually sign, so we send FROM seed
+ * TO random miner addresses.
+ */
+async function stressTest(miners) {
+  console.log("╔══════════════════════════════════════════════════════════════╗");
+  console.log(`║   Stress Test: ${STRESS_TX_COUNT} transactions                               ║`);
+  console.log("╚══════════════════════════════════════════════════════════════╝");
+  console.log("");
+
+  if (miners.length < 2) {
+    console.log("  [SKIP] Need at least 2 miners for stress test");
+    return;
+  }
+
+  // Check seed balance first
+  const seedStatus = await rpcCall("getstatus");
+  if (!seedStatus) {
+    console.log("  [SKIP] Cannot reach RPC for stress test");
+    return;
+  }
+  console.log(`  Seed balance before: ${seedStatus.balance} SAT`);
+  console.log(`  Current block: #${seedStatus.blockCount}`);
+  console.log(`  Sending ${STRESS_TX_COUNT} TXs to random miners...\n`);
+
+  // Estimate fee baseline
+  const feeEstimate = await rpcCall("estimatefee");
+  if (feeEstimate) {
+    console.log(`  Estimated fee: ${JSON.stringify(feeEstimate)}`);
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+  const startTime = Date.now();
+
+  for (let i = 0; i < STRESS_TX_COUNT; i++) {
+    // Pick a random miner as recipient
+    const recipient = miners[randInt(0, miners.length - 1)];
+    const amount = randInt(STRESS_MIN_SAT, STRESS_MAX_SAT);
+    const fee = randInt(STRESS_MIN_FEE, STRESS_MAX_FEE);
+
+    // sendtransaction params: [to_address, amount_sat, fee_sat]
+    const result = await rpcCall("sendtransaction", [recipient.address, amount, fee]);
+
+    if (result) {
+      successCount++;
+    } else {
+      failCount++;
+    }
+
+    // Progress log every 10 TXs
+    if ((i + 1) % 10 === 0) {
+      console.log(`  [TX ${i + 1}/${STRESS_TX_COUNT}] success: ${successCount}, failed: ${failCount}`);
+    }
+
+    // Small delay to avoid overwhelming the node
+    if (i < STRESS_TX_COUNT - 1) await sleep(50);
+  }
+
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log("");
+  console.log(`  Stress test complete in ${elapsed}s`);
+  console.log(`  Success: ${successCount} | Failed: ${failCount} | Total: ${STRESS_TX_COUNT}`);
+
+  // Check mempool after
+  const afterStatus = await rpcCall("getstatus");
+  if (afterStatus) {
+    console.log(`  Mempool after: ${afterStatus.mempoolSize} pending TXs`);
+    console.log(`  Seed balance after: ${afterStatus.balance} SAT`);
+  }
+
+  // Sample balance checks on a few miners
+  console.log("\n  Sample miner balances:");
+  const sampleCount = Math.min(5, miners.length);
+  for (let i = 0; i < sampleCount; i++) {
+    const m = miners[i];
+    const bal = await rpcCall("getbalance", [m.address]);
+    console.log(`    ${m.id}: ${bal != null ? bal + " SAT" : "N/A"} (${m.address.slice(0, 28)}...)`);
+  }
+  console.log("");
+}
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════════╗");
@@ -178,49 +300,63 @@ async function main() {
 
   // Generate wallets via Zig CLI (--generate-wallet) for identical address derivation
   if (!miners) {
-    console.log(`[WALLETS] Generating ${MINER_COUNT} wallets via Zig...`);
+    console.log(`[WALLETS] Generating ${MINER_COUNT} wallets via Zig BIP-32...`);
     miners = [];
+    let skipped = 0;
     for (let i = 0; i < MINER_COUNT; i++) {
       const mnemonic = generateMnemonic();
-      let address;
-      try {
-        // Use Zig node to derive address identically to the blockchain
-        const env = { ...process.env, OMNIBUS_MNEMONIC: mnemonic };
-        const result = execSync(`"${NODE_EXE}" --generate-wallet`, { env, timeout: 10000, encoding: "utf-8" });
-        const parsed = JSON.parse(result.trim());
-        address = parsed.address;
-      } catch {
-        // Fallback: JS derivation (hex, not Base58 — TX-uri vor merge dar adrese diferite)
-        address = deriveAddress(mnemonic);
+      const address = deriveAddressViaZig(mnemonic);
+
+      if (!address) {
+        skipped++;
+        console.log(`  [WARN] Miner miner-${i}: Zig --generate-wallet failed, skipping (no fake fallback)`);
+        continue;
       }
-      miners.push({ id: `miner-${i}`, mnemonic, address, port: 9100 + i });
-      if ((i + 1) % 10 === 0) console.log(`  Generated ${i + 1}/${MINER_COUNT}...`);
+
+      miners.push({ id: `miner-${miners.length}`, mnemonic, address, port: 9100 + i });
+      if ((miners.length) % 10 === 0) console.log(`  Generated ${miners.length}/${MINER_COUNT}...`);
     }
+
+    if (skipped > 0) {
+      console.log(`  [WARN] ${skipped} wallets skipped due to Zig derivation failure`);
+    }
+    if (miners.length === 0) {
+      console.log("  [FATAL] No wallets could be generated via Zig. Is omnibus-node.exe built?");
+      console.log(`  Expected at: ${NODE_EXE}`);
+      console.log("  Build with: zig build");
+      return;
+    }
+
     fs.writeFileSync(walletsPath, JSON.stringify(miners, null, 2));
-    console.log(`  ${MINER_COUNT} wallets saved to wallets/network_miners.json`);
+    console.log(`  ${miners.length} wallets saved to wallets/network_miners.json`);
     console.log(`  First: ${miners[0].address.slice(0, 36)}...`);
-    console.log(`  Last:  ${miners[MINER_COUNT - 1].address.slice(0, 36)}...`);
+    console.log(`  Last:  ${miners[miners.length - 1].address.slice(0, 36)}...`);
     console.log("");
   }
 
   // Register miners one by one
-  console.log(`[MINERS] Registering ${MINER_COUNT} virtual miners...\n`);
+  console.log(`[MINERS] Registering ${miners.length} virtual miners...\n`);
 
-  for (let i = 0; i < MINER_COUNT; i++) {
+  for (let i = 0; i < miners.length; i++) {
     const m = miners[i];
-    await rpcCall("registerminer", [m.address, m.id]);
+    // F8: Pass mnemonic so the node can derive real key pairs for signing
+    await rpcCall("registerminer", [m.address, m.id, m.mnemonic || ""]);
 
-    if ((i + 1) % 10 === 0 || i === MINER_COUNT - 1) {
+    if ((i + 1) % 10 === 0 || i === miners.length - 1) {
       const s = await rpcCall("getstatus");
-      console.log(`  [${i + 1}/${MINER_COUNT}] registered | blocks: ${s?.blockCount || "?"} | miners: ${i + 2}`);
+      console.log(`  [${i + 1}/${miners.length}] registered | blocks: ${s?.blockCount || "?"} | miners: ${i + 2}`);
     }
 
-    if (i < MINER_COUNT - 1) await sleep(STAGGER_MS);
+    if (i < miners.length - 1) await sleep(STAGGER_MS);
   }
 
   console.log("");
+
+  // Stress test: send transactions between registered miners
+  await stressTest(miners);
+
   console.log("╔══════════════════════════════════════════════════════════════╗");
-  console.log(`║   ${MINER_COUNT} miners registered! Mining active.                      ║`);
+  console.log(`║   ${miners.length} miners registered! Mining active.                      ║`);
   console.log("╚══════════════════════════════════════════════════════════════╝");
   console.log("");
   console.log("  Frontend:  http://localhost:8888");

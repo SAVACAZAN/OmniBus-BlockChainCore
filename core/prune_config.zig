@@ -147,21 +147,18 @@ pub const RetentionPolicy = struct {
 
     pub fn shouldKeepBlock(self: *const RetentionPolicy, block_height: u32, total_blocks: u32) bool {
         return switch (self.strategy) {
-            PruneStrategy.keep_recent => {
+            PruneStrategy.keep_recent => blk: {
                 // Keep last N blocks
-                block_height > (total_blocks - self.keep_count)
+                break :blk block_height > (total_blocks - self.keep_count);
             },
-            PruneStrategy.keep_recent_days => {
-                // TODO: Implement time-based retention
-                true  // Placeholder
+            PruneStrategy.keep_recent_days => blk: {
+                break :blk true; // Time-based: keep all for now, refine with block timestamps
             },
-            PruneStrategy.keep_after_checkpoint => {
-                // Keep blocks after checkpoint
-                block_height >= self.checkpoint_height
+            PruneStrategy.keep_after_checkpoint => blk: {
+                break :blk block_height >= self.checkpoint_height;
             },
-            PruneStrategy.custom => {
-                // Custom logic
-                true
+            PruneStrategy.custom => blk: {
+                break :blk true;
             },
         };
     }
@@ -171,14 +168,14 @@ pub const RetentionPolicy = struct {
 const testing = std.testing;
 
 test "prune config initialization" {
-    var config = PruneConfig.init(testing.allocator);
+    const config = PruneConfig.init(testing.allocator);
 
     try testing.expectEqual(config.max_blocks_to_keep, 10000);
     try testing.expect(config.auto_prune_enabled);
 }
 
 test "prune config custom" {
-    var config = PruneConfig.initCustom(testing.allocator, 5000, 14, true);
+    const config = PruneConfig.initCustom(testing.allocator, 5000, 14, true);
 
     try testing.expectEqual(config.max_blocks_to_keep, 5000);
     try testing.expectEqual(config.keep_days, 14);
@@ -186,7 +183,7 @@ test "prune config custom" {
 }
 
 test "estimate storage size" {
-    var config = PruneConfig.init(testing.allocator);
+    const config = PruneConfig.init(testing.allocator);
     const size = config.estimateStorageSize();
 
     // 10000 blocks = ~500 MB
@@ -194,7 +191,7 @@ test "estimate storage size" {
 }
 
 test "retention policy keep recent" {
-    var policy = RetentionPolicy.init();
+    const policy = RetentionPolicy.init();
 
     // Last block should be kept
     try testing.expect(policy.shouldKeepBlock(9999, 10000));
@@ -204,7 +201,7 @@ test "retention policy keep recent" {
 }
 
 test "retention policy by checkpoint" {
-    var policy = RetentionPolicy.initByCheckpoint(5000);
+    const policy = RetentionPolicy.initByCheckpoint(5000);
 
     // Blocks after checkpoint should be kept
     try testing.expect(policy.shouldKeepBlock(5001, 10000));
@@ -214,7 +211,7 @@ test "retention policy by checkpoint" {
 }
 
 test "prune stats" {
-    var stats = PruneStats{
+    const stats = PruneStats{
         .blocks_pruned = 1000,
         .blocks_archived = 800,
         .blocks_remaining = 9000,

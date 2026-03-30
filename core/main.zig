@@ -65,6 +65,8 @@ const sub_block_mod   = @import("sub_block.zig");
 const sync_mod        = @import("sync.zig");
 const metachain_mod   = @import("metachain.zig");
 const shard_mod       = @import("shard_coordinator.zig");
+const miner_wallet_mod = @import("miner_wallet.zig");
+const benchmark_mod    = @import("benchmark.zig");
 
 const Blockchain           = blockchain_mod.Blockchain;
 const Wallet               = wallet_mod.Wallet;
@@ -112,6 +114,7 @@ comptime {
     _ = compact_mod; _ = kademlia_mod; _ = key_enc_mod;
     _ = light_client_mod; _ = light_miner_mod; _ = payment_mod;
     _ = bread_mod; _ = schnorr_mod; _ = multisig_mod; _ = bls_mod;
+    _ = miner_wallet_mod; _ = benchmark_mod;
     _ = @import("witness_data.zig"); _ = @import("compact_transaction.zig");
     _ = @import("os_mode.zig"); _ = @import("synapse_priority.zig");
     _ = @import("omni_brain.zig"); _ = @import("oracle.zig");
@@ -121,41 +124,52 @@ comptime {
 
 const DB_PATH = "omnibus-chain.dat";
 
+// ── Graceful Shutdown — Ctrl+C / SIGINT handler ─────────────────────────────
+// Atomic flag checked by the mining loop; set by OS signal handler.
+var g_shutdown = std.atomic.Value(bool).init(false);
+
+fn installShutdownHandler() void {
+    if (comptime builtin.os.tag == .windows) {
+        // Windows: use std.os.windows.SetConsoleCtrlHandler wrapper
+        std.os.windows.SetConsoleCtrlHandler(&windowsCtrlHandler, true) catch {
+            std.debug.print("[SHUTDOWN] Failed to install Ctrl+C handler\n", .{});
+        };
+    } else {
+        // POSIX: catch SIGINT + SIGTERM
+        const act = std.posix.Sigaction{
+            .handler = .{ .handler = posixSignalHandler },
+            .mask = std.posix.empty_sigset,
+            .flags = 0,
+        };
+        std.posix.sigaction(std.posix.SIG.INT, &act, null) catch {};
+        std.posix.sigaction(std.posix.SIG.TERM, &act, null) catch {};
+    }
+}
+
+fn windowsCtrlHandler(dwCtrlType: std.os.windows.DWORD) callconv(.winapi) std.os.windows.BOOL {
+    _ = dwCtrlType;
+    g_shutdown.store(true, .monotonic);
+    return std.os.windows.TRUE; // handled, don't terminate immediately
+}
+
+fn posixSignalHandler(sig: c_int) callconv(.c) void {
+    _ = sig;
+    g_shutdown.store(true, .monotonic);
+}
+
 const NUM_SHARDS: u8 = 4;
 
-// ── Global Miner Pool — shared intre RPC thread si mining loop ──────────────
+// ── Global Miner Wallet Pool — shared intre RPC thread si mining loop ───────
 // Round-robin: fiecare bloc e minat de alt miner din pool
-const MinerPool = struct {
-    const MAX: usize = 256;
-    addresses: [MAX][64]u8 = undefined,
-    lengths: [MAX]u8 = [_]u8{0} ** MAX,
-    count: usize = 0,
-    mutex: std.Thread.Mutex = .{},
+// F8: fiecare miner are key pair real (secp256k1) si poate semna TX-uri
+pub const MinerWalletPool = miner_wallet_mod.MinerWalletPool;
+pub var g_miner_pool = MinerWalletPool{};
 
-    pub fn register(self: *MinerPool, addr: []const u8) void {
-        if (addr.len < 8) return; // minim "ob_omni_"
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        for (0..self.count) |i| {
-            if (self.lengths[i] == addr.len and std.mem.eql(u8, self.addresses[i][0..self.lengths[i]], addr)) return;
-        }
-        if (self.count >= MAX) return;
-        const len = @min(addr.len, 64);
-        @memcpy(self.addresses[self.count][0..len], addr[0..len]);
-        self.lengths[self.count] = @intCast(len);
-        self.count += 1;
-    }
+// ── Global Performance Metrics — shared intre RPC thread si mining loop ────
+pub var g_metrics = benchmark_mod.Metrics.init();
 
-    pub fn getMinerForBlock(self: *MinerPool, block_num: u32, fallback: []const u8) []const u8 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        if (self.count == 0) return fallback;
-        const idx = block_num % @as(u32, @intCast(self.count));
-        return self.addresses[idx][0..self.lengths[idx]];
-    }
-};
-
-pub var g_miner_pool = MinerPool{};
+// ── Global Payment Channel Manager ─────────────────────────────────────────
+pub var g_channel_mgr = payment_mod.ChannelManager.init();
 
 // Thread RPC — pornit din main, detach
 const RPCThreadArgs = struct {
@@ -165,6 +179,9 @@ const RPCThreadArgs = struct {
     mempool:  *mempool_mod.Mempool,
     p2p:      *p2p_mod.P2PNode,
     sync_mgr: *sync_mod.SyncManager,
+    metrics:  *benchmark_mod.Metrics,
+    channel_mgr: *payment_mod.ChannelManager,
+    staking:  *staking_mod.StakingEngine,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -172,15 +189,53 @@ fn rpcThread(args: RPCThreadArgs) void {
         .mempool  = args.mempool,
         .p2p      = args.p2p,
         .sync_mgr = args.sync_mgr,
+        .metrics  = args.metrics,
+        .channel_mgr = args.channel_mgr,
+        .staking  = args.staking,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
+}
+
+/// F8: Auto-TX — pick two funded miners and send a small TX between them.
+/// Called from the mining loop every N blocks to create organic traffic.
+fn autoTxBetweenMiners(bc: *Blockchain, block_count: u32, allocator: std.mem.Allocator) void {
+    const pair = g_miner_pool.pickAutoTxPair(10000) orelse return;
+    const sender_wallet = g_miner_pool.getWalletAt(pair.sender) orelse return;
+    const receiver_wallet = g_miner_pool.getWalletAt(pair.receiver) orelse return;
+
+    // Deterministic "random" amount: 1000-10000 SAT based on block number
+    const auto_amount: u64 = 1000 + (@as(u64, block_count) * 7 + 13) % 9001;
+    const auto_fee: u64 = 1;
+    const auto_nonce = bc.getNextAvailableNonce(sender_wallet.getAddress());
+    const auto_tx_id: u32 = 1_000_000 + block_count * 10;
+
+    var auto_tx = sender_wallet.createSignedTx(
+        receiver_wallet.getAddress(), auto_amount, auto_tx_id, auto_nonce, auto_fee, allocator,
+    ) catch return;
+    _ = &auto_tx;
+
+    bc.addTransaction(auto_tx) catch |err| {
+        std.debug.print("[AUTO-TX] Mempool reject: {}\n", .{err});
+        return;
+    };
+
+    if (block_count % 50 == 0) {
+        std.debug.print("[AUTO-TX] {s}... -> {s}... | {d} SAT\n", .{
+            sender_wallet.getAddress()[0..@min(20, sender_wallet.address_len)],
+            receiver_wallet.getAddress()[0..@min(20, receiver_wallet.address_len)],
+            auto_amount,
+        });
+    }
 }
 
 pub fn main() !void {
     // Single-instance lock dezactivat — permite multiple instante pe acelasi PC
     // pentru testare retea cu N mineri. In productie, reactivati acquireSingleInstanceLock().
     // acquireSingleInstanceLock();
+
+    // Install Ctrl+C / SIGINT handler for graceful shutdown
+    installShutdownHandler();
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -234,6 +289,11 @@ pub fn main() !void {
     pbc.restoreInto(&bc, DB_PATH) catch |err| {
         std.debug.print("[DB] Restore failed ({}) — pornire de la genesis\n", .{err});
     };
+
+    // Attach persistent database to blockchain for auto-save support
+    bc.persistent_db = &pbc;
+    bc.db_path = DB_PATH;
+    bc.last_save_time = std.time.timestamp();
 
     std.debug.print("[INIT] Blockchain initialized\n", .{});
     std.debug.print("  Genesis: {s}\n", .{net_cfg.genesis_hash[0..16]});
@@ -340,6 +400,15 @@ pub fn main() !void {
     // Ataseaza blockchain + sync_mgr la nodul P2P — necesar pentru sync real
     p2p.attachBlockchain(&bc, &sync_mgr);
 
+    // ── Light Client (SPV) — only for --mode light ──────────────────────────
+    var light_client = light_client_mod.LightClient.init(allocator);
+    defer light_client.deinit();
+    const is_light = (config.mode == node_launcher.NodeMode.light);
+    if (is_light) {
+        p2p.attachLightClient(&light_client);
+        std.debug.print("[LIGHT] SPV light client mode — headers only, no full blocks\n\n", .{});
+    }
+
     // ── WebSocket + RPC — doar pe seed node (minerii nu pornesc servere) ──────
     var ws_srv = WsServer.init(ws_mod.WS_PORT, allocator);
     defer ws_srv.deinit();
@@ -358,6 +427,9 @@ pub fn main() !void {
             .mempool  = &mempool,
             .p2p      = &p2p,
             .sync_mgr = &sync_mgr,
+            .metrics  = &g_metrics,
+            .channel_mgr = &g_channel_mgr,
+            .staking  = &staking,
         }});
         t.detach();
         std.debug.print("[RPC] Server pornit pe port {d}\n\n", .{net_cfg.rpc_port});
@@ -374,6 +446,10 @@ pub fn main() !void {
 
     if (config.mode == node_launcher.NodeMode.seed) {
         try launcher.startSeedNode();
+    } else if (config.mode == node_launcher.NodeMode.light) {
+        // Light mode: no mining, just header sync
+        std.debug.print("[LIGHT] Node started in SPV mode — no mining, headers only\n", .{});
+        try launcher.startSeedNode(); // reuse seed init (listener + bootstrap)
     } else {
         try launcher.startMinerNode();
     }
@@ -381,16 +457,46 @@ pub fn main() !void {
     std.debug.print("[STATUS] Node running | Blocks: {d} | Mempool: {d}\n\n",
         .{ bc.chain.items.len, mempool.size() });
 
+    // ── Light client SPV sync loop ─────────────────────────────────────────
+    var maint_counter_light: u32 = 0;
+    if (is_light) {
+        std.debug.print("[LIGHT] Entering SPV header sync loop...\n\n", .{});
+        // Send initial Bloom filter + getheaders to all peers
+        p2p.sendBloomFilter();
+        p2p.syncHeaders();
+
+        while (!g_shutdown.load(.monotonic)) {
+            // Periodically request new headers (every 10s = 1 block time)
+            std.Thread.sleep(10 * std.time.ns_per_s);
+            p2p.syncHeaders();
+
+            const height = light_client.getHeight();
+            const hdr_count = light_client.getHeaderCount();
+            if (maint_counter_light % 6 == 0) {
+                std.debug.print("[LIGHT] SPV status: {d} headers, height {d}, peers {d}\n",
+                    .{ hdr_count, height, p2p.peers.items.len });
+            }
+            maint_counter_light +%= 1;
+        }
+        std.debug.print("[LIGHT] SPV sync loop exited — shutdown\n", .{});
+        return;
+    }
+
     // ── Mining loop (1s per bloc, conform net_cfg) ────────────────────────────
     std.debug.print("[LOOP] Starting mining loop ({d}ms blocks)...\n\n",
         .{net_cfg.block_time_ms});
+
+    // ── Performance Metrics init ───────────────────────────────────────────────
+    g_metrics = benchmark_mod.Metrics.init();
+    g_metrics.start(); // set start_time at runtime (can't call timestamp() at comptime)
+    std.debug.print("[METRICS] Performance tracking initialized\n\n", .{});
 
     // Porneste block_count de la inaltimea curenta a lantului (continua, nu de la 0)
     var block_count: u32 = @intCast(bc.chain.items.len - 1);
     var maint_count: u32 = 0;
     var mining_started: bool = false;
 
-    while (launcher.is_running) {
+    while (launcher.is_running and !g_shutdown.load(.monotonic)) {
         if (!launcher.readyForMining() and !mining_started) {
             maint_count += 1;
             if (maint_count % 6 == 0) {
@@ -433,8 +539,9 @@ pub fn main() !void {
         // ── Ciclu 10 sub-blocuri × 0.1s → 1 Key-Block ────────────────────────
         const reward_sat = blockchain_mod.blockRewardAt(block_count);
 
-        // Scoate TX-urile disponibile din mempool pentru acest Key-Block
-        const pending_txs = mempool.popN(1000, allocator) catch &.{};
+        // Scoate TX-urile minabile din mempool (locktime <= current height)
+        // Locked TXs (locktime > block_count) raman in mempool pana cand chain-ul ajunge la acea inaltime
+        const pending_txs = mempool.getMineable(1000, block_count, allocator) catch &.{};
         defer if (pending_txs.len > 0) allocator.free(pending_txs);
 
         var key_block_opt: ?sub_block_mod.KeyBlock = null;
@@ -451,7 +558,13 @@ pub fn main() !void {
         // Round-robin: reward-ul merge la fiecare miner pe rand
         if (key_block_opt != null) {
             const miner_addr = g_miner_pool.getMinerForBlock(block_count, wallet.address);
+            const mine_start_ns: u64 = @intCast(std.time.nanoTimestamp());
             const new_block = try bc.mineBlockForMiner(miner_addr);
+            const mine_end_ns: u64 = @intCast(std.time.nanoTimestamp());
+            const mine_time_ns = mine_end_ns - mine_start_ns;
+
+            // Update metrics: hashrate from nonces tried
+            g_metrics.updateHashrate(new_block.nonce, mine_time_ns);
 
             if (!consensus.isBlockHashValid(new_block.hash, bc.difficulty)) {
                 std.debug.print("[CONSENSUS] Bloc respins: hash invalid\n", .{});
@@ -460,9 +573,21 @@ pub fn main() !void {
 
             block_count += 1;
 
-            // Anunta blocul la peerii P2P
+            // Auto-save: track blocks and TXs since last save
+            bc.blocks_since_save += 1;
+            bc.txs_since_save += @intCast(pending_txs.len);
+            bc.checkAutoSave();
+
+            // Record metrics
+            g_metrics.recordBlock();
+            for (0..pending_txs.len) |_| {
+                g_metrics.recordTx();
+            }
+
+            // Anunta blocul la peerii P2P (legacy announce + gossip relay)
             p2p.chain_height = block_count;
             p2p.broadcastBlock(block_count, new_block.hash, reward_sat);
+            p2p.broadcastBlockGossip(block_count, new_block.hash, reward_sat);
 
             // Push real-time catre frontend React prin WebSocket
             ws_srv.broadcastBlock(
@@ -513,6 +638,8 @@ pub fn main() !void {
             if (block_count % 10 == 0) {
                 std.debug.print("[MINING] {d} blocks | difficulty: {d} | reward: {d} SAT | balance: {d} SAT\n",
                     .{ block_count, bc.difficulty, reward_sat, wallet.balance });
+                std.debug.print("[MINING] Hashrate: {d} H/s | TPS: {d} | Peak TPS: {d}\n",
+                    .{ g_metrics.hashrate, g_metrics.currentTps(), g_metrics.peak_tps });
                 mempool.printStats();
             }
 
@@ -560,6 +687,35 @@ pub fn main() !void {
             // In solo mode no peers, but ready for multi-node
             _ = &peer_scoring;
 
+            // ── F8: Update miner balance caches + register pubkeys ─────────
+            {
+                g_miner_pool.mutex.lock();
+                const pool_count = g_miner_pool.count;
+                // Copy addresses out to avoid holding lock during blockchain access
+                var addrs_buf: [MinerWalletPool.MAX][64]u8 = undefined;
+                var lens_buf: [MinerWalletPool.MAX]u8 = undefined;
+                var pkhex_buf: [MinerWalletPool.MAX][66]u8 = undefined;
+                for (0..pool_count) |pi| {
+                    addrs_buf[pi] = g_miner_pool.wallets[pi].address;
+                    lens_buf[pi] = g_miner_pool.wallets[pi].address_len;
+                    pkhex_buf[pi] = g_miner_pool.wallets[pi].public_key_hex;
+                }
+                g_miner_pool.mutex.unlock();
+
+                for (0..pool_count) |pi| {
+                    const maddr = addrs_buf[pi][0..lens_buf[pi]];
+                    const mbal = bc.getAddressBalance(maddr);
+                    g_miner_pool.updateBalance(maddr, mbal);
+                    // Register pubkey so their signed TXs can be verified
+                    bc.registerPubkey(maddr, &pkhex_buf[pi]) catch {};
+                }
+            }
+
+            // ── F8: Auto-TX between miners (every 5 blocks) ─────────────
+            if (block_count % 5 == 0 and g_miner_pool.count >= 2) {
+                autoTxBetweenMiners(&bc, block_count, allocator);
+            }
+
             // Curata mempool la fiecare 300 blocuri (cu expiry 14 zile)
             if (block_count % 300 == 0) {
                 mempool.maintenance();
@@ -591,6 +747,16 @@ pub fn main() !void {
                     .{ s.total_peers, s.total_miners, s.is_synced });
             }
             p2p.cleanDeadPeers();
+            p2p.gossipMaintenance();
+
+            // Log gossip stats
+            {
+                const gs2 = p2p.getGossipStats();
+                if (gs2.tx_relayed > 0 or gs2.blocks_relayed > 0) {
+                    std.debug.print("[GOSSIP] TX relayed: {d} | Blocks relayed: {d} | Seen TX: {d} | Seen blocks: {d}\n",
+                        .{ gs2.tx_relayed, gs2.blocks_relayed, gs2.seen_tx, gs2.seen_blocks });
+                }
+            }
 
             // Verifica daca sync-ul e blocat
             if (sync_mgr.isStalled()) {
@@ -614,4 +780,13 @@ pub fn main() !void {
             }
         }
     }
+
+    // ── Graceful shutdown — save state before defers run ────────────────────
+    std.debug.print("\n[SHUTDOWN] Saving chain to disc...\n", .{});
+    pbc.saveBlockchain(&bc, DB_PATH) catch |err| {
+        std.debug.print("[SHUTDOWN] Save failed: {} — data may be lost!\n", .{err});
+    };
+    std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses\n", .{ bc.chain.items.len, bc.balances.count() });
+    std.debug.print("[SHUTDOWN] Cleaning up (P2P, WS, wallet via defer)... Goodbye!\n", .{});
+    // p2p.deinit(), ws_srv.deinit(), bc.deinit(), pbc.deinit() etc. run via defer
 }

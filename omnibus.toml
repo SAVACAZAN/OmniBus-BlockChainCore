@@ -1,0 +1,106 @@
+# OmniBus Blockchain Node Configuration
+# ======================================
+# Copie acest fisier si modifica pentru setup-ul tau.
+# Valorile de mai jos sunt defaults pentru mainnet.
+
+[network]
+# Chain: mainnet | testnet | devnet | regtest
+chain = "mainnet"
+# Node ID unic (folosit in P2P + mining pool)
+node_id = "omnibus-node-1"
+# Mod: seed | miner
+mode = "miner"
+
+[server]
+# Bind address (0.0.0.0 = toate interfetele)
+host = "0.0.0.0"
+# P2P port (peers se conecteaza aici)
+p2p_port = 8333
+# JSON-RPC port
+rpc_port = 8332
+# WebSocket port (frontend real-time)
+ws_port = 8334
+
+[mining]
+# Difficulty initiala (4 = 4 leading zeros in hash)
+initial_difficulty = 4
+# Block time target in ms
+block_time_ms = 1000
+# Sub-blocks per key-block
+sub_blocks = 10
+# Sub-block interval in ms
+sub_block_interval_ms = 100
+
+[seed_nodes]
+# Seed nodes pentru bootstrap (cel putin 1 necesar)
+# Format: "host:port"
+seeds = [
+    "seed1.omnibus.network:8333",
+    "seed2.omnibus.network:8333",
+    "seed3.omnibus.network:8333",
+    # Local development:
+    # "127.0.0.1:9000",
+    # "127.0.0.1:9001",
+]
+
+[storage]
+# Blockchain data file
+chain_file = "omnibus-chain.dat"
+# Checkpoint interval (full save every N blocks)
+checkpoint_interval = 100
+# Mempool max TX
+mempool_max_tx = 10000
+# Mempool max bytes (1 MB)
+mempool_max_bytes = 1048576
+# Mempool expiry (14 days in seconds)
+mempool_expiry_sec = 1209600
+
+[wallet]
+# Mnemonic source: "vault" | "env" | "file" | "generate"
+# vault = SuperVault Named Pipe (OmnibusSidebar)
+# env = OMNIBUS_MNEMONIC environment variable
+# file = read from mnemonic.txt
+# generate = create new wallet (DANGEROUS: save mnemonic!)
+mnemonic_source = "env"
+# Mnemonic file path (if source = "file")
+mnemonic_file = "mnemonic.txt"
+
+[consensus]
+# Type: pow | pos | pbft
+type = "pow"
+# Max difficulty (PoW)
+max_difficulty = 256
+# Retarget interval (blocks)
+retarget_interval = 2016
+# Finality checkpoint interval (blocks)
+finality_checkpoint = 64
+
+[staking]
+# Minimum stake to become validator (SAT)
+min_stake = 100000000000
+# Unbonding period (blocks, ~7 days)
+unbonding_period = 604800
+# Slashing for equivocation (%)
+slash_equivocation_pct = 5
+
+[governance]
+# Quorum percentage for proposals
+quorum_pct = 33
+# Threshold for approval
+threshold_pct = 50
+# Veto threshold
+veto_pct = 33
+# Voting period (blocks)
+voting_period = 604800
+
+[logging]
+# Log level: debug | info | warn | error
+level = "info"
+# Log to file (empty = stdout only)
+file = ""
+
+[metrics]
+# Enable Prometheus metrics endpoint
+enabled = false
+# Metrics port
+port = 9090

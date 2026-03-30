@@ -204,6 +204,209 @@ pub const PeerManager = struct {
     }
 };
 
+// ─── B12: Peer Persistence — save/load peers from data/peers.dat ────────────
+
+/// Default path for persisted peers file
+pub const PEERS_DAT_PATH = "data/peers.dat";
+
+/// Maximum peers to keep in the known list
+pub const MAX_PEERS: usize = 32;
+
+/// Periodic discovery interval in seconds (5 minutes)
+pub const DISCOVERY_INTERVAL_S: i64 = 300;
+
+/// Unresponsive peer timeout in seconds (30 minutes)
+pub const PEER_TIMEOUT_S: i64 = 1800;
+
+/// Save known peers to disk as "host:port\n" lines.
+/// Best-effort: errors are logged but not propagated.
+pub fn savePeersToDisk(manager: *const PeerManager, path: []const u8) void {
+    // Ensure parent directory exists
+    if (std.mem.lastIndexOfScalar(u8, path, '/')) |sep| {
+        std.fs.cwd().makePath(path[0..sep]) catch {};
+    }
+    const file = std.fs.cwd().createFile(path, .{}) catch |err| {
+        std.debug.print("[PEERS] savePeersToDisk open error: {}\n", .{err});
+        return;
+    };
+    defer file.close();
+
+    for (manager.known.items) |p| {
+        var line_buf: [64]u8 = undefined;
+        const line = std.fmt.bufPrint(&line_buf, "{d}.{d}.{d}.{d}:{d}\n", .{
+            p.addr.ip[0], p.addr.ip[1], p.addr.ip[2], p.addr.ip[3], p.addr.port,
+        }) catch continue;
+        file.writeAll(line) catch continue;
+    }
+    std.debug.print("[PEERS] Saved {d} peers to {s}\n", .{ manager.known.items.len, path });
+}
+
+/// Load peers from disk file. One peer per line "host:port".
+/// Best-effort: invalid lines are skipped silently.
+pub fn loadPeersFromDisk(manager: *PeerManager, path: []const u8, allocator: std.mem.Allocator) void {
+    const file = std.fs.cwd().openFile(path, .{}) catch |err| {
+        std.debug.print("[PEERS] loadPeersFromDisk open: {} (normal on first run)\n", .{err});
+        return;
+    };
+    defer file.close();
+
+    // Read entire file (peers.dat is small — well under 64KB)
+    var file_buf: [65536]u8 = undefined;
+    const bytes_read = file.readAll(&file_buf) catch |err| {
+        std.debug.print("[PEERS] loadPeersFromDisk read error: {}\n", .{err});
+        return;
+    };
+    const content = file_buf[0..bytes_read];
+    var loaded: usize = 0;
+
+    // Split by newlines and parse each line
+    var rest: []const u8 = content;
+    while (rest.len > 0) {
+        const nl_pos = std.mem.indexOfScalar(u8, rest, '\n');
+        const line_raw = if (nl_pos) |pos| rest[0..pos] else rest;
+        rest = if (nl_pos) |pos| rest[pos + 1 ..] else &[_]u8{};
+
+        // Trim trailing \r (Windows line endings)
+        const line = std.mem.trimRight(u8, line_raw, "\r");
+        if (line.len < 3) continue; // minimum "x:y"
+
+        // Find the last ':' to separate host from port
+        const colon_pos = std.mem.lastIndexOfScalar(u8, line, ':') orelse continue;
+        if (colon_pos == 0 or colon_pos >= line.len - 1) continue;
+
+        const host_part = line[0..colon_pos];
+        const port_str = line[colon_pos + 1 ..];
+        const port = std.fmt.parseInt(u16, port_str, 10) catch continue;
+
+        // Parse IPv4 octets
+        const addr = parseIpv4(host_part) orelse continue;
+        manager.addPeer(.{ .ip = addr, .port = port }, allocator) catch continue;
+        loaded += 1;
+    }
+    std.debug.print("[PEERS] Loaded {d} peers from {s}\n", .{ loaded, path });
+}
+
+/// Parse "A.B.C.D" into [4]u8, returns null on failure
+fn parseIpv4(s: []const u8) ?[4]u8 {
+    var ip: [4]u8 = undefined;
+    var octet_idx: usize = 0;
+    var start: usize = 0;
+
+    for (s, 0..) |c, i| {
+        if (c == '.') {
+            if (octet_idx >= 3) return null;
+            ip[octet_idx] = std.fmt.parseInt(u8, s[start..i], 10) catch return null;
+            octet_idx += 1;
+            start = i + 1;
+        }
+    }
+    if (octet_idx != 3) return null;
+    ip[3] = std.fmt.parseInt(u8, s[start..], 10) catch return null;
+    return ip;
+}
+
+/// Auto-discovery on startup: load saved peers → try seeds → PEX from connected.
+/// Called once from main.zig after P2P node is initialized.
+pub fn autoDiscover(
+    manager:  *PeerManager,
+    p2p_node: *p2p_mod.P2PNode,
+    allocator: std.mem.Allocator,
+) void {
+    // Step 1: Load persisted peers
+    loadPeersFromDisk(manager, PEERS_DAT_PATH, allocator);
+
+    // Step 2: Add seed nodes to manager (dedup handles overlap with loaded peers)
+    for (SEED_PEERS) |seed| {
+        manager.addPeer(seed, allocator) catch {};
+    }
+
+    // Step 3: Try connecting to known peers up to MAX_PEERS
+    var connected: usize = p2p_node.peerCount();
+    for (manager.known.items) |*peer_info| {
+        if (connected >= MAX_PEERS) break;
+        if (peer_info.connected) continue;
+
+        const host = std.fmt.allocPrint(
+            allocator,
+            "{d}.{d}.{d}.{d}",
+            .{ peer_info.addr.ip[0], peer_info.addr.ip[1],
+               peer_info.addr.ip[2], peer_info.addr.ip[3] },
+        ) catch continue;
+        defer allocator.free(host);
+
+        p2p_node.connectToPeer(host, peer_info.addr.port, "discovered") catch {
+            continue;
+        };
+        peer_info.connected = true;
+        peer_info.last_seen = std.time.timestamp();
+        connected += 1;
+    }
+
+    // Step 4: Request peer lists via PEX from connected peers
+    p2p_node.requestPeersFromAll();
+
+    std.debug.print("[DISCOVERY] Auto-discover done: {d} known, {d} connected\n",
+        .{ manager.known.items.len, connected });
+}
+
+/// Periodic discovery: request PEX, drop unresponsive peers, save to disk.
+/// Called every DISCOVERY_INTERVAL_S (5 min) from the main loop.
+pub fn periodicDiscovery(
+    manager:  *PeerManager,
+    p2p_node: *p2p_mod.P2PNode,
+    allocator: std.mem.Allocator,
+) void {
+    const now = std.time.timestamp();
+
+    // 1. Drop unresponsive peers (no activity for 30 min)
+    var i: usize = 0;
+    while (i < manager.known.items.len) {
+        const p = manager.known.items[i];
+        if (now - p.last_seen > PEER_TIMEOUT_S) {
+            std.debug.print("[DISCOVERY] Dropping unresponsive peer {d}.{d}.{d}.{d}:{d}\n", .{
+                p.addr.ip[0], p.addr.ip[1], p.addr.ip[2], p.addr.ip[3], p.addr.port,
+            });
+            _ = manager.known.swapRemove(i);
+        } else {
+            i += 1;
+        }
+    }
+
+    // 2. Request peer lists from connected peers
+    p2p_node.requestPeersFromAll();
+
+    // 3. Try connecting to new peers if below MAX_PEERS
+    var connected = p2p_node.peerCount();
+    for (manager.known.items) |*peer_info| {
+        if (connected >= MAX_PEERS) break;
+        if (peer_info.connected) continue;
+
+        const host = std.fmt.allocPrint(
+            allocator,
+            "{d}.{d}.{d}.{d}",
+            .{ peer_info.addr.ip[0], peer_info.addr.ip[1],
+               peer_info.addr.ip[2], peer_info.addr.ip[3] },
+        ) catch continue;
+        defer allocator.free(host);
+
+        p2p_node.connectToPeer(host, peer_info.addr.port, "periodic") catch {
+            continue;
+        };
+        peer_info.connected = true;
+        peer_info.last_seen = now;
+        connected += 1;
+    }
+
+    // 4. Clean dead P2P connections
+    p2p_node.cleanDeadPeers();
+
+    // 5. Save updated peer list to disk
+    savePeersToDisk(manager, PEERS_DAT_PATH);
+
+    std.debug.print("[DISCOVERY] Periodic: {d} known, {d} connected\n",
+        .{ manager.known.items.len, connected });
+}
+
 /// Seed Node Configuration
 pub const SeedNodeConfig = struct {
     node_id: []const u8,
@@ -498,4 +701,109 @@ test "network ready check" {
 
     // Now ready
     try testing.expect(pool.isNetworkReady());
+}
+
+// ─── B12: Network Discovery Tests ──────────────────────────────────────────
+
+test "B12: SEED_PEERS list is non-empty" {
+    try testing.expect(SEED_PEERS.len > 0);
+    // Should include at least one localhost seed for testnet
+    var has_localhost = false;
+    for (SEED_PEERS) |seed| {
+        if (seed.ip[0] == 127 and seed.ip[1] == 0 and seed.ip[2] == 0 and seed.ip[3] == 1) {
+            has_localhost = true;
+            break;
+        }
+    }
+    try testing.expect(has_localhost);
+}
+
+test "B12: PeerManager deduplication" {
+    var mgr = PeerManager.init(testing.allocator);
+    defer mgr.deinit();
+
+    const addr1 = PeerAddr{ .ip = .{ 10, 0, 0, 1 }, .port = 9000 };
+    const addr2 = PeerAddr{ .ip = .{ 10, 0, 0, 2 }, .port = 9000 };
+
+    // Add first peer
+    try mgr.addPeer(addr1, testing.allocator);
+    try testing.expectEqual(@as(usize, 1), mgr.known.items.len);
+
+    // Add duplicate — should not increase count
+    try mgr.addPeer(addr1, testing.allocator);
+    try testing.expectEqual(@as(usize, 1), mgr.known.items.len);
+
+    // Add different peer — should increase count
+    try mgr.addPeer(addr2, testing.allocator);
+    try testing.expectEqual(@as(usize, 2), mgr.known.items.len);
+}
+
+test "B12: parseIpv4 valid" {
+    const ip = parseIpv4("192.168.1.100").?;
+    try testing.expectEqual(@as(u8, 192), ip[0]);
+    try testing.expectEqual(@as(u8, 168), ip[1]);
+    try testing.expectEqual(@as(u8, 1), ip[2]);
+    try testing.expectEqual(@as(u8, 100), ip[3]);
+}
+
+test "B12: parseIpv4 invalid" {
+    try testing.expect(parseIpv4("not.an.ip") == null);
+    try testing.expect(parseIpv4("256.0.0.1") == null);
+    try testing.expect(parseIpv4("1.2.3") == null);
+    try testing.expect(parseIpv4("") == null);
+}
+
+test "B12: isDiversePeer — anti-eclipse" {
+    const existing = [_]PeerAddr{
+        .{ .ip = .{ 10, 0, 1, 1 }, .port = 9000 },
+        .{ .ip = .{ 10, 0, 1, 2 }, .port = 9001 },
+    };
+    // Same /16 subnet (10.0.x.x) — should be rejected (already 2 from same subnet)
+    const same_subnet = PeerAddr{ .ip = .{ 10, 0, 2, 1 }, .port = 9002 };
+    try testing.expect(!isDiversePeer(same_subnet, &existing));
+
+    // Different /16 subnet — should be accepted
+    const diff_subnet = PeerAddr{ .ip = .{ 192, 168, 1, 1 }, .port = 9003 };
+    try testing.expect(isDiversePeer(diff_subnet, &existing));
+}
+
+test "B12: peer persistence save and load roundtrip" {
+    // Use a temp file for test
+    const test_path = "data/test_peers.dat";
+
+    // Ensure data/ directory exists
+    std.fs.cwd().makePath("data") catch {};
+
+    // Create manager with some peers
+    var mgr = PeerManager.init(testing.allocator);
+    defer mgr.deinit();
+
+    try mgr.addPeer(.{ .ip = .{ 10, 0, 0, 1 }, .port = 9000 }, testing.allocator);
+    try mgr.addPeer(.{ .ip = .{ 192, 168, 1, 50 }, .port = 8333 }, testing.allocator);
+    try mgr.addPeer(.{ .ip = .{ 127, 0, 0, 1 }, .port = 9001 }, testing.allocator);
+
+    // Save to disk
+    savePeersToDisk(&mgr, test_path);
+
+    // Load into a fresh manager
+    var mgr2 = PeerManager.init(testing.allocator);
+    defer mgr2.deinit();
+
+    loadPeersFromDisk(&mgr2, test_path, testing.allocator);
+
+    // Verify same count
+    try testing.expectEqual(mgr.known.items.len, mgr2.known.items.len);
+
+    // Verify first peer matches
+    try testing.expectEqual(mgr.known.items[0].addr.ip, mgr2.known.items[0].addr.ip);
+    try testing.expectEqual(mgr.known.items[0].addr.port, mgr2.known.items[0].addr.port);
+
+    // Cleanup test file
+    std.fs.cwd().deleteFile(test_path) catch {};
+}
+
+test "B12: MAX_PEERS and DISCOVERY_INTERVAL constants" {
+    try testing.expectEqual(@as(usize, 32), MAX_PEERS);
+    try testing.expectEqual(@as(i64, 300), DISCOVERY_INTERVAL_S);
+    try testing.expectEqual(@as(i64, 1800), PEER_TIMEOUT_S);
 }

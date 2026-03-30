@@ -45,6 +45,11 @@ pub const P2PNetwork = struct {
     connected_nodes: array_list.Managed(NetworkNode),
     seed_nodes: array_list.Managed(NetworkNode),
     allocator: std.mem.Allocator,
+    /// Opaque pointer to P2PNode — avoids circular import (p2p.zig imports network.zig)
+    /// Cast with: @as(*p2p_mod.P2PNode, @alignCast(@ptrCast(self.p2p_node.?)))
+    p2p_node_ptr: ?*anyopaque = null,
+    /// Broadcast function pointer set by p2p.zig after init
+    broadcast_fn: ?*const fn (node_ptr: *anyopaque, height: u64, message: []const u8, reward: u64) void = null,
 
     pub fn init(local_node: NetworkNode, allocator: std.mem.Allocator) P2PNetwork {
         return P2PNetwork{
@@ -52,6 +57,8 @@ pub const P2PNetwork = struct {
             .connected_nodes = array_list.Managed(NetworkNode).init(allocator),
             .seed_nodes = array_list.Managed(NetworkNode).init(allocator),
             .allocator = allocator,
+            .p2p_node_ptr = null,
+            .broadcast_fn = null,
         };
     }
 
@@ -91,12 +98,26 @@ pub const P2PNetwork = struct {
         return error.NodeNotFound;
     }
 
-    /// Broadcast message to all peers
-    pub fn broadcast(self: *const P2PNetwork, message: []const u8) !void {
-        std.debug.print("[NETWORK] Broadcasting: {s} to {d} peers\n", .{ message, self.connected_nodes.items.len });
+    /// Attach a P2PNode so broadcast() delegates to real TCP transport.
+    /// Called from p2p.zig after P2PNode is initialized.
+    pub fn attachP2PNode(
+        self: *P2PNetwork,
+        node_ptr: *anyopaque,
+        fn_ptr: *const fn (node_ptr: *anyopaque, height: u64, message: []const u8, reward: u64) void,
+    ) void {
+        self.p2p_node_ptr = node_ptr;
+        self.broadcast_fn = fn_ptr;
+    }
 
-        for (self.connected_nodes.items) |node| {
-            std.debug.print("  → {s} ({s}:{d})\n", .{ node.node_id, node.host, node.port });
+    /// Broadcast message to all peers — delegates to P2PNode.broadcastBlock if attached
+    pub fn broadcast(self: *const P2PNetwork, message: []const u8) !void {
+        if (self.broadcast_fn) |bfn| {
+            bfn(self.p2p_node_ptr.?, 0, message, 0);
+        } else {
+            std.debug.print("[NETWORK] Broadcasting: {s} to {d} peers\n", .{ message, self.connected_nodes.items.len });
+            for (self.connected_nodes.items) |node| {
+                std.debug.print("  → {s} ({s}:{d})\n", .{ node.node_id, node.host, node.port });
+            }
         }
     }
 
@@ -168,6 +189,20 @@ pub const MessageType = enum {
     peer_list,
     mining_start,
     mining_stop,
+    // ── Gossip protocol (B6) ──────────────────────────────────────
+    inv,            // "I have these items" (hashes)
+    getdata,        // "Send me these items"
+    tx_gossip,      // Full TX payload (gossip relay)
+    block_gossip,   // Full block payload (gossip relay)
+    getblocks,      // "What blocks do you have after hash X?"
+    // ── Peer Exchange protocol (B12) ────────────────────────────────
+    get_peers,      // Request peer list from connected node
+    // ── SPV Light Client protocol ────────────────────────────────────
+    getheaders_p2p,      // Light client requests headers from start_height
+    headers_p2p,         // Full node responds with serialized headers
+    getmerkleproof_p2p,  // Light client requests Merkle proof for a TX hash
+    merkleproof_p2p,     // Full node responds with Merkle inclusion proof
+    filterload,          // Light client sends Bloom filter to full node
 };
 
 /// P2P Message

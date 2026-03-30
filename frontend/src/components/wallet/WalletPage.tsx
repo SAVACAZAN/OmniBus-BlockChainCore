@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient("/api");
 
@@ -35,31 +36,62 @@ export function WalletPage() {
   const [mnemonicError, setMnemonicError] = useState("");
   const [sendTo, setSendTo] = useState("");
   const [sendAmount, setSendAmount] = useState("");
+  const [sendFee, setSendFee] = useState("");
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [showMnemonic, setShowMnemonic] = useState(false);
+  const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
+  const [walletNonce, setWalletNonce] = useState<number | null>(null);
 
-  // Auto-refresh balance when logged in
+  // Auto-refresh balance + fetch fee estimate + nonce when logged in
   useEffect(() => {
     if (!wallet.loggedIn) return;
     const refresh = async () => {
       try {
         const bal: any = await rpc.getBalance();
-        const txs: any = await rpc.request_raw("gettransactions").catch(() => ({ transactions: [] }));
+        // Use listtransactions for richer TX data (with confirmations, fees)
+        let txs: any[] = [];
+        try {
+          const listResult = await rpc.listTransactions(50);
+          txs = listResult?.transactions || [];
+        } catch {
+          try {
+            const fallback = await rpc.request_raw("gettransactions");
+            txs = fallback?.transactions || [];
+          } catch {}
+        }
         setWallet((w) => ({
           ...w,
           balance: bal?.balance || 0,
           balanceOMNI: bal?.balanceOMNI || "0.0000",
           address: bal?.address || w.address,
-          transactions: txs?.transactions || [],
+          transactions: txs,
         }));
       } catch {}
+
+      // Fetch fee estimate
+      try {
+        const fee = await rpc.estimateFee();
+        if (fee) setFeeEstimate(fee);
+      } catch {}
+
+      // Fetch nonce
+      if (wallet.address) {
+        try {
+          const nonceResult = await rpc.getNonce(wallet.address);
+          if (nonceResult && typeof nonceResult.nonce === "number") {
+            setWalletNonce(nonceResult.nonce);
+          } else if (typeof nonceResult === "number") {
+            setWalletNonce(nonceResult);
+          }
+        } catch {}
+      }
     };
     refresh();
     const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
-  }, [wallet.loggedIn]);
+  }, [wallet.loggedIn, wallet.address]);
 
   const handleLogin = async () => {
     const words = mnemonicInput.trim().split(/\s+/);
@@ -70,7 +102,6 @@ export function WalletPage() {
     setMnemonicError("");
 
     try {
-      // Get balance to verify connection and get address
       const bal: any = await rpc.getBalance();
       setWallet({
         loggedIn: true,
@@ -89,6 +120,8 @@ export function WalletPage() {
     setWallet({ loggedIn: false, mnemonic: "", address: "", balance: 0, balanceOMNI: "0.0000", transactions: [] });
     setMnemonicInput("");
     setSendResult(null);
+    setFeeEstimate(null);
+    setWalletNonce(null);
   };
 
   const handleSend = async () => {
@@ -104,6 +137,7 @@ export function WalletPage() {
       setSendResult({ ok: true, msg: `TX signed & sent: ${(txid || "").toString().slice(0, 24)}...` });
       setSendTo("");
       setSendAmount("");
+      setSendFee("");
     } catch (err: any) {
       setSendResult({ ok: false, msg: err.message || "Transaction failed" });
     } finally {
@@ -116,6 +150,10 @@ export function WalletPage() {
     setCopied(addr);
     setTimeout(() => setCopied(null), 2000);
   };
+
+  const effectiveFee = sendFee
+    ? parseInt(sendFee, 10)
+    : feeEstimate?.medianFee ?? 1;
 
   // ── LOGIN SCREEN ──────────────────────────────────────────────────────
   if (!wallet.loggedIn) {
@@ -199,11 +237,21 @@ export function WalletPage() {
 
       {/* Balance Card */}
       <div className="bg-gradient-to-br from-mempool-card to-mempool-bg-light rounded-xl border border-mempool-border p-6">
-        <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">Total Balance</p>
-        <p className="text-4xl font-mono font-bold text-mempool-green">{wallet.balanceOMNI}</p>
-        <p className="text-sm text-mempool-text-dim mt-1">
-          OMNI = {wallet.balance.toLocaleString()} SAT
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">Total Balance</p>
+            <p className="text-4xl font-mono font-bold text-mempool-green">{wallet.balanceOMNI}</p>
+            <p className="text-sm text-mempool-text-dim mt-1">
+              OMNI = {wallet.balance.toLocaleString()} SAT
+            </p>
+          </div>
+          {walletNonce !== null && (
+            <div className="text-right">
+              <p className="text-[10px] text-mempool-text-dim uppercase">Nonce</p>
+              <p className="text-lg font-mono text-mempool-blue">{walletNonce}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Two columns */}
@@ -236,6 +284,24 @@ export function WalletPage() {
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue mt-1"
               />
             </div>
+            <div>
+              <label className="text-[10px] text-mempool-text-dim uppercase">
+                Fee (SAT)
+                {feeEstimate && (
+                  <span className="text-mempool-blue ml-1 normal-case">
+                    -- estimated: {feeEstimate.medianFee} SAT
+                  </span>
+                )}
+              </label>
+              <input
+                type="number"
+                value={sendFee}
+                onChange={(e) => setSendFee(e.target.value)}
+                placeholder={feeEstimate ? `${feeEstimate.medianFee} (estimated)` : "1"}
+                min="0"
+                className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue mt-1"
+              />
+            </div>
             <div className="bg-mempool-bg rounded-lg p-3 text-[10px] text-mempool-text-dim space-y-1">
               <div className="flex justify-between">
                 <span>Signing:</span>
@@ -243,8 +309,20 @@ export function WalletPage() {
               </div>
               <div className="flex justify-between">
                 <span>Fee:</span>
-                <span>1 SAT (anti-spam)</span>
+                <span className="text-mempool-orange">{effectiveFee} SAT</span>
               </div>
+              {feeEstimate && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Min Fee:</span>
+                    <span>{feeEstimate.minFee} SAT</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Fee Burn:</span>
+                    <span className="text-mempool-red">{feeEstimate.burnPct}%</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between">
                 <span>Confirmation:</span>
                 <span>~1s (10 sub-blocks)</span>
@@ -351,8 +429,26 @@ export function WalletPage() {
                     {tx.txid?.slice(0, 24)}...
                   </p>
                   <p className="text-[10px] text-mempool-text-dim">
-                    {tx.from?.slice(0, 16)} → {tx.to?.slice(0, 16)}
+                    {tx.from?.slice(0, 16)} -&gt; {tx.to?.slice(0, 16)}
                   </p>
+                </div>
+                {/* Confirmations */}
+                <div className="flex-shrink-0">
+                  {tx.confirmations != null ? (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                      tx.confirmations >= 6
+                        ? "bg-mempool-green/20 text-mempool-green"
+                        : tx.confirmations >= 1
+                        ? "bg-mempool-orange/20 text-mempool-orange"
+                        : "bg-mempool-red/20 text-mempool-red"
+                    }`}>
+                      {tx.confirmations >= 1 ? `${tx.confirmations} conf` : "pending"}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-mempool-orange/20 text-mempool-orange">
+                      {tx.status || "pending"}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className={`text-xs font-mono ${
@@ -360,7 +456,11 @@ export function WalletPage() {
                   }`}>
                     {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(4)}
                   </p>
-                  <p className="text-[10px] text-mempool-text-dim">{tx.status}</p>
+                  {tx.fee != null && tx.fee > 0 && (
+                    <p className="text-[9px] text-mempool-text-dim font-mono">
+                      fee: {tx.fee} SAT
+                    </p>
+                  )}
                 </div>
               </div>
             ))

@@ -8,6 +8,7 @@ const p2p_mod = @import("p2p.zig");
 pub const NodeMode = enum {
     seed,  // Bootstrap/seed node
     miner, // Mining participant
+    light, // SPV light client — headers only, no full blocks
 };
 
 /// Node launcher configuration

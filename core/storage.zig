@@ -1,5 +1,8 @@
 const std = @import("std");
 
+/// Locatia unei tranzactii in blockchain
+pub const TxLocation = struct { block_height: u64, tx_index: u32 };
+
 /// Key-Value Storage Interface
 /// Abstracts RocksDB, SQLite, or file-based storage
 pub const KeyValueStore = struct {
@@ -146,7 +149,7 @@ pub const TransactionIndex = struct {
     }
 
     /// Find transaction location
-    pub fn findTransaction(self: *const TransactionIndex, tx_hash: []const u8) ?struct { block_height: u64, tx_index: u32 } {
+    pub fn findTransaction(self: *const TransactionIndex, tx_hash: []const u8) ?TxLocation {
         var key_buf: [128]u8 = undefined;
         const key = std.fmt.bufPrint(&key_buf, "tx:{s}", .{tx_hash}) catch return null;
 

@@ -37,6 +37,8 @@ pub const CLI = struct {
                     mode = node_launcher.NodeMode.seed;
                 } else if (std.mem.eql(u8, mode_str, "miner")) {
                     mode = node_launcher.NodeMode.miner;
+                } else if (std.mem.eql(u8, mode_str, "light")) {
+                    mode = node_launcher.NodeMode.light;
                 } else {
                     return error.InvalidMode;
                 }

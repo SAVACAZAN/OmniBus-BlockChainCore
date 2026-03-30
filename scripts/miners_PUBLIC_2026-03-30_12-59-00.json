@@ -1,0 +1,448 @@
+{
+  "version": 1,
+  "generated_at": "2026-03-30T09:59:00.158848+00:00",
+  "note": "Adrese publice si config noduri — sigur de distribuit.",
+  "network": "omnibus-mainnet",
+  "miners": [
+    {
+      "id": "miner-romania-01",
+      "label": "OmniBus Miner — ROMANIA",
+      "miner_name": "ROMANIA",
+      "primary_address": "ob_omni_Yrso4LzKbR7ejDVBzmn3BeVK1UZCpaEYm9",
+      "created_at": "2026-03-30T09:59:00.071060+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_Yrso4LzKbR7ejDVBzmn3BeVK1UZCpaEYm9",
+        "start_cmd": "set OMNIBUS_MNEMONIC=coffee motor liberty meat solid crunch zone acid before retire spring pave && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='coffee motor liberty meat solid crunch zone acid before retire spring pave' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_Yrso4LzKbR7ejDVBzmn3BeVK1UZCpaEYm9",
+          "public_key_hex": "03cebaffa076e0c522bf884df04b10eaf1b1cb31ea1b83cdc78c63f317b6b219d7",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_YuWQbKeFG5wJ24iutVXnNg1BuGY5aPfjeM",
+          "public_key_hex": "03f2141f639e54f9a374005c16b37cff53fb7122f4f9d6c1620f96bf788c81f85f",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_YtJWxFMNCaLJj4KPDZPp36y9L1vEbXb7AT",
+          "public_key_hex": "03ee0b2b3a4a7532a3d440fc710d6744b10ce47161287fa4209eacac6b1bee690f",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z5EQieyXzxR7tzByJ4dYURn6xRuSTwotxh",
+          "public_key_hex": "02d0628526471975b2c26246f08040714b7721326f3e8b0b8938e9a5b7bb5c2a6d",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z8KdJxaqYFUSR7z3sx1CFiDk4nTKuNnn9x",
+          "public_key_hex": "03a575814f6249b4d75990b1ee7f29a74dbd77409a8db712b5dd2e4256646e6256",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-germany-02",
+      "label": "OmniBus Miner — GERMANY",
+      "miner_name": "GERMANY",
+      "primary_address": "ob_omni_YxumZDpnswaq4RWdfsayM5ZZDeYH1Eoexa",
+      "created_at": "2026-03-30T09:59:00.078104+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_YxumZDpnswaq4RWdfsayM5ZZDeYH1Eoexa",
+        "start_cmd": "set OMNIBUS_MNEMONIC=orange dignity door profit memory sudden allow rubber trick tower double athlete && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='orange dignity door profit memory sudden allow rubber trick tower double athlete' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_YxumZDpnswaq4RWdfsayM5ZZDeYH1Eoexa",
+          "public_key_hex": "03effe19ab38c47a154949ef060255391118382bfc712198e2a5bf3814e6861649",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_YqHxN8Bvs2UCV2nvguq3NHx4DLyncibGmV",
+          "public_key_hex": "03b32ff92cf26d04a75b862903783f5c1e3e96e4634d65eb0f0e8a469eb9c7f326",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_YsvjxhoGQ7HRpZbTKpQsostW7csCN4SxGK",
+          "public_key_hex": "02fd7aad456f2c92c8e3ab2bf1e789d98d99cb951a401c24bf1fb4ac479075d080",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_YzCYwg9C45MP9LegE2hTWMAzcRKW7MCk2K",
+          "public_key_hex": "027bb4d0120fda233c13b1e68cdc2b8cdb799628ba5351ee97881a8b5f6db4bcba",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z7DvWwCo3tJ1vcU4cGbKCFCK7525XVraR9",
+          "public_key_hex": "03febaebd458c3fe9298ec6eba039b734583071d2e115cc56bdc90d49ffa8f6c85",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-france-03",
+      "label": "OmniBus Miner — FRANCE",
+      "miner_name": "FRANCE",
+      "primary_address": "ob_omni_Z4oiX1DiRSw6dWp1TedQXp14SkaNCXwFH1",
+      "created_at": "2026-03-30T09:59:00.084680+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_Z4oiX1DiRSw6dWp1TedQXp14SkaNCXwFH1",
+        "start_cmd": "set OMNIBUS_MNEMONIC=sea neglect matrix start tag crisp universe author mention juice limit much && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='sea neglect matrix start tag crisp universe author mention juice limit much' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_Z4oiX1DiRSw6dWp1TedQXp14SkaNCXwFH1",
+          "public_key_hex": "02c861048a4bf77e5812e0d174fd9a8f74b42b23b1d6ceb1c2f866639187c4e01e",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_YszT1GdiqcM8BY39QD9ZVnHY17EAyZVwQM",
+          "public_key_hex": "02cb4b854847d34dbb5b06e280993352eee93a786067d8e0360e4baa8a393a92c0",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_Z5GkdoNzJfjqTpJf6WyGC1Wya9extVNVNp",
+          "public_key_hex": "02f500ff33cac5d9ab770d495b440e61f1eba02a11526d3b97e6aaa5da8c221b38",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z16n3FhJ3ifBvXwKQiF4XZtEP17H6vXbQ9",
+          "public_key_hex": "03f782e80dbd52004ea5aa5790d6266ee401758e7a4f26ae423660d8d7f17fbc07",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_YuuMfqLfRP5Yf1dd99tiRdsYQHvDRNd4cK",
+          "public_key_hex": "0345bd28b45cc3d824d8c41046fe604e8b4de27427b51f686efb5b6dd07e6e83ce",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-italy-04",
+      "label": "OmniBus Miner — ITALY",
+      "miner_name": "ITALY",
+      "primary_address": "ob_omni_Z82JQ84tFAdtq9bGTFVcNwKPmQHHu8e5pX",
+      "created_at": "2026-03-30T09:59:00.089686+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_Z82JQ84tFAdtq9bGTFVcNwKPmQHHu8e5pX",
+        "start_cmd": "set OMNIBUS_MNEMONIC=world wife apart horror retire fame gospel void renew want judge tobacco && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='world wife apart horror retire fame gospel void renew want judge tobacco' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_Z82JQ84tFAdtq9bGTFVcNwKPmQHHu8e5pX",
+          "public_key_hex": "024809cac5125f9df71b10b939331f86c97bebdf324acc1ba9eee99e137d2dc95c",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_Yr6u2RmD4W2mMZhEeRa66xPnU11XgLpfzG",
+          "public_key_hex": "031223b7dd75567cbb10bf1009521916b045b1e7e79c2f490d93e9dd1d5330fa0a",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_Z2jaK8ooXiTBxoopvbNGQGuhmkt9nzwNpZ",
+          "public_key_hex": "025f39b0513b84c56ec28eb3f48fcbd36ea230828ed974ab2a38cf0359f07fe6bd",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_YnwoV9dhnawwKSfeTCAK14g6Z8NAAdMy48",
+          "public_key_hex": "02226018b4abb4f339f43a5cf4789c30298cfb4d74e0effdf2aed3dd816682cc29",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_ZBkWKDaMN9kipw1aEtjP175LDPSAT3sQHM",
+          "public_key_hex": "02bca18945d8358d05b97fa2564adc8bf35bab26b93cc6ed3f9a5eceac582102a7",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-spain-05",
+      "label": "OmniBus Miner — SPAIN",
+      "miner_name": "SPAIN",
+      "primary_address": "ob_omni_Z3i9EohQpPFjMCX54RmgpGicHyLBC4Eg3f",
+      "created_at": "2026-03-30T09:59:00.093684+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_Z3i9EohQpPFjMCX54RmgpGicHyLBC4Eg3f",
+        "start_cmd": "set OMNIBUS_MNEMONIC=enough pact reward pipe else comic job quarter dust give peace angry && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='enough pact reward pipe else comic job quarter dust give peace angry' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_Z3i9EohQpPFjMCX54RmgpGicHyLBC4Eg3f",
+          "public_key_hex": "027e4f97ca7e123697d6a4c3b0ef9ef4464eecd3c9dc84a55065779b1fc67d100e",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_Z6v9iqS4V96gwrD7JB9Rvk794vRfKTaFaW",
+          "public_key_hex": "0374410edfe38a44e634d2121abed289ccf144e7a3a2e48e8e2a8241b110729702",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_Z3nrTAtmNdvZdYk8ScABmkk3hKk5YGXu1N",
+          "public_key_hex": "03b60be522ceae911239dba9bc5052de9642e80462e623f7c12f3ffaac86f05aa9",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z6ctsqx4k6SJCX4dM3TfKmRKWkYAChvbqS",
+          "public_key_hex": "029382eea3f715f893c35d9e467736e4d9aa11696e84e1d679dd890f2995fa26aa",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z6yaVyHEPvNcpbnQapsXaVaDqkWr1zcKFo",
+          "public_key_hex": "02da1ce42d75c45de6a806faa8a360eaf8cfd908568a72a377d9b187c17cf00517",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-netherlands-06",
+      "label": "OmniBus Miner — NETHERLANDS",
+      "miner_name": "NETHERLANDS",
+      "primary_address": "ob_omni_Z5NA9nAHWdYyBonAebobgpSwCwLnZ68PsF",
+      "created_at": "2026-03-30T09:59:00.101833+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_Z5NA9nAHWdYyBonAebobgpSwCwLnZ68PsF",
+        "start_cmd": "set OMNIBUS_MNEMONIC=next tell stock lesson vague butter target kingdom cancel exercise spread follow && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='next tell stock lesson vague butter target kingdom cancel exercise spread follow' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_Z5NA9nAHWdYyBonAebobgpSwCwLnZ68PsF",
+          "public_key_hex": "035a672b4424f5a5fb8d0eae2b4423b96a089ecece6762849ef84efeb03ce7a6ae",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_ZAoC6rSzpwXjD2u1PyecQfWTbGDDCn8Ugh",
+          "public_key_hex": "0334e5d447444842828d0de50ae6cb410f6ab9e9358d73e35961deff0d58642671",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_Z7UwdqBbMdCR1e6XHpYj7XL7nGdv7KWKn5",
+          "public_key_hex": "02ea04e64dd190e5eaae778cd6528818b336718abbccd56daf6014bc7aa806ed71",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z1MZf1mX6aiJfVx7VyGGPS2gX2xqBvR4zu",
+          "public_key_hex": "0257275366a5d52ee627184c26855c51fdcc05f3fb54178af26c11fd72ba27879e",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z3P59kBF4LUoz7id4dQbcsBvfRBwPw5cMb",
+          "public_key_hex": "027f6c1c7f7aa8abc9588c7fd0845d3e80e6894b5ec69d22c8f6d066f2795a4bb3",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-austria-07",
+      "label": "OmniBus Miner — AUSTRIA",
+      "miner_name": "AUSTRIA",
+      "primary_address": "ob_omni_YxxQggB7i1ydcggM4mSUcLGT26v4pfaqcB",
+      "created_at": "2026-03-30T09:59:00.111174+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_YxxQggB7i1ydcggM4mSUcLGT26v4pfaqcB",
+        "start_cmd": "set OMNIBUS_MNEMONIC=pattern flash airport easily goddess actress inject ghost sauce era choose drum && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='pattern flash airport easily goddess actress inject ghost sauce era choose drum' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_YxxQggB7i1ydcggM4mSUcLGT26v4pfaqcB",
+          "public_key_hex": "034cdc0d67a297e8f5b1cd5dfec08b9a95bc8c0ae02083717a70a3c6bb07109bab",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_YuyASiTEKr8gYYHQwHNCL1y9tgsRuCDvJV",
+          "public_key_hex": "02bcae5eaf9a696613ffe2c9bbaffe9b8602cdf0a19605d1e31639adb9c8e0c577",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_YttoHJBWo2BkwfQdHCfp9ytJUorWhQJLmK",
+          "public_key_hex": "036cccc2802bb45ff6aa3bc6f72348e8330fab5fe855fad26b1261723e4dd1144a",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z4AtfPDRwKY51mn1Fu4NfU8X6zUNEEWgZ3",
+          "public_key_hex": "0237a814510b153e94f6ad2a3055d6cfd5d07aaef926d898dfb7a3f68c98077893",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_YpXdbKVGknxpPCHriF97cD7PLyLm3WU6kp",
+          "public_key_hex": "03934b29b087f44f9d85ceeac1261d793ba21b0d675a39c482021172687e28b2f8",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-belgium-08",
+      "label": "OmniBus Miner — BELGIUM",
+      "miner_name": "BELGIUM",
+      "primary_address": "ob_omni_YvrmgSEGiSawpVuxhmJCDTH4R7yKvbV1Df",
+      "created_at": "2026-03-30T09:59:00.126231+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_YvrmgSEGiSawpVuxhmJCDTH4R7yKvbV1Df",
+        "start_cmd": "set OMNIBUS_MNEMONIC=ignore animal year range essay layer tell negative grid trade two flight && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='ignore animal year range essay layer tell negative grid trade two flight' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_YvrmgSEGiSawpVuxhmJCDTH4R7yKvbV1Df",
+          "public_key_hex": "02ee4c7466f6ac45844477c83a4b86915bbda9d6f425dd3b86fc4e2e9d15aa306f",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_Z2cSGBzLL1NR6c88dZTaEf1Ju8vEL5BBLn",
+          "public_key_hex": "02f79717739661edcbe4f2fd349f835809141b387634ed0da87ac3e57ed4ca305c",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_Z74CC5hpnt1KkV93hcBUUGMGvNRfSiw4GB",
+          "public_key_hex": "031d5c1635bc00df206a58d13bcf624040af2123db76ddd6f3c51c6800f95d2c81",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z7eBzhNigpo2PP6YoEK7XP2sFwfjEAWUQv",
+          "public_key_hex": "03f14f81f62978f253836c048f4f7a2ab101044f1f14dff465091e86091b9335b7",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z7NeiNTy5PYYC6rCejEG6py9F7zLKQgQhJ",
+          "public_key_hex": "0258c92863e336955a138bef984e2bbaf49448d56279b74654286decd9796c3bc2",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-sweden-09",
+      "label": "OmniBus Miner — SWEDEN",
+      "miner_name": "SWEDEN",
+      "primary_address": "ob_omni_YtXxMPS72SUFaesx3ZhH2XoJ82HidjWJih",
+      "created_at": "2026-03-30T09:59:00.137745+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_YtXxMPS72SUFaesx3ZhH2XoJ82HidjWJih",
+        "start_cmd": "set OMNIBUS_MNEMONIC=defy fox room already transfer conduct box cactus piece salon bleak work && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='defy fox room already transfer conduct box cactus piece salon bleak work' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_YtXxMPS72SUFaesx3ZhH2XoJ82HidjWJih",
+          "public_key_hex": "028efd4593d58f8d246f21da7d1f785ac12ea532b0ef354e860a5d99a6ce427439",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_Z9ccHKM6FJe6rXAeQWRGH6pM59zGEEPXLD",
+          "public_key_hex": "028b74b7a61a6c6c6c2b914fc73092fd112886636692e6828c063456c129db2e0b",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_YuZRRcsN4Cf2ekzc1iXd7zD9EfE5ub4AN3",
+          "public_key_hex": "0246fa16aaad43f412b2330aa022f9772b44cb04451d443559b84248a1ea438e76",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z424TqUDLYx53YRMrGKb3GMpMUTGkAJQaS",
+          "public_key_hex": "0382a2543113d7176b63585cf6f050f043d59a386fae8ae07932fd86e643fe45cd",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_Z1aN9ezYjJ83hN1S7wWLe3reW2dM38YDtK",
+          "public_key_hex": "036318c3eb9d304f06fbd6e99a2ce6a34e8006c4cae4336e2bdae29b6b3355e124",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    },
+    {
+      "id": "miner-portugal-10",
+      "label": "OmniBus Miner — PORTUGAL",
+      "miner_name": "PORTUGAL",
+      "primary_address": "ob_omni_YqA9m49T4CYoEeUNYgwz3cpU2HS5qv3gPJ",
+      "created_at": "2026-03-30T09:59:00.147322+00:00",
+      "node_config": {
+        "miner_address": "ob_omni_YqA9m49T4CYoEeUNYgwz3cpU2HS5qv3gPJ",
+        "start_cmd": "set OMNIBUS_MNEMONIC=jelly riot blind cruel address hope tackle element thunder aim license veteran && omnibus-node.exe --mode miner",
+        "start_cmd_linux": "OMNIBUS_MNEMONIC='jelly riot blind cruel address hope tackle element thunder aim license veteran' ./omnibus-node --mode miner"
+      },
+      "public_keys": {
+        "OMNI_OMNI": {
+          "address": "ob_omni_YqA9m49T4CYoEeUNYgwz3cpU2HS5qv3gPJ",
+          "public_key_hex": "032c13be7f37060ff8f48c298166b37752e08f4651f6e737c84fc517c1cfac3de0",
+          "coin_type": 777,
+          "pq_algorithm": "ML-KEM-768"
+        },
+        "OMNI_LOVE": {
+          "address": "ob_k1_Z5Dsn79XL1D6kJDrurqdcmJsqPfJt8QriN",
+          "public_key_hex": "0335a1ff8f248e0acd374137f14a87bdd91fb79f82d09aef2110e8c78fdab4c73a",
+          "coin_type": 778,
+          "pq_algorithm": "ML-DSA-87"
+        },
+        "OMNI_FOOD": {
+          "address": "ob_f5_ZBp3mGR9eUZiWmu4FbYSwd89qCSrYxgfjD",
+          "public_key_hex": "02d89fc6be5b0cb7bed1391cbde075faee4ebe102227bbd9415e37465177b13c53",
+          "coin_type": 779,
+          "pq_algorithm": "Falcon-512"
+        },
+        "OMNI_RENT": {
+          "address": "ob_d5_Z29nhxTcRUDs5A3JafVikaZQuPzKzsCeq1",
+          "public_key_hex": "0330726c5ed258065ce97db99a98e1078b59c41027f52cfe90f6a33b3e27e8e28c",
+          "coin_type": 780,
+          "pq_algorithm": "SLH-DSA-256s"
+        },
+        "OMNI_VACATION": {
+          "address": "ob_s3_YvuyTJ24fbr1zVPg9mNd7cMs4bUs5qVu5G",
+          "public_key_hex": "0224a9deaf2fde8282863ed74582e97f083db94a6271165f275ce9b83d1402c42e",
+          "coin_type": 781,
+          "pq_algorithm": "Falcon-Light"
+        }
+      }
+    }
+  ]
+}

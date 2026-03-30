@@ -11,14 +11,26 @@ pub const Transaction = struct {
     from_address: []const u8,
     to_address: []const u8,
     amount: u64,       // in SAT (1 OMNI = 1_000_000_000 SAT)
+    /// Fee in SAT (min 1 SAT anti-spam; 50% burned, 50% to miner)
+    fee: u64 = 0,
     timestamp: i64,
     /// Nonce: numar secvential per adresa sender (anti-replay, ca Ethereum/EGLD)
     /// Fiecare tranzactie de la o adresa trebuie sa aiba nonce = nonce_anterior + 1
     nonce: u64 = 0,
     /// OP_RETURN: date arbitrare embedded in TX (max 80 bytes, ca Bitcoin)
     /// Folosit pentru: timestamping, commit hashes, metadata, anchoring
-    /// Amount trebuie sa fie 0 daca op_return e setat (datele nu au valoare monetara)
+    /// Unlike Bitcoin, OP_RETURN TXs with amount > 0 are allowed (metadata on normal TXs)
     op_return: []const u8 = "",
+    /// Locktime: block height before which this TX cannot be included in a block
+    /// 0 = no lock (immediate), >0 = locked until block height N
+    /// Similar to Bitcoin nLockTime
+    locktime: u64 = 0,
+    /// Locking script (empty = legacy ECDSA mode, P2PKH = 25 bytes)
+    /// When set, TX validation runs the script VM in addition to ECDSA verify
+    script_pubkey: []const u8 = "",
+    /// Unlocking script (empty = legacy ECDSA mode, P2PKH unlock = 99 bytes)
+    /// Provides the data (sig + pubkey) that satisfies the locking script
+    script_sig: []const u8 = "",
     /// Semnatura ECDSA secp256k1 — 64 bytes (R||S) in hex (128 chars)
     signature: []const u8,
     /// Hash SHA256d al tranzactiei (64 hex chars)
@@ -33,6 +45,7 @@ pub const Transaction = struct {
         "ob_f5_",      // OMNI_FOOD  (coin 779)
         "ob_d5_",      // OMNI_RENT  (coin 780)
         "ob_s3_",      // OMNI_VACATION (coin 781)
+        "ob_ms_",      // Multisig (M-of-N P2SH-style)
         "ob1q",        // OMNI SegWit
         "0x",          // ETH-compatible bridge
     };
@@ -68,6 +81,25 @@ pub const Transaction = struct {
         var nonce_buf: [24]u8 = undefined;
         const nonce_str = std.fmt.bufPrint(&nonce_buf, "{d}", .{self.nonce}) catch "0";
         hasher.update(nonce_str);
+        // fee (part of signed data — prevents fee tampering)
+        if (self.fee > 0) {
+            hasher.update(":");
+            var fee_buf: [24]u8 = undefined;
+            const fee_str = std.fmt.bufPrint(&fee_buf, "{d}", .{self.fee}) catch "0";
+            hasher.update(fee_str);
+        }
+        // locktime (part of signed data — prevents locktime tampering)
+        if (self.locktime > 0) {
+            hasher.update(":");
+            var lt_buf: [24]u8 = undefined;
+            const lt_str = std.fmt.bufPrint(&lt_buf, "lt{d}", .{self.locktime}) catch "0";
+            hasher.update(lt_str);
+        }
+        // op_return (part of signed data — prevents data tampering)
+        if (self.op_return.len > 0) {
+            hasher.update(":OP:");
+            hasher.update(self.op_return);
+        }
 
         var hash1: [32]u8 = undefined;
         hasher.final(&hash1);
@@ -75,9 +107,15 @@ pub const Transaction = struct {
         return Crypto.sha256(&hash1);
     }
 
-    /// Valideaza tranzactia: amount > 0, adrese cu prefix corect
+    /// Valideaza tranzactia: amount > 0 (or op_return TX), adrese cu prefix corect, op_return <= 80 bytes
     pub fn isValid(self: *const Transaction) bool {
-        if (self.amount == 0) return false;
+        // OP_RETURN validation: max 80 bytes
+        if (self.op_return.len > MAX_OP_RETURN) return false;
+
+        // Amount must be > 0 unless this is an OP_RETURN data-only TX
+        const is_op_return_tx = self.op_return.len > 0 and self.amount == 0;
+        if (self.amount == 0 and !is_op_return_tx) return false;
+
         if (self.from_address.len == 0 or self.to_address.len == 0) return false;
 
         // from si to trebuie sa aiba prefix valid
@@ -244,4 +282,106 @@ test "Transaction verify — public key gresit → false" {
 
     // Verifica cu alt public key → false
     try testing.expect(!tx.verify(kp2.public_key));
+}
+
+// ─── Timelock + OP_RETURN tests ─────────────────────────────────────────────
+
+test "Transaction — locktime changes hash" {
+    const tx1 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000, .locktime = 0,
+        .signature = "", .hash = "",
+    };
+    const tx2 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000, .locktime = 100,
+        .signature = "", .hash = "",
+    };
+    const h1 = tx1.calculateHash();
+    const h2 = tx2.calculateHash();
+    try testing.expect(!std.mem.eql(u8, &h1, &h2));
+}
+
+test "Transaction — locktime 0 hash unchanged (backward compat)" {
+    const tx1 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000, .locktime = 0,
+        .signature = "", .hash = "",
+    };
+    const tx2 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000,
+        .signature = "", .hash = "",
+    };
+    const h1 = tx1.calculateHash();
+    const h2 = tx2.calculateHash();
+    try testing.expectEqualSlices(u8, &h1, &h2);
+}
+
+test "Transaction — op_return > 80 bytes rejected" {
+    const big_data = "A" ** 81; // 81 bytes > MAX_OP_RETURN
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000,
+        .op_return = big_data,
+        .signature = "", .hash = "",
+    };
+    try testing.expect(!tx.isValid());
+}
+
+test "Transaction — op_return exactly 80 bytes accepted" {
+    const data_80 = "B" ** 80; // exactly 80 bytes = MAX_OP_RETURN
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000,
+        .op_return = data_80,
+        .signature = "", .hash = "",
+    };
+    try testing.expect(tx.isValid());
+}
+
+test "Transaction — op_return TX with amount=0 is valid" {
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 0, .timestamp = 1700000000,
+        .op_return = "hello blockchain",
+        .signature = "", .hash = "",
+    };
+    try testing.expect(tx.isValid());
+}
+
+test "Transaction — op_return TX with amount>0 is valid (metadata embed)" {
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 5000, .timestamp = 1700000000,
+        .op_return = "payment memo: invoice #42",
+        .signature = "", .hash = "",
+    };
+    try testing.expect(tx.isValid());
+}
+
+test "Transaction — amount=0 without op_return is still invalid" {
+    const tx = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 0, .timestamp = 1700000000,
+        .signature = "", .hash = "",
+    };
+    try testing.expect(!tx.isValid());
+}
+
+test "Transaction — op_return changes hash" {
+    const tx1 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000,
+        .signature = "", .hash = "",
+    };
+    const tx2 = Transaction{
+        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .amount = 1000, .timestamp = 1700000000,
+        .op_return = "data",
+        .signature = "", .hash = "",
+    };
+    const h1 = tx1.calculateHash();
+    const h2 = tx2.calculateHash();
+    try testing.expect(!std.mem.eql(u8, &h1, &h2));
 }
