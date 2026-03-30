@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>benchmark — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>benchmark</code></h1>
+<p class="module-desc">Performance benchmarks — measure hash rate, TX throughput, block validation speed, P2P latency.</p>
+<p class="stats">Source: core/benchmark.zig &bull; 628 lines &bull; 22 functions &bull; 3 structs &bull; 14 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>BenchResult</code></h3>
+            <p>Data structure for bench result. Fields include: name, iterations, total_ns, avg_ns, ops_per_sec.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>name</code></td><td><code>[]const u8</code></td><td>Name</td></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr><tr><td><code>total_ns</code></td><td><code>u64</code></td><td>Total_ns</td></tr><tr><td><code>avg_ns</code></td><td><code>u64</code></td><td>Avg_ns</td></tr><tr><td><code>ops_per_sec</code></td><td><code>u64</code></td><td>Ops_per_sec</td></tr></table>
+            <p class="line">Line: 16</p>
+        </div>
+        <div class="section">
+            <h3><code>Metrics</code></h3>
+            <p>Data structure for metrics. Fields include: start_time, blocks_mined, txs_processed, rpc_requests, p2p_messages.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>start_time</code></td><td><code>i64</code></td><td>Start_time</td></tr><tr><td><code>blocks_mined</code></td><td><code>u64</code></td><td>Blocks_mined</td></tr><tr><td><code>txs_processed</code></td><td><code>u64</code></td><td>Txs_processed</td></tr><tr><td><code>rpc_requests</code></td><td><code>u64</code></td><td>Rpc_requests</td></tr><tr><td><code>p2p_messages</code></td><td><code>u64</code></td><td>P2p_messages</td></tr><tr><td><code>peak_tps</code></td><td><code>u64</code></td><td>Peak_tps</td></tr><tr><td><code>tx_timestamps</code></td><td><code>[TX_TS_RING_SIZE]i64</code></td><td>Tx_timestamps</td></tr><tr><td><code>tx_ts_head</code></td><td><code>u32</code></td><td>Tx_ts_head</td></tr><tr><td><code>tx_ts_count</code></td><td><code>u32</code></td><td>Tx_ts_count</td></tr><tr><td><code>last_mining_nonces</code></td><td><code>u64</code></td><td>Last_mining_nonces</td></tr><tr><td><code>last_mining_time_ns</code></td><td><code>u64</code></td><td>Last_mining_time_ns</td></tr><tr><td><code>hashrate</code></td><td><code>u64</code></td><td>Hashrate</td></tr></table>
+            <p class="line">Line: 38</p>
+        </div>
+        <div class="section">
+            <h3><code>Benchmark</code></h3>
+            <p>Data structure representing a benchmark in the benchmark module.</p>
+            
+            <p class="line">Line: 157</p>
+        </div>
+
+
+
+<h2>Functions (22)</h2>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the benchmark module.</p>
+            <pre><code>pub fn print(self: *const BenchResult) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BenchResult</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 23</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() Metrics {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>Metrics</code></p>
+            <p class="line">Line: 54</p>
+        </div>
+        <div class="section">
+            <h3><code>start()</code></h3>
+            <p class="desc">Set the start time to now (call at runtime, not comptime)</p>
+            <pre><code>pub fn start(self: *Metrics) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 72</p>
+        </div>
+        <div class="section">
+            <h3><code>recordTx()</code></h3>
+            <p class="desc">Record a processed transaction</p>
+            <pre><code>pub fn recordTx(self: *Metrics) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 77</p>
+        </div>
+        <div class="section">
+            <h3><code>recordBlock()</code></h3>
+            <p class="desc">Record a mined block</p>
+            <pre><code>pub fn recordBlock(self: *Metrics) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 93</p>
+        </div>
+        <div class="section">
+            <h3><code>recordRpcRequest()</code></h3>
+            <p class="desc">Record an RPC request</p>
+            <pre><code>pub fn recordRpcRequest(self: *Metrics) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 98</p>
+        </div>
+        <div class="section">
+            <h3><code>recordP2pMessage()</code></h3>
+            <p class="desc">Record a P2P message</p>
+            <pre><code>pub fn recordP2pMessage(self: *Metrics) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 103</p>
+        </div>
+        <div class="section">
+            <h3><code>updateHashrate()</code></h3>
+            <p class="desc">Update mining hashrate from nonces tried and time taken</p>
+            <pre><code>pub fn updateHashrate(self: *Metrics, nonces: u64, time_ns: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Metrics</code></td><td>The instance</td></tr><tr><td><code>nonces</code></td><td><code>u64</code></td><td>Nonces</td></tr><tr><td><code>time_ns</code></td><td><code>u64</code></td><td>Time_ns</td></tr></table>
+            
+            <p class="line">Line: 108</p>
+        </div>
+        <div class="section">
+            <h3><code>currentTps()</code></h3>
+            <p class="desc">Calculate current TPS from the rolling window (TXs in the last 10 seconds)</p>
+            <pre><code>pub fn currentTps(self: *const Metrics) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Metrics</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 118</p>
+        </div>
+        <div class="section">
+            <h3><code>uptimeSeconds()</code></h3>
+            <p class="desc">Uptime in seconds</p>
+            <pre><code>pub fn uptimeSeconds(self: *const Metrics) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Metrics</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 134</p>
+        </div>
+        <div class="section">
+            <h3><code>avgBlockTimeMs()</code></h3>
+            <p class="desc">Average block time in ms (blocks_mined / uptime)</p>
+            <pre><code>pub fn avgBlockTimeMs(self: *const Metrics) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Metrics</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 141</p>
+        </div>
+        <div class="section">
+            <h3><code>blocksPerMinute()</code></h3>
+            <p class="desc">Blocks per minute</p>
+            <pre><code>pub fn blocksPerMinute(self: *const Metrics) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Metrics</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 148</p>
+        </div>
+        <div class="section">
+            <h3><code>benchHashing()</code></h3>
+            <p class="desc">Benchmark SHA256d hashing</p>
+            <pre><code>pub fn benchHashing(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 159</p>
+        </div>
+        <div class="section">
+            <h3><code>benchKeyGen()</code></h3>
+            <p class="desc">Benchmark secp256k1 key generation</p>
+            <pre><code>pub fn benchKeyGen(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 183</p>
+        </div>
+        <div class="section">
+            <h3><code>benchTxValidation()</code></h3>
+            <p class="desc">Benchmark TX hash calculation (the core of TX validation)</p>
+            <pre><code>pub fn benchTxValidation(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 206</p>
+        </div>
+        <div class="section">
+            <h3><code>benchTxSigning()</code></h3>
+            <p class="desc">Benchmark TX creation + signing speed (secp256k1 ECDSA sign)</p>
+            <pre><code>pub fn benchTxSigning(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 242</p>
+        </div>
+        <div class="section">
+            <h3><code>benchMining()</code></h3>
+            <p class="desc">Benchmark block mining (PoW) — hashes with leading zeros check</p>
+            <pre><code>pub fn benchMining(difficulty: u32, max_nonces: u64) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>difficulty</code></td><td><code>u32</code></td><td>Difficulty</td></tr><tr><td><code>max_nonces</code></td><td><code>u64</code></td><td>Max_nonces</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 272</p>
+        </div>
+        <div class="section">
+            <h3><code>benchMerkleRoot()</code></h3>
+            <p class="desc">Benchmark merkle root calculation</p>
+            <pre><code>pub fn benchMerkleRoot(tx_count: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_count</code></td><td><code>u32</code></td><td>Tx_count</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 312</p>
+        </div>
+        <div class="section">
+            <h3><code>benchMempool()</code></h3>
+            <p class="desc">Benchmark mempool add/remove throughput</p>
+            <pre><code>pub fn benchMempool(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 365</p>
+        </div>
+        <div class="section">
+            <h3><code>benchHmacSha512()</code></h3>
+            <p class="desc">Benchmark HMAC-SHA512 (BIP32 key derivation core)</p>
+            <pre><code>pub fn benchHmacSha512(iterations: u32) BenchResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>iterations</code></td><td><code>u32</code></td><td>Iterations</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BenchResult</code></p>
+            <p class="line">Line: 408</p>
+        </div>
+        <div class="section">
+            <h3><code>runAll()</code></h3>
+            <p class="desc">Run all benchmarks and print results</p>
+            <pre><code>pub fn runAll() void {</code></pre>
+            
+            
+            <p class="line">Line: 434</p>
+        </div>
+        <div class="section">
+            <h3><code>main()</code></h3>
+            <p class="desc">Performs the main operation on the benchmark module.</p>
+            <pre><code>pub fn main() void {</code></pre>
+            
+            
+            <p class="line">Line: 474</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

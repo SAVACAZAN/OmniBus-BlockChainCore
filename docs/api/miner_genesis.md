@@ -1,9 +1,33 @@
 # Module: `miner_genesis`
 
+> Genesis miner allocation — initial miner addresses, pre-mine distribution for bootstrap.
+
+**Source:** `core/miner_genesis.zig` | **Lines:** 208 | **Functions:** 13 | **Structs:** 2 | **Tests:** 6
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`MinerWallet`](#minerwallet) — Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)
+- [`GenesisAllocation`](#genesisallocation) — Genesis Block Token Distribution
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`getPrimaryAddress()`](#getprimaryaddress) — Returns the current primary address.
+- [`getBalance()`](#getbalance) — Returns the current balance.
+- [`addMiningReward()`](#addminingreward) — Adds a new mining reward to the collection.
+- [`recordBlockFound()`](#recordblockfound) — Performs the record block found operation on the miner_genesis module.
+- [`print()`](#print) — Performs the print operation on the miner_genesis module.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`generateMinerWallets()`](#generateminerwallets) — Executes mining operation — finds valid nonce for the next block.
+- [`getWallet()`](#getwallet) — Returns the wallet for the given miner_id.
+- [`getTotalAllocated()`](#gettotalallocated) — Returns the current total allocated.
+- [`printSummary()`](#printsummary) — Performs the print summary operation on the miner_genesis module.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -11,214 +35,266 @@
 
 Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)
 
-*Line: 8*
+| Field | Type | Description |
+|-------|------|-------------|
+| `miner_id` | `u32` | Miner_id |
+| `miner_name` | `[]const u8` | Miner_name |
+| `address` | `[]const u8` | Address |
+| `balance` | `u64` | Balance |
+| `mining_reward` | `u64` | Mining_reward |
+| `block_contribution` | `u32` | Block_contribution |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 8*
+
+---
 
 ### `GenesisAllocation`
 
 Genesis Block Token Distribution
 
-*Line: 71*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `miner_wallets` | `array_list.Managed(MinerWallet)` | Miner_wallets |
+| `total_supply` | `u64` | Total_supply |
+| `miners_count` | `u32` | Miners_count |
+| `allocation_per_miner` | `u64` | Allocation_per_miner |
+
+*Defined at line 71*
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, miner_id: u32, allocated_tokens: u64) !MinerWallet {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `miner_id`: `u32`
-- `allocated_tokens`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `miner_id` | `u32` | Miner_id |
+| `allocated_tokens` | `u64` | Allocated_tokens |
 
 **Returns:** `!MinerWallet`
 
-*Line: 17*
+*Defined at line 17*
 
 ---
 
-### `getPrimaryAddress`
+### `getPrimaryAddress()`
+
+Returns the current primary address.
 
 ```zig
 pub fn getPrimaryAddress(self: *const MinerWallet) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerWallet`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerWallet` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 34*
+*Defined at line 34*
 
 ---
 
-### `getBalance`
+### `getBalance()`
+
+Returns the current balance.
 
 ```zig
 pub fn getBalance(self: *const MinerWallet) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerWallet`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerWallet` | The instance |
 
 **Returns:** `u64`
 
-*Line: 38*
+*Defined at line 38*
 
 ---
 
-### `addMiningReward`
+### `addMiningReward()`
+
+Adds a new mining reward to the collection.
 
 ```zig
 pub fn addMiningReward(self: *MinerWallet, reward: u64) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerWallet` | The instance |
+| `reward` | `u64` | Reward |
 
-- `self`: `*MinerWallet`
-- `reward`: `u64`
-
-*Line: 42*
+*Defined at line 42*
 
 ---
 
-### `recordBlockFound`
+### `recordBlockFound()`
+
+Performs the record block found operation on the miner_genesis module.
 
 ```zig
 pub fn recordBlockFound(self: *MinerWallet) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerWallet` | The instance |
 
-- `self`: `*MinerWallet`
-
-*Line: 47*
+*Defined at line 47*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the miner_genesis module.
 
 ```zig
 pub fn print(self: *const MinerWallet) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerWallet` | The instance |
 
-- `self`: `*const MinerWallet`
-
-*Line: 51*
+*Defined at line 51*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *MinerWallet) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerWallet` | The instance |
 
-- `self`: `*MinerWallet`
-
-*Line: 64*
+*Defined at line 64*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, miners_count: u32) !GenesisAllocation {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `miners_count`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `miners_count` | `u32` | Miners_count |
 
 **Returns:** `!GenesisAllocation`
 
-*Line: 78*
+*Defined at line 78*
 
 ---
 
-### `generateMinerWallets`
+### `generateMinerWallets()`
+
+Executes mining operation — finds valid nonce for the next block.
 
 ```zig
 pub fn generateMinerWallets(self: *GenesisAllocation) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*GenesisAllocation`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*GenesisAllocation` | The instance |
 
 **Returns:** `!void`
 
-*Line: 92*
+*Defined at line 92*
 
 ---
 
-### `getWallet`
+### `getWallet()`
+
+Returns the wallet for the given miner_id.
 
 ```zig
 pub fn getWallet(self: *const GenesisAllocation, miner_id: u32) ?*const MinerWallet {
 ```
 
-**Parameters:**
-
-- `self`: `*const GenesisAllocation`
-- `miner_id`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisAllocation` | The instance |
+| `miner_id` | `u32` | Miner_id |
 
 **Returns:** `?*const MinerWallet`
 
-*Line: 115*
+*Defined at line 115*
 
 ---
 
-### `getTotalAllocated`
+### `getTotalAllocated()`
+
+Returns the current total allocated.
 
 ```zig
 pub fn getTotalAllocated(self: *const GenesisAllocation) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const GenesisAllocation`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisAllocation` | The instance |
 
 **Returns:** `u64`
 
-*Line: 122*
+*Defined at line 122*
 
 ---
 
-### `printSummary`
+### `printSummary()`
+
+Performs the print summary operation on the miner_genesis module.
 
 ```zig
 pub fn printSummary(self: *const GenesisAllocation) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisAllocation` | The instance |
 
-- `self`: `*const GenesisAllocation`
-
-*Line: 128*
+*Defined at line 128*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *GenesisAllocation) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*GenesisAllocation` | The instance |
 
-- `self`: `*GenesisAllocation`
-
-*Line: 147*
+*Defined at line 147*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

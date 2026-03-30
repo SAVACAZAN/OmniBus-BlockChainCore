@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>chain_config — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>chain_config</code></h1>
+<p class="module-desc">Chain configuration — mainnet/testnet/regtest parameters, fee estimation, network-specific settings.</p>
+<p class="stats">Source: core/chain_config.zig &bull; 271 lines &bull; 7 functions &bull; 4 structs &bull; 10 tests</p>
+
+<h2>Structs (4)</h2>
+        <div class="section">
+            <h3><code>Checkpoint</code></h3>
+            <p>Checkpoint — bloc cu hash verificat (ca Bitcoin's assumevalid)
+Nodurile noi pot sari validarea PoW pentru blocuri mai vechi decat ultimul checkpoint</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr><tr><td><code>hash</code></td><td><code>[64]u8</code></td><td>Hash</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr></table>
+            <p class="line">Line: 26</p>
+        </div>
+        <div class="section">
+            <h3><code>NetworkMagic</code></h3>
+            <p>Network magic bytes (ca Bitcoin: 0xF9BEB4D9 mainnet, 0xFABFB5DA testnet)
+Primii 4 bytes din fiecare mesaj P2P — identifica reteaua</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bytes</code></td><td><code>[4]u8</code></td><td>Bytes</td></tr></table>
+            <p class="line">Line: 35</p>
+        </div>
+        <div class="section">
+            <h3><code>ChainConfig</code></h3>
+            <p>Full chain configuration</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>chain_id</code></td><td><code>ChainId</code></td><td>Chain_id</td></tr><tr><td><code>name</code></td><td><code>[]const u8</code></td><td>Name</td></tr><tr><td><code>magic</code></td><td><code>NetworkMagic</code></td><td>Magic</td></tr><tr><td><code>genesis_hash</code></td><td><code>[]const u8</code></td><td>Genesis_hash</td></tr><tr><td><code>genesis_timestamp</code></td><td><code>i64</code></td><td>Genesis_timestamp</td></tr><tr><td><code>p2p_port</code></td><td><code>u16</code></td><td>P2p_port</td></tr><tr><td><code>rpc_port</code></td><td><code>u16</code></td><td>Rpc_port</td></tr><tr><td><code>ws_port</code></td><td><code>u16</code></td><td>Ws_port</td></tr><tr><td><code>initial_difficulty</code></td><td><code>u32</code></td><td>Initial_difficulty</td></tr><tr><td><code>block_time_ms</code></td><td><code>u64</code></td><td>Block_time_ms</td></tr><tr><td><code>max_supply_sat</code></td><td><code>u64</code></td><td>Max_supply_sat</td></tr><tr><td><code>initial_reward_sat</code></td><td><code>u64</code></td><td>Initial_reward_sat</td></tr><tr><td><code>halving_interval</code></td><td><code>u64</code></td><td>Halving_interval</td></tr><tr><td><code>retarget_interval</code></td><td><code>u64</code></td><td>Retarget_interval</td></tr><tr><td><code>sub_blocks_per_block</code></td><td><code>u8</code></td><td>Sub_blocks_per_block</td></tr><tr><td><code>checkpoints</code></td><td><code>[]const Checkpoint</code></td><td>Checkpoints</td></tr></table>
+            <p class="line">Line: 54</p>
+        </div>
+        <div class="section">
+            <h3><code>FeeEstimator</code></h3>
+            <p>Gas estimation for transaction fees
+Bitcoin: estimatesmartfee RPC
+Ethereum: eth_estimateGas + EIP-1559 base fee
+OmniBus: simplified — fee based on mempool pressure</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>mempool_size</code></td><td><code>usize</code></td><td>Mempool_size</td></tr><tr><td><code>mempool_max</code></td><td><code>usize</code></td><td>Mempool_max</td></tr></table>
+            <p class="line">Line: 165</p>
+        </div>
+
+<h2>Constants (5)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>ChainId</code></td><td><code>enum(u32) {</code></td><td>Chain id</td></tr><tr><td><code>MAINNET</code></td><td><code>NetworkMagic{ .bytes = .{ 0x4F, 0x4D, 0x4E, 0x49 } }</code></td><td>M a i n n e t</td></tr><tr><td><code>TESTNET</code></td><td><code>NetworkMagic{ .bytes = .{ 0x54, 0x45, 0x53, 0x54 } }</code></td><td>T e s t n e t</td></tr><tr><td><code>DEVNET</code></td><td><code>NetworkMagic{ .bytes = .{ 0x44, 0x45, 0x56, 0x4E } }</code></td><td>D e v n e t</td></tr><tr><td><code>REGTEST</code></td><td><code>NetworkMagic{ .bytes = .{ 0x52, 0x45, 0x47, 0x54 } }</code></td><td>R e g t e s t</td></tr></table></div>
+
+<h2>Functions (7)</h2>
+        <div class="section">
+            <h3><code>forChain()</code></h3>
+            <p class="desc">Performs the for chain operation on the chain_config module.</p>
+            <pre><code>pub fn forChain(chain_id: ChainId) NetworkMagic {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>chain_id</code></td><td><code>ChainId</code></td><td>Chain_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>NetworkMagic</code></p>
+            <p class="line">Line: 43</p>
+        </div>
+        <div class="section">
+            <h3><code>mainnet()</code></h3>
+            <p class="desc">Mainnet configuration</p>
+            <pre><code>pub fn mainnet() ChainConfig {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>ChainConfig</code></p>
+            <p class="line">Line: 89</p>
+        </div>
+        <div class="section">
+            <h3><code>testnet()</code></h3>
+            <p class="desc">Testnet configuration (faster blocks, lower difficulty)</p>
+            <pre><code>pub fn testnet() ChainConfig {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>ChainConfig</code></p>
+            <p class="line">Line: 111</p>
+        </div>
+        <div class="section">
+            <h3><code>regtest()</code></h3>
+            <p class="desc">Regtest (instant mining, difficulty 1)</p>
+            <pre><code>pub fn regtest() ChainConfig {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>ChainConfig</code></p>
+            <p class="line">Line: 133</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(mempool_size: usize, mempool_max: usize) FeeEstimator {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>mempool_size</code></td><td><code>usize</code></td><td>Mempool_size</td></tr><tr><td><code>mempool_max</code></td><td><code>usize</code></td><td>Mempool_max</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>FeeEstimator</code></p>
+            <p class="line">Line: 171</p>
+        </div>
+        <div class="section">
+            <h3><code>estimateFee()</code></h3>
+            <p class="desc">Estimate fee in SAT for next-block inclusion
+Returns: fee in SAT per transaction
+Algorithm: base_fee * (1 + mempool_pressure)
+When mempool is empty → min fee (1 SAT)
+When mempool is 50% full → 2x fee
+When mempool is 100% full → 10x fee</p>
+            <pre><code>pub fn estimateFee(self: *const FeeEstimator) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const FeeEstimator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 181</p>
+        </div>
+        <div class="section">
+            <h3><code>estimateBlocks()</code></h3>
+            <p class="desc">Estimate confirmation time in blocks</p>
+            <pre><code>pub fn estimateBlocks(self: *const FeeEstimator, fee_sat: u64) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const FeeEstimator</code></td><td>The instance</td></tr><tr><td><code>fee_sat</code></td><td><code>u64</code></td><td>Fee_sat</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 193</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

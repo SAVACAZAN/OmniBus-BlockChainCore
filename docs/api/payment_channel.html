@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>payment_channel — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>payment_channel</code></h1>
+<p class="module-desc">Lightning-style Layer 2 — open/close channels, HTLC (Hash Time-Locked Contracts), off-chain payments, cooperative/unilateral close.</p>
+<p class="stats">Source: core/payment_channel.zig &bull; 984 lines &bull; 25 functions &bull; 5 structs &bull; 27 tests</p>
+
+<h2>Structs (5)</h2>
+        <div class="section">
+            <h3><code>ChannelUpdate</code></h3>
+            <p>ChannelUpdate — signed off-chain state between two parties.
+Both parties must sign each update. Higher sequence_num = newer state.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr><tr><td><code>sequence_num</code></td><td><code>u64</code></td><td>Sequence_num</td></tr><tr><td><code>balance_a</code></td><td><code>u64</code></td><td>Balance_a</td></tr><tr><td><code>balance_b</code></td><td><code>u64</code></td><td>Balance_b</td></tr><tr><td><code>sig_a</code></td><td><code>[64]u8</code></td><td>Sig_a</td></tr><tr><td><code>sig_b</code></td><td><code>[64]u8</code></td><td>Sig_b</td></tr></table>
+            <p class="line">Line: 35</p>
+        </div>
+        <div class="section">
+            <h3><code>SettleTx</code></h3>
+            <p>SettleTx — on-chain settlement transaction pair.
+When a channel closes, two on-chain TXs are created:
+tx_hash_a: returns A's final balance to A's address
+tx_hash_b: returns B's final balance to B's address</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr><tr><td><code>final_balance_a</code></td><td><code>u64</code></td><td>Final_balance_a</td></tr><tr><td><code>final_balance_b</code></td><td><code>u64</code></td><td>Final_balance_b</td></tr><tr><td><code>settle_block</code></td><td><code>u64</code></td><td>Settle_block</td></tr><tr><td><code>tx_hash_a</code></td><td><code>[32]u8</code></td><td>Tx_hash_a</td></tr><tr><td><code>tx_hash_b</code></td><td><code>[32]u8</code></td><td>Tx_hash_b</td></tr></table>
+            <p class="line">Line: 99</p>
+        </div>
+        <div class="section">
+            <h3><code>HTLC</code></h3>
+            <p>HTLC — Hash Time Lock Contract (for multi-hop routing)
+A sends to B conditional on revealing a secret (preimage)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>htlc_id</code></td><td><code>u32</code></td><td>Htlc_id</td></tr><tr><td><code>hash_lock</code></td><td><code>[32]u8</code></td><td>Hash_lock</td></tr><tr><td><code>amount_sat</code></td><td><code>u64</code></td><td>Amount_sat</td></tr><tr><td><code>timeout_block</code></td><td><code>u64</code></td><td>Timeout_block</td></tr><tr><td><code>revealed</code></td><td><code>bool</code></td><td>Revealed</td></tr><tr><td><code>preimage</code></td><td><code>[32]u8</code></td><td>Preimage</td></tr><tr><td><code>preimage_set</code></td><td><code>bool</code></td><td>Preimage_set</td></tr></table>
+            <p class="line">Line: 141</p>
+        </div>
+        <div class="section">
+            <h3><code>PaymentChannel</code></h3>
+            <p>PaymentChannel — bidirectional off-chain payment channel between two parties.
+
+Uses fixed-size arrays (no dynamic allocation after init) for bare-metal compat.
+Each channel holds up to MAX_HTLCS_PER_CHANNEL pending HTLCs.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr><tr><td><code>party_a</code></td><td><code>[33]u8</code></td><td>Party_a</td></tr><tr><td><code>party_b</code></td><td><code>[33]u8</code></td><td>Party_b</td></tr><tr><td><code>balance_a</code></td><td><code>u64</code></td><td>Balance_a</td></tr><tr><td><code>balance_b</code></td><td><code>u64</code></td><td>Balance_b</td></tr><tr><td><code>total_locked</code></td><td><code>u64</code></td><td>Total_locked</td></tr><tr><td><code>sequence_num</code></td><td><code>u64</code></td><td>Sequence_num</td></tr><tr><td><code>state</code></td><td><code>ChannelState</code></td><td>State</td></tr><tr><td><code>funding_tx_hash</code></td><td><code>[32]u8</code></td><td>Funding_tx_hash</td></tr><tr><td><code>timeout_blocks</code></td><td><code>u64</code></td><td>Timeout_blocks</td></tr><tr><td><code>created_at</code></td><td><code>i64</code></td><td>Created_at</td></tr><tr><td><code>close_block</code></td><td><code>u64</code></td><td>Close_block</td></tr><tr><td><code>pending_close_update</code></td><td><code>?ChannelUpdate</code></td><td>Pending_close_update</td></tr><tr><td><code>htlcs</code></td><td><code>[MAX_HTLCS_PER_CHANNEL]HTLC</code></td><td>Htlcs</td></tr><tr><td><code>htlc_count</code></td><td><code>u8</code></td><td>Htlc_count</td></tr></table>
+            <p class="line">Line: 175</p>
+        </div>
+        <div class="section">
+            <h3><code>ChannelManager</code></h3>
+            <p>ChannelManager — fixed-size registry of payment channels.
+No dynamic allocation — holds up to MAX_CHANNELS channels in a flat array.
+Thread-safe via mutex for concurrent RPC access.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>channels</code></td><td><code>[MAX_CHANNELS]PaymentChannel</code></td><td>Channels</td></tr><tr><td><code>channel_count</code></td><td><code>u8</code></td><td>Channel_count</td></tr><tr><td><code>mutex</code></td><td><code>std.Thread.Mutex</code></td><td>Mutex</td></tr></table>
+            <p class="line">Line: 455</p>
+        </div>
+
+<h2>Constants (6)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>DISPUTE_WINDOW_BLOCKS</code></td><td><code>u64 = 144</code></td><td>D i s p u t e_ w i n d o w_ b l o c k s</td></tr><tr><td><code>MAX_CHANNEL_AMOUNT</code></td><td><code>u64 = 21_000_000 * 1_000_000_000</code></td><td>M a x_ c h a n n e l_ a m o u n t</td></tr><tr><td><code>MAX_CHANNELS</code></td><td><code>usize = 64</code></td><td>M a x_ c h a n n e l s</td></tr><tr><td><code>MAX_HTLCS_PER_CHANNEL</code></td><td><code>usize = 16</code></td><td>M a x_ h t l c s_ p e r_ c h a n n e l</td></tr><tr><td><code>SAT_PER_OMNI</code></td><td><code>u64 = 1_000_000_000</code></td><td>S a t_ p e r_ o m n i</td></tr><tr><td><code>ChannelState</code></td><td><code>enum(u8) {</code></td><td>Channel state</td></tr></table></div>
+
+<h2>Functions (25)</h2>
+        <div class="section">
+            <h3><code>hash()</code></h3>
+            <p class="desc">Compute deterministic hash of this state update (for on-chain verification).
+Hash covers channel_id + sequence + balances — signatures are NOT included
+(they authenticate the hash, not the other way around).</p>
+            <pre><code>pub fn hash(self: *const ChannelUpdate) [32]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelUpdate</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[32]u8</code></p>
+            <p class="line">Line: 46</p>
+        </div>
+        <div class="section">
+            <h3><code>verify()</code></h3>
+            <p class="desc">Verify that both signatures are non-zero (placeholder for real sig verification).
+In production this would verify ECDSA/Schnorr sigs against pk_a and pk_b.
+For now: checks that at least one byte of each sig is non-zero,
+and that the update hash matches what was signed.</p>
+            <pre><code>pub fn verify(self: *const ChannelUpdate, pk_a: [33]u8, pk_b: [33]u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelUpdate</code></td><td>The instance</td></tr><tr><td><code>pk_a</code></td><td><code>[33]u8</code></td><td>Pk_a</td></tr><tr><td><code>pk_b</code></td><td><code>[33]u8</code></td><td>Pk_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 69</p>
+        </div>
+        <div class="section">
+            <h3><code>totalBalance()</code></h3>
+            <p class="desc">Performs the total balance operation on the payment_channel module.</p>
+            <pre><code>pub fn totalBalance(self: *const ChannelUpdate) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelUpdate</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 90</p>
+        </div>
+        <div class="section">
+            <h3><code>fromUpdate()</code></h3>
+            <p class="desc">Generate deterministic TX hashes from channel state</p>
+            <pre><code>pub fn fromUpdate(update: *const ChannelUpdate, settle_block: u64) SettleTx {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>update</code></td><td><code>*const ChannelUpdate</code></td><td>Update</td></tr><tr><td><code>settle_block</code></td><td><code>u64</code></td><td>Settle_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>SettleTx</code></p>
+            <p class="line">Line: 108</p>
+        </div>
+        <div class="section">
+            <h3><code>reveal()</code></h3>
+            <p class="desc">Check if preimage unlocks the HTLC</p>
+            <pre><code>pub fn reveal(self: *HTLC, pre: [32]u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*HTLC</code></td><td>The instance</td></tr><tr><td><code>pre</code></td><td><code>[32]u8</code></td><td>Pre</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 151</p>
+        </div>
+        <div class="section">
+            <h3><code>isExpired()</code></h3>
+            <p class="desc">Checks whether the expired condition is true.</p>
+            <pre><code>pub fn isExpired(self: *const HTLC, current_block: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const HTLC</code></td><td>The instance</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 166</p>
+        </div>
+        <div class="section">
+            <h3><code>open()</code></h3>
+            <p class="desc">Open a new payment channel between two parties.
+Both parties lock funds on-chain; initial off-chain balances = deposits.</p>
+            <pre><code>pub fn open(party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) error{ExceedsMaxAmount,ZeroDeposit}!PaymentChannel {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>party_a</code></td><td><code>[33]u8</code></td><td>Party_a</td></tr><tr><td><code>party_b</code></td><td><code>[33]u8</code></td><td>Party_b</td></tr><tr><td><code>amount_a</code></td><td><code>u64</code></td><td>Amount_a</td></tr><tr><td><code>amount_b</code></td><td><code>u64</code></td><td>Amount_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 198</p>
+        </div>
+        <div class="section">
+            <h3><code>openWithId()</code></h3>
+            <p class="desc">Open with explicit channel_id (deterministic, for testing)</p>
+            <pre><code>pub fn openWithId(channel_id: [32]u8, party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) error{ExceedsMaxAmount,ZeroDeposit}!PaymentChannel {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr><tr><td><code>party_a</code></td><td><code>[33]u8</code></td><td>Party_a</td></tr><tr><td><code>party_b</code></td><td><code>[33]u8</code></td><td>Party_b</td></tr><tr><td><code>amount_a</code></td><td><code>u64</code></td><td>Amount_a</td></tr><tr><td><code>amount_b</code></td><td><code>u64</code></td><td>Amount_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 247</p>
+        </div>
+        <div class="section">
+            <h3><code>pay()</code></h3>
+            <p class="desc">Off-chain payment: transfer amount from one party to the other.
+Both parties must sign the new state. Sequence number increments atomically.
+Total balance is conserved (invariant: balance_a + balance_b == total_locked).</p>
+            <pre><code>pub fn pay(self: *PaymentChannel, from_a_to_b: bool, amount: u64, sig_a: [64]u8, sig_b: [64]u8) error{ ChannelNotOpen, InsufficientBalance, BalanceMismatch }!ChannelUpdate {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>from_a_to_b</code></td><td><code>bool</code></td><td>From_a_to_b</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr><tr><td><code>sig_a</code></td><td><code>[64]u8</code></td><td>Sig_a</td></tr><tr><td><code>sig_b</code></td><td><code>[64]u8</code></td><td>Sig_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 280</p>
+        </div>
+        <div class="section">
+            <h3><code>cooperativeClose()</code></h3>
+            <p class="desc">Cooperative close: both parties agree on final state, no dispute needed.
+Returns a SettleTx with the final on-chain transactions.</p>
+            <pre><code>pub fn cooperativeClose(self: *PaymentChannel, sig_a: [64]u8, sig_b: [64]u8) error{ChannelNotOpen}!SettleTx {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>sig_a</code></td><td><code>[64]u8</code></td><td>Sig_a</td></tr><tr><td><code>sig_b</code></td><td><code>[64]u8</code></td><td>Sig_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 321</p>
+        </div>
+        <div class="section">
+            <h3><code>unilateralClose()</code></h3>
+            <p class="desc">Unilateral close: one party submits their latest signed state.
+Starts the dispute window — counterparty has timeout_blocks to submit newer state.</p>
+            <pre><code>pub fn unilateralClose(self: *PaymentChannel, submitted_state: ChannelUpdate, current_block: u64) error{ ChannelNotOpen, InvalidChannelId, BalanceMismatch }!SettleTx {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>submitted_state</code></td><td><code>ChannelUpdate</code></td><td>Submitted_state</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 341</p>
+        </div>
+        <div class="section">
+            <h3><code>dispute()</code></h3>
+            <p class="desc">Dispute: counterparty submits a state with higher sequence_num.
+Returns true if the dispute was successful (newer state accepted).</p>
+            <pre><code>pub fn dispute(self: *PaymentChannel, newer_state: ChannelUpdate) error{ ChannelNotClosing, InvalidChannelId, StateNotNewer, BalanceMismatch }!bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>newer_state</code></td><td><code>ChannelUpdate</code></td><td>Newer_state</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 364</p>
+        </div>
+        <div class="section">
+            <h3><code>settle()</code></h3>
+            <p class="desc">Settle: finalize the channel on-chain after dispute window expires.
+Can be called after closing or disputed state, once timeout has passed.</p>
+            <pre><code>pub fn settle(self: *PaymentChannel, current_block: u64) error{ ChannelNotClosable, DisputeWindowActive }!SettleTx {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 386</p>
+        </div>
+        <div class="section">
+            <h3><code>addHTLC()</code></h3>
+            <p class="desc">Add an HTLC to this channel (for multi-hop routing)</p>
+            <pre><code>pub fn addHTLC(self: *PaymentChannel, hash_lock: [32]u8, amount_sat: u64, timeout_block: u64) error{ ChannelNotOpen, TooManyHTLCs }!u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>hash_lock</code></td><td><code>[32]u8</code></td><td>Hash_lock</td></tr><tr><td><code>amount_sat</code></td><td><code>u64</code></td><td>Amount_sat</td></tr><tr><td><code>timeout_block</code></td><td><code>u64</code></td><td>Timeout_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 409</p>
+        </div>
+        <div class="section">
+            <h3><code>revealHTLC()</code></h3>
+            <p class="desc">Reveal preimage for an HTLC (unlocks payment)</p>
+            <pre><code>pub fn revealHTLC(self: *PaymentChannel, htlc_id: u32, preimage: [32]u8) error{ HTLCNotFound, InvalidPreimage }!void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>htlc_id</code></td><td><code>u32</code></td><td>Htlc_id</td></tr><tr><td><code>preimage</code></td><td><code>[32]u8</code></td><td>Preimage</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>error</code></p>
+            <p class="line">Line: 427</p>
+        </div>
+        <div class="section">
+            <h3><code>currentUpdate()</code></h3>
+            <p class="desc">Get the current state as a ChannelUpdate</p>
+            <pre><code>pub fn currentUpdate(self: *const PaymentChannel) ChannelUpdate {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PaymentChannel</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ChannelUpdate</code></p>
+            <p class="line">Line: 435</p>
+        </div>
+        <div class="section">
+            <h3><code>getChannelIdHex()</code></h3>
+            <p class="desc">Format channel_id as hex string into provided buffer</p>
+            <pre><code>pub fn getChannelIdHex(self: *const PaymentChannel, buf: []u8) []u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PaymentChannel</code></td><td>The instance</td></tr><tr><td><code>buf</code></td><td><code>[]u8</code></td><td>Buf</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]u8</code></p>
+            <p class="line">Line: 447</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() ChannelManager {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>ChannelManager</code></p>
+            <p class="line">Line: 460</p>
+        </div>
+        <div class="section">
+            <h3><code>openChannel()</code></h3>
+            <p class="desc">Open a new channel and add it to the registry.
+Returns a pointer to the newly created channel.</p>
+            <pre><code>pub fn openChannel(self: *ChannelManager, party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) !*PaymentChannel {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ChannelManager</code></td><td>The instance</td></tr><tr><td><code>party_a</code></td><td><code>[33]u8</code></td><td>Party_a</td></tr><tr><td><code>party_b</code></td><td><code>[33]u8</code></td><td>Party_b</td></tr><tr><td><code>amount_a</code></td><td><code>u64</code></td><td>Amount_a</td></tr><tr><td><code>amount_b</code></td><td><code>u64</code></td><td>Amount_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!*PaymentChannel</code></p>
+            <p class="line">Line: 470</p>
+        </div>
+        <div class="section">
+            <h3><code>findChannel()</code></h3>
+            <p class="desc">Find a channel by its ID. Returns null if not found.</p>
+            <pre><code>pub fn findChannel(self: *ChannelManager, channel_id: [32]u8) ?*PaymentChannel {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ChannelManager</code></td><td>The instance</td></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*PaymentChannel</code></p>
+            <p class="line">Line: 484</p>
+        </div>
+        <div class="section">
+            <h3><code>closeChannel()</code></h3>
+            <p class="desc">Close a channel (cooperative close). Returns the settlement TX.</p>
+            <pre><code>pub fn closeChannel(self: *ChannelManager, channel_id: [32]u8, sig_a: [64]u8, sig_b: [64]u8) !SettleTx {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ChannelManager</code></td><td>The instance</td></tr><tr><td><code>channel_id</code></td><td><code>[32]u8</code></td><td>Channel_id</td></tr><tr><td><code>sig_a</code></td><td><code>[64]u8</code></td><td>Sig_a</td></tr><tr><td><code>sig_b</code></td><td><code>[64]u8</code></td><td>Sig_b</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!SettleTx</code></p>
+            <p class="line">Line: 492</p>
+        </div>
+        <div class="section">
+            <h3><code>getAllChannels()</code></h3>
+            <p class="desc">Get a slice of all channels (active and inactive).</p>
+            <pre><code>pub fn getAllChannels(self: *ChannelManager) []PaymentChannel {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ChannelManager</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]PaymentChannel</code></p>
+            <p class="line">Line: 501</p>
+        </div>
+        <div class="section">
+            <h3><code>countByState()</code></h3>
+            <p class="desc">Count channels in a specific state.</p>
+            <pre><code>pub fn countByState(self: *const ChannelManager, target_state: ChannelState) u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelManager</code></td><td>The instance</td></tr><tr><td><code>target_state</code></td><td><code>ChannelState</code></td><td>Target_state</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u8</code></p>
+            <p class="line">Line: 506</p>
+        </div>
+        <div class="section">
+            <h3><code>getTotalLockedSat()</code></h3>
+            <p class="desc">Get total SAT locked across all open/closing channels.</p>
+            <pre><code>pub fn getTotalLockedSat(self: *const ChannelManager) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelManager</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 515</p>
+        </div>
+        <div class="section">
+            <h3><code>printStatus()</code></h3>
+            <p class="desc">Performs the print status operation on the payment_channel module.</p>
+            <pre><code>pub fn printStatus(self: *const ChannelManager) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ChannelManager</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 525</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

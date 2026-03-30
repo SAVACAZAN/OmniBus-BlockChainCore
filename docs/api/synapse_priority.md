@@ -1,10 +1,31 @@
 # Module: `synapse_priority`
 
+> Synapse scheduler — priority queue for internal node operations, ensures critical tasks execute first.
+
+**Source:** `core/synapse_priority.zig` | **Lines:** 241 | **Functions:** 8 | **Structs:** 2 | **Tests:** 8
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`SynapseTask`](#synapsetask) — O sarcina (task) in coada de prioritati
+- [`SynapseScheduler`](#synapsescheduler) — Data structure for synapse scheduler. Fields include: tasks, task_count, next_ta...
+
+### Constants
+- [3 constants defined](#constants)
+
+### Functions
+- [`canPreempt()`](#canpreempt) — Performs the can preempt operation on the synapse_priority module.
+- [`modePriority()`](#modepriority) — Mapare OsMode → Priority
+- [`isOverdue()`](#isoverdue) — Checks whether the overdue condition is true.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`dequeue()`](#dequeue) — Returneaza urmatoarea sarcina de executat (cea cu prioritatea cea mai ...
+- [`overdueCount()`](#overduecount) — Verifica daca exista sarcini cu deadline depasit
+- [`isEmpty()`](#isempty) — Checks whether the empty condition is true.
+- [`printStatus()`](#printstatus) — Performs the print status operation on the synapse_priority module.
+
+---
 
 ## Structs
 
@@ -12,40 +33,71 @@
 
 O sarcina (task) in coada de prioritati
 
-*Line: 48*
+| Field | Type | Description |
+|-------|------|-------------|
+| `task_id` | `u64` | Task_id |
+| `mode` | `OsMode` | Mode |
+| `priority` | `Priority` | Priority |
+| `queued_at` | `u64` | Queued_at |
+| `deadline` | `u64` | Deadline |
+| `label` | `[32]u8` | Label |
+| `label_len` | `u8` | Label_len |
+
+*Defined at line 48*
+
+---
 
 ### `SynapseScheduler`
 
-*Line: 70*
+Data structure for synapse scheduler. Fields include: tasks, task_count, next_task_id, executed_count, preemptions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tasks` | `[MAX_TASKS]SynapseTask` | Tasks |
+| `task_count` | `usize` | Task_count |
+| `next_task_id` | `u64` | Next_task_id |
+| `executed_count` | `u64` | Executed_count |
+| `preemptions` | `u64` | Preemptions |
+| `mode` | `OsMode` | Mode |
+| `label` | `[]const u8` | Label |
+| `queued_at` | `u64` | Queued_at |
+
+*Defined at line 70*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `OsMode` | auto | `os_mode.OsMode` |
-| `Priority` | auto | `enum(u8) {` |
-| `MAX_TASKS` | auto | `usize = 256` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `OsMode` | `os_mode.OsMode` | Os mode |
+| `Priority` | `enum(u8) {` | Priority |
+| `MAX_TASKS` | `usize = 256` | M a x_ t a s k s |
+
+---
 
 ## Functions
 
-### `canPreempt`
+### `canPreempt()`
+
+Performs the can preempt operation on the synapse_priority module.
 
 ```zig
 pub fn canPreempt(self: Priority, other: Priority) bool {
 ```
 
-**Parameters:**
-
-- `self`: `Priority`
-- `other`: `Priority`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `Priority` | The instance |
+| `other` | `Priority` | Other |
 
 **Returns:** `bool`
 
-*Line: 29*
+*Defined at line 29*
 
 ---
 
-### `modePriority`
+### `modePriority()`
 
 Mapare OsMode → Priority
 
@@ -53,34 +105,38 @@ Mapare OsMode → Priority
 pub fn modePriority(mode: OsMode) Priority {
 ```
 
-**Parameters:**
-
-- `mode`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mode` | `OsMode` | Mode |
 
 **Returns:** `Priority`
 
-*Line: 35*
+*Defined at line 35*
 
 ---
 
-### `isOverdue`
+### `isOverdue()`
+
+Checks whether the overdue condition is true.
 
 ```zig
 pub fn isOverdue(self: *const SynapseTask, current_block: u64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const SynapseTask`
-- `current_block`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SynapseTask` | The instance |
+| `current_block` | `u64` | Current_block |
 
 **Returns:** `bool`
 
-*Line: 60*
+*Defined at line 60*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() SynapseScheduler {
@@ -88,11 +144,11 @@ pub fn init() SynapseScheduler {
 
 **Returns:** `SynapseScheduler`
 
-*Line: 77*
+*Defined at line 77*
 
 ---
 
-### `dequeue`
+### `dequeue()`
 
 Returneaza urmatoarea sarcina de executat (cea cu prioritatea cea mai mare)
 In caz de egalitate: FIFO (task_id mai mic = primul intrat)
@@ -101,17 +157,17 @@ In caz de egalitate: FIFO (task_id mai mic = primul intrat)
 pub fn dequeue(self: *SynapseScheduler) ?SynapseTask {
 ```
 
-**Parameters:**
-
-- `self`: `*SynapseScheduler`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*SynapseScheduler` | The instance |
 
 **Returns:** `?SynapseTask`
 
-*Line: 118*
+*Defined at line 118*
 
 ---
 
-### `overdueCount`
+### `overdueCount()`
 
 Verifica daca exista sarcini cu deadline depasit
 
@@ -119,44 +175,52 @@ Verifica daca exista sarcini cu deadline depasit
 pub fn overdueCount(self: *const SynapseScheduler, current_block: u64) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const SynapseScheduler`
-- `current_block`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SynapseScheduler` | The instance |
+| `current_block` | `u64` | Current_block |
 
 **Returns:** `usize`
 
-*Line: 147*
+*Defined at line 147*
 
 ---
 
-### `isEmpty`
+### `isEmpty()`
+
+Checks whether the empty condition is true.
 
 ```zig
 pub fn isEmpty(self: *const SynapseScheduler) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const SynapseScheduler`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SynapseScheduler` | The instance |
 
 **Returns:** `bool`
 
-*Line: 155*
+*Defined at line 155*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the synapse_priority module.
 
 ```zig
 pub fn printStatus(self: *const SynapseScheduler) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SynapseScheduler` | The instance |
 
-- `self`: `*const SynapseScheduler`
-
-*Line: 159*
+*Defined at line 159*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

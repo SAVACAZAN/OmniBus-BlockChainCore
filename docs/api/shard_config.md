@@ -1,10 +1,35 @@
 # Module: `shard_config`
 
+> Shard configuration — 7-way sharding parameters, load thresholds, shard assignment rules.
+
+**Source:** `core/shard_config.zig` | **Lines:** 191 | **Functions:** 11 | **Structs:** 3 | **Tests:** 4
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`ShardConfig`](#shardconfig) — Shard configuration for distributed sub-block processing
+- [`ShardInfo`](#shardinfo) — Information about a single shard
+- [`ShardValidator`](#shardvalidator) — Shard assignment validator
+
+### Constants
+- [1 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`getShardForSubBlock()`](#getshardforsubblock) — Calculate which shard should process a sub-block
+- [`shouldProcessSubBlock()`](#shouldprocesssubblock) — Check if this node should process the sub-block
+- [`getSubBlocksForShard()`](#getsubblocksforshard) — Get all sub-block IDs this shard processes
+- [`getDistribution()`](#getdistribution) — Get shard distribution info
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`validateSubBlockShard()`](#validatesubblockshard) — Validate that sub-block was processed by correct shard
+- [`recordProcessed()`](#recordprocessed) — Track processed sub-blocks for this node's shard
+- [`blockComplete()`](#blockcomplete) — Check if all sub-blocks for this shard in a block have been processed
+- [`reset()`](#reset) — Reset for next block
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -12,46 +37,73 @@
 
 Shard configuration for distributed sub-block processing
 
-*Line: 7*
+| Field | Type | Description |
+|-------|------|-------------|
+| `num_shards` | `u8` | Num_shards |
+| `current_node_shard` | `u8` | Current_node_shard |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 7*
+
+---
 
 ### `ShardInfo`
 
 Information about a single shard
 
-*Line: 77*
+| Field | Type | Description |
+|-------|------|-------------|
+| `shard_id` | `u8` | Shard_id |
+| `sub_block_count` | `u8` | Sub_block_count |
+| `sub_block_ids` | `[]u8` | Sub_block_ids |
+
+*Defined at line 77*
+
+---
 
 ### `ShardValidator`
 
 Shard assignment validator
 
-*Line: 84*
+| Field | Type | Description |
+|-------|------|-------------|
+| `config` | `ShardConfig` | Config |
+| `processed_sub_blocks` | `std.array_list.Managed(u8)` | Processed_sub_blocks |
+
+*Defined at line 84*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `SubBlock` | auto | `sub_block_mod.SubBlock` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `SubBlock` | `sub_block_mod.SubBlock` | Sub block |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, current_node_shard: u8) !ShardConfig {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `current_node_shard`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `current_node_shard` | `u8` | Current_node_shard |
 
 **Returns:** `!ShardConfig`
 
-*Line: 12*
+*Defined at line 12*
 
 ---
 
-### `getShardForSubBlock`
+### `getShardForSubBlock()`
 
 Calculate which shard should process a sub-block
 
@@ -59,18 +111,18 @@ Calculate which shard should process a sub-block
 pub fn getShardForSubBlock(self: *const ShardConfig, sub_id: u8) u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardConfig`
-- `sub_id`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardConfig` | The instance |
+| `sub_id` | `u8` | Sub_id |
 
 **Returns:** `u8`
 
-*Line: 25*
+*Defined at line 25*
 
 ---
 
-### `shouldProcessSubBlock`
+### `shouldProcessSubBlock()`
 
 Check if this node should process the sub-block
 
@@ -78,18 +130,18 @@ Check if this node should process the sub-block
 pub fn shouldProcessSubBlock(self: *const ShardConfig, sub_id: u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardConfig`
-- `sub_id`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardConfig` | The instance |
+| `sub_id` | `u8` | Sub_id |
 
 **Returns:** `bool`
 
-*Line: 30*
+*Defined at line 30*
 
 ---
 
-### `getSubBlocksForShard`
+### `getSubBlocksForShard()`
 
 Get all sub-block IDs this shard processes
 
@@ -97,18 +149,18 @@ Get all sub-block IDs this shard processes
 pub fn getSubBlocksForShard(self: *const ShardConfig, allocator: std.mem.Allocator) ![]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardConfig`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardConfig` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]u8`
 
-*Line: 35*
+*Defined at line 35*
 
 ---
 
-### `getDistribution`
+### `getDistribution()`
 
 Get shard distribution info
 
@@ -116,34 +168,36 @@ Get shard distribution info
 pub fn getDistribution(self: *const ShardConfig, allocator: std.mem.Allocator) ![7]ShardInfo {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardConfig`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardConfig` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![7]ShardInfo`
 
-*Line: 49*
+*Defined at line 49*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(config: ShardConfig) ShardValidator {
 ```
 
-**Parameters:**
-
-- `config`: `ShardConfig`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `config` | `ShardConfig` | Config |
 
 **Returns:** `ShardValidator`
 
-*Line: 88*
+*Defined at line 88*
 
 ---
 
-### `validateSubBlockShard`
+### `validateSubBlockShard()`
 
 Validate that sub-block was processed by correct shard
 
@@ -151,18 +205,18 @@ Validate that sub-block was processed by correct shard
 pub fn validateSubBlockShard(self: *const ShardValidator, sub: *const SubBlock) !bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardValidator`
-- `sub`: `*const SubBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardValidator` | The instance |
+| `sub` | `*const SubBlock` | Sub |
 
 **Returns:** `!bool`
 
-*Line: 96*
+*Defined at line 96*
 
 ---
 
-### `recordProcessed`
+### `recordProcessed()`
 
 Track processed sub-blocks for this node's shard
 
@@ -170,18 +224,18 @@ Track processed sub-blocks for this node's shard
 pub fn recordProcessed(self: *ShardValidator, sub_id: u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*ShardValidator`
-- `sub_id`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ShardValidator` | The instance |
+| `sub_id` | `u8` | Sub_id |
 
 **Returns:** `!void`
 
-*Line: 105*
+*Defined at line 105*
 
 ---
 
-### `blockComplete`
+### `blockComplete()`
 
 Check if all sub-blocks for this shard in a block have been processed
 
@@ -189,17 +243,17 @@ Check if all sub-blocks for this shard in a block have been processed
 pub fn blockComplete(self: *const ShardValidator) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ShardValidator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ShardValidator` | The instance |
 
 **Returns:** `bool`
 
-*Line: 114*
+*Defined at line 114*
 
 ---
 
-### `reset`
+### `reset()`
 
 Reset for next block
 
@@ -207,25 +261,31 @@ Reset for next block
 pub fn reset(self: *ShardValidator) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ShardValidator` | The instance |
 
-- `self`: `*ShardValidator`
-
-*Line: 128*
+*Defined at line 128*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *ShardValidator) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ShardValidator` | The instance |
 
-- `self`: `*ShardValidator`
-
-*Line: 132*
+*Defined at line 132*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

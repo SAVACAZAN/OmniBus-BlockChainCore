@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>staking — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>staking</code></h1>
+<p class="module-desc">Proof-of-Stake validator system — deposit/withdraw stake, slashing for equivocation and downtime, unbonding period (7 days), minimum stake enforcement.</p>
+<p class="stats">Source: core/staking.zig &bull; 1087 lines &bull; 29 functions &bull; 8 structs &bull; 24 tests</p>
+
+<h2>Structs (8)</h2>
+        <div class="section">
+            <h3><code>SlashEvidence</code></h3>
+            <p>Cryptographic evidence that a validator cheated.
+For double_sign: two different block hashes at the same height,
+each signed by the same validator. Both signatures must verify.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>validator_address</code></td><td><code>[64]u8</code></td><td>Validator_address</td></tr><tr><td><code>validator_addr_len</code></td><td><code>u8</code></td><td>Validator_addr_len</td></tr><tr><td><code>reason</code></td><td><code>SlashReason</code></td><td>Reason</td></tr><tr><td><code>block_hash_1</code></td><td><code>[32]u8</code></td><td>Block_hash_1</td></tr><tr><td><code>block_hash_2</code></td><td><code>[32]u8</code></td><td>Block_hash_2</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>signature_1</code></td><td><code>[64]u8</code></td><td>Signature_1</td></tr><tr><td><code>signature_2</code></td><td><code>[64]u8</code></td><td>Signature_2</td></tr><tr><td><code>reporter_address</code></td><td><code>[64]u8</code></td><td>Reporter_address</td></tr><tr><td><code>reporter_addr_len</code></td><td><code>u8</code></td><td>Reporter_addr_len</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr><tr><td><code>validator_addr</code></td><td><code>[]const u8</code></td><td>Validator_addr</td></tr><tr><td><code>reason</code></td><td><code>SlashReason</code></td><td>Reason</td></tr><tr><td><code>hash1</code></td><td><code>[32]u8</code></td><td>Hash1</td></tr><tr><td><code>hash2</code></td><td><code>[32]u8</code></td><td>Hash2</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr><tr><td><code>sig1</code></td><td><code>[64]u8</code></td><td>Sig1</td></tr><tr><td><code>sig2</code></td><td><code>[64]u8</code></td><td>Sig2</td></tr><tr><td><code>reporter_addr</code></td><td><code>[]const u8</code></td><td>Reporter_addr</td></tr><tr><td><code>ts</code></td><td><code>i64</code></td><td>Ts</td></tr></table>
+            <p class="line">Line: 73</p>
+        </div>
+        <div class="section">
+            <h3><code>SlashResult</code></h3>
+            <p>Result of processing slash evidence</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>valid</code></td><td><code>bool</code></td><td>Valid</td></tr><tr><td><code>slashed_amount</code></td><td><code>u64</code></td><td>Slashed_amount</td></tr><tr><td><code>reporter_reward</code></td><td><code>u64</code></td><td>Reporter_reward</td></tr><tr><td><code>new_stake</code></td><td><code>u64</code></td><td>New_stake</td></tr><tr><td><code>reason</code></td><td><code>[128]u8</code></td><td>Reason</td></tr><tr><td><code>reason_len</code></td><td><code>u8</code></td><td>Reason_len</td></tr></table>
+            <p class="line">Line: 133</p>
+        </div>
+        <div class="section">
+            <h3><code>SlashRecord</code></h3>
+            <p>Persistent record of a slashing event</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>validator</code></td><td><code>[64]u8</code></td><td>Validator</td></tr><tr><td><code>validator_len</code></td><td><code>u8</code></td><td>Validator_len</td></tr><tr><td><code>reason</code></td><td><code>SlashReason</code></td><td>Reason</td></tr><tr><td><code>amount_slashed</code></td><td><code>u64</code></td><td>Amount_slashed</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr><tr><td><code>reporter</code></td><td><code>[64]u8</code></td><td>Reporter</td></tr><tr><td><code>reporter_len</code></td><td><code>u8</code></td><td>Reporter_len</td></tr><tr><td><code>reporter_reward</code></td><td><code>u64</code></td><td>Reporter_reward</td></tr></table>
+            <p class="line">Line: 165</p>
+        </div>
+        <div class="section">
+            <h3><code>Validator</code></h3>
+            <p>A validator in the staking system</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>address</code></td><td><code>[64]u8</code></td><td>Address</td></tr><tr><td><code>addr_len</code></td><td><code>u8</code></td><td>Addr_len</td></tr><tr><td><code>total_stake</code></td><td><code>u64</code></td><td>Total_stake</td></tr><tr><td><code>self_stake</code></td><td><code>u64</code></td><td>Self_stake</td></tr><tr><td><code>delegated_stake</code></td><td><code>u64</code></td><td>Delegated_stake</td></tr><tr><td><code>status</code></td><td><code>ValidatorStatus</code></td><td>Status</td></tr><tr><td><code>registered_block</code></td><td><code>u64</code></td><td>Registered_block</td></tr><tr><td><code>unbonding_block</code></td><td><code>u64</code></td><td>Unbonding_block</td></tr><tr><td><code>blocks_produced</code></td><td><code>u32</code></td><td>Blocks_produced</td></tr><tr><td><code>blocks_missed</code></td><td><code>u32</code></td><td>Blocks_missed</td></tr><tr><td><code>total_rewards</code></td><td><code>u64</code></td><td>Total_rewards</td></tr><tr><td><code>commission_pct</code></td><td><code>u8</code></td><td>Commission_pct</td></tr><tr><td><code>slash_count</code></td><td><code>u8</code></td><td>Slash_count</td></tr></table>
+            <p class="line">Line: 212</p>
+        </div>
+        <div class="section">
+            <h3><code>Delegation</code></h3>
+            <p>Delegation record</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>delegator</code></td><td><code>[64]u8</code></td><td>Delegator</td></tr><tr><td><code>delegator_len</code></td><td><code>u8</code></td><td>Delegator_len</td></tr><tr><td><code>validator_index</code></td><td><code>u8</code></td><td>Validator_index</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr><tr><td><code>block</code></td><td><code>u64</code></td><td>Block</td></tr></table>
+            <p class="line">Line: 277</p>
+        </div>
+        <div class="section">
+            <h3><code>StakingEngine</code></h3>
+            <p>Staking Engine — manages the validator set</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>validators</code></td><td><code>[MAX_VALIDATORS]Validator</code></td><td>Validators</td></tr><tr><td><code>validator_count</code></td><td><code>usize</code></td><td>Validator_count</td></tr><tr><td><code>total_staked</code></td><td><code>u64</code></td><td>Total_staked</td></tr><tr><td><code>current_epoch</code></td><td><code>u64</code></td><td>Current_epoch</td></tr><tr><td><code>total_slashes</code></td><td><code>u32</code></td><td>Total_slashes</td></tr><tr><td><code>slash_records</code></td><td><code>[MAX_TOTAL_SLASH_RECORDS]SlashRecord</code></td><td>Slash_records</td></tr><tr><td><code>slash_record_count</code></td><td><code>usize</code></td><td>Slash_record_count</td></tr><tr><td><code>total_slashed_amount</code></td><td><code>u64</code></td><td>Total_slashed_amount</td></tr><tr><td><code>total_reporter_rewards</code></td><td><code>u64</code></td><td>Total_reporter_rewards</td></tr></table>
+            <p class="line">Line: 286</p>
+        </div>
+        <div class="section">
+            <h3><code>SlashHistoryResult</code></h3>
+            <p>Result container for slash history queries (fixed-size, no allocation)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>records</code></td><td><code>[MAX_RESULTS]SlashRecord</code></td><td>Records</td></tr><tr><td><code>count</code></td><td><code>usize</code></td><td>Count</td></tr></table>
+            <p class="line">Line: 650</p>
+        </div>
+        <div class="section">
+            <h3><code>ValidatorInfo</code></h3>
+            <p>Validator info summary for RPC responses</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>address</code></td><td><code>[64]u8</code></td><td>Address</td></tr><tr><td><code>addr_len</code></td><td><code>u8</code></td><td>Addr_len</td></tr><tr><td><code>total_stake</code></td><td><code>u64</code></td><td>Total_stake</td></tr><tr><td><code>self_stake</code></td><td><code>u64</code></td><td>Self_stake</td></tr><tr><td><code>delegated_stake</code></td><td><code>u64</code></td><td>Delegated_stake</td></tr><tr><td><code>status</code></td><td><code>ValidatorStatus</code></td><td>Status</td></tr><tr><td><code>slash_count</code></td><td><code>u8</code></td><td>Slash_count</td></tr><tr><td><code>total_rewards</code></td><td><code>u64</code></td><td>Total_rewards</td></tr><tr><td><code>uptime_pct</code></td><td><code>u8</code></td><td>Uptime_pct</td></tr><tr><td><code>slash_history_count</code></td><td><code>u8</code></td><td>Slash_history_count</td></tr><tr><td><code>blocks_produced</code></td><td><code>u32</code></td><td>Blocks_produced</td></tr><tr><td><code>commission_pct</code></td><td><code>u8</code></td><td>Commission_pct</td></tr></table>
+            <p class="line">Line: 661</p>
+        </div>
+
+<h2>Constants (17)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>VALIDATOR_MIN_STAKE</code></td><td><code>u64 = 100_000_000_000</code></td><td>V a l i d a t o r_ m i n_ s t a k e</td></tr><tr><td><code>MAX_VALIDATORS</code></td><td><code>usize = 128</code></td><td>M a x_ v a l i d a t o r s</td></tr><tr><td><code>UNBONDING_PERIOD</code></td><td><code>u64 = 604_800</code></td><td>U n b o n d i n g_ p e r i o d</td></tr><tr><td><code>SlashReason</code></td><td><code>enum(u8) {</code></td><td>Slash reason</td></tr><tr><td><code>SLASH_DOUBLE_SIGN_PCT</code></td><td><code>u64 = 33</code></td><td>S l a s h_ d o u b l e_ s i g n_ p c t</td></tr><tr><td><code>SLASH_INVALID_BLOCK_PCT</code></td><td><code>u64 = 10</code></td><td>S l a s h_ i n v a l i d_ b l o c k_ p c t</td></tr><tr><td><code>DOWNTIME_PENALTY_PCT</code></td><td><code>u64 = 1</code></td><td>D o w n t i m e_ p e n a l t y_ p c t</td></tr><tr><td><code>MIN_SLASH_AMOUNT</code></td><td><code>u64 = 1_000_000</code></td><td>M i n_ s l a s h_ a m o u n t</td></tr><tr><td><code>REPORTER_REWARD_PCT</code></td><td><code>u64 = 10</code></td><td>R e p o r t e r_ r e w a r d_ p c t</td></tr><tr><td><code>MAX_SLASH_RECORDS</code></td><td><code>usize = 64</code></td><td>M a x_ s l a s h_ r e c o r d s</td></tr><tr><td><code>MAX_TOTAL_SLASH_RECORDS</code></td><td><code>usize = 512</code></td><td>M a x_ t o t a l_ s l a s h_ r e c o r d s</td></tr><tr><td><code>SLASH_EQUIVOCATION_PCT</code></td><td><code>u64 = SLASH_DOUBLE_SIGN_PCT</code></td><td>S l a s h_ e q u i v o c a t i o n_ p c t</td></tr><tr><td><code>SLASH_DOWNTIME_PERMILLE</code></td><td><code>u64 = 10</code></td><td>S l a s h_ d o w n t i m e_ p e r m i l l e</td></tr><tr><td><code>MIN_UPTIME_PCT</code></td><td><code>u8 = 95</code></td><td>M i n_ u p t i m e_ p c t</td></tr><tr><td><code>REWARD_EPOCH_BLOCKS</code></td><td><code>u64 = 100</code></td><td>R e w a r d_ e p o c h_ b l o c k s</td></tr><tr><td><code>ValidatorStatus</code></td><td><code>enum(u8) {</code></td><td>Validator status</td></tr><tr><td><code>MAX_RESULTS</code></td><td><code>usize = MAX_SLASH_RECORDS</code></td><td>M a x_ r e s u l t s</td></tr></table></div>
+
+<h2>Functions (29)</h2>
+        <div class="section">
+            <h3><code>getValidatorAddress()</code></h3>
+            <p class="desc">Returns the current validator address.</p>
+            <pre><code>pub fn getValidatorAddress(self: *const SlashEvidence) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashEvidence</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 95</p>
+        </div>
+        <div class="section">
+            <h3><code>getReporterAddress()</code></h3>
+            <p class="desc">Returns the current reporter address.</p>
+            <pre><code>pub fn getReporterAddress(self: *const SlashEvidence) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashEvidence</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 99</p>
+        </div>
+        <div class="section">
+            <h3><code>getReason()</code></h3>
+            <p class="desc">Returns the current reason.</p>
+            <pre><code>pub fn getReason(self: *const SlashResult) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashResult</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 146</p>
+        </div>
+        <div class="section">
+            <h3><code>rejected()</code></h3>
+            <p class="desc">Performs the rejected operation on the staking module.</p>
+            <pre><code>pub fn rejected(msg: []const u8) SlashResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>msg</code></td><td><code>[]const u8</code></td><td>Msg</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>SlashResult</code></p>
+            <p class="line">Line: 156</p>
+        </div>
+        <div class="section">
+            <h3><code>getValidator()</code></h3>
+            <p class="desc">Returns the current validator.</p>
+            <pre><code>pub fn getValidator(self: *const SlashRecord) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashRecord</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 183</p>
+        </div>
+        <div class="section">
+            <h3><code>getReporter()</code></h3>
+            <p class="desc">Returns the current reporter.</p>
+            <pre><code>pub fn getReporter(self: *const SlashRecord) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashRecord</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 187</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(address: []const u8, stake: u64, block: u64) Validator {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>stake</code></td><td><code>u64</code></td><td>Stake</td></tr><tr><td><code>block</code></td><td><code>u64</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>Validator</code></p>
+            <p class="line">Line: 239</p>
+        </div>
+        <div class="section">
+            <h3><code>uptimePct()</code></h3>
+            <p class="desc">Uptime percentage (0-100)</p>
+            <pre><code>pub fn uptimePct(self: *const Validator) u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Validator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u8</code></p>
+            <p class="line">Line: 253</p>
+        </div>
+        <div class="section">
+            <h3><code>votingPower()</code></h3>
+            <p class="desc">Voting power (proportional to total stake)</p>
+            <pre><code>pub fn votingPower(self: *const Validator) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Validator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 260</p>
+        </div>
+        <div class="section">
+            <h3><code>shouldSlashDowntime()</code></h3>
+            <p class="desc">Check if validator can be slashed for downtime</p>
+            <pre><code>pub fn shouldSlashDowntime(self: *const Validator) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Validator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 266</p>
+        </div>
+        <div class="section">
+            <h3><code>getAddress()</code></h3>
+            <p class="desc">Returns the current address.</p>
+            <pre><code>pub fn getAddress(self: *const Validator) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Validator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 271</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() StakingEngine {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>StakingEngine</code></p>
+            <p class="line">Line: 303</p>
+        </div>
+        <div class="section">
+            <h3><code>registerValidator()</code></h3>
+            <p class="desc">Register a new validator with initial stake</p>
+            <pre><code>pub fn registerValidator(self: *StakingEngine, address: []const u8, stake: u64, current_block: u64) !u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>stake</code></td><td><code>u64</code></td><td>Stake</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u8</code></p>
+            <p class="line">Line: 318</p>
+        </div>
+        <div class="section">
+            <h3><code>activateValidator()</code></h3>
+            <p class="desc">Activate a pending validator</p>
+            <pre><code>pub fn activateValidator(self: *StakingEngine, index: u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u8</code></td><td>Index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 335</p>
+        </div>
+        <div class="section">
+            <h3><code>startUnbonding()</code></h3>
+            <p class="desc">Start unbonding process</p>
+            <pre><code>pub fn startUnbonding(self: *StakingEngine, index: u8, current_block: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u8</code></td><td>Index</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 343</p>
+        </div>
+        <div class="section">
+            <h3><code>completeUnbonding()</code></h3>
+            <p class="desc">Complete unbonding (after UNBONDING_PERIOD blocks)</p>
+            <pre><code>pub fn completeUnbonding(self: *StakingEngine, index: u8, current_block: u64) !u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u8</code></td><td>Index</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u64</code></p>
+            <p class="line">Line: 352</p>
+        </div>
+        <div class="section">
+            <h3><code>slashEquivocation()</code></h3>
+            <p class="desc">Slash a validator for equivocation (double signing)</p>
+            <pre><code>pub fn slashEquivocation(self: *StakingEngine, index: u8) !u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u8</code></td><td>Index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u64</code></p>
+            <p class="line">Line: 367</p>
+        </div>
+        <div class="section">
+            <h3><code>slashDowntime()</code></h3>
+            <p class="desc">Slash for downtime</p>
+            <pre><code>pub fn slashDowntime(self: *StakingEngine, index: u8) !u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u8</code></td><td>Index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u64</code></p>
+            <p class="line">Line: 384</p>
+        </div>
+        <div class="section">
+            <h3><code>selectProposer()</code></h3>
+            <p class="desc">Select block proposer (weighted random by stake)
+Uses block_hash as randomness source (like EGLD SPoS)</p>
+            <pre><code>pub fn selectProposer(self: *const StakingEngine, block_hash: [32]u8) ?u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr><tr><td><code>block_hash</code></td><td><code>[32]u8</code></td><td>Block_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?u8</code></p>
+            <p class="line">Line: 403</p>
+        </div>
+        <div class="section">
+            <h3><code>activeCount()</code></h3>
+            <p class="desc">Get number of active validators</p>
+            <pre><code>pub fn activeCount(self: *const StakingEngine) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 420</p>
+        </div>
+        <div class="section">
+            <h3><code>totalVotingPower()</code></h3>
+            <p class="desc">Total active voting power</p>
+            <pre><code>pub fn totalVotingPower(self: *const StakingEngine) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 429</p>
+        </div>
+        <div class="section">
+            <h3><code>distributeRewards()</code></h3>
+            <p class="desc">Distribute rewards to active validators proportional to stake</p>
+            <pre><code>pub fn distributeRewards(self: *StakingEngine, total_reward: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>total_reward</code></td><td><code>u64</code></td><td>Total_reward</td></tr></table>
+            
+            <p class="line">Line: 438</p>
+        </div>
+        <div class="section">
+            <h3><code>submitSlashEvidence()</code></h3>
+            <p class="desc">Submit slash evidence — verify the proof and execute the slash if valid.
+Returns a SlashResult indicating success/failure and amounts.
+
+Philosophy: Slash ONLY validators who intentionally cheat.
+Normal users cannot be slashed (they have no stake).</p>
+            <pre><code>pub fn submitSlashEvidence(self: *StakingEngine, evidence: SlashEvidence) SlashResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StakingEngine</code></td><td>The instance</td></tr><tr><td><code>evidence</code></td><td><code>SlashEvidence</code></td><td>Evidence</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>SlashResult</code></p>
+            <p class="line">Line: 457</p>
+        </div>
+        <div class="section">
+            <h3><code>findValidatorIndex()</code></h3>
+            <p class="desc">Look up a validator by address. Returns index or null.</p>
+            <pre><code>pub fn findValidatorIndex(self: *const StakingEngine, address: []const u8) ?usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?usize</code></p>
+            <p class="line">Line: 604</p>
+        </div>
+        <div class="section">
+            <h3><code>getSlashHistory()</code></h3>
+            <p class="desc">Get slash history for a specific validator.
+Returns a slice of the internal slash_records array matching the address.
+Caller should copy if needed — returned data points into engine storage.</p>
+            <pre><code>pub fn getSlashHistory(self: *const StakingEngine, address: []const u8) SlashHistoryResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>SlashHistoryResult</code></p>
+            <p class="line">Line: 614</p>
+        </div>
+        <div class="section">
+            <h3><code>getValidatorInfo()</code></h3>
+            <p class="desc">Get staking info for a validator (for RPC getstakinginfo)</p>
+            <pre><code>pub fn getValidatorInfo(self: *const StakingEngine, address: []const u8) ?ValidatorInfo {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StakingEngine</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?ValidatorInfo</code></p>
+            <p class="line">Line: 628</p>
+        </div>
+        <div class="section">
+            <h3><code>slice()</code></h3>
+            <p class="desc">Performs the slice operation on the staking module.</p>
+            <pre><code>pub fn slice(self: *const SlashHistoryResult) []const SlashRecord {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlashHistoryResult</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const SlashRecord</code></p>
+            <p class="line">Line: 655</p>
+        </div>
+        <div class="section">
+            <h3><code>getAddress()</code></h3>
+            <p class="desc">Returns the current address.</p>
+            <pre><code>pub fn getAddress(self: *const ValidatorInfo) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ValidatorInfo</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 675</p>
+        </div>
+        <div class="section">
+            <h3><code>statusString()</code></h3>
+            <p class="desc">Performs the status string operation on the staking module.</p>
+            <pre><code>pub fn statusString(self: *const ValidatorInfo) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ValidatorInfo</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 679</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

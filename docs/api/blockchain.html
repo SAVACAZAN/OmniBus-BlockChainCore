@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blockchain — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>blockchain</code></h1>
+<p class="module-desc">Core blockchain engine — manages the chain, validates blocks, handles reorgs, tracks balances per address, and implements difficulty retargeting (Bitcoin-style, every 2016 blocks).</p>
+<p class="stats">Source: core/blockchain.zig &bull; 2127 lines &bull; 33 functions &bull; 2 structs &bull; 72 tests</p>
+
+<h2>Structs (2)</h2>
+        <div class="section">
+            <h3><code>MultisigConfigEntry</code></h3>
+            <p>Entry for storing a multisig config alongside its address string.</p>
+            
+            <p class="line">Line: 87</p>
+        </div>
+        <div class="section">
+            <h3><code>Blockchain</code></h3>
+            <p>The main blockchain state — manages the chain of blocks, validates additions, tracks balances, and handles reorganizations.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>chain</code></td><td><code>array_list.Managed(Block)</code></td><td>Chain</td></tr><tr><td><code>mempool</code></td><td><code>array_list.Managed(Transaction)</code></td><td>Mempool</td></tr><tr><td><code>difficulty</code></td><td><code>u32</code></td><td>Difficulty</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>balances</code></td><td><code>std.StringHashMap(u64)</code></td><td>Balances</td></tr><tr><td><code>nonces</code></td><td><code>std.StringHashMap(u64)</code></td><td>Nonces</td></tr><tr><td><code>tx_block_height</code></td><td><code>std.StringHashMap(u64)</code></td><td>Tx_block_height</td></tr><tr><td><code>orphan_blocks</code></td><td><code>array_list.Managed(Block)</code></td><td>Orphan_blocks</td></tr><tr><td><code>address_tx_index</code></td><td><code>std.StringHashMap(std.ArrayList([]const u8))</code></td><td>Address_tx_index</td></tr></table>
+            <p class="line">Line: 98</p>
+        </div>
+
+<h2>Constants (16)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>Block</code></td><td><code>block_mod.Block</code></td><td>Block</td></tr><tr><td><code>Transaction</code></td><td><code>transaction_mod.Transaction</code></td><td>Transaction</td></tr><tr><td><code>BLOCK_REWARD_SAT</code></td><td><code>u64 = 8_333_333</code></td><td>B l o c k_ r e w a r d_ s a t</td></tr><tr><td><code>HALVING_INTERVAL</code></td><td><code>u64 = 126_144_000</code></td><td>H a l v i n g_ i n t e r v a l</td></tr><tr><td><code>MAX_SUPPLY_SAT</code></td><td><code>u64 = 21_000_000_000_000_000</code></td><td>M a x_ s u p p l y_ s a t</td></tr><tr><td><code>COINBASE_MATURITY</code></td><td><code>u32 = 100</code></td><td>C o i n b a s e_ m a t u r i t y</td></tr><tr><td><code>DUST_THRESHOLD_SAT</code></td><td><code>u64 = 100</code></td><td>D u s t_ t h r e s h o l d_ s a t</td></tr><tr><td><code>MAX_REORG_DEPTH</code></td><td><code>usize = 100</code></td><td>M a x_ r e o r g_ d e p t h</td></tr><tr><td><code>MAX_ORPHAN_POOL</code></td><td><code>usize = 64</code></td><td>M a x_ o r p h a n_ p o o l</td></tr><tr><td><code>RETARGET_INTERVAL</code></td><td><code>u64 = 2016</code></td><td>R e t a r g e t_ i n t e r v a l</td></tr><tr><td><code>TARGET_BLOCK_TIME_S</code></td><td><code>i64 = 1</code></td><td>T a r g e t_ b l o c k_ t i m e_ s</td></tr><tr><td><code>TARGET_INTERVAL_S</code></td><td><code>i64 = @intCast(RETARGET_INTERVAL)</code></td><td>T a r g e t_ i n t e r v a l_ s</td></tr><tr><td><code>MIN_DIFFICULTY</code></td><td><code>u32 = 1</code></td><td>M i n_ d i f f i c u l t y</td></tr><tr><td><code>MAX_DIFFICULTY</code></td><td><code>u32 = 256</code></td><td>M a x_ d i f f i c u l t y</td></tr><tr><td><code>FEE_BURN_PCT</code></td><td><code>u64 = 50</code></td><td>F e e_ b u r n_ p c t</td></tr><tr><td><code>TX_MIN_FEE</code></td><td><code>u64 = 1</code></td><td>T x_ m i n_ f e e</td></tr></table></div>
+
+<h2>Functions (33)</h2>
+        <div class="section">
+            <h3><code>retargetDifficulty()</code></h3>
+            <p class="desc">Calculeaza noua dificultate dupa un interval de retarget.
+Formula: new_difficulty = old_difficulty * TARGET_INTERVAL / actual_time
+Clamped la ±4x fata de dificultatea anterioara (ca Bitcoin) si [MIN, MAX].</p>
+            <pre><code>pub fn retargetDifficulty(old_difficulty: u32, actual_time_s: i64) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>old_difficulty</code></td><td><code>u32</code></td><td>Old_difficulty</td></tr><tr><td><code>actual_time_s</code></td><td><code>i64</code></td><td>Actual_time_s</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 64</p>
+        </div>
+        <div class="section">
+            <h3><code>blockRewardAt()</code></h3>
+            <p class="desc">Performs the block reward at operation on the blockchain module.</p>
+            <pre><code>pub fn blockRewardAt(height: u64) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 80</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) !Blockchain {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!Blockchain</code></p>
+            <p class="line">Line: 138</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *Blockchain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 168</p>
+        </div>
+        <div class="section">
+            <h3><code>getAddressBalance()</code></h3>
+            <p class="desc">Returneaza balanta unei adrese (0 daca nu exista)</p>
+            <pre><code>pub fn getAddressBalance(self: *const Blockchain, address: []const u8) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 209</p>
+        </div>
+        <div class="section">
+            <h3><code>getConfirmations()</code></h3>
+            <p class="desc">Returns the number of confirmations for a TX (null if TX not found in any block).
+confirmations = current_chain_height - block_height_containing_tx</p>
+            <pre><code>pub fn getConfirmations(self: *const Blockchain, tx_hash: []const u8) ?u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?u64</code></p>
+            <p class="line">Line: 215</p>
+        </div>
+        <div class="section">
+            <h3><code>getTxBlockHeight()</code></h3>
+            <p class="desc">Returns the block height that contains a given TX (null if not found)</p>
+            <pre><code>pub fn getTxBlockHeight(self: *const Blockchain, tx_hash: []const u8) ?u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?u64</code></p>
+            <p class="line">Line: 223</p>
+        </div>
+        <div class="section">
+            <h3><code>indexAddressTx()</code></h3>
+            <p class="desc">Index a TX hash for a given address in address_tx_index.
+Creates the list if address not yet tracked.</p>
+            <pre><code>pub fn indexAddressTx(self: *Blockchain, address: []const u8, tx_hash: []const u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr></table>
+            
+            <p class="line">Line: 229</p>
+        </div>
+        <div class="section">
+            <h3><code>getAddressHistory()</code></h3>
+            <p class="desc">Returns the list of TX hashes associated with an address (both sent and received).
+Returns null if address has no history.</p>
+            <pre><code>pub fn getAddressHistory(self: *const Blockchain, address: []const u8) ?[]const []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]const []const u8</code></p>
+            <p class="line">Line: 243</p>
+        </div>
+        <div class="section">
+            <h3><code>creditBalance()</code></h3>
+            <p class="desc">Adauga reward la balanta minerului</p>
+            <pre><code>pub fn creditBalance(self: *Blockchain, address: []const u8, amount: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 250</p>
+        </div>
+        <div class="section">
+            <h3><code>debitBalance()</code></h3>
+            <p class="desc">Scade din balanta (pentru tranzactii)</p>
+            <pre><code>pub fn debitBalance(self: *Blockchain, address: []const u8, amount: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 256</p>
+        </div>
+        <div class="section">
+            <h3><code>registerPubkey()</code></h3>
+            <p class="desc">Inregistreaza public key-ul unei adrese (pentru verificare semnatura TX)
+pubkey_hex = compressed secp256k1 public key, 66 hex chars</p>
+            <pre><code>pub fn registerPubkey(self: *Blockchain, address: []const u8, pubkey_hex: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>pubkey_hex</code></td><td><code>[]const u8</code></td><td>Pubkey_hex</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 264</p>
+        </div>
+        <div class="section">
+            <h3><code>registerMultisig()</code></h3>
+            <p class="desc">Register a multisig wallet configuration (address → M-of-N config).
+Called by the "createmultisig" RPC handler.</p>
+            <pre><code>pub fn registerMultisig(self: *Blockchain, address: []const u8, config: multisig_mod.MultisigConfig) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>config</code></td><td><code>multisig_mod.MultisigConfig</code></td><td>Config</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 276</p>
+        </div>
+        <div class="section">
+            <h3><code>getMultisigConfig()</code></h3>
+            <p class="desc">Look up a multisig config by address.</p>
+            <pre><code>pub fn getMultisigConfig(self: *const Blockchain, address: []const u8) ?*const multisig_mod.MultisigConfig {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const multisig_mod.MultisigConfig</code></p>
+            <p class="line">Line: 294</p>
+        </div>
+        <div class="section">
+            <h3><code>addTransaction()</code></h3>
+            <p class="desc">Adds a new transaction to the collection.</p>
+            <pre><code>pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>tx</code></td><td><code>Transaction</code></td><td>Tx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 303</p>
+        </div>
+        <div class="section">
+            <h3><code>getPendingOutgoing()</code></h3>
+            <p class="desc">Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX)
+Folosit in validateTransaction() pentru a preveni double-spend cu TX-uri rapide</p>
+            <pre><code>pub fn getPendingOutgoing(self: *const Blockchain, address: []const u8) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 314</p>
+        </div>
+        <div class="section">
+            <h3><code>getNextNonce()</code></h3>
+            <p class="desc">Returneaza urmatorul nonce confirmat pentru o adresa (0 daca nu exista)
+Acesta este nonce-ul pe chain — NU include TX-urile pending din mempool</p>
+            <pre><code>pub fn getNextNonce(self: *const Blockchain, address: []const u8) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 326</p>
+        </div>
+        <div class="section">
+            <h3><code>getNextAvailableNonce()</code></h3>
+            <p class="desc">Returneaza urmatorul nonce disponibil pentru o adresa,
+incluzand TX-urile pending din mempool (chain_nonce + pending_count).
+Aceasta metoda este utila pentru RPC "getnonce" — clientul stie ce nonce sa puna pe urmatoarea TX.</p>
+            <pre><code>pub fn getNextAvailableNonce(self: *const Blockchain, address: []const u8) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 333</p>
+        </div>
+        <div class="section">
+            <h3><code>validateTransaction()</code></h3>
+            <p class="desc">Validates the transaction. Returns true if valid, false otherwise.</p>
+            <pre><code>pub fn validateTransaction(self: *Blockchain, tx: *const Transaction) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>tx</code></td><td><code>*const Transaction</code></td><td>Tx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 345</p>
+        </div>
+        <div class="section">
+            <h3><code>mineBlock()</code></h3>
+            <p class="desc">Executes mining operation — finds valid nonce for the next block.</p>
+            <pre><code>pub fn mineBlock(self: *Blockchain) !Block {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!Block</code></p>
+            <p class="line">Line: 445</p>
+        </div>
+        <div class="section">
+            <h3><code>mineBlockForMiner()</code></h3>
+            <p class="desc">Mine block + acorda reward minerului + proceseaza TX-urile din mempool</p>
+            <pre><code>pub fn mineBlockForMiner(self: *Blockchain, miner_address: []const u8) !Block {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>miner_address</code></td><td><code>[]const u8</code></td><td>Miner_address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!Block</code></p>
+            <p class="line">Line: 450</p>
+        </div>
+        <div class="section">
+            <h3><code>calculateBlockHash()</code></h3>
+            <p class="desc">Calculate block hash as 64-char hex string (shared implementation in hex_utils)</p>
+            <pre><code>pub fn calculateBlockHash(self: *Blockchain, block: *const Block) ![]const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]const u8</code></p>
+            <p class="line">Line: 552</p>
+        </div>
+        <div class="section">
+            <h3><code>isValidHash()</code></h3>
+            <p class="desc">Check if hash meets difficulty (delegates to shared hex_utils)</p>
+            <pre><code>pub fn isValidHash(self: *Blockchain, hash: []const u8) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 557</p>
+        </div>
+        <div class="section">
+            <h3><code>validateBlock()</code></h3>
+            <p class="desc">Validate a block against all consensus rules (Bitcoin-level validation).
+Returns true if the block passes all checks, false otherwise.
+Checks: merkle root, timestamp, previous hash, difficulty, fees/reward, TX validity.</p>
+            <pre><code>pub fn validateBlock(self: *Blockchain, block: *const Block) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 567</p>
+        </div>
+        <div class="section">
+            <h3><code>addExternalBlock()</code></h3>
+            <p class="desc">Accept a block from a P2P peer. Fully validates before appending.
+Handles three cases:
+1. Block extends our chain tip -> append normally
+2. Block forks from our chain and creates a longer chain -> reorg
+3. Block's parent is unknown -> store in orphan pool
+After appending, checks if any orphan blocks now connect.</p>
+            <pre><code>pub fn addExternalBlock(self: *Blockchain, block: Block) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 642</p>
+        </div>
+        <div class="section">
+            <h3><code>reorg()</code></h3>
+            <p class="desc">Accept a full chain from a peer and reorg if it's longer.
+Validates all blocks in the new chain from the fork point.
+Returns orphaned TXs to mempool for re-mining.</p>
+            <pre><code>pub fn reorg(self: *Blockchain, new_chain: []const Block) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>new_chain</code></td><td><code>[]const Block</code></td><td>New_chain</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 716</p>
+        </div>
+        <div class="section">
+            <h3><code>checkAutoSave()</code></h3>
+            <p class="desc">Check if auto-save should trigger based on block count or time elapsed.
+Called after each mined block. Saves at 100 blocks, 60s, or 1000 TXs.</p>
+            <pre><code>pub fn checkAutoSave(self: *Blockchain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 799</p>
+        </div>
+        <div class="section">
+            <h3><code>saveToDisc()</code></h3>
+            <p class="desc">Convenience method: save full blockchain state to disc via PersistentBlockchain.
+No-op if persistent_db has not been attached (e.g. in unit tests).</p>
+            <pre><code>pub fn saveToDisc(self: *Blockchain) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 817</p>
+        </div>
+        <div class="section">
+            <h3><code>findForkPoint()</code></h3>
+            <p class="desc">Find the highest block index where both chains have the same hash.
+Returns null if no common ancestor found (completely divergent chains).</p>
+            <pre><code>pub fn findForkPoint(self: *const Blockchain, other_chain: []const Block) ?usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>other_chain</code></td><td><code>[]const Block</code></td><td>Other_chain</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?usize</code></p>
+            <p class="line">Line: 825</p>
+        </div>
+        <div class="section">
+            <h3><code>processOrphans()</code></h3>
+            <p class="desc">Process orphan blocks: check if any now connect to our chain tip.
+Keeps trying until no more orphans connect (cascading resolution).</p>
+            <pre><code>pub fn processOrphans(self: *Blockchain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 971</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlock()</code></h3>
+            <p class="desc">Returns the block for the given index.</p>
+            <pre><code>pub fn getBlock(self: *Blockchain, index: u32) ?Block {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u32</code></td><td>Index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?Block</code></p>
+            <p class="line">Line: 1002</p>
+        </div>
+        <div class="section">
+            <h3><code>getLatestBlock()</code></h3>
+            <p class="desc">Returns the current latest block.</p>
+            <pre><code>pub fn getLatestBlock(self: *Blockchain) Block {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>Block</code></p>
+            <p class="line">Line: 1009</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlockCount()</code></h3>
+            <p class="desc">Returns the current block count.</p>
+            <pre><code>pub fn getBlockCount(self: *Blockchain) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 1013</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

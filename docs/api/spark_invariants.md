@@ -1,10 +1,43 @@
 # Module: `spark_invariants`
 
+> Formal verification — 17 Ada/SPARK-style compile-time invariants for critical blockchain properties.
+
+**Source:** `core/spark_invariants.zig` | **Lines:** 297 | **Functions:** 13 | **Structs:** 2 | **Tests:** 17
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`SupplyGuard`](#supplyguard) — SupplyGuard — tracker atomic al supply-ului emis
+Orice emisie de OMNI trece prin...
+- [`TemporalGuard`](#temporalguard) — Verifică că un timestamp e în ordine (monoton crescător)
+
+### Constants
+- [7 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`emit()`](#emit) — Emit reward pentru un bloc — GARANTAT că nu depășește MAX_SUPPLY_SAT
+E...
+- [`assertValid()`](#assertvalid) — Verifică că supply-ul curent e valid (runtime check)
+Returneaza error ...
+- [`remaining()`](#remaining) — Performs the remaining operation on the spark_invariants module.
+- [`emittedPercent()`](#emittedpercent) — Performs the emitted percent operation on the spark_invariants module.
+- [`getBlockReward()`](#getblockreward) — Calculează reward-ul pentru blocul la height dat
+INVARIANT: getBlockRe...
+- [`assertRewardMonotone()`](#assertrewardmonotone) — Verifică invariantul monoton: reward(h) >= reward(h+1)
+Returneaza erro...
+- [`totalEmittedUpTo()`](#totalemittedupto) — Calculează suma totală de recompense de la bloc 0 la bloc `height`
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`checkTimestamp()`](#checktimestamp) — Validează că noul timestamp e strict mai mare decât precedentul
+INVARI...
+- [`checkMicroBlockInterval()`](#checkmicroblockinterval) — Verifică că un micro-bloc e la intervalul corect (0.1s)
+- [`checkedSub()`](#checkedsub) — Verifică că o operație de scădere nu produce underflow
+Echivalent Ada:...
+- [`checkedAdd()`](#checkedadd) — Verifică că o operație de adunare nu produce overflow sau supply viola...
+
+---
 
 ## Structs
 
@@ -14,29 +47,45 @@ SupplyGuard — tracker atomic al supply-ului emis
 Orice emisie de OMNI trece prin acest guard
 Dacă ar depăși MAX_SUPPLY_SAT → @panic (echivalent Ada: Contract_Failure)
 
-*Line: 76*
+| Field | Type | Description |
+|-------|------|-------------|
+| `emitted_sat` | `u64` | Emitted_sat |
+
+*Defined at line 76*
+
+---
 
 ### `TemporalGuard`
 
 Verifică că un timestamp e în ordine (monoton crescător)
 
-*Line: 154*
+| Field | Type | Description |
+|-------|------|-------------|
+| `last_timestamp_ms` | `i64` | Last_timestamp_ms |
+
+*Defined at line 154*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `MAX_SUPPLY_SAT` | auto | `u64 = 21_000_000 * 1_000_000_000` |
-| `INITIAL_REWARD_SAT` | auto | `u64 = 83_333_333` |
-| `HALVING_INTERVAL` | auto | `u64 = 126_144_000` |
-| `MAX_HALVINGS` | auto | `u64 = 64` |
-| `BLOCK_TIME_MS` | auto | `u64 = 1_000` |
-| `MICRO_BLOCK_TIME_MS` | auto | `u64 = 100` |
-| `MICRO_BLOCKS_PER_KEY` | auto | `u64 = BLOCK_TIME_MS / MICRO_BLOCK_TIME_MS` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `MAX_SUPPLY_SAT` | `u64 = 21_000_000 * 1_000_000_000` | M a x_ s u p p l y_ s a t |
+| `INITIAL_REWARD_SAT` | `u64 = 83_333_333` | I n i t i a l_ r e w a r d_ s a t |
+| `HALVING_INTERVAL` | `u64 = 126_144_000` | H a l v i n g_ i n t e r v a l |
+| `MAX_HALVINGS` | `u64 = 64` | M a x_ h a l v i n g s |
+| `BLOCK_TIME_MS` | `u64 = 1_000` | B l o c k_ t i m e_ m s |
+| `MICRO_BLOCK_TIME_MS` | `u64 = 100` | M i c r o_ b l o c k_ t i m e_ m s |
+| `MICRO_BLOCKS_PER_KEY` | `u64 = BLOCK_TIME_MS / MICRO_BLOCK_TIME_MS` | M i c r o_ b l o c k s_ p e r_ k e y |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() SupplyGuard {
@@ -44,11 +93,11 @@ pub fn init() SupplyGuard {
 
 **Returns:** `SupplyGuard`
 
-*Line: 79*
+*Defined at line 79*
 
 ---
 
-### `emit`
+### `emit()`
 
 Emit reward pentru un bloc — GARANTAT că nu depășește MAX_SUPPLY_SAT
 Echivalent Ada Spark: procedure Emit with
@@ -59,18 +108,18 @@ Post => Emitted = Emitted'Old + Amount;
 pub fn emit(self: *SupplyGuard, amount_sat: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*SupplyGuard`
-- `amount_sat`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*SupplyGuard` | The instance |
+| `amount_sat` | `u64` | Amount_sat |
 
 **Returns:** `!void`
 
-*Line: 87*
+*Defined at line 87*
 
 ---
 
-### `assertValid`
+### `assertValid()`
 
 Verifică că supply-ul curent e valid (runtime check)
 Returneaza error in loc de @panic pentru graceful handling
@@ -79,49 +128,53 @@ Returneaza error in loc de @panic pentru graceful handling
 pub fn assertValid(self: *const SupplyGuard) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*const SupplyGuard`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SupplyGuard` | The instance |
 
 **Returns:** `!void`
 
-*Line: 97*
+*Defined at line 97*
 
 ---
 
-### `remaining`
+### `remaining()`
+
+Performs the remaining operation on the spark_invariants module.
 
 ```zig
 pub fn remaining(self: *const SupplyGuard) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const SupplyGuard`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SupplyGuard` | The instance |
 
 **Returns:** `u64`
 
-*Line: 103*
+*Defined at line 103*
 
 ---
 
-### `emittedPercent`
+### `emittedPercent()`
+
+Performs the emitted percent operation on the spark_invariants module.
 
 ```zig
 pub fn emittedPercent(self: *const SupplyGuard) f64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const SupplyGuard`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SupplyGuard` | The instance |
 
 **Returns:** `f64`
 
-*Line: 107*
+*Defined at line 107*
 
 ---
 
-### `getBlockReward`
+### `getBlockReward()`
 
 Calculează reward-ul pentru blocul la height dat
 INVARIANT: getBlockReward(h1) >= getBlockReward(h2) dacă h1 < h2
@@ -132,17 +185,17 @@ with Post => Block_Reward'Result <= Initial_Reward;
 pub fn getBlockReward(height: u64) u64 {
 ```
 
-**Parameters:**
-
-- `height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `height` | `u64` | Height |
 
 **Returns:** `u64`
 
-*Line: 119*
+*Defined at line 119*
 
 ---
 
-### `assertRewardMonotone`
+### `assertRewardMonotone()`
 
 Verifică invariantul monoton: reward(h) >= reward(h+1)
 Returneaza error in loc de @panic pentru recoverable handling
@@ -151,17 +204,17 @@ Returneaza error in loc de @panic pentru recoverable handling
 pub fn assertRewardMonotone(height: u64) !void {
 ```
 
-**Parameters:**
-
-- `height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `height` | `u64` | Height |
 
 **Returns:** `!void`
 
-*Line: 131*
+*Defined at line 131*
 
 ---
 
-### `totalEmittedUpTo`
+### `totalEmittedUpTo()`
 
 Calculează suma totală de recompense de la bloc 0 la bloc `height`
 
@@ -169,17 +222,19 @@ Calculează suma totală de recompense de la bloc 0 la bloc `height`
 pub fn totalEmittedUpTo(height: u64) u64 {
 ```
 
-**Parameters:**
-
-- `height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `height` | `u64` | Height |
 
 **Returns:** `u64`
 
-*Line: 140*
+*Defined at line 140*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() TemporalGuard {
@@ -187,11 +242,11 @@ pub fn init() TemporalGuard {
 
 **Returns:** `TemporalGuard`
 
-*Line: 157*
+*Defined at line 157*
 
 ---
 
-### `checkTimestamp`
+### `checkTimestamp()`
 
 Validează că noul timestamp e strict mai mare decât precedentul
 INVARIANT: timestamp[n] > timestamp[n-1]
@@ -200,18 +255,18 @@ INVARIANT: timestamp[n] > timestamp[n-1]
 pub fn checkTimestamp(self: *TemporalGuard, ts_ms: i64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*TemporalGuard`
-- `ts_ms`: `i64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*TemporalGuard` | The instance |
+| `ts_ms` | `i64` | Ts_ms |
 
 **Returns:** `!void`
 
-*Line: 163*
+*Defined at line 163*
 
 ---
 
-### `checkMicroBlockInterval`
+### `checkMicroBlockInterval()`
 
 Verifică că un micro-bloc e la intervalul corect (0.1s)
 
@@ -219,18 +274,18 @@ Verifică că un micro-bloc e la intervalul corect (0.1s)
 pub fn checkMicroBlockInterval(self: *const TemporalGuard, ts_ms: i64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*const TemporalGuard`
-- `ts_ms`: `i64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const TemporalGuard` | The instance |
+| `ts_ms` | `i64` | Ts_ms |
 
 **Returns:** `!void`
 
-*Line: 172*
+*Defined at line 172*
 
 ---
 
-### `checkedSub`
+### `checkedSub()`
 
 Verifică că o operație de scădere nu produce underflow
 Echivalent Ada: pragma Assert (Balance >= Amount);
@@ -239,18 +294,18 @@ Echivalent Ada: pragma Assert (Balance >= Amount);
 pub fn checkedSub(balance: u64, amount: u64) !u64 {
 ```
 
-**Parameters:**
-
-- `balance`: `u64`
-- `amount`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `balance` | `u64` | Balance |
+| `amount` | `u64` | Amount |
 
 **Returns:** `!u64`
 
-*Line: 183*
+*Defined at line 183*
 
 ---
 
-### `checkedAdd`
+### `checkedAdd()`
 
 Verifică că o operație de adunare nu produce overflow sau supply violation
 
@@ -258,14 +313,18 @@ Verifică că o operație de adunare nu produce overflow sau supply violation
 pub fn checkedAdd(a: u64, b: u64) !u64 {
 ```
 
-**Parameters:**
-
-- `a`: `u64`
-- `b`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `a` | `u64` | A |
+| `b` | `u64` | B |
 
 **Returns:** `!u64`
 
-*Line: 189*
+*Defined at line 189*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

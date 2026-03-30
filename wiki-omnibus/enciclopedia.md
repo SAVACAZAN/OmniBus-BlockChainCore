@@ -69,7 +69,18 @@
 | `getblockcount` | Număr blocuri în chain |
 | `getlatestblock` | index, hash, timestamp, nonce, txCount |
 | `getmempoolsize` | TX pending |
+| `getmempoolstats` | Detailed mempool stats (size, bytes, fees) |
 | `getstatus` | Status complet nod |
+| `gettransaction` | TX by hash |
+| `estimatefee` | Fee estimation per byte |
+| `getaddresshistory` | Full TX history for address |
+| `getnonce` | Next nonce for address |
+| `generatewallet` | Generate new wallet |
+| `getstakinginfo` | Staking stats, validators |
+| `createmultisig` | M-of-N multisig address |
+| `openchannel` | Open payment channel (L2) |
+| `channelpay` | Pay through L2 channel |
+| `getperformance` | Node performance metrics |
 
 **Implementat 2026-03-26:**
 - `validateTransaction` — verificare hash integrity SHA256d (anti-tampering)
@@ -309,9 +320,9 @@ service ExchangeAggregator {
 
 | Componentă | Scor | Status |
 |-----------|------|--------|
-| Blockchain Core (Zig) | 93% | zig build test EXIT 0, 125+ teste, metachain+shard integrat |
+| Blockchain Core (Zig) | 95% | 69 module, 873 funcții, 217 structuri, 39 RPC methods |
 | Crypto (secp256k1, PQ, BIP-32) | 95% | Funcțional; crypto.zig AES=XOR stub (minor) |
-| RPC Server (JSON-RPC 2.0) | 97% | Complet + gettransactions |
+| RPC Server (JSON-RPC 2.0) | 99% | 39 metode: staking, multisig, channels, performance |
 | Mining Pool (Node.js) | 95% | Dynamic, persistent |
 | Desktop App (C++ sidebar) | 99% | HMAC signing REAL, vault cross-platform, build OK 2.4MB |
 | SuperVault (DPAPI/libsodium) | 99% | Windows DPAPI + Linux libsodium, opcode 0x4C, Makefile.linux |
@@ -320,11 +331,11 @@ service ExchangeAggregator {
 | HFT Aggregator (Zig+React) | 80% | Funcțional; Zig 0.14 gzip bug nerezolvat |
 | Python Exchange Gateway | 85% | 85.1% endpoint success; live trading auth TODO |
 | Bare-metal OS | 90% | Production Phase 72; boot real pe hardware neconfirmat |
-| P2P Network (Zig) | 35% | Framework mock; TCP real lipsește |
+| P2P Network (Zig) | 90% | TCP real, Kademlia DHT, peer scoring, broadcast, sync |
 | ExoCharts (Zig+HTML5) | 75% | Funcțional; Zig 0.12 → upgrade necesar |
 | Cross-language bindings | 20% | Planificat (WASM/FFI/gRPC) |
 
-**MEDIE GLOBALĂ: ~86%** *(+8% față de documentația anterioară)*
+**MEDIE GLOBALĂ: ~91%** *(+13% față de documentația anterioară, actualizat 2026-03-31)*
 
 ---
 
@@ -337,15 +348,15 @@ service ExchangeAggregator {
 - ~~**Metachain + Shard in mining loop**~~ — ✅ main.zig integrat
 
 ### Rămase
-1. **P2P TCP real** — `network.zig` → `std.net` socket, peer sync real
+1. ~~**P2P TCP real**~~ — ✅ `p2p.zig` TCP real, Kademlia DHT, peer scoring, broadcast
 2. **RocksDB persistence** — `database.zig` → disk persistent (nu in-memory)
 3. **HFT gzip fix** — Zig 0.14 → 0.15.2 upgrade pentru Kraken/Coinbase decompression
 4. **ExoCharts upgrade** — Zig 0.12 → 0.15.2
 5. **OmniBus-Connect live auth** — token OAuth complet 9 exchange-uri
 6. **WASM wallet** — compila `bip32_wallet.zig` + `pq_crypto.zig` → WASM browser
-7. **WebSocket real-time** — pentru React frontend explorer
+7. ~~**WebSocket real-time**~~ — ✅ `ws_server.zig` port 8334, push events to React
 8. **gRPC proto** — `omnibus.proto` cu WalletService + TradingDSL
-9. **Docker Compose** — full stack: nod Zig + mining pool + HFT + sidebar
+9. ~~**Docker Compose**~~ — ✅ `Dockerfile` + `docker-compose.yml` adăugate
 10. **mod_wallet.cpp UI** — `gettransactions` afișat în tab WALLET
 
 ---

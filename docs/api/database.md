@@ -1,9 +1,52 @@
 # Module: `database`
 
+> Persistent storage — binary serialization of blockchain state to omnibus-chain.dat, atomic write (tmp → rename), append-only block storage.
+
+**Source:** `core/database.zig` | **Lines:** 1172 | **Functions:** 28 | **Structs:** 3 | **Tests:** 11
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`Database`](#database) — Database: Unified storage layer
+Combines block, transaction, address, and checkp...
+- [`DatabaseStats`](#databasestats) — Data structure for database stats. Fields include: total_blocks, total_transacti...
+- [`PersistentBlockchain`](#persistentblockchain) — Persistent Blockchain: Database + Blockchain combined
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`storeBlock()`](#storeblock) — Performs the store block operation on the database module.
+- [`getBlock()`](#getblock) — Returns the block for the given height.
+- [`getBlockCount()`](#getblockcount) — Returns the current block count.
+- [`indexTransaction()`](#indextransaction) — Performs the index transaction operation on the database module.
+- [`findTransaction()`](#findtransaction) — Searches for transaction matching the given criteria.
+- [`getTransactionCount()`](#gettransactioncount) — Returns the current transaction count.
+- [`updateBalance()`](#updatebalance) — Updates the balance with new values.
+- [`getBalance()`](#getbalance) — Returns the balance for the given address.
+- [`getAddressCount()`](#getaddresscount) — Returns the current address count.
+- [`saveCheckpoint()`](#savecheckpoint) — Saves checkpoint to persistent storage.
+- [`loadCheckpoint()`](#loadcheckpoint) — Loads checkpoint from persistent storage.
+- [`loadLatestCheckpoint()`](#loadlatestcheckpoint) — Loads latest checkpoint from persistent storage.
+- [`setMetadata()`](#setmetadata) — Sets the metadata to the specified value.
+- [`getMetadata()`](#getmetadata) — Returns the metadata for the given key.
+- [`getStats()`](#getstats) — Returns the current stats.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`loadFromDisk()`](#loadfromdisk) — Incarca database din fisier (format binar simplu, fara dependente exte...
+- [`saveToDisk()`](#savetodisk) — Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
+- [`saveBlockchain()`](#saveblockchain) — Salveaza blockchain-ul activ (bc) pe disc
+Format v2: [magic:4][version...
+- [`restoreInto()`](#restoreinto) — Reincarca blockchain-ul din disc in bc (apelat dupa buildBlockchain/ge...
+- [`appendBlock()`](#appendblock) — Append un singur bloc nou la sfarsitul fisierului — for v1 compat.
+For...
+- [`compact()`](#compact) — Compact — sterge blocuri vechi pastrand ultimele N
+- [`checkpoint()`](#checkpoint) — Checkpoint entire blockchain state
+- [`recoverFromCheckpoint()`](#recoverfromcheckpoint) — Recover from checkpoint
+- [`getStats()`](#getstats) — Get database statistics
+
+---
 
 ## Structs
 
@@ -12,336 +55,403 @@
 Database: Unified storage layer
 Combines block, transaction, address, and checkpoint storage
 
-*Line: 15*
+| Field | Type | Description |
+|-------|------|-------------|
+| `blocks` | `BlockStore` | Blocks |
+| `transactions` | `TransactionIndex` | Transactions |
+| `addresses` | `AddressIndex` | Addresses |
+| `checkpoints` | `StateCheckpoint` | Checkpoints |
+| `metadata` | `KeyValueStore` | Metadata |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 20*
+
+---
 
 ### `DatabaseStats`
 
-*Line: 114*
+Data structure for database stats. Fields include: total_blocks, total_transactions, total_addresses, total_checkpoints.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_blocks` | `u64` | Total_blocks |
+| `total_transactions` | `u64` | Total_transactions |
+| `total_addresses` | `usize` | Total_addresses |
+| `total_checkpoints` | `u32` | Total_checkpoints |
+
+*Defined at line 119*
+
+---
 
 ### `PersistentBlockchain`
 
 Persistent Blockchain: Database + Blockchain combined
 
-*Line: 122*
+| Field | Type | Description |
+|-------|------|-------------|
+| `db` | `Database` | Db |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 151*
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) Database {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `Database`
 
-*Line: 23*
+*Defined at line 28*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *Database) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
 
-- `self`: `*Database`
-
-*Line: 34*
+*Defined at line 39*
 
 ---
 
-### `storeBlock`
+### `storeBlock()`
+
+Performs the store block operation on the database module.
 
 ```zig
 pub fn storeBlock(self: *Database, height: u64, block_data: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Database`
-- `height`: `u64`
-- `block_data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
+| `height` | `u64` | Height |
+| `block_data` | `[]const u8` | Block_data |
 
 **Returns:** `!void`
 
-*Line: 43*
+*Defined at line 48*
 
 ---
 
-### `getBlock`
+### `getBlock()`
+
+Returns the block for the given height.
 
 ```zig
 pub fn getBlock(self: *const Database, height: u64) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
-- `height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
+| `height` | `u64` | Height |
 
 **Returns:** `?[]u8`
 
-*Line: 47*
+*Defined at line 52*
 
 ---
 
-### `getBlockCount`
+### `getBlockCount()`
+
+Returns the current block count.
 
 ```zig
 pub fn getBlockCount(self: *const Database) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
 
 **Returns:** `u64`
 
-*Line: 51*
+*Defined at line 56*
 
 ---
 
-### `indexTransaction`
+### `indexTransaction()`
+
+Performs the index transaction operation on the database module.
 
 ```zig
 pub fn indexTransaction(self: *Database, tx_hash: []const u8, block_height: u64, tx_index: u32) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Database`
-- `tx_hash`: `[]const u8`
-- `block_height`: `u64`
-- `tx_index`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
+| `tx_hash` | `[]const u8` | Tx_hash |
+| `block_height` | `u64` | Block_height |
+| `tx_index` | `u32` | Tx_index |
 
 **Returns:** `!void`
 
-*Line: 56*
+*Defined at line 61*
 
 ---
 
-### `findTransaction`
+### `findTransaction()`
+
+Searches for transaction matching the given criteria.
 
 ```zig
 pub fn findTransaction(self: *const Database, tx_hash: []const u8) ?storage_mod.TxLocation {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
-- `tx_hash`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
+| `tx_hash` | `[]const u8` | Tx_hash |
 
 **Returns:** `?storage_mod.TxLocation`
 
-*Line: 60*
+*Defined at line 65*
 
 ---
 
-### `getTransactionCount`
+### `getTransactionCount()`
+
+Returns the current transaction count.
 
 ```zig
 pub fn getTransactionCount(self: *const Database) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
 
 **Returns:** `u64`
 
-*Line: 64*
+*Defined at line 69*
 
 ---
 
-### `updateBalance`
+### `updateBalance()`
+
+Updates the balance with new values.
 
 ```zig
 pub fn updateBalance(self: *Database, address: []const u8, balance: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Database`
-- `address`: `[]const u8`
-- `balance`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
+| `address` | `[]const u8` | Address |
+| `balance` | `u64` | Balance |
 
 **Returns:** `!void`
 
-*Line: 69*
+*Defined at line 74*
 
 ---
 
-### `getBalance`
+### `getBalance()`
+
+Returns the balance for the given address.
 
 ```zig
 pub fn getBalance(self: *const Database, address: []const u8) ?u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
-- `address`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
+| `address` | `[]const u8` | Address |
 
 **Returns:** `?u64`
 
-*Line: 73*
+*Defined at line 78*
 
 ---
 
-### `getAddressCount`
+### `getAddressCount()`
+
+Returns the current address count.
 
 ```zig
 pub fn getAddressCount(self: *const Database) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
 
 **Returns:** `usize`
 
-*Line: 77*
+*Defined at line 82*
 
 ---
 
-### `saveCheckpoint`
+### `saveCheckpoint()`
+
+Saves checkpoint to persistent storage.
 
 ```zig
 pub fn saveCheckpoint(self: *Database, state_data: []const u8) !u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*Database`
-- `state_data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
+| `state_data` | `[]const u8` | State_data |
 
 **Returns:** `!u32`
 
-*Line: 82*
+*Defined at line 87*
 
 ---
 
-### `loadCheckpoint`
+### `loadCheckpoint()`
+
+Loads checkpoint from persistent storage.
 
 ```zig
 pub fn loadCheckpoint(self: *const Database, checkpoint_num: u32) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
-- `checkpoint_num`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
+| `checkpoint_num` | `u32` | Checkpoint_num |
 
 **Returns:** `?[]u8`
 
-*Line: 86*
+*Defined at line 91*
 
 ---
 
-### `loadLatestCheckpoint`
+### `loadLatestCheckpoint()`
+
+Loads latest checkpoint from persistent storage.
 
 ```zig
 pub fn loadLatestCheckpoint(self: *const Database) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
 
 **Returns:** `?[]u8`
 
-*Line: 90*
+*Defined at line 95*
 
 ---
 
-### `setMetadata`
+### `setMetadata()`
+
+Sets the metadata to the specified value.
 
 ```zig
 pub fn setMetadata(self: *Database, key: []const u8, value: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Database`
-- `key`: `[]const u8`
-- `value`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Database` | The instance |
+| `key` | `[]const u8` | Key |
+| `value` | `[]const u8` | Value |
 
 **Returns:** `!void`
 
-*Line: 95*
+*Defined at line 100*
 
 ---
 
-### `getMetadata`
+### `getMetadata()`
+
+Returns the metadata for the given key.
 
 ```zig
 pub fn getMetadata(self: *const Database, key: []const u8) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
-- `key`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
+| `key` | `[]const u8` | Key |
 
 **Returns:** `?[]u8`
 
-*Line: 99*
+*Defined at line 104*
 
 ---
 
-### `getStats`
+### `getStats()`
+
+Returns the current stats.
 
 ```zig
 pub fn getStats(self: *const Database) DatabaseStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const Database`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Database` | The instance |
 
 **Returns:** `DatabaseStats`
 
-*Line: 104*
+*Defined at line 109*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) PersistentBlockchain {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `PersistentBlockchain`
 
-*Line: 126*
+*Defined at line 155*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *PersistentBlockchain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
 
-- `self`: `*PersistentBlockchain`
-
-*Line: 133*
+*Defined at line 162*
 
 ---
 
-### `loadFromDisk`
+### `loadFromDisk()`
 
 Incarca database din fisier (format binar simplu, fara dependente externe)
 Format fisier: [magic:4][version:1][block_count:4]
@@ -353,18 +463,18 @@ per adresa: [addr_len:1][addr...][balance:8]
 pub fn loadFromDisk(allocator: std.mem.Allocator, path: []const u8) !PersistentBlockchain {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `path`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `path` | `[]const u8` | Path |
 
 **Returns:** `!PersistentBlockchain`
 
-*Line: 142*
+*Defined at line 171*
 
 ---
 
-### `saveToDisk`
+### `saveToDisk()`
 
 Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
 
@@ -372,105 +482,104 @@ Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
 pub fn saveToDisk(self: *PersistentBlockchain, path: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
-- `path`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
+| `path` | `[]const u8` | Path |
 
 **Returns:** `!void`
 
-*Line: 213*
+*Defined at line 242*
 
 ---
 
-### `saveBlockchain`
+### `saveBlockchain()`
 
-Salveaza blockchain-ul activ (bc) pe disc — inlocuieste saveToDisk vechi
-Format fisier: [magic:4][version:1][block_count:4]
-per bloc: [height:8][data_len:4][data...]   (data = "index|ts|nonce|prev_hash|hash")
-[addr_count:4]
-per adresa: [addr_len:1][addr...][balance:8]
+Salveaza blockchain-ul activ (bc) pe disc
+Format v2: [magic:4][version:4]
+[block_count:4] per bloc: [height:8][data_len:4][data...] [crc32:4]
+[addr_count:4]  per adresa: [addr_len:1][addr...][balance:8] [crc32:4]
+[nonce_count:4] per nonce: [addr_len:1][addr...][nonce:8] [crc32:4]
+[tx_count:4]    per tx: [hash_len:1][hash...][height:8] [crc32:4]
 
 ```zig
 pub fn saveBlockchain(self: *PersistentBlockchain, bc: *const blockchain_mod.Blockchain, path: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
-- `bc`: `*const blockchain_mod.Blockchain`
-- `path`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
+| `bc` | `*const blockchain_mod.Blockchain` | Bc |
+| `path` | `[]const u8` | Path |
 
 **Returns:** `!void`
 
-*Line: 278*
+*Defined at line 316*
 
 ---
 
-### `restoreInto`
+### `restoreInto()`
 
 Reincarca blockchain-ul din disc in bc (apelat dupa buildBlockchain/genesis)
-Adauga blocurile salvate in chain si reface balantele
+Supports both v1 and v2 file formats. V2 adds CRC32 checksums per section.
+Creates .bak backup before loading. Falls back to .bak if .dat is corrupt.
 
 ```zig
 pub fn restoreInto(self: *PersistentBlockchain, bc: *blockchain_mod.Blockchain, path: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
-- `bc`: `*blockchain_mod.Blockchain`
-- `path`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
+| `bc` | `*blockchain_mod.Blockchain` | Bc |
+| `path` | `[]const u8` | Path |
 
 **Returns:** `!void`
 
-*Line: 340*
+*Defined at line 486*
 
 ---
 
-### `appendBlock`
+### `appendBlock()`
 
-Append un singur bloc nou la sfarsitul fisierului — O(1), fara rescriere completa.
-Apelat la fiecare bloc minat pentru sync continuu chain→db.
-Format append: [height:8][data_len:4][data...]
-La final actualizeaza block_count in header (offset 5, 4 bytes).
+Append un singur bloc nou la sfarsitul fisierului — for v1 compat.
+For v2, falls back to full saveBlockchain since sections have CRC32 trailers.
 
 ```zig
 pub fn appendBlock(self: *PersistentBlockchain, bc: *const blockchain_mod.Blockchain, path: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
-- `bc`: `*const blockchain_mod.Blockchain`
-- `path`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
+| `bc` | `*const blockchain_mod.Blockchain` | Bc |
+| `path` | `[]const u8` | Path |
 
 **Returns:** `!void`
 
-*Line: 471*
+*Defined at line 808*
 
 ---
 
-### `compact`
+### `compact()`
 
 Compact — sterge blocuri vechi pastrand ultimele N
-Implementare curenta: file-based. La scale se poate inlocui cu RocksDB/LevelDB.
 
 ```zig
 pub fn compact(self: *PersistentBlockchain) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
 
 **Returns:** `!void`
 
-*Line: 597*
+*Defined at line 978*
 
 ---
 
-### `checkpoint`
+### `checkpoint()`
 
 Checkpoint entire blockchain state
 
@@ -478,17 +587,17 @@ Checkpoint entire blockchain state
 pub fn checkpoint(self: *PersistentBlockchain) !u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
 
 **Returns:** `!u32`
 
-*Line: 602*
+*Defined at line 983*
 
 ---
 
-### `recoverFromCheckpoint`
+### `recoverFromCheckpoint()`
 
 Recover from checkpoint
 
@@ -496,18 +605,18 @@ Recover from checkpoint
 pub fn recoverFromCheckpoint(self: *PersistentBlockchain, checkpoint_num: u32) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*PersistentBlockchain`
-- `checkpoint_num`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PersistentBlockchain` | The instance |
+| `checkpoint_num` | `u32` | Checkpoint_num |
 
 **Returns:** `bool`
 
-*Line: 616*
+*Defined at line 997*
 
 ---
 
-### `getStats`
+### `getStats()`
 
 Get database statistics
 
@@ -515,13 +624,17 @@ Get database statistics
 pub fn getStats(self: *const PersistentBlockchain) DatabaseStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const PersistentBlockchain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PersistentBlockchain` | The instance |
 
 **Returns:** `DatabaseStats`
 
-*Line: 622*
+*Defined at line 1003*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

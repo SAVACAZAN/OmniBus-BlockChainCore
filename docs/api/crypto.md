@@ -1,9 +1,32 @@
 # Module: `crypto`
 
+> Cryptographic primitives — SHA-256, SHA-256d (double hash), HMAC-SHA256, AES-256 encryption/decryption for key protection.
+
+**Source:** `core/crypto.zig` | **Lines:** 185 | **Functions:** 11 | **Structs:** 1 | **Tests:** 6
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`Crypto`](#crypto) — Cryptographic primitives for OmniBus blockchain
+
+### Functions
+- [`sha256()`](#sha256) — SHA-256 hash
+- [`sha256d()`](#sha256d) — SHA-256 double hash (Bitcoin style)
+- [`hmacSha256()`](#hmacsha256) — HMAC-SHA256
+- [`hmacSha512()`](#hmacsha512) — HMAC-SHA512 (BIP32 standard)
+- [`ripemd160()`](#ripemd160) — RIPEMD-160 (for Bitcoin addresses)
+Simplified - returns first 20 bytes...
+- [`bytesToHex()`](#bytestohex) — Convert bytes to hex string
+- [`hexToBytes()`](#hextobytes) — Convert hex string to bytes
+- [`randomBytes()`](#randombytes) — Random number generation
+- [`encryptAES256()`](#encryptaes256) — AES-256-GCM encryption — real AEAD, nu XOR
+Output: [nonce:12][tag:16][...
+- [`decryptAES256()`](#decryptaes256) — AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.Authent...
+- [`isStrongPassword()`](#isstrongpassword) — Verify password strength
+
+---
 
 ## Structs
 
@@ -11,11 +34,13 @@
 
 Cryptographic primitives for OmniBus blockchain
 
-*Line: 4*
+*Defined at line 4*
+
+---
 
 ## Functions
 
-### `sha256`
+### `sha256()`
 
 SHA-256 hash
 
@@ -23,17 +48,17 @@ SHA-256 hash
 pub fn sha256(data: []const u8) [32]u8 {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `[32]u8`
 
-*Line: 6*
+*Defined at line 6*
 
 ---
 
-### `sha256d`
+### `sha256d()`
 
 SHA-256 double hash (Bitcoin style)
 
@@ -41,17 +66,17 @@ SHA-256 double hash (Bitcoin style)
 pub fn sha256d(data: []const u8) [32]u8 {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `[32]u8`
 
-*Line: 15*
+*Defined at line 15*
 
 ---
 
-### `hmacSha256`
+### `hmacSha256()`
 
 HMAC-SHA256
 
@@ -59,18 +84,18 @@ HMAC-SHA256
 pub fn hmacSha256(key: []const u8, message: []const u8) [32]u8 {
 ```
 
-**Parameters:**
-
-- `key`: `[]const u8`
-- `message`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `[]const u8` | Key |
+| `message` | `[]const u8` | Message |
 
 **Returns:** `[32]u8`
 
-*Line: 25*
+*Defined at line 25*
 
 ---
 
-### `hmacSha512`
+### `hmacSha512()`
 
 HMAC-SHA512 (BIP32 standard)
 
@@ -78,18 +103,18 @@ HMAC-SHA512 (BIP32 standard)
 pub fn hmacSha512(key: []const u8, message: []const u8) [64]u8 {
 ```
 
-**Parameters:**
-
-- `key`: `[]const u8`
-- `message`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `[]const u8` | Key |
+| `message` | `[]const u8` | Message |
 
 **Returns:** `[64]u8`
 
-*Line: 33*
+*Defined at line 33*
 
 ---
 
-### `ripemd160`
+### `ripemd160()`
 
 RIPEMD-160 (for Bitcoin addresses)
 Simplified - returns first 20 bytes of SHA256 for now
@@ -98,17 +123,17 @@ Simplified - returns first 20 bytes of SHA256 for now
 pub fn ripemd160(data: []const u8) [20]u8 {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `[20]u8`
 
-*Line: 42*
+*Defined at line 42*
 
 ---
 
-### `bytesToHex`
+### `bytesToHex()`
 
 Convert bytes to hex string
 
@@ -116,18 +141,18 @@ Convert bytes to hex string
 pub fn bytesToHex(bytes: []const u8, allocator: std.mem.Allocator) ![]u8 {
 ```
 
-**Parameters:**
-
-- `bytes`: `[]const u8`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `[]const u8` | Bytes |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]u8`
 
-*Line: 50*
+*Defined at line 50*
 
 ---
 
-### `hexToBytes`
+### `hexToBytes()`
 
 Convert hex string to bytes
 
@@ -135,18 +160,18 @@ Convert hex string to bytes
 pub fn hexToBytes(hex: []const u8, allocator: std.mem.Allocator) ![]u8 {
 ```
 
-**Parameters:**
-
-- `hex`: `[]const u8`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hex` | `[]const u8` | Hex |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]u8`
 
-*Line: 63*
+*Defined at line 63*
 
 ---
 
-### `randomBytes`
+### `randomBytes()`
 
 Random number generation
 
@@ -154,17 +179,17 @@ Random number generation
 pub fn randomBytes(buffer: []u8) !void {
 ```
 
-**Parameters:**
-
-- `buffer`: `[]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[]u8` | Buffer |
 
 **Returns:** `!void`
 
-*Line: 78*
+*Defined at line 78*
 
 ---
 
-### `encryptAES256`
+### `encryptAES256()`
 
 AES-256-GCM encryption — real AEAD, nu XOR
 Output: [nonce:12][tag:16][ciphertext:plaintext.len] — max plaintext 32 bytes
@@ -174,18 +199,18 @@ Returneaza buffer de 12+16+32 = 60 bytes (plaintext padding 0 la 32 daca mai scu
 pub fn encryptAES256(plaintext: []const u8, key: [32]u8) ![60]u8 {
 ```
 
-**Parameters:**
-
-- `plaintext`: `[]const u8`
-- `key`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `plaintext` | `[]const u8` | Plaintext |
+| `key` | `[32]u8` | Key |
 
 **Returns:** `![60]u8`
 
-*Line: 85*
+*Defined at line 85*
 
 ---
 
-### `decryptAES256`
+### `decryptAES256()`
 
 AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.AuthenticationFailed
 
@@ -193,18 +218,18 @@ AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.AuthenticationF
 pub fn decryptAES256(ciphertext: [60]u8, key: [32]u8) ![32]u8 {
 ```
 
-**Parameters:**
-
-- `ciphertext`: `[60]u8`
-- `key`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ciphertext` | `[60]u8` | Ciphertext |
+| `key` | `[32]u8` | Key |
 
 **Returns:** `![32]u8`
 
-*Line: 110*
+*Defined at line 110*
 
 ---
 
-### `isStrongPassword`
+### `isStrongPassword()`
 
 Verify password strength
 
@@ -212,13 +237,17 @@ Verify password strength
 pub fn isStrongPassword(password: []const u8) bool {
 ```
 
-**Parameters:**
-
-- `password`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `password` | `[]const u8` | Password |
 
 **Returns:** `bool`
 
-*Line: 125*
+*Defined at line 125*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

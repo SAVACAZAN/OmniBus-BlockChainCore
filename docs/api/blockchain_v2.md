@@ -1,10 +1,43 @@
 # Module: `blockchain_v2`
 
+> Enhanced blockchain v2 — sub-block support, sharding integration, binary encoding, pruning support.
+
+**Source:** `core/blockchain_v2.zig` | **Lines:** 541 | **Functions:** 20 | **Structs:** 2 | **Tests:** 22
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`BlockchainV2`](#blockchainv2) — Blockchain v2 - with sub-blocks, sharding, and pruning support
+- [`BlockStats`](#blockstats) — Data structure for block stats. Fields include: block_count, transaction_count, ...
+
+### Constants
+- [10 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`initWithPruning()`](#initwithpruning) — Performs the init with pruning operation on the blockchain_v2 module.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`addTransaction()`](#addtransaction) — Add transaction to mempool
+- [`validateTransaction()`](#validatetransaction) — Validate transaction (delegates to Transaction.isValid + hash integrit...
+- [`createSubBlock()`](#createsubblock) — Create sub-block (0.1s interval)
+- [`addSubBlock()`](#addsubblock) — Add sub-block via engine
+- [`isSubBlockPoolComplete()`](#issubblockpoolcomplete) — Check if all 10 sub-blocks are collected
+- [`createBlockFromSubBlocks()`](#createblockfromsubblocks) — Create main block from complete sub-block pool
+- [`mineBlock()`](#mineblock) — Mine block (simple PoW)
+- [`calculateBlockHash()`](#calculateblockhash) — Calculate block hash (shared implementation in hex_utils)
+- [`isValidHash()`](#isvalidhash) — Validate hash meets difficulty (delegates to shared hex_utils)
+- [`encodeBlockBinary()`](#encodeblockbinary) — Encode block to binary format (93% compression)
+- [`getStats()`](#getstats) — Get blockchain statistics
+- [`getBlockCount()`](#getblockcount) — Returns the current block count.
+- [`pruneOldBlocks()`](#pruneoldblocks) — Prune old blocks based on configuration
+- [`needsPruning()`](#needspruning) — Check if pruning is needed
+- [`getPruneStats()`](#getprunestats) — Get pruning statistics
+- [`getEstimatedStorageSize()`](#getestimatedstoragesize) — Get estimated storage size
+- [`printInfo()`](#printinfo) — Print blockchain info including pruning stats
+
+---
 
 ## Structs
 
@@ -12,79 +45,110 @@
 
 Blockchain v2 - with sub-blocks, sharding, and pruning support
 
-*Line: 24*
+| Field | Type | Description |
+|-------|------|-------------|
+| `chain` | `array_list.Managed(Block)` | Chain |
+| `mempool` | `array_list.Managed(Transaction)` | Mempool |
+| `sub_block_engine` | `SubBlockEngine` | Sub_block_engine |
+| `shard_config` | `ShardConfig` | Shard_config |
+| `prune_config` | `PruneConfig` | Prune_config |
+| `archive_mgr` | `?ArchiveManager` | Archive_mgr |
+
+*Defined at line 24*
+
+---
 
 ### `BlockStats`
 
-*Line: 339*
+Data structure for block stats. Fields include: block_count, transaction_count, sub_blocks_pending, difficulty, shard_id.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `block_count` | `usize` | Block_count |
+| `transaction_count` | `usize` | Transaction_count |
+| `sub_blocks_pending` | `u8` | Sub_blocks_pending |
+| `difficulty` | `u32` | Difficulty |
+| `shard_id` | `u8` | Shard_id |
+
+*Defined at line 337*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `Block` | auto | `block_mod.Block` |
-| `Transaction` | auto | `transaction_mod.Transaction` |
-| `SubBlock` | auto | `sub_block_mod.SubBlock` |
-| `SubBlockEngine` | auto | `sub_block_mod.SubBlockEngine` |
-| `ShardConfig` | auto | `shard_config.ShardConfig` |
-| `BinaryEncoder` | auto | `binary_codec.BinaryEncoder` |
-| `BinaryDecoder` | auto | `binary_codec.BinaryDecoder` |
-| `PruneConfig` | auto | `prune_config.PruneConfig` |
-| `PruneStats` | auto | `prune_config.PruneStats` |
-| `ArchiveManager` | auto | `archive_manager_mod.ArchiveManager` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `Block` | `block_mod.Block` | Block |
+| `Transaction` | `transaction_mod.Transaction` | Transaction |
+| `SubBlock` | `sub_block_mod.SubBlock` | Sub block |
+| `SubBlockEngine` | `sub_block_mod.SubBlockEngine` | Sub block engine |
+| `ShardConfig` | `shard_config.ShardConfig` | Shard config |
+| `BinaryEncoder` | `binary_codec.BinaryEncoder` | Binary encoder |
+| `BinaryDecoder` | `binary_codec.BinaryDecoder` | Binary decoder |
+| `PruneConfig` | `prune_config.PruneConfig` | Prune config |
+| `PruneStats` | `prune_config.PruneStats` | Prune stats |
+| `ArchiveManager` | `archive_manager_mod.ArchiveManager` | Archive manager |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, shard_id: u8) !BlockchainV2 {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `shard_id`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `shard_id` | `u8` | Shard_id |
 
 **Returns:** `!BlockchainV2`
 
-*Line: 36*
+*Defined at line 36*
 
 ---
 
-### `initWithPruning`
+### `initWithPruning()`
+
+Performs the init with pruning operation on the blockchain_v2 module.
 
 ```zig
 pub fn initWithPruning(allocator: std.mem.Allocator, shard_id: u8, prune_cfg: PruneConfig) !BlockchainV2 {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `shard_id`: `u8`
-- `prune_cfg`: `PruneConfig`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `shard_id` | `u8` | Shard_id |
+| `prune_cfg` | `PruneConfig` | Prune_cfg |
 
 **Returns:** `!BlockchainV2`
 
-*Line: 40*
+*Defined at line 40*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *BlockchainV2) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
 
-- `self`: `*BlockchainV2`
-
-*Line: 81*
+*Defined at line 81*
 
 ---
 
-### `addTransaction`
+### `addTransaction()`
 
 Add transaction to mempool
 
@@ -92,37 +156,37 @@ Add transaction to mempool
 pub fn addTransaction(self: *BlockchainV2, tx: Transaction) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `tx`: `Transaction`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `tx` | `Transaction` | Tx |
 
 **Returns:** `!void`
 
-*Line: 94*
+*Defined at line 94*
 
 ---
 
-### `validateTransaction`
+### `validateTransaction()`
 
-Validate transaction
+Validate transaction (delegates to Transaction.isValid + hash integrity)
 
 ```zig
 pub fn validateTransaction(self: *BlockchainV2, tx: *const Transaction) !bool {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `tx`: `*const Transaction`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `tx` | `*const Transaction` | Tx |
 
 **Returns:** `!bool`
 
-*Line: 102*
+*Defined at line 102*
 
 ---
 
-### `createSubBlock`
+### `createSubBlock()`
 
 Create sub-block (0.1s interval)
 
@@ -130,19 +194,19 @@ Create sub-block (0.1s interval)
 pub fn createSubBlock(self: *BlockchainV2, sub_id: u8, miner_id: []const u8) !SubBlock {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `sub_id`: `u8`
-- `miner_id`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `sub_id` | `u8` | Sub_id |
+| `miner_id` | `[]const u8` | Miner_id |
 
 **Returns:** `!SubBlock`
 
-*Line: 110*
+*Defined at line 116*
 
 ---
 
-### `addSubBlock`
+### `addSubBlock()`
 
 Add sub-block via engine
 
@@ -150,18 +214,18 @@ Add sub-block via engine
 pub fn addSubBlock(self: *BlockchainV2, sub: SubBlock) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `sub`: `SubBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `sub` | `SubBlock` | Sub |
 
 **Returns:** `!void`
 
-*Line: 132*
+*Defined at line 138*
 
 ---
 
-### `isSubBlockPoolComplete`
+### `isSubBlockPoolComplete()`
 
 Check if all 10 sub-blocks are collected
 
@@ -169,17 +233,17 @@ Check if all 10 sub-blocks are collected
 pub fn isSubBlockPoolComplete(self: *const BlockchainV2) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `bool`
 
-*Line: 139*
+*Defined at line 145*
 
 ---
 
-### `createBlockFromSubBlocks`
+### `createBlockFromSubBlocks()`
 
 Create main block from complete sub-block pool
 
@@ -187,17 +251,17 @@ Create main block from complete sub-block pool
 pub fn createBlockFromSubBlocks(self: *BlockchainV2) !Block {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
 
 **Returns:** `!Block`
 
-*Line: 144*
+*Defined at line 150*
 
 ---
 
-### `mineBlock`
+### `mineBlock()`
 
 Mine block (simple PoW)
 
@@ -205,37 +269,37 @@ Mine block (simple PoW)
 pub fn mineBlock(self: *BlockchainV2, block: *Block) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `block`: `*Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `block` | `*Block` | Block |
 
 **Returns:** `!void`
 
-*Line: 180*
+*Defined at line 186*
 
 ---
 
-### `calculateBlockHash`
+### `calculateBlockHash()`
 
-Calculate block hash (delegates to shared hex_utils — eliminates duplication)
+Calculate block hash (shared implementation in hex_utils)
 
 ```zig
 pub fn calculateBlockHash(self: *BlockchainV2, block: *const Block) ![]const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `block`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `block` | `*const Block` | Block |
 
 **Returns:** `![]const u8`
 
-*Line: 199*
+*Defined at line 205*
 
 ---
 
-### `isValidHash`
+### `isValidHash()`
 
 Validate hash meets difficulty (delegates to shared hex_utils)
 
@@ -243,18 +307,18 @@ Validate hash meets difficulty (delegates to shared hex_utils)
 pub fn isValidHash(self: *BlockchainV2, hash: []const u8) !bool {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `hash`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `hash` | `[]const u8` | Hash |
 
 **Returns:** `!bool`
 
-*Line: 212*
+*Defined at line 210*
 
 ---
 
-### `encodeBlockBinary`
+### `encodeBlockBinary()`
 
 Encode block to binary format (93% compression)
 
@@ -262,18 +326,18 @@ Encode block to binary format (93% compression)
 pub fn encodeBlockBinary(self: *BlockchainV2, block: *const Block) ![]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
-- `block`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
+| `block` | `*const Block` | Block |
 
 **Returns:** `![]u8`
 
-*Line: 217*
+*Defined at line 215*
 
 ---
 
-### `getStats`
+### `getStats()`
 
 Get blockchain statistics
 
@@ -281,33 +345,35 @@ Get blockchain statistics
 pub fn getStats(self: *const BlockchainV2) BlockStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `BlockStats`
 
-*Line: 240*
+*Defined at line 238*
 
 ---
 
-### `getBlockCount`
+### `getBlockCount()`
+
+Returns the current block count.
 
 ```zig
 pub fn getBlockCount(self: *const BlockchainV2) u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `u32`
 
-*Line: 250*
+*Defined at line 248*
 
 ---
 
-### `pruneOldBlocks`
+### `pruneOldBlocks()`
 
 Prune old blocks based on configuration
 
@@ -315,17 +381,17 @@ Prune old blocks based on configuration
 pub fn pruneOldBlocks(self: *BlockchainV2) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockchainV2` | The instance |
 
 **Returns:** `!void`
 
-*Line: 255*
+*Defined at line 253*
 
 ---
 
-### `needsPruning`
+### `needsPruning()`
 
 Check if pruning is needed
 
@@ -333,17 +399,17 @@ Check if pruning is needed
 pub fn needsPruning(self: *const BlockchainV2) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `bool`
 
-*Line: 299*
+*Defined at line 297*
 
 ---
 
-### `getPruneStats`
+### `getPruneStats()`
 
 Get pruning statistics
 
@@ -351,17 +417,17 @@ Get pruning statistics
 pub fn getPruneStats(self: *const BlockchainV2) PruneStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `PruneStats`
 
-*Line: 304*
+*Defined at line 302*
 
 ---
 
-### `getEstimatedStorageSize`
+### `getEstimatedStorageSize()`
 
 Get estimated storage size
 
@@ -369,17 +435,17 @@ Get estimated storage size
 pub fn getEstimatedStorageSize(self: *const BlockchainV2) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockchainV2`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
 **Returns:** `u64`
 
-*Line: 309*
+*Defined at line 307*
 
 ---
 
-### `printInfo`
+### `printInfo()`
 
 Print blockchain info including pruning stats
 
@@ -387,11 +453,15 @@ Print blockchain info including pruning stats
 pub fn printInfo(self: *const BlockchainV2) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockchainV2` | The instance |
 
-- `self`: `*const BlockchainV2`
-
-*Line: 315*
+*Defined at line 313*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

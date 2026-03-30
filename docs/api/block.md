@@ -1,28 +1,62 @@
 # Module: `block`
 
+> Block data structure — defines a block's fields (index, timestamp, transactions, hash, nonce, merkle root, difficulty), provides hash calculation and validation.
+
+**Source:** `core/block.zig` | **Lines:** 464 | **Functions:** 6 | **Structs:** 1 | **Tests:** 15
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`Block`](#block) — Represents a single block in the blockchain — contains transactions, hash, nonce...
+
+### Constants
+- [4 constants defined](#constants)
+
+### Functions
+- [`calculateMerkleRoot()`](#calculatemerkleroot) — Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bit...
+- [`calculateHash()`](#calculatehash) — Calculates the hash from the current state.
+- [`validateTransactions()`](#validatetransactions) — Validates the transactions. Returns true if valid, false otherwise.
+- [`getTransactionCount()`](#gettransactioncount) — Returns the current transaction count.
+- [`addTransaction()`](#addtransaction) — Adds a new transaction to the collection.
+- [`generateMerkleProof()`](#generatemerkleproof) — Generate a Merkle inclusion proof for a transaction at the given index...
+
+---
 
 ## Structs
 
 ### `Block`
 
-*Line: 12*
+Represents a single block in the blockchain — contains transactions, hash, nonce, and links to previous block.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `index` | `u32` | Index |
+| `timestamp` | `i64` | Timestamp |
+| `transactions` | `array_list.Managed(Transaction)` | Transactions |
+| `previous_hash` | `[]const u8` | Previous_hash |
+| `nonce` | `u64` | Nonce |
+| `hash` | `[]const u8` | Hash |
+
+*Defined at line 16*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `Transaction` | auto | `transaction_mod.Transaction` |
-| `MAX_BLOCK_SIZE` | auto | `usize = 1_048_576` |
-| `MAX_BLOCK_TX` | auto | `usize = 10_000` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `Transaction` | `transaction_mod.Transaction` | Transaction |
+| `MerkleProof` | `light_client_mod.MerkleProof` | Merkle proof |
+| `MAX_BLOCK_SIZE` | `usize = 1_048_576` | M a x_ b l o c k_ s i z e |
+| `MAX_BLOCK_TX` | `usize = 4_096` | M a x_ b l o c k_ t x |
+
+---
 
 ## Functions
 
-### `calculateMerkleRoot`
+### `calculateMerkleRoot()`
 
 Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bitcoin)
 
@@ -30,78 +64,112 @@ Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bitcoin)
 pub fn calculateMerkleRoot(self: *const Block) [32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Block` | The instance |
 
 **Returns:** `[32]u8`
 
-*Line: 30*
+*Defined at line 34*
 
 ---
 
-### `calculateHash`
+### `calculateHash()`
+
+Calculates the hash from the current state.
 
 ```zig
 pub fn calculateHash(self: *const Block) ![32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Block` | The instance |
 
 **Returns:** `![32]u8`
 
-*Line: 58*
+*Defined at line 62*
 
 ---
 
-### `validateTransactions`
+### `validateTransactions()`
+
+Validates the transactions. Returns true if valid, false otherwise.
 
 ```zig
 pub fn validateTransactions(self: *const Block) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Block` | The instance |
 
 **Returns:** `bool`
 
-*Line: 78*
+*Defined at line 82*
 
 ---
 
-### `getTransactionCount`
+### `getTransactionCount()`
+
+Returns the current transaction count.
 
 ```zig
 pub fn getTransactionCount(self: *const Block) u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Block`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Block` | The instance |
 
 **Returns:** `u32`
 
-*Line: 87*
+*Defined at line 91*
 
 ---
 
-### `addTransaction`
+### `addTransaction()`
+
+Adds a new transaction to the collection.
 
 ```zig
 pub fn addTransaction(self: *Block, tx: Transaction) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Block`
-- `tx`: `Transaction`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Block` | The instance |
+| `tx` | `Transaction` | Tx |
 
 **Returns:** `!void`
 
-*Line: 91*
+*Defined at line 95*
 
 ---
 
+### `generateMerkleProof()`
+
+Generate a Merkle inclusion proof for a transaction at the given index.
+Returns null if tx_index is out of range or there are no transactions.
+The proof allows a light client to verify the TX is in this block
+using only the block header's merkle_root (SPV verification).
+
+```zig
+pub fn generateMerkleProof(self: *const Block, tx_index: usize) ?MerkleProof {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Block` | The instance |
+| `tx_index` | `usize` | Tx_index |
+
+**Returns:** `?MerkleProof`
+
+*Defined at line 103*
+
+---
+
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

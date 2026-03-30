@@ -1,9 +1,36 @@
 # Module: `archive_manager`
 
+> Block archival — compress old blocks for long-term storage, retrieve archived blocks on demand.
+
+**Source:** `core/archive_manager.zig` | **Lines:** 224 | **Functions:** 13 | **Structs:** 5 | **Tests:** 5
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`ArchiveManager`](#archivemanager) — Archive manager for storing pruned blocks
+- [`ArchiveMetadata`](#archivemetadata) — Archive metadata
+- [`ArchiveSnapshot`](#archivesnapshot) — Archive snapshot
+- [`RestorableBlock`](#restorableblock) — Restorable block metadata
+- [`ArchiveIndex`](#archiveindex) — Archive index for quick lookup
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`archiveBlocks()`](#archiveblocks) — Archive a batch of blocks
+- [`getArchiveMetadata()`](#getarchivemetadata) — Get archive metadata
+- [`createSnapshot()`](#createsnapshot) — Create archive snapshot
+- [`verifyArchive()`](#verifyarchive) — Verify archive integrity
+- [`getRestorableBlocks()`](#getrestorableblocks) — Get list of restorable blocks
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`print()`](#print) — Performs the print operation on the archive_manager module.
+- [`print()`](#print) — Performs the print operation on the archive_manager module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addSnapshot()`](#addsnapshot) — Adds a new snapshot to the collection.
+- [`findByHeight()`](#findbyheight) — Searches for by height matching the given criteria.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -11,53 +38,98 @@
 
 Archive manager for storing pruned blocks
 
-*Line: 4*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `archive_path` | `[]const u8` | Archive_path |
+| `compress_enabled` | `bool` | Compress_enabled |
+| `archived_blocks` | `u32` | Archived_blocks |
+| `total_archive_size` | `u64` | Total_archive_size |
+
+*Defined at line 4*
+
+---
 
 ### `ArchiveMetadata`
 
 Archive metadata
 
-*Line: 98*
+| Field | Type | Description |
+|-------|------|-------------|
+| `archived_block_count` | `u32` | Archived_block_count |
+| `total_size_bytes` | `u64` | Total_size_bytes |
+| `estimated_restore_time_sec` | `u64` | Estimated_restore_time_sec |
+
+*Defined at line 98*
+
+---
 
 ### `ArchiveSnapshot`
 
 Archive snapshot
 
-*Line: 119*
+| Field | Type | Description |
+|-------|------|-------------|
+| `height` | `u32` | Height |
+| `block_hash` | `[]const u8` | Block_hash |
+| `created_at` | `i64` | Created_at |
+| `archive_size` | `u64` | Archive_size |
+
+*Defined at line 119*
+
+---
 
 ### `RestorableBlock`
 
 Restorable block metadata
 
-*Line: 134*
+| Field | Type | Description |
+|-------|------|-------------|
+| `start_height` | `u32` | Start_height |
+| `end_height` | `u32` | End_height |
+| `size_bytes` | `u64` | Size_bytes |
+| `created_at` | `i64` | Created_at |
+
+*Defined at line 134*
+
+---
 
 ### `ArchiveIndex`
 
 Archive index for quick lookup
 
-*Line: 142*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `snapshots` | `std.array_list.Managed(ArchiveSnapshot)` | Snapshots |
+
+*Defined at line 142*
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, archive_path: []const u8, compress: bool) ArchiveManager {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `archive_path`: `[]const u8`
-- `compress`: `bool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `archive_path` | `[]const u8` | Archive_path |
+| `compress` | `bool` | Compress |
 
 **Returns:** `ArchiveManager`
 
-*Line: 11*
+*Defined at line 11*
 
 ---
 
-### `archiveBlocks`
+### `archiveBlocks()`
 
 Archive a batch of blocks
 
@@ -65,20 +137,20 @@ Archive a batch of blocks
 pub fn archiveBlocks(self: *ArchiveManager, start_height: u32, end_height: u32, blocks_data: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*ArchiveManager`
-- `start_height`: `u32`
-- `end_height`: `u32`
-- `blocks_data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveManager` | The instance |
+| `start_height` | `u32` | Start_height |
+| `end_height` | `u32` | End_height |
+| `blocks_data` | `[]const u8` | Blocks_data |
 
 **Returns:** `!void`
 
-*Line: 20*
+*Defined at line 20*
 
 ---
 
-### `getArchiveMetadata`
+### `getArchiveMetadata()`
 
 Get archive metadata
 
@@ -86,17 +158,17 @@ Get archive metadata
 pub fn getArchiveMetadata(self: *const ArchiveManager) ArchiveMetadata {
 ```
 
-**Parameters:**
-
-- `self`: `*const ArchiveManager`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ArchiveManager` | The instance |
 
 **Returns:** `ArchiveMetadata`
 
-*Line: 45*
+*Defined at line 45*
 
 ---
 
-### `createSnapshot`
+### `createSnapshot()`
 
 Create archive snapshot
 
@@ -104,19 +176,19 @@ Create archive snapshot
 pub fn createSnapshot(self: *ArchiveManager, height: u32, hash: []const u8) !ArchiveSnapshot {
 ```
 
-**Parameters:**
-
-- `self`: `*ArchiveManager`
-- `height`: `u32`
-- `hash`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveManager` | The instance |
+| `height` | `u32` | Height |
+| `hash` | `[]const u8` | Hash |
 
 **Returns:** `!ArchiveSnapshot`
 
-*Line: 54*
+*Defined at line 54*
 
 ---
 
-### `verifyArchive`
+### `verifyArchive()`
 
 Verify archive integrity
 
@@ -124,17 +196,17 @@ Verify archive integrity
 pub fn verifyArchive(self: *const ArchiveManager) !bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ArchiveManager`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ArchiveManager` | The instance |
 
 **Returns:** `!bool`
 
-*Line: 64*
+*Defined at line 64*
 
 ---
 
-### `getRestorableBlocks`
+### `getRestorableBlocks()`
 
 Get list of restorable blocks
 
@@ -142,120 +214,138 @@ Get list of restorable blocks
 pub fn getRestorableBlocks(self: *ArchiveManager, allocator: std.mem.Allocator) ![]RestorableBlock {
 ```
 
-**Parameters:**
-
-- `self`: `*ArchiveManager`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveManager` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]RestorableBlock`
 
-*Line: 73*
+*Defined at line 73*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *ArchiveManager) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveManager` | The instance |
 
-- `self`: `*ArchiveManager`
-
-*Line: 92*
+*Defined at line 92*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the archive_manager module.
 
 ```zig
 pub fn print(self: *const ArchiveMetadata) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ArchiveMetadata` | The instance |
 
-- `self`: `*const ArchiveMetadata`
-
-*Line: 103*
+*Defined at line 103*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the archive_manager module.
 
 ```zig
 pub fn print(self: *const ArchiveSnapshot) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ArchiveSnapshot` | The instance |
 
-- `self`: `*const ArchiveSnapshot`
-
-*Line: 125*
+*Defined at line 125*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) ArchiveIndex {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `ArchiveIndex`
 
-*Line: 146*
+*Defined at line 146*
 
 ---
 
-### `addSnapshot`
+### `addSnapshot()`
+
+Adds a new snapshot to the collection.
 
 ```zig
 pub fn addSnapshot(self: *ArchiveIndex, snapshot: ArchiveSnapshot) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*ArchiveIndex`
-- `snapshot`: `ArchiveSnapshot`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveIndex` | The instance |
+| `snapshot` | `ArchiveSnapshot` | Snapshot |
 
 **Returns:** `!void`
 
-*Line: 153*
+*Defined at line 153*
 
 ---
 
-### `findByHeight`
+### `findByHeight()`
+
+Searches for by height matching the given criteria.
 
 ```zig
 pub fn findByHeight(self: *const ArchiveIndex, height: u32) ?ArchiveSnapshot {
 ```
 
-**Parameters:**
-
-- `self`: `*const ArchiveIndex`
-- `height`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ArchiveIndex` | The instance |
+| `height` | `u32` | Height |
 
 **Returns:** `?ArchiveSnapshot`
 
-*Line: 157*
+*Defined at line 157*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *ArchiveIndex) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ArchiveIndex` | The instance |
 
-- `self`: `*ArchiveIndex`
-
-*Line: 166*
+*Defined at line 166*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>light_client — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>light_client</code></h1>
+<p class="module-desc">SPV (Simplified Payment Verification) — header-only sync, Bloom filters, Merkle proofs for TX inclusion, mobile-friendly (200B per header).</p>
+<p class="stats">Source: core/light_client.zig &bull; 979 lines &bull; 36 functions &bull; 6 structs &bull; 27 tests</p>
+
+<h2>Structs (6)</h2>
+        <div class="section">
+            <h3><code>BlockHeader</code></h3>
+            <p>Minimal block header for light client (only ~200 bytes vs 35KB full block)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>index</code></td><td><code>u32</code></td><td>Index</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr><tr><td><code>previous_hash</code></td><td><code>[32]u8</code></td><td>Previous_hash</td></tr><tr><td><code>merkle_root</code></td><td><code>[32]u8</code></td><td>Merkle_root</td></tr><tr><td><code>nonce</code></td><td><code>u64</code></td><td>Nonce</td></tr><tr><td><code>hash</code></td><td><code>[32]u8</code></td><td>Hash</td></tr><tr><td><code>difficulty</code></td><td><code>u32</code></td><td>Difficulty</td></tr><tr><td><code>transaction_count</code></td><td><code>u32</code></td><td>Transaction_count</td></tr><tr><td><code>sub_blocks</code></td><td><code>u8</code></td><td>Sub_blocks</td></tr></table>
+            <p class="line">Line: 6</p>
+        </div>
+        <div class="section">
+            <h3><code>MerkleProof</code></h3>
+            <p>Merkle inclusion proof for a single transaction.
+Allows a light client to verify that a TX is included in a block
+using only the block header's merkle_root, without the full block.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>proof_hashes</code></td><td><code>[MAX_MERKLE_DEPTH][32]u8</code></td><td>Proof_hashes</td></tr><tr><td><code>directions</code></td><td><code>[MAX_MERKLE_DEPTH]bool</code></td><td>Directions</td></tr><tr><td><code>depth</code></td><td><code>u8</code></td><td>Depth</td></tr><tr><td><code>merkle_root</code></td><td><code>[32]u8</code></td><td>Merkle_root</td></tr><tr><td><code>block_index</code></td><td><code>u32</code></td><td>Block_index</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="line">Line: 133</p>
+        </div>
+        <div class="section">
+            <h3><code>BloomFilter</code></h3>
+            <p>Bloom filter for SPV transaction filtering.
+Light clients send a Bloom filter to full nodes describing which addresses
+they are interested in. The full node only relays matching TXs.
+Uses multiple hash functions (murmur-style rotation) for low false-positive rate.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bits</code></td><td><code>[512]u8</code></td><td>Bits</td></tr><tr><td><code>num_hash_funcs</code></td><td><code>u8</code></td><td>Num_hash_funcs</td></tr></table>
+            <p class="line">Line: 201</p>
+        </div>
+        <div class="section">
+            <h3><code>LightClient</code></h3>
+            <p>Light Client - minimal blockchain for low-resource devices.
+Downloads only block headers (~200 bytes each vs ~35KB full blocks).
+Verifies TX inclusion via Merkle proofs (SPV).
+Uses Bloom filters to request only relevant TXs from full nodes.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>headers</code></td><td><code>std.array_list.Managed(BlockHeader)</code></td><td>Headers</td></tr><tr><td><code>trusted_root</code></td><td><code>[32]u8</code></td><td>Trusted_root</td></tr><tr><td><code>sync_height</code></td><td><code>u32</code></td><td>Sync_height</td></tr><tr><td><code>max_headers_to_keep</code></td><td><code>u32</code></td><td>Max_headers_to_keep</td></tr><tr><td><code>bloom</code></td><td><code>BloomFilter</code></td><td>Bloom</td></tr></table>
+            <p class="line">Line: 283</p>
+        </div>
+        <div class="section">
+            <h3><code>SPVProof</code></h3>
+            <p>SPV (Simplified Payment Verification) proof for light clients (legacy compat)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>merkle_proof</code></td><td><code>std.array_list.Managed([32]u8)</code></td><td>Merkle_proof</td></tr><tr><td><code>block_header</code></td><td><code>BlockHeader</code></td><td>Block_header</td></tr><tr><td><code>position_in_block</code></td><td><code>u32</code></td><td>Position_in_block</td></tr></table>
+            <p class="line">Line: 537</p>
+        </div>
+        <div class="section">
+            <h3><code>SyncTracker</code></h3>
+            <p>Data structure representing a sync tracker in the light_client module.</p>
+            
+            <p class="line">Line: 966</p>
+        </div>
+
+
+
+<h2>Functions (36)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(index: u32) BlockHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>index</code></td><td><code>u32</code></td><td>Index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlockHeader</code></p>
+            <p class="line">Line: 17</p>
+        </div>
+        <div class="section">
+            <h3><code>serialize()</code></h3>
+            <p class="desc">Serialize header to binary (lightweight)</p>
+            <pre><code>pub fn serialize(self: *const BlockHeader) [200]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockHeader</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[200]u8</code></p>
+            <p class="line">Line: 32</p>
+        </div>
+        <div class="section">
+            <h3><code>deserialize()</code></h3>
+            <p class="desc">Deserialize header from binary</p>
+            <pre><code>pub fn deserialize(data: [200]u8) BlockHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[200]u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlockHeader</code></p>
+            <p class="line">Line: 75</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the light_client module.</p>
+            <pre><code>pub fn print(self: *const BlockHeader) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockHeader</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 117</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(tx_hash: [32]u8, root: [32]u8, block_idx: u32, tx_idx: u32) MerkleProof {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>root</code></td><td><code>[32]u8</code></td><td>Root</td></tr><tr><td><code>block_idx</code></td><td><code>u32</code></td><td>Block_idx</td></tr><tr><td><code>tx_idx</code></td><td><code>u32</code></td><td>Tx_idx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>MerkleProof</code></p>
+            <p class="line">Line: 142</p>
+        </div>
+        <div class="section">
+            <h3><code>addStep()</code></h3>
+            <p class="desc">Add a sibling hash to the proof path</p>
+            <pre><code>pub fn addStep(self: *MerkleProof, sibling: [32]u8, is_right: bool) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MerkleProof</code></td><td>The instance</td></tr><tr><td><code>sibling</code></td><td><code>[32]u8</code></td><td>Sibling</td></tr><tr><td><code>is_right</code></td><td><code>bool</code></td><td>Is_right</td></tr></table>
+            
+            <p class="line">Line: 155</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyMerkleProof()</code></h3>
+            <p class="desc">Verify a merkle proof: hash the TX with siblings up to root.
+Returns true if the computed root matches the expected merkle_root.
+This is the core of SPV — proves TX inclusion without full block data.
+Special case: depth=0 means single-TX block where tx_hash IS the merkle root.</p>
+            <pre><code>pub fn verifyMerkleProof(proof: *const MerkleProof) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>proof</code></td><td><code>*const MerkleProof</code></td><td>Proof</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 168</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(num_funcs: u8) BloomFilter {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>num_funcs</code></td><td><code>u8</code></td><td>Num_funcs</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BloomFilter</code></p>
+            <p class="line">Line: 205</p>
+        </div>
+        <div class="section">
+            <h3><code>add()</code></h3>
+            <p class="desc">Insert data (address, txid, pubkey) into the filter</p>
+            <pre><code>pub fn add(self: *BloomFilter, data: []const u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BloomFilter</code></td><td>The instance</td></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            
+            <p class="line">Line: 213</p>
+        </div>
+        <div class="section">
+            <h3><code>contains()</code></h3>
+            <p class="desc">Check if data might be in the filter. May return false positives, never false negatives.</p>
+            <pre><code>pub fn contains(self: *const BloomFilter, data: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BloomFilter</code></td><td>The instance</td></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 224</p>
+        </div>
+        <div class="section">
+            <h3><code>clear()</code></h3>
+            <p class="desc">Clear the filter (reset all bits)</p>
+            <pre><code>pub fn clear(self: *BloomFilter) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BloomFilter</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 238</p>
+        </div>
+        <div class="section">
+            <h3><code>estimateFalsePositivePct()</code></h3>
+            <p class="desc">Estimate false positive rate given number of elements inserted.
+Formula: (1 - e^(-kn/m))^k where k=hash_funcs, n=elements, m=bits
+Returns a rough integer percentage (0-100).</p>
+            <pre><code>pub fn estimateFalsePositivePct(self: *const BloomFilter, num_elements: u32) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BloomFilter</code></td><td>The instance</td></tr><tr><td><code>num_elements</code></td><td><code>u32</code></td><td>Num_elements</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 245</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) LightClient {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>LightClient</code></p>
+            <p class="line">Line: 291</p>
+        </div>
+        <div class="section">
+            <h3><code>addHeader()</code></h3>
+            <p class="desc">Add block header to chain after validation</p>
+            <pre><code>pub fn addHeader(self: *LightClient, header: BlockHeader) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>header</code></td><td><code>BlockHeader</code></td><td>Header</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 301</p>
+        </div>
+        <div class="section">
+            <h3><code>validateHeader()</code></h3>
+            <p class="desc">Validate a header before adding it:
+1. previous_hash must match the hash of the last known header
+2. index must be sequential
+3. timestamp must not be in the future (with 2h tolerance, like Bitcoin)
+4. difficulty must be > 0</p>
+            <pre><code>pub fn validateHeader(self: *const LightClient, header: *const BlockHeader) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>header</code></td><td><code>*const BlockHeader</code></td><td>Header</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 319</p>
+        </div>
+        <div class="section">
+            <h3><code>addValidatedHeader()</code></h3>
+            <p class="desc">Validate and add a header. Returns error if validation fails.</p>
+            <pre><code>pub fn addValidatedHeader(self: *LightClient, header: BlockHeader) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>header</code></td><td><code>BlockHeader</code></td><td>Header</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 348</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyChain()</code></h3>
+            <p class="desc">Verify header chain (check previous_hash links)</p>
+            <pre><code>pub fn verifyChain(self: *const LightClient) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 356</p>
+        </div>
+        <div class="section">
+            <h3><code>getHeight()</code></h3>
+            <p class="desc">Get current header chain height</p>
+            <pre><code>pub fn getHeight(self: *const LightClient) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 378</p>
+        </div>
+        <div class="section">
+            <h3><code>getHeader()</code></h3>
+            <p class="desc">Get header by block height</p>
+            <pre><code>pub fn getHeader(self: *const LightClient, height: u32) ?*const BlockHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const BlockHeader</code></p>
+            <p class="line">Line: 384</p>
+        </div>
+        <div class="section">
+            <h3><code>getLatestHeader()</code></h3>
+            <p class="desc">Get latest header</p>
+            <pre><code>pub fn getLatestHeader(self: *const LightClient) ?*const BlockHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const BlockHeader</code></p>
+            <p class="line">Line: 394</p>
+        </div>
+        <div class="section">
+            <h3><code>getHeaderCount()</code></h3>
+            <p class="desc">Get header count</p>
+            <pre><code>pub fn getHeaderCount(self: *const LightClient) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 400</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyTransaction()</code></h3>
+            <p class="desc">Verify a TX is in a block using a Merkle proof and our header chain</p>
+            <pre><code>pub fn verifyTransaction(self: *const LightClient, proof: *const MerkleProof) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>proof</code></td><td><code>*const MerkleProof</code></td><td>Proof</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 405</p>
+        </div>
+        <div class="section">
+            <h3><code>watchAddress()</code></h3>
+            <p class="desc">Add an address to the Bloom filter (for TX matching)</p>
+            <pre><code>pub fn watchAddress(self: *LightClient, address: []const u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            
+            <p class="line">Line: 417</p>
+        </div>
+        <div class="section">
+            <h3><code>matchesFilter()</code></h3>
+            <p class="desc">Check if a TX matches any watched address</p>
+            <pre><code>pub fn matchesFilter(self: *const LightClient, address: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 422</p>
+        </div>
+        <div class="section">
+            <h3><code>getConfirmations()</code></h3>
+            <p class="desc">Get number of confirmations for a proven TX</p>
+            <pre><code>pub fn getConfirmations(self: *const LightClient, proof: *const MerkleProof) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>proof</code></td><td><code>*const MerkleProof</code></td><td>Proof</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 427</p>
+        </div>
+        <div class="section">
+            <h3><code>estimateStorageSize()</code></h3>
+            <p class="desc">Estimate storage used (headers only)</p>
+            <pre><code>pub fn estimateStorageSize(self: *const LightClient) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 434</p>
+        </div>
+        <div class="section">
+            <h3><code>fastSyncFromCheckpoint()</code></h3>
+            <p class="desc">Fast sync from trusted checkpoint</p>
+            <pre><code>pub fn fastSyncFromCheckpoint(self: *LightClient, trusted_header: BlockHeader, new_headers: []const BlockHeader) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>trusted_header</code></td><td><code>BlockHeader</code></td><td>Trusted_header</td></tr><tr><td><code>new_headers</code></td><td><code>[]const BlockHeader</code></td><td>New_headers</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 440</p>
+        </div>
+        <div class="section">
+            <h3><code>getDifficulty()</code></h3>
+            <p class="desc">Get proof-of-work difficulty at height</p>
+            <pre><code>pub fn getDifficulty(self: *const LightClient, height: u32) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 456</p>
+        </div>
+        <div class="section">
+            <h3><code>serializeToFile()</code></h3>
+            <p class="desc">Serialize headers to file format</p>
+            <pre><code>pub fn serializeToFile(self: *const LightClient, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 464</p>
+        </div>
+        <div class="section">
+            <h3><code>deserializeFromFile()</code></h3>
+            <p class="desc">Deserialize headers from file format</p>
+            <pre><code>pub fn deserializeFromFile(self: *LightClient, data: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 480</p>
+        </div>
+        <div class="section">
+            <h3><code>syncHeaders()</code></h3>
+            <p class="desc">Trigger SPV header sync via P2P.
+Accepts an opaque pointer to P2PNode and a function pointer that calls
+P2PNode.syncHeaders(). This avoids circular imports (light_client cannot
+import p2p.zig directly).</p>
+            <pre><code>pub fn syncHeaders(self: *LightClient, p2p_ptr: *anyopaque, sync_fn: *const fn (*anyopaque) void) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr><tr><td><code>p2p_ptr</code></td><td><code>*anyopaque</code></td><td>P2p_ptr</td></tr><tr><td><code>sync_fn</code></td><td><code>*const fn (*anyopaque</code></td><td>Sync_fn</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>void) void</code></p>
+            <p class="line">Line: 506</p>
+        </div>
+        <div class="section">
+            <h3><code>printStats()</code></h3>
+            <p class="desc">Statistics about light client</p>
+            <pre><code>pub fn printStats(self: *const LightClient) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightClient</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 512</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *LightClient) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightClient</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 531</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, tx_hash: [32]u8, header: BlockHeader) SPVProof {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>header</code></td><td><code>BlockHeader</code></td><td>Header</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>SPVProof</code></p>
+            <p class="line">Line: 543</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyProof()</code></h3>
+            <p class="desc">Verify SPV proof against block header</p>
+            <pre><code>pub fn verifyProof(self: *const SPVProof) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SPVProof</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 553</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *SPVProof) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SPVProof</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 559</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

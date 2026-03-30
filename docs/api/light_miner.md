@@ -1,10 +1,45 @@
 # Module: `light_miner`
 
+> Lightweight mining client — reduced resource usage, header-only validation, connects to full nodes for block templates.
+
+**Source:** `core/light_miner.zig` | **Lines:** 351 | **Functions:** 21 | **Structs:** 3 | **Tests:** 6
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`LightMiner`](#lightminer) — Lightweight miner instance (can run multiple on one machine)
+- [`MinerPool`](#minerpool) — Manager for multiple light miner instances
+- [`MinerPoolStats`](#minerpoolstats) — Data structure for miner pool stats. Fields include: connected_miners, total_min...
+
+### Constants
+- [2 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`connect()`](#connect) — Performs the connect operation on the light_miner module.
+- [`disconnect()`](#disconnect) — Performs the disconnect operation on the light_miner module.
+- [`submitShare()`](#submitshare) — Performs the submit share operation on the light_miner module.
+- [`recordBlockMined()`](#recordblockmined) — Executes mining operation — finds valid nonce for the next block.
+- [`getUptime()`](#getuptime) — Returns the current uptime.
+- [`getAcceptanceRate()`](#getacceptancerate) — Returns the current acceptance rate.
+- [`getEffectiveHashrate()`](#geteffectivehashrate) — Returns the current effective hashrate.
+- [`print()`](#print) — Performs the print operation on the light_miner module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addMiner()`](#addminer) — Add new miner to pool
+- [`connectMiner()`](#connectminer) — Connect miner by ID
+- [`getMiner()`](#getminer) — Get miner by ID
+- [`getConnectedCount()`](#getconnectedcount) — Get connected miners count
+- [`isReadyForGenesis()`](#isreadyforgenesis) — Check if ready for genesis
+- [`startGenesis()`](#startgenesis) — Start genesis mining
+- [`submitShare()`](#submitshare) — Submit share from miner
+- [`getStats()`](#getstats) — Get pool statistics
+- [`printStatus()`](#printstatus) — Print pool status
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -12,196 +47,263 @@
 
 Lightweight miner instance (can run multiple on one machine)
 
-*Line: 5*
+| Field | Type | Description |
+|-------|------|-------------|
+| `miner_id` | `u32` | Miner_id |
+| `instance_name` | `[]const u8` | Instance_name |
+| `hashrate` | `u64` | Hashrate |
+| `status` | `MinerStatus` | Status |
+| `blocks_mined` | `u32` | Blocks_mined |
+| `shares_submitted` | `u32` | Shares_submitted |
+| `shares_accepted` | `u32` | Shares_accepted |
+| `last_share_time` | `i64` | Last_share_time |
+| `total_difficulty` | `u64` | Total_difficulty |
+| `connection_time` | `i64` | Connection_time |
+| `is_connected` | `bool` | Is_connected |
+
+*Defined at line 5*
+
+---
 
 ### `MinerPool`
 
 Manager for multiple light miner instances
 
-*Line: 109*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `miners` | `std.array_list.Managed(LightMiner)` | Miners |
+| `total_hashrate` | `u64` | Total_hashrate |
+| `pool_status` | `PoolStatus` | Pool_status |
+| `genesis_started` | `bool` | Genesis_started |
+| `min_miners_for_genesis` | `u32` | Min_miners_for_genesis |
+
+*Defined at line 109*
+
+---
 
 ### `MinerPoolStats`
 
-*Line: 265*
+Data structure for miner pool stats. Fields include: connected_miners, total_miners, total_hashrate, total_shares, total_accepted.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connected_miners` | `u32` | Connected_miners |
+| `total_miners` | `u32` | Total_miners |
+| `total_hashrate` | `u64` | Total_hashrate |
+| `total_shares` | `u64` | Total_shares |
+| `total_accepted` | `u64` | Total_accepted |
+| `total_blocks` | `u32` | Total_blocks |
+| `status` | `PoolStatus` | Status |
+| `genesis_started` | `bool` | Genesis_started |
+| `ready_for_genesis` | `bool` | Ready_for_genesis |
+
+*Defined at line 265*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `MinerStatus` | auto | `enum {` |
-| `PoolStatus` | auto | `enum {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `MinerStatus` | `enum {` | Miner status |
+| `PoolStatus` | `enum {` | Pool status |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, id: u32, hashrate: u64) !LightMiner {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `id`: `u32`
-- `hashrate`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `id` | `u32` | Id |
+| `hashrate` | `u64` | Hashrate |
 
 **Returns:** `!LightMiner`
 
-*Line: 18*
+*Defined at line 18*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *LightMiner, allocator: std.mem.Allocator) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*LightMiner` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
-- `self`: `*LightMiner`
-- `allocator`: `std.mem.Allocator`
-
-*Line: 30*
+*Defined at line 30*
 
 ---
 
-### `connect`
+### `connect()`
+
+Performs the connect operation on the light_miner module.
 
 ```zig
 pub fn connect(self: *LightMiner) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*LightMiner` | The instance |
 
-- `self`: `*LightMiner`
-
-*Line: 34*
+*Defined at line 34*
 
 ---
 
-### `disconnect`
+### `disconnect()`
+
+Performs the disconnect operation on the light_miner module.
 
 ```zig
 pub fn disconnect(self: *LightMiner) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*LightMiner` | The instance |
 
-- `self`: `*LightMiner`
-
-*Line: 40*
+*Defined at line 40*
 
 ---
 
-### `submitShare`
+### `submitShare()`
+
+Performs the submit share operation on the light_miner module.
 
 ```zig
 pub fn submitShare(self: *LightMiner, difficulty: u64) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*LightMiner` | The instance |
+| `difficulty` | `u64` | Difficulty |
 
-- `self`: `*LightMiner`
-- `difficulty`: `u64`
-
-*Line: 45*
+*Defined at line 45*
 
 ---
 
-### `recordBlockMined`
+### `recordBlockMined()`
+
+Executes mining operation — finds valid nonce for the next block.
 
 ```zig
 pub fn recordBlockMined(self: *LightMiner) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*LightMiner` | The instance |
 
-- `self`: `*LightMiner`
-
-*Line: 56*
+*Defined at line 56*
 
 ---
 
-### `getUptime`
+### `getUptime()`
+
+Returns the current uptime.
 
 ```zig
 pub fn getUptime(self: *const LightMiner) i64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const LightMiner`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const LightMiner` | The instance |
 
 **Returns:** `i64`
 
-*Line: 61*
+*Defined at line 61*
 
 ---
 
-### `getAcceptanceRate`
+### `getAcceptanceRate()`
+
+Returns the current acceptance rate.
 
 ```zig
 pub fn getAcceptanceRate(self: *const LightMiner) f64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const LightMiner`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const LightMiner` | The instance |
 
 **Returns:** `f64`
 
-*Line: 66*
+*Defined at line 66*
 
 ---
 
-### `getEffectiveHashrate`
+### `getEffectiveHashrate()`
+
+Returns the current effective hashrate.
 
 ```zig
 pub fn getEffectiveHashrate(self: *const LightMiner) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const LightMiner`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const LightMiner` | The instance |
 
 **Returns:** `u64`
 
-*Line: 71*
+*Defined at line 71*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the light_miner module.
 
 ```zig
 pub fn print(self: *const LightMiner) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const LightMiner` | The instance |
 
-- `self`: `*const LightMiner`
-
-*Line: 83*
+*Defined at line 83*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) MinerPool {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `MinerPool`
 
-*Line: 117*
+*Defined at line 117*
 
 ---
 
-### `addMiner`
+### `addMiner()`
 
 Add new miner to pool
 
@@ -209,19 +311,19 @@ Add new miner to pool
 pub fn addMiner(self: *MinerPool, id: u32, hashrate: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MinerPool`
-- `id`: `u32`
-- `hashrate`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerPool` | The instance |
+| `id` | `u32` | Id |
+| `hashrate` | `u64` | Hashrate |
 
 **Returns:** `!void`
 
-*Line: 125*
+*Defined at line 125*
 
 ---
 
-### `connectMiner`
+### `connectMiner()`
 
 Connect miner by ID
 
@@ -229,18 +331,18 @@ Connect miner by ID
 pub fn connectMiner(self: *MinerPool, miner_id: u32) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*MinerPool`
-- `miner_id`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerPool` | The instance |
+| `miner_id` | `u32` | Miner_id |
 
 **Returns:** `bool`
 
-*Line: 137*
+*Defined at line 137*
 
 ---
 
-### `getMiner`
+### `getMiner()`
 
 Get miner by ID
 
@@ -248,18 +350,18 @@ Get miner by ID
 pub fn getMiner(self: *const MinerPool, miner_id: u32) ?*const LightMiner {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerPool`
-- `miner_id`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerPool` | The instance |
+| `miner_id` | `u32` | Miner_id |
 
 **Returns:** `?*const LightMiner`
 
-*Line: 148*
+*Defined at line 148*
 
 ---
 
-### `getConnectedCount`
+### `getConnectedCount()`
 
 Get connected miners count
 
@@ -267,17 +369,17 @@ Get connected miners count
 pub fn getConnectedCount(self: *const MinerPool) u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerPool` | The instance |
 
 **Returns:** `u32`
 
-*Line: 158*
+*Defined at line 158*
 
 ---
 
-### `isReadyForGenesis`
+### `isReadyForGenesis()`
 
 Check if ready for genesis
 
@@ -285,17 +387,17 @@ Check if ready for genesis
 pub fn isReadyForGenesis(self: *const MinerPool) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerPool` | The instance |
 
 **Returns:** `bool`
 
-*Line: 167*
+*Defined at line 167*
 
 ---
 
-### `startGenesis`
+### `startGenesis()`
 
 Start genesis mining
 
@@ -303,17 +405,17 @@ Start genesis mining
 pub fn startGenesis(self: *MinerPool) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MinerPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerPool` | The instance |
 
 **Returns:** `!void`
 
-*Line: 172*
+*Defined at line 172*
 
 ---
 
-### `submitShare`
+### `submitShare()`
 
 Submit share from miner
 
@@ -321,19 +423,19 @@ Submit share from miner
 pub fn submitShare(self: *MinerPool, miner_id: u32, difficulty: u64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*MinerPool`
-- `miner_id`: `u32`
-- `difficulty`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerPool` | The instance |
+| `miner_id` | `u32` | Miner_id |
+| `difficulty` | `u64` | Difficulty |
 
 **Returns:** `bool`
 
-*Line: 187*
+*Defined at line 187*
 
 ---
 
-### `getStats`
+### `getStats()`
 
 Get pool statistics
 
@@ -341,17 +443,17 @@ Get pool statistics
 pub fn getStats(self: *const MinerPool) MinerPoolStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const MinerPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerPool` | The instance |
 
 **Returns:** `MinerPoolStats`
 
-*Line: 200*
+*Defined at line 200*
 
 ---
 
-### `printStatus`
+### `printStatus()`
 
 Print pool status
 
@@ -359,25 +461,31 @@ Print pool status
 pub fn printStatus(self: *const MinerPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MinerPool` | The instance |
 
-- `self`: `*const MinerPool`
-
-*Line: 225*
+*Defined at line 225*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *MinerPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MinerPool` | The instance |
 
-- `self`: `*MinerPool`
-
-*Line: 249*
+*Defined at line 249*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

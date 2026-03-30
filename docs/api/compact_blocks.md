@@ -1,10 +1,32 @@
 # Module: `compact_blocks`
 
+> Compact block relay — send only TX short IDs, ~90% bandwidth reduction, reconstruct blocks from mempool.
+
+**Source:** `core/compact_blocks.zig` | **Lines:** 287 | **Functions:** 5 | **Structs:** 4 | **Tests:** 9
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`PrefilledTx`](#prefilledtx) — Prefilled transaction (TX that receiver likely doesn't have)
+- [`CompactBlock`](#compactblock) — Compact Block message
+Sent instead of full block — ~90% bandwidth reduction
+- [`ReconstructResult`](#reconstructresult) — Result of compact block reconstruction
+- [`MsgGetBlockTxn`](#msggetblocktxn) — GetBlockTxn message — request missing TX by index
+
+### Constants
+- [5 constants defined](#constants)
+
+### Functions
+- [`computeShortTxId()`](#computeshorttxid) — Compute short TX ID from full TX hash
+Uses block header hash as SipHas...
+- [`compactSize()`](#compactsize) — Total compact block size in bytes (header + short IDs + prefilled)
+- [`estimatedFullSize()`](#estimatedfullsize) — Estimated full block size
+- [`savingsPercent()`](#savingspercent) — Bandwidth savings percentage
+- [`encode()`](#encode) — Decodes the encoded data back to its original format.
+
+---
 
 ## Structs
 
@@ -12,40 +34,82 @@
 
 Prefilled transaction (TX that receiver likely doesn't have)
 
-*Line: 48*
+| Field | Type | Description |
+|-------|------|-------------|
+| `index` | `u16` | Index |
+| `tx_hash` | `[32]u8` | Tx_hash |
+| `tx_size` | `u32` | Tx_size |
+
+*Defined at line 48*
+
+---
 
 ### `CompactBlock`
 
 Compact Block message
 Sent instead of full block — ~90% bandwidth reduction
 
-*Line: 59*
+| Field | Type | Description |
+|-------|------|-------------|
+| `header_height` | `u64` | Header_height |
+| `header_timestamp` | `i64` | Header_timestamp |
+| `header_prev_hash` | `[32]u8` | Header_prev_hash |
+| `header_merkle_root` | `[32]u8` | Header_merkle_root |
+| `header_nonce` | `u64` | Header_nonce |
+| `short_id_nonce` | `u64` | Short_id_nonce |
+| `short_ids` | `[MAX_COMPACT_TX]ShortTxId` | Short_ids |
+| `short_id_count` | `u16` | Short_id_count |
+| `prefilled` | `[MAX_PREFILLED]PrefilledTx` | Prefilled |
+| `prefilled_count` | `u8` | Prefilled_count |
+
+*Defined at line 59*
+
+---
 
 ### `ReconstructResult`
 
 Result of compact block reconstruction
 
-*Line: 100*
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `bool` | Success |
+| `found_in_mempool` | `u16` | Found_in_mempool |
+| `missing_count` | `u16` | Missing_count |
+| `missing_indices` | `[MAX_COMPACT_TX]u16` | Missing_indices |
+
+*Defined at line 100*
+
+---
 
 ### `MsgGetBlockTxn`
 
 GetBlockTxn message — request missing TX by index
 
-*Line: 160*
+| Field | Type | Description |
+|-------|------|-------------|
+| `block_hash` | `[32]u8` | Block_hash |
+| `indices` | `[MAX_COMPACT_TX]u16` | Indices |
+| `count` | `u16` | Count |
+
+*Defined at line 160*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `SHORT_TXID_SIZE` | auto | `usize = 6` |
-| `MAX_COMPACT_TX` | auto | `usize = 10_000` |
-| `MAX_PREFILLED` | auto | `usize = 100` |
-| `SIPHASH_KEY_SIZE` | auto | `usize = 16` |
-| `ShortTxId` | auto | `[SHORT_TXID_SIZE]u8` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `SHORT_TXID_SIZE` | `usize = 6` | S h o r t_ t x i d_ s i z e |
+| `MAX_COMPACT_TX` | `usize = 10_000` | M a x_ c o m p a c t_ t x |
+| `MAX_PREFILLED` | `usize = 100` | M a x_ p r e f i l l e d |
+| `SIPHASH_KEY_SIZE` | `usize = 16` | S i p h a s h_ k e y_ s i z e |
+| `ShortTxId` | `[SHORT_TXID_SIZE]u8` | Short tx id |
+
+---
 
 ## Functions
 
-### `computeShortTxId`
+### `computeShortTxId()`
 
 Compute short TX ID from full TX hash
 Uses block header hash as SipHash key for domain separation
@@ -54,18 +118,18 @@ Uses block header hash as SipHash key for domain separation
 pub fn computeShortTxId(tx_hash: [32]u8, block_nonce: u64) ShortTxId {
 ```
 
-**Parameters:**
-
-- `tx_hash`: `[32]u8`
-- `block_nonce`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `tx_hash` | `[32]u8` | Tx_hash |
+| `block_nonce` | `u64` | Block_nonce |
 
 **Returns:** `ShortTxId`
 
-*Line: 33*
+*Defined at line 33*
 
 ---
 
-### `compactSize`
+### `compactSize()`
 
 Total compact block size in bytes (header + short IDs + prefilled)
 
@@ -73,17 +137,17 @@ Total compact block size in bytes (header + short IDs + prefilled)
 pub fn compactSize(self: *const CompactBlock) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const CompactBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const CompactBlock` | The instance |
 
 **Returns:** `usize`
 
-*Line: 76*
+*Defined at line 76*
 
 ---
 
-### `estimatedFullSize`
+### `estimatedFullSize()`
 
 Estimated full block size
 
@@ -91,17 +155,17 @@ Estimated full block size
 pub fn estimatedFullSize(self: *const CompactBlock) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const CompactBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const CompactBlock` | The instance |
 
 **Returns:** `usize`
 
-*Line: 85*
+*Defined at line 85*
 
 ---
 
-### `savingsPercent`
+### `savingsPercent()`
 
 Bandwidth savings percentage
 
@@ -109,29 +173,35 @@ Bandwidth savings percentage
 pub fn savingsPercent(self: *const CompactBlock) u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const CompactBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const CompactBlock` | The instance |
 
 **Returns:** `u8`
 
-*Line: 91*
+*Defined at line 91*
 
 ---
 
-### `encode`
+### `encode()`
+
+Decodes the encoded data back to its original format.
 
 ```zig
 pub fn encode(self: *const MsgGetBlockTxn) [32 + 2 + MAX_COMPACT_TX * 2]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MsgGetBlockTxn`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MsgGetBlockTxn` | The instance |
 
 **Returns:** `[32 + 2 + MAX_COMPACT_TX * 2]u8`
 
-*Line: 165*
+*Defined at line 165*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

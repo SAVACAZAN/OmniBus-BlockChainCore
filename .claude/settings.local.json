@@ -14,7 +14,10 @@
       "Bash(echo \"EXIT_CHAIN=$?\")",
       "Bash(echo \"EXIT CODE: $?\")",
       "Bash(npx tsc:*)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(python tools/DOCUMENTATION/doc_generator.py)",
+      "Bash(python tools/COMPARISON/blockchain_vs_comparison.py --coverage)",
+      "Bash(python tools/DOCUMENTATION/doc_generator.py --format html --output docs/api)"
     ]
   }
 }

@@ -1,10 +1,37 @@
 # Module: `node_launcher`
 
+> Node orchestration — starts all subsystems in order, manages seed/miner mode, initiates mining loop.
+
+**Source:** `core/node_launcher.zig` | **Lines:** 386 | **Functions:** 13 | **Structs:** 2 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`NodeConfig`](#nodeconfig) — Node launcher configuration
+- [`NodeLauncher`](#nodelauncher) — Main node launcher
+
+### Constants
+- [2 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`attachP2PNode()`](#attachp2pnode) — Ataseaza P2PNode real (TCP) — apelat din main.zig dupa init p2p
+Permit...
+- [`startSeedNode()`](#startseednode) — Start seed node
+- [`startMinerNode()`](#startminernode) — Start miner node
+- [`registerMinerWithPool()`](#registerminerwithpool) — Register miner with pool (for seed node)
+- [`onPeerConnected()`](#onpeerconnected) — Update bootstrap node status when peer joins
+- [`readyForMining()`](#readyformining) — Transition to mining when ready (requires MIN_PEERS_FOR_MINING connect...
+- [`startMining()`](#startmining) — Start mining on this node
+- [`stopMining()`](#stopmining) — Stop mining
+- [`getNetworkStatus()`](#getnetworkstatus) — Get network status
+- [`getBootstrapStatus()`](#getbootstrapstatus) — Get bootstrap status
+- [`maintenance()`](#maintenance) — Periodic maintenance (remove stale peers, etc.)
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -12,39 +39,70 @@
 
 Node launcher configuration
 
-*Line: 14*
+| Field | Type | Description |
+|-------|------|-------------|
+| `mode` | `NodeMode` | Mode |
+| `node_id` | `[]const u8` | Node_id |
+| `host` | `[]const u8` | Host |
+| `port` | `u16` | Port |
+| `is_primary` | `bool` | Is_primary |
+| `max_peers` | `u32` | Max_peers |
+| `seed_host` | `?[]const u8` | Seed_host |
+| `seed_port` | `?u16` | Seed_port |
+| `hashrate` | `?u64` | Hashrate |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 15*
+
+---
 
 ### `NodeLauncher`
 
 Main node launcher
 
-*Line: 29*
+| Field | Type | Description |
+|-------|------|-------------|
+| `config` | `NodeConfig` | Config |
+| `bootstrap_node` | `?bootstrap.BootstrapNode` | Bootstrap_node |
+| `p2p_network` | `?network.P2PNetwork` | P2p_network |
+| `mining_pool` | `?mining_pool.MiningPool` | Mining_pool |
+| `p2p_node` | `?*p2p_mod.P2PNode` | P2p_node |
+| `is_running` | `bool` | Is_running |
+
+*Defined at line 30*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `NodeMode` | auto | `enum {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `NodeMode` | `enum {` | Node mode |
+| `MIN_PEERS_FOR_MINING` | `usize = 10` | M i n_ p e e r s_ f o r_ m i n i n g |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(config: NodeConfig) NodeLauncher {
 ```
 
-**Parameters:**
-
-- `config`: `NodeConfig`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `config` | `NodeConfig` | Config |
 
 **Returns:** `NodeLauncher`
 
-*Line: 37*
+*Defined at line 38*
 
 ---
 
-### `attachP2PNode`
+### `attachP2PNode()`
 
 Ataseaza P2PNode real (TCP) — apelat din main.zig dupa init p2p
 Permite broadcast() sa trimita mesaje TCP reale in loc de print-only
@@ -53,16 +111,16 @@ Permite broadcast() sa trimita mesaje TCP reale in loc de print-only
 pub fn attachP2PNode(self: *NodeLauncher, node: *p2p_mod.P2PNode) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
+| `node` | `*p2p_mod.P2PNode` | Node |
 
-- `self`: `*NodeLauncher`
-- `node`: `*p2p_mod.P2PNode`
-
-*Line: 45*
+*Defined at line 46*
 
 ---
 
-### `startSeedNode`
+### `startSeedNode()`
 
 Start seed node
 
@@ -70,17 +128,17 @@ Start seed node
 pub fn startSeedNode(self: *NodeLauncher) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
 **Returns:** `!void`
 
-*Line: 50*
+*Defined at line 51*
 
 ---
 
-### `startMinerNode`
+### `startMinerNode()`
 
 Start miner node
 
@@ -88,17 +146,17 @@ Start miner node
 pub fn startMinerNode(self: *NodeLauncher) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
 **Returns:** `!void`
 
-*Line: 72*
+*Defined at line 73*
 
 ---
 
-### `registerMinerWithPool`
+### `registerMinerWithPool()`
 
 Register miner with pool (for seed node)
 
@@ -106,20 +164,20 @@ Register miner with pool (for seed node)
 pub fn registerMinerWithPool(self: *NodeLauncher, miner_id: []const u8, address: []const u8, hashrate: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
-- `miner_id`: `[]const u8`
-- `address`: `[]const u8`
-- `hashrate`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
+| `miner_id` | `[]const u8` | Miner_id |
+| `address` | `[]const u8` | Address |
+| `hashrate` | `u64` | Hashrate |
 
 **Returns:** `!void`
 
-*Line: 113*
+*Defined at line 114*
 
 ---
 
-### `onPeerConnected`
+### `onPeerConnected()`
 
 Update bootstrap node status when peer joins
 
@@ -127,36 +185,36 @@ Update bootstrap node status when peer joins
 pub fn onPeerConnected(self: *NodeLauncher, peer: bootstrap.BootstrapNode.Peer) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
-- `peer`: `bootstrap.BootstrapNode.Peer`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
+| `peer` | `bootstrap.BootstrapNode.Peer` | Peer |
 
 **Returns:** `!void`
 
-*Line: 124*
+*Defined at line 125*
 
 ---
 
-### `readyForMining`
+### `readyForMining()`
 
-Transition to mining when ready
+Transition to mining when ready (requires MIN_PEERS_FOR_MINING connected)
 
 ```zig
 pub fn readyForMining(self: *NodeLauncher) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
 **Returns:** `bool`
 
-*Line: 138*
+*Defined at line 143*
 
 ---
 
-### `startMining`
+### `startMining()`
 
 Start mining on this node
 
@@ -164,17 +222,17 @@ Start mining on this node
 pub fn startMining(self: *NodeLauncher) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
 **Returns:** `!void`
 
-*Line: 151*
+*Defined at line 157*
 
 ---
 
-### `stopMining`
+### `stopMining()`
 
 Stop mining
 
@@ -182,17 +240,17 @@ Stop mining
 pub fn stopMining(self: *NodeLauncher) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
 **Returns:** `!void`
 
-*Line: 171*
+*Defined at line 177*
 
 ---
 
-### `getNetworkStatus`
+### `getNetworkStatus()`
 
 Get network status
 
@@ -200,17 +258,17 @@ Get network status
 pub fn getNetworkStatus(self: *const NodeLauncher) ?network.NetworkStatus {
 ```
 
-**Parameters:**
-
-- `self`: `*const NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const NodeLauncher` | The instance |
 
 **Returns:** `?network.NetworkStatus`
 
-*Line: 188*
+*Defined at line 194*
 
 ---
 
-### `getBootstrapStatus`
+### `getBootstrapStatus()`
 
 Get bootstrap status
 
@@ -218,17 +276,17 @@ Get bootstrap status
 pub fn getBootstrapStatus(self: *const NodeLauncher) ?bootstrap.BootstrapStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const NodeLauncher`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const NodeLauncher` | The instance |
 
 **Returns:** `?bootstrap.BootstrapStats`
 
-*Line: 196*
+*Defined at line 202*
 
 ---
 
-### `maintenance`
+### `maintenance()`
 
 Periodic maintenance (remove stale peers, etc.)
 
@@ -236,25 +294,31 @@ Periodic maintenance (remove stale peers, etc.)
 pub fn maintenance(self: *NodeLauncher) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
-- `self`: `*NodeLauncher`
-
-*Line: 204*
+*Defined at line 210*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *NodeLauncher) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*NodeLauncher` | The instance |
 
-- `self`: `*NodeLauncher`
-
-*Line: 210*
+*Defined at line 216*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

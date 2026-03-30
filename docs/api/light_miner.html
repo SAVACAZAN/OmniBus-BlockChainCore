@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>light_miner — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>light_miner</code></h1>
+<p class="module-desc">Lightweight mining client — reduced resource usage, header-only validation, connects to full nodes for block templates.</p>
+<p class="stats">Source: core/light_miner.zig &bull; 351 lines &bull; 21 functions &bull; 3 structs &bull; 6 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>LightMiner</code></h3>
+            <p>Lightweight miner instance (can run multiple on one machine)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr><tr><td><code>instance_name</code></td><td><code>[]const u8</code></td><td>Instance_name</td></tr><tr><td><code>hashrate</code></td><td><code>u64</code></td><td>Hashrate</td></tr><tr><td><code>status</code></td><td><code>MinerStatus</code></td><td>Status</td></tr><tr><td><code>blocks_mined</code></td><td><code>u32</code></td><td>Blocks_mined</td></tr><tr><td><code>shares_submitted</code></td><td><code>u32</code></td><td>Shares_submitted</td></tr><tr><td><code>shares_accepted</code></td><td><code>u32</code></td><td>Shares_accepted</td></tr><tr><td><code>last_share_time</code></td><td><code>i64</code></td><td>Last_share_time</td></tr><tr><td><code>total_difficulty</code></td><td><code>u64</code></td><td>Total_difficulty</td></tr><tr><td><code>connection_time</code></td><td><code>i64</code></td><td>Connection_time</td></tr><tr><td><code>is_connected</code></td><td><code>bool</code></td><td>Is_connected</td></tr></table>
+            <p class="line">Line: 5</p>
+        </div>
+        <div class="section">
+            <h3><code>MinerPool</code></h3>
+            <p>Manager for multiple light miner instances</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>miners</code></td><td><code>std.array_list.Managed(LightMiner)</code></td><td>Miners</td></tr><tr><td><code>total_hashrate</code></td><td><code>u64</code></td><td>Total_hashrate</td></tr><tr><td><code>pool_status</code></td><td><code>PoolStatus</code></td><td>Pool_status</td></tr><tr><td><code>genesis_started</code></td><td><code>bool</code></td><td>Genesis_started</td></tr><tr><td><code>min_miners_for_genesis</code></td><td><code>u32</code></td><td>Min_miners_for_genesis</td></tr></table>
+            <p class="line">Line: 109</p>
+        </div>
+        <div class="section">
+            <h3><code>MinerPoolStats</code></h3>
+            <p>Data structure for miner pool stats. Fields include: connected_miners, total_miners, total_hashrate, total_shares, total_accepted.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>connected_miners</code></td><td><code>u32</code></td><td>Connected_miners</td></tr><tr><td><code>total_miners</code></td><td><code>u32</code></td><td>Total_miners</td></tr><tr><td><code>total_hashrate</code></td><td><code>u64</code></td><td>Total_hashrate</td></tr><tr><td><code>total_shares</code></td><td><code>u64</code></td><td>Total_shares</td></tr><tr><td><code>total_accepted</code></td><td><code>u64</code></td><td>Total_accepted</td></tr><tr><td><code>total_blocks</code></td><td><code>u32</code></td><td>Total_blocks</td></tr><tr><td><code>status</code></td><td><code>PoolStatus</code></td><td>Status</td></tr><tr><td><code>genesis_started</code></td><td><code>bool</code></td><td>Genesis_started</td></tr><tr><td><code>ready_for_genesis</code></td><td><code>bool</code></td><td>Ready_for_genesis</td></tr></table>
+            <p class="line">Line: 265</p>
+        </div>
+
+<h2>Constants (2)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>MinerStatus</code></td><td><code>enum {</code></td><td>Miner status</td></tr><tr><td><code>PoolStatus</code></td><td><code>enum {</code></td><td>Pool status</td></tr></table></div>
+
+<h2>Functions (21)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, id: u32, hashrate: u64) !LightMiner {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>id</code></td><td><code>u32</code></td><td>Id</td></tr><tr><td><code>hashrate</code></td><td><code>u64</code></td><td>Hashrate</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!LightMiner</code></p>
+            <p class="line">Line: 18</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *LightMiner, allocator: std.mem.Allocator) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightMiner</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            
+            <p class="line">Line: 30</p>
+        </div>
+        <div class="section">
+            <h3><code>connect()</code></h3>
+            <p class="desc">Performs the connect operation on the light_miner module.</p>
+            <pre><code>pub fn connect(self: *LightMiner) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightMiner</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 34</p>
+        </div>
+        <div class="section">
+            <h3><code>disconnect()</code></h3>
+            <p class="desc">Performs the disconnect operation on the light_miner module.</p>
+            <pre><code>pub fn disconnect(self: *LightMiner) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightMiner</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 40</p>
+        </div>
+        <div class="section">
+            <h3><code>submitShare()</code></h3>
+            <p class="desc">Performs the submit share operation on the light_miner module.</p>
+            <pre><code>pub fn submitShare(self: *LightMiner, difficulty: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightMiner</code></td><td>The instance</td></tr><tr><td><code>difficulty</code></td><td><code>u64</code></td><td>Difficulty</td></tr></table>
+            
+            <p class="line">Line: 45</p>
+        </div>
+        <div class="section">
+            <h3><code>recordBlockMined()</code></h3>
+            <p class="desc">Executes mining operation — finds valid nonce for the next block.</p>
+            <pre><code>pub fn recordBlockMined(self: *LightMiner) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*LightMiner</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 56</p>
+        </div>
+        <div class="section">
+            <h3><code>getUptime()</code></h3>
+            <p class="desc">Returns the current uptime.</p>
+            <pre><code>pub fn getUptime(self: *const LightMiner) i64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightMiner</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>i64</code></p>
+            <p class="line">Line: 61</p>
+        </div>
+        <div class="section">
+            <h3><code>getAcceptanceRate()</code></h3>
+            <p class="desc">Returns the current acceptance rate.</p>
+            <pre><code>pub fn getAcceptanceRate(self: *const LightMiner) f64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightMiner</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>f64</code></p>
+            <p class="line">Line: 66</p>
+        </div>
+        <div class="section">
+            <h3><code>getEffectiveHashrate()</code></h3>
+            <p class="desc">Returns the current effective hashrate.</p>
+            <pre><code>pub fn getEffectiveHashrate(self: *const LightMiner) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightMiner</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 71</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the light_miner module.</p>
+            <pre><code>pub fn print(self: *const LightMiner) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const LightMiner</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 83</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) MinerPool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>MinerPool</code></p>
+            <p class="line">Line: 117</p>
+        </div>
+        <div class="section">
+            <h3><code>addMiner()</code></h3>
+            <p class="desc">Add new miner to pool</p>
+            <pre><code>pub fn addMiner(self: *MinerPool, id: u32, hashrate: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerPool</code></td><td>The instance</td></tr><tr><td><code>id</code></td><td><code>u32</code></td><td>Id</td></tr><tr><td><code>hashrate</code></td><td><code>u64</code></td><td>Hashrate</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 125</p>
+        </div>
+        <div class="section">
+            <h3><code>connectMiner()</code></h3>
+            <p class="desc">Connect miner by ID</p>
+            <pre><code>pub fn connectMiner(self: *MinerPool, miner_id: u32) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerPool</code></td><td>The instance</td></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 137</p>
+        </div>
+        <div class="section">
+            <h3><code>getMiner()</code></h3>
+            <p class="desc">Get miner by ID</p>
+            <pre><code>pub fn getMiner(self: *const MinerPool, miner_id: u32) ?*const LightMiner {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerPool</code></td><td>The instance</td></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const LightMiner</code></p>
+            <p class="line">Line: 148</p>
+        </div>
+        <div class="section">
+            <h3><code>getConnectedCount()</code></h3>
+            <p class="desc">Get connected miners count</p>
+            <pre><code>pub fn getConnectedCount(self: *const MinerPool) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerPool</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 158</p>
+        </div>
+        <div class="section">
+            <h3><code>isReadyForGenesis()</code></h3>
+            <p class="desc">Check if ready for genesis</p>
+            <pre><code>pub fn isReadyForGenesis(self: *const MinerPool) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerPool</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 167</p>
+        </div>
+        <div class="section">
+            <h3><code>startGenesis()</code></h3>
+            <p class="desc">Start genesis mining</p>
+            <pre><code>pub fn startGenesis(self: *MinerPool) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerPool</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 172</p>
+        </div>
+        <div class="section">
+            <h3><code>submitShare()</code></h3>
+            <p class="desc">Submit share from miner</p>
+            <pre><code>pub fn submitShare(self: *MinerPool, miner_id: u32, difficulty: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerPool</code></td><td>The instance</td></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr><tr><td><code>difficulty</code></td><td><code>u64</code></td><td>Difficulty</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 187</p>
+        </div>
+        <div class="section">
+            <h3><code>getStats()</code></h3>
+            <p class="desc">Get pool statistics</p>
+            <pre><code>pub fn getStats(self: *const MinerPool) MinerPoolStats {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerPool</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>MinerPoolStats</code></p>
+            <p class="line">Line: 200</p>
+        </div>
+        <div class="section">
+            <h3><code>printStatus()</code></h3>
+            <p class="desc">Print pool status</p>
+            <pre><code>pub fn printStatus(self: *const MinerPool) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerPool</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 225</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *MinerPool) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerPool</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 249</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>p2p — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>p2p</code></h1>
+<p class="module-desc">TCP P2P networking — binary protocol for peer connections, block/TX propagation, peer discovery, knock-knock duplicate detection, and message broadcasting.</p>
+<p class="stats">Source: core/p2p.zig &bull; 2718 lines &bull; 63 functions &bull; 15 structs &bull; 47 tests</p>
+
+<h2>Structs (15)</h2>
+        <div class="section">
+            <h3><code>MsgHeader</code></h3>
+            <p>Data structure for msg header. Fields include: version, msg_type, payload_len, checksum, flags.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>version</code></td><td><code>u8</code></td><td>Version</td></tr><tr><td><code>msg_type</code></td><td><code>u8</code></td><td>Msg_type</td></tr><tr><td><code>payload_len</code></td><td><code>u32</code></td><td>Payload_len</td></tr><tr><td><code>checksum</code></td><td><code>u16</code></td><td>Checksum</td></tr><tr><td><code>flags</code></td><td><code>u8</code></td><td>Flags</td></tr></table>
+            <p class="line">Line: 103</p>
+        </div>
+        <div class="section">
+            <h3><code>MsgPing</code></h3>
+            <p>Data structure for msg ping. Fields include: node_id, height, version.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>node_id</code></td><td><code>[32]u8</code></td><td>Node_id</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr><tr><td><code>version</code></td><td><code>u8</code></td><td>Version</td></tr></table>
+            <p class="line">Line: 138</p>
+        </div>
+        <div class="section">
+            <h3><code>MsgPeerList</code></h3>
+            <p>Data structure for msg peer list. Fields include: peers.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>peers</code></td><td><code>[]PeerAddr</code></td><td>Peers</td></tr></table>
+            <p class="line">Line: 163</p>
+        </div>
+        <div class="section">
+            <h3><code>PeerAddr</code></h3>
+            <p>Data structure for peer addr. Fields include: ip, port.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>ip</code></td><td><code>[4]u8</code></td><td>Ip</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr></table>
+            <p class="line">Line: 166</p>
+        </div>
+        <div class="section">
+            <h3><code>MsgBlockAnnounce</code></h3>
+            <p>Data structure for msg block announce. Fields include: block_height, block_hash, miner_id, reward_sat.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>block_hash</code></td><td><code>[32]u8</code></td><td>Block_hash</td></tr><tr><td><code>miner_id</code></td><td><code>[32]u8</code></td><td>Miner_id</td></tr><tr><td><code>reward_sat</code></td><td><code>u64</code></td><td>Reward_sat</td></tr></table>
+            <p class="line">Line: 212</p>
+        </div>
+        <div class="section">
+            <h3><code>BannedPeer</code></h3>
+            <p>Banned peer entry — tracks host:port + ban expiry</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>host</code></td><td><code>[64]u8</code></td><td>Host</td></tr><tr><td><code>host_len</code></td><td><code>u8</code></td><td>Host_len</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>banned_until</code></td><td><code>i64</code></td><td>Banned_until</td></tr><tr><td><code>reason</code></td><td><code>[64]u8</code></td><td>Reason</td></tr><tr><td><code>reason_len</code></td><td><code>u8</code></td><td>Reason_len</td></tr><tr><td><code>active</code></td><td><code>bool</code></td><td>Active</td></tr></table>
+            <p class="line">Line: 245</p>
+        </div>
+        <div class="section">
+            <h3><code>ReconnectInfo</code></h3>
+            <p>Per-peer reconnect tracking</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>host</code></td><td><code>[64]u8</code></td><td>Host</td></tr><tr><td><code>host_len</code></td><td><code>u8</code></td><td>Host_len</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>node_id</code></td><td><code>[64]u8</code></td><td>Node_id</td></tr><tr><td><code>node_id_len</code></td><td><code>u8</code></td><td>Node_id_len</td></tr><tr><td><code>attempts</code></td><td><code>u8</code></td><td>Attempts</td></tr><tr><td><code>last_disconnect</code></td><td><code>i64</code></td><td>Last_disconnect</td></tr><tr><td><code>active</code></td><td><code>bool</code></td><td>Active</td></tr></table>
+            <p class="line">Line: 282</p>
+        </div>
+        <div class="section">
+            <h3><code>RateLimitState</code></h3>
+            <p>Per-peer rate limiting state</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>msg_count</code></td><td><code>u32</code></td><td>Msg_count</td></tr><tr><td><code>byte_count</code></td><td><code>u64</code></td><td>Byte_count</td></tr><tr><td><code>window_start</code></td><td><code>i64</code></td><td>Window_start</td></tr></table>
+            <p class="line">Line: 310</p>
+        </div>
+        <div class="section">
+            <h3><code>PeerConnection</code></h3>
+            <p>Data structure for peer connection. Fields include: stream, node_id, host, port, height.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>stream</code></td><td><code>std.net.Stream</code></td><td>Stream</td></tr><tr><td><code>node_id</code></td><td><code>[]const u8</code></td><td>Node_id</td></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr><tr><td><code>connected</code></td><td><code>bool</code></td><td>Connected</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>direction</code></td><td><code>ConnDirection</code></td><td>Direction</td></tr><tr><td><code>rate_limit</code></td><td><code>RateLimitState</code></td><td>Rate_limit</td></tr></table>
+            <p class="line">Line: 347</p>
+        </div>
+        <div class="section">
+            <h3><code>SeenHashes</code></h3>
+            <p>Tracks recently seen TX/block hashes to prevent infinite relay loops.
+Fixed-size ring buffer — no dynamic allocation after init.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>entries</code></td><td><code>[SEEN_HASHES_MAX]Entry</code></td><td>Entries</td></tr><tr><td><code>count</code></td><td><code>usize</code></td><td>Count</td></tr><tr><td><code>next_slot</code></td><td><code>usize</code></td><td>Next_slot</td></tr></table>
+            <p class="line">Line: 466</p>
+        </div>
+        <div class="section">
+            <h3><code>Entry</code></h3>
+            <p>Data structure for entry. Fields include: hash, hash_len, timestamp, active.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>hash</code></td><td><code>[64]u8</code></td><td>Hash</td></tr><tr><td><code>hash_len</code></td><td><code>u8</code></td><td>Hash_len</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr><tr><td><code>active</code></td><td><code>bool</code></td><td>Active</td></tr></table>
+            <p class="line">Line: 467</p>
+        </div>
+        <div class="section">
+            <h3><code>GossipTxPayload</code></h3>
+            <p>Gossip TX payload: JSON-encoded transaction for simplicity.
+Wire format: [hash_len:1][hash:N][json_len:4LE][json:M]</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr><tr><td><code>tx_json</code></td><td><code>[]const u8</code></td><td>Tx_json</td></tr></table>
+            <p class="line">Line: 536</p>
+        </div>
+        <div class="section">
+            <h3><code>P2PNode</code></h3>
+            <p>Data structure for p2 p node. Fields include: local_id, local_host, local_port, peers, allocator.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>local_id</code></td><td><code>[]const u8</code></td><td>Local_id</td></tr><tr><td><code>local_host</code></td><td><code>[]const u8</code></td><td>Local_host</td></tr><tr><td><code>local_port</code></td><td><code>u16</code></td><td>Local_port</td></tr><tr><td><code>peers</code></td><td><code>array_list.Managed(PeerConnection)</code></td><td>Peers</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>chain_height</code></td><td><code>u64</code></td><td>Chain_height</td></tr><tr><td><code>is_idle</code></td><td><code>bool</code></td><td>Is_idle</td></tr><tr><td><code>blockchain</code></td><td><code>?*Blockchain</code></td><td>Blockchain</td></tr><tr><td><code>sync_mgr</code></td><td><code>?*SyncManager</code></td><td>Sync_mgr</td></tr><tr><td><code>light_client</code></td><td><code>?*light_client_mod.LightClient</code></td><td>Light_client</td></tr><tr><td><code>seen_tx_hashes</code></td><td><code>SeenHashes</code></td><td>Seen_tx_hashes</td></tr><tr><td><code>seen_block_hashes</code></td><td><code>SeenHashes</code></td><td>Seen_block_hashes</td></tr><tr><td><code>gossip_tx_count</code></td><td><code>u64</code></td><td>Gossip_tx_count</td></tr><tr><td><code>gossip_block_count</code></td><td><code>u64</code></td><td>Gossip_block_count</td></tr><tr><td><code>scoring_engine</code></td><td><code>scoring_mod.PeerScoringEngine</code></td><td>Scoring_engine</td></tr><tr><td><code>banned_peers</code></td><td><code>[MAX_BANNED_PEERS]BannedPeer</code></td><td>Banned_peers</td></tr><tr><td><code>banned_count</code></td><td><code>u16</code></td><td>Banned_count</td></tr><tr><td><code>reconnect_queue</code></td><td><code>[MAX_PEERS]ReconnectInfo</code></td><td>Reconnect_queue</td></tr><tr><td><code>reconnect_count</code></td><td><code>u16</code></td><td>Reconnect_count</td></tr><tr><td><code>inbound_count</code></td><td><code>u16</code></td><td>Inbound_count</td></tr></table>
+            <p class="line">Line: 712</p>
+        </div>
+        <div class="section">
+            <h3><code>AcceptArgs</code></h3>
+            <p>Data structure representing a accept args in the p2p module.</p>
+            
+            <p class="line">Line: 1489</p>
+        </div>
+        <div class="section">
+            <h3><code>PeerArgs</code></h3>
+            <p>Data structure representing a peer args in the p2p module.</p>
+            
+            <p class="line">Line: 1519</p>
+        </div>
+
+<h2>Constants (29)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>NetworkNode</code></td><td><code>network_mod.NetworkNode</code></td><td>Network node</td></tr><tr><td><code>MessageType</code></td><td><code>network_mod.MessageType</code></td><td>Message type</td></tr><tr><td><code>Blockchain</code></td><td><code>blockchain_mod.Blockchain</code></td><td>Blockchain</td></tr><tr><td><code>Block</code></td><td><code>block_mod.Block</code></td><td>Block</td></tr><tr><td><code>SyncManager</code></td><td><code>sync_mod.SyncManager</code></td><td>Sync manager</td></tr><tr><td><code>P2P_PORT_DEFAULT</code></td><td><code>u16 = 8333</code></td><td>P2 p_ p o r t_ d e f a u l t</td></tr><tr><td><code>P2P_VERSION</code></td><td><code>u8 = 1</code></td><td>P2 p_ v e r s i o n</td></tr><tr><td><code>P2P_MAX_MSG_BYTES</code></td><td><code>u32 = 1_048_576</code></td><td>P2 p_ m a x_ m s g_ b y t e s</td></tr><tr><td><code>P2P_CONNECT_TIMEOUT_MS</code></td><td><code>u64 = 3_000</code></td><td>P2 p_ c o n n e c t_ t i m e o u t_ m s</td></tr><tr><td><code>P2P_READ_TIMEOUT_MS</code></td><td><code>u64 = 5_000</code></td><td>P2 p_ r e a d_ t i m e o u t_ m s</td></tr><tr><td><code>MAX_INBOUND</code></td><td><code>usize = 32</code></td><td>M a x_ i n b o u n d</td></tr><tr><td><code>MAX_OUTBOUND</code></td><td><code>usize = 8</code></td><td>M a x_ o u t b o u n d</td></tr><tr><td><code>MAX_PEERS</code></td><td><code>usize = MAX_INBOUND + MAX_OUTBOUND</code></td><td>M a x_ p e e r s</td></tr><tr><td><code>MAX_RECONNECT_ATTEMPTS</code></td><td><code>u8 = 3</code></td><td>M a x_ r e c o n n e c t_ a t t e m p t s</td></tr><tr><td><code>RECONNECT_DELAY_SEC</code></td><td><code>i64 = 30</code></td><td>R e c o n n e c t_ d e l a y_ s e c</td></tr><tr><td><code>RATE_LIMIT_MSG_PER_SEC</code></td><td><code>u32 = 100</code></td><td>R a t e_ l i m i t_ m s g_ p e r_ s e c</td></tr><tr><td><code>RATE_LIMIT_BYTES_PER_SEC</code></td><td><code>u64 = 10 * 1024 * 1024</code></td><td>R a t e_ l i m i t_ b y t e s_ p e r_ s e c</td></tr><tr><td><code>RATE_LIMIT_BAN_SCORE</code></td><td><code>i32 = 50</code></td><td>R a t e_ l i m i t_ b a n_ s c o r e</td></tr><tr><td><code>MAX_BANNED_PEERS</code></td><td><code>usize = 256</code></td><td>M a x_ b a n n e d_ p e e r s</td></tr><tr><td><code>MAX_PEERS_PER_SUBNET</code></td><td><code>usize = 2</code></td><td>M a x_ p e e r s_ p e r_ s u b n e t</td></tr><tr><td><code>MIN_SUBNET_DIVERSITY</code></td><td><code>usize = 4</code></td><td>M i n_ s u b n e t_ d i v e r s i t y</td></tr><tr><td><code>MSG_HEADER_SIZE</code></td><td><code>usize = 9</code></td><td>M s g_ h e a d e r_ s i z e</td></tr><tr><td><code>PEX_MAX_PEERS</code></td><td><code>usize = 100</code></td><td>P e x_ m a x_ p e e r s</td></tr><tr><td><code>PEX_PEER_SIZE</code></td><td><code>usize = 6</code></td><td>P e x_ p e e r_ s i z e</td></tr><tr><td><code>ConnDirection</code></td><td><code>enum {</code></td><td>Conn direction</td></tr><tr><td><code>GossipBlockPayload</code></td><td><code>MsgBlockAnnounce</code></td><td>Gossip block payload</td></tr><tr><td><code>SPV_HEADER_SIZE</code></td><td><code>usize = 124</code></td><td>S p v_ h e a d e r_ s i z e</td></tr><tr><td><code>SPV_MAX_HEADERS_PER_MSG</code></td><td><code>u32 = 2000</code></td><td>S p v_ m a x_ h e a d e r s_ p e r_ m s g</td></tr><tr><td><code>KnockResult</code></td><td><code>enum {</code></td><td>Knock result</td></tr></table></div>
+
+<h2>Functions (63)</h2>
+        <div class="section">
+            <h3><code>encode()</code></h3>
+            <p class="desc">Decodes the encoded data back to its original format.</p>
+            <pre><code>pub fn encode(self: MsgHeader, buf: *[MSG_HEADER_SIZE]u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>MsgHeader</code></td><td>The instance</td></tr><tr><td><code>buf</code></td><td><code>*[MSG_HEADER_SIZE]u8</code></td><td>Buf</td></tr></table>
+            
+            <p class="line">Line: 110</p>
+        </div>
+        <div class="section">
+            <h3><code>decode()</code></h3>
+            <p class="desc">Performs the decode operation on the p2p module.</p>
+            <pre><code>pub fn decode(buf: *const [MSG_HEADER_SIZE]u8) MsgHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>buf</code></td><td><code>*const [MSG_HEADER_SIZE]u8</code></td><td>Buf</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>MsgHeader</code></p>
+            <p class="line">Line: 118</p>
+        </div>
+        <div class="section">
+            <h3><code>calcChecksum()</code></h3>
+            <p class="desc">Checksum simplu: suma tuturor byte-ilor payload mod 65536</p>
+            <pre><code>pub fn calcChecksum(data: []const u8) u16 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u16</code></p>
+            <p class="line">Line: 130</p>
+        </div>
+        <div class="section">
+            <h3><code>encode()</code></h3>
+            <p class="desc">Decodes the encoded data back to its original format.</p>
+            <pre><code>pub fn encode(self: MsgPing, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>MsgPing</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 143</p>
+        </div>
+        <div class="section">
+            <h3><code>decode()</code></h3>
+            <p class="desc">Attempts to find decode. Returns null if not found.</p>
+            <pre><code>pub fn decode(data: []const u8) ?MsgPing {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?MsgPing</code></p>
+            <p class="line">Line: 151</p>
+        </div>
+        <div class="section">
+            <h3><code>encodePeerList()</code></h3>
+            <p class="desc">Encode a list of PeerAddr into a peer_list payload.</p>
+            <pre><code>pub fn encodePeerList(peers: []const MsgPeerList.PeerAddr, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>peers</code></td><td><code>[]const MsgPeerList.PeerAddr</code></td><td>Peers</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 183</p>
+        </div>
+        <div class="section">
+            <h3><code>decodePeerList()</code></h3>
+            <p class="desc">Decode a peer_list payload into a slice of PeerAddr.
+Caller must free the returned slice with allocator.free().</p>
+            <pre><code>pub fn decodePeerList(data: []const u8, allocator: std.mem.Allocator) ![]MsgPeerList.PeerAddr {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]MsgPeerList.PeerAddr</code></p>
+            <p class="line">Line: 198</p>
+        </div>
+        <div class="section">
+            <h3><code>encode()</code></h3>
+            <p class="desc">Decodes the encoded data back to its original format.</p>
+            <pre><code>pub fn encode(self: MsgBlockAnnounce, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>MsgBlockAnnounce</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 218</p>
+        </div>
+        <div class="section">
+            <h3><code>decode()</code></h3>
+            <p class="desc">Attempts to find decode. Returns null if not found.</p>
+            <pre><code>pub fn decode(data: []const u8) ?MsgBlockAnnounce {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?MsgBlockAnnounce</code></p>
+            <p class="line">Line: 227</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(host: []const u8, port: u16, duration_sec: i64, reason: []const u8) BannedPeer {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>duration_sec</code></td><td><code>i64</code></td><td>Duration_sec</td></tr><tr><td><code>reason</code></td><td><code>[]const u8</code></td><td>Reason</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BannedPeer</code></p>
+            <p class="line">Line: 254</p>
+        </div>
+        <div class="section">
+            <h3><code>isExpired()</code></h3>
+            <p class="desc">Checks whether the expired condition is true.</p>
+            <pre><code>pub fn isExpired(self: *const BannedPeer) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BannedPeer</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 269</p>
+        </div>
+        <div class="section">
+            <h3><code>matchesHost()</code></h3>
+            <p class="desc">Checks matches host condition. Returns a boolean result.</p>
+            <pre><code>pub fn matchesHost(self: *const BannedPeer, host: []const u8, port: u16) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BannedPeer</code></td><td>The instance</td></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 273</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(host: []const u8, port: u16, node_id: []const u8) ReconnectInfo {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>node_id</code></td><td><code>[]const u8</code></td><td>Node_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ReconnectInfo</code></p>
+            <p class="line">Line: 292</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() RateLimitState {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>RateLimitState</code></p>
+            <p class="line">Line: 315</p>
+        </div>
+        <div class="section">
+            <h3><code>recordMessage()</code></h3>
+            <p class="desc">Record a message. Returns true if within limits, false if exceeded.</p>
+            <pre><code>pub fn recordMessage(self: *RateLimitState, msg_size: usize) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*RateLimitState</code></td><td>The instance</td></tr><tr><td><code>msg_size</code></td><td><code>usize</code></td><td>Msg_size</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 324</p>
+        </div>
+        <div class="section">
+            <h3><code>send()</code></h3>
+            <p class="desc">Trimite un mesaj binar catre peer</p>
+            <pre><code>pub fn send(self: *PeerConnection, msg_type: u8, payload: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PeerConnection</code></td><td>The instance</td></tr><tr><td><code>msg_type</code></td><td><code>u8</code></td><td>Msg_type</td></tr><tr><td><code>payload</code></td><td><code>[]const u8</code></td><td>Payload</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 361</p>
+        </div>
+        <div class="section">
+            <h3><code>recv()</code></h3>
+            <p class="desc">Citeste un mesaj binar de la peer
+Caller trebuie sa elibereze payload-ul cu allocator.free()</p>
+            <pre><code>pub fn recv(self: *PeerConnection) !struct { msg_type: u8, payload: []u8 } {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PeerConnection</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!struct</code></p>
+            <p class="line">Line: 381</p>
+        </div>
+        <div class="section">
+            <h3><code>sendPing()</code></h3>
+            <p class="desc">Trimite PING cu inaltimea curenta a lantului</p>
+            <pre><code>pub fn sendPing(self: *PeerConnection, node_id: []const u8, height: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PeerConnection</code></td><td>The instance</td></tr><tr><td><code>node_id</code></td><td><code>[]const u8</code></td><td>Node_id</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 410</p>
+        </div>
+        <div class="section">
+            <h3><code>close()</code></h3>
+            <p class="desc">Closes the  and releases associated resources.</p>
+            <pre><code>pub fn close(self: *PeerConnection) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PeerConnection</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 449</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() SeenHashes {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>SeenHashes</code></p>
+            <p class="line">Line: 478</p>
+        </div>
+        <div class="section">
+            <h3><code>contains()</code></h3>
+            <p class="desc">Returns true if the hash was already seen (still fresh).</p>
+            <pre><code>pub fn contains(self: *const SeenHashes, hash: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SeenHashes</code></td><td>The instance</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 490</p>
+        </div>
+        <div class="section">
+            <h3><code>insert()</code></h3>
+            <p class="desc">Inserts a hash. Returns false if it was already present (duplicate).</p>
+            <pre><code>pub fn insert(self: *SeenHashes, hash: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SeenHashes</code></td><td>The instance</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 503</p>
+        </div>
+        <div class="section">
+            <h3><code>evictExpired()</code></h3>
+            <p class="desc">Evict entries older than SEEN_HASH_EXPIRY_S</p>
+            <pre><code>pub fn evictExpired(self: *SeenHashes) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SeenHashes</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 523</p>
+        </div>
+        <div class="section">
+            <h3><code>encode()</code></h3>
+            <p class="desc">Decodes the encoded data back to its original format.</p>
+            <pre><code>pub fn encode(self: GossipTxPayload, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>GossipTxPayload</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 540</p>
+        </div>
+        <div class="section">
+            <h3><code>decode()</code></h3>
+            <p class="desc">Attempts to find decode. Returns null if not found.</p>
+            <pre><code>pub fn decode(data: []const u8) ?GossipTxPayload {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?GossipTxPayload</code></p>
+            <p class="line">Line: 552</p>
+        </div>
+        <div class="section">
+            <h3><code>encodeGetHeaders()</code></h3>
+            <p class="desc">Encode a getheaders_p2p request payload</p>
+            <pre><code>pub fn encodeGetHeaders(start_height: u32, count: u32, buf: *[8]u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>start_height</code></td><td><code>u32</code></td><td>Start_height</td></tr><tr><td><code>count</code></td><td><code>u32</code></td><td>Count</td></tr><tr><td><code>buf</code></td><td><code>*[8]u8</code></td><td>Buf</td></tr></table>
+            
+            <p class="line">Line: 597</p>
+        </div>
+        <div class="section">
+            <h3><code>decodeGetHeaders()</code></h3>
+            <p class="desc">Decode a getheaders_p2p request payload</p>
+            <pre><code>pub fn decodeGetHeaders(data: []const u8) ?struct { start_height: u32, count: u32 } {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?struct</code></p>
+            <p class="line">Line: 603</p>
+        </div>
+        <div class="section">
+            <h3><code>serializeSpvHeader()</code></h3>
+            <p class="desc">Serialize a light_client BlockHeader into the 120-byte wire format.
+Fields: index(8) + timestamp(8) + prev_hash(32) + merkle_root(32) + hash(32) + difficulty(4) + nonce(8) = 120</p>
+            <pre><code>pub fn serializeSpvHeader(header: *const light_client_mod.BlockHeader, buf: *[SPV_HEADER_SIZE]u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>header</code></td><td><code>*const light_client_mod.BlockHeader</code></td><td>Header</td></tr><tr><td><code>buf</code></td><td><code>*[SPV_HEADER_SIZE]u8</code></td><td>Buf</td></tr></table>
+            
+            <p class="line">Line: 613</p>
+        </div>
+        <div class="section">
+            <h3><code>deserializeSpvHeader()</code></h3>
+            <p class="desc">Deserialize a 120-byte wire header into a light_client BlockHeader.</p>
+            <pre><code>pub fn deserializeSpvHeader(data: *const [SPV_HEADER_SIZE]u8) light_client_mod.BlockHeader {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>*const [SPV_HEADER_SIZE]u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>light_client_mod.BlockHeader</code></p>
+            <p class="line">Line: 631</p>
+        </div>
+        <div class="section">
+            <h3><code>encodeBloomFilter()</code></h3>
+            <p class="desc">Encode a filterload payload: [num_hash_funcs:u8][bits:512]</p>
+            <pre><code>pub fn encodeBloomFilter(filter: *const light_client_mod.BloomFilter, buf: *[513]u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>filter</code></td><td><code>*const light_client_mod.BloomFilter</code></td><td>Filter</td></tr><tr><td><code>buf</code></td><td><code>*[513]u8</code></td><td>Buf</td></tr></table>
+            
+            <p class="line">Line: 687</p>
+        </div>
+        <div class="section">
+            <h3><code>decodeBloomFilter()</code></h3>
+            <p class="desc">Decode a filterload payload into a BloomFilter.</p>
+            <pre><code>pub fn decodeBloomFilter(data: []const u8) ?light_client_mod.BloomFilter {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>data</code></td><td><code>[]const u8</code></td><td>Data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?light_client_mod.BloomFilter</code></p>
+            <p class="line">Line: 693</p>
+        </div>
+        <div class="section">
+            <h3><code>attachBlockchain()</code></h3>
+            <p class="desc">Ataseaza blockchain si sync_mgr — apelat din main dupa init P2PNode
+Necesar pentru ca dispatchMessage sa poata aplica blocuri primite</p>
+            <pre><code>pub fn attachBlockchain(self: *P2PNode, bc: *Blockchain, sm: *SyncManager) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>bc</code></td><td><code>*Blockchain</code></td><td>Bc</td></tr><tr><td><code>sm</code></td><td><code>*SyncManager</code></td><td>Sm</td></tr></table>
+            
+            <p class="line">Line: 780</p>
+        </div>
+        <div class="section">
+            <h3><code>attachLightClient()</code></h3>
+            <p class="desc">Attach a light client for SPV header sync mode</p>
+            <pre><code>pub fn attachLightClient(self: *P2PNode, lc: *light_client_mod.LightClient) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>lc</code></td><td><code>*light_client_mod.LightClient</code></td><td>Lc</td></tr></table>
+            
+            <p class="line">Line: 786</p>
+        </div>
+        <div class="section">
+            <h3><code>syncHeaders()</code></h3>
+            <p class="desc">SPV: Send getheaders_p2p to all connected peers.
+Requests headers starting from our current header chain height.</p>
+            <pre><code>pub fn syncHeaders(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 792</p>
+        </div>
+        <div class="section">
+            <h3><code>requestMerkleProof()</code></h3>
+            <p class="desc">SPV: Request a Merkle proof for a specific TX hash in a specific block.</p>
+            <pre><code>pub fn requestMerkleProof(self: *P2PNode, tx_hash: [32]u8, block_index: u32) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>block_index</code></td><td><code>u32</code></td><td>Block_index</td></tr></table>
+            
+            <p class="line">Line: 817</p>
+        </div>
+        <div class="section">
+            <h3><code>sendBloomFilter()</code></h3>
+            <p class="desc">SPV: Send our Bloom filter to all connected peers (filterload).</p>
+            <pre><code>pub fn sendBloomFilter(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 832</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 848</p>
+        </div>
+        <div class="section">
+            <h3><code>connectToPeer()</code></h3>
+            <p class="desc">Conecteaza la un peer (TCP outbound)</p>
+            <pre><code>pub fn connectToPeer(self: *P2PNode, host: []const u8, port: u16, node_id: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>node_id</code></td><td><code>[]const u8</code></td><td>Node_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 854</p>
+        </div>
+        <div class="section">
+            <h3><code>broadcastTx()</code></h3>
+            <p class="desc">Broadcast a TX to all connected peers via gossip.
+Deduplicates: if we already saw this TX hash, skip.
+tx_hash: hex hash of the transaction (64 chars)
+tx_json: JSON-encoded transaction payload</p>
+            <pre><code>pub fn broadcastTx(self: *P2PNode, tx_hash: []const u8, tx_json: []const u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr><tr><td><code>tx_json</code></td><td><code>[]const u8</code></td><td>Tx_json</td></tr></table>
+            
+            <p class="line">Line: 945</p>
+        </div>
+        <div class="section">
+            <h3><code>gossipMaintenance()</code></h3>
+            <p class="desc">Periodic maintenance: evict expired seen hashes</p>
+            <pre><code>pub fn gossipMaintenance(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1050</p>
+        </div>
+        <div class="section">
+            <h3><code>getGossipStats()</code></h3>
+            <p class="desc">Returns gossip statistics for logging</p>
+            <pre><code>pub fn getGossipStats(self: *const P2PNode) struct { tx_relayed: u64, blocks_relayed: u64, seen_tx: usize, seen_blocks: usize } {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>struct</code></p>
+            <p class="line">Line: 1056</p>
+        </div>
+        <div class="section">
+            <h3><code>sendGetPeers()</code></h3>
+            <p class="desc">Send a get_peers request to a specific peer</p>
+            <pre><code>pub fn sendGetPeers(_: *P2PNode, peer: *PeerConnection) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>_</code></td><td><code>*P2PNode</code></td><td>_</td></tr><tr><td><code>peer</code></td><td><code>*PeerConnection</code></td><td>Peer</td></tr></table>
+            
+            <p class="line">Line: 1068</p>
+        </div>
+        <div class="section">
+            <h3><code>requestPeersFromAll()</code></h3>
+            <p class="desc">Send get_peers to all connected peers</p>
+            <pre><code>pub fn requestPeersFromAll(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1076</p>
+        </div>
+        <div class="section">
+            <h3><code>buildPeerListPayload()</code></h3>
+            <p class="desc">Build a peer_list payload from our known connected peers
+Returns encoded bytes; caller must free with allocator.</p>
+            <pre><code>pub fn buildPeerListPayload(self: *P2PNode) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 1085</p>
+        </div>
+        <div class="section">
+            <h3><code>attachToNetwork()</code></h3>
+            <p class="desc">Ataseaza acest P2PNode la un P2PNetwork — de apelat din main.zig dupa init</p>
+            <pre><code>pub fn attachToNetwork(self: *P2PNode, net: *network_mod.P2PNetwork) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>net</code></td><td><code>*network_mod.P2PNetwork</code></td><td>Net</td></tr></table>
+            
+            <p class="line">Line: 1112</p>
+        </div>
+        <div class="section">
+            <h3><code>peerCount()</code></h3>
+            <p class="desc">Numarul de peeri conectati</p>
+            <pre><code>pub fn peerCount(self: *const P2PNode) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 1117</p>
+        </div>
+        <div class="section">
+            <h3><code>cleanDeadPeers()</code></h3>
+            <p class="desc">Deconecteaza peerii morti — adauga la reconnect queue in loc de stergere directa</p>
+            <pre><code>pub fn cleanDeadPeers(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1126</p>
+        </div>
+        <div class="section">
+            <h3><code>knockKnock()</code></h3>
+            <p class="desc">Knock Knock — anunta reteaua + verifica daca exista duplicat pe acelasi IP
+
+Pasi:
+1. Trimite UDP broadcast "OMNI:we are here:<node_id>:<height>" pe 3 porturi
+2. Asculta 3 secunde raspunsuri UDP pe portul principal
+3. Daca primeste acelasi mesaj de pe acelasi IP → seteaza is_idle = true
+4. VPN/Tor: daca IP-ul sursa e acelasi cu al nostru (loopback sau LAN) → idle
+
+Returneaza KnockResult pentru logging in main</p>
+            <pre><code>pub fn knockKnock(self: *P2PNode) KnockResult {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>KnockResult</code></p>
+            <p class="line">Line: 1158</p>
+        </div>
+        <div class="section">
+            <h3><code>isBanned()</code></h3>
+            <p class="desc">Check if a host:port is currently banned</p>
+            <pre><code>pub fn isBanned(self: *const P2PNode, host: []const u8, port: u16) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 1227</p>
+        </div>
+        <div class="section">
+            <h3><code>banPeer()</code></h3>
+            <p class="desc">Ban a peer by host:port for the configured duration</p>
+            <pre><code>pub fn banPeer(self: *P2PNode, host: []const u8, port: u16, reason: []const u8) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>host</code></td><td><code>[]const u8</code></td><td>Host</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>reason</code></td><td><code>[]const u8</code></td><td>Reason</td></tr></table>
+            
+            <p class="line">Line: 1238</p>
+        </div>
+        <div class="section">
+            <h3><code>evictExpiredBans()</code></h3>
+            <p class="desc">Evict expired bans</p>
+            <pre><code>pub fn evictExpiredBans(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1287</p>
+        </div>
+        <div class="section">
+            <h3><code>scorePeer()</code></h3>
+            <p class="desc">Score a peer event and auto-ban if threshold reached</p>
+            <pre><code>pub fn scorePeer(self: *P2PNode, peer: *PeerConnection, event: scoring_mod.ScoreEvent) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>peer</code></td><td><code>*PeerConnection</code></td><td>Peer</td></tr><tr><td><code>event</code></td><td><code>scoring_mod.ScoreEvent</code></td><td>Event</td></tr></table>
+            
+            <p class="line">Line: 1297</p>
+        </div>
+        <div class="section">
+            <h3><code>checkRateLimit()</code></h3>
+            <p class="desc">Check rate limit for a peer. Returns true if within limits.
+If exceeded, adds ban score and returns false.</p>
+            <pre><code>pub fn checkRateLimit(self: *P2PNode, peer: *PeerConnection, msg_size: usize) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>peer</code></td><td><code>*PeerConnection</code></td><td>Peer</td></tr><tr><td><code>msg_size</code></td><td><code>usize</code></td><td>Msg_size</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 1317</p>
+        </div>
+        <div class="section">
+            <h3><code>processReconnects()</code></h3>
+            <p class="desc">Process reconnect queue — attempt reconnects for peers past the delay</p>
+            <pre><code>pub fn processReconnects(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1376</p>
+        </div>
+        <div class="section">
+            <h3><code>checkSubnetDiversity()</code></h3>
+            <p class="desc">Check if adding a peer with this IP would violate subnet diversity rules.
+Returns true if the peer is allowed, false if too many from same /16 subnet.</p>
+            <pre><code>pub fn checkSubnetDiversity(self: *const P2PNode, ip: [4]u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr><tr><td><code>ip</code></td><td><code>[4]u8</code></td><td>Ip</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 1412</p>
+        </div>
+        <div class="section">
+            <h3><code>subnetCount()</code></h3>
+            <p class="desc">Count the number of distinct /16 subnets among connected peers</p>
+            <pre><code>pub fn subnetCount(self: *const P2PNode) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 1424</p>
+        </div>
+        <div class="section">
+            <h3><code>hasMinSubnetDiversity()</code></h3>
+            <p class="desc">Check if we have enough subnet diversity (at least MIN_SUBNET_DIVERSITY)</p>
+            <pre><code>pub fn hasMinSubnetDiversity(self: *const P2PNode) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 1447</p>
+        </div>
+        <div class="section">
+            <h3><code>canAcceptInbound()</code></h3>
+            <p class="desc">Check if we can accept an inbound connection</p>
+            <pre><code>pub fn canAcceptInbound(self: *const P2PNode) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 1456</p>
+        </div>
+        <div class="section">
+            <h3><code>hardeningMaintenance()</code></h3>
+            <p class="desc">Periodic hardening maintenance</p>
+            <pre><code>pub fn hardeningMaintenance(self: *P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1461</p>
+        </div>
+        <div class="section">
+            <h3><code>printStatus()</code></h3>
+            <p class="desc">Performs the print status operation on the p2p module.</p>
+            <pre><code>pub fn printStatus(self: *const P2PNode) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const P2PNode</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 1467</p>
+        </div>
+        <div class="section">
+            <h3><code>startListener()</code></h3>
+            <p class="desc">Porneste server TCP inbound pe `local_port` — thread detached.
+Fiecare peer inbound primeste propriul thread handler.
+Returneaza error daca bind/listen esueaza (port ocupat, permisiuni etc.)</p>
+            <pre><code>pub fn startListener(self: *P2PNode) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 1482</p>
+        </div>
+        <div class="section">
+            <h3><code>sendToPeer()</code></h3>
+            <p class="desc">Trimite un mesaj raw la un peer specific (dupa node_id)
+Folosit de SyncManager pentru GetHeaders etc.</p>
+            <pre><code>pub fn sendToPeer(self: *P2PNode, node_id: []const u8, msg_type: u8, payload: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>node_id</code></td><td><code>[]const u8</code></td><td>Node_id</td></tr><tr><td><code>msg_type</code></td><td><code>u8</code></td><td>Msg_type</td></tr><tr><td><code>payload</code></td><td><code>[]const u8</code></td><td>Payload</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 1966</p>
+        </div>
+        <div class="section">
+            <h3><code>requestSync()</code></h3>
+            <p class="desc">Trimite sync_request la primul peer conectat mai sus decat noi
+Payload: [from_height: u64 LE]</p>
+            <pre><code>pub fn requestSync(self: *P2PNode, from_height: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*P2PNode</code></td><td>The instance</td></tr><tr><td><code>from_height</code></td><td><code>u64</code></td><td>From_height</td></tr></table>
+            
+            <p class="line">Line: 1978</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

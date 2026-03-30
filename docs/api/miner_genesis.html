@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>miner_genesis — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>miner_genesis</code></h1>
+<p class="module-desc">Genesis miner allocation — initial miner addresses, pre-mine distribution for bootstrap.</p>
+<p class="stats">Source: core/miner_genesis.zig &bull; 208 lines &bull; 13 functions &bull; 2 structs &bull; 6 tests</p>
+
+<h2>Structs (2)</h2>
+        <div class="section">
+            <h3><code>MinerWallet</code></h3>
+            <p>Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr><tr><td><code>miner_name</code></td><td><code>[]const u8</code></td><td>Miner_name</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>balance</code></td><td><code>u64</code></td><td>Balance</td></tr><tr><td><code>mining_reward</code></td><td><code>u64</code></td><td>Mining_reward</td></tr><tr><td><code>block_contribution</code></td><td><code>u32</code></td><td>Block_contribution</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="line">Line: 8</p>
+        </div>
+        <div class="section">
+            <h3><code>GenesisAllocation</code></h3>
+            <p>Genesis Block Token Distribution</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>miner_wallets</code></td><td><code>array_list.Managed(MinerWallet)</code></td><td>Miner_wallets</td></tr><tr><td><code>total_supply</code></td><td><code>u64</code></td><td>Total_supply</td></tr><tr><td><code>miners_count</code></td><td><code>u32</code></td><td>Miners_count</td></tr><tr><td><code>allocation_per_miner</code></td><td><code>u64</code></td><td>Allocation_per_miner</td></tr></table>
+            <p class="line">Line: 71</p>
+        </div>
+
+
+
+<h2>Functions (13)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, miner_id: u32, allocated_tokens: u64) !MinerWallet {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr><tr><td><code>allocated_tokens</code></td><td><code>u64</code></td><td>Allocated_tokens</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!MinerWallet</code></p>
+            <p class="line">Line: 17</p>
+        </div>
+        <div class="section">
+            <h3><code>getPrimaryAddress()</code></h3>
+            <p class="desc">Returns the current primary address.</p>
+            <pre><code>pub fn getPrimaryAddress(self: *const MinerWallet) []const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerWallet</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[]const u8</code></p>
+            <p class="line">Line: 34</p>
+        </div>
+        <div class="section">
+            <h3><code>getBalance()</code></h3>
+            <p class="desc">Returns the current balance.</p>
+            <pre><code>pub fn getBalance(self: *const MinerWallet) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerWallet</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 38</p>
+        </div>
+        <div class="section">
+            <h3><code>addMiningReward()</code></h3>
+            <p class="desc">Adds a new mining reward to the collection.</p>
+            <pre><code>pub fn addMiningReward(self: *MinerWallet, reward: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerWallet</code></td><td>The instance</td></tr><tr><td><code>reward</code></td><td><code>u64</code></td><td>Reward</td></tr></table>
+            
+            <p class="line">Line: 42</p>
+        </div>
+        <div class="section">
+            <h3><code>recordBlockFound()</code></h3>
+            <p class="desc">Performs the record block found operation on the miner_genesis module.</p>
+            <pre><code>pub fn recordBlockFound(self: *MinerWallet) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerWallet</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 47</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the miner_genesis module.</p>
+            <pre><code>pub fn print(self: *const MinerWallet) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MinerWallet</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 51</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *MinerWallet) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*MinerWallet</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 64</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, miners_count: u32) !GenesisAllocation {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>miners_count</code></td><td><code>u32</code></td><td>Miners_count</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!GenesisAllocation</code></p>
+            <p class="line">Line: 78</p>
+        </div>
+        <div class="section">
+            <h3><code>generateMinerWallets()</code></h3>
+            <p class="desc">Executes mining operation — finds valid nonce for the next block.</p>
+            <pre><code>pub fn generateMinerWallets(self: *GenesisAllocation) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*GenesisAllocation</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 92</p>
+        </div>
+        <div class="section">
+            <h3><code>getWallet()</code></h3>
+            <p class="desc">Returns the wallet for the given miner_id.</p>
+            <pre><code>pub fn getWallet(self: *const GenesisAllocation, miner_id: u32) ?*const MinerWallet {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const GenesisAllocation</code></td><td>The instance</td></tr><tr><td><code>miner_id</code></td><td><code>u32</code></td><td>Miner_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const MinerWallet</code></p>
+            <p class="line">Line: 115</p>
+        </div>
+        <div class="section">
+            <h3><code>getTotalAllocated()</code></h3>
+            <p class="desc">Returns the current total allocated.</p>
+            <pre><code>pub fn getTotalAllocated(self: *const GenesisAllocation) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const GenesisAllocation</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 122</p>
+        </div>
+        <div class="section">
+            <h3><code>printSummary()</code></h3>
+            <p class="desc">Performs the print summary operation on the miner_genesis module.</p>
+            <pre><code>pub fn printSummary(self: *const GenesisAllocation) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const GenesisAllocation</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 128</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *GenesisAllocation) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*GenesisAllocation</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 147</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

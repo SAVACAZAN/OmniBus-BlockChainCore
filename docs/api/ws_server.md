@@ -1,10 +1,34 @@
 # Module: `ws_server`
 
+> WebSocket server on port 8334 — push new_block, new_transaction, status events to React frontend in real-time.
+
+**Source:** `core/ws_server.zig` | **Lines:** 420 | **Functions:** 7 | **Structs:** 4 | **Tests:** 3
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`WsServer`](#wsserver) — Stare globala WebSocket — lista de conexiuni active
+- [`Args`](#args) — Data structure representing a args in the ws_server module.
+- [`HandlerArgs`](#handlerargs) — Data structure representing a handler args in the ws_server module.
+- [`WsClient`](#wsclient) — Un client WebSocket conectat
+
+### Constants
+- [1 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`attachBlockchain()`](#attachblockchain) — Performs the attach blockchain operation on the ws_server module.
+- [`start()`](#start) — Porneste TCP listener + accept loop in thread detasat
+- [`broadcast()`](#broadcast) — Broadcast JSON la toti clientii conectati
+Apelat din mining loop la fi...
+- [`broadcastTx()`](#broadcasttx) — Trimite eveniment "new_tx" la toti clientii
+- [`sendText()`](#sendtext) — Trimite un frame TEXT WebSocket (opcode 1)
+RFC 6455: [0x81][len][paylo...
+
+---
 
 ## Structs
 
@@ -12,77 +36,111 @@
 
 Stare globala WebSocket — lista de conexiuni active
 
-*Line: 14*
+| Field | Type | Description |
+|-------|------|-------------|
+| `port` | `u16` | Port |
+| `clients` | `std.array_list.Managed(*WsClient)` | Clients |
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `mutex` | `std.Thread.Mutex` | Mutex |
+| `blockchain` | `?*const Blockchain` | Blockchain |
+
+*Defined at line 46*
+
+---
 
 ### `Args`
 
-*Line: 51*
+Data structure representing a args in the ws_server module.
+
+*Defined at line 83*
+
+---
 
 ### `HandlerArgs`
 
-*Line: 92*
+Data structure representing a handler args in the ws_server module.
+
+*Defined at line 124*
+
+---
 
 ### `WsClient`
 
 Un client WebSocket conectat
 
-*Line: 259*
+| Field | Type | Description |
+|-------|------|-------------|
+| `stream` | `std.net.Stream` | Stream |
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `connected` | `bool` | Connected |
+
+*Defined at line 291*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `WS_PORT` | auto | `u16 = 8334` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `WS_PORT` | `u16 = 8334` | W s_ p o r t |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(port: u16, allocator: std.mem.Allocator) WsServer {
 ```
 
-**Parameters:**
-
-- `port`: `u16`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `port` | `u16` | Port |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `WsServer`
 
-*Line: 21*
+*Defined at line 53*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *WsServer) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsServer` | The instance |
 
-- `self`: `*WsServer`
-
-*Line: 31*
+*Defined at line 63*
 
 ---
 
-### `attachBlockchain`
+### `attachBlockchain()`
+
+Performs the attach blockchain operation on the ws_server module.
 
 ```zig
 pub fn attachBlockchain(self: *WsServer, bc: *const Blockchain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsServer` | The instance |
+| `bc` | `*const Blockchain` | Bc |
 
-- `self`: `*WsServer`
-- `bc`: `*const Blockchain`
-
-*Line: 41*
+*Defined at line 73*
 
 ---
 
-### `start`
+### `start()`
 
 Porneste TCP listener + accept loop in thread detasat
 
@@ -90,17 +148,17 @@ Porneste TCP listener + accept loop in thread detasat
 pub fn start(self: *WsServer) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WsServer`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsServer` | The instance |
 
 **Returns:** `!void`
 
-*Line: 46*
+*Defined at line 78*
 
 ---
 
-### `broadcast`
+### `broadcast()`
 
 Broadcast JSON la toti clientii conectati
 Apelat din mining loop la fiecare bloc minat
@@ -109,16 +167,16 @@ Apelat din mining loop la fiecare bloc minat
 pub fn broadcast(self: *WsServer, json: []const u8) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsServer` | The instance |
+| `json` | `[]const u8` | Json |
 
-- `self`: `*WsServer`
-- `json`: `[]const u8`
-
-*Line: 195*
+*Defined at line 227*
 
 ---
 
-### `broadcastTx`
+### `broadcastTx()`
 
 Trimite eveniment "new_tx" la toti clientii
 
@@ -126,18 +184,18 @@ Trimite eveniment "new_tx" la toti clientii
 pub fn broadcastTx(self: *WsServer, tx_id: []const u8, from: []const u8, amount_sat: u64) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsServer` | The instance |
+| `tx_id` | `[]const u8` | Tx_id |
+| `from` | `[]const u8` | From |
+| `amount_sat` | `u64` | Amount_sat |
 
-- `self`: `*WsServer`
-- `tx_id`: `[]const u8`
-- `from`: `[]const u8`
-- `amount_sat`: `u64`
-
-*Line: 244*
+*Defined at line 276*
 
 ---
 
-### `sendText`
+### `sendText()`
 
 Trimite un frame TEXT WebSocket (opcode 1)
 RFC 6455: [0x81][len][payload] — server nu maskeaza
@@ -146,14 +204,18 @@ RFC 6455: [0x81][len][payload] — server nu maskeaza
 pub fn sendText(self: *WsClient, text: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WsClient`
-- `text`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WsClient` | The instance |
+| `text` | `[]const u8` | Text |
 
 **Returns:** `!void`
 
-*Line: 266*
+*Defined at line 298*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

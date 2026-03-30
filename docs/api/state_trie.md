@@ -1,9 +1,36 @@
 # Module: `state_trie`
 
+> Merkle Patricia Trie for account state — O(log n) lookups, cryptographic proofs, 50MB vs 1.6TB for 1M+ accounts.
+
+**Source:** `core/state_trie.zig` | **Lines:** 234 | **Functions:** 14 | **Structs:** 3 | **Tests:** 5
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`AccountState`](#accountstate) — Account state (replaces needing to store all transactions)
+- [`StateTrie`](#statetrie) — State Trie - merkle tree of account states
+Instead of storing all transactions, ...
+- [`StateSnapshot`](#statesnapshot) — State snapshot for checkpointing
+
+### Functions
+- [`hash()`](#hash) — Checks whether the h condition is true.
+- [`print()`](#print) — Performs the print operation on the state_trie module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`updateBalance()`](#updatebalance) — Update account balance
+- [`incrementNonce()`](#incrementnonce) — Increment nonce (for transaction sequencing)
+- [`getBalance()`](#getbalance) — Get account balance
+- [`getNonce()`](#getnonce) — Get account nonce
+- [`calculateRootHash()`](#calculateroothash) — Calculate root hash (merkle root of all accounts)
+- [`getAccountCount()`](#getaccountcount) — Get account count
+- [`estimateStorageSize()`](#estimatestoragesize) — Estimate storage size
+- [`printStats()`](#printstats) — Print statistics
+- [`getAllAccounts()`](#getallaccounts) — Get all accounts (for verification)
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`print()`](#print) — Performs the print operation on the state_trie module.
+
+---
 
 ## Structs
 
@@ -11,7 +38,17 @@
 
 Account state (replaces needing to store all transactions)
 
-*Line: 5*
+| Field | Type | Description |
+|-------|------|-------------|
+| `address` | `[20]u8` | Address |
+| `balance` | `u64` | Balance |
+| `nonce` | `u32` | Nonce |
+| `last_updated_block` | `u32` | Last_updated_block |
+| `flags` | `u8` | Flags |
+
+*Defined at line 5*
+
+---
 
 ### `StateTrie`
 
@@ -19,63 +56,86 @@ State Trie - merkle tree of account states
 Instead of storing all transactions, store only current state
 ~50 MB for 1M+ accounts vs 1.6 TB for all transaction history!
 
-*Line: 41*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `accounts` | `std.AutoHashMap([20]u8` | Accounts |
+
+*Defined at line 41*
+
+---
 
 ### `StateSnapshot`
 
 State snapshot for checkpointing
 
-*Line: 157*
+| Field | Type | Description |
+|-------|------|-------------|
+| `block_height` | `u32` | Block_height |
+| `root_hash` | `[32]u8` | Root_hash |
+| `timestamp` | `i64` | Timestamp |
+| `account_count` | `usize` | Account_count |
+| `size_bytes` | `u64` | Size_bytes |
+
+*Defined at line 157*
+
+---
 
 ## Functions
 
-### `hash`
+### `hash()`
+
+Checks whether the h condition is true.
 
 ```zig
 pub fn hash(self: *const AccountState) [32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const AccountState`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const AccountState` | The instance |
 
 **Returns:** `[32]u8`
 
-*Line: 12*
+*Defined at line 12*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the state_trie module.
 
 ```zig
 pub fn print(self: *const AccountState) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const AccountState` | The instance |
 
-- `self`: `*const AccountState`
-
-*Line: 30*
+*Defined at line 30*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) StateTrie {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `StateTrie`
 
-*Line: 47*
+*Defined at line 47*
 
 ---
 
-### `updateBalance`
+### `updateBalance()`
 
 Update account balance
 
@@ -83,20 +143,20 @@ Update account balance
 pub fn updateBalance(self: *StateTrie, address: [20]u8, new_balance: u64, block_height: u32) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*StateTrie`
-- `address`: `[20]u8`
-- `new_balance`: `u64`
-- `block_height`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*StateTrie` | The instance |
+| `address` | `[20]u8` | Address |
+| `new_balance` | `u64` | New_balance |
+| `block_height` | `u32` | Block_height |
 
 **Returns:** `!void`
 
-*Line: 55*
+*Defined at line 55*
 
 ---
 
-### `incrementNonce`
+### `incrementNonce()`
 
 Increment nonce (for transaction sequencing)
 
@@ -104,19 +164,19 @@ Increment nonce (for transaction sequencing)
 pub fn incrementNonce(self: *StateTrie, address: [20]u8, block_height: u32) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*StateTrie`
-- `address`: `[20]u8`
-- `block_height`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*StateTrie` | The instance |
+| `address` | `[20]u8` | Address |
+| `block_height` | `u32` | Block_height |
 
 **Returns:** `!void`
 
-*Line: 68*
+*Defined at line 68*
 
 ---
 
-### `getBalance`
+### `getBalance()`
 
 Get account balance
 
@@ -124,18 +184,18 @@ Get account balance
 pub fn getBalance(self: *const StateTrie, address: [20]u8) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
-- `address`: `[20]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
+| `address` | `[20]u8` | Address |
 
 **Returns:** `u64`
 
-*Line: 81*
+*Defined at line 81*
 
 ---
 
-### `getNonce`
+### `getNonce()`
 
 Get account nonce
 
@@ -143,18 +203,18 @@ Get account nonce
 pub fn getNonce(self: *const StateTrie, address: [20]u8) u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
-- `address`: `[20]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
+| `address` | `[20]u8` | Address |
 
 **Returns:** `u32`
 
-*Line: 87*
+*Defined at line 87*
 
 ---
 
-### `calculateRootHash`
+### `calculateRootHash()`
 
 Calculate root hash (merkle root of all accounts)
 
@@ -162,17 +222,17 @@ Calculate root hash (merkle root of all accounts)
 pub fn calculateRootHash(self: *const StateTrie) [32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
 
 **Returns:** `[32]u8`
 
-*Line: 93*
+*Defined at line 93*
 
 ---
 
-### `getAccountCount`
+### `getAccountCount()`
 
 Get account count
 
@@ -180,17 +240,17 @@ Get account count
 pub fn getAccountCount(self: *const StateTrie) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
 
 **Returns:** `usize`
 
-*Line: 108*
+*Defined at line 108*
 
 ---
 
-### `estimateStorageSize`
+### `estimateStorageSize()`
 
 Estimate storage size
 
@@ -198,17 +258,17 @@ Estimate storage size
 pub fn estimateStorageSize(self: *const StateTrie) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
 
 **Returns:** `u64`
 
-*Line: 113*
+*Defined at line 113*
 
 ---
 
-### `printStats`
+### `printStats()`
 
 Print statistics
 
@@ -216,15 +276,15 @@ Print statistics
 pub fn printStats(self: *const StateTrie) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
 
-- `self`: `*const StateTrie`
-
-*Line: 119*
+*Defined at line 119*
 
 ---
 
-### `getAllAccounts`
+### `getAllAccounts()`
 
 Get all accounts (for verification)
 
@@ -232,42 +292,50 @@ Get all accounts (for verification)
 pub fn getAllAccounts(self: *const StateTrie, allocator: std.mem.Allocator) ![]AccountState {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateTrie`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateTrie` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]AccountState`
 
-*Line: 140*
+*Defined at line 140*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *StateTrie) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*StateTrie` | The instance |
 
-- `self`: `*StateTrie`
-
-*Line: 151*
+*Defined at line 151*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the state_trie module.
 
 ```zig
 pub fn print(self: *const StateSnapshot) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateSnapshot` | The instance |
 
-- `self`: `*const StateSnapshot`
-
-*Line: 164*
+*Defined at line 164*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

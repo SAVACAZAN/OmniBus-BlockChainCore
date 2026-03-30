@@ -1,10 +1,34 @@
 # Module: `peer_scoring`
 
+> Peer reputation system — score peers based on behavior, ban misbehaving peers, reward good behavior.
+
+**Source:** `core/peer_scoring.zig` | **Lines:** 281 | **Functions:** 11 | **Structs:** 2 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`PeerScore`](#peerscore) — Peer score record
+- [`PeerScoringEngine`](#peerscoringengine) — Peer Scoring Engine
+
+### Constants
+- [4 constants defined](#constants)
+
+### Functions
+- [`delta()`](#delta) — Performs the delta operation on the peer_scoring module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`applyEvent()`](#applyevent) — Apply a scoring event
+- [`isBanExpired()`](#isbanexpired) — Check if ban has expired
+- [`checkUnban()`](#checkunban) — Unban if expired
+- [`trustLevel()`](#trustlevel) — Trust level (0-100)
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`getOrCreate()`](#getorcreate) — Get or create peer score
+- [`scoreEvent()`](#scoreevent) — Score an event for a peer
+- [`isAllowed()`](#isallowed) — Check if peer is allowed to connect
+- [`bannedCount()`](#bannedcount) — Get number of currently banned peers
+
+---
 
 ## Structs
 
@@ -12,58 +36,85 @@
 
 Peer score record
 
-*Line: 53*
+| Field | Type | Description |
+|-------|------|-------------|
+| `peer_id` | `[16]u8` | Peer_id |
+| `score` | `i32` | Score |
+| `valid_blocks` | `u32` | Valid_blocks |
+| `violations` | `u32` | Violations |
+| `banned` | `bool` | Banned |
+| `ban_until` | `i64` | Ban_until |
+| `first_seen` | `i64` | First_seen |
+| `last_active` | `i64` | Last_active |
+
+*Defined at line 53*
+
+---
 
 ### `PeerScoringEngine`
 
 Peer Scoring Engine
 
-*Line: 128*
+| Field | Type | Description |
+|-------|------|-------------|
+| `peers` | `[MAX_TRACKED_PEERS]PeerScore` | Peers |
+| `peer_count` | `usize` | Peer_count |
+| `total_bans` | `u32` | Total_bans |
+
+*Defined at line 128*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `BAN_THRESHOLD` | auto | `i32 = -100` |
-| `BAN_DURATION_SEC` | auto | `i64 = 86400` |
-| `MAX_TRACKED_PEERS` | auto | `usize = 256` |
-| `ScoreEvent` | auto | `enum {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `BAN_THRESHOLD` | `i32 = -100` | B a n_ t h r e s h o l d |
+| `BAN_DURATION_SEC` | `i64 = 86400` | B a n_ d u r a t i o n_ s e c |
+| `MAX_TRACKED_PEERS` | `usize = 256` | M a x_ t r a c k e d_ p e e r s |
+| `ScoreEvent` | `enum {` | Score event |
+
+---
 
 ## Functions
 
-### `delta`
+### `delta()`
+
+Performs the delta operation on the peer_scoring module.
 
 ```zig
 pub fn delta(self: ScoreEvent) i32 {
 ```
 
-**Parameters:**
-
-- `self`: `ScoreEvent`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `ScoreEvent` | The instance |
 
 **Returns:** `i32`
 
-*Line: 36*
+*Defined at line 36*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(peer_id: [16]u8) PeerScore {
 ```
 
-**Parameters:**
-
-- `peer_id`: `[16]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer_id` | `[16]u8` | Peer_id |
 
 **Returns:** `PeerScore`
 
-*Line: 71*
+*Defined at line 71*
 
 ---
 
-### `applyEvent`
+### `applyEvent()`
 
 Apply a scoring event
 
@@ -71,16 +122,16 @@ Apply a scoring event
 pub fn applyEvent(self: *PeerScore, event: ScoreEvent) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PeerScore` | The instance |
+| `event` | `ScoreEvent` | Event |
 
-- `self`: `*PeerScore`
-- `event`: `ScoreEvent`
-
-*Line: 85*
+*Defined at line 85*
 
 ---
 
-### `isBanExpired`
+### `isBanExpired()`
 
 Check if ban has expired
 
@@ -88,17 +139,17 @@ Check if ban has expired
 pub fn isBanExpired(self: *const PeerScore) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const PeerScore`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PeerScore` | The instance |
 
 **Returns:** `bool`
 
-*Line: 104*
+*Defined at line 104*
 
 ---
 
-### `checkUnban`
+### `checkUnban()`
 
 Unban if expired
 
@@ -106,15 +157,15 @@ Unban if expired
 pub fn checkUnban(self: *PeerScore) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PeerScore` | The instance |
 
-- `self`: `*PeerScore`
-
-*Line: 110*
+*Defined at line 110*
 
 ---
 
-### `trustLevel`
+### `trustLevel()`
 
 Trust level (0-100)
 
@@ -122,17 +173,19 @@ Trust level (0-100)
 pub fn trustLevel(self: *const PeerScore) u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const PeerScore`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PeerScore` | The instance |
 
 **Returns:** `u8`
 
-*Line: 119*
+*Defined at line 119*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() PeerScoringEngine {
@@ -140,11 +193,11 @@ pub fn init() PeerScoringEngine {
 
 **Returns:** `PeerScoringEngine`
 
-*Line: 133*
+*Defined at line 133*
 
 ---
 
-### `getOrCreate`
+### `getOrCreate()`
 
 Get or create peer score
 
@@ -152,18 +205,18 @@ Get or create peer score
 pub fn getOrCreate(self: *PeerScoringEngine, peer_id: [16]u8) *PeerScore {
 ```
 
-**Parameters:**
-
-- `self`: `*PeerScoringEngine`
-- `peer_id`: `[16]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PeerScoringEngine` | The instance |
+| `peer_id` | `[16]u8` | Peer_id |
 
 **Returns:** `*PeerScore`
 
-*Line: 142*
+*Defined at line 142*
 
 ---
 
-### `scoreEvent`
+### `scoreEvent()`
 
 Score an event for a peer
 
@@ -171,17 +224,17 @@ Score an event for a peer
 pub fn scoreEvent(self: *PeerScoringEngine, peer_id: [16]u8, event: ScoreEvent) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PeerScoringEngine` | The instance |
+| `peer_id` | `[16]u8` | Peer_id |
+| `event` | `ScoreEvent` | Event |
 
-- `self`: `*PeerScoringEngine`
-- `peer_id`: `[16]u8`
-- `event`: `ScoreEvent`
-
-*Line: 167*
+*Defined at line 167*
 
 ---
 
-### `isAllowed`
+### `isAllowed()`
 
 Check if peer is allowed to connect
 
@@ -189,18 +242,18 @@ Check if peer is allowed to connect
 pub fn isAllowed(self: *PeerScoringEngine, peer_id: [16]u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*PeerScoringEngine`
-- `peer_id`: `[16]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PeerScoringEngine` | The instance |
+| `peer_id` | `[16]u8` | Peer_id |
 
 **Returns:** `bool`
 
-*Line: 177*
+*Defined at line 177*
 
 ---
 
-### `bannedCount`
+### `bannedCount()`
 
 Get number of currently banned peers
 
@@ -208,13 +261,17 @@ Get number of currently banned peers
 pub fn bannedCount(self: *const PeerScoringEngine) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const PeerScoringEngine`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PeerScoringEngine` | The instance |
 
 **Returns:** `usize`
 
-*Line: 188*
+*Defined at line 188*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>archive_manager — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>archive_manager</code></h1>
+<p class="module-desc">Block archival — compress old blocks for long-term storage, retrieve archived blocks on demand.</p>
+<p class="stats">Source: core/archive_manager.zig &bull; 224 lines &bull; 13 functions &bull; 5 structs &bull; 5 tests</p>
+
+<h2>Structs (5)</h2>
+        <div class="section">
+            <h3><code>ArchiveManager</code></h3>
+            <p>Archive manager for storing pruned blocks</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>archive_path</code></td><td><code>[]const u8</code></td><td>Archive_path</td></tr><tr><td><code>compress_enabled</code></td><td><code>bool</code></td><td>Compress_enabled</td></tr><tr><td><code>archived_blocks</code></td><td><code>u32</code></td><td>Archived_blocks</td></tr><tr><td><code>total_archive_size</code></td><td><code>u64</code></td><td>Total_archive_size</td></tr></table>
+            <p class="line">Line: 4</p>
+        </div>
+        <div class="section">
+            <h3><code>ArchiveMetadata</code></h3>
+            <p>Archive metadata</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>archived_block_count</code></td><td><code>u32</code></td><td>Archived_block_count</td></tr><tr><td><code>total_size_bytes</code></td><td><code>u64</code></td><td>Total_size_bytes</td></tr><tr><td><code>estimated_restore_time_sec</code></td><td><code>u64</code></td><td>Estimated_restore_time_sec</td></tr></table>
+            <p class="line">Line: 98</p>
+        </div>
+        <div class="section">
+            <h3><code>ArchiveSnapshot</code></h3>
+            <p>Archive snapshot</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr><tr><td><code>block_hash</code></td><td><code>[]const u8</code></td><td>Block_hash</td></tr><tr><td><code>created_at</code></td><td><code>i64</code></td><td>Created_at</td></tr><tr><td><code>archive_size</code></td><td><code>u64</code></td><td>Archive_size</td></tr></table>
+            <p class="line">Line: 119</p>
+        </div>
+        <div class="section">
+            <h3><code>RestorableBlock</code></h3>
+            <p>Restorable block metadata</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>start_height</code></td><td><code>u32</code></td><td>Start_height</td></tr><tr><td><code>end_height</code></td><td><code>u32</code></td><td>End_height</td></tr><tr><td><code>size_bytes</code></td><td><code>u64</code></td><td>Size_bytes</td></tr><tr><td><code>created_at</code></td><td><code>i64</code></td><td>Created_at</td></tr></table>
+            <p class="line">Line: 134</p>
+        </div>
+        <div class="section">
+            <h3><code>ArchiveIndex</code></h3>
+            <p>Archive index for quick lookup</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>snapshots</code></td><td><code>std.array_list.Managed(ArchiveSnapshot)</code></td><td>Snapshots</td></tr></table>
+            <p class="line">Line: 142</p>
+        </div>
+
+
+
+<h2>Functions (13)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, archive_path: []const u8, compress: bool) ArchiveManager {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>archive_path</code></td><td><code>[]const u8</code></td><td>Archive_path</td></tr><tr><td><code>compress</code></td><td><code>bool</code></td><td>Compress</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ArchiveManager</code></p>
+            <p class="line">Line: 11</p>
+        </div>
+        <div class="section">
+            <h3><code>archiveBlocks()</code></h3>
+            <p class="desc">Archive a batch of blocks</p>
+            <pre><code>pub fn archiveBlocks(self: *ArchiveManager, start_height: u32, end_height: u32, blocks_data: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveManager</code></td><td>The instance</td></tr><tr><td><code>start_height</code></td><td><code>u32</code></td><td>Start_height</td></tr><tr><td><code>end_height</code></td><td><code>u32</code></td><td>End_height</td></tr><tr><td><code>blocks_data</code></td><td><code>[]const u8</code></td><td>Blocks_data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 20</p>
+        </div>
+        <div class="section">
+            <h3><code>getArchiveMetadata()</code></h3>
+            <p class="desc">Get archive metadata</p>
+            <pre><code>pub fn getArchiveMetadata(self: *const ArchiveManager) ArchiveMetadata {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ArchiveManager</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ArchiveMetadata</code></p>
+            <p class="line">Line: 45</p>
+        </div>
+        <div class="section">
+            <h3><code>createSnapshot()</code></h3>
+            <p class="desc">Create archive snapshot</p>
+            <pre><code>pub fn createSnapshot(self: *ArchiveManager, height: u32, hash: []const u8) !ArchiveSnapshot {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveManager</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!ArchiveSnapshot</code></p>
+            <p class="line">Line: 54</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyArchive()</code></h3>
+            <p class="desc">Verify archive integrity</p>
+            <pre><code>pub fn verifyArchive(self: *const ArchiveManager) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ArchiveManager</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 64</p>
+        </div>
+        <div class="section">
+            <h3><code>getRestorableBlocks()</code></h3>
+            <p class="desc">Get list of restorable blocks</p>
+            <pre><code>pub fn getRestorableBlocks(self: *ArchiveManager, allocator: std.mem.Allocator) ![]RestorableBlock {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveManager</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]RestorableBlock</code></p>
+            <p class="line">Line: 73</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *ArchiveManager) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveManager</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 92</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the archive_manager module.</p>
+            <pre><code>pub fn print(self: *const ArchiveMetadata) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ArchiveMetadata</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 103</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the archive_manager module.</p>
+            <pre><code>pub fn print(self: *const ArchiveSnapshot) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ArchiveSnapshot</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 125</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) ArchiveIndex {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ArchiveIndex</code></p>
+            <p class="line">Line: 146</p>
+        </div>
+        <div class="section">
+            <h3><code>addSnapshot()</code></h3>
+            <p class="desc">Adds a new snapshot to the collection.</p>
+            <pre><code>pub fn addSnapshot(self: *ArchiveIndex, snapshot: ArchiveSnapshot) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveIndex</code></td><td>The instance</td></tr><tr><td><code>snapshot</code></td><td><code>ArchiveSnapshot</code></td><td>Snapshot</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 153</p>
+        </div>
+        <div class="section">
+            <h3><code>findByHeight()</code></h3>
+            <p class="desc">Searches for by height matching the given criteria.</p>
+            <pre><code>pub fn findByHeight(self: *const ArchiveIndex, height: u32) ?ArchiveSnapshot {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ArchiveIndex</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?ArchiveSnapshot</code></p>
+            <p class="line">Line: 157</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *ArchiveIndex) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ArchiveIndex</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 166</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

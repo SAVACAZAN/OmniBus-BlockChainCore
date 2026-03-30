@@ -1,55 +1,118 @@
 # Module: `omni_brain`
 
+> AI/ML node intelligence — auto-detect optimal NodeType (full/trading/validator/light) based on hardware and network.
+
+**Source:** `core/omni_brain.zig` | **Lines:** 243 | **Functions:** 6 | **Structs:** 3 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`BrainConfig`](#brainconfig) — Data structure for brain config. Fields include: num_shards, node_type, trading_...
+- [`BrainStats`](#brainstats) — Data structure for brain stats. Fields include: uptime_blocks, total_cycles, blo...
+- [`OmniBrain`](#omnibrain) — Data structure for omni brain. Fields include: allocator, config, os_mgr, schedu...
+
+### Constants
+- [5 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`start()`](#start) — Porneste OmniBrain: activeaza OS-urile corespunzatoare node_type
+- [`runCycles()`](#runcycles) — Ruleaza N cicluri ale brain-ului
+- [`recordTrade()`](#recordtrade) — Inregistreaza un trade executat (din ExecutionOS)
+- [`assertInvariants()`](#assertinvariants) — Verifica invariantii Ada/SPARK
+- [`printStatus()`](#printstatus) — Performs the print status operation on the omni_brain module.
+
+---
 
 ## Structs
 
 ### `BrainConfig`
 
-*Line: 27*
+Data structure for brain config. Fields include: num_shards, node_type, trading_enabled, chain_enabled, ubi_enabled.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `num_shards` | `u8` | Num_shards |
+| `node_type` | `NodeType` | Node_type |
+| `trading_enabled` | `bool` | Trading_enabled |
+| `chain_enabled` | `bool` | Chain_enabled |
+| `ubi_enabled` | `bool` | Ubi_enabled |
+
+*Defined at line 27*
+
+---
 
 ### `BrainStats`
 
-*Line: 47*
+Data structure for brain stats. Fields include: uptime_blocks, total_cycles, blocks_mined, trades_executed, ubi_epochs.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uptime_blocks` | `u64` | Uptime_blocks |
+| `total_cycles` | `u64` | Total_cycles |
+| `blocks_mined` | `u64` | Blocks_mined |
+| `trades_executed` | `u64` | Trades_executed |
+| `ubi_epochs` | `u64` | Ubi_epochs |
+| `active_channels` | `u64` | Active_channels |
+
+*Defined at line 47*
+
+---
 
 ### `OmniBrain`
 
-*Line: 58*
+Data structure for omni brain. Fields include: allocator, config, os_mgr, scheduler, supply.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `config` | `BrainConfig` | Config |
+| `os_mgr` | `OsModeManager` | Os_mgr |
+| `scheduler` | `SynapseScheduler` | Scheduler |
+| `supply` | `SupplyGuard` | Supply |
+| `stats` | `BrainStats` | Stats |
+| `started` | `bool` | Started |
+
+*Defined at line 58*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `OsMode` | auto | `os_mode_mod.OsMode` |
-| `OsModeManager` | auto | `os_mode_mod.OsModeManager` |
-| `SynapseScheduler` | auto | `synapse_mod.SynapseScheduler` |
-| `SupplyGuard` | auto | `spark_mod.SupplyGuard` |
-| `NodeType` | auto | `enum(u8) {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `OsMode` | `os_mode_mod.OsMode` | Os mode |
+| `OsModeManager` | `os_mode_mod.OsModeManager` | Os mode manager |
+| `SynapseScheduler` | `synapse_mod.SynapseScheduler` | Synapse scheduler |
+| `SupplyGuard` | `spark_mod.SupplyGuard` | Supply guard |
+| `NodeType` | `enum(u8) {` | Node type |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, config: BrainConfig) OmniBrain {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `config`: `BrainConfig`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `config` | `BrainConfig` | Config |
 
 **Returns:** `OmniBrain`
 
-*Line: 67*
+*Defined at line 67*
 
 ---
 
-### `start`
+### `start()`
 
 Porneste OmniBrain: activeaza OS-urile corespunzatoare node_type
 
@@ -57,17 +120,17 @@ Porneste OmniBrain: activeaza OS-urile corespunzatoare node_type
 pub fn start(self: *OmniBrain) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*OmniBrain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OmniBrain` | The instance |
 
 **Returns:** `!void`
 
-*Line: 80*
+*Defined at line 80*
 
 ---
 
-### `runCycles`
+### `runCycles()`
 
 Ruleaza N cicluri ale brain-ului
 
@@ -75,18 +138,18 @@ Ruleaza N cicluri ale brain-ului
 pub fn runCycles(self: *OmniBrain, n: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*OmniBrain`
-- `n`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OmniBrain` | The instance |
+| `n` | `u64` | N |
 
 **Returns:** `!void`
 
-*Line: 120*
+*Defined at line 120*
 
 ---
 
-### `recordTrade`
+### `recordTrade()`
 
 Inregistreaza un trade executat (din ExecutionOS)
 
@@ -94,15 +157,15 @@ Inregistreaza un trade executat (din ExecutionOS)
 pub fn recordTrade(self: *OmniBrain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OmniBrain` | The instance |
 
-- `self`: `*OmniBrain`
-
-*Line: 138*
+*Defined at line 138*
 
 ---
 
-### `assertInvariants`
+### `assertInvariants()`
 
 Verifica invariantii Ada/SPARK
 
@@ -110,25 +173,31 @@ Verifica invariantii Ada/SPARK
 pub fn assertInvariants(self: *const OmniBrain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OmniBrain` | The instance |
 
-- `self`: `*const OmniBrain`
-
-*Line: 143*
+*Defined at line 143*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the omni_brain module.
 
 ```zig
 pub fn printStatus(self: *const OmniBrain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OmniBrain` | The instance |
 
-- `self`: `*const OmniBrain`
-
-*Line: 151*
+*Defined at line 151*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

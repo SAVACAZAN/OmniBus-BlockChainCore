@@ -1,9 +1,54 @@
 # Module: `storage`
 
+> Key-value storage engine — in-memory with optional disk persistence, iterator support, memory-safe deinit.
+
+**Source:** `core/storage.zig` | **Lines:** 331 | **Functions:** 29 | **Structs:** 6 | **Tests:** 6
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`TxLocation`](#txlocation) — Locatia unei tranzactii in blockchain
+- [`KeyValueStore`](#keyvaluestore) — Key-Value Storage Interface
+Abstracts RocksDB, SQLite, or file-based storage
+- [`BlockStore`](#blockstore) — Block Storage
+- [`TransactionIndex`](#transactionindex) — Transaction Index
+- [`AddressIndex`](#addressindex) — Address Balance Index
+- [`StateCheckpoint`](#statecheckpoint) — State Checkpoint for Recovery
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`put()`](#put) — Put key-value pair
+- [`get()`](#get) — Get value by key
+- [`delete()`](#delete) — Delete key-value pair
+- [`contains()`](#contains) — Check if key exists
+- [`count()`](#count) — Get total entries
+- [`clear()`](#clear) — Clear all entries
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`storeBlock()`](#storeblock) — Store block with key "block:[height]"
+- [`getBlock()`](#getblock) — Retrieve block by height
+- [`blockCount()`](#blockcount) — Get total blocks stored
+- [`deleteBlock()`](#deleteblock) — Delete block
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`indexTransaction()`](#indextransaction) — Index transaction: "tx:[hash]" → "block_height:tx_index"
+- [`findTransaction()`](#findtransaction) — Find transaction location
+- [`transactionCount()`](#transactioncount) — Get total indexed transactions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`updateBalance()`](#updatebalance) — Update address balance: "addr:[address]" → "balance"
+- [`getBalance()`](#getbalance) — Get address balance
+- [`addressCount()`](#addresscount) — Get all addresses
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`save()`](#save) — Save checkpoint: "checkpoint:[number]" → state_data
+- [`load()`](#load) — Load checkpoint
+- [`latest()`](#latest) — Get latest checkpoint
+
+---
 
 ## Structs
 
@@ -11,72 +56,112 @@
 
 Locatia unei tranzactii in blockchain
 
-*Line: 4*
+*Defined at line 4*
+
+---
 
 ### `KeyValueStore`
 
 Key-Value Storage Interface
 Abstracts RocksDB, SQLite, or file-based storage
 
-*Line: 8*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `data` | `std.StringHashMap([]u8)` | Data |
+
+*Defined at line 8*
+
+---
 
 ### `BlockStore`
 
 Block Storage
 
-*Line: 77*
+| Field | Type | Description |
+|-------|------|-------------|
+| `store` | `KeyValueStore` | Store |
+| `next_block_id` | `u64` | Next_block_id |
+
+*Defined at line 77*
+
+---
 
 ### `TransactionIndex`
 
 Transaction Index
 
-*Line: 124*
+| Field | Type | Description |
+|-------|------|-------------|
+| `store` | `KeyValueStore` | Store |
+| `tx_count` | `u64` | Tx_count |
+
+*Defined at line 124*
+
+---
 
 ### `AddressIndex`
 
 Address Balance Index
 
-*Line: 177*
+| Field | Type | Description |
+|-------|------|-------------|
+| `store` | `KeyValueStore` | Store |
+
+*Defined at line 177*
+
+---
 
 ### `StateCheckpoint`
 
 State Checkpoint for Recovery
 
-*Line: 220*
+| Field | Type | Description |
+|-------|------|-------------|
+| `store` | `KeyValueStore` | Store |
+| `checkpoint_count` | `u32` | Checkpoint_count |
+
+*Defined at line 220*
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) KeyValueStore {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `KeyValueStore`
 
-*Line: 12*
+*Defined at line 12*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *KeyValueStore) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*KeyValueStore` | The instance |
 
-- `self`: `*KeyValueStore`
-
-*Line: 19*
+*Defined at line 19*
 
 ---
 
-### `put`
+### `put()`
 
 Put key-value pair
 
@@ -84,19 +169,19 @@ Put key-value pair
 pub fn put(self: *KeyValueStore, key: []const u8, value: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*KeyValueStore`
-- `key`: `[]const u8`
-- `value`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*KeyValueStore` | The instance |
+| `key` | `[]const u8` | Key |
+| `value` | `[]const u8` | Value |
 
 **Returns:** `!void`
 
-*Line: 29*
+*Defined at line 29*
 
 ---
 
-### `get`
+### `get()`
 
 Get value by key
 
@@ -104,18 +189,18 @@ Get value by key
 pub fn get(self: *const KeyValueStore, key: []const u8) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const KeyValueStore`
-- `key`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const KeyValueStore` | The instance |
+| `key` | `[]const u8` | Key |
 
 **Returns:** `?[]u8`
 
-*Line: 41*
+*Defined at line 41*
 
 ---
 
-### `delete`
+### `delete()`
 
 Delete key-value pair
 
@@ -123,18 +208,18 @@ Delete key-value pair
 pub fn delete(self: *KeyValueStore, key: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*KeyValueStore`
-- `key`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*KeyValueStore` | The instance |
+| `key` | `[]const u8` | Key |
 
 **Returns:** `!void`
 
-*Line: 46*
+*Defined at line 46*
 
 ---
 
-### `contains`
+### `contains()`
 
 Check if key exists
 
@@ -142,18 +227,18 @@ Check if key exists
 pub fn contains(self: *const KeyValueStore, key: []const u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const KeyValueStore`
-- `key`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const KeyValueStore` | The instance |
+| `key` | `[]const u8` | Key |
 
 **Returns:** `bool`
 
-*Line: 54*
+*Defined at line 54*
 
 ---
 
-### `count`
+### `count()`
 
 Get total entries
 
@@ -161,17 +246,17 @@ Get total entries
 pub fn count(self: *const KeyValueStore) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const KeyValueStore`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const KeyValueStore` | The instance |
 
 **Returns:** `usize`
 
-*Line: 59*
+*Defined at line 59*
 
 ---
 
-### `clear`
+### `clear()`
 
 Clear all entries
 
@@ -179,45 +264,49 @@ Clear all entries
 pub fn clear(self: *KeyValueStore) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*KeyValueStore` | The instance |
 
-- `self`: `*KeyValueStore`
-
-*Line: 64*
+*Defined at line 64*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) BlockStore {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `BlockStore`
 
-*Line: 81*
+*Defined at line 81*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *BlockStore) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockStore` | The instance |
 
-- `self`: `*BlockStore`
-
-*Line: 88*
+*Defined at line 88*
 
 ---
 
-### `storeBlock`
+### `storeBlock()`
 
 Store block with key "block:[height]"
 
@@ -225,19 +314,19 @@ Store block with key "block:[height]"
 pub fn storeBlock(self: *BlockStore, block_height: u64, block_data: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockStore`
-- `block_height`: `u64`
-- `block_data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockStore` | The instance |
+| `block_height` | `u64` | Block_height |
+| `block_data` | `[]const u8` | Block_data |
 
 **Returns:** `!void`
 
-*Line: 93*
+*Defined at line 93*
 
 ---
 
-### `getBlock`
+### `getBlock()`
 
 Retrieve block by height
 
@@ -245,18 +334,18 @@ Retrieve block by height
 pub fn getBlock(self: *const BlockStore, block_height: u64) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockStore`
-- `block_height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockStore` | The instance |
+| `block_height` | `u64` | Block_height |
 
 **Returns:** `?[]u8`
 
-*Line: 104*
+*Defined at line 104*
 
 ---
 
-### `blockCount`
+### `blockCount()`
 
 Get total blocks stored
 
@@ -264,17 +353,17 @@ Get total blocks stored
 pub fn blockCount(self: *const BlockStore) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlockStore`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlockStore` | The instance |
 
 **Returns:** `u64`
 
-*Line: 111*
+*Defined at line 111*
 
 ---
 
-### `deleteBlock`
+### `deleteBlock()`
 
 Delete block
 
@@ -282,48 +371,52 @@ Delete block
 pub fn deleteBlock(self: *BlockStore, block_height: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlockStore`
-- `block_height`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlockStore` | The instance |
+| `block_height` | `u64` | Block_height |
 
 **Returns:** `!void`
 
-*Line: 116*
+*Defined at line 116*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) TransactionIndex {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `TransactionIndex`
 
-*Line: 128*
+*Defined at line 128*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *TransactionIndex) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*TransactionIndex` | The instance |
 
-- `self`: `*TransactionIndex`
-
-*Line: 135*
+*Defined at line 135*
 
 ---
 
-### `indexTransaction`
+### `indexTransaction()`
 
 Index transaction: "tx:[hash]" → "block_height:tx_index"
 
@@ -331,20 +424,20 @@ Index transaction: "tx:[hash]" → "block_height:tx_index"
 pub fn indexTransaction(self: *TransactionIndex, tx_hash: []const u8, block_height: u64, tx_index: u32) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*TransactionIndex`
-- `tx_hash`: `[]const u8`
-- `block_height`: `u64`
-- `tx_index`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*TransactionIndex` | The instance |
+| `tx_hash` | `[]const u8` | Tx_hash |
+| `block_height` | `u64` | Block_height |
+| `tx_index` | `u32` | Tx_index |
 
 **Returns:** `!void`
 
-*Line: 140*
+*Defined at line 140*
 
 ---
 
-### `findTransaction`
+### `findTransaction()`
 
 Find transaction location
 
@@ -352,18 +445,18 @@ Find transaction location
 pub fn findTransaction(self: *const TransactionIndex, tx_hash: []const u8) ?TxLocation {
 ```
 
-**Parameters:**
-
-- `self`: `*const TransactionIndex`
-- `tx_hash`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const TransactionIndex` | The instance |
+| `tx_hash` | `[]const u8` | Tx_hash |
 
 **Returns:** `?TxLocation`
 
-*Line: 152*
+*Defined at line 152*
 
 ---
 
-### `transactionCount`
+### `transactionCount()`
 
 Get total indexed transactions
 
@@ -371,47 +464,51 @@ Get total indexed transactions
 pub fn transactionCount(self: *const TransactionIndex) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const TransactionIndex`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const TransactionIndex` | The instance |
 
 **Returns:** `u64`
 
-*Line: 171*
+*Defined at line 171*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) AddressIndex {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `AddressIndex`
 
-*Line: 180*
+*Defined at line 180*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *AddressIndex) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*AddressIndex` | The instance |
 
-- `self`: `*AddressIndex`
-
-*Line: 186*
+*Defined at line 186*
 
 ---
 
-### `updateBalance`
+### `updateBalance()`
 
 Update address balance: "addr:[address]" → "balance"
 
@@ -419,19 +516,19 @@ Update address balance: "addr:[address]" → "balance"
 pub fn updateBalance(self: *AddressIndex, address: []const u8, balance: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*AddressIndex`
-- `address`: `[]const u8`
-- `balance`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*AddressIndex` | The instance |
+| `address` | `[]const u8` | Address |
+| `balance` | `u64` | Balance |
 
 **Returns:** `!void`
 
-*Line: 191*
+*Defined at line 191*
 
 ---
 
-### `getBalance`
+### `getBalance()`
 
 Get address balance
 
@@ -439,18 +536,18 @@ Get address balance
 pub fn getBalance(self: *const AddressIndex, address: []const u8) ?u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const AddressIndex`
-- `address`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const AddressIndex` | The instance |
+| `address` | `[]const u8` | Address |
 
 **Returns:** `?u64`
 
-*Line: 202*
+*Defined at line 202*
 
 ---
 
-### `addressCount`
+### `addressCount()`
 
 Get all addresses
 
@@ -458,47 +555,51 @@ Get all addresses
 pub fn addressCount(self: *const AddressIndex) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const AddressIndex`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const AddressIndex` | The instance |
 
 **Returns:** `usize`
 
-*Line: 214*
+*Defined at line 214*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) StateCheckpoint {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `StateCheckpoint`
 
-*Line: 224*
+*Defined at line 224*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *StateCheckpoint) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*StateCheckpoint` | The instance |
 
-- `self`: `*StateCheckpoint`
-
-*Line: 231*
+*Defined at line 231*
 
 ---
 
-### `save`
+### `save()`
 
 Save checkpoint: "checkpoint:[number]" → state_data
 
@@ -506,18 +607,18 @@ Save checkpoint: "checkpoint:[number]" → state_data
 pub fn save(self: *StateCheckpoint, state_data: []const u8) !u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*StateCheckpoint`
-- `state_data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*StateCheckpoint` | The instance |
+| `state_data` | `[]const u8` | State_data |
 
 **Returns:** `!u32`
 
-*Line: 236*
+*Defined at line 236*
 
 ---
 
-### `load`
+### `load()`
 
 Load checkpoint
 
@@ -525,18 +626,18 @@ Load checkpoint
 pub fn load(self: *const StateCheckpoint, checkpoint_number: u32) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateCheckpoint`
-- `checkpoint_number`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateCheckpoint` | The instance |
+| `checkpoint_number` | `u32` | Checkpoint_number |
 
 **Returns:** `?[]u8`
 
-*Line: 257*
+*Defined at line 257*
 
 ---
 
-### `latest`
+### `latest()`
 
 Get latest checkpoint
 
@@ -544,13 +645,17 @@ Get latest checkpoint
 pub fn latest(self: *const StateCheckpoint) ?[]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const StateCheckpoint`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const StateCheckpoint` | The instance |
 
 **Returns:** `?[]u8`
 
-*Line: 264*
+*Defined at line 264*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

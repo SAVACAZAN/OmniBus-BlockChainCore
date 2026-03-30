@@ -1,7 +1,7 @@
 # OmniBus Wiki - Index Documentație Completă
 
-**Data:** 2026-03-30  
-**Documentație generată de:** Kimi AI  
+**Data:** 2026-03-31
+**Documentație generată de:** Kimi AI + Claude Opus 4.6
 **Proiect:** OmniBus-BlockChainCore
 
 ---
@@ -13,7 +13,7 @@
 | Fișier | Descriere | Prioritate |
 |--------|-----------|------------|
 | [00-OMNIBUS-COMPLETE-GUIDE.md](00-OMNIBUS-COMPLETE-GUIDE.md) | **Ghid complet 360°** - tot ce trebuie să știi | ⭐⭐⭐ MUST READ |
-| [01-MODULE-CATALOG.md](01-MODULE-CATALOG.md) | Catalogul complet al celor 66 module | ⭐⭐⭐ MUST READ |
+| [01-MODULE-CATALOG.md](01-MODULE-CATALOG.md) | Catalogul complet al celor 69 module | ⭐⭐⭐ MUST READ |
 | [02-API-REFERENCE.md](02-API-REFERENCE.md) | Referință API JSON-RPC 2.0 completă | ⭐⭐⭐ MUST READ |
 
 ---
@@ -73,15 +73,17 @@ WebSocket events?                 → 02-API-REFERENCE.md (secțiunea 8)
 ## 📊 Statistici Proiect
 
 ```
-Module Zig:              66
-Linii cod Zig:           ~12,000+
-Teste:                   500+
+Module Zig:              69
+Linii cod Zig:           ~17,000+
+Funcții publice:         873
+Structuri:               217
+Teste:                   600+
 Teste care trec:         100% ✅
-RPC Methods:             18+
+RPC Methods:             39
 Adrese PQ:               5 domenii
-Shards:                  7
+Shards:                  4 (configurable)
 Sub-blocks:              10 per block
-Block time:              1s (100ms sub)
+Block time:              10s (100ms sub)
 ```
 
 ---
@@ -99,12 +101,12 @@ Block time:              1s (100ms sub)
 ## 📝 Note
 
 Documentația `wiki-kimi-omnibus/` a fost generată prin analiză completă a:
-- 66 module din `core/`
+- 69 module din `core/`
 - 7 fișiere de test din `test/`
-- 15+ tool-uri Python din `tools/`
+- 20+ tool-uri Python din `tools/`
 - Frontend React din `frontend/`
 - Script-uri de deployment
 - Toate fișierele markdown existente
 
-**Ultima actualizare:** 2026-03-30  
-**Status:** ✅ Complet și actualizat
+**Ultima actualizare:** 2026-03-31
+**Status:** ✅ Complet și actualizat (wiki_sync + doc_generator + comparison rulat)

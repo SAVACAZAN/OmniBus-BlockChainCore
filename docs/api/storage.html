@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>storage — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>storage</code></h1>
+<p class="module-desc">Key-value storage engine — in-memory with optional disk persistence, iterator support, memory-safe deinit.</p>
+<p class="stats">Source: core/storage.zig &bull; 331 lines &bull; 29 functions &bull; 6 structs &bull; 6 tests</p>
+
+<h2>Structs (6)</h2>
+        <div class="section">
+            <h3><code>TxLocation</code></h3>
+            <p>Locatia unei tranzactii in blockchain</p>
+            
+            <p class="line">Line: 4</p>
+        </div>
+        <div class="section">
+            <h3><code>KeyValueStore</code></h3>
+            <p>Key-Value Storage Interface
+Abstracts RocksDB, SQLite, or file-based storage</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>data</code></td><td><code>std.StringHashMap([]u8)</code></td><td>Data</td></tr></table>
+            <p class="line">Line: 8</p>
+        </div>
+        <div class="section">
+            <h3><code>BlockStore</code></h3>
+            <p>Block Storage</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>store</code></td><td><code>KeyValueStore</code></td><td>Store</td></tr><tr><td><code>next_block_id</code></td><td><code>u64</code></td><td>Next_block_id</td></tr></table>
+            <p class="line">Line: 77</p>
+        </div>
+        <div class="section">
+            <h3><code>TransactionIndex</code></h3>
+            <p>Transaction Index</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>store</code></td><td><code>KeyValueStore</code></td><td>Store</td></tr><tr><td><code>tx_count</code></td><td><code>u64</code></td><td>Tx_count</td></tr></table>
+            <p class="line">Line: 124</p>
+        </div>
+        <div class="section">
+            <h3><code>AddressIndex</code></h3>
+            <p>Address Balance Index</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>store</code></td><td><code>KeyValueStore</code></td><td>Store</td></tr></table>
+            <p class="line">Line: 177</p>
+        </div>
+        <div class="section">
+            <h3><code>StateCheckpoint</code></h3>
+            <p>State Checkpoint for Recovery</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>store</code></td><td><code>KeyValueStore</code></td><td>Store</td></tr><tr><td><code>checkpoint_count</code></td><td><code>u32</code></td><td>Checkpoint_count</td></tr></table>
+            <p class="line">Line: 220</p>
+        </div>
+
+
+
+<h2>Functions (29)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) KeyValueStore {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>KeyValueStore</code></p>
+            <p class="line">Line: 12</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *KeyValueStore) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyValueStore</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 19</p>
+        </div>
+        <div class="section">
+            <h3><code>put()</code></h3>
+            <p class="desc">Put key-value pair</p>
+            <pre><code>pub fn put(self: *KeyValueStore, key: []const u8, value: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyValueStore</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr><tr><td><code>value</code></td><td><code>[]const u8</code></td><td>Value</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 29</p>
+        </div>
+        <div class="section">
+            <h3><code>get()</code></h3>
+            <p class="desc">Get value by key</p>
+            <pre><code>pub fn get(self: *const KeyValueStore, key: []const u8) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyValueStore</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 41</p>
+        </div>
+        <div class="section">
+            <h3><code>delete()</code></h3>
+            <p class="desc">Delete key-value pair</p>
+            <pre><code>pub fn delete(self: *KeyValueStore, key: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyValueStore</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 46</p>
+        </div>
+        <div class="section">
+            <h3><code>contains()</code></h3>
+            <p class="desc">Check if key exists</p>
+            <pre><code>pub fn contains(self: *const KeyValueStore, key: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyValueStore</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 54</p>
+        </div>
+        <div class="section">
+            <h3><code>count()</code></h3>
+            <p class="desc">Get total entries</p>
+            <pre><code>pub fn count(self: *const KeyValueStore) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyValueStore</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 59</p>
+        </div>
+        <div class="section">
+            <h3><code>clear()</code></h3>
+            <p class="desc">Clear all entries</p>
+            <pre><code>pub fn clear(self: *KeyValueStore) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyValueStore</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 64</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) BlockStore {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlockStore</code></p>
+            <p class="line">Line: 81</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *BlockStore) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockStore</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 88</p>
+        </div>
+        <div class="section">
+            <h3><code>storeBlock()</code></h3>
+            <p class="desc">Store block with key "block:[height]"</p>
+            <pre><code>pub fn storeBlock(self: *BlockStore, block_height: u64, block_data: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockStore</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>block_data</code></td><td><code>[]const u8</code></td><td>Block_data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 93</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlock()</code></h3>
+            <p class="desc">Retrieve block by height</p>
+            <pre><code>pub fn getBlock(self: *const BlockStore, block_height: u64) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockStore</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 104</p>
+        </div>
+        <div class="section">
+            <h3><code>blockCount()</code></h3>
+            <p class="desc">Get total blocks stored</p>
+            <pre><code>pub fn blockCount(self: *const BlockStore) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockStore</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 111</p>
+        </div>
+        <div class="section">
+            <h3><code>deleteBlock()</code></h3>
+            <p class="desc">Delete block</p>
+            <pre><code>pub fn deleteBlock(self: *BlockStore, block_height: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockStore</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 116</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) TransactionIndex {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>TransactionIndex</code></p>
+            <p class="line">Line: 128</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *TransactionIndex) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*TransactionIndex</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 135</p>
+        </div>
+        <div class="section">
+            <h3><code>indexTransaction()</code></h3>
+            <p class="desc">Index transaction: "tx:[hash]" → "block_height:tx_index"</p>
+            <pre><code>pub fn indexTransaction(self: *TransactionIndex, tx_hash: []const u8, block_height: u64, tx_index: u32) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*TransactionIndex</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 140</p>
+        </div>
+        <div class="section">
+            <h3><code>findTransaction()</code></h3>
+            <p class="desc">Find transaction location</p>
+            <pre><code>pub fn findTransaction(self: *const TransactionIndex, tx_hash: []const u8) ?TxLocation {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const TransactionIndex</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?TxLocation</code></p>
+            <p class="line">Line: 152</p>
+        </div>
+        <div class="section">
+            <h3><code>transactionCount()</code></h3>
+            <p class="desc">Get total indexed transactions</p>
+            <pre><code>pub fn transactionCount(self: *const TransactionIndex) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const TransactionIndex</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 171</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) AddressIndex {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>AddressIndex</code></p>
+            <p class="line">Line: 180</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *AddressIndex) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*AddressIndex</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 186</p>
+        </div>
+        <div class="section">
+            <h3><code>updateBalance()</code></h3>
+            <p class="desc">Update address balance: "addr:[address]" → "balance"</p>
+            <pre><code>pub fn updateBalance(self: *AddressIndex, address: []const u8, balance: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*AddressIndex</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>balance</code></td><td><code>u64</code></td><td>Balance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 191</p>
+        </div>
+        <div class="section">
+            <h3><code>getBalance()</code></h3>
+            <p class="desc">Get address balance</p>
+            <pre><code>pub fn getBalance(self: *const AddressIndex, address: []const u8) ?u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const AddressIndex</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?u64</code></p>
+            <p class="line">Line: 202</p>
+        </div>
+        <div class="section">
+            <h3><code>addressCount()</code></h3>
+            <p class="desc">Get all addresses</p>
+            <pre><code>pub fn addressCount(self: *const AddressIndex) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const AddressIndex</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 214</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) StateCheckpoint {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>StateCheckpoint</code></p>
+            <p class="line">Line: 224</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *StateCheckpoint) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StateCheckpoint</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 231</p>
+        </div>
+        <div class="section">
+            <h3><code>save()</code></h3>
+            <p class="desc">Save checkpoint: "checkpoint:[number]" → state_data</p>
+            <pre><code>pub fn save(self: *StateCheckpoint, state_data: []const u8) !u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*StateCheckpoint</code></td><td>The instance</td></tr><tr><td><code>state_data</code></td><td><code>[]const u8</code></td><td>State_data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u32</code></p>
+            <p class="line">Line: 236</p>
+        </div>
+        <div class="section">
+            <h3><code>load()</code></h3>
+            <p class="desc">Load checkpoint</p>
+            <pre><code>pub fn load(self: *const StateCheckpoint, checkpoint_number: u32) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StateCheckpoint</code></td><td>The instance</td></tr><tr><td><code>checkpoint_number</code></td><td><code>u32</code></td><td>Checkpoint_number</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 257</p>
+        </div>
+        <div class="section">
+            <h3><code>latest()</code></h3>
+            <p class="desc">Get latest checkpoint</p>
+            <pre><code>pub fn latest(self: *const StateCheckpoint) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const StateCheckpoint</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 264</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

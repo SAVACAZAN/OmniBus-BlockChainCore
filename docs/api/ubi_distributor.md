@@ -1,67 +1,132 @@
 # Module: `ubi_distributor`
 
+> Universal Basic Income — 1 OMNI/day per eligible address, epoch-based distribution, built into protocol.
+
+**Source:** `core/ubi_distributor.zig` | **Lines:** 310 | **Functions:** 5 | **Structs:** 3 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`UbiBeneficiary`](#ubibeneficiary) — Data structure for ubi beneficiary. Fields include: anchor_addr, registered_bloc...
+- [`UbiEpochReport`](#ubiepochreport) — Data structure for ubi epoch report. Fields include: epoch_number, block_start, ...
+- [`UbiDistributor`](#ubidistributor) — Data structure for ubi distributor. Fields include: allocator, beneficiaries, po...
+
+### Constants
+- [4 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`addToPool()`](#addtopool) — Adauga profit din VaultEngine in pool
+- [`activeCount()`](#activecount) — Performs the active count operation on the ubi_distributor module.
+- [`printStatus()`](#printstatus) — Performs the print status operation on the ubi_distributor module.
+
+---
 
 ## Structs
 
 ### `UbiBeneficiary`
 
-*Line: 37*
+Data structure for ubi beneficiary. Fields include: anchor_addr, registered_block, total_received_sat, last_epoch, active.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `anchor_addr` | `[32]u8` | Anchor_addr |
+| `registered_block` | `u64` | Registered_block |
+| `total_received_sat` | `u64` | Total_received_sat |
+| `last_epoch` | `u64` | Last_epoch |
+| `active` | `bool` | Active |
+
+*Defined at line 37*
+
+---
 
 ### `UbiEpochReport`
 
-*Line: 45*
+Data structure for ubi epoch report. Fields include: epoch_number, block_start, block_end, pool_sat, distributed_sat.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `epoch_number` | `u64` | Epoch_number |
+| `block_start` | `u64` | Block_start |
+| `block_end` | `u64` | Block_end |
+| `pool_sat` | `u64` | Pool_sat |
+| `distributed_sat` | `u64` | Distributed_sat |
+| `beneficiary_count` | `u64` | Beneficiary_count |
+| `per_beneficiary_sat` | `u64` | Per_beneficiary_sat |
+
+*Defined at line 45*
+
+---
 
 ### `UbiDistributor`
 
-*Line: 57*
+Data structure for ubi distributor. Fields include: allocator, beneficiaries, pool_sat, current_epoch, total_distributed_sat.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `beneficiaries` | `std.array_list.Managed(UbiBeneficiary)` | Beneficiaries |
+| `pool_sat` | `u64` | Pool_sat |
+| `current_epoch` | `u64` | Current_epoch |
+| `total_distributed_sat` | `u64` | Total_distributed_sat |
+| `epoch_reports` | `std.array_list.Managed(UbiEpochReport)` | Epoch_reports |
+| `anchor_addr` | `[32]u8` | Anchor_addr |
+
+*Defined at line 57*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `UBI_EPOCH_BLOCKS` | auto | `u64 = 126_144` |
-| `UBI_DAILY_SAT` | auto | `u64 = 1_000_000_000` |
-| `UBI_PER_EPOCH_SAT` | auto | `u64 = UBI_DAILY_SAT * UBI_EPOCH_BLOCKS / 86_400` |
-| `MAX_BENEFICIARIES` | auto | `usize = 1_000_000_000` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `UBI_EPOCH_BLOCKS` | `u64 = 126_144` | U b i_ e p o c h_ b l o c k s |
+| `UBI_DAILY_SAT` | `u64 = 1_000_000_000` | U b i_ d a i l y_ s a t |
+| `UBI_PER_EPOCH_SAT` | `u64 = UBI_DAILY_SAT * UBI_EPOCH_BLOCKS / 86_400` | U b i_ p e r_ e p o c h_ s a t |
+| `MAX_BENEFICIARIES` | `usize = 1_000_000_000` | M a x_ b e n e f i c i a r i e s |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) UbiDistributor {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `UbiDistributor`
 
-*Line: 73*
+*Defined at line 73*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *UbiDistributor) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*UbiDistributor` | The instance |
 
-- `self`: `*UbiDistributor`
-
-*Line: 84*
+*Defined at line 84*
 
 ---
 
-### `addToPool`
+### `addToPool()`
 
 Adauga profit din VaultEngine in pool
 
@@ -69,42 +134,50 @@ Adauga profit din VaultEngine in pool
 pub fn addToPool(self: *UbiDistributor, amount_sat: u64) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*UbiDistributor` | The instance |
+| `amount_sat` | `u64` | Amount_sat |
 
-- `self`: `*UbiDistributor`
-- `amount_sat`: `u64`
-
-*Line: 112*
+*Defined at line 112*
 
 ---
 
-### `activeCount`
+### `activeCount()`
+
+Performs the active count operation on the ubi_distributor module.
 
 ```zig
 pub fn activeCount(self: *const UbiDistributor) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const UbiDistributor`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const UbiDistributor` | The instance |
 
 **Returns:** `u64`
 
-*Line: 168*
+*Defined at line 168*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the ubi_distributor module.
 
 ```zig
 pub fn printStatus(self: *const UbiDistributor) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const UbiDistributor` | The instance |
 
-- `self`: `*const UbiDistributor`
-
-*Line: 184*
+*Defined at line 184*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

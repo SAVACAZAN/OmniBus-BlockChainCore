@@ -1,10 +1,38 @@
 # Module: `oracle`
 
+> Price oracle — BID/ASK feeds per exchange, best ask/best bid aggregation, on-chain price attestations for DeFi.
+
+**Source:** `core/oracle.zig` | **Lines:** 377 | **Functions:** 12 | **Structs:** 3 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`ExchangeQuote`](#exchangequote) — BID/ASK de pe un exchange specific pentru un asset
+Validatorul OmniBus citeste a...
+- [`BridgeReferencePrice`](#bridgereferenceprice) — Pretul de referinta pentru bridge — median din mid-price-urile CEX/DEX
+Acesta NU...
+- [`PriceOracle`](#priceoracle) — Data structure for price oracle. Fields include: quotes, quote_valid, bridge_pri...
+
+### Constants
+- [5 constants defined](#constants)
+
+### Functions
+- [`name()`](#name) — Performs the name operation on the oracle module.
+- [`name()`](#name) — Performs the name operation on the oracle module.
+- [`isDex()`](#isdex) — Checks whether the dex condition is true.
+- [`spread()`](#spread) — Performs the spread operation on the oracle module.
+- [`midPrice()`](#midprice) — Performs the mid price operation on the oracle module.
+- [`isStale()`](#isstale) — Checks whether the stale condition is true.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`submitQuote()`](#submitquote) — Submitera un quote BID/ASK de pe un exchange specific
+- [`getBridgePrice()`](#getbridgeprice) — Returneaza pretul de referinta pentru bridge (median din mid-prices)
+- [`bestAsk()`](#bestask) — Gaseste cel mai mic ASK (best ask) dintre toate exchange-urile pt un a...
+- [`bestBid()`](#bestbid) — Gaseste cel mai mare BID (best bid) dintre toate exchange-urile pt un ...
+- [`printStatus()`](#printstatus) — Performs the print status operation on the oracle module.
+
+---
 
 ## Structs
 
@@ -13,129 +41,177 @@
 BID/ASK de pe un exchange specific pentru un asset
 Validatorul OmniBus citeste aceste date si le submitera pe chain
 
-*Line: 90*
+| Field | Type | Description |
+|-------|------|-------------|
+| `chain_id` | `ChainId` | Chain_id |
+| `exchange_id` | `ExchangeId` | Exchange_id |
+| `bid_micro_usd` | `u64` | Bid_micro_usd |
+| `ask_micro_usd` | `u64` | Ask_micro_usd |
+| `volume_24h_micro_usd` | `u64` | Volume_24h_micro_usd |
+| `timestamp_ms` | `i64` | Timestamp_ms |
+
+*Defined at line 90*
+
+---
 
 ### `BridgeReferencePrice`
 
 Pretul de referinta pentru bridge — median din mid-price-urile CEX/DEX
 Acesta NU e pretul de arbitraj — e doar pretul trustless pt bridge
 
-*Line: 117*
+| Field | Type | Description |
+|-------|------|-------------|
+| `chain_id` | `ChainId` | Chain_id |
+| `reference_micro_usd` | `u64` | Reference_micro_usd |
+| `last_update_ms` | `i64` | Last_update_ms |
+| `source_count` | `u8` | Source_count |
+| `is_valid` | `bool` | Is_valid |
+
+*Defined at line 117*
+
+---
 
 ### `PriceOracle`
 
-*Line: 130*
+Data structure for price oracle. Fields include: quotes, quote_valid, bridge_prices, chain.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `quotes` | `[CHAINS][MAX_EXCHANGES]ExchangeQuote` | Quotes |
+| `quote_valid` | `[CHAINS][MAX_EXCHANGES]bool` | Quote_valid |
+| `bridge_prices` | `[CHAINS]BridgeReferencePrice` | Bridge_prices |
+| `chain` | `ChainId` | Chain |
+
+*Defined at line 130*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `ChainId` | auto | `enum(u8) {` |
-| `ExchangeId` | auto | `enum(u8) {` |
-| `MAX_PRICE_AGE_MS` | auto | `i64 = 60_000` |
-| `MAX_EXCHANGES` | auto | `usize = 9` |
-| `CHAINS` | auto | `usize = 20` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `ChainId` | `enum(u8) {` | Chain id |
+| `ExchangeId` | `enum(u8) {` | Exchange id |
+| `MAX_PRICE_AGE_MS` | `i64 = 60_000` | M a x_ p r i c e_ a g e_ m s |
+| `MAX_EXCHANGES` | `usize = 9` | M a x_ e x c h a n g e s |
+| `CHAINS` | `usize = 20` | C h a i n s |
+
+---
 
 ## Functions
 
-### `name`
+### `name()`
+
+Performs the name operation on the oracle module.
 
 ```zig
 pub fn name(self: ChainId) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `ChainId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `ChainId` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 39*
+*Defined at line 39*
 
 ---
 
-### `name`
+### `name()`
+
+Performs the name operation on the oracle module.
 
 ```zig
 pub fn name(self: ExchangeId) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `ExchangeId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `ExchangeId` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 64*
+*Defined at line 64*
 
 ---
 
-### `isDex`
+### `isDex()`
+
+Checks whether the dex condition is true.
 
 ```zig
 pub fn isDex(self: ExchangeId) bool {
 ```
 
-**Parameters:**
-
-- `self`: `ExchangeId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `ExchangeId` | The instance |
 
 **Returns:** `bool`
 
-*Line: 78*
+*Defined at line 78*
 
 ---
 
-### `spread`
+### `spread()`
+
+Performs the spread operation on the oracle module.
 
 ```zig
 pub fn spread(self: *const ExchangeQuote) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const ExchangeQuote`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ExchangeQuote` | The instance |
 
 **Returns:** `u64`
 
-*Line: 101*
+*Defined at line 101*
 
 ---
 
-### `midPrice`
+### `midPrice()`
+
+Performs the mid price operation on the oracle module.
 
 ```zig
 pub fn midPrice(self: *const ExchangeQuote) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const ExchangeQuote`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ExchangeQuote` | The instance |
 
 **Returns:** `u64`
 
-*Line: 106*
+*Defined at line 106*
 
 ---
 
-### `isStale`
+### `isStale()`
+
+Checks whether the stale condition is true.
 
 ```zig
 pub fn isStale(self: *const ExchangeQuote, now_ms: i64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ExchangeQuote`
-- `now_ms`: `i64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ExchangeQuote` | The instance |
+| `now_ms` | `i64` | Now_ms |
 
 **Returns:** `bool`
 
-*Line: 110*
+*Defined at line 110*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() PriceOracle {
@@ -143,11 +219,11 @@ pub fn init() PriceOracle {
 
 **Returns:** `PriceOracle`
 
-*Line: 138*
+*Defined at line 138*
 
 ---
 
-### `submitQuote`
+### `submitQuote()`
 
 Submitera un quote BID/ASK de pe un exchange specific
 
@@ -155,18 +231,18 @@ Submitera un quote BID/ASK de pe un exchange specific
 pub fn submitQuote(self: *PriceOracle, quote: ExchangeQuote) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*PriceOracle`
-- `quote`: `ExchangeQuote`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PriceOracle` | The instance |
+| `quote` | `ExchangeQuote` | Quote |
 
 **Returns:** `!void`
 
-*Line: 156*
+*Defined at line 156*
 
 ---
 
-### `getBridgePrice`
+### `getBridgePrice()`
 
 Returneaza pretul de referinta pentru bridge (median din mid-prices)
 
@@ -174,18 +250,18 @@ Returneaza pretul de referinta pentru bridge (median din mid-prices)
 pub fn getBridgePrice(self: *const PriceOracle, chain: ChainId) !BridgeReferencePrice {
 ```
 
-**Parameters:**
-
-- `self`: `*const PriceOracle`
-- `chain`: `ChainId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PriceOracle` | The instance |
+| `chain` | `ChainId` | Chain |
 
 **Returns:** `!BridgeReferencePrice`
 
-*Line: 184*
+*Defined at line 184*
 
 ---
 
-### `bestAsk`
+### `bestAsk()`
 
 Gaseste cel mai mic ASK (best ask) dintre toate exchange-urile pt un asset
 
@@ -193,18 +269,18 @@ Gaseste cel mai mic ASK (best ask) dintre toate exchange-urile pt un asset
 pub fn bestAsk(self: *const PriceOracle, chain: ChainId) !ExchangeQuote {
 ```
 
-**Parameters:**
-
-- `self`: `*const PriceOracle`
-- `chain`: `ChainId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PriceOracle` | The instance |
+| `chain` | `ChainId` | Chain |
 
 **Returns:** `!ExchangeQuote`
 
-*Line: 194*
+*Defined at line 194*
 
 ---
 
-### `bestBid`
+### `bestBid()`
 
 Gaseste cel mai mare BID (best bid) dintre toate exchange-urile pt un asset
 
@@ -212,29 +288,35 @@ Gaseste cel mai mare BID (best bid) dintre toate exchange-urile pt un asset
 pub fn bestBid(self: *const PriceOracle, chain: ChainId) !ExchangeQuote {
 ```
 
-**Parameters:**
-
-- `self`: `*const PriceOracle`
-- `chain`: `ChainId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PriceOracle` | The instance |
+| `chain` | `ChainId` | Chain |
 
 **Returns:** `!ExchangeQuote`
 
-*Line: 212*
+*Defined at line 212*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the oracle module.
 
 ```zig
 pub fn printStatus(self: *const PriceOracle, chain: ChainId) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PriceOracle` | The instance |
+| `chain` | `ChainId` | Chain |
 
-- `self`: `*const PriceOracle`
-- `chain`: `ChainId`
-
-*Line: 264*
+*Defined at line 264*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

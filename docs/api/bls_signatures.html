@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bls_signatures — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>bls_signatures</code></h1>
+<p class="module-desc">BLS threshold signatures (t-of-n) — aggregate multiple signatures into one, verify against aggregate public key, used for consensus efficiency.</p>
+<p class="stats">Source: core/bls_signatures.zig &bull; 294 lines &bull; 11 functions &bull; 4 structs &bull; 10 tests</p>
+
+<h2>Structs (4)</h2>
+        <div class="section">
+            <h3><code>BlsPublicKey</code></h3>
+            <p>Data structure for bls public key. Fields include: bytes.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bytes</code></td><td><code>[BLS_PUBKEY_SIZE]u8</code></td><td>Bytes</td></tr></table>
+            <p class="line">Line: 31</p>
+        </div>
+        <div class="section">
+            <h3><code>BlsSecretKey</code></h3>
+            <p>Data structure for bls secret key. Fields include: bytes.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bytes</code></td><td><code>[BLS_SECKEY_SIZE]u8</code></td><td>Bytes</td></tr></table>
+            <p class="line">Line: 46</p>
+        </div>
+        <div class="section">
+            <h3><code>BlsSignature</code></h3>
+            <p>Data structure for bls signature. Fields include: bytes.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bytes</code></td><td><code>[BLS_SIG_SIZE]u8</code></td><td>Bytes</td></tr></table>
+            <p class="line">Line: 56</p>
+        </div>
+        <div class="section">
+            <h3><code>BlsThreshold</code></h3>
+            <p>BLS Threshold Signature (t-of-n)
+Requires t out of n partial signatures to reconstruct full signature</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>threshold</code></td><td><code>u8</code></td><td>Threshold</td></tr><tr><td><code>total</code></td><td><code>u8</code></td><td>Total</td></tr><tr><td><code>partial_sigs</code></td><td><code>[128]BlsSignature</code></td><td>Partial_sigs</td></tr><tr><td><code>partial_count</code></td><td><code>u8</code></td><td>Partial_count</td></tr></table>
+            <p class="line">Line: 154</p>
+        </div>
+
+<h2>Constants (3)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>BLS_PUBKEY_SIZE</code></td><td><code>usize = 48</code></td><td>B l s_ p u b k e y_ s i z e</td></tr><tr><td><code>BLS_SIG_SIZE</code></td><td><code>usize = 96</code></td><td>B l s_ s i g_ s i z e</td></tr><tr><td><code>BLS_SECKEY_SIZE</code></td><td><code>usize = 32</code></td><td>B l s_ s e c k e y_ s i z e</td></tr></table></div>
+
+<h2>Functions (11)</h2>
+        <div class="section">
+            <h3><code>fromSecretKey()</code></h3>
+            <p class="desc">Performs the from secret key operation on the bls_signatures module.</p>
+            <pre><code>pub fn fromSecretKey(secret: BlsSecretKey) BlsPublicKey {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>secret</code></td><td><code>BlsSecretKey</code></td><td>Secret</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlsPublicKey</code></p>
+            <p class="line">Line: 34</p>
+        </div>
+        <div class="section">
+            <h3><code>generate()</code></h3>
+            <p class="desc">Performs the generate operation on the bls_signatures module.</p>
+            <pre><code>pub fn generate() BlsSecretKey {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>BlsSecretKey</code></p>
+            <p class="line">Line: 49</p>
+        </div>
+        <div class="section">
+            <h3><code>toBytes()</code></h3>
+            <p class="desc">Serialize to bytes</p>
+            <pre><code>pub fn toBytes(self: *const BlsSignature) [BLS_SIG_SIZE]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlsSignature</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[BLS_SIG_SIZE]u8</code></p>
+            <p class="line">Line: 60</p>
+        </div>
+        <div class="section">
+            <h3><code>blsSign()</code></h3>
+            <p class="desc">Sign a message with BLS secret key
+sig = H(m)^sk (BLS12-381 pairing-based)</p>
+            <pre><code>pub fn blsSign(secret: BlsSecretKey, message: []const u8) BlsSignature {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>secret</code></td><td><code>BlsSecretKey</code></td><td>Secret</td></tr><tr><td><code>message</code></td><td><code>[]const u8</code></td><td>Message</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlsSignature</code></p>
+            <p class="line">Line: 67</p>
+        </div>
+        <div class="section">
+            <h3><code>blsVerify()</code></h3>
+            <p class="desc">Verify a BLS signature
+e(sig, G) == e(H(m), pk)  (pairing check)</p>
+            <pre><code>pub fn blsVerify(pubkey: BlsPublicKey, message: []const u8, sig: BlsSignature) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>pubkey</code></td><td><code>BlsPublicKey</code></td><td>Pubkey</td></tr><tr><td><code>message</code></td><td><code>[]const u8</code></td><td>Message</td></tr><tr><td><code>sig</code></td><td><code>BlsSignature</code></td><td>Sig</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 92</p>
+        </div>
+        <div class="section">
+            <h3><code>blsAggregate()</code></h3>
+            <p class="desc">Aggregate multiple BLS signatures into one
+agg_sig = sig_1 + sig_2 + ... + sig_n (EC point addition)
+Verification: e(agg_sig, G) == e(H(m), pk_1 + pk_2 + ... + pk_n)</p>
+            <pre><code>pub fn blsAggregate(signatures: []const BlsSignature) BlsSignature {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>signatures</code></td><td><code>[]const BlsSignature</code></td><td>Signatures</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlsSignature</code></p>
+            <p class="line">Line: 117</p>
+        </div>
+        <div class="section">
+            <h3><code>blsAggregateKeys()</code></h3>
+            <p class="desc">Aggregate multiple BLS public keys</p>
+            <pre><code>pub fn blsAggregateKeys(pubkeys: []const BlsPublicKey) BlsPublicKey {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>pubkeys</code></td><td><code>[]const BlsPublicKey</code></td><td>Pubkeys</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlsPublicKey</code></p>
+            <p class="line">Line: 131</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(threshold: u8, total: u8) BlsThreshold {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>threshold</code></td><td><code>u8</code></td><td>Threshold</td></tr><tr><td><code>total</code></td><td><code>u8</code></td><td>Total</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlsThreshold</code></p>
+            <p class="line">Line: 160</p>
+        </div>
+        <div class="section">
+            <h3><code>addPartial()</code></h3>
+            <p class="desc">Add a partial signature</p>
+            <pre><code>pub fn addPartial(self: *BlsThreshold, sig: BlsSignature) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlsThreshold</code></td><td>The instance</td></tr><tr><td><code>sig</code></td><td><code>BlsSignature</code></td><td>Sig</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 170</p>
+        </div>
+        <div class="section">
+            <h3><code>isThresholdMet()</code></h3>
+            <p class="desc">Check if threshold is met</p>
+            <pre><code>pub fn isThresholdMet(self: *const BlsThreshold) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlsThreshold</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 177</p>
+        </div>
+        <div class="section">
+            <h3><code>reconstruct()</code></h3>
+            <p class="desc">Reconstruct full signature from partials (Lagrange interpolation)</p>
+            <pre><code>pub fn reconstruct(self: *const BlsThreshold) !BlsSignature {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlsThreshold</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!BlsSignature</code></p>
+            <p class="line">Line: 182</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

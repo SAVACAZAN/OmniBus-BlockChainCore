@@ -10,7 +10,7 @@ Ecosistem: 8 repo-uri — OmniBus OS + BlockChainCore + HFT + Sidebar + ExoChart
 | Fișier | Conținut | Prioritate |
 |--------|----------|------------|
 | [wiki-kimi-omnibus/00-OMNIBUS-COMPLETE-GUIDE.md](wiki-kimi-omnibus/00-OMNIBUS-COMPLETE-GUIDE.md) | Ghid complet 360° al proiectului | ⭐⭐⭐ MUST READ |
-| [wiki-kimi-omnibus/01-MODULE-CATALOG.md](wiki-kimi-omnibus/01-MODULE-CATALOG.md) | Catalog complet 66 module | ⭐⭐⭐ MUST READ |
+| [wiki-kimi-omnibus/01-MODULE-CATALOG.md](wiki-kimi-omnibus/01-MODULE-CATALOG.md) | Catalog complet 69 module | ⭐⭐⭐ MUST READ |
 | [wiki-kimi-omnibus/02-API-REFERENCE.md](wiki-kimi-omnibus/02-API-REFERENCE.md) | Referință API JSON-RPC 2.0 | ⭐⭐⭐ MUST READ |
 | [wiki-kimi-omnibus/INDEX.md](wiki-kimi-omnibus/INDEX.md) | Index documentație kimi | ⭐⭐ MUST READ |
 
@@ -69,7 +69,7 @@ Ecosistem: 8 repo-uri — OmniBus OS + BlockChainCore + HFT + Sidebar + ExoChart
 | core/ripemd160.zig | ✅ | RIPEMD-160 pur Zig (193 linii, Bitcoin-compatible) |
 | core/crypto.zig | ✅ | SHA256, SHA256d, HMAC-SHA256, AES-256 |
 | core/pq_crypto.zig | ✅ | ML-DSA-87, Falcon-512, SLH-DSA-256s via liboqs |
-| core/rpc_server.zig | ✅ | HTTP JSON-RPC 2.0, ws2_32.recv, **19 metode** |
+| core/rpc_server.zig | ✅ | HTTP JSON-RPC 2.0, ws2_32.recv, **39 metode** |
 | core/vault_reader.zig | ✅ | Named Pipe → env var → dev mnemonic fallback |
 | core/cli.zig | ✅ | Argumente CLI: mode/seed/miner |
 | core/node_launcher.zig | ✅ | NodeLauncher, seed/miner mode, mining start |
@@ -125,8 +125,11 @@ Ecosistem: 8 repo-uri — OmniBus OS + BlockChainCore + HFT + Sidebar + ExoChart
 | core/bls_signatures.zig | ✅ | BLS threshold signatures (t-of-n) |
 | core/tx_receipt.zig | ✅ | Transaction receipts cu event logs |
 | core/hex_utils.zig | ✅ | Shared hex/hash utility functions |
+| core/benchmark.zig | ✅ | Performance benchmarks for core operations |
+| core/miner_wallet.zig | ✅ | Miner-specific wallet functionality |
+| core/script.zig | ✅ | Transaction scripting engine (Bitcoin-style) |
 
-## RPC API (port 8332) — 19 metode
+## RPC API (port 8332) — 39 metode
 
 | Metodă | Params | Return |
 |--------|--------|--------|
@@ -149,6 +152,26 @@ Ecosistem: 8 repo-uri — OmniBus OS + BlockChainCore + HFT + Sidebar + ExoChart
 | getminerstats | - | hashrate, blocks_mined, rewards |
 | getminerinfo | [miner_id] | miner details |
 | getnodelist | - | array nodes in retea |
+| generatewallet | - | Generate new wallet keypair |
+| estimatefee | [blocks?] | Fee estimation per byte |
+| getaddresshistory | [address] | Full TX history for address |
+| getnonce | [address] | Next nonce for address |
+| gettransaction | [txid] | Single TX by hash |
+| listtransactions | [count?, skip?] | Recent transactions list |
+| getheaders | [from, count?] | Block headers for light clients |
+| getmerkleproof | [txid] | Merkle proof for TX inclusion |
+| getperformance | - | Node performance metrics |
+| getstakinginfo | - | Staking stats, validators, rewards |
+| getslashhistory | - | Slashing events history |
+| submitslashevidence | [evidence] | Submit validator misbehavior proof |
+| createmultisig | [m, pubkeys[]] | Create M-of-N multisig address |
+| sendmultisig | [to, amount, sigs[]] | Send from multisig |
+| openchannel | [peer, amount] | Open payment channel (L2) |
+| closechannel | [channel_id] | Close payment channel |
+| channelpay | [channel_id, amount] | Pay through channel |
+| getchannels | - | List open payment channels |
+| sendopreturn | [data] | Send OP_RETURN TX (data embed) |
+| minersendtx | [miner_id, to, amount] | Miner-initiated transaction |
 
 *gettransactions: scanare mempool + blocuri, filtru opțional pe adresă*
 
@@ -236,4 +259,7 @@ Ecosistem: 8 repo-uri — OmniBus OS + BlockChainCore + HFT + Sidebar + ExoChart
 - enciclopedia.md menționează 6 repo-uri — în realitate sunt **8** (ExoCharts + Zig-toolz adăugate ulterior)
 - CLAUDE.md (root) are block time 10s, max TX 100KB — deviat la 1s (vezi D1 mai sus)
 - `agent/agent_manager.zig` și `scripts/start-omnibus-full.ps1` folosesc 1e8 SAT/OMNI — **BUG**, trebuie 1e9
-- Total module core/: **66 fișiere .zig** (nu 54 — acelea sunt modulele OmniBus OS bare-metal)
+- Total module core/: **69 fișiere .zig** (nu 54 — acelea sunt modulele OmniBus OS bare-metal)
+- Total RPC methods: **39** (nu 19 — actualizat 2026-03-31)
+- Total funcții publice documentate: **873**
+- Total structuri documentate: **217**

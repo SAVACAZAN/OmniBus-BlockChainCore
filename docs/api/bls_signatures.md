@@ -1,59 +1,128 @@
 # Module: `bls_signatures`
 
+> BLS threshold signatures (t-of-n) — aggregate multiple signatures into one, verify against aggregate public key, used for consensus efficiency.
+
+**Source:** `core/bls_signatures.zig` | **Lines:** 294 | **Functions:** 11 | **Structs:** 4 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`BlsPublicKey`](#blspublickey) — Data structure for bls public key. Fields include: bytes.
+- [`BlsSecretKey`](#blssecretkey) — Data structure for bls secret key. Fields include: bytes.
+- [`BlsSignature`](#blssignature) — Data structure for bls signature. Fields include: bytes.
+- [`BlsThreshold`](#blsthreshold) — BLS Threshold Signature (t-of-n)
+Requires t out of n partial signatures to recon...
+
+### Constants
+- [3 constants defined](#constants)
+
+### Functions
+- [`fromSecretKey()`](#fromsecretkey) — Performs the from secret key operation on the bls_signatures module.
+- [`generate()`](#generate) — Performs the generate operation on the bls_signatures module.
+- [`toBytes()`](#tobytes) — Serialize to bytes
+- [`blsSign()`](#blssign) — Sign a message with BLS secret key
+sig = H(m)^sk (BLS12-381 pairing-ba...
+- [`blsVerify()`](#blsverify) — Verify a BLS signature
+e(sig, G) == e(H(m), pk)  (pairing check)
+- [`blsAggregate()`](#blsaggregate) — Aggregate multiple BLS signatures into one
+agg_sig = sig_1 + sig_2 + ....
+- [`blsAggregateKeys()`](#blsaggregatekeys) — Aggregate multiple BLS public keys
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addPartial()`](#addpartial) — Add a partial signature
+- [`isThresholdMet()`](#isthresholdmet) — Check if threshold is met
+- [`reconstruct()`](#reconstruct) — Reconstruct full signature from partials (Lagrange interpolation)
+
+---
 
 ## Structs
 
 ### `BlsPublicKey`
 
-*Line: 31*
+Data structure for bls public key. Fields include: bytes.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `bytes` | `[BLS_PUBKEY_SIZE]u8` | Bytes |
+
+*Defined at line 31*
+
+---
 
 ### `BlsSecretKey`
 
-*Line: 46*
+Data structure for bls secret key. Fields include: bytes.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `bytes` | `[BLS_SECKEY_SIZE]u8` | Bytes |
+
+*Defined at line 46*
+
+---
 
 ### `BlsSignature`
 
-*Line: 56*
+Data structure for bls signature. Fields include: bytes.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `bytes` | `[BLS_SIG_SIZE]u8` | Bytes |
+
+*Defined at line 56*
+
+---
 
 ### `BlsThreshold`
 
 BLS Threshold Signature (t-of-n)
 Requires t out of n partial signatures to reconstruct full signature
 
-*Line: 154*
+| Field | Type | Description |
+|-------|------|-------------|
+| `threshold` | `u8` | Threshold |
+| `total` | `u8` | Total |
+| `partial_sigs` | `[128]BlsSignature` | Partial_sigs |
+| `partial_count` | `u8` | Partial_count |
+
+*Defined at line 154*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `BLS_PUBKEY_SIZE` | auto | `usize = 48` |
-| `BLS_SIG_SIZE` | auto | `usize = 96` |
-| `BLS_SECKEY_SIZE` | auto | `usize = 32` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `BLS_PUBKEY_SIZE` | `usize = 48` | B l s_ p u b k e y_ s i z e |
+| `BLS_SIG_SIZE` | `usize = 96` | B l s_ s i g_ s i z e |
+| `BLS_SECKEY_SIZE` | `usize = 32` | B l s_ s e c k e y_ s i z e |
+
+---
 
 ## Functions
 
-### `fromSecretKey`
+### `fromSecretKey()`
+
+Performs the from secret key operation on the bls_signatures module.
 
 ```zig
 pub fn fromSecretKey(secret: BlsSecretKey) BlsPublicKey {
 ```
 
-**Parameters:**
-
-- `secret`: `BlsSecretKey`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `secret` | `BlsSecretKey` | Secret |
 
 **Returns:** `BlsPublicKey`
 
-*Line: 34*
+*Defined at line 34*
 
 ---
 
-### `generate`
+### `generate()`
+
+Performs the generate operation on the bls_signatures module.
 
 ```zig
 pub fn generate() BlsSecretKey {
@@ -61,11 +130,11 @@ pub fn generate() BlsSecretKey {
 
 **Returns:** `BlsSecretKey`
 
-*Line: 49*
+*Defined at line 49*
 
 ---
 
-### `toBytes`
+### `toBytes()`
 
 Serialize to bytes
 
@@ -73,17 +142,17 @@ Serialize to bytes
 pub fn toBytes(self: *const BlsSignature) [BLS_SIG_SIZE]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlsSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlsSignature` | The instance |
 
 **Returns:** `[BLS_SIG_SIZE]u8`
 
-*Line: 60*
+*Defined at line 60*
 
 ---
 
-### `blsSign`
+### `blsSign()`
 
 Sign a message with BLS secret key
 sig = H(m)^sk (BLS12-381 pairing-based)
@@ -92,18 +161,18 @@ sig = H(m)^sk (BLS12-381 pairing-based)
 pub fn blsSign(secret: BlsSecretKey, message: []const u8) BlsSignature {
 ```
 
-**Parameters:**
-
-- `secret`: `BlsSecretKey`
-- `message`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `secret` | `BlsSecretKey` | Secret |
+| `message` | `[]const u8` | Message |
 
 **Returns:** `BlsSignature`
 
-*Line: 67*
+*Defined at line 67*
 
 ---
 
-### `blsVerify`
+### `blsVerify()`
 
 Verify a BLS signature
 e(sig, G) == e(H(m), pk)  (pairing check)
@@ -112,19 +181,19 @@ e(sig, G) == e(H(m), pk)  (pairing check)
 pub fn blsVerify(pubkey: BlsPublicKey, message: []const u8, sig: BlsSignature) bool {
 ```
 
-**Parameters:**
-
-- `pubkey`: `BlsPublicKey`
-- `message`: `[]const u8`
-- `sig`: `BlsSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pubkey` | `BlsPublicKey` | Pubkey |
+| `message` | `[]const u8` | Message |
+| `sig` | `BlsSignature` | Sig |
 
 **Returns:** `bool`
 
-*Line: 92*
+*Defined at line 92*
 
 ---
 
-### `blsAggregate`
+### `blsAggregate()`
 
 Aggregate multiple BLS signatures into one
 agg_sig = sig_1 + sig_2 + ... + sig_n (EC point addition)
@@ -134,17 +203,17 @@ Verification: e(agg_sig, G) == e(H(m), pk_1 + pk_2 + ... + pk_n)
 pub fn blsAggregate(signatures: []const BlsSignature) BlsSignature {
 ```
 
-**Parameters:**
-
-- `signatures`: `[]const BlsSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `signatures` | `[]const BlsSignature` | Signatures |
 
 **Returns:** `BlsSignature`
 
-*Line: 117*
+*Defined at line 117*
 
 ---
 
-### `blsAggregateKeys`
+### `blsAggregateKeys()`
 
 Aggregate multiple BLS public keys
 
@@ -152,34 +221,36 @@ Aggregate multiple BLS public keys
 pub fn blsAggregateKeys(pubkeys: []const BlsPublicKey) BlsPublicKey {
 ```
 
-**Parameters:**
-
-- `pubkeys`: `[]const BlsPublicKey`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pubkeys` | `[]const BlsPublicKey` | Pubkeys |
 
 **Returns:** `BlsPublicKey`
 
-*Line: 131*
+*Defined at line 131*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(threshold: u8, total: u8) BlsThreshold {
 ```
 
-**Parameters:**
-
-- `threshold`: `u8`
-- `total`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `threshold` | `u8` | Threshold |
+| `total` | `u8` | Total |
 
 **Returns:** `BlsThreshold`
 
-*Line: 160*
+*Defined at line 160*
 
 ---
 
-### `addPartial`
+### `addPartial()`
 
 Add a partial signature
 
@@ -187,18 +258,18 @@ Add a partial signature
 pub fn addPartial(self: *BlsThreshold, sig: BlsSignature) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BlsThreshold`
-- `sig`: `BlsSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BlsThreshold` | The instance |
+| `sig` | `BlsSignature` | Sig |
 
 **Returns:** `!void`
 
-*Line: 170*
+*Defined at line 170*
 
 ---
 
-### `isThresholdMet`
+### `isThresholdMet()`
 
 Check if threshold is met
 
@@ -206,17 +277,17 @@ Check if threshold is met
 pub fn isThresholdMet(self: *const BlsThreshold) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlsThreshold`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlsThreshold` | The instance |
 
 **Returns:** `bool`
 
-*Line: 177*
+*Defined at line 177*
 
 ---
 
-### `reconstruct`
+### `reconstruct()`
 
 Reconstruct full signature from partials (Lagrange interpolation)
 
@@ -224,13 +295,17 @@ Reconstruct full signature from partials (Lagrange interpolation)
 pub fn reconstruct(self: *const BlsThreshold) !BlsSignature {
 ```
 
-**Parameters:**
-
-- `self`: `*const BlsThreshold`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BlsThreshold` | The instance |
 
 **Returns:** `!BlsSignature`
 
-*Line: 182*
+*Defined at line 182*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

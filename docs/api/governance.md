@@ -1,10 +1,29 @@
 # Module: `governance`
 
+> On-chain governance — proposal creation, voting (for/against/abstain), quorum (33%), approval threshold (50%), veto threshold (33%), parameter updates.
+
+**Source:** `core/governance.zig` | **Lines:** 393 | **Functions:** 4 | **Structs:** 4 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`VoteRecord`](#voterecord) — O inregistrare de vot
+- [`GovernanceParams`](#governanceparams) — Parametrii guvernantei (configurabili ei insisi prin governance!)
+- [`Proposal`](#proposal) — O propunere de governance
+- [`GovernanceEngine`](#governanceengine) — Governance Engine
+
+### Constants
+- [4 constants defined](#constants)
+
+### Functions
+- [`isVotingActive()`](#isvotingactive) — Verifica daca propunerea e in perioada de vot
+- [`tallyResult()`](#tallyresult) — Calculeaza rezultatul final
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`getProposal()`](#getproposal) — Get proposal by ID (const)
+
+---
 
 ## Structs
 
@@ -12,38 +31,102 @@
 
 O inregistrare de vot
 
-*Line: 51*
+| Field | Type | Description |
+|-------|------|-------------|
+| `voter_address` | `[32]u8` | Voter_address |
+| `vote` | `Vote` | Vote |
+| `voting_power` | `u64` | Voting_power |
+| `block_height` | `u64` | Block_height |
+
+*Defined at line 51*
+
+---
 
 ### `GovernanceParams`
 
 Parametrii guvernantei (configurabili ei insisi prin governance!)
 
-*Line: 60*
+| Field | Type | Description |
+|-------|------|-------------|
+| `deposit_period_blocks` | `u64` | Deposit_period_blocks |
+| `voting_period_blocks` | `u64` | Voting_period_blocks |
+| `min_deposit_sat` | `u64` | Min_deposit_sat |
+| `quorum_pct` | `u8` | Quorum_pct |
+| `threshold_pct` | `u8` | Threshold_pct |
+| `veto_pct` | `u8` | Veto_pct |
+| `fee_burn_pct` | `u8` | Fee_burn_pct |
+
+*Defined at line 60*
+
+---
 
 ### `Proposal`
 
 O propunere de governance
 
-*Line: 78*
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `u64` | Id |
+| `proposer` | `[32]u8` | Proposer |
+| `proposal_type` | `ProposalType` | Proposal_type |
+| `title` | `[64]u8` | Title |
+| `title_len` | `u8` | Title_len |
+| `description` | `[256]u8` | Description |
+| `desc_len` | `u16` | Desc_len |
+| `param_name` | `[32]u8` | Param_name |
+| `param_name_len` | `u8` | Param_name_len |
+| `param_new_value` | `u64` | Param_new_value |
+| `deposit_sat` | `u64` | Deposit_sat |
+| `created_block` | `u64` | Created_block |
+| `voting_start_block` | `u64` | Voting_start_block |
+| `voting_end_block` | `u64` | Voting_end_block |
+| `status` | `ProposalStatus` | Status |
+| `votes_yes` | `u64` | Votes_yes |
+| `votes_no` | `u64` | Votes_no |
+| `votes_abstain` | `u64` | Votes_abstain |
+| `votes_veto` | `u64` | Votes_veto |
+| `total_voted_power` | `u64` | Total_voted_power |
+
+*Defined at line 78*
+
+---
 
 ### `GovernanceEngine`
 
 Governance Engine
 
-*Line: 144*
+| Field | Type | Description |
+|-------|------|-------------|
+| `params` | `GovernanceParams` | Params |
+| `next_proposal_id` | `u64` | Next_proposal_id |
+| `proposals` | `[MAX_PROPOSALS]Proposal` | Proposals |
+| `proposal_count` | `usize` | Proposal_count |
+| `self` | `*GovernanceEngine` | Self |
+| `proposer` | `[32]u8` | Proposer |
+| `ptype` | `ProposalType` | Ptype |
+| `title` | `[]const u8` | Title |
+| `description` | `[]const u8` | Description |
+| `deposit_sat` | `u64` | Deposit_sat |
+| `current_block` | `u64` | Current_block |
+
+*Defined at line 144*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `ProposalType` | auto | `enum(u8) {` |
-| `ProposalStatus` | auto | `enum(u8) {` |
-| `Vote` | auto | `enum(u8) {` |
-| `MAX_PROPOSALS` | auto | `usize = 256` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `ProposalType` | `enum(u8) {` | Proposal type |
+| `ProposalStatus` | `enum(u8) {` | Proposal status |
+| `Vote` | `enum(u8) {` | Vote |
+| `MAX_PROPOSALS` | `usize = 256` | M a x_ p r o p o s a l s |
+
+---
 
 ## Functions
 
-### `isVotingActive`
+### `isVotingActive()`
 
 Verifica daca propunerea e in perioada de vot
 
@@ -51,18 +134,18 @@ Verifica daca propunerea e in perioada de vot
 pub fn isVotingActive(self: *const Proposal, current_block: u64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const Proposal`
-- `current_block`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Proposal` | The instance |
+| `current_block` | `u64` | Current_block |
 
 **Returns:** `bool`
 
-*Line: 115*
+*Defined at line 115*
 
 ---
 
-### `tallyResult`
+### `tallyResult()`
 
 Calculeaza rezultatul final
 
@@ -70,108 +153,37 @@ Calculeaza rezultatul final
 pub fn tallyResult(self: *const Proposal, total_voting_power: u64, params: GovernanceParams) ProposalStatus {
 ```
 
-**Parameters:**
-
-- `self`: `*const Proposal`
-- `total_voting_power`: `u64`
-- `params`: `GovernanceParams`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Proposal` | The instance |
+| `total_voting_power` | `u64` | Total_voting_power |
+| `params` | `GovernanceParams` | Params |
 
 **Returns:** `ProposalStatus`
 
-*Line: 122*
+*Defined at line 122*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(params: GovernanceParams) GovernanceEngine {
 ```
 
-**Parameters:**
-
-- `params`: `GovernanceParams`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `params` | `GovernanceParams` | Params |
 
 **Returns:** `GovernanceEngine`
 
-*Line: 150*
+*Defined at line 150*
 
 ---
 
-### `createProposal`
-
-Creeaza o propunere noua
-
-```zig
-pub fn createProposal(self: *GovernanceEngine, proposer: [32]u8, ptype: ProposalType, title: []const u8, description: []const u8, deposit_sat: u64, current_block: u64) !u64 {
-```
-
-**Parameters:**
-
-- `self`: `*GovernanceEngine`
-- `proposer`: `[32]u8`
-- `ptype`: `ProposalType`
-- `title`: `[]const u8`
-- `description`: `[]const u8`
-- `deposit_sat`: `u64`
-- `current_block`: `u64`
-
-**Returns:** `!u64` (proposal ID)
-
-**Errors:** `TooManyProposals`, `InsufficientDeposit`
-
-*Line: 160*
-
----
-
-### `vote`
-
-Voteaza pe o propunere
-
-```zig
-pub fn vote(self: *GovernanceEngine, proposal_id: u64, voter_vote: Vote, voting_power: u64, current_block: u64) !void {
-```
-
-**Parameters:**
-
-- `self`: `*GovernanceEngine`
-- `proposal_id`: `u64`
-- `voter_vote`: `Vote` (Yes, No, Abstain, NoWithVeto)
-- `voting_power`: `u64`
-- `current_block`: `u64`
-
-**Returns:** `!void`
-
-**Errors:** `ProposalNotFound`, `VotingNotActive`, `NoVotingPower`
-
-*Line: 201*
-
----
-
-### `finalize`
-
-Finalizeaza o propunere dupa perioada de vot
-
-```zig
-pub fn finalize(self: *GovernanceEngine, proposal_id: u64, total_voting_power: u64, current_block: u64) !ProposalStatus {
-```
-
-**Parameters:**
-
-- `self`: `*GovernanceEngine`
-- `proposal_id`: `u64`
-- `total_voting_power`: `u64`
-- `current_block`: `u64`
-
-**Returns:** `!ProposalStatus`
-
-**Errors:** `ProposalNotFound`, `VotingNotEnded`
-
-*Line: 223*
-
----
-
-### `getProposal`
+### `getProposal()`
 
 Get proposal by ID (const)
 
@@ -179,14 +191,18 @@ Get proposal by ID (const)
 pub fn getProposal(self: *const GovernanceEngine, id: u64) ?*const Proposal {
 ```
 
-**Parameters:**
-
-- `self`: `*const GovernanceEngine`
-- `id`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GovernanceEngine` | The instance |
+| `id` | `u64` | Id |
 
 **Returns:** `?*const Proposal`
 
-*Line: 247*
+*Defined at line 247*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

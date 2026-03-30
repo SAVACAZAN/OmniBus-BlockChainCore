@@ -1,10 +1,33 @@
 # Module: `os_mode`
 
+> OS mode detection — detects bare-metal vs hosted mode, adjusts behavior for OmniBus OS integration.
+
+**Source:** `core/os_mode.zig` | **Lines:** 204 | **Functions:** 10 | **Structs:** 2 | **Tests:** 7
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`OsModeState`](#osmodestate) — Starea unui modul OS
+- [`OsModeManager`](#osmodemanager) — Data structure for os mode manager. Fields include: modes, active_mask, current_...
+
+### Constants
+- [2 constants defined](#constants)
+
+### Functions
+- [`name()`](#name) — Performs the name operation on the os_mode module.
+- [`priority()`](#priority) — Prioritatea modului (mai mic = mai prioritar)
+- [`isActive()`](#isactive) — Checks whether the active condition is true.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`activate()`](#activate) — Activeaza un modul OS
+- [`pauseMode()`](#pausemode) — Suspenda un modul OS
+- [`runCycle()`](#runcycle) — Ruleaza un ciclu pentru toate modurile active (in ordine de prioritate...
+- [`isActive()`](#isactive) — Checks whether the active condition is true.
+- [`activeCount()`](#activecount) — Performs the active count operation on the os_mode module.
+- [`printStatus()`](#printstatus) — Performs the print status operation on the os_mode module.
+
+---
 
 ## Structs
 
@@ -12,38 +35,62 @@
 
 Starea unui modul OS
 
-*Line: 60*
+| Field | Type | Description |
+|-------|------|-------------|
+| `mode` | `OsMode` | Mode |
+| `status` | `ModeStatus` | Status |
+| `activated_block` | `u64` | Activated_block |
+| `cycles_run` | `u64` | Cycles_run |
+| `last_error` | `?[]const u8` | Last_error |
+
+*Defined at line 60*
+
+---
 
 ### `OsModeManager`
 
-*Line: 74*
+Data structure for os mode manager. Fields include: modes, active_mask, current_block.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `modes` | `[7]OsModeState` | Modes |
+| `active_mask` | `u8` | Active_mask |
+| `current_block` | `u64` | Current_block |
+
+*Defined at line 74*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `OsMode` | auto | `enum(u8) {` |
-| `ModeStatus` | auto | `enum(u8) {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `OsMode` | `enum(u8) {` | Os mode |
+| `ModeStatus` | `enum(u8) {` | Mode status |
+
+---
 
 ## Functions
 
-### `name`
+### `name()`
+
+Performs the name operation on the os_mode module.
 
 ```zig
 pub fn name(self: OsMode) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `OsMode` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 33*
+*Defined at line 33*
 
 ---
 
-### `priority`
+### `priority()`
 
 Prioritatea modului (mai mic = mai prioritar)
 
@@ -51,33 +98,37 @@ Prioritatea modului (mai mic = mai prioritar)
 pub fn priority(self: OsMode) u8 {
 ```
 
-**Parameters:**
-
-- `self`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `OsMode` | The instance |
 
 **Returns:** `u8`
 
-*Line: 46*
+*Defined at line 46*
 
 ---
 
-### `isActive`
+### `isActive()`
+
+Checks whether the active condition is true.
 
 ```zig
 pub fn isActive(self: *const OsModeState) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const OsModeState`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OsModeState` | The instance |
 
 **Returns:** `bool`
 
-*Line: 67*
+*Defined at line 67*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() OsModeManager {
@@ -85,11 +136,11 @@ pub fn init() OsModeManager {
 
 **Returns:** `OsModeManager`
 
-*Line: 79*
+*Defined at line 79*
 
 ---
 
-### `activate`
+### `activate()`
 
 Activeaza un modul OS
 
@@ -97,18 +148,18 @@ Activeaza un modul OS
 pub fn activate(self: *OsModeManager, mode: OsMode) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*OsModeManager`
-- `mode`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OsModeManager` | The instance |
+| `mode` | `OsMode` | Mode |
 
 **Returns:** `!void`
 
-*Line: 100*
+*Defined at line 100*
 
 ---
 
-### `pauseMode`
+### `pauseMode()`
 
 Suspenda un modul OS
 
@@ -116,18 +167,18 @@ Suspenda un modul OS
 pub fn pauseMode(self: *OsModeManager, mode: OsMode) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*OsModeManager`
-- `mode`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OsModeManager` | The instance |
+| `mode` | `OsMode` | Mode |
 
 **Returns:** `!void`
 
-*Line: 111*
+*Defined at line 111*
 
 ---
 
-### `runCycle`
+### `runCycle()`
 
 Ruleaza un ciclu pentru toate modurile active (in ordine de prioritate)
 
@@ -135,58 +186,68 @@ Ruleaza un ciclu pentru toate modurile active (in ordine de prioritate)
 pub fn runCycle(self: *OsModeManager) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*OsModeManager` | The instance |
 
-- `self`: `*OsModeManager`
-
-*Line: 120*
+*Defined at line 120*
 
 ---
 
-### `isActive`
+### `isActive()`
+
+Checks whether the active condition is true.
 
 ```zig
 pub fn isActive(self: *const OsModeManager, mode: OsMode) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const OsModeManager`
-- `mode`: `OsMode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OsModeManager` | The instance |
+| `mode` | `OsMode` | Mode |
 
 **Returns:** `bool`
 
-*Line: 130*
+*Defined at line 130*
 
 ---
 
-### `activeCount`
+### `activeCount()`
+
+Performs the active count operation on the os_mode module.
 
 ```zig
 pub fn activeCount(self: *const OsModeManager) u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const OsModeManager`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OsModeManager` | The instance |
 
 **Returns:** `u8`
 
-*Line: 134*
+*Defined at line 134*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the os_mode module.
 
 ```zig
 pub fn printStatus(self: *const OsModeManager) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const OsModeManager` | The instance |
 
-- `self`: `*const OsModeManager`
-
-*Line: 138*
+*Defined at line 138*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

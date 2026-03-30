@@ -1,10 +1,38 @@
 # Module: `network`
 
+> Network layer — manages peer connections, message routing, broadcast to all peers, connection lifecycle management.
+
+**Source:** `core/network.zig` | **Lines:** 316 | **Functions:** 13 | **Structs:** 4 | **Tests:** 4
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`NetworkNode`](#networknode) — Network Node - P2P participant
+- [`P2PNetwork`](#p2pnetwork) — P2P Network - Manages all connected nodes
+- [`NetworkStatus`](#networkstatus) — Data structure for network status. Fields include: total_peers, total_miners, se...
+- [`Message`](#message) — P2P Message
+
+### Constants
+- [1 constants defined](#constants)
+
+### Functions
+- [`getAddress()`](#getaddress) — Get node address string
+- [`getEndpoint()`](#getendpoint) — Get node endpoint (host:port)
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`addSeedNode()`](#addseednode) — Add seed node
+- [`connectToNode()`](#connecttonode) — Connect to a node
+- [`disconnectFromNode()`](#disconnectfromnode) — Disconnect from a node
+- [`broadcast()`](#broadcast) — Broadcast message to all peers — delegates to P2PNode.broadcastBlock i...
+- [`getPeerCount()`](#getpeercount) — Get connected node count
+- [`getMinerCount()`](#getminercount) — Get miner count
+- [`isMiner()`](#isminer) — Check if node is miner
+- [`getMiners()`](#getminers) — Get all miners
+- [`getStatus()`](#getstatus) — Get network status
+
+---
 
 ## Structs
 
@@ -12,33 +40,83 @@
 
 Network Node - P2P participant
 
-*Line: 5*
+| Field | Type | Description |
+|-------|------|-------------|
+| `node_id` | `[]const u8` | Node_id |
+| `host` | `[]const u8` | Host |
+| `port` | `u16` | Port |
+| `version` | `[]const u8` | Version |
+| `is_miner` | `bool` | Is_miner |
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `node_id` | `[]const u8` | Node_id |
+| `host` | `[]const u8` | Host |
+| `port` | `u16` | Port |
+| `version` | `[]const u8` | Version |
+| `is_miner` | `bool` | Is_miner |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 5*
+
+---
 
 ### `P2PNetwork`
 
 P2P Network - Manages all connected nodes
 
-*Line: 43*
+| Field | Type | Description |
+|-------|------|-------------|
+| `local_node` | `NetworkNode` | Local_node |
+| `connected_nodes` | `array_list.Managed(NetworkNode)` | Connected_nodes |
+| `seed_nodes` | `array_list.Managed(NetworkNode)` | Seed_nodes |
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `p2p_node_ptr` | `?*anyopaque` | P2p_node_ptr |
+| `broadcast_fn` | `?*const fn (node_ptr: *anyopaque` | Broadcast_fn |
+
+*Defined at line 43*
+
+---
 
 ### `NetworkStatus`
 
-*Line: 174*
+Data structure for network status. Fields include: total_peers, total_miners, seed_nodes, is_synced.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_peers` | `usize` | Total_peers |
+| `total_miners` | `usize` | Total_miners |
+| `seed_nodes` | `usize` | Seed_nodes |
+| `is_synced` | `bool` | Is_synced |
+
+*Defined at line 174*
+
+---
 
 ### `Message`
 
 P2P Message
 
-*Line: 195*
+| Field | Type | Description |
+|-------|------|-------------|
+| `message_type` | `MessageType` | Message_type |
+| `sender_id` | `[]const u8` | Sender_id |
+| `payload` | `[]const u8` | Payload |
+| `timestamp` | `i64` | Timestamp |
+
+*Defined at line 209*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `MessageType` | auto | `enum {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `MessageType` | `enum {` | Message type |
+
+---
 
 ## Functions
 
-### `getAddress`
+### `getAddress()`
 
 Get node address string
 
@@ -46,17 +124,17 @@ Get node address string
 pub fn getAddress(self: *const NetworkNode) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const NetworkNode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const NetworkNode` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 32*
+*Defined at line 32*
 
 ---
 
-### `getEndpoint`
+### `getEndpoint()`
 
 Get node endpoint (host:port)
 
@@ -64,49 +142,53 @@ Get node endpoint (host:port)
 pub fn getEndpoint(self: *const NetworkNode, allocator: std.mem.Allocator) ![]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const NetworkNode`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const NetworkNode` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]u8`
 
-*Line: 37*
+*Defined at line 37*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(local_node: NetworkNode, allocator: std.mem.Allocator) P2PNetwork {
 ```
 
-**Parameters:**
-
-- `local_node`: `NetworkNode`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `local_node` | `NetworkNode` | Local_node |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `P2PNetwork`
 
-*Line: 54*
+*Defined at line 54*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *P2PNetwork) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*P2PNetwork` | The instance |
 
-- `self`: `*P2PNetwork`
-
-*Line: 65*
+*Defined at line 65*
 
 ---
 
-### `addSeedNode`
+### `addSeedNode()`
 
 Add seed node
 
@@ -114,18 +196,18 @@ Add seed node
 pub fn addSeedNode(self: *P2PNetwork, node: NetworkNode) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*P2PNetwork`
-- `node`: `NetworkNode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*P2PNetwork` | The instance |
+| `node` | `NetworkNode` | Node |
 
 **Returns:** `!void`
 
-*Line: 71*
+*Defined at line 71*
 
 ---
 
-### `connectToNode`
+### `connectToNode()`
 
 Connect to a node
 
@@ -133,18 +215,18 @@ Connect to a node
 pub fn connectToNode(self: *P2PNetwork, node: NetworkNode) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*P2PNetwork`
-- `node`: `NetworkNode`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*P2PNetwork` | The instance |
+| `node` | `NetworkNode` | Node |
 
 **Returns:** `!void`
 
-*Line: 77*
+*Defined at line 77*
 
 ---
 
-### `disconnectFromNode`
+### `disconnectFromNode()`
 
 Disconnect from a node
 
@@ -152,18 +234,18 @@ Disconnect from a node
 pub fn disconnectFromNode(self: *P2PNetwork, node_id: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*P2PNetwork`
-- `node_id`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*P2PNetwork` | The instance |
+| `node_id` | `[]const u8` | Node_id |
 
 **Returns:** `!void`
 
-*Line: 90*
+*Defined at line 90*
 
 ---
 
-### `broadcast`
+### `broadcast()`
 
 Broadcast message to all peers — delegates to P2PNode.broadcastBlock if attached
 
@@ -171,18 +253,18 @@ Broadcast message to all peers — delegates to P2PNode.broadcastBlock if attach
 pub fn broadcast(self: *const P2PNetwork, message: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
-- `message`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
+| `message` | `[]const u8` | Message |
 
 **Returns:** `!void`
 
-*Line: 113*
+*Defined at line 113*
 
 ---
 
-### `getPeerCount`
+### `getPeerCount()`
 
 Get connected node count
 
@@ -190,17 +272,17 @@ Get connected node count
 pub fn getPeerCount(self: *const P2PNetwork) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
 
 **Returns:** `usize`
 
-*Line: 125*
+*Defined at line 125*
 
 ---
 
-### `getMinerCount`
+### `getMinerCount()`
 
 Get miner count
 
@@ -208,17 +290,17 @@ Get miner count
 pub fn getMinerCount(self: *const P2PNetwork) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
 
 **Returns:** `usize`
 
-*Line: 130*
+*Defined at line 130*
 
 ---
 
-### `isMiner`
+### `isMiner()`
 
 Check if node is miner
 
@@ -226,18 +308,18 @@ Check if node is miner
 pub fn isMiner(self: *const P2PNetwork, node_id: []const u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
-- `node_id`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
+| `node_id` | `[]const u8` | Node_id |
 
 **Returns:** `bool`
 
-*Line: 141*
+*Defined at line 141*
 
 ---
 
-### `getMiners`
+### `getMiners()`
 
 Get all miners
 
@@ -245,18 +327,18 @@ Get all miners
 pub fn getMiners(self: *const P2PNetwork, allocator: std.mem.Allocator) ![]NetworkNode {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]NetworkNode`
 
-*Line: 151*
+*Defined at line 151*
 
 ---
 
-### `getStatus`
+### `getStatus()`
 
 Get network status
 
@@ -264,13 +346,17 @@ Get network status
 pub fn getStatus(self: *const P2PNetwork) NetworkStatus {
 ```
 
-**Parameters:**
-
-- `self`: `*const P2PNetwork`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const P2PNetwork` | The instance |
 
 **Returns:** `NetworkStatus`
 
-*Line: 164*
+*Defined at line 164*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

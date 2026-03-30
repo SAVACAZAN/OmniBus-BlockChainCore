@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>database — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>database</code></h1>
+<p class="module-desc">Persistent storage — binary serialization of blockchain state to omnibus-chain.dat, atomic write (tmp → rename), append-only block storage.</p>
+<p class="stats">Source: core/database.zig &bull; 1172 lines &bull; 28 functions &bull; 3 structs &bull; 11 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>Database</code></h3>
+            <p>Database: Unified storage layer
+Combines block, transaction, address, and checkpoint storage</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>blocks</code></td><td><code>BlockStore</code></td><td>Blocks</td></tr><tr><td><code>transactions</code></td><td><code>TransactionIndex</code></td><td>Transactions</td></tr><tr><td><code>addresses</code></td><td><code>AddressIndex</code></td><td>Addresses</td></tr><tr><td><code>checkpoints</code></td><td><code>StateCheckpoint</code></td><td>Checkpoints</td></tr><tr><td><code>metadata</code></td><td><code>KeyValueStore</code></td><td>Metadata</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="line">Line: 20</p>
+        </div>
+        <div class="section">
+            <h3><code>DatabaseStats</code></h3>
+            <p>Data structure for database stats. Fields include: total_blocks, total_transactions, total_addresses, total_checkpoints.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>total_blocks</code></td><td><code>u64</code></td><td>Total_blocks</td></tr><tr><td><code>total_transactions</code></td><td><code>u64</code></td><td>Total_transactions</td></tr><tr><td><code>total_addresses</code></td><td><code>usize</code></td><td>Total_addresses</td></tr><tr><td><code>total_checkpoints</code></td><td><code>u32</code></td><td>Total_checkpoints</td></tr></table>
+            <p class="line">Line: 119</p>
+        </div>
+        <div class="section">
+            <h3><code>PersistentBlockchain</code></h3>
+            <p>Persistent Blockchain: Database + Blockchain combined</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>db</code></td><td><code>Database</code></td><td>Db</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="line">Line: 151</p>
+        </div>
+
+
+
+<h2>Functions (28)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) Database {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>Database</code></p>
+            <p class="line">Line: 28</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *Database) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 39</p>
+        </div>
+        <div class="section">
+            <h3><code>storeBlock()</code></h3>
+            <p class="desc">Performs the store block operation on the database module.</p>
+            <pre><code>pub fn storeBlock(self: *Database, height: u64, block_data: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr><tr><td><code>block_data</code></td><td><code>[]const u8</code></td><td>Block_data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 48</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlock()</code></h3>
+            <p class="desc">Returns the block for the given height.</p>
+            <pre><code>pub fn getBlock(self: *const Database, height: u64) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr><tr><td><code>height</code></td><td><code>u64</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 52</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlockCount()</code></h3>
+            <p class="desc">Returns the current block count.</p>
+            <pre><code>pub fn getBlockCount(self: *const Database) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 56</p>
+        </div>
+        <div class="section">
+            <h3><code>indexTransaction()</code></h3>
+            <p class="desc">Performs the index transaction operation on the database module.</p>
+            <pre><code>pub fn indexTransaction(self: *Database, tx_hash: []const u8, block_height: u64, tx_index: u32) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 61</p>
+        </div>
+        <div class="section">
+            <h3><code>findTransaction()</code></h3>
+            <p class="desc">Searches for transaction matching the given criteria.</p>
+            <pre><code>pub fn findTransaction(self: *const Database, tx_hash: []const u8) ?storage_mod.TxLocation {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr><tr><td><code>tx_hash</code></td><td><code>[]const u8</code></td><td>Tx_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?storage_mod.TxLocation</code></p>
+            <p class="line">Line: 65</p>
+        </div>
+        <div class="section">
+            <h3><code>getTransactionCount()</code></h3>
+            <p class="desc">Returns the current transaction count.</p>
+            <pre><code>pub fn getTransactionCount(self: *const Database) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 69</p>
+        </div>
+        <div class="section">
+            <h3><code>updateBalance()</code></h3>
+            <p class="desc">Updates the balance with new values.</p>
+            <pre><code>pub fn updateBalance(self: *Database, address: []const u8, balance: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr><tr><td><code>balance</code></td><td><code>u64</code></td><td>Balance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 74</p>
+        </div>
+        <div class="section">
+            <h3><code>getBalance()</code></h3>
+            <p class="desc">Returns the balance for the given address.</p>
+            <pre><code>pub fn getBalance(self: *const Database, address: []const u8) ?u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr><tr><td><code>address</code></td><td><code>[]const u8</code></td><td>Address</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?u64</code></p>
+            <p class="line">Line: 78</p>
+        </div>
+        <div class="section">
+            <h3><code>getAddressCount()</code></h3>
+            <p class="desc">Returns the current address count.</p>
+            <pre><code>pub fn getAddressCount(self: *const Database) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 82</p>
+        </div>
+        <div class="section">
+            <h3><code>saveCheckpoint()</code></h3>
+            <p class="desc">Saves checkpoint to persistent storage.</p>
+            <pre><code>pub fn saveCheckpoint(self: *Database, state_data: []const u8) !u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr><tr><td><code>state_data</code></td><td><code>[]const u8</code></td><td>State_data</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u32</code></p>
+            <p class="line">Line: 87</p>
+        </div>
+        <div class="section">
+            <h3><code>loadCheckpoint()</code></h3>
+            <p class="desc">Loads checkpoint from persistent storage.</p>
+            <pre><code>pub fn loadCheckpoint(self: *const Database, checkpoint_num: u32) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr><tr><td><code>checkpoint_num</code></td><td><code>u32</code></td><td>Checkpoint_num</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 91</p>
+        </div>
+        <div class="section">
+            <h3><code>loadLatestCheckpoint()</code></h3>
+            <p class="desc">Loads latest checkpoint from persistent storage.</p>
+            <pre><code>pub fn loadLatestCheckpoint(self: *const Database) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 95</p>
+        </div>
+        <div class="section">
+            <h3><code>setMetadata()</code></h3>
+            <p class="desc">Sets the metadata to the specified value.</p>
+            <pre><code>pub fn setMetadata(self: *Database, key: []const u8, value: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Database</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr><tr><td><code>value</code></td><td><code>[]const u8</code></td><td>Value</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 100</p>
+        </div>
+        <div class="section">
+            <h3><code>getMetadata()</code></h3>
+            <p class="desc">Returns the metadata for the given key.</p>
+            <pre><code>pub fn getMetadata(self: *const Database, key: []const u8) ?[]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr><tr><td><code>key</code></td><td><code>[]const u8</code></td><td>Key</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?[]u8</code></p>
+            <p class="line">Line: 104</p>
+        </div>
+        <div class="section">
+            <h3><code>getStats()</code></h3>
+            <p class="desc">Returns the current stats.</p>
+            <pre><code>pub fn getStats(self: *const Database) DatabaseStats {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Database</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>DatabaseStats</code></p>
+            <p class="line">Line: 109</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) PersistentBlockchain {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>PersistentBlockchain</code></p>
+            <p class="line">Line: 155</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *PersistentBlockchain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 162</p>
+        </div>
+        <div class="section">
+            <h3><code>loadFromDisk()</code></h3>
+            <p class="desc">Incarca database din fisier (format binar simplu, fara dependente externe)
+Format fisier: [magic:4][version:1][block_count:4]
+per bloc: [height:8][data_len:4][data...]
+[addr_count:4]
+per adresa: [addr_len:1][addr...][balance:8]</p>
+            <pre><code>pub fn loadFromDisk(allocator: std.mem.Allocator, path: []const u8) !PersistentBlockchain {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>path</code></td><td><code>[]const u8</code></td><td>Path</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!PersistentBlockchain</code></p>
+            <p class="line">Line: 171</p>
+        </div>
+        <div class="section">
+            <h3><code>saveToDisk()</code></h3>
+            <p class="desc">Salveaza database pe disc (format binar simplu, atomic via tmp+rename)</p>
+            <pre><code>pub fn saveToDisk(self: *PersistentBlockchain, path: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr><tr><td><code>path</code></td><td><code>[]const u8</code></td><td>Path</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 242</p>
+        </div>
+        <div class="section">
+            <h3><code>saveBlockchain()</code></h3>
+            <p class="desc">Salveaza blockchain-ul activ (bc) pe disc
+Format v2: [magic:4][version:4]
+[block_count:4] per bloc: [height:8][data_len:4][data...] [crc32:4]
+[addr_count:4]  per adresa: [addr_len:1][addr...][balance:8] [crc32:4]
+[nonce_count:4] per nonce: [addr_len:1][addr...][nonce:8] [crc32:4]
+[tx_count:4]    per tx: [hash_len:1][hash...][height:8] [crc32:4]</p>
+            <pre><code>pub fn saveBlockchain(self: *PersistentBlockchain, bc: *const blockchain_mod.Blockchain, path: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr><tr><td><code>bc</code></td><td><code>*const blockchain_mod.Blockchain</code></td><td>Bc</td></tr><tr><td><code>path</code></td><td><code>[]const u8</code></td><td>Path</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 316</p>
+        </div>
+        <div class="section">
+            <h3><code>restoreInto()</code></h3>
+            <p class="desc">Reincarca blockchain-ul din disc in bc (apelat dupa buildBlockchain/genesis)
+Supports both v1 and v2 file formats. V2 adds CRC32 checksums per section.
+Creates .bak backup before loading. Falls back to .bak if .dat is corrupt.</p>
+            <pre><code>pub fn restoreInto(self: *PersistentBlockchain, bc: *blockchain_mod.Blockchain, path: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr><tr><td><code>bc</code></td><td><code>*blockchain_mod.Blockchain</code></td><td>Bc</td></tr><tr><td><code>path</code></td><td><code>[]const u8</code></td><td>Path</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 486</p>
+        </div>
+        <div class="section">
+            <h3><code>appendBlock()</code></h3>
+            <p class="desc">Append un singur bloc nou la sfarsitul fisierului — for v1 compat.
+For v2, falls back to full saveBlockchain since sections have CRC32 trailers.</p>
+            <pre><code>pub fn appendBlock(self: *PersistentBlockchain, bc: *const blockchain_mod.Blockchain, path: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr><tr><td><code>bc</code></td><td><code>*const blockchain_mod.Blockchain</code></td><td>Bc</td></tr><tr><td><code>path</code></td><td><code>[]const u8</code></td><td>Path</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 808</p>
+        </div>
+        <div class="section">
+            <h3><code>compact()</code></h3>
+            <p class="desc">Compact — sterge blocuri vechi pastrand ultimele N</p>
+            <pre><code>pub fn compact(self: *PersistentBlockchain) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 978</p>
+        </div>
+        <div class="section">
+            <h3><code>checkpoint()</code></h3>
+            <p class="desc">Checkpoint entire blockchain state</p>
+            <pre><code>pub fn checkpoint(self: *PersistentBlockchain) !u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u32</code></p>
+            <p class="line">Line: 983</p>
+        </div>
+        <div class="section">
+            <h3><code>recoverFromCheckpoint()</code></h3>
+            <p class="desc">Recover from checkpoint</p>
+            <pre><code>pub fn recoverFromCheckpoint(self: *PersistentBlockchain, checkpoint_num: u32) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*PersistentBlockchain</code></td><td>The instance</td></tr><tr><td><code>checkpoint_num</code></td><td><code>u32</code></td><td>Checkpoint_num</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 997</p>
+        </div>
+        <div class="section">
+            <h3><code>getStats()</code></h3>
+            <p class="desc">Get database statistics</p>
+            <pre><code>pub fn getStats(self: *const PersistentBlockchain) DatabaseStats {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PersistentBlockchain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>DatabaseStats</code></p>
+            <p class="line">Line: 1003</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

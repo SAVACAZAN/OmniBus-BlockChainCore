@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tx_receipt — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>tx_receipt</code></h1>
+<p class="module-desc">Transaction receipts — event logs, gas used, status codes, Ethereum-compatible receipt format.</p>
+<p class="stats">Source: core/tx_receipt.zig &bull; 217 lines &bull; 8 functions &bull; 2 structs &bull; 8 tests</p>
+
+<h2>Structs (2)</h2>
+        <div class="section">
+            <h3><code>EventLog</code></h3>
+            <p>Event log entry (ca Ethereum LOG0-LOG4)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>event_type</code></td><td><code>[32]u8</code></td><td>Event_type</td></tr><tr><td><code>topics</code></td><td><code>[MAX_TOPICS][32]u8</code></td><td>Topics</td></tr><tr><td><code>topic_count</code></td><td><code>u8</code></td><td>Topic_count</td></tr><tr><td><code>data</code></td><td><code>[MAX_EVENT_DATA]u8</code></td><td>Data</td></tr><tr><td><code>data_len</code></td><td><code>u16</code></td><td>Data_len</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="line">Line: 29</p>
+        </div>
+        <div class="section">
+            <h3><code>TxReceipt</code></h3>
+            <p>Transaction Receipt</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>status</code></td><td><code>TxStatus</code></td><td>Status</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr><tr><td><code>fee_paid</code></td><td><code>u64</code></td><td>Fee_paid</td></tr><tr><td><code>cumulative_fee</code></td><td><code>u64</code></td><td>Cumulative_fee</td></tr><tr><td><code>from_hash</code></td><td><code>[32]u8</code></td><td>From_hash</td></tr><tr><td><code>to_hash</code></td><td><code>[32]u8</code></td><td>To_hash</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr><tr><td><code>events</code></td><td><code>[MAX_EVENTS]EventLog</code></td><td>Events</td></tr><tr><td><code>event_count</code></td><td><code>u8</code></td><td>Event_count</td></tr></table>
+            <p class="line">Line: 71</p>
+        </div>
+
+<h2>Constants (8)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>MAX_EVENTS</code></td><td><code>usize = 16</code></td><td>M a x_ e v e n t s</td></tr><tr><td><code>MAX_TOPICS</code></td><td><code>usize = 4</code></td><td>M a x_ t o p i c s</td></tr><tr><td><code>MAX_EVENT_DATA</code></td><td><code>usize = 256</code></td><td>M a x_ e v e n t_ d a t a</td></tr><tr><td><code>TxStatus</code></td><td><code>enum(u8) {</code></td><td>Tx status</td></tr><tr><td><code>EVENT_TRANSFER</code></td><td><code>[32]u8 = [_]u8{ 0xA9, 0x05, 0x9C, 0xBB } ++ [_]u8{0} ** 28</code></td><td>E v e n t_ t r a n s f e r</td></tr><tr><td><code>EVENT_APPROVAL</code></td><td><code>[32]u8 = [_]u8{ 0x8C, 0x5B, 0xE1, 0xE5 } ++ [_]u8{0} ** 28</code></td><td>E v e n t_ a p p r o v a l</td></tr><tr><td><code>EVENT_STAKE</code></td><td><code>[32]u8 = [_]u8{ 0xE1, 0xFF, 0xFC, 0xC4 } ++ [_]u8{0} ** 28</code></td><td>E v e n t_ s t a k e</td></tr><tr><td><code>EVENT_SLASH</code></td><td><code>[32]u8 = [_]u8{ 0x3B, 0x88, 0x1E, 0x5D } ++ [_]u8{0} ** 28</code></td><td>E v e n t_ s l a s h</td></tr></table></div>
+
+<h2>Functions (8)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(event_type: [32]u8, block_height: u64, tx_index: u32) EventLog {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>event_type</code></td><td><code>[32]u8</code></td><td>Event_type</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>EventLog</code></p>
+            <p class="line">Line: 43</p>
+        </div>
+        <div class="section">
+            <h3><code>addTopic()</code></h3>
+            <p class="desc">Add an indexed topic</p>
+            <pre><code>pub fn addTopic(self: *EventLog, topic: [32]u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*EventLog</code></td><td>The instance</td></tr><tr><td><code>topic</code></td><td><code>[32]u8</code></td><td>Topic</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 56</p>
+        </div>
+        <div class="section">
+            <h3><code>setData()</code></h3>
+            <p class="desc">Set event data</p>
+            <pre><code>pub fn setData(self: *EventLog, data_bytes: []const u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*EventLog</code></td><td>The instance</td></tr><tr><td><code>data_bytes</code></td><td><code>[]const u8</code></td><td>Data_bytes</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 63</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(tx_hash: [32]u8, block_height: u64, tx_index: u32) TxReceipt {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>tx_hash</code></td><td><code>[32]u8</code></td><td>Tx_hash</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>tx_index</code></td><td><code>u32</code></td><td>Tx_index</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>TxReceipt</code></p>
+            <p class="line">Line: 94</p>
+        </div>
+        <div class="section">
+            <h3><code>success()</code></h3>
+            <p class="desc">Mark as successful</p>
+            <pre><code>pub fn success(self: *TxReceipt, fee: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*TxReceipt</code></td><td>The instance</td></tr><tr><td><code>fee</code></td><td><code>u64</code></td><td>Fee</td></tr></table>
+            
+            <p class="line">Line: 111</p>
+        </div>
+        <div class="section">
+            <h3><code>fail()</code></h3>
+            <p class="desc">Mark as failed</p>
+            <pre><code>pub fn fail(self: *TxReceipt) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*TxReceipt</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 117</p>
+        </div>
+        <div class="section">
+            <h3><code>addEvent()</code></h3>
+            <p class="desc">Add event log</p>
+            <pre><code>pub fn addEvent(self: *TxReceipt, event: EventLog) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*TxReceipt</code></td><td>The instance</td></tr><tr><td><code>event</code></td><td><code>EventLog</code></td><td>Event</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 122</p>
+        </div>
+        <div class="section">
+            <h3><code>hash()</code></h3>
+            <p class="desc">Compute receipt hash (for receipt trie/merkle)</p>
+            <pre><code>pub fn hash(self: *const TxReceipt) [32]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const TxReceipt</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[32]u8</code></p>
+            <p class="line">Line: 129</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

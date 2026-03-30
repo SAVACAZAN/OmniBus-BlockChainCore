@@ -1,10 +1,35 @@
 # Module: `mining_pool`
 
+> Mining pool coordination — dynamic miner registration, fair reward distribution, share submission, pool statistics.
+
+**Source:** `core/mining_pool.zig` | **Lines:** 215 | **Functions:** 11 | **Structs:** 3 | **Tests:** 5
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`MiningPool`](#miningpool) — Mining Pool - Coordinates multiple miners
+- [`Miner`](#miner) — Data structure for miner. Fields include: miner_id, address, hashrate, shares, l...
+- [`PoolStats`](#poolstats) — Data structure for pool stats. Fields include: total_miners, active_miners, tota...
+
+### Constants
+- [1 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`addMiner()`](#addminer) — Add miner to pool
+- [`updateMinerStatus()`](#updateminerstatus) — Update miner status
+- [`recordShare()`](#recordshare) — Record share from miner
+- [`recordBlockFound()`](#recordblockfound) — Record block found
+- [`getMinerCount()`](#getminercount) — Get miner count
+- [`getTotalHashrate()`](#gettotalhashrate) — Get total hashrate
+- [`getStats()`](#getstats) — Get pool statistics
+- [`removeInactiveMiners()`](#removeinactiveminers) — Remove inactive miners (no share for 300s)
+- [`getMinerRewardShare()`](#getminerrewardshare) — Get miner reward share (proportional to hashrate)
+
+---
 
 ## Structs
 
@@ -12,57 +37,98 @@
 
 Mining Pool - Coordinates multiple miners
 
-*Line: 5*
+| Field | Type | Description |
+|-------|------|-------------|
+| `pool_id` | `[]const u8` | Pool_id |
+| `miners` | `array_list.Managed(Miner)` | Miners |
+| `total_hashrate` | `u64` | Total_hashrate |
+| `blocks_found` | `u64` | Blocks_found |
+| `pool_reward_address` | `[]const u8` | Pool_reward_address |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 5*
+
+---
 
 ### `Miner`
 
-*Line: 13*
+Data structure for miner. Fields include: miner_id, address, hashrate, shares, last_share_time.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `miner_id` | `[]const u8` | Miner_id |
+| `address` | `[]const u8` | Address |
+| `hashrate` | `u64` | Hashrate |
+| `shares` | `u64` | Shares |
+| `last_share_time` | `i64` | Last_share_time |
+| `status` | `MinerStatus` | Status |
+
+*Defined at line 13*
+
+---
 
 ### `PoolStats`
 
-*Line: 149*
+Data structure for pool stats. Fields include: total_miners, active_miners, total_hashrate, blocks_found.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_miners` | `usize` | Total_miners |
+| `active_miners` | `u32` | Active_miners |
+| `total_hashrate` | `u64` | Total_hashrate |
+| `blocks_found` | `u64` | Blocks_found |
+
+*Defined at line 149*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `MinerStatus` | auto | `enum {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `MinerStatus` | `enum {` | Miner status |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(pool_id: []const u8, reward_address: []const u8, allocator: std.mem.Allocator) MiningPool {
 ```
 
-**Parameters:**
-
-- `pool_id`: `[]const u8`
-- `reward_address`: `[]const u8`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pool_id` | `[]const u8` | Pool_id |
+| `reward_address` | `[]const u8` | Reward_address |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `MiningPool`
 
-*Line: 29*
+*Defined at line 29*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *MiningPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
 
-- `self`: `*MiningPool`
-
-*Line: 40*
+*Defined at line 40*
 
 ---
 
-### `addMiner`
+### `addMiner()`
 
 Add miner to pool
 
@@ -70,20 +136,20 @@ Add miner to pool
 pub fn addMiner(self: *MiningPool, miner_id: []const u8, address: []const u8, hashrate: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MiningPool`
-- `miner_id`: `[]const u8`
-- `address`: `[]const u8`
-- `hashrate`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
+| `miner_id` | `[]const u8` | Miner_id |
+| `address` | `[]const u8` | Address |
+| `hashrate` | `u64` | Hashrate |
 
 **Returns:** `!void`
 
-*Line: 45*
+*Defined at line 45*
 
 ---
 
-### `updateMinerStatus`
+### `updateMinerStatus()`
 
 Update miner status
 
@@ -91,19 +157,19 @@ Update miner status
 pub fn updateMinerStatus(self: *MiningPool, miner_id: []const u8, status: MinerStatus) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MiningPool`
-- `miner_id`: `[]const u8`
-- `status`: `MinerStatus`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
+| `miner_id` | `[]const u8` | Miner_id |
+| `status` | `MinerStatus` | Status |
 
 **Returns:** `!void`
 
-*Line: 62*
+*Defined at line 62*
 
 ---
 
-### `recordShare`
+### `recordShare()`
 
 Record share from miner
 
@@ -111,18 +177,18 @@ Record share from miner
 pub fn recordShare(self: *MiningPool, miner_id: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MiningPool`
-- `miner_id`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
+| `miner_id` | `[]const u8` | Miner_id |
 
 **Returns:** `!void`
 
-*Line: 74*
+*Defined at line 74*
 
 ---
 
-### `recordBlockFound`
+### `recordBlockFound()`
 
 Record block found
 
@@ -130,15 +196,15 @@ Record block found
 pub fn recordBlockFound(self: *MiningPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
 
-- `self`: `*MiningPool`
-
-*Line: 87*
+*Defined at line 87*
 
 ---
 
-### `getMinerCount`
+### `getMinerCount()`
 
 Get miner count
 
@@ -146,17 +212,17 @@ Get miner count
 pub fn getMinerCount(self: *const MiningPool) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const MiningPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MiningPool` | The instance |
 
 **Returns:** `usize`
 
-*Line: 93*
+*Defined at line 93*
 
 ---
 
-### `getTotalHashrate`
+### `getTotalHashrate()`
 
 Get total hashrate
 
@@ -164,17 +230,17 @@ Get total hashrate
 pub fn getTotalHashrate(self: *const MiningPool) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MiningPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MiningPool` | The instance |
 
 **Returns:** `u64`
 
-*Line: 98*
+*Defined at line 98*
 
 ---
 
-### `getStats`
+### `getStats()`
 
 Get pool statistics
 
@@ -182,17 +248,17 @@ Get pool statistics
 pub fn getStats(self: *const MiningPool) PoolStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const MiningPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MiningPool` | The instance |
 
 **Returns:** `PoolStats`
 
-*Line: 103*
+*Defined at line 103*
 
 ---
 
-### `removeInactiveMiners`
+### `removeInactiveMiners()`
 
 Remove inactive miners (no share for 300s)
 
@@ -200,15 +266,15 @@ Remove inactive miners (no share for 300s)
 pub fn removeInactiveMiners(self: *MiningPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MiningPool` | The instance |
 
-- `self`: `*MiningPool`
-
-*Line: 121*
+*Defined at line 121*
 
 ---
 
-### `getMinerRewardShare`
+### `getMinerRewardShare()`
 
 Get miner reward share (proportional to hashrate)
 
@@ -216,15 +282,19 @@ Get miner reward share (proportional to hashrate)
 pub fn getMinerRewardShare(self: *const MiningPool, miner_id: []const u8, block_reward: u64) !u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const MiningPool`
-- `miner_id`: `[]const u8`
-- `block_reward`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MiningPool` | The instance |
+| `miner_id` | `[]const u8` | Miner_id |
+| `block_reward` | `u64` | Block_reward |
 
 **Returns:** `!u64`
 
-*Line: 138*
+*Defined at line 138*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

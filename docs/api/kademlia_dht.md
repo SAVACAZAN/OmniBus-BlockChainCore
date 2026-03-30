@@ -1,10 +1,36 @@
 # Module: `kademlia_dht`
 
+> Kademlia distributed hash table — XOR-based distance metric, k-bucket routing, iterative node lookup, peer discovery without central servers.
+
+**Source:** `core/kademlia_dht.zig` | **Lines:** 352 | **Functions:** 12 | **Structs:** 3 | **Tests:** 13
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`DhtPeer`](#dhtpeer) — DHT Peer entry
+- [`KBucket`](#kbucket) — K-Bucket: stores up to K peers at a specific XOR distance range
+- [`DhtRoutingTable`](#dhtroutingtable) — Kademlia DHT Routing Table
+
+### Constants
+- [7 constants defined](#constants)
+
+### Functions
+- [`xorDistance()`](#xordistance) — Compute XOR distance between two node IDs
+- [`bucketIndex()`](#bucketindex) — Find the bucket index for a given distance (leading zero bits count)
+- [`generateNodeId()`](#generatenodeid) — Generate a node ID from a public key or random bytes
+- [`isStale()`](#isstale) — Checks whether the stale condition is true.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addPeer()`](#addpeer) — Add or update a peer in the bucket
+- [`findClosest()`](#findclosest) — Find closest N peers to target ID in this bucket
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addPeer()`](#addpeer) — Add a peer to the appropriate bucket
+- [`findClosest()`](#findclosest) — Find the K closest peers to a target ID (across all buckets)
+- [`peerCount()`](#peercount) — Get total peer count
+- [`evictStale()`](#evictstale) — Remove stale peers
+
+---
 
 ## Structs
 
@@ -12,35 +38,63 @@
 
 DHT Peer entry
 
-*Line: 73*
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `NodeId` | Id |
+| `ip` | `[4]u8` | Ip |
+| `port` | `u16` | Port |
+| `last_seen` | `i64` | Last_seen |
+| `rtt_ms` | `u16` | Rtt_ms |
+
+*Defined at line 73*
+
+---
 
 ### `KBucket`
 
 K-Bucket: stores up to K peers at a specific XOR distance range
 
-*Line: 87*
+| Field | Type | Description |
+|-------|------|-------------|
+| `peers` | `[K_BUCKET_SIZE]DhtPeer` | Peers |
+| `count` | `u8` | Count |
+| `last_refresh` | `i64` | Last_refresh |
+
+*Defined at line 87*
+
+---
 
 ### `DhtRoutingTable`
 
 Kademlia DHT Routing Table
 
-*Line: 164*
+| Field | Type | Description |
+|-------|------|-------------|
+| `local_id` | `NodeId` | Local_id |
+| `buckets` | `[NUM_BUCKETS]KBucket` | Buckets |
+| `total_peers` | `usize` | Total_peers |
+
+*Defined at line 164*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `NODE_ID_SIZE` | auto | `usize = 20` |
-| `K_BUCKET_SIZE` | auto | `usize = 20` |
-| `NUM_BUCKETS` | auto | `usize = 160` |
-| `ALPHA` | auto | `usize = 3` |
-| `MAX_DHT_NODES` | auto | `usize = 256` |
-| `BUCKET_REFRESH_INTERVAL` | auto | `u64 = 3600` |
-| `NodeId` | auto | `[NODE_ID_SIZE]u8` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `NODE_ID_SIZE` | `usize = 20` | N o d e_ i d_ s i z e |
+| `K_BUCKET_SIZE` | `usize = 20` | K_ b u c k e t_ s i z e |
+| `NUM_BUCKETS` | `usize = 160` | N u m_ b u c k e t s |
+| `ALPHA` | `usize = 3` | A l p h a |
+| `MAX_DHT_NODES` | `usize = 256` | M a x_ d h t_ n o d e s |
+| `BUCKET_REFRESH_INTERVAL` | `u64 = 3600` | B u c k e t_ r e f r e s h_ i n t e r v a l |
+| `NodeId` | `[NODE_ID_SIZE]u8` | Node id |
+
+---
 
 ## Functions
 
-### `xorDistance`
+### `xorDistance()`
 
 Compute XOR distance between two node IDs
 
@@ -48,18 +102,18 @@ Compute XOR distance between two node IDs
 pub fn xorDistance(a: NodeId, b: NodeId) NodeId {
 ```
 
-**Parameters:**
-
-- `a`: `NodeId`
-- `b`: `NodeId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `a` | `NodeId` | A |
+| `b` | `NodeId` | B |
 
 **Returns:** `NodeId`
 
-*Line: 36*
+*Defined at line 36*
 
 ---
 
-### `bucketIndex`
+### `bucketIndex()`
 
 Find the bucket index for a given distance (leading zero bits count)
 
@@ -67,17 +121,17 @@ Find the bucket index for a given distance (leading zero bits count)
 pub fn bucketIndex(distance: NodeId) u8 {
 ```
 
-**Parameters:**
-
-- `distance`: `NodeId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `distance` | `NodeId` | Distance |
 
 **Returns:** `u8`
 
-*Line: 45*
+*Defined at line 45*
 
 ---
 
-### `generateNodeId`
+### `generateNodeId()`
 
 Generate a node ID from a public key or random bytes
 
@@ -85,35 +139,39 @@ Generate a node ID from a public key or random bytes
 pub fn generateNodeId(seed: []const u8) NodeId {
 ```
 
-**Parameters:**
-
-- `seed`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `seed` | `[]const u8` | Seed |
 
 **Returns:** `NodeId`
 
-*Line: 62*
+*Defined at line 62*
 
 ---
 
-### `isStale`
+### `isStale()`
+
+Checks whether the stale condition is true.
 
 ```zig
 pub fn isStale(self: *const DhtPeer, current_time: i64, timeout_sec: i64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const DhtPeer`
-- `current_time`: `i64`
-- `timeout_sec`: `i64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const DhtPeer` | The instance |
+| `current_time` | `i64` | Current_time |
+| `timeout_sec` | `i64` | Timeout_sec |
 
 **Returns:** `bool`
 
-*Line: 81*
+*Defined at line 81*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init() KBucket {
@@ -121,11 +179,11 @@ pub fn init() KBucket {
 
 **Returns:** `KBucket`
 
-*Line: 92*
+*Defined at line 92*
 
 ---
 
-### `addPeer`
+### `addPeer()`
 
 Add or update a peer in the bucket
 
@@ -133,18 +191,18 @@ Add or update a peer in the bucket
 pub fn addPeer(self: *KBucket, peer: DhtPeer) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*KBucket`
-- `peer`: `DhtPeer`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*KBucket` | The instance |
+| `peer` | `DhtPeer` | Peer |
 
 **Returns:** `bool`
 
-*Line: 101*
+*Defined at line 101*
 
 ---
 
-### `findClosest`
+### `findClosest()`
 
 Find closest N peers to target ID in this bucket
 
@@ -152,35 +210,37 @@ Find closest N peers to target ID in this bucket
 pub fn findClosest(self: *const KBucket, target: NodeId, max_results: usize) [K_BUCKET_SIZE]DhtPeer {
 ```
 
-**Parameters:**
-
-- `self`: `*const KBucket`
-- `target`: `NodeId`
-- `max_results`: `usize`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const KBucket` | The instance |
+| `target` | `NodeId` | Target |
+| `max_results` | `usize` | Max_results |
 
 **Returns:** `[K_BUCKET_SIZE]DhtPeer`
 
-*Line: 134*
+*Defined at line 134*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(local_id: NodeId) DhtRoutingTable {
 ```
 
-**Parameters:**
-
-- `local_id`: `NodeId`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `local_id` | `NodeId` | Local_id |
 
 **Returns:** `DhtRoutingTable`
 
-*Line: 172*
+*Defined at line 172*
 
 ---
 
-### `addPeer`
+### `addPeer()`
 
 Add a peer to the appropriate bucket
 
@@ -188,18 +248,18 @@ Add a peer to the appropriate bucket
 pub fn addPeer(self: *DhtRoutingTable, peer: DhtPeer) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*DhtRoutingTable`
-- `peer`: `DhtPeer`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*DhtRoutingTable` | The instance |
+| `peer` | `DhtPeer` | Peer |
 
 **Returns:** `bool`
 
-*Line: 183*
+*Defined at line 183*
 
 ---
 
-### `findClosest`
+### `findClosest()`
 
 Find the K closest peers to a target ID (across all buckets)
 
@@ -207,19 +267,19 @@ Find the K closest peers to a target ID (across all buckets)
 pub fn findClosest(self: *const DhtRoutingTable, target: NodeId, max_results: usize) [K_BUCKET_SIZE]DhtPeer {
 ```
 
-**Parameters:**
-
-- `self`: `*const DhtRoutingTable`
-- `target`: `NodeId`
-- `max_results`: `usize`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const DhtRoutingTable` | The instance |
+| `target` | `NodeId` | Target |
+| `max_results` | `usize` | Max_results |
 
 **Returns:** `[K_BUCKET_SIZE]DhtPeer`
 
-*Line: 193*
+*Defined at line 193*
 
 ---
 
-### `peerCount`
+### `peerCount()`
 
 Get total peer count
 
@@ -227,17 +287,17 @@ Get total peer count
 pub fn peerCount(self: *const DhtRoutingTable) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const DhtRoutingTable`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const DhtRoutingTable` | The instance |
 
 **Returns:** `usize`
 
-*Line: 217*
+*Defined at line 217*
 
 ---
 
-### `evictStale`
+### `evictStale()`
 
 Remove stale peers
 
@@ -245,15 +305,19 @@ Remove stale peers
 pub fn evictStale(self: *DhtRoutingTable, current_time: i64, timeout_sec: i64) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*DhtRoutingTable`
-- `current_time`: `i64`
-- `timeout_sec`: `i64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*DhtRoutingTable` | The instance |
+| `current_time` | `i64` | Current_time |
+| `timeout_sec` | `i64` | Timeout_sec |
 
 **Returns:** `usize`
 
-*Line: 226*
+*Defined at line 226*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

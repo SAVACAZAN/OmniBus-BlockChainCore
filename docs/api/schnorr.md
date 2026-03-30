@@ -1,9 +1,31 @@
 # Module: `schnorr`
 
+> BIP-340 Schnorr signatures over secp256k1 — key aggregation, batch verification, more efficient than ECDSA for multi-party signing.
+
+**Source:** `core/schnorr.zig` | **Lines:** 285 | **Functions:** 6 | **Structs:** 2 | **Tests:** 10
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`SchnorrSignature`](#schnorrsignature) — BIP-340 Schnorr Signatures over secp256k1
+- 64-byte signatures (vs 71 for ECDSA ...
+- [`SchnorrPubKey`](#schnorrpubkey) — Schnorr public key (x-only, 32 bytes — BIP-340 standard)
+Unlike ECDSA compressed...
+
+### Functions
+- [`toBytes()`](#tobytes) — Performs the to bytes operation on the schnorr module.
+- [`fromBytes()`](#frombytes) — Performs the from bytes operation on the schnorr module.
+- [`fromCompressed()`](#fromcompressed) — Convert from compressed ECDSA pubkey (33 bytes) to x-only (32 bytes)
+- [`schnorrSign()`](#schnorrsign) — BIP-340 Schnorr sign
+Signs message with private key using deterministi...
+- [`schnorrVerify()`](#schnorrverify) — BIP-340 Schnorr verify
+Verifies signature (R, s) against public key P ...
+- [`tweakPubkey()`](#tweakpubkey) — Key tweaking for Taproot (BIP-341)
+tweaked_key = internal_key + tagged...
+
+---
 
 ## Structs
 
@@ -17,7 +39,14 @@ BIP-340 Schnorr Signatures over secp256k1
 
 Reference: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 
-*Line: 13*
+| Field | Type | Description |
+|-------|------|-------------|
+| `r` | `[32]u8` | R |
+| `s` | `[32]u8` | S |
+
+*Defined at line 13*
+
+---
 
 ### `SchnorrPubKey`
 
@@ -25,43 +54,53 @@ Schnorr public key (x-only, 32 bytes — BIP-340 standard)
 Unlike ECDSA compressed keys (33 bytes with parity prefix),
 Schnorr uses x-only keys (32 bytes, implicit even Y)
 
-*Line: 36*
+| Field | Type | Description |
+|-------|------|-------------|
+| `x` | `[32]u8` | X |
+
+*Defined at line 36*
+
+---
 
 ## Functions
 
-### `toBytes`
+### `toBytes()`
+
+Performs the to bytes operation on the schnorr module.
 
 ```zig
 pub fn toBytes(self: *const SchnorrSignature) [64]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const SchnorrSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const SchnorrSignature` | The instance |
 
 **Returns:** `[64]u8`
 
-*Line: 18*
+*Defined at line 18*
 
 ---
 
-### `fromBytes`
+### `fromBytes()`
+
+Performs the from bytes operation on the schnorr module.
 
 ```zig
 pub fn fromBytes(bytes: [64]u8) SchnorrSignature {
 ```
 
-**Parameters:**
-
-- `bytes`: `[64]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `[64]u8` | Bytes |
 
 **Returns:** `SchnorrSignature`
 
-*Line: 25*
+*Defined at line 25*
 
 ---
 
-### `fromCompressed`
+### `fromCompressed()`
 
 Convert from compressed ECDSA pubkey (33 bytes) to x-only (32 bytes)
 
@@ -69,17 +108,17 @@ Convert from compressed ECDSA pubkey (33 bytes) to x-only (32 bytes)
 pub fn fromCompressed(compressed: [33]u8) SchnorrPubKey {
 ```
 
-**Parameters:**
-
-- `compressed`: `[33]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `compressed` | `[33]u8` | Compressed |
 
 **Returns:** `SchnorrPubKey`
 
-*Line: 40*
+*Defined at line 40*
 
 ---
 
-### `schnorrSign`
+### `schnorrSign()`
 
 BIP-340 Schnorr sign
 Signs message with private key using deterministic nonce (RFC 6979 style)
@@ -99,18 +138,18 @@ Algorithm:
 pub fn schnorrSign(private_key: [32]u8, message: []const u8) SchnorrSignature {
 ```
 
-**Parameters:**
-
-- `private_key`: `[32]u8`
-- `message`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `private_key` | `[32]u8` | Private_key |
+| `message` | `[]const u8` | Message |
 
 **Returns:** `SchnorrSignature`
 
-*Line: 76*
+*Defined at line 76*
 
 ---
 
-### `schnorrVerify`
+### `schnorrVerify()`
 
 BIP-340 Schnorr verify
 Verifies signature (R, s) against public key P and message m
@@ -125,19 +164,19 @@ Algorithm:
 pub fn schnorrVerify(pubkey: SchnorrPubKey, message: []const u8, sig: SchnorrSignature) bool {
 ```
 
-**Parameters:**
-
-- `pubkey`: `SchnorrPubKey`
-- `message`: `[]const u8`
-- `sig`: `SchnorrSignature`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pubkey` | `SchnorrPubKey` | Pubkey |
+| `message` | `[]const u8` | Message |
+| `sig` | `SchnorrSignature` | Sig |
 
 **Returns:** `bool`
 
-*Line: 121*
+*Defined at line 121*
 
 ---
 
-### `tweakPubkey`
+### `tweakPubkey()`
 
 Key tweaking for Taproot (BIP-341)
 tweaked_key = internal_key + tagged_hash("TapTweak", internal_key || merkle_root) * G
@@ -146,14 +185,18 @@ tweaked_key = internal_key + tagged_hash("TapTweak", internal_key || merkle_root
 pub fn tweakPubkey(internal_key: SchnorrPubKey, merkle_root: [32]u8) SchnorrPubKey {
 ```
 
-**Parameters:**
-
-- `internal_key`: `SchnorrPubKey`
-- `merkle_root`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `internal_key` | `SchnorrPubKey` | Internal_key |
+| `merkle_root` | `[32]u8` | Merkle_root |
 
 **Returns:** `SchnorrPubKey`
 
-*Line: 183*
+*Defined at line 183*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

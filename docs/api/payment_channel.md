@@ -1,335 +1,678 @@
 # Module: `payment_channel`
 
+> Lightning-style Layer 2 — open/close channels, HTLC (Hash Time-Locked Contracts), off-chain payments, cooperative/unilateral close.
+
+**Source:** `core/payment_channel.zig` | **Lines:** 984 | **Functions:** 25 | **Structs:** 5 | **Tests:** 27
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`ChannelUpdate`](#channelupdate) — ChannelUpdate — signed off-chain state between two parties.
+Both parties must si...
+- [`SettleTx`](#settletx) — SettleTx — on-chain settlement transaction pair.
+When a channel closes, two on-c...
+- [`HTLC`](#htlc) — HTLC — Hash Time Lock Contract (for multi-hop routing)
+A sends to B conditional ...
+- [`PaymentChannel`](#paymentchannel) — PaymentChannel — bidirectional off-chain payment channel between two parties.
+
+U...
+- [`ChannelManager`](#channelmanager) — ChannelManager — fixed-size registry of payment channels.
+No dynamic allocation ...
+
+### Constants
+- [6 constants defined](#constants)
+
+### Functions
+- [`hash()`](#hash) — Compute deterministic hash of this state update (for on-chain verifica...
+- [`verify()`](#verify) — Verify that both signatures are non-zero (placeholder for real sig ver...
+- [`totalBalance()`](#totalbalance) — Performs the total balance operation on the payment_channel module.
+- [`fromUpdate()`](#fromupdate) — Generate deterministic TX hashes from channel state
+- [`reveal()`](#reveal) — Check if preimage unlocks the HTLC
+- [`isExpired()`](#isexpired) — Checks whether the expired condition is true.
+- [`open()`](#open) — Open a new payment channel between two parties.
+Both parties lock fund...
+- [`openWithId()`](#openwithid) — Open with explicit channel_id (deterministic, for testing)
+- [`pay()`](#pay) — Off-chain payment: transfer amount from one party to the other.
+Both p...
+- [`cooperativeClose()`](#cooperativeclose) — Cooperative close: both parties agree on final state, no dispute neede...
+- [`unilateralClose()`](#unilateralclose) — Unilateral close: one party submits their latest signed state.
+Starts ...
+- [`dispute()`](#dispute) — Dispute: counterparty submits a state with higher sequence_num.
+Return...
+- [`settle()`](#settle) — Settle: finalize the channel on-chain after dispute window expires.
+Ca...
+- [`addHTLC()`](#addhtlc) — Add an HTLC to this channel (for multi-hop routing)
+- [`revealHTLC()`](#revealhtlc) — Reveal preimage for an HTLC (unlocks payment)
+- [`currentUpdate()`](#currentupdate) — Get the current state as a ChannelUpdate
+- [`getChannelIdHex()`](#getchannelidhex) — Format channel_id as hex string into provided buffer
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`openChannel()`](#openchannel) — Open a new channel and add it to the registry.
+Returns a pointer to th...
+- [`findChannel()`](#findchannel) — Find a channel by its ID. Returns null if not found.
+- [`closeChannel()`](#closechannel) — Close a channel (cooperative close). Returns the settlement TX.
+- [`getAllChannels()`](#getallchannels) — Get a slice of all channels (active and inactive).
+- [`countByState()`](#countbystate) — Count channels in a specific state.
+- [`getTotalLockedSat()`](#gettotallockedsat) — Get total SAT locked across all open/closing channels.
+- [`printStatus()`](#printstatus) — Performs the print status operation on the payment_channel module.
+
+---
 
 ## Structs
 
-### `ChannelState`
+### `ChannelUpdate`
 
-State update off-chain — semnată de ambele părți
+ChannelUpdate — signed off-chain state between two parties.
+Both parties must sign each update. Higher sequence_num = newer state.
 
-*Line: 30*
+| Field | Type | Description |
+|-------|------|-------------|
+| `channel_id` | `[32]u8` | Channel_id |
+| `sequence_num` | `u64` | Sequence_num |
+| `balance_a` | `u64` | Balance_a |
+| `balance_b` | `u64` | Balance_b |
+| `sig_a` | `[64]u8` | Sig_a |
+| `sig_b` | `[64]u8` | Sig_b |
+
+*Defined at line 35*
+
+---
+
+### `SettleTx`
+
+SettleTx — on-chain settlement transaction pair.
+When a channel closes, two on-chain TXs are created:
+tx_hash_a: returns A's final balance to A's address
+tx_hash_b: returns B's final balance to B's address
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `channel_id` | `[32]u8` | Channel_id |
+| `final_balance_a` | `u64` | Final_balance_a |
+| `final_balance_b` | `u64` | Final_balance_b |
+| `settle_block` | `u64` | Settle_block |
+| `tx_hash_a` | `[32]u8` | Tx_hash_a |
+| `tx_hash_b` | `[32]u8` | Tx_hash_b |
+
+*Defined at line 99*
+
+---
 
 ### `HTLC`
 
-HTLC — Hash Time Lock Contract (pentru routing multi-hop)
-A trimite lui B condiționat de revelarea unui secret (preimage)
+HTLC — Hash Time Lock Contract (for multi-hop routing)
+A sends to B conditional on revealing a secret (preimage)
 
-*Line: 60*
+| Field | Type | Description |
+|-------|------|-------------|
+| `htlc_id` | `u32` | Htlc_id |
+| `hash_lock` | `[32]u8` | Hash_lock |
+| `amount_sat` | `u64` | Amount_sat |
+| `timeout_block` | `u64` | Timeout_block |
+| `revealed` | `bool` | Revealed |
+| `preimage` | `[32]u8` | Preimage |
+| `preimage_set` | `bool` | Preimage_set |
+
+*Defined at line 141*
+
+---
 
 ### `PaymentChannel`
 
-Payment Channel — canal bidirectional între două adrese
+PaymentChannel — bidirectional off-chain payment channel between two parties.
 
-*Line: 89*
+Uses fixed-size arrays (no dynamic allocation after init) for bare-metal compat.
+Each channel holds up to MAX_HTLCS_PER_CHANNEL pending HTLCs.
 
-### `ChannelRegistry`
+| Field | Type | Description |
+|-------|------|-------------|
+| `channel_id` | `[32]u8` | Channel_id |
+| `party_a` | `[33]u8` | Party_a |
+| `party_b` | `[33]u8` | Party_b |
+| `balance_a` | `u64` | Balance_a |
+| `balance_b` | `u64` | Balance_b |
+| `total_locked` | `u64` | Total_locked |
+| `sequence_num` | `u64` | Sequence_num |
+| `state` | `ChannelState` | State |
+| `funding_tx_hash` | `[32]u8` | Funding_tx_hash |
+| `timeout_blocks` | `u64` | Timeout_blocks |
+| `created_at` | `i64` | Created_at |
+| `close_block` | `u64` | Close_block |
+| `pending_close_update` | `?ChannelUpdate` | Pending_close_update |
+| `htlcs` | `[MAX_HTLCS_PER_CHANNEL]HTLC` | Htlcs |
+| `htlc_count` | `u8` | Htlc_count |
 
-ChannelRegistry — registrul tuturor channel-elor active (pe L1)
-Fiecare nod ține evidența channel-elor în care e participant
+*Defined at line 175*
 
-*Line: 255*
+---
+
+### `ChannelManager`
+
+ChannelManager — fixed-size registry of payment channels.
+No dynamic allocation — holds up to MAX_CHANNELS channels in a flat array.
+Thread-safe via mutex for concurrent RPC access.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `channels` | `[MAX_CHANNELS]PaymentChannel` | Channels |
+| `channel_count` | `u8` | Channel_count |
+| `mutex` | `std.Thread.Mutex` | Mutex |
+
+*Defined at line 455*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `DISPUTE_WINDOW_BLOCKS` | auto | `u64 = 100` |
-| `MAX_CHANNEL_AMOUNT` | auto | `u64   = 21_000_000 * 1_000_000_000` |
-| `ChannelStatus` | auto | `enum(u8) {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `DISPUTE_WINDOW_BLOCKS` | `u64 = 144` | D i s p u t e_ w i n d o w_ b l o c k s |
+| `MAX_CHANNEL_AMOUNT` | `u64 = 21_000_000 * 1_000_000_000` | M a x_ c h a n n e l_ a m o u n t |
+| `MAX_CHANNELS` | `usize = 64` | M a x_ c h a n n e l s |
+| `MAX_HTLCS_PER_CHANNEL` | `usize = 16` | M a x_ h t l c s_ p e r_ c h a n n e l |
+| `SAT_PER_OMNI` | `u64 = 1_000_000_000` | S a t_ p e r_ o m n i |
+| `ChannelState` | `enum(u8) {` | Channel state |
+
+---
 
 ## Functions
 
-### `hash`
+### `hash()`
 
-Hash-ul acestui state (pentru verificare on-chain)
+Compute deterministic hash of this state update (for on-chain verification).
+Hash covers channel_id + sequence + balances — signatures are NOT included
+(they authenticate the hash, not the other way around).
 
 ```zig
-pub fn hash(self: *const ChannelState) [32]u8 {
+pub fn hash(self: *const ChannelUpdate) [32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const ChannelState`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelUpdate` | The instance |
 
 **Returns:** `[32]u8`
 
-*Line: 40*
+*Defined at line 46*
 
 ---
 
-### `totalBalance`
+### `verify()`
+
+Verify that both signatures are non-zero (placeholder for real sig verification).
+In production this would verify ECDSA/Schnorr sigs against pk_a and pk_b.
+For now: checks that at least one byte of each sig is non-zero,
+and that the update hash matches what was signed.
 
 ```zig
-pub fn totalBalance(self: *const ChannelState) u64 {
+pub fn verify(self: *const ChannelUpdate, pk_a: [33]u8, pk_b: [33]u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const ChannelState`
-
-**Returns:** `u64`
-
-*Line: 53*
-
----
-
-### `reveal`
-
-Verifică dacă preimage-ul deblochează HTLC-ul
-
-```zig
-pub fn reveal(self: *HTLC, preimage: [32]u8) bool {
-```
-
-**Parameters:**
-
-- `self`: `*HTLC`
-- `preimage`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelUpdate` | The instance |
+| `pk_a` | `[33]u8` | Pk_a |
+| `pk_b` | `[33]u8` | Pk_b |
 
 **Returns:** `bool`
 
-*Line: 69*
+*Defined at line 69*
 
 ---
 
-### `isExpired`
+### `totalBalance()`
+
+Performs the total balance operation on the payment_channel module.
+
+```zig
+pub fn totalBalance(self: *const ChannelUpdate) u64 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelUpdate` | The instance |
+
+**Returns:** `u64`
+
+*Defined at line 90*
+
+---
+
+### `fromUpdate()`
+
+Generate deterministic TX hashes from channel state
+
+```zig
+pub fn fromUpdate(update: *const ChannelUpdate, settle_block: u64) SettleTx {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `update` | `*const ChannelUpdate` | Update |
+| `settle_block` | `u64` | Settle_block |
+
+**Returns:** `SettleTx`
+
+*Defined at line 108*
+
+---
+
+### `reveal()`
+
+Check if preimage unlocks the HTLC
+
+```zig
+pub fn reveal(self: *HTLC, pre: [32]u8) bool {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*HTLC` | The instance |
+| `pre` | `[32]u8` | Pre |
+
+**Returns:** `bool`
+
+*Defined at line 151*
+
+---
+
+### `isExpired()`
+
+Checks whether the expired condition is true.
 
 ```zig
 pub fn isExpired(self: *const HTLC, current_block: u64) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const HTLC`
-- `current_block`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const HTLC` | The instance |
+| `current_block` | `u64` | Current_block |
 
 **Returns:** `bool`
 
-*Line: 83*
+*Defined at line 166*
 
 ---
 
-### `deinit`
+### `open()`
+
+Open a new payment channel between two parties.
+Both parties lock funds on-chain; initial off-chain balances = deposits.
 
 ```zig
-pub fn deinit(self: *PaymentChannel) void {
+pub fn open(party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) error{ExceedsMaxAmount,ZeroDeposit}!PaymentChannel {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `party_a` | `[33]u8` | Party_a |
+| `party_b` | `[33]u8` | Party_b |
+| `amount_a` | `u64` | Amount_a |
+| `amount_b` | `u64` | Amount_b |
 
-- `self`: `*PaymentChannel`
+**Returns:** `error`
 
-*Line: 149*
+*Defined at line 198*
 
 ---
 
-### `revealHTLC`
+### `openWithId()`
 
-Revelează preimage-ul unui HTLC (deblochează plata)
+Open with explicit channel_id (deterministic, for testing)
 
 ```zig
-pub fn revealHTLC(self: *PaymentChannel, htlc_id: u32, preimage: [32]u8) !void {
+pub fn openWithId(channel_id: [32]u8, party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) error{ExceedsMaxAmount,ZeroDeposit}!PaymentChannel {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `channel_id` | `[32]u8` | Channel_id |
+| `party_a` | `[33]u8` | Party_a |
+| `party_b` | `[33]u8` | Party_b |
+| `amount_a` | `u64` | Amount_a |
+| `amount_b` | `u64` | Amount_b |
 
-- `self`: `*PaymentChannel`
-- `htlc_id`: `u32`
-- `preimage`: `[32]u8`
+**Returns:** `error`
 
-**Returns:** `!void`
-
-*Line: 203*
+*Defined at line 247*
 
 ---
 
-### `initiateClose`
+### `pay()`
 
-Inițiază close — postează ultimul state pe L1
+Off-chain payment: transfer amount from one party to the other.
+Both parties must sign the new state. Sequence number increments atomically.
+Total balance is conserved (invariant: balance_a + balance_b == total_locked).
 
 ```zig
-pub fn initiateClose(self: *PaymentChannel, current_block: u64) !void {
+pub fn pay(self: *PaymentChannel, from_a_to_b: bool, amount: u64, sig_a: [64]u8, sig_b: [64]u8) error{ ChannelNotOpen, InsufficientBalance, BalanceMismatch }!ChannelUpdate {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `from_a_to_b` | `bool` | From_a_to_b |
+| `amount` | `u64` | Amount |
+| `sig_a` | `[64]u8` | Sig_a |
+| `sig_b` | `[64]u8` | Sig_b |
 
-- `self`: `*PaymentChannel`
-- `current_block`: `u64`
+**Returns:** `error`
 
-**Returns:** `!void`
-
-*Line: 211*
+*Defined at line 280*
 
 ---
 
-### `finalizeClose`
+### `cooperativeClose()`
 
-Finalizează close după dispute window (dacă nu a fost contestat)
+Cooperative close: both parties agree on final state, no dispute needed.
+Returns a SettleTx with the final on-chain transactions.
 
 ```zig
-pub fn finalizeClose(self: *PaymentChannel, current_block: u64) !ChannelState {
+pub fn cooperativeClose(self: *PaymentChannel, sig_a: [64]u8, sig_b: [64]u8) error{ChannelNotOpen}!SettleTx {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `sig_a` | `[64]u8` | Sig_a |
+| `sig_b` | `[64]u8` | Sig_b |
 
-- `self`: `*PaymentChannel`
-- `current_block`: `u64`
+**Returns:** `error`
 
-**Returns:** `!ChannelState`
-
-*Line: 220*
+*Defined at line 321*
 
 ---
 
-### `dispute`
+### `unilateralClose()`
 
-Dispute: A contestă un state vechi postat de B
-Dacă A are un state cu sequence mai mare → câștigă disputa
+Unilateral close: one party submits their latest signed state.
+Starts the dispute window — counterparty has timeout_blocks to submit newer state.
 
 ```zig
-pub fn dispute(self: *PaymentChannel, challenger_state: ChannelState) !void {
+pub fn unilateralClose(self: *PaymentChannel, submitted_state: ChannelUpdate, current_block: u64) error{ ChannelNotOpen, InvalidChannelId, BalanceMismatch }!SettleTx {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `submitted_state` | `ChannelUpdate` | Submitted_state |
+| `current_block` | `u64` | Current_block |
 
-- `self`: `*PaymentChannel`
-- `challenger_state`: `ChannelState`
+**Returns:** `error`
 
-**Returns:** `!void`
-
-*Line: 233*
+*Defined at line 341*
 
 ---
 
-### `getChannelIdHex`
+### `dispute()`
+
+Dispute: counterparty submits a state with higher sequence_num.
+Returns true if the dispute was successful (newer state accepted).
+
+```zig
+pub fn dispute(self: *PaymentChannel, newer_state: ChannelUpdate) error{ ChannelNotClosing, InvalidChannelId, StateNotNewer, BalanceMismatch }!bool {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `newer_state` | `ChannelUpdate` | Newer_state |
+
+**Returns:** `error`
+
+*Defined at line 364*
+
+---
+
+### `settle()`
+
+Settle: finalize the channel on-chain after dispute window expires.
+Can be called after closing or disputed state, once timeout has passed.
+
+```zig
+pub fn settle(self: *PaymentChannel, current_block: u64) error{ ChannelNotClosable, DisputeWindowActive }!SettleTx {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `current_block` | `u64` | Current_block |
+
+**Returns:** `error`
+
+*Defined at line 386*
+
+---
+
+### `addHTLC()`
+
+Add an HTLC to this channel (for multi-hop routing)
+
+```zig
+pub fn addHTLC(self: *PaymentChannel, hash_lock: [32]u8, amount_sat: u64, timeout_block: u64) error{ ChannelNotOpen, TooManyHTLCs }!u32 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `hash_lock` | `[32]u8` | Hash_lock |
+| `amount_sat` | `u64` | Amount_sat |
+| `timeout_block` | `u64` | Timeout_block |
+
+**Returns:** `error`
+
+*Defined at line 409*
+
+---
+
+### `revealHTLC()`
+
+Reveal preimage for an HTLC (unlocks payment)
+
+```zig
+pub fn revealHTLC(self: *PaymentChannel, htlc_id: u32, preimage: [32]u8) error{ HTLCNotFound, InvalidPreimage }!void {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*PaymentChannel` | The instance |
+| `htlc_id` | `u32` | Htlc_id |
+| `preimage` | `[32]u8` | Preimage |
+
+**Returns:** `error`
+
+*Defined at line 427*
+
+---
+
+### `currentUpdate()`
+
+Get the current state as a ChannelUpdate
+
+```zig
+pub fn currentUpdate(self: *const PaymentChannel) ChannelUpdate {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PaymentChannel` | The instance |
+
+**Returns:** `ChannelUpdate`
+
+*Defined at line 435*
+
+---
+
+### `getChannelIdHex()`
+
+Format channel_id as hex string into provided buffer
 
 ```zig
 pub fn getChannelIdHex(self: *const PaymentChannel, buf: []u8) []u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const PaymentChannel`
-- `buf`: `[]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const PaymentChannel` | The instance |
+| `buf` | `[]u8` | Buf |
 
 **Returns:** `[]u8`
 
-*Line: 248*
+*Defined at line 447*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
-pub fn init(allocator: std.mem.Allocator) ChannelRegistry {
+pub fn init() ChannelManager {
 ```
 
-**Parameters:**
+**Returns:** `ChannelManager`
 
-- `allocator`: `std.mem.Allocator`
-
-**Returns:** `ChannelRegistry`
-
-*Line: 259*
+*Defined at line 460*
 
 ---
 
-### `deinit`
+### `openChannel()`
+
+Open a new channel and add it to the registry.
+Returns a pointer to the newly created channel.
 
 ```zig
-pub fn deinit(self: *ChannelRegistry) void {
+pub fn openChannel(self: *ChannelManager, party_a: [33]u8, party_b: [33]u8, amount_a: u64, amount_b: u64) !*PaymentChannel {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ChannelManager` | The instance |
+| `party_a` | `[33]u8` | Party_a |
+| `party_b` | `[33]u8` | Party_b |
+| `amount_a` | `u64` | Amount_a |
+| `amount_b` | `u64` | Amount_b |
 
-- `self`: `*ChannelRegistry`
+**Returns:** `!*PaymentChannel`
 
-*Line: 266*
+*Defined at line 470*
 
 ---
 
-### `addChannel`
+### `findChannel()`
+
+Find a channel by its ID. Returns null if not found.
 
 ```zig
-pub fn addChannel(self: *ChannelRegistry, ch: PaymentChannel) !void {
+pub fn findChannel(self: *ChannelManager, channel_id: [32]u8) ?*PaymentChannel {
 ```
 
-**Parameters:**
-
-- `self`: `*ChannelRegistry`
-- `ch`: `PaymentChannel`
-
-**Returns:** `!void`
-
-*Line: 271*
-
----
-
-### `findChannel`
-
-```zig
-pub fn findChannel(self: *ChannelRegistry, channel_id: [32]u8) ?*PaymentChannel {
-```
-
-**Parameters:**
-
-- `self`: `*ChannelRegistry`
-- `channel_id`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ChannelManager` | The instance |
+| `channel_id` | `[32]u8` | Channel_id |
 
 **Returns:** `?*PaymentChannel`
 
-*Line: 275*
+*Defined at line 484*
 
 ---
 
-### `getOpenCount`
+### `closeChannel()`
+
+Close a channel (cooperative close). Returns the settlement TX.
 
 ```zig
-pub fn getOpenCount(self: *const ChannelRegistry) usize {
+pub fn closeChannel(self: *ChannelManager, channel_id: [32]u8, sig_a: [64]u8, sig_b: [64]u8) !SettleTx {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ChannelManager` | The instance |
+| `channel_id` | `[32]u8` | Channel_id |
+| `sig_a` | `[64]u8` | Sig_a |
+| `sig_b` | `[64]u8` | Sig_b |
 
-- `self`: `*const ChannelRegistry`
+**Returns:** `!SettleTx`
 
-**Returns:** `usize`
-
-*Line: 282*
+*Defined at line 492*
 
 ---
 
-### `getTotalLockedSat`
+### `getAllChannels()`
+
+Get a slice of all channels (active and inactive).
 
 ```zig
-pub fn getTotalLockedSat(self: *const ChannelRegistry) u64 {
+pub fn getAllChannels(self: *ChannelManager) []PaymentChannel {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*ChannelManager` | The instance |
 
-- `self`: `*const ChannelRegistry`
+**Returns:** `[]PaymentChannel`
+
+*Defined at line 501*
+
+---
+
+### `countByState()`
+
+Count channels in a specific state.
+
+```zig
+pub fn countByState(self: *const ChannelManager, target_state: ChannelState) u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelManager` | The instance |
+| `target_state` | `ChannelState` | Target_state |
+
+**Returns:** `u8`
+
+*Defined at line 506*
+
+---
+
+### `getTotalLockedSat()`
+
+Get total SAT locked across all open/closing channels.
+
+```zig
+pub fn getTotalLockedSat(self: *const ChannelManager) u64 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelManager` | The instance |
 
 **Returns:** `u64`
 
-*Line: 290*
+*Defined at line 515*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the payment_channel module.
 
 ```zig
-pub fn printStatus(self: *const ChannelRegistry) void {
+pub fn printStatus(self: *const ChannelManager) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const ChannelManager` | The instance |
 
-- `self`: `*const ChannelRegistry`
-
-*Line: 300*
+*Defined at line 525*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

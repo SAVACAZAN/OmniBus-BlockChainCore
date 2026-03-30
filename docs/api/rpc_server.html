@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rpc_server — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>rpc_server</code></h1>
+<p class="module-desc">JSON-RPC 2.0 HTTP server on port 8332 — 39 methods including blockchain queries, wallet operations, staking, multisig, payment channels, and mining. Uses ws2_32 on Windows.</p>
+<p class="stats">Source: core/rpc_server.zig &bull; 1965 lines &bull; 8 functions &bull; 7 structs &bull; 24 tests</p>
+
+<h2>Structs (7)</h2>
+        <div class="section">
+            <h3><code>RPCServer</code></h3>
+            <p>Data structure for r p c server. Fields include: blockchain, wallet, allocator.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>blockchain</code></td><td><code>*Blockchain</code></td><td>Blockchain</td></tr><tr><td><code>wallet</code></td><td><code>*Wallet</code></td><td>Wallet</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="line">Line: 30</p>
+        </div>
+        <div class="section">
+            <h3><code>RegisteredMiner</code></h3>
+            <p>Un miner inregistrat in retea (via RPC registerminer)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>address</code></td><td><code>[64]u8</code></td><td>Address</td></tr><tr><td><code>address_len</code></td><td><code>u8</code></td><td>Address_len</td></tr><tr><td><code>node_id</code></td><td><code>[32]u8</code></td><td>Node_id</td></tr><tr><td><code>node_id_len</code></td><td><code>u8</code></td><td>Node_id_len</td></tr><tr><td><code>registered_at</code></td><td><code>i64</code></td><td>Registered_at</td></tr></table>
+            <p class="line">Line: 52</p>
+        </div>
+        <div class="section">
+            <h3><code>ServerCtx</code></h3>
+            <p>Context partajat intre thread-uri (blockchain + wallet + module noi)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>bc</code></td><td><code>*Blockchain</code></td><td>Bc</td></tr><tr><td><code>wallet</code></td><td><code>*Wallet</code></td><td>Wallet</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>mempool</code></td><td><code>?*mempool_mod.Mempool</code></td><td>Mempool</td></tr><tr><td><code>p2p</code></td><td><code>?*p2p_mod.P2PNode</code></td><td>P2p</td></tr><tr><td><code>sync_mgr</code></td><td><code>?*sync_mod.SyncManager</code></td><td>Sync_mgr</td></tr><tr><td><code>metrics</code></td><td><code>?*Metrics</code></td><td>Metrics</td></tr><tr><td><code>staking</code></td><td><code>?*staking_mod.StakingEngine</code></td><td>Staking</td></tr><tr><td><code>channel_mgr</code></td><td><code>?*payment_mod.ChannelManager</code></td><td>Channel_mgr</td></tr><tr><td><code>is_idle</code></td><td><code>bool</code></td><td>Is_idle</td></tr><tr><td><code>registered_miners</code></td><td><code>[MAX_REGISTERED_MINERS]RegisteredMiner</code></td><td>Registered_miners</td></tr><tr><td><code>registered_miner_count</code></td><td><code>u16</code></td><td>Registered_miner_count</td></tr></table>
+            <p class="line">Line: 63</p>
+        </div>
+        <div class="section">
+            <h3><code>HTTPConfig</code></h3>
+            <p>Context extins pentru startHTTP cu module optionale</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>mempool</code></td><td><code>?*mempool_mod.Mempool</code></td><td>Mempool</td></tr><tr><td><code>p2p</code></td><td><code>?*p2p_mod.P2PNode</code></td><td>P2p</td></tr><tr><td><code>sync_mgr</code></td><td><code>?*sync_mod.SyncManager</code></td><td>Sync_mgr</td></tr><tr><td><code>metrics</code></td><td><code>?*Metrics</code></td><td>Metrics</td></tr><tr><td><code>staking</code></td><td><code>?*staking_mod.StakingEngine</code></td><td>Staking</td></tr><tr><td><code>channel_mgr</code></td><td><code>?*payment_mod.ChannelManager</code></td><td>Channel_mgr</td></tr></table>
+            <p class="line">Line: 89</p>
+        </div>
+        <div class="section">
+            <h3><code>ConnCtx</code></h3>
+            <p>Data structure for conn ctx. Fields include: conn, server_ctx, active_counter.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>conn</code></td><td><code>std.net.Server.Connection</code></td><td>Conn</td></tr><tr><td><code>server_ctx</code></td><td><code>*ServerCtx</code></td><td>Server_ctx</td></tr><tr><td><code>active_counter</code></td><td><code>*std.atomic.Value(u32)</code></td><td>Active_counter</td></tr></table>
+            <p class="line">Line: 148</p>
+        </div>
+        <div class="section">
+            <h3><code>MinerEntry</code></h3>
+            <p>Data structure representing a miner entry in the rpc_server module.</p>
+            
+            <p class="line">Line: 1052</p>
+        </div>
+        <div class="section">
+            <h3><code>findOrAdd</code></h3>
+            <p>Data structure representing a find or add in the rpc_server module.</p>
+            
+            <p class="line">Line: 1058</p>
+        </div>
+
+<h2>Constants (4)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>Metrics</code></td><td><code>benchmark_mod.Metrics</code></td><td>Metrics</td></tr><tr><td><code>Blockchain</code></td><td><code>blockchain_mod.Blockchain</code></td><td>Blockchain</td></tr><tr><td><code>Wallet</code></td><td><code>wallet_mod.Wallet</code></td><td>Wallet</td></tr><tr><td><code>RPCContext</code></td><td><code>ServerCtx</code></td><td>R p c context</td></tr></table></div>
+
+<h2>Functions (8)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, bc: *Blockchain, w: *Wallet) !RPCServer {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>bc</code></td><td><code>*Blockchain</code></td><td>Bc</td></tr><tr><td><code>w</code></td><td><code>*Wallet</code></td><td>W</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!RPCServer</code></p>
+            <p class="line">Line: 35</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(_: *RPCServer) void {}</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>_</code></td><td><code>*RPCServer</code></td><td>_</td></tr></table>
+            
+            <p class="line">Line: 39</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlockCount()</code></h3>
+            <p class="desc">Returns the current block count.</p>
+            <pre><code>pub fn getBlockCount(self: *RPCServer) u32  { return self.blockchain.getBlockCount(); }</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*RPCServer</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 41</p>
+        </div>
+        <div class="section">
+            <h3><code>getBalance()</code></h3>
+            <p class="desc">Returns the current balance.</p>
+            <pre><code>pub fn getBalance(self: *RPCServer)    u64  { return self.wallet.getBalance(); }</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*RPCServer</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 42</p>
+        </div>
+        <div class="section">
+            <h3><code>getMempoolSize()</code></h3>
+            <p class="desc">Returns the current mempool size.</p>
+            <pre><code>pub fn getMempoolSize(self: *RPCServer) u32 { return std.math.cast(u32, self.blockchain.mempool.items.len) orelse std.math.maxInt(u32); }</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*RPCServer</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 43</p>
+        </div>
+        <div class="section">
+            <h3><code>startHTTP()</code></h3>
+            <p class="desc">Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)</p>
+            <pre><code>pub fn startHTTP(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocator) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>bc</code></td><td><code>*Blockchain</code></td><td>Bc</td></tr><tr><td><code>wallet</code></td><td><code>*Wallet</code></td><td>Wallet</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 99</p>
+        </div>
+        <div class="section">
+            <h3><code>startHTTPEx()</code></h3>
+            <p class="desc">Versiunea extinsa cu module optionale (mempool, p2p, sync)</p>
+            <pre><code>pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocator, cfg: HTTPConfig) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>bc</code></td><td><code>*Blockchain</code></td><td>Bc</td></tr><tr><td><code>wallet</code></td><td><code>*Wallet</code></td><td>Wallet</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>cfg</code></td><td><code>HTTPConfig</code></td><td>Cfg</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 104</p>
+        </div>
+        <div class="section">
+            <h3><code>main()</code></h3>
+            <p class="desc">Performs the main operation on the rpc_server module.</p>
+            <pre><code>pub fn main() !void {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 1574</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

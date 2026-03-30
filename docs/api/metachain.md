@@ -1,10 +1,39 @@
 # Module: `metachain`
 
+> EGLD-style metachain coordination — aggregates shard headers, cross-shard communication, meta-block finalization.
+
+**Source:** `core/metachain.zig` | **Lines:** 385 | **Functions:** 13 | **Structs:** 4 | **Tests:** 9
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`ShardBlockHeader`](#shardblockheader) — Header rezumat al unui shard block — trimis la Metachain pentru confirmare
+- [`CrossShardReceipt`](#crossshardreceipt) — Cross-shard receipt — confirmă că o TX cross-shard a fost procesată
+La EGLD: faz...
+- [`MetaBlock`](#metablock) — MetaBlock — blocul Metachain-ului (1 per secundă)
+- [`Metachain`](#metachain) — Metachain — chain de MetaBlock-uri, coordonator global
+
+### Constants
+- [3 constants defined](#constants)
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`addShardHeader()`](#addshardheader) — Adaugă header-ul unui shard la acest MetaBlock
+- [`addCrossReceipt()`](#addcrossreceipt) — Adaugă un receipt cross-shard
+- [`calculateHash()`](#calculatehash) — Calculează hash-ul MetaBlock-ului (SHA256 peste toate datele)
+- [`isComplete()`](#iscomplete) — Checks whether the complete condition is true.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`getHeight()`](#getheight) — Returns the current height.
+- [`getLatestHash()`](#getlatesthash) — Returns the current latest hash.
+- [`beginMetaBlock()`](#beginmetablock) — Creează un nou MetaBlock gol pentru height-ul următor
+- [`finalizeMetaBlock()`](#finalizemetablock) — Finalizează MetaBlock-ul curent: calculează hash + procesează receipts...
+- [`printStatus()`](#printstatus) — Performs the print status operation on the metachain module.
+
+---
 
 ## Structs
 
@@ -12,70 +41,123 @@
 
 Header rezumat al unui shard block — trimis la Metachain pentru confirmare
 
-*Line: 20*
+| Field | Type | Description |
+|-------|------|-------------|
+| `shard_id` | `u8` | Shard_id |
+| `block_height` | `u64` | Block_height |
+| `block_hash` | `[32]u8` | Block_hash |
+| `tx_count` | `u32` | Tx_count |
+| `timestamp` | `i64` | Timestamp |
+| `miner` | `[]const u8` | Miner |
+| `reward_sat` | `u64` | Reward_sat |
+
+*Defined at line 20*
+
+---
 
 ### `CrossShardReceipt`
 
 Cross-shard receipt — confirmă că o TX cross-shard a fost procesată
 La EGLD: faza 1 = scade din shard sursei; faza 2 = creditează în shard destinației
 
-*Line: 32*
+| Field | Type | Description |
+|-------|------|-------------|
+| `tx_hash` | `[32]u8` | Tx_hash |
+| `from_shard` | `u8` | From_shard |
+| `to_shard` | `u8` | To_shard |
+| `from_address` | `[]const u8` | From_address |
+| `to_address` | `[]const u8` | To_address |
+| `amount_sat` | `u64` | Amount_sat |
+| `phase` | `CrossShardPhase` | Phase |
+| `meta_height` | `u64` | Meta_height |
+
+*Defined at line 32*
+
+---
 
 ### `MetaBlock`
 
 MetaBlock — blocul Metachain-ului (1 per secundă)
 
-*Line: 50*
+| Field | Type | Description |
+|-------|------|-------------|
+| `height` | `u64` | Height |
+| `timestamp` | `i64` | Timestamp |
+| `previous_hash` | `[32]u8` | Previous_hash |
+| `hash` | `[32]u8` | Hash |
+| `shard_headers` | `array_list.Managed(ShardBlockHeader)` | Shard_headers |
+| `cross_receipts` | `array_list.Managed(CrossShardReceipt)` | Cross_receipts |
+| `total_tx_count` | `u64` | Total_tx_count |
+| `active_shards` | `u8` | Active_shards |
+
+*Defined at line 50*
+
+---
 
 ### `Metachain`
 
 Metachain — chain de MetaBlock-uri, coordonator global
 
-*Line: 141*
+| Field | Type | Description |
+|-------|------|-------------|
+| `chain` | `array_list.Managed(MetaBlock)` | Chain |
+| `coordinator` | `ShardCoordinator` | Coordinator |
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `pending_receipts` | `array_list.Managed(CrossShardReceipt)` | Pending_receipts |
+
+*Defined at line 141*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `ShardCoordinator` | auto | `shard_coord_mod.ShardCoordinator` |
-| `METACHAIN_SHARD` | auto | `shard_coord_mod.METACHAIN_SHARD` |
-| `CrossShardPhase` | auto | `enum(u8) {` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `ShardCoordinator` | `shard_coord_mod.ShardCoordinator` | Shard coordinator |
+| `METACHAIN_SHARD` | `shard_coord_mod.METACHAIN_SHARD` | M e t a c h a i n_ s h a r d |
+| `CrossShardPhase` | `enum(u8) {` | Cross shard phase |
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, height: u64, prev_hash: [32]u8) MetaBlock {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `height`: `u64`
-- `prev_hash`: `[32]u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `height` | `u64` | Height |
+| `prev_hash` | `[32]u8` | Prev_hash |
 
 **Returns:** `MetaBlock`
 
-*Line: 68*
+*Defined at line 68*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *MetaBlock) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MetaBlock` | The instance |
 
-- `self`: `*MetaBlock`
-
-*Line: 81*
+*Defined at line 81*
 
 ---
 
-### `addShardHeader`
+### `addShardHeader()`
 
 Adaugă header-ul unui shard la acest MetaBlock
 
@@ -83,18 +165,18 @@ Adaugă header-ul unui shard la acest MetaBlock
 pub fn addShardHeader(self: *MetaBlock, hdr: ShardBlockHeader) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MetaBlock`
-- `hdr`: `ShardBlockHeader`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MetaBlock` | The instance |
+| `hdr` | `ShardBlockHeader` | Hdr |
 
 **Returns:** `!void`
 
-*Line: 87*
+*Defined at line 87*
 
 ---
 
-### `addCrossReceipt`
+### `addCrossReceipt()`
 
 Adaugă un receipt cross-shard
 
@@ -102,18 +184,18 @@ Adaugă un receipt cross-shard
 pub fn addCrossReceipt(self: *MetaBlock, receipt: CrossShardReceipt) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*MetaBlock`
-- `receipt`: `CrossShardReceipt`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MetaBlock` | The instance |
+| `receipt` | `CrossShardReceipt` | Receipt |
 
 **Returns:** `!void`
 
-*Line: 96*
+*Defined at line 96*
 
 ---
 
-### `calculateHash`
+### `calculateHash()`
 
 Calculează hash-ul MetaBlock-ului (SHA256 peste toate datele)
 
@@ -121,95 +203,105 @@ Calculează hash-ul MetaBlock-ului (SHA256 peste toate datele)
 pub fn calculateHash(self: *MetaBlock) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*MetaBlock` | The instance |
 
-- `self`: `*MetaBlock`
-
-*Line: 101*
+*Defined at line 101*
 
 ---
 
-### `isComplete`
+### `isComplete()`
+
+Checks whether the complete condition is true.
 
 ```zig
 pub fn isComplete(self: *const MetaBlock, expected_shards: u8) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const MetaBlock`
-- `expected_shards`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const MetaBlock` | The instance |
+| `expected_shards` | `u8` | Expected_shards |
 
 **Returns:** `bool`
 
-*Line: 135*
+*Defined at line 135*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator, num_shards: u8) !Metachain {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
-- `num_shards`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `num_shards` | `u8` | Num_shards |
 
 **Returns:** `!Metachain`
 
-*Line: 149*
+*Defined at line 149*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *Metachain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Metachain` | The instance |
 
-- `self`: `*Metachain`
-
-*Line: 165*
+*Defined at line 165*
 
 ---
 
-### `getHeight`
+### `getHeight()`
+
+Returns the current height.
 
 ```zig
 pub fn getHeight(self: *const Metachain) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Metachain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Metachain` | The instance |
 
 **Returns:** `u64`
 
-*Line: 171*
+*Defined at line 171*
 
 ---
 
-### `getLatestHash`
+### `getLatestHash()`
+
+Returns the current latest hash.
 
 ```zig
 pub fn getLatestHash(self: *const Metachain) [32]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const Metachain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Metachain` | The instance |
 
 **Returns:** `[32]u8`
 
-*Line: 175*
+*Defined at line 175*
 
 ---
 
-### `beginMetaBlock`
+### `beginMetaBlock()`
 
 Creează un nou MetaBlock gol pentru height-ul următor
 
@@ -217,17 +309,17 @@ Creează un nou MetaBlock gol pentru height-ul următor
 pub fn beginMetaBlock(self: *Metachain) !*MetaBlock {
 ```
 
-**Parameters:**
-
-- `self`: `*Metachain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Metachain` | The instance |
 
 **Returns:** `!*MetaBlock`
 
-*Line: 180*
+*Defined at line 180*
 
 ---
 
-### `finalizeMetaBlock`
+### `finalizeMetaBlock()`
 
 Finalizează MetaBlock-ul curent: calculează hash + procesează receipts pending
 
@@ -235,27 +327,33 @@ Finalizează MetaBlock-ul curent: calculează hash + procesează receipts pendin
 pub fn finalizeMetaBlock(self: *Metachain) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*Metachain`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*Metachain` | The instance |
 
 **Returns:** `!void`
 
-*Line: 189*
+*Defined at line 189*
 
 ---
 
-### `printStatus`
+### `printStatus()`
+
+Performs the print status operation on the metachain module.
 
 ```zig
 pub fn printStatus(self: *const Metachain) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const Metachain` | The instance |
 
-- `self`: `*const Metachain`
-
-*Line: 257*
+*Defined at line 257*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

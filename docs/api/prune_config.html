@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>prune_config — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>prune_config</code></h1>
+<p class="module-desc">Pruning configuration — configurable retention (max 10K blocks), auto-prune old data, reduce disk usage.</p>
+<p class="stats">Source: core/prune_config.zig &bull; 224 lines &bull; 8 functions &bull; 3 structs &bull; 6 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>PruneConfig</code></h3>
+            <p>Pruning configuration for blockchain size management</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>max_blocks_to_keep</code></td><td><code>u32</code></td><td>Max_blocks_to_keep</td></tr><tr><td><code>auto_prune_enabled</code></td><td><code>bool</code></td><td>Auto_prune_enabled</td></tr><tr><td><code>prune_threshold</code></td><td><code>u32</code></td><td>Prune_threshold</td></tr><tr><td><code>keep_days</code></td><td><code>u32</code></td><td>Keep_days</td></tr><tr><td><code>archive_enabled</code></td><td><code>bool</code></td><td>Archive_enabled</td></tr><tr><td><code>archive_path</code></td><td><code>[]const u8</code></td><td>Archive_path</td></tr><tr><td><code>compress_archived</code></td><td><code>bool</code></td><td>Compress_archived</td></tr><tr><td><code>keep_full_history</code></td><td><code>bool</code></td><td>Keep_full_history</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>max_blocks</code></td><td><code>u32</code></td><td>Max_blocks</td></tr><tr><td><code>keep_days</code></td><td><code>u32</code></td><td>Keep_days</td></tr><tr><td><code>archive_enabled</code></td><td><code>bool</code></td><td>Archive_enabled</td></tr></table>
+            <p class="line">Line: 4</p>
+        </div>
+        <div class="section">
+            <h3><code>PruneStats</code></h3>
+            <p>Pruning statistics</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>blocks_pruned</code></td><td><code>u32</code></td><td>Blocks_pruned</td></tr><tr><td><code>blocks_archived</code></td><td><code>u32</code></td><td>Blocks_archived</td></tr><tr><td><code>blocks_remaining</code></td><td><code>u32</code></td><td>Blocks_remaining</td></tr><tr><td><code>space_freed</code></td><td><code>u64</code></td><td>Space_freed</td></tr><tr><td><code>archive_size</code></td><td><code>u64</code></td><td>Archive_size</td></tr><tr><td><code>prune_count</code></td><td><code>u32</code></td><td>Prune_count</td></tr></table>
+            <p class="line">Line: 76</p>
+        </div>
+        <div class="section">
+            <h3><code>RetentionPolicy</code></h3>
+            <p>Block retention policy</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>strategy</code></td><td><code>PruneStrategy</code></td><td>Strategy</td></tr><tr><td><code>keep_count</code></td><td><code>u32</code></td><td>Keep_count</td></tr><tr><td><code>keep_days</code></td><td><code>u32</code></td><td>Keep_days</td></tr><tr><td><code>checkpoint_height</code></td><td><code>u32</code></td><td>Checkpoint_height</td></tr></table>
+            <p class="line">Line: 121</p>
+        </div>
+
+<h2>Constants (1)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>PruneStrategy</code></td><td><code>enum {</code></td><td>Prune strategy</td></tr></table></div>
+
+<h2>Functions (8)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator) PruneConfig {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>PruneConfig</code></p>
+            <p class="line">Line: 31</p>
+        </div>
+        <div class="section">
+            <h3><code>estimateStorageSize()</code></h3>
+            <p class="desc">Get estimated storage size based on config</p>
+            <pre><code>pub fn estimateStorageSize(self: *const PruneConfig) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PruneConfig</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 54</p>
+        </div>
+        <div class="section">
+            <h3><code>validate()</code></h3>
+            <p class="desc">Validate configuration</p>
+            <pre><code>pub fn validate(self: *const PruneConfig) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PruneConfig</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 60</p>
+        </div>
+        <div class="section">
+            <h3><code>print()</code></h3>
+            <p class="desc">Performs the print operation on the prune_config module.</p>
+            <pre><code>pub fn print(self: *const PruneStats) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const PruneStats</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 84</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() RetentionPolicy {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>RetentionPolicy</code></p>
+            <p class="line">Line: 127</p>
+        </div>
+        <div class="section">
+            <h3><code>initByDays()</code></h3>
+            <p class="desc">Performs the init by days operation on the prune_config module.</p>
+            <pre><code>pub fn initByDays(days: u32) RetentionPolicy {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>days</code></td><td><code>u32</code></td><td>Days</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>RetentionPolicy</code></p>
+            <p class="line">Line: 134</p>
+        </div>
+        <div class="section">
+            <h3><code>initByCheckpoint()</code></h3>
+            <p class="desc">Performs the init by checkpoint operation on the prune_config module.</p>
+            <pre><code>pub fn initByCheckpoint(height: u32) RetentionPolicy {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>height</code></td><td><code>u32</code></td><td>Height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>RetentionPolicy</code></p>
+            <p class="line">Line: 141</p>
+        </div>
+        <div class="section">
+            <h3><code>shouldKeepBlock()</code></h3>
+            <p class="desc">Performs the should keep block operation on the prune_config module.</p>
+            <pre><code>pub fn shouldKeepBlock(self: *const RetentionPolicy, block_height: u32, total_blocks: u32) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const RetentionPolicy</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u32</code></td><td>Block_height</td></tr><tr><td><code>total_blocks</code></td><td><code>u32</code></td><td>Total_blocks</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 148</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

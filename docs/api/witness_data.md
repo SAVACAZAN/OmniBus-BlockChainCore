@@ -1,9 +1,47 @@
 # Module: `witness_data`
 
+> Signature witness separation — 95% size reduction for stored signatures, backward compatible with full validation.
+
+**Source:** `core/witness_data.zig` | **Lines:** 417 | **Functions:** 25 | **Structs:** 4 | **Tests:** 8
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Functions](#functions)
+### Structs
+- [`WitnessData`](#witnessdata) — Signature witness data (kept separate from transaction data in SegWit style)
+- [`WitnessPool`](#witnesspool) — Witness pool - manages all signatures for a block
+- [`CompressionStats`](#compressionstats) — Data structure for compression stats. Fields include: full_size, witness_size, r...
+- [`WitnessArchive`](#witnessarchive) — Witness archive for old blocks
+
+### Functions
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`setSignature()`](#setsignature) — Set signature data
+- [`setPublicKey()`](#setpublickey) — Set public key data
+- [`getSignature()`](#getsignature) — Get signature slice
+- [`getPublicKey()`](#getpublickey) — Get public key slice
+- [`serialize()`](#serialize) — Serialize witness to binary
+- [`deserialize()`](#deserialize) — Deserialize witness from binary
+- [`print()`](#print) — Performs the print operation on the witness_data module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`addWitness()`](#addwitness) — Add witness for a transaction
+- [`getWitness()`](#getwitness) — Get witness by transaction ID
+- [`hasWitness()`](#haswitness) — Check if witness exists
+- [`getAllWitnesses()`](#getallwitnesses) — Get all witnesses
+- [`getWitnessCount()`](#getwitnesscount) — Get witness count
+- [`estimateSize()`](#estimatesize) — Estimated storage size in bytes
+- [`serialize()`](#serialize) — Serialize all witnesses to binary
+- [`clear()`](#clear) — Clear all witnesses
+- [`getCompressionStats()`](#getcompressionstats) — Get compression ratio (witness data vs full signature)
+- [`printStats()`](#printstats) — Performs the print stats operation on the witness_data module.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`archiveBlock()`](#archiveblock) — Archive witnesses for a block height
+- [`getBlockWitnesses()`](#getblockwitnesses) — Get witnesses for a block
+- [`getTotalSize()`](#gettotalsize) — Get total archived size
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+
+---
 
 ## Structs
 
@@ -11,44 +49,84 @@
 
 Signature witness data (kept separate from transaction data in SegWit style)
 
-*Line: 5*
+| Field | Type | Description |
+|-------|------|-------------|
+| `tx_id` | `u32` | Tx_id |
+| `sig_type` | `u8` | Sig_type |
+| `signature` | `[512]u8` | Signature |
+| `sig_len` | `u16` | Sig_len |
+| `timestamp` | `u64` | Timestamp |
+| `flags` | `u8` | Flags |
+
+*Defined at line 5*
+
+---
 
 ### `WitnessPool`
 
 Witness pool - manages all signatures for a block
 
-*Line: 151*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `witnesses` | `std.array_list.Managed(WitnessData)` | Witnesses |
+| `witness_map` | `std.AutoHashMap(u32` | Witness_map |
+| `total_size` | `u64` | Total_size |
+
+*Defined at line 151*
+
+---
 
 ### `CompressionStats`
 
-*Line: 263*
+Data structure for compression stats. Fields include: full_size, witness_size, reduction_percent.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `full_size` | `u64` | Full_size |
+| `witness_size` | `u64` | Witness_size |
+| `reduction_percent` | `u64` | Reduction_percent |
+
+*Defined at line 263*
+
+---
 
 ### `WitnessArchive`
 
 Witness archive for old blocks
 
-*Line: 270*
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
+| `block_witnesses` | `std.array_list.Managed(WitnessPool)` | Block_witnesses |
+| `block_heights` | `std.array_list.Managed(u32)` | Block_heights |
+
+*Defined at line 270*
+
+---
 
 ## Functions
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(tx_id: u32, sig_type: u8) WitnessData {
 ```
 
-**Parameters:**
-
-- `tx_id`: `u32`
-- `sig_type`: `u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `tx_id` | `u32` | Tx_id |
+| `sig_type` | `u8` | Sig_type |
 
 **Returns:** `WitnessData`
 
-*Line: 15*
+*Defined at line 15*
 
 ---
 
-### `setSignature`
+### `setSignature()`
 
 Set signature data
 
@@ -56,18 +134,18 @@ Set signature data
 pub fn setSignature(self: *WitnessData, sig: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WitnessData`
-- `sig`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessData` | The instance |
+| `sig` | `[]const u8` | Sig |
 
 **Returns:** `!void`
 
-*Line: 29*
+*Defined at line 29*
 
 ---
 
-### `setPublicKey`
+### `setPublicKey()`
 
 Set public key data
 
@@ -75,18 +153,18 @@ Set public key data
 pub fn setPublicKey(self: *WitnessData, pubkey: []const u8) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WitnessData`
-- `pubkey`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessData` | The instance |
+| `pubkey` | `[]const u8` | Pubkey |
 
 **Returns:** `!void`
 
-*Line: 36*
+*Defined at line 36*
 
 ---
 
-### `getSignature`
+### `getSignature()`
 
 Get signature slice
 
@@ -94,17 +172,17 @@ Get signature slice
 pub fn getSignature(self: *const WitnessData) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessData`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessData` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 43*
+*Defined at line 43*
 
 ---
 
-### `getPublicKey`
+### `getPublicKey()`
 
 Get public key slice
 
@@ -112,17 +190,17 @@ Get public key slice
 pub fn getPublicKey(self: *const WitnessData) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessData`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessData` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 48*
+*Defined at line 48*
 
 ---
 
-### `serialize`
+### `serialize()`
 
 Serialize witness to binary
 
@@ -130,18 +208,18 @@ Serialize witness to binary
 pub fn serialize(self: *const WitnessData, allocator: std.mem.Allocator) ![]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessData`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessData` | The instance |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `![]u8`
 
-*Line: 53*
+*Defined at line 53*
 
 ---
 
-### `deserialize`
+### `deserialize()`
 
 Deserialize witness from binary
 
@@ -149,48 +227,52 @@ Deserialize witness from binary
 pub fn deserialize(data: []const u8, allocator: std.mem.Allocator) !WitnessData {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `!WitnessData`
 
-*Line: 93*
+*Defined at line 93*
 
 ---
 
-### `print`
+### `print()`
+
+Performs the print operation on the witness_data module.
 
 ```zig
 pub fn print(self: *const WitnessData) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessData` | The instance |
 
-- `self`: `*const WitnessData`
-
-*Line: 142*
+*Defined at line 142*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) WitnessPool {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `WitnessPool`
 
-*Line: 157*
+*Defined at line 157*
 
 ---
 
-### `addWitness`
+### `addWitness()`
 
 Add witness for a transaction
 
@@ -198,18 +280,18 @@ Add witness for a transaction
 pub fn addWitness(self: *WitnessPool, witness: WitnessData) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WitnessPool`
-- `witness`: `WitnessData`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessPool` | The instance |
+| `witness` | `WitnessData` | Witness |
 
 **Returns:** `!void`
 
-*Line: 166*
+*Defined at line 166*
 
 ---
 
-### `getWitness`
+### `getWitness()`
 
 Get witness by transaction ID
 
@@ -217,18 +299,18 @@ Get witness by transaction ID
 pub fn getWitness(self: *const WitnessPool, tx_id: u32) ?*const WitnessData {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
-- `tx_id`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
+| `tx_id` | `u32` | Tx_id |
 
 **Returns:** `?*const WitnessData`
 
-*Line: 175*
+*Defined at line 175*
 
 ---
 
-### `hasWitness`
+### `hasWitness()`
 
 Check if witness exists
 
@@ -236,18 +318,18 @@ Check if witness exists
 pub fn hasWitness(self: *const WitnessPool, tx_id: u32) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
-- `tx_id`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
+| `tx_id` | `u32` | Tx_id |
 
 **Returns:** `bool`
 
-*Line: 183*
+*Defined at line 183*
 
 ---
 
-### `getAllWitnesses`
+### `getAllWitnesses()`
 
 Get all witnesses
 
@@ -255,17 +337,17 @@ Get all witnesses
 pub fn getAllWitnesses(self: *const WitnessPool) []const WitnessData {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
 **Returns:** `[]const WitnessData`
 
-*Line: 188*
+*Defined at line 188*
 
 ---
 
-### `getWitnessCount`
+### `getWitnessCount()`
 
 Get witness count
 
@@ -273,17 +355,17 @@ Get witness count
 pub fn getWitnessCount(self: *const WitnessPool) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
 **Returns:** `usize`
 
-*Line: 193*
+*Defined at line 193*
 
 ---
 
-### `estimateSize`
+### `estimateSize()`
 
 Estimated storage size in bytes
 
@@ -291,17 +373,17 @@ Estimated storage size in bytes
 pub fn estimateSize(self: *const WitnessPool) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
 **Returns:** `u64`
 
-*Line: 198*
+*Defined at line 198*
 
 ---
 
-### `serialize`
+### `serialize()`
 
 Serialize all witnesses to binary
 
@@ -309,17 +391,17 @@ Serialize all witnesses to binary
 pub fn serialize(self: *const WitnessPool) ![]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
 **Returns:** `![]u8`
 
-*Line: 203*
+*Defined at line 203*
 
 ---
 
-### `clear`
+### `clear()`
 
 Clear all witnesses
 
@@ -327,15 +409,15 @@ Clear all witnesses
 pub fn clear(self: *WitnessPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessPool` | The instance |
 
-- `self`: `*WitnessPool`
-
-*Line: 220*
+*Defined at line 220*
 
 ---
 
-### `getCompressionStats`
+### `getCompressionStats()`
 
 Get compression ratio (witness data vs full signature)
 
@@ -343,61 +425,67 @@ Get compression ratio (witness data vs full signature)
 pub fn getCompressionStats(self: *const WitnessPool) CompressionStats {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
 **Returns:** `CompressionStats`
 
-*Line: 227*
+*Defined at line 227*
 
 ---
 
-### `printStats`
+### `printStats()`
+
+Performs the print stats operation on the witness_data module.
 
 ```zig
 pub fn printStats(self: *const WitnessPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessPool` | The instance |
 
-- `self`: `*const WitnessPool`
-
-*Line: 249*
+*Defined at line 249*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *WitnessPool) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessPool` | The instance |
 
-- `self`: `*WitnessPool`
-
-*Line: 257*
+*Defined at line 257*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) WitnessArchive {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `WitnessArchive`
 
-*Line: 275*
+*Defined at line 275*
 
 ---
 
-### `archiveBlock`
+### `archiveBlock()`
 
 Archive witnesses for a block height
 
@@ -405,19 +493,19 @@ Archive witnesses for a block height
 pub fn archiveBlock(self: *WitnessArchive, block_height: u32, pool: WitnessPool) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*WitnessArchive`
-- `block_height`: `u32`
-- `pool`: `WitnessPool`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessArchive` | The instance |
+| `block_height` | `u32` | Block_height |
+| `pool` | `WitnessPool` | Pool |
 
 **Returns:** `!void`
 
-*Line: 284*
+*Defined at line 284*
 
 ---
 
-### `getBlockWitnesses`
+### `getBlockWitnesses()`
 
 Get witnesses for a block
 
@@ -425,18 +513,18 @@ Get witnesses for a block
 pub fn getBlockWitnesses(self: *const WitnessArchive, block_height: u32) ?*const WitnessPool {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessArchive`
-- `block_height`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessArchive` | The instance |
+| `block_height` | `u32` | Block_height |
 
 **Returns:** `?*const WitnessPool`
 
-*Line: 290*
+*Defined at line 290*
 
 ---
 
-### `getTotalSize`
+### `getTotalSize()`
 
 Get total archived size
 
@@ -444,27 +532,33 @@ Get total archived size
 pub fn getTotalSize(self: *const WitnessArchive) u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*const WitnessArchive`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const WitnessArchive` | The instance |
 
 **Returns:** `u64`
 
-*Line: 300*
+*Defined at line 300*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *WitnessArchive) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*WitnessArchive` | The instance |
 
-- `self`: `*WitnessArchive`
-
-*Line: 308*
+*Defined at line 308*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

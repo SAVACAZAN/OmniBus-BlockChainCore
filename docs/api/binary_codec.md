@@ -1,10 +1,43 @@
 # Module: `binary_codec`
 
+> Binary serialization — varint encoding, 93% compression ratio, block/TX serialization for network and storage.
+
+**Source:** `core/binary_codec.zig` | **Lines:** 258 | **Functions:** 18 | **Structs:** 3 | **Tests:** 5
+
+---
+
 ## Contents
 
-- [Structs](#structs)
-- [Constants](#constants)
-- [Functions](#functions)
+### Structs
+- [`Varint`](#varint) — Varint encoding - variable-length integers
+Saves space: 255 needs 1 byte, not 4
+- [`BinaryEncoder`](#binaryencoder) — Binary encoder for sub-blocks
+- [`BinaryDecoder`](#binarydecoder) — Binary decoder for sub-blocks
+
+### Constants
+- [2 constants defined](#constants)
+
+### Functions
+- [`encodeU64()`](#encodeu64) — Encode u64 as varint
+- [`decodeU64()`](#decodeu64) — Decode varint back to u64
+- [`encodeU32()`](#encodeu32) — Encode u32 as varint
+- [`decodeU32()`](#decodeu32) — Decode varint to u32
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`encodeSubBlock()`](#encodesubblock) — Decodes the encoded data back to its original format.
+- [`encodeTransaction()`](#encodetransaction) — Decodes the encoded data back to its original format.
+- [`encodeVarU32()`](#encodevaru32) — Decodes the encoded data back to its original format.
+- [`encodeVarU64()`](#encodevaru64) — Decodes the encoded data back to its original format.
+- [`getBytes()`](#getbytes) — Returns the current bytes.
+- [`getSize()`](#getsize) — Returns the current size.
+- [`deinit()`](#deinit) — Clean up and free all allocated memory. Must be called when done.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`readU8()`](#readu8) — Performs the read u8 operation on the binary_codec module.
+- [`readBytes()`](#readbytes) — Performs the read bytes operation on the binary_codec module.
+- [`readVarU32()`](#readvaru32) — Performs the read var u32 operation on the binary_codec module.
+- [`readVarU64()`](#readvaru64) — Performs the read var u64 operation on the binary_codec module.
+- [`isEndOfData()`](#isendofdata) — Checks whether the end of data condition is true.
+
+---
 
 ## Structs
 
@@ -13,30 +46,48 @@
 Varint encoding - variable-length integers
 Saves space: 255 needs 1 byte, not 4
 
-*Line: 10*
+*Defined at line 10*
+
+---
 
 ### `BinaryEncoder`
 
 Binary encoder for sub-blocks
 
-*Line: 72*
+| Field | Type | Description |
+|-------|------|-------------|
+| `buffer` | `std.array_list.Managed(u8)` | Buffer |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 72*
+
+---
 
 ### `BinaryDecoder`
 
 Binary decoder for sub-blocks
 
-*Line: 156*
+| Field | Type | Description |
+|-------|------|-------------|
+| `data` | `[]const u8` | Data |
+| `offset` | `usize` | Offset |
+
+*Defined at line 156*
+
+---
 
 ## Constants
 
-| Name | Type | Value |
-|------|------|-------|
-| `SubBlock` | auto | `sub_block_mod.SubBlock` |
-| `Transaction` | auto | `transaction_mod.Transaction` |
+| Name | Value | Description |
+|------|-------|-------------|
+| `SubBlock` | `sub_block_mod.SubBlock` | Sub block |
+| `Transaction` | `transaction_mod.Transaction` | Transaction |
+
+---
 
 ## Functions
 
-### `encodeU64`
+### `encodeU64()`
 
 Encode u64 as varint
 
@@ -44,17 +95,17 @@ Encode u64 as varint
 pub fn encodeU64(value: u64) ![9]u8 {
 ```
 
-**Parameters:**
-
-- `value`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `value` | `u64` | Value |
 
 **Returns:** `![9]u8`
 
-*Line: 12*
+*Defined at line 12*
 
 ---
 
-### `decodeU64`
+### `decodeU64()`
 
 Decode varint back to u64
 
@@ -62,17 +113,17 @@ Decode varint back to u64
 pub fn decodeU64(data: []const u8) ![2]usize {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `![2]usize`
 
-*Line: 30*
+*Defined at line 30*
 
 ---
 
-### `encodeU32`
+### `encodeU32()`
 
 Encode u32 as varint
 
@@ -80,17 +131,17 @@ Encode u32 as varint
 pub fn encodeU32(value: u32) ![5]u8 {
 ```
 
-**Parameters:**
-
-- `value`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `value` | `u32` | Value |
 
 **Returns:** `![5]u8`
 
-*Line: 47*
+*Defined at line 47*
 
 ---
 
-### `decodeU32`
+### `decodeU32()`
 
 Decode varint to u32
 
@@ -98,240 +149,272 @@ Decode varint to u32
 pub fn decodeU32(data: []const u8) ![2]usize {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `![2]usize`
 
-*Line: 65*
+*Defined at line 65*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(allocator: std.mem.Allocator) BinaryEncoder {
 ```
 
-**Parameters:**
-
-- `allocator`: `std.mem.Allocator`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocator` | `std.mem.Allocator` | Allocator |
 
 **Returns:** `BinaryEncoder`
 
-*Line: 76*
+*Defined at line 76*
 
 ---
 
-### `encodeSubBlock`
+### `encodeSubBlock()`
+
+Decodes the encoded data back to its original format.
 
 ```zig
 pub fn encodeSubBlock(self: *BinaryEncoder, sub: *const SubBlock) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryEncoder`
-- `sub`: `*const SubBlock`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryEncoder` | The instance |
+| `sub` | `*const SubBlock` | Sub |
 
 **Returns:** `!void`
 
-*Line: 83*
+*Defined at line 83*
 
 ---
 
-### `encodeTransaction`
+### `encodeTransaction()`
+
+Decodes the encoded data back to its original format.
 
 ```zig
 pub fn encodeTransaction(self: *BinaryEncoder, tx: *const Transaction) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryEncoder`
-- `tx`: `*const Transaction`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryEncoder` | The instance |
+| `tx` | `*const Transaction` | Tx |
 
 **Returns:** `!void`
 
-*Line: 106*
+*Defined at line 106*
 
 ---
 
-### `encodeVarU32`
+### `encodeVarU32()`
+
+Decodes the encoded data back to its original format.
 
 ```zig
 pub fn encodeVarU32(self: *BinaryEncoder, value: u32) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryEncoder`
-- `value`: `u32`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryEncoder` | The instance |
+| `value` | `u32` | Value |
 
 **Returns:** `!void`
 
-*Line: 122*
+*Defined at line 122*
 
 ---
 
-### `encodeVarU64`
+### `encodeVarU64()`
+
+Decodes the encoded data back to its original format.
 
 ```zig
 pub fn encodeVarU64(self: *BinaryEncoder, value: u64) !void {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryEncoder`
-- `value`: `u64`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryEncoder` | The instance |
+| `value` | `u64` | Value |
 
 **Returns:** `!void`
 
-*Line: 128*
+*Defined at line 128*
 
 ---
 
-### `getBytes`
+### `getBytes()`
+
+Returns the current bytes.
 
 ```zig
 pub fn getBytes(self: *const BinaryEncoder) []const u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*const BinaryEncoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BinaryEncoder` | The instance |
 
 **Returns:** `[]const u8`
 
-*Line: 142*
+*Defined at line 142*
 
 ---
 
-### `getSize`
+### `getSize()`
+
+Returns the current size.
 
 ```zig
 pub fn getSize(self: *const BinaryEncoder) usize {
 ```
 
-**Parameters:**
-
-- `self`: `*const BinaryEncoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BinaryEncoder` | The instance |
 
 **Returns:** `usize`
 
-*Line: 146*
+*Defined at line 146*
 
 ---
 
-### `deinit`
+### `deinit()`
+
+Clean up and free all allocated memory. Must be called when done.
 
 ```zig
 pub fn deinit(self: *BinaryEncoder) void {
 ```
 
-**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryEncoder` | The instance |
 
-- `self`: `*BinaryEncoder`
-
-*Line: 150*
+*Defined at line 150*
 
 ---
 
-### `init`
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
 
 ```zig
 pub fn init(data: []const u8) BinaryDecoder {
 ```
 
-**Parameters:**
-
-- `data`: `[]const u8`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
 
 **Returns:** `BinaryDecoder`
 
-*Line: 160*
+*Defined at line 160*
 
 ---
 
-### `readU8`
+### `readU8()`
+
+Performs the read u8 operation on the binary_codec module.
 
 ```zig
 pub fn readU8(self: *BinaryDecoder) !u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryDecoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryDecoder` | The instance |
 
 **Returns:** `!u8`
 
-*Line: 167*
+*Defined at line 167*
 
 ---
 
-### `readBytes`
+### `readBytes()`
+
+Performs the read bytes operation on the binary_codec module.
 
 ```zig
 pub fn readBytes(self: *BinaryDecoder, comptime len: usize) ![len]u8 {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryDecoder`
-- `comptime len`: `usize`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryDecoder` | The instance |
+| `comptime len` | `usize` | Comptime len |
 
 **Returns:** `![len]u8`
 
-*Line: 174*
+*Defined at line 174*
 
 ---
 
-### `readVarU32`
+### `readVarU32()`
+
+Performs the read var u32 operation on the binary_codec module.
 
 ```zig
 pub fn readVarU32(self: *BinaryDecoder) !u32 {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryDecoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryDecoder` | The instance |
 
 **Returns:** `!u32`
 
-*Line: 182*
+*Defined at line 182*
 
 ---
 
-### `readVarU64`
+### `readVarU64()`
+
+Performs the read var u64 operation on the binary_codec module.
 
 ```zig
 pub fn readVarU64(self: *BinaryDecoder) !u64 {
 ```
 
-**Parameters:**
-
-- `self`: `*BinaryDecoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*BinaryDecoder` | The instance |
 
 **Returns:** `!u64`
 
-*Line: 188*
+*Defined at line 188*
 
 ---
 
-### `isEndOfData`
+### `isEndOfData()`
+
+Checks whether the end of data condition is true.
 
 ```zig
 pub fn isEndOfData(self: *const BinaryDecoder) bool {
 ```
 
-**Parameters:**
-
-- `self`: `*const BinaryDecoder`
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const BinaryDecoder` | The instance |
 
 **Returns:** `bool`
 
-*Line: 194*
+*Defined at line 194*
 
 ---
 
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*
