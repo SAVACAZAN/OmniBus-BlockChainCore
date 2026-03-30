@@ -96,7 +96,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
 
     // Limita thread-uri concurente (previne OOM sub heavy load)
     var active_threads: std.atomic.Value(u32) = .{ .raw = 0 };
-    const MAX_CONCURRENT: u32 = 8; // Low to prevent OOM under heavy load
+    const MAX_CONCURRENT: u32 = 4; // Keep low — each thread has 2MB stack
 
     while (true) {
         const conn = server.accept() catch |err| {
@@ -113,7 +113,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         const thread_ctx = try allocator.create(ConnCtx);
         thread_ctx.* = .{ .conn = conn, .server_ctx = ctx, .active_counter = &active_threads };
         _ = active_threads.fetchAdd(1, .monotonic);
-        const t = std.Thread.spawn(.{ .stack_size = 1024 * 1024 }, handleConnCounted, .{thread_ctx}) catch {
+        const t = std.Thread.spawn(.{ .stack_size = 2 * 1024 * 1024 }, handleConnCounted, .{thread_ctx}) catch {
             _ = active_threads.fetchSub(1, .monotonic);
             conn.stream.close();
             allocator.destroy(thread_ctx);
@@ -272,10 +272,14 @@ fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const req_addr = extractArrayStr(body, 0) orelse
                      extractStr(body, "address") orelse
                      ctx.wallet.address;
+    // Lock blockchain mutex — prevents segfault from concurrent hashmap resize
+    // during mining (creditBalance → put can realloc while we read)
+    ctx.bc.mutex.lock();
     const bal_sat = ctx.bc.getAddressBalance(req_addr);
+    const height  = ctx.bc.getBlockCount();
+    ctx.bc.mutex.unlock();
     const bal_omni = bal_sat / 1_000_000_000;
     const bal_frac = bal_sat % 1_000_000_000;
-    const height  = ctx.bc.getBlockCount();
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":\"{d}.{d:0>9}\",\"confirmed\":{d},\"unconfirmed\":0,\"utxos\":[],\"transactions\":[],\"txCount\":0,\"nodeHeight\":{d}}}}}",
         .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
@@ -507,6 +511,9 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 fn handleMinerSt(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+    // Lock blockchain pentru toata durata — previne realloc pe chain.items
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
 
     // Colectam adrese unice — max 64 (limitat pentru stabilitate)
     const MinerEntry = struct { addr: [64]u8, addr_len: u8, blocks: u32, reward: u64 };
@@ -547,7 +554,7 @@ fn handleMinerSt(ctx: *ServerCtx, id: u64) ![]u8 {
         if (reg_lens[i] > 0) _ = findOrAdd(&list, &count, reg_addrs[i][0..reg_lens[i]]);
     }
 
-    // 3. Stats din blocuri minate
+    // 3. Stats din blocuri minate (bc.mutex deja locked la inceputul functiei)
     for (ctx.bc.chain.items) |blk| {
         if (blk.miner_address.len == 0) continue;
         var e = findOrAdd(&list, &count, blk.miner_address);

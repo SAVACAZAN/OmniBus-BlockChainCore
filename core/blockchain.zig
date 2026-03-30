@@ -84,6 +84,8 @@ pub const Blockchain = struct {
     /// Nonce tracking per adresa: urmatorul nonce asteptat (anti-replay, ca Ethereum)
     /// Previne replay attacks: aceeasi TX nu poate fi trimisa de doua ori
     nonces: std.StringHashMap(u64),
+    /// Mutex — protejează chain/mempool/balances de data race (RPC + mining pe thread-uri diferite)
+    mutex: std.Thread.Mutex = .{},
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
@@ -149,11 +151,11 @@ pub const Blockchain = struct {
     }
 
     pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {
-        // Validate transaction
+        self.mutex.lock();
+        defer self.mutex.unlock();
         if (!try self.validateTransaction(&tx)) {
             return error.InvalidTransaction;
         }
-
         try self.mempool.append(tx);
     }
 
@@ -166,8 +168,8 @@ pub const Blockchain = struct {
         // 1. Amount trebuie > 0
         if (tx.amount == 0) { std.debug.print("[VALIDATE] FAIL: amount=0\n", .{}); return false; }
 
-        // 2. Adrese nu pot fi goale
-        if (tx.from_address.len == 0 or tx.to_address.len == 0) { std.debug.print("[VALIDATE] FAIL: empty addr\n", .{}); return false; }
+        // 2. Adrese nu pot fi goale si trebuie minim 8 chars (prefix "ob_omni_")
+        if (tx.from_address.len < 8 or tx.to_address.len < 8) { std.debug.print("[VALIDATE] FAIL: addr too short from={d} to={d}\n", .{tx.from_address.len, tx.to_address.len}); return false; }
 
         // 3. Prefix valid (isValid verifică prefix + amount)
         if (!tx.isValid()) { std.debug.print("[VALIDATE] FAIL: isValid() from={s} to={s} amt={d}\n", .{tx.from_address[0..@min(20,tx.from_address.len)], tx.to_address[0..@min(20,tx.to_address.len)], tx.amount}); return false; }
@@ -207,15 +209,23 @@ pub const Blockchain = struct {
 
     /// Mine block + acorda reward minerului + proceseaza TX-urile din mempool
     pub fn mineBlockForMiner(self: *Blockchain, miner_address: []const u8) !Block {
+        // NU lock aici — PoW dureaza secunde, ar bloca tot RPC-ul
+        // Lock doar pe secțiunile critice (read chain, write chain, update balances)
         if (self.chain.items.len == 0) {
             return error.EmptyChain;
         }
 
+        // Lock doar pentru citire chain state
+        self.mutex.lock();
         const previous_block = self.chain.items[self.chain.items.len - 1];
         const index = self.chain.items.len;
+        self.mutex.unlock();
         const timestamp = std.time.timestamp();
 
         const reward = if (miner_address.len > 0) blockRewardAt(@intCast(index)) else 0;
+
+        // Copy miner address — slice-ul extern poate fi din MinerPool global
+        const miner_addr_owned = try self.allocator.dupe(u8, miner_address);
 
         var block = Block{
             .index = @intCast(index),
@@ -224,7 +234,7 @@ pub const Blockchain = struct {
             .previous_hash = previous_block.hash,
             .nonce = 0,
             .hash = "",
-            .miner_address = miner_address,
+            .miner_address = miner_addr_owned,
             .reward_sat = reward,
         };
 
@@ -265,7 +275,9 @@ pub const Blockchain = struct {
                    @as(f64, @floatFromInt(reward)) / 1e9, total_fees, index });
         }
 
-        // Add block to chain
+        // Lock pentru chain write + balance update
+        self.mutex.lock();
+        defer self.mutex.unlock();
         try self.chain.append(block);
 
         // Difficulty retarget la fiecare RETARGET_INTERVAL blocuri

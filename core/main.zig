@@ -133,9 +133,9 @@ const MinerPool = struct {
     mutex: std.Thread.Mutex = .{},
 
     pub fn register(self: *MinerPool, addr: []const u8) void {
+        if (addr.len < 8) return; // minim "ob_omni_"
         self.mutex.lock();
         defer self.mutex.unlock();
-        // Check duplicate
         for (0..self.count) |i| {
             if (self.lengths[i] == addr.len and std.mem.eql(u8, self.addresses[i][0..self.lengths[i]], addr)) return;
         }

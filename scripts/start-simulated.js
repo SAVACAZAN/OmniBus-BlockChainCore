@@ -176,14 +176,25 @@ async function main() {
   console.log(`  [OK] Seed running — block #${st.blockCount}, balance ${st.balance} SAT`);
   console.log("");
 
-  // Generate wallets with deterministic addresses (ob_omni_ prefix + HMAC hash)
+  // Generate wallets via Zig CLI (--generate-wallet) for identical address derivation
   if (!miners) {
-    console.log(`[WALLETS] Generating ${MINER_COUNT} wallets...`);
+    console.log(`[WALLETS] Generating ${MINER_COUNT} wallets via Zig...`);
     miners = [];
     for (let i = 0; i < MINER_COUNT; i++) {
       const mnemonic = generateMnemonic();
-      const address = deriveAddress(mnemonic);
+      let address;
+      try {
+        // Use Zig node to derive address identically to the blockchain
+        const env = { ...process.env, OMNIBUS_MNEMONIC: mnemonic };
+        const result = execSync(`"${NODE_EXE}" --generate-wallet`, { env, timeout: 10000, encoding: "utf-8" });
+        const parsed = JSON.parse(result.trim());
+        address = parsed.address;
+      } catch {
+        // Fallback: JS derivation (hex, not Base58 — TX-uri vor merge dar adrese diferite)
+        address = deriveAddress(mnemonic);
+      }
       miners.push({ id: `miner-${i}`, mnemonic, address, port: 9100 + i });
+      if ((i + 1) % 10 === 0) console.log(`  Generated ${i + 1}/${MINER_COUNT}...`);
     }
     fs.writeFileSync(walletsPath, JSON.stringify(miners, null, 2));
     console.log(`  ${MINER_COUNT} wallets saved to wallets/network_miners.json`);
