@@ -474,6 +474,7 @@ pub const Blockchain = struct {
             .nonce = 0,
             .hash = "",
             .miner_address = miner_addr_owned,
+            .miner_heap = true,
             .reward_sat = reward,
         };
 

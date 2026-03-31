@@ -140,11 +140,11 @@ pub const OmniBrain = struct {
     }
 
     /// Verifica invariantii Ada/SPARK
-    pub fn assertInvariants(self: *const OmniBrain) void {
-        self.supply.assertValid();
+    pub fn assertInvariants(self: *const OmniBrain) !void {
+        try self.supply.assertValid();
         // Verifica reward monoton pentru blocul curent
         if (self.stats.blocks_mined > 0) {
-            spark_mod.assertRewardMonotone(self.stats.blocks_mined - 1);
+            try spark_mod.assertRewardMonotone(self.stats.blocks_mined - 1);
         }
     }
 
@@ -229,7 +229,7 @@ test "OmniBrain — assertInvariants nu panics" {
     var brain = OmniBrain.init(testing.allocator, .{ .node_type = .full_node });
     try brain.start();
     try brain.runCycles(5);
-    brain.assertInvariants();  // nu trebuie sa panics
+    try brain.assertInvariants();  // nu trebuie sa panics
 }
 
 test "OmniBrain — recordTrade" {
