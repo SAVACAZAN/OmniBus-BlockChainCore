@@ -293,6 +293,15 @@ test "network readiness check" {
         node.setStatus(bootstrap.BootstrapNode.NodeStatus.synchronized);
     }
 
+    // Not ready yet — need MIN_MINERS_FOR_MINING (10) registered miners
+    try testing.expect(!launcher.readyForMining());
+
+    // Simulate 10 miners registered via RPC (as happens in production)
+    bootstrap.BootstrapNode.registered_miner_count = 10;
+    defer {
+        bootstrap.BootstrapNode.registered_miner_count = 0;
+    }
+
     try testing.expect(launcher.readyForMining());
 }
 
