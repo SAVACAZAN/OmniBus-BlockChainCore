@@ -33,7 +33,7 @@ a:hover { text-decoration: underline; }
 <a href="index.html" class="back">&larr; Back to Index</a>
 <h1>Module: <code>blockchain</code></h1>
 <p class="module-desc">Core blockchain engine — manages the chain, validates blocks, handles reorgs, tracks balances per address, and implements difficulty retargeting (Bitcoin-style, every 2016 blocks).</p>
-<p class="stats">Source: core/blockchain.zig &bull; 2127 lines &bull; 33 functions &bull; 2 structs &bull; 72 tests</p>
+<p class="stats">Source: core/blockchain.zig &bull; 2128 lines &bull; 33 functions &bull; 2 structs &bull; 72 tests</p>
 
 <h2>Structs (2)</h2>
         <div class="section">
@@ -237,7 +237,7 @@ Aceasta metoda este utila pentru RPC "getnonce" — clientul stie ce nonce sa pu
             <pre><code>pub fn calculateBlockHash(self: *Blockchain, block: *const Block) ![]const u8 {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>![]const u8</code></p>
-            <p class="line">Line: 552</p>
+            <p class="line">Line: 553</p>
         </div>
         <div class="section">
             <h3><code>isValidHash()</code></h3>
@@ -245,7 +245,7 @@ Aceasta metoda este utila pentru RPC "getnonce" — clientul stie ce nonce sa pu
             <pre><code>pub fn isValidHash(self: *Blockchain, hash: []const u8) !bool {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
-            <p class="line">Line: 557</p>
+            <p class="line">Line: 558</p>
         </div>
         <div class="section">
             <h3><code>validateBlock()</code></h3>
@@ -255,7 +255,7 @@ Checks: merkle root, timestamp, previous hash, difficulty, fees/reward, TX valid
             <pre><code>pub fn validateBlock(self: *Blockchain, block: *const Block) bool {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
-            <p class="line">Line: 567</p>
+            <p class="line">Line: 568</p>
         </div>
         <div class="section">
             <h3><code>addExternalBlock()</code></h3>
@@ -268,7 +268,7 @@ After appending, checks if any orphan blocks now connect.</p>
             <pre><code>pub fn addExternalBlock(self: *Blockchain, block: Block) !void {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>Block</code></td><td>Block</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
-            <p class="line">Line: 642</p>
+            <p class="line">Line: 643</p>
         </div>
         <div class="section">
             <h3><code>reorg()</code></h3>
@@ -278,7 +278,7 @@ Returns orphaned TXs to mempool for re-mining.</p>
             <pre><code>pub fn reorg(self: *Blockchain, new_chain: []const Block) !void {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>new_chain</code></td><td><code>[]const Block</code></td><td>New_chain</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
-            <p class="line">Line: 716</p>
+            <p class="line">Line: 717</p>
         </div>
         <div class="section">
             <h3><code>checkAutoSave()</code></h3>
@@ -287,7 +287,7 @@ Called after each mined block. Saves at 100 blocks, 60s, or 1000 TXs.</p>
             <pre><code>pub fn checkAutoSave(self: *Blockchain) void {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
             
-            <p class="line">Line: 799</p>
+            <p class="line">Line: 800</p>
         </div>
         <div class="section">
             <h3><code>saveToDisc()</code></h3>
@@ -296,7 +296,7 @@ No-op if persistent_db has not been attached (e.g. in unit tests).</p>
             <pre><code>pub fn saveToDisc(self: *Blockchain) !void {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
-            <p class="line">Line: 817</p>
+            <p class="line">Line: 818</p>
         </div>
         <div class="section">
             <h3><code>findForkPoint()</code></h3>
@@ -305,7 +305,7 @@ Returns null if no common ancestor found (completely divergent chains).</p>
             <pre><code>pub fn findForkPoint(self: *const Blockchain, other_chain: []const Block) ?usize {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Blockchain</code></td><td>The instance</td></tr><tr><td><code>other_chain</code></td><td><code>[]const Block</code></td><td>Other_chain</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>?usize</code></p>
-            <p class="line">Line: 825</p>
+            <p class="line">Line: 826</p>
         </div>
         <div class="section">
             <h3><code>processOrphans()</code></h3>
@@ -314,7 +314,7 @@ Keeps trying until no more orphans connect (cascading resolution).</p>
             <pre><code>pub fn processOrphans(self: *Blockchain) void {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
             
-            <p class="line">Line: 971</p>
+            <p class="line">Line: 972</p>
         </div>
         <div class="section">
             <h3><code>getBlock()</code></h3>
@@ -322,7 +322,7 @@ Keeps trying until no more orphans connect (cascading resolution).</p>
             <pre><code>pub fn getBlock(self: *Blockchain, index: u32) ?Block {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr><tr><td><code>index</code></td><td><code>u32</code></td><td>Index</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>?Block</code></p>
-            <p class="line">Line: 1002</p>
+            <p class="line">Line: 1003</p>
         </div>
         <div class="section">
             <h3><code>getLatestBlock()</code></h3>
@@ -330,7 +330,7 @@ Keeps trying until no more orphans connect (cascading resolution).</p>
             <pre><code>pub fn getLatestBlock(self: *Blockchain) Block {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>Block</code></p>
-            <p class="line">Line: 1009</p>
+            <p class="line">Line: 1010</p>
         </div>
         <div class="section">
             <h3><code>getBlockCount()</code></h3>
@@ -338,9 +338,9 @@ Keeps trying until no more orphans connect (cascading resolution).</p>
             <pre><code>pub fn getBlockCount(self: *Blockchain) u32 {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Blockchain</code></td><td>The instance</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
-            <p class="line">Line: 1013</p>
+            <p class="line">Line: 1014</p>
         </div>
 
-<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 11:17</div>
 </div>
 </body></html>

@@ -17,7 +17,11 @@
       "Bash(echo \"Exit code: $?\")",
       "Bash(python tools/DOCUMENTATION/doc_generator.py)",
       "Bash(python tools/COMPARISON/blockchain_vs_comparison.py --coverage)",
-      "Bash(python tools/DOCUMENTATION/doc_generator.py --format html --output docs/api)"
+      "Bash(python tools/DOCUMENTATION/doc_generator.py --format html --output docs/api)",
+      "Bash(echo $?)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(python tools/COMPARISON/blockchain_vs_comparison.py)"
     ]
   }
 }
