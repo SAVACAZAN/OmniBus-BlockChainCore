@@ -73,6 +73,21 @@ pub fn build(b: *std.Build) void {
     const bench_step = b.step("bench", "Run performance benchmarks");
     bench_step.dependOn(&bench_run.step);
 
+    // ── WASM wallet library ────────────────────────────────────────────────
+    const wasm_lib = b.addStaticLibrary(.{
+        .name        = "omnibus-wallet",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/wasm_exports.zig"),
+            .target           = b.resolveTargetQuery(.{
+                .cpu_arch = .wasm32,
+                .os_tag   = .freestanding,
+            }),
+            .optimize         = .ReleaseFast,
+        }),
+    });
+    const wasm_step = b.step("wasm", "Build WASM wallet library (wasm/omnibus-wallet.wasm)");
+    wasm_step.dependOn(&wasm_lib.step);
+
     // ── Run step ──────────────────────────────────────────────────────────────
     const run_blockchain = b.addRunArtifact(blockchain_exe);
     const run_step = b.step("run", "Run blockchain node");
