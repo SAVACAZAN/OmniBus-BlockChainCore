@@ -102,6 +102,10 @@ pub fn build(b: *std.Build) void {
     test_crypto_step.dependOn(&addTest(b, "compact-blk","core/compact_blocks.zig", target, optimize).step);
     test_crypto_step.dependOn(&addTest(b, "kademlia",   "core/kademlia_dht.zig", target, optimize).step);
 
+    // New v0.2.0 modules
+    test_crypto_step.dependOn(&addTest(b, "bech32",       "core/bech32.zig",       target, optimize).step);
+    test_crypto_step.dependOn(&addTest(b, "encrypted-p2p","core/encrypted_p2p.zig",target, optimize).step);
+
     // ── Tests: blockchain core ────────────────────────────────────────────────
     const test_chain_step = b.step("test-chain", "Test blockchain + genesis + consensus");
     test_chain_step.dependOn(&addTest(b, "block",       "core/block.zig",       target, optimize).step);
@@ -122,6 +126,11 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "shard-coord", "core/shard_coordinator.zig", target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "oracle",      "core/oracle.zig",         target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "spark-inv",   "core/spark_invariants.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "utxo",        "core/utxo.zig",           target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "psbt",        "core/psbt.zig",           target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "htlc",        "core/htlc.zig",           target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "lightning",   "core/lightning.zig",       target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "block-filter","core/block_filter.zig",    target, optimize).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -134,6 +143,7 @@ pub fn build(b: *std.Build) void {
     test_net_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize).step);
     test_net_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "ws-server",    "core/ws_server.zig",    target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "tor-proxy",    "core/tor_proxy.zig",    target, optimize).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
     const test_shard_step = b.step("test-shard", "Test sub-blocks + sharding");

@@ -142,7 +142,7 @@ def main():
     
     print("\nNote: For more accurate benchmarks, run with a live node:")
     print("  node rpc-server.js &")
-    print("  node miner-client.js miner-1 test ob_omni_test 1000")
+    print("  node miner-client.js miner-1 test ob1qtest 1000")
 
 if __name__ == "__main__":
     main()
