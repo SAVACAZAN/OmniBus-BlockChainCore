@@ -33,7 +33,7 @@ a:hover { text-decoration: underline; }
 <a href="index.html" class="back">&larr; Back to Index</a>
 <h1>Module: <code>pq_crypto</code></h1>
 <p class="module-desc">Post-Quantum cryptography via liboqs C bindings — ML-DSA-87 (Dilithium-5), Falcon-512, SLH-DSA-256s (SPHINCS+), ML-KEM-768 (Kyber) key generation, signing, verification.</p>
-<p class="stats">Source: core/pq_crypto.zig &bull; 668 lines &bull; 13 functions &bull; 5 structs &bull; 13 tests</p>
+<p class="stats">Source: core/pq_crypto.zig &bull; 669 lines &bull; 13 functions &bull; 5 structs &bull; 13 tests</p>
 
 <h2>Structs (5)</h2>
         <div class="section">
@@ -58,13 +58,13 @@ a:hover { text-decoration: underline; }
             <h3><code>MlKem768</code></h3>
             <p>Data structure for ml kem768. Fields include: secret_key.</p>
             <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>secret_key</code></td><td><code>[SECRET_KEY_SIZE]u8</code></td><td>Secret_key</td></tr></table>
-            <p class="line">Line: 324</p>
+            <p class="line">Line: 325</p>
         </div>
         <div class="section">
             <h3><code>PQCrypto</code></h3>
             <p>Data structure representing a p q crypto in the pq_crypto module.</p>
             
-            <p class="line">Line: 528</p>
+            <p class="line">Line: 529</p>
         </div>
 
 <h2>Constants (17)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>PUBLIC_KEY_SIZE</code></td><td><code>usize = 2592</code></td><td>P u b l i c_ k e y_ s i z e</td></tr><tr><td><code>SECRET_KEY_SIZE</code></td><td><code>usize = 4896</code></td><td>S e c r e t_ k e y_ s i z e</td></tr><tr><td><code>SIGNATURE_MAX</code></td><td><code>usize = 4627</code></td><td>S i g n a t u r e_ m a x</td></tr><tr><td><code>PUBLIC_KEY_SIZE</code></td><td><code>usize = 897</code></td><td>P u b l i c_ k e y_ s i z e</td></tr><tr><td><code>SECRET_KEY_SIZE</code></td><td><code>usize = 1281</code></td><td>S e c r e t_ k e y_ s i z e</td></tr><tr><td><code>SIGNATURE_MAX</code></td><td><code>usize = 752</code></td><td>S i g n a t u r e_ m a x</td></tr><tr><td><code>PUBLIC_KEY_SIZE</code></td><td><code>usize = 64</code></td><td>P u b l i c_ k e y_ s i z e</td></tr><tr><td><code>SECRET_KEY_SIZE</code></td><td><code>usize = 128</code></td><td>S e c r e t_ k e y_ s i z e</td></tr><tr><td><code>SIGNATURE_MAX</code></td><td><code>usize = 29792</code></td><td>S i g n a t u r e_ m a x</td></tr><tr><td><code>PUBLIC_KEY_SIZE</code></td><td><code>usize = 1184</code></td><td>P u b l i c_ k e y_ s i z e</td></tr><tr><td><code>SECRET_KEY_SIZE</code></td><td><code>usize = 2400</code></td><td>S e c r e t_ k e y_ s i z e</td></tr><tr><td><code>CIPHERTEXT_SIZE</code></td><td><code>usize = 1088</code></td><td>C i p h e r t e x t_ s i z e</td></tr><tr><td><code>SHARED_SECRET_SIZE</code></td><td><code>usize = 32</code></td><td>S h a r e d_ s e c r e t_ s i z e</td></tr><tr><td><code>Dilithium5</code></td><td><code>MlDsa87</code></td><td>Dilithium5</td></tr><tr><td><code>SPHINCSPlus</code></td><td><code>SlhDsa256s</code></td><td>S p h i n c s plus</td></tr><tr><td><code>Kyber768</code></td><td><code>MlKem768</code></td><td>Kyber768</td></tr><tr><td><code>DomainAlgorithm</code></td><td><code>enum { MlDsa87, Falcon512, SlhDsa256s }</code></td><td>Domain algorithm</td></tr></table></div>
@@ -140,7 +140,7 @@ a:hover { text-decoration: underline; }
             <pre><code>pub fn verify(self: *const SlhDsa256s, message: []const u8, signature: []const u8) bool {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SlhDsa256s</code></td><td>The instance</td></tr><tr><td><code>message</code></td><td><code>[]const u8</code></td><td>Message</td></tr><tr><td><code>signature</code></td><td><code>[]const u8</code></td><td>Signature</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
-            <p class="line">Line: 292</p>
+            <p class="line">Line: 293</p>
         </div>
         <div class="section">
             <h3><code>generateKeyPair()</code></h3>
@@ -148,7 +148,7 @@ a:hover { text-decoration: underline; }
             <pre><code>pub fn generateKeyPair() !MlKem768 {</code></pre>
             
             <p class="returns"><strong>Returns:</strong> <code>!MlKem768</code></p>
-            <p class="line">Line: 333</p>
+            <p class="line">Line: 334</p>
         </div>
         <div class="section">
             <h3><code>encapsulate()</code></h3>
@@ -156,7 +156,7 @@ a:hover { text-decoration: underline; }
             <pre><code>pub fn encapsulate(self: *const MlKem768, allocator: std.mem.Allocator) !struct {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MlKem768</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>!struct</code></p>
-            <p class="line">Line: 378</p>
+            <p class="line">Line: 379</p>
         </div>
         <div class="section">
             <h3><code>decapsulate()</code></h3>
@@ -164,7 +164,7 @@ a:hover { text-decoration: underline; }
             <pre><code>pub fn decapsulate(self: *const MlKem768, ciphertext: []const u8) ![SHARED_SECRET_SIZE]u8 {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const MlKem768</code></td><td>The instance</td></tr><tr><td><code>ciphertext</code></td><td><code>[]const u8</code></td><td>Ciphertext</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>![SHARED_SECRET_SIZE]u8</code></p>
-            <p class="line">Line: 439</p>
+            <p class="line">Line: 440</p>
         </div>
         <div class="section">
             <h3><code>algorithmForCoinType()</code></h3>
@@ -172,9 +172,9 @@ a:hover { text-decoration: underline; }
             <pre><code>pub fn algorithmForCoinType(coin_type: u32) ?DomainAlgorithm {</code></pre>
             <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>coin_type</code></td><td><code>u32</code></td><td>Coin_type</td></tr></table>
             <p class="returns"><strong>Returns:</strong> <code>?DomainAlgorithm</code></p>
-            <p class="line">Line: 536</p>
+            <p class="line">Line: 537</p>
         </div>
 
-<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 11:17</div>
 </div>
 </body></html>
