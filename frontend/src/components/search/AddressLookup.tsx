@@ -53,7 +53,7 @@ export function AddressLookup() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="ob_omni_... or any address"
+            placeholder="ob1q... or any address"
             className="flex-1 bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue"
           />
           <button

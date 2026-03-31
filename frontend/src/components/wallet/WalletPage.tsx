@@ -6,7 +6,7 @@ import type { FeeEstimate } from "../../types";
 const rpc = new OmniBusRpcClient("/api");
 
 const PQ_DOMAINS = [
-  { prefix: "ob_omni_", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },
+  { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },
   { prefix: "ob_k1_", algo: "ML-DSA-87", bits: 256, color: "text-mempool-purple" },
   { prefix: "ob_f5_", algo: "Falcon-512", bits: 192, color: "text-mempool-green" },
   { prefix: "ob_d5_", algo: "Dilithium-5", bits: 256, color: "text-mempool-orange" },
@@ -106,7 +106,7 @@ export function WalletPage() {
       setWallet({
         loggedIn: true,
         mnemonic: mnemonicInput.trim(),
-        address: bal?.address || "ob_omni_...",
+        address: bal?.address || "ob1q...",
         balance: bal?.balance || 0,
         balanceOMNI: bal?.balanceOMNI || "0.0000",
         transactions: [],
@@ -268,7 +268,7 @@ export function WalletPage() {
                 type="text"
                 value={sendTo}
                 onChange={(e) => setSendTo(e.target.value)}
-                placeholder="ob_omni_..."
+                placeholder="ob1q..."
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue mt-1"
               />
             </div>

@@ -5,7 +5,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 const rpc = new OmniBusRpcClient("/api");
 
 const PQ_ADDRESSES = [
-  { prefix: "ob_omni_", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },
+  { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },
   { prefix: "ob_k1_", algo: "ML-DSA-87", bits: 256, color: "text-mempool-purple" },
   { prefix: "ob_f5_", algo: "Falcon-512", bits: 192, color: "text-mempool-green" },
   { prefix: "ob_d5_", algo: "Dilithium-5", bits: 256, color: "text-mempool-orange" },

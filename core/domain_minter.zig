@@ -26,7 +26,7 @@ pub const DomainType = enum(u8) {
 
     pub fn prefix(self: DomainType) []const u8 {
         return switch (self) {
-            .omni => "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt",
+            .omni => "ob1q",
             .k1   => "ob_k1_",
             .f5   => "ob_f5_",
             .d5   => "ob_d5_",
@@ -280,7 +280,7 @@ pub const DomainRegistry = struct {
 const testing = std.testing;
 
 test "DomainType — prefix si algorithm corecte" {
-    try testing.expectEqualStrings("ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt",    DomainType.omni.prefix());
+    try testing.expectEqualStrings("ob1q",    DomainType.omni.prefix());
     try testing.expectEqualStrings("ob_k1_",      DomainType.k1.prefix());
     try testing.expectEqualStrings("ML-KEM-768",  DomainType.omni.algorithm());
     try testing.expectEqualStrings("Dilithium-5", DomainType.k1.algorithm());

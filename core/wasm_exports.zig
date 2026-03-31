@@ -7,12 +7,13 @@
 ///   - SHA256 / SHA256d
 ///   - HMAC-SHA256 / HMAC-SHA512
 ///   - Semnare / Verificare ECDSA
-///   - Generare adresa OmniBus (ob_omni_ prefix)
+///   - Generare adresa OmniBus Bech32 (ob1q...)
 
 const std = @import("std");
 const secp = @import("secp256k1.zig").Secp256k1Crypto;
 const crypto = @import("crypto.zig").Crypto;
 const ripemd = @import("ripemd160.zig").Ripemd160;
+const bech32 = @import("bech32.zig");
 
 // ── Shared memory buffer (WASM nu are allocator, folosim buffer fix) ──────
 var shared_buf: [8192]u8 = undefined;
@@ -169,21 +170,22 @@ fn base58CheckEncodeFixed(hash160: [20]u8, version: u8, out_buf: []u8) u32 {
     return @intCast(result_len);
 }
 
-/// Generate OmniBus address from private key — Base58Check, identical to chain
-/// Format: ob_omni_ + Base58Check(0x4F || RIPEMD160(SHA256(pubkey)))
-/// Returns address length in shared_buf (typically 35-42 chars)
+/// Generate OmniBus Bech32 address from private key
+/// Format: ob1q... (42 chars, identical to Bitcoin bc1q format)
+/// Returns address length in shared_buf (always 42 chars)
 export fn generateAddress(privkey_ptr: [*]const u8) u32 {
     const privkey: [32]u8 = privkey_ptr[0..32].*;
     const hash160 = secp.privateKeyToHash160(privkey) catch return 0;
 
-    // Write prefix
-    const prefix = "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt";
-    @memcpy(shared_buf[0..8], prefix);
+    // Bech32 encode with fixed buffer allocator
+    var fba_buf: [256]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&fba_buf);
+    const addr = bech32.encodeOBAddress(hash160, fba.allocator()) catch return 0;
 
-    // Base58Check encode after prefix
-    const b58_len = base58CheckEncodeFixed(hash160, 0x4F, shared_buf[8..]);
-
-    return 8 + b58_len; // prefix + Base58Check
+    // Copy to shared buffer
+    const len: u32 = @intCast(addr.len);
+    @memcpy(shared_buf[0..len], addr);
+    return len;
 }
 
 /// Returns 1 if private key is valid for secp256k1, 0 otherwise

@@ -6,6 +6,7 @@ const builtin = @import("builtin");
 const network_mod    = @import("network.zig");
 const scoring_mod    = @import("peer_scoring.zig");
 const bootstrap_mod  = @import("bootstrap.zig");
+const tor_mod        = @import("tor_proxy.zig");
 
 // Windows: stream.read() = ReadFile care pica pe sockets acceptate. Folosim ws2_32.
 const is_windows = builtin.os.tag == .windows;
@@ -746,6 +747,8 @@ pub const P2PNode = struct {
     outbound_count: u16 = 0,
     /// Initialized flag for banned_peers array
     hardening_init: bool = false,
+    /// Tor proxy configuration (disabled by default)
+    tor_config: tor_mod.TorConfig = tor_mod.TorConfig.default(),
 
     pub fn init(
         local_id:   []const u8,
@@ -785,6 +788,19 @@ pub const P2PNode = struct {
     /// Attach a light client for SPV header sync mode
     pub fn attachLightClient(self: *P2PNode, lc: *light_client_mod.LightClient) void {
         self.light_client = lc;
+    }
+
+    /// Enable Tor proxy for all outbound P2P connections
+    pub fn enableTor(self: *P2PNode, config: tor_mod.TorConfig) void {
+        self.tor_config = config;
+        std.debug.print("[P2P] Tor enabled — proxy {s}:{d}\n", .{
+            config.proxy_host, config.proxy_port,
+        });
+    }
+
+    /// Check if a peer address is a .onion hidden service
+    pub fn isOnionPeer(host: []const u8) bool {
+        return tor_mod.isOnionAddress(host);
     }
 
     /// SPV: Send getheaders_p2p to all connected peers.
