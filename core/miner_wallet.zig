@@ -286,7 +286,7 @@ const testing = std.testing;
 
 test "MinerWallet.fromMnemonic — derives valid key pair" {
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    const addr = "ob_omni_test_miner_1";
+    const addr = "ob1q5huxk60vr5x88tayvyx7qhv6d9ll78q6hgefmg";
 
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
@@ -315,7 +315,7 @@ test "MinerWallet.fromMnemonic — derives valid key pair" {
 
 test "MinerWallet.fromMnemonic — deterministic" {
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    const addr = "ob_omni_test_det";
+    const addr = "ob1qle5c7v4kqcsntfwrpm8xjps750kamnlcm9vyr2";
 
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
@@ -328,7 +328,7 @@ test "MinerWallet.fromMnemonic — deterministic" {
 }
 
 test "MinerWallet.fromRandom — generates valid key pair" {
-    const addr = "ob_omni_random_miner";
+    const addr = "ob1qtxwl5qh8wq27fd6re05zrqkuxfgvm5y82gtzwn";
     const mw = try MinerWallet.fromRandom(addr);
 
     try testing.expectEqualStrings(addr, mw.getAddress());
@@ -338,13 +338,13 @@ test "MinerWallet.fromRandom — generates valid key pair" {
 
 test "MinerWallet.createSignedTx — produces signed TX in mempool format" {
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    const addr = "ob_omni_sender_test";
+    const addr = "ob1q69q3yf0j2dgnkxyzn5zy05ny9n8v5udarz9uuv";
 
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
 
     const mw = try MinerWallet.fromMnemonic(mnemonic, addr, arena.allocator());
-    const tx = try mw.createSignedTx("ob_omni_receiver_test", 5000, 1, 0, 1, arena.allocator());
+    const tx = try mw.createSignedTx("ob1qmndx3j759xvr3c3923ehtymxs9z37gwj4ttq3r", 5000, 1, 0, 1, arena.allocator());
 
     // TX is valid
     try testing.expect(tx.isValid());
@@ -357,7 +357,7 @@ test "MinerWallet.createSignedTx — produces signed TX in mempool format" {
 
     // TX addresses match
     try testing.expectEqualStrings(addr, tx.from_address);
-    try testing.expectEqualStrings("ob_omni_receiver_test", tx.to_address);
+    try testing.expectEqualStrings("ob1qmndx3j759xvr3c3923ehtymxs9z37gwj4ttq3r", tx.to_address);
 
     // TX amount and fee match
     try testing.expectEqual(@as(u64, 5000), tx.amount);
@@ -369,7 +369,7 @@ test "MinerWallet.createSignedTx — produces signed TX in mempool format" {
 
 test "MinerWalletPool — register and find" {
     var pool = MinerWalletPool{};
-    const addr = "ob_omni_pool_test";
+    const addr = "ob1qz8j8jcjyvzc7lk0p9u8pxntghhy2fezdcnrx0y";
 
     // Register with random key
     const ok = try pool.registerWithRandomKey(addr);
@@ -387,16 +387,16 @@ test "MinerWalletPool — register and find" {
     try testing.expectEqualStrings(addr, found.?.getAddress());
 
     // Not found
-    const nope = pool.findByAddress("ob_omni_nonexistent");
+    const nope = pool.findByAddress("ob1qz7j20z8wwzuu7jgu3aq5tvc6gxy3u8gqwma309");
     try testing.expect(nope == null);
 }
 
 test "MinerWalletPool — getMinerForBlock round-robin" {
     var pool = MinerWalletPool{};
 
-    _ = try pool.registerWithRandomKey("ob_omni_miner_a");
-    _ = try pool.registerWithRandomKey("ob_omni_miner_b");
-    _ = try pool.registerWithRandomKey("ob_omni_miner_c");
+    _ = try pool.registerWithRandomKey("ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    _ = try pool.registerWithRandomKey("ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092");
+    _ = try pool.registerWithRandomKey("ob1qaq466xg9x5u66u8x6lydh8h8ductr64v64avf5");
 
     const m0 = pool.getMinerForBlock(0, "fallback");
     const m1 = pool.getMinerForBlock(1, "fallback");
@@ -413,17 +413,17 @@ test "MinerWalletPool — getMinerForBlock round-robin" {
 test "MinerWalletPool — pickAutoTxPair" {
     var pool = MinerWalletPool{};
 
-    _ = try pool.registerWithRandomKey("ob_omni_auto_a");
-    _ = try pool.registerWithRandomKey("ob_omni_auto_b");
-    _ = try pool.registerWithRandomKey("ob_omni_auto_c");
+    _ = try pool.registerWithRandomKey("ob1qzu9dfrxydg9v9qt408prps55leranwgzcnfvk6");
+    _ = try pool.registerWithRandomKey("ob1q6q77z54rwphnvxmykk3n45qaj8nzd2c9frlkuz");
+    _ = try pool.registerWithRandomKey("ob1qkw395ue6yq79x9ez7cgka55c726zp4zglhy4cl");
 
     // No funded miners yet
     const none = pool.pickAutoTxPair(1000);
     try testing.expect(none == null);
 
     // Fund two miners
-    pool.updateBalance("ob_omni_auto_a", 50000);
-    pool.updateBalance("ob_omni_auto_c", 30000);
+    pool.updateBalance("ob1qzu9dfrxydg9v9qt408prps55leranwgzcnfvk6", 50000);
+    pool.updateBalance("ob1qkw395ue6yq79x9ez7cgka55c726zp4zglhy4cl", 30000);
 
     const pair = pool.pickAutoTxPair(1000);
     try testing.expect(pair != null);
@@ -436,7 +436,7 @@ test "MinerWalletPool — registerWithMnemonic" {
 
     var pool = MinerWalletPool{};
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    const addr = "ob_omni_mnem_test";
+    const addr = "ob1qqy62lzlyr7hjznu38jv3qmse06cc4hm704hlmp";
 
     const ok = try pool.registerWithMnemonic(addr, mnemonic, arena.allocator());
     try testing.expect(ok);

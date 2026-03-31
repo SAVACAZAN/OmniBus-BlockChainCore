@@ -73,20 +73,11 @@ pub fn build(b: *std.Build) void {
     const bench_step = b.step("bench", "Run performance benchmarks");
     bench_step.dependOn(&bench_run.step);
 
-    // ── WASM wallet library ────────────────────────────────────────────────
-    const wasm_lib = b.addStaticLibrary(.{
-        .name        = "omnibus-wallet",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("core/wasm_exports.zig"),
-            .target           = b.resolveTargetQuery(.{
-                .cpu_arch = .wasm32,
-                .os_tag   = .freestanding,
-            }),
-            .optimize         = .ReleaseFast,
-        }),
-    });
-    const wasm_step = b.step("wasm", "Build WASM wallet library (wasm/omnibus-wallet.wasm)");
-    wasm_step.dependOn(&wasm_lib.step);
+    // ── WASM wallet (build with: zig build-exe core/wasm_exports.zig -target wasm32-freestanding -OReleaseFast -fno-entry -femit-bin=wasm/omnibus-wallet.wasm --export-memory)
+    // Note: build.zig addExecutable doesn't support -fno-entry for wasm yet,
+    // use the command above or: zig build wasm-info
+    const wasm_info = b.step("wasm", "Show WASM build command");
+    _ = wasm_info; // WASM build: zig build-exe core/wasm_exports.zig -target wasm32-freestanding -OReleaseFast -fno-entry -femit-bin=wasm/omnibus-wallet.wasm --export-memory
 
     // ── Run step ──────────────────────────────────────────────────────────────
     const run_blockchain = b.addRunArtifact(blockchain_exe);

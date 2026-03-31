@@ -2246,7 +2246,7 @@ test "GossipTxPayload encode/decode roundtrip" {
 
     const original = GossipTxPayload{
         .tx_hash = "aabbccdd11223344aabbccdd11223344aabbccdd11223344aabbccdd11223344",
-        .tx_json = "{\"from\":\"ob_omni_alice\",\"to\":\"ob_omni_bob\",\"amount\":1000}",
+        .tx_json = "{\"from\":\"ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh\",\"to\":\"ob1qq5tpx4wxy5jmww0x2mpklguwmmlj8s2rfn7su9\",\"amount\":1000}",
     };
 
     const encoded = try original.encode(arena.allocator());
@@ -2642,16 +2642,16 @@ test "SPV: decodeHeadersBatch — too short returns error" {
 
 test "SPV: encodeBloomFilter/decodeBloomFilter roundtrip" {
     var filter = light_client_mod.BloomFilter.init(7);
-    filter.add("ob_omni_alice");
-    filter.add("ob_omni_bob");
+    filter.add("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh");
+    filter.add("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas");
 
     var buf: [513]u8 = undefined;
     encodeBloomFilter(&filter, &buf);
     const decoded = decodeBloomFilter(&buf).?;
 
     try testing.expectEqual(filter.num_hash_funcs, decoded.num_hash_funcs);
-    try testing.expect(decoded.contains("ob_omni_alice"));
-    try testing.expect(decoded.contains("ob_omni_bob"));
+    try testing.expect(decoded.contains("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
+    try testing.expect(decoded.contains("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas"));
 }
 
 test "SPV: decodeBloomFilter — too short returns null" {
@@ -2677,7 +2677,7 @@ test "SPV: P2PNode sendBloomFilter with 0 peers — no crash" {
     var lc = light_client_mod.LightClient.init(testing.allocator);
     defer lc.deinit();
 
-    lc.watchAddress("ob_omni_test");
+    lc.watchAddress("ob1q54k8s2w5awzza0g2wtf22e2gzjqhxperxz6hr8");
     node.attachLightClient(&lc);
     node.sendBloomFilter(); // no peers, should be no-op
 }

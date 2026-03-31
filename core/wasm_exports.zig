@@ -111,23 +111,79 @@ export fn ripemd160Hash(data_ptr: [*]const u8, len: u32) u32 {
     return 40;
 }
 
-/// Generate OmniBus address from private key
-/// Returns address length in shared_buf (format: ob_omni_ + 24 hex chars)
+// ── Base58Check encoding (no allocator, fixed buffer) ─────────────────────
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const Sha256 = std.crypto.hash.sha2.Sha256;
+
+/// Base58Check(version_byte || hash160) into out_buf. Returns length written.
+fn base58CheckEncodeFixed(hash160: [20]u8, version: u8, out_buf: []u8) u32 {
+    // payload = version || hash160 (21 bytes)
+    var payload: [21]u8 = undefined;
+    payload[0] = version;
+    @memcpy(payload[1..21], &hash160);
+
+    // checksum = SHA256(SHA256(payload))[0..4]
+    var first: [32]u8 = undefined;
+    Sha256.hash(&payload, &first, .{});
+    var second: [32]u8 = undefined;
+    Sha256.hash(&first, &second, .{});
+
+    // full = payload || checksum (25 bytes)
+    var full: [25]u8 = undefined;
+    @memcpy(full[0..21], &payload);
+    @memcpy(full[21..25], second[0..4]);
+
+    // Count leading zero bytes
+    var leading_zeros: usize = 0;
+    for (full) |b| {
+        if (b == 0) leading_zeros += 1 else break;
+    }
+
+    // Base58 encode: treat full as big-endian integer, divide by 58
+    var digits: [40]u8 = @splat(0);
+    var digits_len: usize = 0;
+
+    for (full) |byte| {
+        var carry: u32 = byte;
+        var j: usize = 0;
+        while (j < digits_len or carry != 0) {
+            if (j < digits_len) {
+                carry += @as(u32, digits[j]) << 8;
+            }
+            digits[j] = @truncate(carry % 58);
+            carry /= 58;
+            j += 1;
+        }
+        digits_len = j;
+    }
+
+    // Build result: leading '1's + digits reversed
+    const result_len = leading_zeros + digits_len;
+    for (0..leading_zeros) |i| {
+        out_buf[i] = '1';
+    }
+    for (0..digits_len) |i| {
+        out_buf[leading_zeros + i] = BASE58_ALPHABET[digits[digits_len - 1 - i]];
+    }
+
+    return @intCast(result_len);
+}
+
+/// Generate OmniBus address from private key — Base58Check, identical to chain
+/// Format: ob_omni_ + Base58Check(0x4F || RIPEMD160(SHA256(pubkey)))
+/// Returns address length in shared_buf (typically 35-42 chars)
 export fn generateAddress(privkey_ptr: [*]const u8) u32 {
     const privkey: [32]u8 = privkey_ptr[0..32].*;
     const hash160 = secp.privateKeyToHash160(privkey) catch return 0;
 
-    // ob_omni_ prefix (8 chars) + first 12 bytes of hash160 as hex (24 chars) = 32 chars
-    const prefix = "ob_omni_";
+    // Write prefix
+    const prefix = "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt";
     @memcpy(shared_buf[0..8], prefix);
 
-    const hex_chars = "0123456789abcdef";
-    for (hash160[0..12], 0..) |byte, i| {
-        shared_buf[8 + i * 2] = hex_chars[byte >> 4];
-        shared_buf[8 + i * 2 + 1] = hex_chars[byte & 0x0f];
-    }
+    // Base58Check encode after prefix
+    const b58_len = base58CheckEncodeFixed(hash160, 0x4F, shared_buf[8..]);
 
-    return 32; // 8 prefix + 24 hex
+    return 8 + b58_len; // prefix + Base58Check
 }
 
 /// Returns 1 if private key is valid for secp256k1, 0 otherwise

@@ -4,6 +4,7 @@ const transaction_mod = @import("transaction.zig");
 const hex_utils = @import("hex_utils.zig");
 const script_mod = @import("script.zig");
 const multisig_mod = @import("multisig.zig");
+const utxo_mod = @import("utxo.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -121,6 +122,8 @@ pub const Blockchain = struct {
     /// Stores the M-of-N configuration for each registered multisig wallet
     multisig_configs: [64]MultisigConfigEntry = [_]MultisigConfigEntry{MultisigConfigEntry{}} ** 64,
     multisig_count: u16 = 0,
+    /// UTXO set — tracks all unspent transaction outputs (Bitcoin-compatible)
+    utxo_set: utxo_mod.UTXOSet,
     /// Mutex — protejează chain/mempool/balances de data race (RPC + mining pe thread-uri diferite)
     mutex: std.Thread.Mutex = .{},
 
@@ -162,6 +165,7 @@ pub const Blockchain = struct {
             .tx_block_height = std.StringHashMap(u64).init(allocator),
             .orphan_blocks = array_list.Managed(Block).init(allocator),
             .address_tx_index = std.StringHashMap(std.ArrayList([]const u8)).init(allocator),
+            .utxo_set = utxo_mod.UTXOSet.init(allocator),
         };
     }
 
@@ -181,6 +185,7 @@ pub const Blockchain = struct {
         self.chain.deinit();
         self.mempool.deinit();
         self.balances.deinit();
+        self.utxo_set.deinit();
         self.nonces.deinit();
         self.pubkey_registry.deinit();
         self.tx_block_height.deinit();
@@ -356,11 +361,11 @@ pub const Blockchain = struct {
         const is_op_return_tx = tx.op_return.len > 0 and tx.amount == 0;
         if (tx.amount == 0 and !is_op_return_tx) { std.debug.print("[VALIDATE] FAIL: amount=0\n", .{}); return false; }
 
-        // 2. Adrese nu pot fi goale si trebuie minim 8 chars (prefix "ob_omni_")
+        // 2. Adrese nu pot fi goale si trebuie minim 8 chars (prefix "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt")
         if (tx.from_address.len < 8 or tx.to_address.len < 8) { std.debug.print("[VALIDATE] FAIL: addr too short from={d} to={d}\n", .{tx.from_address.len, tx.to_address.len}); return false; }
 
         // 3. Prefix valid (isValid verifică prefix + amount + op_return length)
-        if (!tx.isValid()) { std.debug.print("[VALIDATE] FAIL: isValid() from={s} to={s} amt={d}\n", .{tx.from_address[0..@min(20,tx.from_address.len)], tx.to_address[0..@min(20,tx.to_address.len)], tx.amount}); return false; }
+        if (!tx.isValid()) { std.debug.print("[VALIDATE] FAIL: isValid() from={s} to={s} amt={d}\n", .{tx.from_address[0..@min(42,tx.from_address.len)], tx.to_address[0..@min(42,tx.to_address.len)], tx.amount}); return false; }
 
         // 3b. Dust threshold — respinge TX prea mici (anti-spam, ca Bitcoin 546 sat)
         //     Skip dust check for OP_RETURN data-only TXs (amount=0 is allowed)
@@ -497,7 +502,7 @@ pub const Blockchain = struct {
 
         // Proceseaza tranzactiile: debiteaza sender (amount + fee), crediteaza receiver, incrementeaza nonce
         var total_fees: u64 = 0;
-        for (block.transactions.items) |tx| {
+        for (block.transactions.items, 0..) |tx, tx_idx| {
             self.debitBalance(tx.from_address, tx.amount + tx.fee) catch {}; // debit amount + fee
             self.creditBalance(tx.to_address, tx.amount) catch {};
             total_fees += tx.fee;
@@ -509,6 +514,8 @@ pub const Blockchain = struct {
             // Index TX for both sender and receiver address history
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
+            // UTXO: create output for recipient
+            self.utxo_set.addUTXO(tx.hash, @intCast(tx_idx), tx.to_address, tx.amount, @intCast(index), "", false) catch {};
         }
 
         // Fee split: FEE_BURN_PCT% burned (deflationary, like EIP-1559), rest to miner
@@ -519,6 +526,8 @@ pub const Blockchain = struct {
         // Block reward + miner's share of fees
         if (miner_address.len > 0 and (reward > 0 or fees_to_miner > 0)) {
             self.creditBalance(miner_address, reward + fees_to_miner) catch {};
+            // UTXO: coinbase output for miner (needs 100 confirmations to spend)
+            self.utxo_set.addUTXO(block.hash, 0, miner_address, reward + fees_to_miner, @intCast(index), "", true) catch {};
             std.debug.print("[REWARD] Miner {s} +{d} SAT ({d:.2} OMNI) + {d} fees ({d} burned) @ block {d}\n",
                 .{ miner_address[0..@min(16, miner_address.len)], reward,
                    @as(f64, @floatFromInt(reward)) / 1e9, fees_to_miner, fees_burned, index });
@@ -1070,44 +1079,44 @@ test "Blockchain.getLatestBlock — initial = genesis" {
 test "Blockchain.creditBalance — adauga sold" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice", 1_000_000_000);
-    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob_omni_alice"));
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 1_000_000_000);
+    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 }
 
 test "Blockchain.creditBalance — acumuleaza multiple credite" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice", 500_000_000);
-    try bc.creditBalance("ob_omni_alice", 500_000_000);
-    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob_omni_alice"));
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 500_000_000);
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 500_000_000);
+    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 }
 
 test "Blockchain.debitBalance — scade sold" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_bob", 2_000_000_000);
-    try bc.debitBalance("ob_omni_bob", 500_000_000);
-    try testing.expectEqual(@as(u64, 1_500_000_000), bc.getAddressBalance("ob_omni_bob"));
+    try bc.creditBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 2_000_000_000);
+    try bc.debitBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 500_000_000);
+    try testing.expectEqual(@as(u64, 1_500_000_000), bc.getAddressBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas"));
 }
 
 test "Blockchain.debitBalance — sold insuficient => error" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_carol", 100);
-    try testing.expectError(error.InsufficientBalance, bc.debitBalance("ob_omni_carol", 200));
+    try bc.creditBalance("ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", 100);
+    try testing.expectError(error.InsufficientBalance, bc.debitBalance("ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", 200));
 }
 
 test "Blockchain.getAddressBalance — adresa necunoscuta returneaza 0" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try testing.expectEqual(@as(u64, 0), bc.getAddressBalance("ob_omni_necunoscut"));
+    try testing.expectEqual(@as(u64, 0), bc.getAddressBalance("ob1qqlkv63jlf7n2vh97tc4zj3h8tvplz0e5dj7mvq"));
 }
 
 test "Blockchain.validateTransaction — amount 0 invalid" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_a", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "ob1qrgq6jnvvhcmp03ur849a85mhdvsvaqf6dprzn4", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 0, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1117,7 +1126,7 @@ test "Blockchain.validateTransaction — adresa goala invalid" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 100, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1127,7 +1136,7 @@ test "Blockchain.validateTransaction — prefix invalid" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "invalid_prefix_addr", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "invalid_prefix_addr", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 100, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1138,24 +1147,24 @@ test "Blockchain.validateTransaction — nonce replay attack blocked" {
     defer bc.deinit();
 
     // Give sender some balance (amount + fee)
-    try bc.creditBalance("ob_omni_alice", 10_000);
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000);
 
     // First TX with nonce 0 should be valid (fee >= TX_MIN_FEE)
     const tx1 = Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
     };
     try testing.expect(try bc.validateTransaction(&tx1));
 
     // Simulate nonce increment after processing
-    try bc.nonces.put("ob_omni_alice", 1);
+    try bc.nonces.put("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 1);
 
     // Replay same TX with nonce 0 should be rejected (nonce too low)
     try testing.expect(!try bc.validateTransaction(&tx1));
 
     // TX with nonce 1 should be valid
     const tx2 = Transaction{
-        .id = 2, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 2, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000001, .nonce = 1, .signature = "", .hash = "",
     };
     try testing.expect(try bc.validateTransaction(&tx2));
@@ -1167,7 +1176,7 @@ test "Blockchain.validateTransaction — insufficient balance rejected (amount +
 
     // Sender has 0 balance
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_broke", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1qu6d376ysuserqh6rjeh8q0t39j7qp9fcl87hk6", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 1_000_000, .fee = 1, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1177,9 +1186,9 @@ test "Blockchain.validateTransaction — fee too low rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice", 10_000);
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000);
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 0, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1190,9 +1199,9 @@ test "Blockchain.validateTransaction — balance must cover amount + fee" {
     defer bc.deinit();
 
     // Sender has exactly 100 SAT, TX needs 100 amount + 1 fee = 101
-    try bc.creditBalance("ob_omni_alice", 100);
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100);
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -1201,25 +1210,25 @@ test "Blockchain.validateTransaction — balance must cover amount + fee" {
 test "Blockchain.getNextNonce — unknown address returns 0" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try testing.expectEqual(@as(u64, 0), bc.getNextNonce("ob_omni_new_user"));
+    try testing.expectEqual(@as(u64, 0), bc.getNextNonce("ob1qf67we03tka2etd5u8lsa3uf5aq9605hu99yxc2"));
 }
 
 test "Blockchain.validateTransaction — nonce gap rejected (strict ordering)" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice", 100_000);
+    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100_000);
 
     // Expected nonce is 0, but TX has nonce 5 — gap should be rejected
     const tx_gap = Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 5, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx_gap));
 
     // nonce 0 should be accepted
     const tx_ok = Transaction{
-        .id = 2, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 2, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000001, .nonce = 0, .signature = "", .hash = "",
     };
     try testing.expect(try bc.validateTransaction(&tx_ok));
@@ -1230,19 +1239,19 @@ test "Blockchain.getNextAvailableNonce — includes pending mempool TXs" {
     defer bc.deinit();
 
     // Chain nonce is 0
-    try testing.expectEqual(@as(u64, 0), bc.getNextAvailableNonce("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 0), bc.getNextAvailableNonce("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     // Add a TX to the internal mempool (simulating addTransaction bypassing validation)
     try bc.mempool.append(Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
     });
 
     // Now next available nonce should be 1 (chain_nonce=0 + 1 pending)
-    try testing.expectEqual(@as(u64, 1), bc.getNextAvailableNonce("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 1), bc.getNextAvailableNonce("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     // Bob has no pending TXs
-    try testing.expectEqual(@as(u64, 0), bc.getNextAvailableNonce("ob_omni_bob"));
+    try testing.expectEqual(@as(u64, 0), bc.getNextAvailableNonce("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas"));
 }
 
 test "Blockchain.isValidHash — 4 zerouri leading = valid" {
@@ -1316,13 +1325,13 @@ test "Blockchain.validateTransaction — rejects TX when pending outgoing exceed
     defer bc.deinit();
 
     // Credit Alice 1000 SAT
-    try bc.creditBalance("ob_omni_alice_test_pending", 1000);
+    try bc.creditBalance("ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll", 1000);
 
     // TX1: Alice sends 400 SAT (fee=1), nonce=0 — should succeed
     const tx1 = Transaction{
         .id = 1,
-        .from_address = "ob_omni_alice_test_pending",
-        .to_address = "ob_omni_bob_test_pending",
+        .from_address = "ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll",
+        .to_address = "ob1q3h3gwya8twy35f92qcyseqf2g3vc2qc8ln8g92",
         .amount = 400,
         .fee = 1,
         .timestamp = 1700000000,
@@ -1333,14 +1342,14 @@ test "Blockchain.validateTransaction — rejects TX when pending outgoing exceed
     try bc.addTransaction(tx1);
 
     // Verify pending outgoing is 401 (400 amount + 1 fee)
-    try testing.expectEqual(@as(u64, 401), bc.getPendingOutgoing("ob_omni_alice_test_pending"));
+    try testing.expectEqual(@as(u64, 401), bc.getPendingOutgoing("ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll"));
 
     // TX2: Alice sends 700 SAT (fee=1), nonce=1 — should FAIL
     // Available = 1000 - 401 = 599, but TX2 needs 701 (700+1)
     const tx2 = Transaction{
         .id = 2,
-        .from_address = "ob_omni_alice_test_pending",
-        .to_address = "ob_omni_bob_test_pending",
+        .from_address = "ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll",
+        .to_address = "ob1q3h3gwya8twy35f92qcyseqf2g3vc2qc8ln8g92",
         .amount = 700,
         .fee = 1,
         .timestamp = 1700000001,
@@ -1354,8 +1363,8 @@ test "Blockchain.validateTransaction — rejects TX when pending outgoing exceed
     // Available = 1000 - 401 = 599, TX3 needs 501 (500+1) — fits
     const tx3 = Transaction{
         .id = 3,
-        .from_address = "ob_omni_alice_test_pending",
-        .to_address = "ob_omni_bob_test_pending",
+        .from_address = "ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll",
+        .to_address = "ob1q3h3gwya8twy35f92qcyseqf2g3vc2qc8ln8g92",
         .amount = 500,
         .fee = 1,
         .timestamp = 1700000002,
@@ -1366,7 +1375,7 @@ test "Blockchain.validateTransaction — rejects TX when pending outgoing exceed
     try bc.addTransaction(tx3);
 
     // After TX1 (401) + TX3 (501) pending = 902, available = 98
-    try testing.expectEqual(@as(u64, 902), bc.getPendingOutgoing("ob_omni_alice_test_pending"));
+    try testing.expectEqual(@as(u64, 902), bc.getPendingOutgoing("ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll"));
 }
 
 test "Blockchain.getConfirmations — unknown TX returns null" {
@@ -1574,7 +1583,7 @@ test "Blockchain.addExternalBlock — valid block appended and miner credited" {
         .nonce = 0,
         .hash = hash_str,
         .merkle_root = [_]u8{0} ** 32,
-        .miner_address = "ob_omni_external_miner",
+        .miner_address = "ob1q5lk2scarv6nvqgzeekdv5xhjv7v9yex73qhm40",
         .reward_sat = reward,
     };
     // Do NOT defer deinit — blockchain takes ownership (deinit frees hash + transactions)
@@ -1584,7 +1593,7 @@ test "Blockchain.addExternalBlock — valid block appended and miner credited" {
     // Chain should now have 2 blocks (genesis + external)
     try testing.expectEqual(@as(u32, 2), bc.getBlockCount());
     // Miner should be credited with block reward
-    try testing.expectEqual(reward, bc.getAddressBalance("ob_omni_external_miner"));
+    try testing.expectEqual(reward, bc.getAddressBalance("ob1q5lk2scarv6nvqgzeekdv5xhjv7v9yex73qhm40"));
 }
 
 // ─── Timelock + OP_RETURN Blockchain Tests (B4) ────────────────────────────
@@ -1593,12 +1602,12 @@ test "Blockchain.validateTransaction — locktime > current_height rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice_lt", 100_000);
+    try bc.creditBalance("ob1qmcl7lj9e5wg6523ynqyg6xklhg67tgjspv7dg6", 100_000);
 
     // Chain has 1 block (genesis), so chain.items.len = 1 = current_height
     // TX locked until block 100 → rejected (100 > 1)
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_lt", .to_address = "ob_omni_bob_lt",
+        .id = 1, .from_address = "ob1qmcl7lj9e5wg6523ynqyg6xklhg67tgjspv7dg6", .to_address = "ob1qlu4ev8rqhzw65w7m0at8khnvxje9y7t7n2plhn",
         .amount = 1000, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .locktime = 100,
         .signature = "", .hash = "",
@@ -1610,12 +1619,12 @@ test "Blockchain.validateTransaction — locktime <= current_height accepted" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice_lt2", 100_000);
+    try bc.creditBalance("ob1qje7f8p2nm66d2x5m6vvx8s0wkuyhc439c2q85r", 100_000);
 
     // Chain has 1 block, so current_height = 1
     // TX locked until block 1 → accepted (1 <= 1)
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_lt2", .to_address = "ob_omni_bob_lt2",
+        .id = 1, .from_address = "ob1qje7f8p2nm66d2x5m6vvx8s0wkuyhc439c2q85r", .to_address = "ob1qvwz680427a037eqyzv675xavxm8txh792h3m0r",
         .amount = 1000, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .locktime = 1,
         .signature = "", .hash = "",
@@ -1627,10 +1636,10 @@ test "Blockchain.validateTransaction — locktime 0 always accepted (immediate)"
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice_lt3", 100_000);
+    try bc.creditBalance("ob1qwtdsz27whtcajhqjl4e6yc9l2vpujzzt7z8dxe", 100_000);
 
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_lt3", .to_address = "ob_omni_bob_lt3",
+        .id = 1, .from_address = "ob1qwtdsz27whtcajhqjl4e6yc9l2vpujzzt7z8dxe", .to_address = "ob1qvvvn3uz7nh2v93eyx7y85rc7usumvgc3kle246",
         .amount = 1000, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .locktime = 0,
         .signature = "", .hash = "",
@@ -1643,10 +1652,10 @@ test "Blockchain.validateTransaction — op_return data-only TX accepted" {
     defer bc.deinit();
 
     // OP_RETURN TX: amount=0, op_return set, fee >= 1
-    try bc.creditBalance("ob_omni_alice_op", 100_000);
+    try bc.creditBalance("ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2", 100_000);
 
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_op", .to_address = "ob_omni_alice_op",
+        .id = 1, .from_address = "ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2", .to_address = "ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2",
         .amount = 0, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .op_return = "timestamp:2026-03-30T12:00:00Z",
         .signature = "", .hash = "",
@@ -1658,11 +1667,11 @@ test "Blockchain.validateTransaction — op_return > 80 bytes rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob_omni_alice_op2", 100_000);
+    try bc.creditBalance("ob1qtqh0uelqt8670n3j4ny0l6wpacgwe4as2f42d3", 100_000);
 
     const big_data = "X" ** 81;
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_op2", .to_address = "ob_omni_alice_op2",
+        .id = 1, .from_address = "ob1qtqh0uelqt8670n3j4ny0l6wpacgwe4as2f42d3", .to_address = "ob1qtqh0uelqt8670n3j4ny0l6wpacgwe4as2f42d3",
         .amount = 0, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .op_return = big_data,
         .signature = "", .hash = "",
@@ -1713,7 +1722,7 @@ test "Blockchain.reorg — longer chain accepted" {
     bc.difficulty = 1;
 
     // Add block 1 to our chain
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob_omni_miner_a");
+    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
     try testing.expectEqual(@as(u32, 2), bc.getBlockCount());
 
@@ -1721,9 +1730,9 @@ test "Blockchain.reorg — longer chain accepted" {
     // (same genesis, different blocks after)
     const genesis = bc.getBlock(0).?;
 
-    const alt_block1 = try makeTestBlockV(testing.allocator, 1, genesis.hash, "ob_omni_miner_b", 'b');
+    const alt_block1 = try makeTestBlockV(testing.allocator, 1, genesis.hash, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092", 'b');
 
-    const alt_block2 = try makeTestBlockV(testing.allocator, 2, alt_block1.hash, "ob_omni_miner_b", 'b');
+    const alt_block2 = try makeTestBlockV(testing.allocator, 2, alt_block1.hash, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092", 'b');
 
     var new_chain: [3]Block = undefined;
     new_chain[0] = genesis;
@@ -1735,7 +1744,7 @@ test "Blockchain.reorg — longer chain accepted" {
     // Chain should now be 3 blocks (genesis + alt1 + alt2)
     try testing.expectEqual(@as(u32, 3), bc.getBlockCount());
     // Miner B should be credited (from recalculation)
-    try testing.expect(bc.getAddressBalance("ob_omni_miner_b") > 0);
+    try testing.expect(bc.getAddressBalance("ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092") > 0);
 
     // Clean up alt blocks that are now owned by chain (deinit handles them)
     // alt_block1 and alt_block2 transactions are owned by the chain via append
@@ -1747,20 +1756,20 @@ test "Blockchain.reorg — shorter chain rejected" {
     bc.difficulty = 1;
 
     // Add 2 blocks to our chain
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob_omni_miner_a");
+    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
 
-    const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob_omni_miner_a");
+    const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block2);
     try testing.expectEqual(@as(u32, 3), bc.getBlockCount());
 
     // Try reorg with a chain of same length (3 blocks) — should be rejected
     const genesis = bc.getBlock(0).?;
-    const alt_block1 = try makeTestBlock(testing.allocator, 1, genesis.hash, "ob_omni_miner_b");
+    const alt_block1 = try makeTestBlock(testing.allocator, 1, genesis.hash, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092");
     defer testing.allocator.free(alt_block1.hash);
     defer alt_block1.transactions.deinit();
 
-    const alt_block2 = try makeTestBlock(testing.allocator, 2, alt_block1.hash, "ob_omni_miner_b");
+    const alt_block2 = try makeTestBlock(testing.allocator, 2, alt_block1.hash, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092");
     defer testing.allocator.free(alt_block2.hash);
     defer alt_block2.transactions.deinit();
 
@@ -1783,7 +1792,7 @@ test "Blockchain.reorg — depth > MAX_REORG_DEPTH rejected" {
     // Build a chain of MAX_REORG_DEPTH + 2 blocks (genesis + 101 blocks)
     var prev_hash: []const u8 = "genesis_hash_omnibus_v1";
     for (1..MAX_REORG_DEPTH + 2) |i| {
-        const blk = try makeTestBlock(testing.allocator, @intCast(i), prev_hash, "ob_omni_miner_a");
+        const blk = try makeTestBlock(testing.allocator, @intCast(i), prev_hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
         try bc.addExternalBlock(blk);
         prev_hash = bc.chain.items[bc.chain.items.len - 1].hash;
     }
@@ -1800,7 +1809,7 @@ test "Blockchain.reorg — depth > MAX_REORG_DEPTH rejected" {
 
     var alt_prev: []const u8 = genesis.hash;
     for (1..MAX_REORG_DEPTH + 3) |i| {
-        const alt_blk = try makeTestBlockV(testing.allocator, @intCast(i), alt_prev, "ob_omni_miner_b", 'z');
+        const alt_blk = try makeTestBlockV(testing.allocator, @intCast(i), alt_prev, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092", 'z');
         alt_chain_buf[i] = alt_blk;
         alt_prev = alt_blk.hash;
     }
@@ -1824,7 +1833,7 @@ test "Blockchain.addExternalBlock — orphan stored when parent unknown" {
     bc.difficulty = 1;
 
     // Block whose parent we don't have
-    const orphan = try makeTestBlock(testing.allocator, 5, "unknown_parent_hash_that_does_not_exist_in_our_chain_at_all_xxxx", "ob_omni_miner_orphan");
+    const orphan = try makeTestBlock(testing.allocator, 5, "unknown_parent_hash_that_does_not_exist_in_our_chain_at_all_xxxx", "ob1q3c4mm4mpad5mnzpush3mzt0umdk7sqy7kml67e");
 
     try bc.addExternalBlock(orphan);
 
@@ -1839,8 +1848,8 @@ test "Blockchain.processOrphans — orphan connected when parent arrives" {
     bc.difficulty = 1;
 
     // Create block 1 and block 2, but send block 2 first (orphan)
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob_omni_miner_a");
-    const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob_omni_miner_a");
+    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
 
     // Send block 2 first — parent unknown, goes to orphan pool
     try bc.addExternalBlock(block2);
@@ -1862,7 +1871,7 @@ test "Blockchain.findForkPoint — common ancestor found" {
     bc.difficulty = 1;
 
     // Add block 1
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob_omni_miner_a");
+    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
 
     // Other chain shares genesis + block1, then diverges
@@ -1871,7 +1880,7 @@ test "Blockchain.findForkPoint — common ancestor found" {
     other_chain[0] = genesis;
     other_chain[1] = bc.chain.items[1]; // same block1
 
-    const alt_block2 = try makeTestBlock(testing.allocator, 2, bc.chain.items[1].hash, "ob_omni_miner_b");
+    const alt_block2 = try makeTestBlock(testing.allocator, 2, bc.chain.items[1].hash, "ob1qgvffvjzwp6hvf6tv4ee65e3vdv0xw3e5qn3092");
     defer testing.allocator.free(alt_block2.hash);
     defer alt_block2.transactions.deinit();
     other_chain[2] = alt_block2;
@@ -1905,8 +1914,8 @@ test "Blockchain.indexAddressTx — TX appears in both sender and receiver histo
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    const addr_a = "ob_omni_sender_test_addr";
-    const addr_b = "ob_omni_receiver_test_addr";
+    const addr_a = "ob1qyfr7eu6lawmtpc70htrf7cxpenlfxhhm8pu952";
+    const addr_b = "ob1q23qfxzsfjdsyj6em4u3egclxfqmzue5etu4h6u";
     const tx_hash = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
 
     // Simulate indexing a TX for both addresses (like mineBlockForMiner does)
@@ -1929,7 +1938,7 @@ test "Blockchain.indexAddressTx — multiple TXs accumulate per address" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    const addr = "ob_omni_multi_tx_addr";
+    const addr = "ob1qn8psc97zfjv0hak3nqyvgz7mjewq0hqyv7mgu7";
     const tx1 = "1111111111111111111111111111111111111111111111111111111111111111";
     const tx2 = "2222222222222222222222222222222222222222222222222222222222222222";
     const tx3 = "3333333333333333333333333333333333333333333333333333333333333333";
@@ -1947,7 +1956,7 @@ test "Blockchain.getAddressHistory — unknown address returns null" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try testing.expect(bc.getAddressHistory("ob_omni_unknown_addr") == null);
+    try testing.expect(bc.getAddressHistory("ob1q80wdpvx6ewepelcnt4pu07jhe300kxtw5hhxyf") == null);
 }
 
 test "Blockchain.indexAddressTx — empty address ignored" {
@@ -2026,9 +2035,9 @@ const Ripemd160 = @import("ripemd160.zig").Ripemd160;
 test "Blockchain.validateTransaction — legacy TX (no scripts) still validates" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice_script", 10_000);
+    try bc.creditBalance("ob1qpuvwpsyt4r0p9c800qhgmnz7n4mjffs36g8r5m", 10_000);
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_script", .to_address = "ob_omni_bob_script00",
+        .id = 1, .from_address = "ob1qpuvwpsyt4r0p9c800qhgmnz7n4mjffs36g8r5m", .to_address = "ob1qa85832ynnv6lmc43mm07qjxk80mswapgz0zc63",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .signature = "", .hash = "",
         // script_pubkey and script_sig default to "" (legacy mode)
@@ -2039,7 +2048,7 @@ test "Blockchain.validateTransaction — legacy TX (no scripts) still validates"
 test "Blockchain.validateTransaction — TX with valid P2PKH scripts validates" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice_p2pkh0", 10_000);
+    try bc.creditBalance("ob1qzkl36jh98nwlqhz2ldspp7enquuh9fvq2s5pna", 10_000);
 
     // Generate sender keypair
     const kp = try Secp256k1Crypto.generateKeyPair();
@@ -2056,7 +2065,7 @@ test "Blockchain.validateTransaction — TX with valid P2PKH scripts validates" 
 
     // Create TX (unsigned first to get hash)
     var tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_p2pkh0", .to_address = "ob_omni_bob_p2pkh000",
+        .id = 1, .from_address = "ob1qzkl36jh98nwlqhz2ldspp7enquuh9fvq2s5pna", .to_address = "ob1qp4zd3f7wuputqdljt0xmu8lah0gkt47usjayzf",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .signature = "", .hash = "",
         .script_pubkey = &lock_script,
@@ -2076,7 +2085,7 @@ test "Blockchain.validateTransaction — TX with valid P2PKH scripts validates" 
 test "Blockchain.validateTransaction — TX with invalid scripts rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice_badsig", 10_000);
+    try bc.creditBalance("ob1q8sfgk7l05gngpwm6u8m964j4cmz8arly600chj", 10_000);
 
     const kp1 = try Secp256k1Crypto.generateKeyPair();
     const kp2 = try Secp256k1Crypto.generateKeyPair();
@@ -2089,7 +2098,7 @@ test "Blockchain.validateTransaction — TX with invalid scripts rejected" {
     const lock_script = script_mod.createP2PKH(pubkey_hash);
 
     var tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_badsig", .to_address = "ob_omni_bob_badsig00",
+        .id = 1, .from_address = "ob1q8sfgk7l05gngpwm6u8m964j4cmz8arly600chj", .to_address = "ob1qtsdal04x4kahc0rzljtkzwqpnq8p3mhn4jrv8f",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .signature = "", .hash = "",
         .script_pubkey = &lock_script,
@@ -2107,7 +2116,7 @@ test "Blockchain.validateTransaction — TX with invalid scripts rejected" {
 test "Blockchain.validateTransaction — script_pubkey set but script_sig empty rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob_omni_alice_nosig0", 10_000);
+    try bc.creditBalance("ob1qguvehlayw4x0v2ku25zw82tfkxsqcjv3l4xtns", 10_000);
 
     const kp = try Secp256k1Crypto.generateKeyPair();
     var sha_out: [32]u8 = undefined;
@@ -2117,7 +2126,7 @@ test "Blockchain.validateTransaction — script_pubkey set but script_sig empty 
     const lock_script = script_mod.createP2PKH(pubkey_hash);
 
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice_nosig0", .to_address = "ob_omni_bob_nosig000",
+        .id = 1, .from_address = "ob1qguvehlayw4x0v2ku25zw82tfkxsqcjv3l4xtns", .to_address = "ob1qvuhxtgd6p0wu6f2vn3g9l9l70uhd02hjxwf938",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0,
         .signature = "", .hash = "",
         .script_pubkey = &lock_script,

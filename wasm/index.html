@@ -116,9 +116,7 @@ async function loadWasm() {
         const bytes = await response.arrayBuffer();
         const sizeKB = (bytes.byteLength / 1024).toFixed(0);
 
-        const result = await WebAssembly.instantiate(bytes, {
-            env: { memory: new WebAssembly.Memory({ initial: 256 }) }
-        });
+        const result = await WebAssembly.instantiate(bytes, {});
 
         wasm = result.instance.exports;
         memory = wasm.memory;

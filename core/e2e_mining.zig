@@ -15,9 +15,9 @@ const bc_mod = @import("blockchain.zig");
 const Blockchain = bc_mod.Blockchain;
 const Transaction = bc_mod.Transaction;
 
-const MINER_ADDR = "ob_omni_miner00000001";
-const ALICE_ADDR = "ob_omni_alice0000001";
-const BOB_ADDR   = "ob_omni_bob00000001";
+const MINER_ADDR = "ob1qg7uvcgwamhgzsr3rwsvy0p22fxvyks6j94q2dy";
+const ALICE_ADDR = "ob1q4udrjhps68vwwxkp56qtw674nez6hjuthlssv3";
+const BOB_ADDR   = "ob1qpg0js34h440nxpv63u4wswnhp8shn0qqxl5apf";
 
 const testing = std.testing;
 

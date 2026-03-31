@@ -157,17 +157,17 @@ pub const PoolStats = struct {
 const testing = std.testing;
 
 test "mining pool initialization" {
-    var pool = MiningPool.init("omnibus-pool", "ob_omni_pool123", testing.allocator);
+    var pool = MiningPool.init("omnibus-pool", "ob1qpqnlv4d3ct7uu0ks9werk3qc6e7pqj6xtay237", testing.allocator);
     defer pool.deinit();
 
     try testing.expectEqual(pool.getMinerCount(), 0);
 }
 
 test "add miners to pool" {
-    var pool = MiningPool.init("omnibus-pool", "ob_omni_pool123", testing.allocator);
+    var pool = MiningPool.init("omnibus-pool", "ob1qpqnlv4d3ct7uu0ks9werk3qc6e7pqj6xtay237", testing.allocator);
     defer pool.deinit();
 
-    try pool.addMiner("miner-1", "ob_omni_1", 1000);
+    try pool.addMiner("miner-1", "ob1qw2kdkh0s00fe8jx8d3ajpka9ghnykqzx03emay", 1000);
     try pool.addMiner("miner-2", "ob_k1_2", 1500);
     try pool.addMiner("miner-3", "ob_f5_3", 2000);
 
@@ -176,10 +176,10 @@ test "add miners to pool" {
 }
 
 test "record shares" {
-    var pool = MiningPool.init("omnibus-pool", "ob_omni_pool123", testing.allocator);
+    var pool = MiningPool.init("omnibus-pool", "ob1qpqnlv4d3ct7uu0ks9werk3qc6e7pqj6xtay237", testing.allocator);
     defer pool.deinit();
 
-    try pool.addMiner("miner-1", "ob_omni_1", 1000);
+    try pool.addMiner("miner-1", "ob1qw2kdkh0s00fe8jx8d3ajpka9ghnykqzx03emay", 1000);
     try pool.recordShare("miner-1");
     try pool.recordShare("miner-1");
 
@@ -187,10 +187,10 @@ test "record shares" {
 }
 
 test "pool statistics" {
-    var pool = MiningPool.init("omnibus-pool", "ob_omni_pool123", testing.allocator);
+    var pool = MiningPool.init("omnibus-pool", "ob1qpqnlv4d3ct7uu0ks9werk3qc6e7pqj6xtay237", testing.allocator);
     defer pool.deinit();
 
-    try pool.addMiner("miner-1", "ob_omni_1", 1000);
+    try pool.addMiner("miner-1", "ob1qw2kdkh0s00fe8jx8d3ajpka9ghnykqzx03emay", 1000);
     try pool.addMiner("miner-2", "ob_k1_2", 1500);
 
     const stats = pool.getStats();
@@ -199,10 +199,10 @@ test "pool statistics" {
 }
 
 test "reward distribution" {
-    var pool = MiningPool.init("omnibus-pool", "ob_omni_pool123", testing.allocator);
+    var pool = MiningPool.init("omnibus-pool", "ob1qpqnlv4d3ct7uu0ks9werk3qc6e7pqj6xtay237", testing.allocator);
     defer pool.deinit();
 
-    try pool.addMiner("miner-1", "ob_omni_1", 1000);
+    try pool.addMiner("miner-1", "ob1qw2kdkh0s00fe8jx8d3ajpka9ghnykqzx03emay", 1000);
     try pool.addMiner("miner-2", "ob_k1_2", 1000);
 
     const block_reward = 50_000_000_000; // 50 OMNI in SAT

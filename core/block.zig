@@ -272,9 +272,9 @@ test "block - addTransaction creste numarul de TX" {
     defer block.transactions.deinit();
 
     try testing.expectEqual(@as(u32, 0), block.getTransactionCount());
-    try block.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 1000));
+    try block.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 1000));
     try testing.expectEqual(@as(u32, 1), block.getTransactionCount());
-    try block.addTransaction(makeTx(2, "ob_omni_bob", "ob_omni_carol", 500));
+    try block.addTransaction(makeTx(2, "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", "ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", 500));
     try testing.expectEqual(@as(u32, 2), block.getTransactionCount());
 }
 
@@ -299,7 +299,7 @@ test "block - hash include tranzactiile via merkle root (hash diferit cu/fara TX
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer block_with_tx.transactions.deinit();
-    try block_with_tx.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 1_000_000_000));
+    try block_with_tx.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 1_000_000_000));
     // Set merkle root AFTER adding TX (commits to TX content)
     block_with_tx.merkle_root = block_with_tx.calculateMerkleRoot();
 
@@ -317,7 +317,7 @@ test "block - merkle root changes with different transactions" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer b1.transactions.deinit();
-    try b1.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 100));
+    try b1.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 100));
 
     var b2 = Block{
         .index = 1, .timestamp = 1_700_000_000,
@@ -326,7 +326,7 @@ test "block - merkle root changes with different transactions" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer b2.transactions.deinit();
-    try b2.addTransaction(makeTx(2, "ob_omni_carol", "ob_omni_dave", 200));
+    try b2.addTransaction(makeTx(2, "ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", "ob1q4xrmwk7c8e263jt3f2wlc0jxyu9merufdwcezs", 200));
 
     const mr1 = b1.calculateMerkleRoot();
     const mr2 = b2.calculateMerkleRoot();
@@ -395,7 +395,7 @@ test "block - generateMerkleProof out of range returns null" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer block.transactions.deinit();
-    try block.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 100));
+    try block.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 100));
     block.merkle_root = block.calculateMerkleRoot();
     try testing.expect(block.generateMerkleProof(5) == null);
 }
@@ -409,7 +409,7 @@ test "block - generateMerkleProof single TX verifies" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer block.transactions.deinit();
-    try block.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 100));
+    try block.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 100));
     block.merkle_root = block.calculateMerkleRoot();
 
     // Single TX: tree is just the TX hash duplicated as sibling
@@ -428,8 +428,8 @@ test "block - generateMerkleProof 2 TXs verifies both" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer block.transactions.deinit();
-    try block.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 100));
-    try block.addTransaction(makeTx(2, "ob_omni_carol", "ob_omni_dave", 200));
+    try block.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 100));
+    try block.addTransaction(makeTx(2, "ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", "ob1q4xrmwk7c8e263jt3f2wlc0jxyu9merufdwcezs", 200));
     block.merkle_root = block.calculateMerkleRoot();
 
     // Verify proof for TX 0
@@ -450,10 +450,10 @@ test "block - generateMerkleProof 4 TXs verifies all" {
         .hash  = "0000000000000000000000000000000000000000000000000000000000000000",
     };
     defer block.transactions.deinit();
-    try block.addTransaction(makeTx(1, "ob_omni_alice", "ob_omni_bob", 100));
-    try block.addTransaction(makeTx(2, "ob_omni_carol", "ob_omni_dave", 200));
-    try block.addTransaction(makeTx(3, "ob_omni_eve", "ob_omni_frank", 300));
-    try block.addTransaction(makeTx(4, "ob_omni_grace", "ob_omni_heidi", 400));
+    try block.addTransaction(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 100));
+    try block.addTransaction(makeTx(2, "ob1q8yy5x2xqfdv0gt53wwfy66cqmkrafgx88kda02", "ob1q4xrmwk7c8e263jt3f2wlc0jxyu9merufdwcezs", 200));
+    try block.addTransaction(makeTx(3, "ob1qdz28c9t6r9qy33pu2agsnmms9nje88ejxrltgt", "ob1q8lrgnmdspgyj3lwt5d8zehlarzqrdxffsgx5u0", 300));
+    try block.addTransaction(makeTx(4, "ob1qg5udjz6lmvvhayca0d7x3xy3e2sl9favpv0a7e", "ob1q2hy0ea4swquau990w9w0vcrdzyfu54qyye4f2k", 400));
     block.merkle_root = block.calculateMerkleRoot();
 
     for (0..4) |i| {
