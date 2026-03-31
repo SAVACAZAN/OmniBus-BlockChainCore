@@ -221,7 +221,7 @@ test "getBlockReward — monoton descrescator" {
     const heights = [_]u64{ 0, 1000, HALVING_INTERVAL - 1, HALVING_INTERVAL,
         HALVING_INTERVAL * 2, HALVING_INTERVAL * 63 };
     for (heights) |h| {
-        assertRewardMonotone(h);
+        try assertRewardMonotone(h);
     }
 }
 
@@ -229,7 +229,7 @@ test "SupplyGuard — emit in limite" {
     var sg = SupplyGuard.init();
     try sg.emit(INITIAL_REWARD_SAT);
     try testing.expectEqual(INITIAL_REWARD_SAT, sg.emitted_sat);
-    sg.assertValid();
+    try sg.assertValid();
 }
 
 test "SupplyGuard — emit peste max returneaza eroare" {
@@ -250,7 +250,7 @@ test "SupplyGuard — 1000 blocuri emit suma corecta" {
         try sg.emit(INITIAL_REWARD_SAT);
     }
     try testing.expectEqual(INITIAL_REWARD_SAT * 1000, sg.emitted_sat);
-    sg.assertValid();
+    try sg.assertValid();
 }
 
 test "TemporalGuard — timestamp monoton" {
