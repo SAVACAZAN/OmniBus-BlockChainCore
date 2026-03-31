@@ -1,7 +1,7 @@
 # 8. Storage & Database
 
 > OmniBus vs Bitcoin — Category 8/10
-> Generated: 2026-03-31 16:50
+> Generated: 2026-03-31 18:17
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|
@@ -12,7 +12,7 @@
 | 145 | Pruning Configuration | Y | Y | prune_config.zig | Space-saving |
 | 146 | Witness Storage | Y | N | witness.zig | Segregated witness data |
 | 147 | Compact Transactions | Y | N | compact_tx.zig | Compressed TXs |
-| 148 | UTXO Index | Y | Y | state_trie.zig | Account-based (partial) |
+| 148 | UTXO Index | Y | Y | utxo.zig | Full UTXO set + address index |
 | 149 | Blockchain V2 Engine | N | + | blockchain_v2.zig | Next-gen arch [EXTRA] |
 | 150 | Shard Config | N | + | shard_config.zig | 4-shard storage [EXTRA] |
 

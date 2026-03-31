@@ -1,7 +1,7 @@
 # 6. Mining & Consensus
 
 > OmniBus vs Bitcoin — Category 6/10
-> Generated: 2026-03-31 16:50
+> Generated: 2026-03-31 18:17
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|

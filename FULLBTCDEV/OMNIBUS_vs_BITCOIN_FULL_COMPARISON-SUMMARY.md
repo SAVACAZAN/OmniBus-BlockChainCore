@@ -1,7 +1,7 @@
 # OmniBus vs Bitcoin — SUMMARY
 
-> Generated: 2026-03-31 16:50
-> Core modules scanned: 74
+> Generated: 2026-03-31 18:17
+> Core modules scanned: 78
 
 | # | Category | BTC Has | OMNI Has | Extras | Score |
 |:-:|----------|:-------:|:--------:|:------:|:-----:|
@@ -9,35 +9,24 @@
 | 2 | Blockchain Structure | 17 | 20 | 3 | 117% +3 |
 | 3 | Cryptography | 14 | 20 | 6 | 142% +6 |
 | 4 | Wallet & Key Management | 18 | 19 | 2 | 105% +2 |
-| 5 | Transactions & Script | 20 | 16 | 0 | 80% |
+| 5 | Transactions & Script | 20 | 20 | 0 | 100% |
 | 6 | Mining & Consensus | 10 | 14 | 5 | 140% +5 |
-| 7 | Network & P2P | 18 | 17 | 2 | 94% +2 |
+| 7 | Network & P2P | 18 | 19 | 2 | 105% +2 |
 | 8 | Storage & Database | 7 | 8 | 3 | 114% +3 |
-| 9 | Layer 2 & Extensions | 4 | 9 | 8 | 225% +8 |
-| 10 | BIP Standards Compliance | 15 | 10 | 0 | 66% |
-| | **TOTAL** | **142** | **151** | **30** | **106%** |
+| 9 | Layer 2 & Extensions | 4 | 12 | 8 | 300% +8 |
+| 10 | BIP Standards Compliance | 16 | 15 | 0 | 93% |
+| | **TOTAL** | **143** | **165** | **30** | **115%** |
 
 ---
 
-## Overall: 106% Bitcoin parity + 30 unique OmniBus features
+## Overall: 115% Bitcoin parity + 30 unique OmniBus features
 
 ### TOP MISSING (Priority)
 
-- [ ] **Change Address (chain=1)** (Transactions & Script) — NOT YET IMPLEMENTED
-- [ ] **Sequence Number** (Transactions & Script) — NOT YET
-- [ ] **Replace-By-Fee (RBF)** (Transactions & Script) — NOT YET
-- [ ] **Child-Pays-For-Parent** (Transactions & Script) — NOT YET
 - [ ] **Stratum Client** (Mining & Consensus) — miner-client.js (Node.js)
-- [ ] **Tor Support** (Network & P2P) — NOT YET
 - [ ] **I2P Support** (Network & P2P) — NOT YET
-- [ ] **BIP-324 Encrypted P2P** (Network & P2P) — NOT YET
 - [ ] **Witness Storage** (Storage & Database) — Segregated witness data
 - [ ] **Compact Transactions** (Storage & Database) — Compressed TXs
-- [ ] **Lightning Network** (Layer 2 & Extensions) — NOT YET (channels exist)
-- [ ] **HTLC Contracts** (Layer 2 & Extensions) — NOT YET
-- [ ] **Sidechain Support** (Layer 2 & Extensions) — NOT YET (bridge exists)
-- [ ] **BIP-174 (PSBT)** (BIP Standards Compliance) — NOT YET
-- [ ] **BIP-324 (V2 P2P)** (BIP Standards Compliance) — NOT YET
 
 ### TOP EXTRAS (OmniBus-only)
 
@@ -73,4 +62,4 @@
 - **WASM Wallet** (Layer 2 & Extensions) — Browser wallet [EXTRA]
 
 ---
-*74 Zig modules | 151/142 BTC features | 30 extras*
+*78 Zig modules | 165/143 BTC features | 30 extras*

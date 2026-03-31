@@ -1,7 +1,7 @@
 # 4. Wallet & Key Management
 
 > OmniBus vs Bitcoin — Category 4/10
-> Generated: 2026-03-31 16:50
+> Generated: 2026-03-31 18:17
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|
@@ -20,7 +20,7 @@
 | 73 | Witness Version | Y | Y | wallet.zig | 0=SegWit, 1=Taproot |
 | 74 | Address Type Detection | Y | Y | wallet.zig | NATIVE_SEGWIT, TAPROOT |
 | 75 | Network (mainnet/testnet) | Y | Y | bip32_wallet.zig | Network enum |
-| 76 | Passphrase (25th word) | Y | Y | bip32_wallet.zig | Partial (TODO) |
+| 76 | Passphrase (25th word) | Y | Y | bip32_wallet.zig | initFromMnemonicPassphrase |
 | 77 | Key Encryption | Y | Y | key_encryption.zig | AES-256-GCM |
 | 78 | Cold Storage / Vault | Y | Y | vault_reader.zig | Named Pipe from SuperVault |
 | 79 | Multi-chain Derivation | N | + | - | 19 chains from 1 seed [EXTRA] |
