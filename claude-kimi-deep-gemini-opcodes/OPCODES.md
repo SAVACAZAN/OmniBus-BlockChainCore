@@ -1,7 +1,7 @@
 # OmniBus Blockchain - OPCODES & CONSTANTS REFERENCE
 
 > **Scop:** Referință centralizată pentru toate opcodurile, constantele, enum-urile și codurile de mesaje.
-> **Generat automat la:** 2026-03-31 04:16:13
+> **Generat automat la:** 2026-03-31 20:28:55
 > **Scanat de:** scan_opcodes.py
 
 ---
@@ -14,6 +14,12 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 ---
 
 ## 📊 CONSTANTE DESCOPERITE
+
+### core\bech32.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `OB_HRP` | `"ob"` | ─── OmniBus convenience ────────────────────────────────────... |
 
 ### core\binary_codec.zig
 
@@ -37,6 +43,15 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `MAX_BLOCK_TX` | `usize = 4_096` | / Maximum transactions per block / Reduced from 10,000 to 4,... |
 | `MerkleProof` | `light_client_mod.MerkleProof` |  |
 | `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\block_filter.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `FilterType` | `enum(u8) {
+    /// Basic filter: all scriptPubKeys + OP_RETURN data
+    basic = 0,
+    /// Extend...` | unlike BIP-37 Bloom filters which leak address info. / Filte... |
 
 ### core\blockchain.zig
 
@@ -415,6 +430,13 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `SIGNATURE_MAX` | `usize = 29792` |  |
 | `SPHINCSPlus` | `SlhDsa256s` |  |
 
+### core\psbt.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `PSBT_MAGIC` | `[4]u8{ 'p', 's', 'b', 't' }` | Global: unsigned TX Per-input: partial signatures, pubkeys, ... |
+| `PSBT_SEPARATOR` | `0xFF` |  |
+
 ### core\rpc_server.zig
 
 | Constantă | Valoare | Descriere |
@@ -666,6 +688,17 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `.ltc` | > "LTC" | - |
 
 ### ChannelState
+*Fișier: `core\lightning.zig` (linia 18)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `opening,    // Funding TX broadcast, waiting for confirmations` | 0 | - |
+| `active,     // Channel is open, can route payments` | 1 | - |
+| `closing,    // Cooperative close initiated` | 2 | - |
+| `force_closing, // Unilateral close (dispute period)` | 3 | - |
+| `closed,     // Channel fully closed on-chain` | 4 | - |
+
+### ChannelState
 *Fișier: `core\payment_channel.zig` (linia 25)*
 
 | Variantă | Valoare | Descriere |
@@ -686,7 +719,7 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `Finalized` | 2 | - |
 
 ### ConnDirection
-*Fișier: `core\p2p.zig` (linia 340)*
+*Fișier: `core\p2p.zig` (linia 341)*
 
 | Variantă | Valoare | Descriere |
 |----------|---------|-----------|
@@ -712,7 +745,7 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `finalized` | 3 | Ambele faze complete |
 
 ### DomainAlgorithm
-*Fișier: `core\pq_crypto.zig` (linia 534)*
+*Fișier: `core\pq_crypto.zig` (linia 535)*
 
 | Variantă | Valoare | Descriere |
 |----------|---------|-----------|
@@ -730,11 +763,19 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `s3` | 4 | ob_s3_   — Falcon-Light |
 | `pub fn prefix(self: DomainType) []const u8 {` | 4 | - |
 | `return switch (self) {` | 5 | - |
-| `.omni` | > "ob_omni_" | - |
+| `.omni` | > "ob1q" | - |
 | `.k1` | > "ob_k1_" | - |
 | `.f5` | > "ob_f5_" | - |
 | `.d5` | > "ob_d5_" | - |
 | `.s3` | > "ob_s3_" | - |
+
+### Encoding
+*Fișier: `core\bech32.zig` (linia 13)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `bech32` | 0 | - |
+| `bech32m` | 1 | - |
 
 ### ExchangeId
 *Fișier: `core\oracle.zig` (linia 53)*
@@ -762,6 +803,14 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `.raydium` | > "Raydium" | - |
 | `.egld_dex` | > "EGLD-DEX" | - |
 
+### FilterType
+*Fișier: `core\block_filter.zig` (linia 20)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `basic` | 0 | - |
+| `extended` | 1 | - |
+
 ### GuardianStatus
 *Fișier: `core\guardian.zig` (linia 30)*
 
@@ -771,6 +820,17 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `active` | 1 | - |
 | `removing` | 2 | - |
 | `removed` | 3 | - |
+
+### HTLCState
+*Fișier: `core\htlc.zig` (linia 20)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `pending` | 0 | - |
+| `active` | 1 | - |
+| `claimed` | 2 | - |
+| `refunded` | 3 | - |
+| `expired` | 4 | - |
 
 ### KeyBlockState
 *Fișier: `core\sub_block.zig` (linia 101)*
@@ -782,7 +842,7 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `finalized,    // Hash calculat, gata de adaugat in chain` | 2 | - |
 
 ### KnockResult
-*Fișier: `core\p2p.zig` (linia 703)*
+*Fișier: `core\p2p.zig` (linia 704)*
 
 | Variantă | Valoare | Descriere |
 |----------|---------|-----------|
@@ -848,6 +908,18 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `active` | 2 | - |
 | `suspended` | 3 | - |
 | `error_state` | 4 | - |
+
+### Network
+*Fișier: `core\bip32_wallet.zig` (linia 12)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `mainnet, // "OMNI"` | 0 | - |
+| `testnet, // "TOMNI"` | 1 | - |
+| `pub fn label(self: Network) []const u8 {` | 2 | - |
+| `return switch (self) {` | 3 | - |
+| `.mainnet` | > "OMNI" | - |
+| `.testnet` | > "TOMNI" | - |
 
 ### NodeMode
 *Fișier: `core\node_launcher.zig` (linia 8)*
@@ -925,6 +997,16 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `.infra` | > "InfraOS" | - |
 | `.governance` | > "GovernanceOS" | - |
 | `.blockchain` | > "BlockchainOS" | - |
+
+### PSBTRole
+*Fișier: `core\psbt.zig` (linia 25)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `unsigned,        // Created, no signatures yet` | 0 | - |
+| `partially_signed, // Some signers have signed` | 1 | - |
+| `fully_signed,    // All required signatures present` | 2 | - |
+| `finalized,       // Ready for broadcast` | 3 | - |
 
 ### PoolStatus
 *Fișier: `core\light_miner.zig` (linia 255)*
@@ -1028,6 +1110,20 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 | `invalid_block` | 1 | - |
 | `downtime` | 2 | - |
 
+### Socks5Result
+*Fișier: `core\tor_proxy.zig` (linia 61)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `success` | 0 | - |
+| `general_failure` | 1 | - |
+| `connection_refused` | 2 | - |
+| `network_unreachable` | 3 | - |
+| `host_unreachable` | 4 | - |
+| `ttl_expired` | 5 | - |
+| `command_not_supported` | 6 | - |
+| `address_type_not_supported` | 7 | - |
+
 ### SyncStatus
 *Fișier: `core\sync.zig` (linia 180)*
 
@@ -1106,10 +1202,10 @@ Pentru a actualiza, rulează: `python scan_opcodes.py --update`
 
 ---
 
-*Generat automat de scan_opcodes.py la 2026-03-31T04:16:13.613455*
+*Generat automat de scan_opcodes.py la 2026-03-31T20:28:55.587962*
 
 **Statistici scanare:**
-- Constante publice: 246
-- Enums: 38
+- Constante publice: 250
+- Enums: 45
 - Message types: 20
 - Magic numbers: 0
