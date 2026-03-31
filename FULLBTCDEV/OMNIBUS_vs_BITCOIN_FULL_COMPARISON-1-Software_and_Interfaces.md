@@ -1,7 +1,7 @@
 # 1. Software & Interfaces
 
 > OmniBus vs Bitcoin — Category 1/10
-> Generated: 2026-03-31 18:17
+> Generated: 2026-03-31 19:42
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|

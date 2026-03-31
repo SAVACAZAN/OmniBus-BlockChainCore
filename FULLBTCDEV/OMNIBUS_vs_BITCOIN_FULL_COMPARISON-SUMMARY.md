@@ -1,6 +1,6 @@
 # OmniBus vs Bitcoin — SUMMARY
 
-> Generated: 2026-03-31 18:17
+> Generated: 2026-03-31 19:42
 > Core modules scanned: 78
 
 | # | Category | BTC Has | OMNI Has | Extras | Score |

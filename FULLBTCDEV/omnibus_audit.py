@@ -89,9 +89,36 @@ def scan_all_modules():
 
 # Layers are inferred from import depth, not hardcoded
 LAYER_HINTS = {
-    # L0: No imports from other core modules (pure crypto/utils)
+    # L0: Pure crypto/utils (no core imports)
     "crypto": 0, "secp256k1": 0, "ripemd160": 0, "hex_utils": 0, "bech32": 0,
-    # L7: Entry point
+    "encrypted_p2p": 0,
+    # L1: Types/data structures
+    "transaction": 1, "block": 1, "bip32_wallet": 1, "compact_transaction": 1,
+    "witness_data": 1, "utxo": 1, "psbt": 1, "block_filter": 1, "htlc": 1,
+    "compact_blocks": 1, "tx_receipt": 1, "script": 1,
+    # L2: Core logic
+    "blockchain": 2, "blockchain_v2": 2, "genesis": 2, "consensus": 2, "mempool": 2,
+    "wallet": 2, "sub_block": 2, "finality": 2, "governance": 2, "database": 2,
+    "light_client": 2, "chain_config": 2, "spark_invariants": 2,
+    # L3: Network
+    "p2p": 3, "sync": 3, "bootstrap": 3, "network": 3, "ws_server": 3,
+    "peer_scoring": 3, "kademlia_dht": 3, "dns_registry": 3, "tor_proxy": 3,
+    # L4: Storage
+    "storage": 4, "state_trie": 4,
+    # These are used by blockchain_v2 (L2), so keep them accessible
+    "binary_codec": 2, "archive_manager": 2, "prune_config": 2,
+    # L5: Node services
+    "node_launcher": 5, "cli": 5, "mining_pool": 5, "light_miner": 5,
+    "miner_wallet": 5, "miner_genesis": 5, "e2e_mining": 5, "lightning": 5,
+    "shard_coordinator": 5, "metachain": 5, "shard_config": 5,
+    "payment_channel": 5, "staking": 5, "key_encryption": 5,
+    "schnorr": 0, "multisig": 0, "bls_signatures": 0, "pq_crypto": 0,
+    # L6: Services/economic
+    "rpc_server": 6, "vault_reader": 6, "vault_engine": 6,
+    "bread_ledger": 6, "domain_minter": 6, "ubi_distributor": 6,
+    "bridge_relay": 6, "oracle": 6, "omni_brain": 6, "guardian": 6,
+    "synapse_priority": 6, "os_mode": 6, "benchmark": 6, "agent_manager": 6,
+    # L7: Entry
     "main": 7,
 }
 
@@ -195,8 +222,18 @@ def security_scan(modules):
         # Critical: hardcoded secrets (but filter test files and known constants)
         for match in re.finditer(r'const\s+(\w*(?:key|secret|password|token)\w*)\s*=\s*"([^"]+)"', content, re.IGNORECASE):
             var_name, value = match.group(1), match.group(2)
-            if "test" in var_name.lower() or "Bitcoin seed" in value or "sample" in value.lower():
-                continue  # Known non-secrets
+            # Filter known non-secrets: test data, protocol constants, crypto seeds
+            known_safe = (
+                "test" in var_name.lower() or "test" in name.lower() or
+                "Bitcoin seed" in value or "sample" in value.lower() or
+                "header" in var_name.lower() or  # HTTP/WS headers
+                "pubkey" in var_name.lower() or   # test public keys
+                "dGhlIHNhbXBsZSBub25jZQ==" in value or  # WebSocket RFC 6455 magic
+                "258EAFA5" in value or  # WebSocket GUID
+                len(value) < 6  # Too short to be a real secret
+            )
+            if known_safe:
+                continue
             issues["critical"].append(f"{name}: hardcoded {var_name}")
 
         # Medium: debug prints (count only)

@@ -1,7 +1,7 @@
 # 7. Network & P2P
 
 > OmniBus vs Bitcoin — Category 7/10
-> Generated: 2026-03-31 18:17
+> Generated: 2026-03-31 19:42
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|

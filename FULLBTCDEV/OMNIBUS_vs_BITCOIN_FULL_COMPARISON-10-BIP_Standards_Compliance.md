@@ -1,7 +1,7 @@
 # 10. BIP Standards Compliance
 
 > OmniBus vs Bitcoin — Category 10/10
-> Generated: 2026-03-31 18:17
+> Generated: 2026-03-31 19:42
 
 | # | Component | BTC | OMNI | File | Notes |
 |:-:|-----------|:---:|:----:|------|-------|
