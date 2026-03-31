@@ -2,6 +2,7 @@ const std = @import("std");
 const secp256k1_mod = @import("secp256k1.zig");
 const crypto_mod = @import("crypto.zig");
 const hex_utils = @import("hex_utils.zig");
+const bech32_mod = @import("bech32.zig");
 
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Crypto = crypto_mod.Crypto;
@@ -25,6 +26,10 @@ pub const Transaction = struct {
     /// 0 = no lock (immediate), >0 = locked until block height N
     /// Similar to Bitcoin nLockTime
     locktime: u64 = 0,
+    /// Sequence number (BIP-125 RBF): 0xFFFFFFFF = final (no replacement)
+    /// < 0xFFFFFFFE = opt-in RBF (can be replaced by higher fee TX)
+    /// Similar to Bitcoin nSequence
+    sequence: u32 = 0xFFFFFFFF,
     /// Locking script (empty = legacy ECDSA mode, P2PKH = 25 bytes)
     /// When set, TX validation runs the script VM in addition to ECDSA verify
     script_pubkey: []const u8 = "",
@@ -40,13 +45,14 @@ pub const Transaction = struct {
 
     /// Prefix-uri valide pentru adresele OmniBus
     const VALID_PREFIXES = [_][]const u8{
-        "ob_omni_",    // OMNI native (coin 777)
-        "ob_k1_",      // OMNI_LOVE  (coin 778)
-        "ob_f5_",      // OMNI_FOOD  (coin 779)
-        "ob_d5_",      // OMNI_RENT  (coin 780)
-        "ob_s3_",      // OMNI_VACATION (coin 781)
-        "ob_ms_",      // Multisig (M-of-N P2SH-style)
-        "ob1q",        // OMNI SegWit
+        "ob1q",        // OMNI SegWit v0 (P2WPKH/P2WSH, Bech32)
+        "ob1p",        // OMNI Taproot v1 (Bech32m)
+        "ob_omni_",    // Legacy OMNI native (coin 777) — backward compat
+        "ob_k1_",      // OMNI_LOVE  (coin 778) — legacy
+        "ob_f5_",      // OMNI_FOOD  (coin 779) — legacy
+        "ob_d5_",      // OMNI_RENT  (coin 780) — legacy
+        "ob_s3_",      // OMNI_VACATION (coin 781) — legacy
+        "ob_ms_",      // Multisig (M-of-N P2SH-style) — legacy
         "0x",          // ETH-compatible bridge
     };
 
@@ -118,15 +124,53 @@ pub const Transaction = struct {
 
         if (self.from_address.len == 0 or self.to_address.len == 0) return false;
 
-        // from si to trebuie sa aiba prefix valid
-        var from_ok = false;
-        var to_ok = false;
-        for (VALID_PREFIXES) |prefix| {
-            if (std.mem.startsWith(u8, self.from_address, prefix)) from_ok = true;
-            if (std.mem.startsWith(u8, self.to_address, prefix)) to_ok = true;
-        }
+        // Validate addresses
+        const from_ok = isValidAddress(self.from_address);
+        const to_ok = isValidAddress(self.to_address);
 
         return from_ok and to_ok;
+    }
+
+    /// Validate an OmniBus address — Bech32 checksum for ob1q/ob1p, prefix match for legacy
+    fn isValidAddress(addr: []const u8) bool {
+        if (addr.len == 0) return false;
+
+        // Bech32/Bech32m addresses: full checksum validation
+        if (std.mem.startsWith(u8, addr, "ob1")) {
+            // Use a fixed buffer allocator to avoid heap allocation in validation
+            var buf: [512]u8 = undefined;
+            var fba = std.heap.FixedBufferAllocator.init(&buf);
+            return bech32_mod.isValidOBAddress(addr, fba.allocator());
+        }
+
+        // Legacy and bridge prefixes: simple prefix match
+        for (VALID_PREFIXES) |prefix| {
+            if (std.mem.startsWith(u8, addr, prefix)) return true;
+        }
+        return false;
+    }
+
+    /// BIP-125: Is this transaction opt-in RBF? (can be replaced by higher fee)
+    pub fn isRBF(self: *const Transaction) bool {
+        return self.sequence < 0xFFFFFFFE;
+    }
+
+    /// Mark this transaction as RBF-enabled (opt-in)
+    pub fn enableRBF(self: *Transaction) void {
+        self.sequence = 0xFFFFFFFD; // Standard opt-in RBF value
+    }
+
+    /// Check if a replacement TX is valid (BIP-125 rules)
+    /// Replacement must: same from_address+nonce, higher fee, higher sequence
+    pub fn canBeReplacedBy(self: *const Transaction, replacement: *const Transaction) bool {
+        // Rule 1: Must be RBF-enabled
+        if (!self.isRBF()) return false;
+        // Rule 2: Same sender and nonce (same "slot")
+        if (!std.mem.eql(u8, self.from_address, replacement.from_address)) return false;
+        if (self.nonce != replacement.nonce) return false;
+        // Rule 3: Replacement must pay strictly higher fee
+        if (replacement.fee <= self.fee) return false;
+        return true;
     }
 
     /// Semneaza tranzactia cu private key (secp256k1 ECDSA SHA256d — REAL)
@@ -182,7 +226,7 @@ test "Transaction.isValid — adrese corecte" {
 
     const tx = Transaction{
         .id           = 1,
-        .from_address = "ob_omni_abc123",
+        .from_address = "ob1qjhtj3yr5hkr2xxveupku98dcql9a6pcq5zfak0",
         .to_address   = "ob_k1_def456",
         .amount       = 1_000_000_000,
         .timestamp    = 1700000000,
@@ -195,8 +239,8 @@ test "Transaction.isValid — adrese corecte" {
 test "Transaction.isValid — amount zero → invalid" {
     const tx = Transaction{
         .id           = 2,
-        .from_address = "ob_omni_abc123",
-        .to_address   = "ob_omni_def456",
+        .from_address = "ob1qjhtj3yr5hkr2xxveupku98dcql9a6pcq5zfak0",
+        .to_address   = "ob1q9w8sn7v9qemhe6dfyjh7u84hcs3nys4vep0wrc",
         .amount       = 0,
         .timestamp    = 1700000000,
         .signature    = "",
@@ -209,7 +253,7 @@ test "Transaction.isValid — prefix invalid → false" {
     const tx = Transaction{
         .id           = 3,
         .from_address = "INVALID_addr",
-        .to_address   = "ob_omni_abc123",
+        .to_address   = "ob1qjhtj3yr5hkr2xxveupku98dcql9a6pcq5zfak0",
         .amount       = 1000,
         .timestamp    = 1700000000,
         .signature    = "",
@@ -221,8 +265,8 @@ test "Transaction.isValid — prefix invalid → false" {
 test "Transaction.calculateHash — determinist" {
     const tx = Transaction{
         .id           = 1,
-        .from_address = "ob_omni_abc",
-        .to_address   = "ob_omni_xyz",
+        .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s",
+        .to_address   = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount       = 5_000_000_000,
         .timestamp    = 1700000000,
         .signature    = "",
@@ -242,8 +286,8 @@ test "Transaction sign si verify — ECDSA secp256k1 REAL" {
 
     var tx = Transaction{
         .id           = 42,
-        .from_address = "ob_omni_test_sender",
-        .to_address   = "ob_omni_test_receiver",
+        .from_address = "ob1qnr6t7pv49zgdjj9lwksunqwl24mywvklpfycxr",
+        .to_address   = "ob1qq5tpx4wxy5jmww0x2mpklguwmmlj8s2rfn7su9",
         .amount       = 10_000_000_000, // 10 OMNI
         .timestamp    = 1700000042,
         .signature    = "",
@@ -270,8 +314,8 @@ test "Transaction verify — public key gresit → false" {
 
     var tx = Transaction{
         .id           = 99,
-        .from_address = "ob_omni_sender",
-        .to_address   = "ob_omni_receiver",
+        .from_address = "ob1q0cryu8489kaquslshqhwnwrkaz78aq3g374nrv",
+        .to_address   = "ob1qya9sq7xpg4shf3r67772vnfg5xre5wvwvgc959",
         .amount       = 1_000_000_000,
         .timestamp    = 1700000099,
         .signature    = "",
@@ -288,12 +332,12 @@ test "Transaction verify — public key gresit → false" {
 
 test "Transaction — locktime changes hash" {
     const tx1 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000, .locktime = 0,
         .signature = "", .hash = "",
     };
     const tx2 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000, .locktime = 100,
         .signature = "", .hash = "",
     };
@@ -304,12 +348,12 @@ test "Transaction — locktime changes hash" {
 
 test "Transaction — locktime 0 hash unchanged (backward compat)" {
     const tx1 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000, .locktime = 0,
         .signature = "", .hash = "",
     };
     const tx2 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000,
         .signature = "", .hash = "",
     };
@@ -321,7 +365,7 @@ test "Transaction — locktime 0 hash unchanged (backward compat)" {
 test "Transaction — op_return > 80 bytes rejected" {
     const big_data = "A" ** 81; // 81 bytes > MAX_OP_RETURN
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000,
         .op_return = big_data,
         .signature = "", .hash = "",
@@ -332,7 +376,7 @@ test "Transaction — op_return > 80 bytes rejected" {
 test "Transaction — op_return exactly 80 bytes accepted" {
     const data_80 = "B" ** 80; // exactly 80 bytes = MAX_OP_RETURN
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000,
         .op_return = data_80,
         .signature = "", .hash = "",
@@ -342,7 +386,7 @@ test "Transaction — op_return exactly 80 bytes accepted" {
 
 test "Transaction — op_return TX with amount=0 is valid" {
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 0, .timestamp = 1700000000,
         .op_return = "hello blockchain",
         .signature = "", .hash = "",
@@ -352,7 +396,7 @@ test "Transaction — op_return TX with amount=0 is valid" {
 
 test "Transaction — op_return TX with amount>0 is valid (metadata embed)" {
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 5000, .timestamp = 1700000000,
         .op_return = "payment memo: invoice #42",
         .signature = "", .hash = "",
@@ -362,7 +406,7 @@ test "Transaction — op_return TX with amount>0 is valid (metadata embed)" {
 
 test "Transaction — amount=0 without op_return is still invalid" {
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 0, .timestamp = 1700000000,
         .signature = "", .hash = "",
     };
@@ -371,12 +415,12 @@ test "Transaction — amount=0 without op_return is still invalid" {
 
 test "Transaction — op_return changes hash" {
     const tx1 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000,
         .signature = "", .hash = "",
     };
     const tx2 = Transaction{
-        .id = 1, .from_address = "ob_omni_abc", .to_address = "ob_omni_xyz",
+        .id = 1, .from_address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", .to_address = "ob1q0l4glravfx9qt5j0uqqectjl0q3kjlnwlt22gt",
         .amount = 1000, .timestamp = 1700000000,
         .op_return = "data",
         .signature = "", .hash = "",

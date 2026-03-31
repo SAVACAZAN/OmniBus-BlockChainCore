@@ -181,14 +181,14 @@ test "ShardCoordinator — init 4 shards" {
 
 test "ShardCoordinator — getShardForAddress distribuit 0..N-1" {
     const sc = try ShardCoordinator.init(testing.allocator, 4);
-    const s = sc.getShardForAddress("ob_omni_alice000");
+    const s = sc.getShardForAddress("ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg");
     try testing.expect(s < 4);
 }
 
 test "ShardCoordinator — aceeasi adresă → acelasi shard (determinist)" {
     const sc = try ShardCoordinator.init(testing.allocator, 4);
-    const s1 = sc.getShardForAddress("ob_omni_alice000");
-    const s2 = sc.getShardForAddress("ob_omni_alice000");
+    const s1 = sc.getShardForAddress("ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg");
+    const s2 = sc.getShardForAddress("ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg");
     try testing.expectEqual(s1, s2);
 }
 
@@ -196,9 +196,9 @@ test "ShardCoordinator — adrese diferite pot fi în shards diferite" {
     const sc = try ShardCoordinator.init(testing.allocator, 4);
     // Cu 4 shards și adrese diferite, nu toate vor fi în același shard
     var found_diff = false;
-    const base_shard = sc.getShardForAddress("ob_omni_alice000");
+    const base_shard = sc.getShardForAddress("ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg");
     const addrs = [_][]const u8{
-        "ob_omni_bob00000", "ob_k1_carol00000", "ob_f5_dave000000",
+        "ob1qyy67swcquu9zpgpz84e5j9rlxy0xawsjhg7xqy", "ob_k1_carol00000", "ob_f5_dave000000",
         "ob_d5_eve0000000", "ob_s3_frank00000",
     };
     for (addrs) |addr| {
@@ -214,9 +214,9 @@ test "ShardCoordinator — isCrossShard detecteaza TX cross-shard" {
     const sc = try ShardCoordinator.init(testing.allocator, 4);
     // Cel putin o pereche de adrese trebuie să fie cross-shard cu 4 shards
     var found_cross = false;
-    const addr_a = "ob_omni_alice000";
+    const addr_a = "ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg";
     const others = [_][]const u8{
-        "ob_omni_bob00000", "ob_k1_carol00000", "ob_f5_dave000000",
+        "ob1qyy67swcquu9zpgpz84e5j9rlxy0xawsjhg7xqy", "ob_k1_carol00000", "ob_f5_dave000000",
         "ob_d5_eve0000000",
     };
     for (others) |b| {
@@ -230,7 +230,7 @@ test "ShardCoordinator — isCrossShard detecteaza TX cross-shard" {
 
 test "ShardCoordinator — isCrossShard false pentru aceeasi adresa" {
     const sc = try ShardCoordinator.init(testing.allocator, 4);
-    try testing.expect(!sc.isCrossShard("ob_omni_alice000", "ob_omni_alice000"));
+    try testing.expect(!sc.isCrossShard("ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg", "ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg"));
 }
 
 test "ShardCoordinator — splitShard creste num_shards" {

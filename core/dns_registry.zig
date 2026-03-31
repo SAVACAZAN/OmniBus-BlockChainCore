@@ -202,63 +202,63 @@ test "isValidName — invalid names" {
 
 test "DnsRegistry — register and resolve" {
     var reg = DnsRegistry.init();
-    try reg.register("alice", "ob_omni_alice123", "ob_omni_alice123", 1000);
+    try reg.register("alice", "ob1qxyca6f2cuw906ecwkzj9spdvrtpq0qwmzdefxf", "ob1qxyca6f2cuw906ecwkzj9spdvrtpq0qwmzdefxf", 1000);
     const addr = reg.resolve("alice", 1001);
     try testing.expect(addr != null);
-    try testing.expectEqualStrings("ob_omni_alice123", addr.?);
+    try testing.expectEqualStrings("ob1qxyca6f2cuw906ecwkzj9spdvrtpq0qwmzdefxf", addr.?);
 }
 
 test "DnsRegistry — name taken" {
     var reg = DnsRegistry.init();
-    try reg.register("bob", "ob_omni_bob1", "ob_omni_bob1", 1000);
+    try reg.register("bob", "ob1qvkpmansk8z28n9v9g5rx07x3r9xht7kcv5tkvc", "ob1qvkpmansk8z28n9v9g5rx07x3r9xht7kcv5tkvc", 1000);
     try testing.expectError(error.NameTaken,
-        reg.register("bob", "ob_omni_bob2", "ob_omni_bob2", 1001));
+        reg.register("bob", "ob1q632e5a5f9njdlucpm2g7cqsf7p2gk3u8h25wah", "ob1q632e5a5f9njdlucpm2g7cqsf7p2gk3u8h25wah", 1001));
 }
 
 test "DnsRegistry — expired name can be re-registered" {
     var reg = DnsRegistry.init();
-    try reg.register("temp", "ob_omni_old", "ob_omni_old", 1000);
+    try reg.register("temp", "ob1qu48cza4ny77jw762kjky6gvsjqz4vmn09suwl9", "ob1qu48cza4ny77jw762kjky6gvsjqz4vmn09suwl9", 1000);
     // After RENEWAL_PERIOD_BLOCKS, name expires
     const future_block = 1000 + RENEWAL_PERIOD_BLOCKS + 1;
     try testing.expect(reg.resolve("temp", future_block) == null);
     // Can re-register
-    try reg.register("temp", "ob_omni_new", "ob_omni_new", future_block);
-    try testing.expectEqualStrings("ob_omni_new", reg.resolve("temp", future_block + 1).?);
+    try reg.register("temp", "ob1q2rjzulwvagksc9wu2eym26jzkyjqnjdl4qgevt", "ob1q2rjzulwvagksc9wu2eym26jzkyjqnjdl4qgevt", future_block);
+    try testing.expectEqualStrings("ob1q2rjzulwvagksc9wu2eym26jzkyjqnjdl4qgevt", reg.resolve("temp", future_block + 1).?);
 }
 
 test "DnsRegistry — reverse resolve" {
     var reg = DnsRegistry.init();
-    try reg.register("carol", "ob_omni_carol_addr", "ob_omni_carol_addr", 1000);
-    const name = reg.reverseResolve("ob_omni_carol_addr", 1001);
+    try reg.register("carol", "ob1qygr9gcwr2nke94levj9ymmfkdt2as03ln4xeth", "ob1qygr9gcwr2nke94levj9ymmfkdt2as03ln4xeth", 1000);
+    const name = reg.reverseResolve("ob1qygr9gcwr2nke94levj9ymmfkdt2as03ln4xeth", 1001);
     try testing.expect(name != null);
     try testing.expectEqualStrings("carol", name.?);
 }
 
 test "DnsRegistry — transfer" {
     var reg = DnsRegistry.init();
-    try reg.register("dave", "ob_omni_dave1", "ob_omni_dave1", 1000);
-    try reg.transfer("dave", "ob_omni_dave1", "ob_omni_dave2", "ob_omni_dave2");
-    try testing.expectEqualStrings("ob_omni_dave2", reg.resolve("dave", 1001).?);
+    try reg.register("dave", "ob1qagagaf3lr3wk4j4ht28atd9hsgu3cxdm765d7n", "ob1qagagaf3lr3wk4j4ht28atd9hsgu3cxdm765d7n", 1000);
+    try reg.transfer("dave", "ob1qagagaf3lr3wk4j4ht28atd9hsgu3cxdm765d7n", "ob1qf7wv3txfsxwrxw5nypvpe5r0c3p2srkuqv4clx", "ob1qf7wv3txfsxwrxw5nypvpe5r0c3p2srkuqv4clx");
+    try testing.expectEqualStrings("ob1qf7wv3txfsxwrxw5nypvpe5r0c3p2srkuqv4clx", reg.resolve("dave", 1001).?);
 }
 
 test "DnsRegistry — transfer by non-owner fails" {
     var reg = DnsRegistry.init();
-    try reg.register("eve", "ob_omni_eve", "ob_omni_eve", 1000);
+    try reg.register("eve", "ob1qdz28c9t6r9qy33pu2agsnmms9nje88ejxrltgt", "ob1qdz28c9t6r9qy33pu2agsnmms9nje88ejxrltgt", 1000);
     try testing.expectError(error.NotOwner,
-        reg.transfer("eve", "ob_omni_hacker", "ob_omni_hacker", "ob_omni_hacker"));
+        reg.transfer("eve", "ob1q4h8ygpvx96d8u3mkdt0phyyunmzevgc5k96qgg", "ob1q4h8ygpvx96d8u3mkdt0phyyunmzevgc5k96qgg", "ob1q4h8ygpvx96d8u3mkdt0phyyunmzevgc5k96qgg"));
 }
 
 test "DnsRegistry — renew" {
     var reg = DnsRegistry.init();
-    try reg.register("frank", "ob_omni_frank", "ob_omni_frank", 1000);
-    try reg.renew("frank", "ob_omni_frank", 2000);
+    try reg.register("frank", "ob1q8lrgnmdspgyj3lwt5d8zehlarzqrdxffsgx5u0", "ob1q8lrgnmdspgyj3lwt5d8zehlarzqrdxffsgx5u0", 1000);
+    try reg.renew("frank", "ob1q8lrgnmdspgyj3lwt5d8zehlarzqrdxffsgx5u0", 2000);
     // Should be valid far in the future
     try testing.expect(reg.resolve("frank", 2000 + RENEWAL_PERIOD_BLOCKS - 1) != null);
 }
 
 test "DnsRegistry — active count" {
     var reg = DnsRegistry.init();
-    try reg.register("aaa", "ob_omni_a", "ob_omni_a", 1000);
-    try reg.register("bbb", "ob_omni_b", "ob_omni_b", 1000);
+    try reg.register("aaa", "ob1qrgq6jnvvhcmp03ur849a85mhdvsvaqf6dprzn4", "ob1qrgq6jnvvhcmp03ur849a85mhdvsvaqf6dprzn4", 1000);
+    try reg.register("bbb", "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0", "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0", 1000);
     try testing.expectEqual(@as(usize, 2), reg.activeCount(1001));
 }

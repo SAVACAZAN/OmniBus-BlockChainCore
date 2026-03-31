@@ -1050,10 +1050,10 @@ test "database address balances" {
     var db = Database.init(testing.allocator);
     defer db.deinit();
 
-    try db.updateBalance("ob_omni_addr1", 1000000);
+    try db.updateBalance("ob1qjfdq85e8ch6zx268sdz59khed3eadz389mcqpd", 1000000);
     try db.updateBalance("ob_k1_addr2", 2000000);
 
-    const balance1 = db.getBalance("ob_omni_addr1");
+    const balance1 = db.getBalance("ob1qjfdq85e8ch6zx268sdz59khed3eadz389mcqpd");
     try testing.expect(balance1 != null);
     try testing.expectEqual(balance1.?, 1000000);
 
@@ -1081,7 +1081,7 @@ test "persistent blockchain" {
     defer pbc.deinit();
 
     try pbc.db.storeBlock(0, "genesis");
-    try pbc.db.updateBalance("ob_omni_test", 5000000);
+    try pbc.db.updateBalance("ob1q54k8s2w5awzza0g2wtf22e2gzjqhxperxz6hr8", 5000000);
 
     const cp = try pbc.checkpoint();
     try testing.expect(cp == 0);

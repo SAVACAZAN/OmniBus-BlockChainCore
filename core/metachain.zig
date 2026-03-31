@@ -282,7 +282,7 @@ test "MetaBlock — addShardHeader creste total_tx_count" {
         .block_hash   = std.mem.zeroes([32]u8),
         .tx_count     = 42,
         .timestamp    = 1742959200,
-        .miner        = "ob_omni_miner000",
+        .miner        = "ob1qs0nm825pan6w9far5qdyl7hs0aechdv6dgg3t7",
         .reward_sat   = 83333333,
     };
     try mb.addShardHeader(hdr);
@@ -302,7 +302,7 @@ test "MetaBlock — isComplete detecteaza cand toate shardurile au raportat" {
             .block_hash   = std.mem.zeroes([32]u8),
             .tx_count     = 10,
             .timestamp    = 0,
-            .miner        = "ob_omni_miner000",
+            .miner        = "ob1qs0nm825pan6w9far5qdyl7hs0aechdv6dgg3t7",
             .reward_sat   = 0,
         });
     }
@@ -341,7 +341,7 @@ test "Metachain — registerCrossShardTx adauga in pending" {
     const tx_hash = std.mem.zeroes([32]u8);
     try mc.registerCrossShardTx(
         tx_hash,
-        "ob_omni_alice000",
+        "ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg",
         "ob_k1_bob0000000",
         1_000_000_000,
     );
@@ -355,7 +355,7 @@ test "Metachain — cross-shard receipt phase2 procesat la finalize" {
     // MetaBlock 1: înregistrăm TX cross-shard
     _ = try mc.beginMetaBlock();
     const tx_hash = std.mem.zeroes([32]u8);
-    try mc.registerCrossShardTx(tx_hash, "ob_omni_alice000", "ob_k1_bob0000000", 500);
+    try mc.registerCrossShardTx(tx_hash, "ob1q0avux3lts0az4we2c8p7yuuuqw2qp2luxt2mtg", "ob_k1_bob0000000", 500);
     try mc.finalizeMetaBlock();
 
     const pending_after_1 = mc.pending_receipts.items.len;

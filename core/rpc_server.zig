@@ -427,7 +427,7 @@ fn handleEstimateFee(ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// RPC "getnonce" — returns the next expected nonce for an address.
 /// Considers both confirmed chain nonces and pending mempool TXs.
-/// Usage: {"method":"getnonce","params":["ob_omni_address"],"id":1}
+/// Usage: {"method":"getnonce","params":["ob1qcx2p306xpf3c2gd6h4074kpux4tv2hnmx3ytuq"],"id":1}
 /// Response: {"result":{"address":"...","nonce":N,"chainNonce":M,"pendingCount":P}}
 fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -630,7 +630,7 @@ fn handleMinerSendTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// RPC "getaddresshistory" — returns all TXs (sent + received) for an address.
 /// Uses address_tx_index for confirmed TXs, scans mempool for pending.
-/// Usage: {"method":"getaddresshistory","params":["ob_omni_address"],"id":1}
+/// Usage: {"method":"getaddresshistory","params":["ob1qcx2p306xpf3c2gd6h4074kpux4tv2hnmx3ytuq"],"id":1}
 fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
@@ -1856,20 +1856,20 @@ test "extractId — id mare" {
 
 test "extractArrayStr — index 0 din params array" {
     const json =
-        \\{"method":"getbalance","params":["ob_omni_alice"],"id":1}
+        \\{"method":"getbalance","params":["ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"],"id":1}
     ;
     const s = extractArrayStr(json, 0);
     try testing.expect(s != null);
-    try testing.expectEqualStrings("ob_omni_alice", s.?);
+    try testing.expectEqualStrings("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", s.?);
 }
 
 test "extractArrayStr — index 0 din array cu doua elemente" {
     const json =
-        \\{"method":"sendtransaction","params":["ob_omni_bob",1000],"id":1}
+        \\{"method":"sendtransaction","params":["ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",1000],"id":1}
     ;
     const s = extractArrayStr(json, 0);
     try testing.expect(s != null);
-    try testing.expectEqualStrings("ob_omni_bob", s.?);
+    try testing.expectEqualStrings("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", s.?);
 }
 
 test "extractArrayStr — index inexistent returneaza null" {
@@ -1897,7 +1897,7 @@ test "extractArrayStr — params array gol returneaza null" {
 
 test "extractArrayNum — al doilea element numeric" {
     const json =
-        \\{"method":"sendtransaction","params":["ob_omni_bob",500000000],"id":1}
+        \\{"method":"sendtransaction","params":["ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",500000000],"id":1}
     ;
     try testing.expectEqual(@as(u64, 500000000), extractArrayNum(json, 1));
 }

@@ -92,6 +92,37 @@ pub const Mempool = struct {
             return MempoolError.TxDuplicate;
         }
 
+        // 7. BIP-125 RBF: Check if this TX replaces an existing one
+        //    Same sender + same nonce = same "slot", higher fee = replacement
+        var rbf_replaced = false;
+        for (self.entries.items, 0..) |entry, idx| {
+            if (std.mem.eql(u8, entry.tx.from_address, tx.from_address) and
+                entry.tx.nonce == tx.nonce)
+            {
+                // Found existing TX with same sender+nonce
+                if (entry.tx.canBeReplacedBy(&tx)) {
+                    // RBF replacement: remove old, add new
+                    self.total_bytes -= entry.size_bytes;
+                    if (entry.tx.hash.len > 0) {
+                        _ = self.tx_hashes.remove(entry.tx.hash);
+                    }
+                    _ = self.entries.orderedRemove(idx);
+                    rbf_replaced = true;
+                    break;
+                } else if (!entry.tx.isRBF()) {
+                    // Same slot but not RBF-enabled — reject
+                    return MempoolError.TxDuplicate;
+                } else {
+                    // RBF enabled but fee not high enough
+                    return MempoolError.FeeTooLow;
+                }
+            }
+        }
+        if (rbf_replaced) {
+            std.debug.print("[MEMPOOL] RBF: replaced TX nonce={d} from={s} (fee {d} -> {d})\n",
+                .{ tx.nonce, tx.from_address[0..@min(20, tx.from_address.len)], tx.fee - 1, tx.fee });
+        }
+
         // Adauga in FIFO (la coada)
         self.entries.append(.{
             .tx          = tx,
@@ -109,6 +140,52 @@ pub const Mempool = struct {
         self.pending_count.put(tx.from_address, cur + 1) catch {};
 
         self.total_bytes += tx_size;
+    }
+
+    /// CPFP (Child-Pays-For-Parent): Calculate package feerate for a TX
+    /// If a TX spends from another TX in mempool (same sender, nonce = parent_nonce + 1),
+    /// the combined fee of parent+child is used for mining priority.
+    /// Returns: combined fee of the TX and any ancestors in mempool
+    pub fn getPackageFee(self: *const Mempool, tx: *const Transaction) u64 {
+        var total_fee = tx.fee;
+
+        // Look for parent TX: same sender, nonce = this.nonce - 1
+        if (tx.nonce > 0) {
+            for (self.entries.items) |entry| {
+                if (std.mem.eql(u8, entry.tx.from_address, tx.from_address) and
+                    entry.tx.nonce == tx.nonce - 1)
+                {
+                    // Found parent — add its fee (recursive would be overkill for now)
+                    total_fee += entry.tx.fee;
+                    break;
+                }
+            }
+        }
+
+        // Also check if any child TX exists that boosts us
+        for (self.entries.items) |entry| {
+            if (std.mem.eql(u8, entry.tx.from_address, tx.from_address) and
+                entry.tx.nonce == tx.nonce + 1)
+            {
+                total_fee += entry.tx.fee;
+                break;
+            }
+        }
+
+        return total_fee;
+    }
+
+    /// Check if a TX has a child in mempool that boosts its fee (CPFP)
+    pub fn hasChildBoost(self: *const Mempool, tx: *const Transaction) bool {
+        for (self.entries.items) |entry| {
+            if (std.mem.eql(u8, entry.tx.from_address, tx.from_address) and
+                entry.tx.nonce == tx.nonce + 1 and
+                entry.tx.fee > tx.fee)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// Returns up to N mineable TXs (locktime <= current_height), FIFO order.
@@ -459,6 +536,7 @@ fn makeTxWithFee(id: u32, from: []const u8, to: []const u8, amount: u64, fee: u6
         .to_address   = to,
         .amount       = amount,
         .fee          = fee,
+        .nonce        = id, // unique nonce per TX (prevents RBF conflict in tests)
         .timestamp    = 1_743_000_000,
         .signature    = "",
         .hash         = "",
@@ -469,7 +547,7 @@ test "Mempool — add si size" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    const tx = makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 1_000_000);
+    const tx = makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 1_000_000);
     try mp.add(tx);
     try testing.expectEqual(@as(usize, 1), mp.size());
 }
@@ -478,9 +556,9 @@ test "Mempool — FIFO: ordinea e pastrata" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTx(10, "ob_omni_AAAA", "ob_omni_BBBB", 100));
-    try mp.add(makeTx(20, "ob_omni_CCCC", "ob_omni_DDDD", 200));
-    try mp.add(makeTx(30, "ob_omni_EEEE", "ob_omni_FFFF", 300));
+    try mp.add(makeTx(10, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100));
+    try mp.add(makeTx(20, "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 200));
+    try mp.add(makeTx(30, "ob1qgzkmy8xzlg6j66pr8ne79am8s90hs6mf79t3pr", "ob1q5pj4vl30hvu30a9re3xv0zn9q3p24twgqg5fu4", 300));
 
     const popped = try mp.popN(2, testing.allocator);
     defer testing.allocator.free(popped);
@@ -505,7 +583,7 @@ test "Mempool — amount zero respins (isValid rejecta amount=0)" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    const tx = makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 0);
+    const tx = makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 0);
     const result = mp.add(tx);
     try testing.expectError(MempoolError.TxInvalid, result);
 }
@@ -514,7 +592,7 @@ test "Mempool — maintenance (expiry + memory)" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 1000));
+    try mp.add(makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 1000));
     mp.maintenance(); // should not crash, no expired TX yet
     try testing.expectEqual(@as(usize, 1), mp.size());
 }
@@ -524,7 +602,7 @@ test "Mempool — estimateMemoryUsage" {
     defer mp.deinit();
 
     try testing.expectEqual(@as(usize, 0), mp.estimateMemoryUsage());
-    try mp.add(makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 1000));
+    try mp.add(makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 1000));
     try testing.expect(mp.estimateMemoryUsage() > 0);
 }
 
@@ -538,7 +616,7 @@ test "Mempool — isEmpty si printStats" {
     defer mp.deinit();
 
     try testing.expect(mp.isEmpty());
-    try mp.add(makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 500));
+    try mp.add(makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 500));
     try testing.expect(!mp.isEmpty());
     mp.printStats();
 }
@@ -547,7 +625,7 @@ test "Mempool — popN mai mult decat exista" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTx(1, "ob_omni_AAAA", "ob_omni_BBBB", 100));
+    try mp.add(makeTx(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100));
 
     const popped = try mp.popN(100, testing.allocator); // cere 100, are 1
     defer testing.allocator.free(popped);
@@ -561,7 +639,7 @@ test "Mempool — fee too low rejected" {
     defer mp.deinit();
 
     // TX with fee=0 should be rejected
-    const tx = makeTxWithFee(1, "ob_omni_AAAA", "ob_omni_BBBB", 1000, 0);
+    const tx = makeTxWithFee(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 1000, 0);
     const result = mp.add(tx);
     try testing.expectError(MempoolError.FeeTooLow, result);
     try testing.expectEqual(@as(usize, 0), mp.size());
@@ -571,9 +649,9 @@ test "Mempool — getByFee returns sorted by fee descending" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTxWithFee(1, "ob_omni_AAAA", "ob_omni_BBBB", 100, 1));   // low fee
-    try mp.add(makeTxWithFee(2, "ob_omni_CCCC", "ob_omni_DDDD", 200, 100)); // high fee
-    try mp.add(makeTxWithFee(3, "ob_omni_EEEE", "ob_omni_FFFF", 300, 50));  // mid fee
+    try mp.add(makeTxWithFee(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100, 1));   // low fee
+    try mp.add(makeTxWithFee(2, "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 200, 100)); // high fee
+    try mp.add(makeTxWithFee(3, "ob1qgzkmy8xzlg6j66pr8ne79am8s90hs6mf79t3pr", "ob1q5pj4vl30hvu30a9re3xv0zn9q3p24twgqg5fu4", 300, 50));  // mid fee
 
     const sorted = try mp.getByFee(3, testing.allocator);
     defer testing.allocator.free(sorted);
@@ -595,9 +673,9 @@ test "Mempool — medianFee with entries" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTxWithFee(1, "ob_omni_AAAA", "ob_omni_BBBB", 100, 10));
-    try mp.add(makeTxWithFee(2, "ob_omni_CCCC", "ob_omni_DDDD", 200, 50));
-    try mp.add(makeTxWithFee(3, "ob_omni_EEEE", "ob_omni_FFFF", 300, 100));
+    try mp.add(makeTxWithFee(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100, 10));
+    try mp.add(makeTxWithFee(2, "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 200, 50));
+    try mp.add(makeTxWithFee(3, "ob1qgzkmy8xzlg6j66pr8ne79am8s90hs6mf79t3pr", "ob1q5pj4vl30hvu30a9re3xv0zn9q3p24twgqg5fu4", 300, 100));
 
     // Sorted fees: [10, 50, 100] — median at index 1 = 50
     try testing.expectEqual(@as(u64, 50), mp.medianFee());
@@ -610,32 +688,32 @@ test "Mempool — getPendingCount tracks pending TXs per sender" {
     defer mp.deinit();
 
     // No pending TXs
-    try testing.expectEqual(@as(u64, 0), mp.getPendingCount("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 0), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     // Add 2 TXs from alice, 1 from bob
-    try mp.add(makeTx(1, "ob_omni_alice", "ob_omni_BBBB", 100));
-    try mp.add(makeTx(2, "ob_omni_alice", "ob_omni_CCCC", 200));
-    try mp.add(makeTx(3, "ob_omni_bob00", "ob_omni_DDDD", 300));
+    try mp.add(makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100));
+    try mp.add(makeTx(2, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", 200));
+    try mp.add(makeTx(3, "ob1q30hwjz0vlj7uw939knp8629ygxl2aspttdv7xy", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 300));
 
-    try testing.expectEqual(@as(u64, 2), mp.getPendingCount("ob_omni_alice"));
-    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob_omni_bob00"));
-    try testing.expectEqual(@as(u64, 0), mp.getPendingCount("ob_omni_unknown"));
+    try testing.expectEqual(@as(u64, 2), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
+    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob1q30hwjz0vlj7uw939knp8629ygxl2aspttdv7xy"));
+    try testing.expectEqual(@as(u64, 0), mp.getPendingCount("ob1qxx053xkaxkrykutxfg2znskcwdckg7mj7swr7j"));
 }
 
 test "Mempool — removeConfirmed decrements pending count" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    const tx1 = makeTx(1, "ob_omni_alice", "ob_omni_BBBB", 100);
-    const tx2 = makeTx(2, "ob_omni_alice", "ob_omni_CCCC", 200);
+    const tx1 = makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100);
+    const tx2 = makeTx(2, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", 200);
     try mp.add(tx1);
     try mp.add(tx2);
-    try testing.expectEqual(@as(u64, 2), mp.getPendingCount("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 2), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     // Confirm tx1
     const confirmed = [_]Transaction{tx1};
     mp.removeConfirmed(&confirmed);
-    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
     try testing.expectEqual(@as(usize, 1), mp.size());
 }
 
@@ -644,19 +722,19 @@ test "Mempool — replaceByNonce replaces TX with same sender+nonce" {
     defer mp.deinit();
 
     // Add TX with nonce 5
-    var tx1 = makeTxWithFee(1, "ob_omni_alice", "ob_omni_BBBB", 100, 10);
+    var tx1 = makeTxWithFee(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100, 10);
     tx1.nonce = 5;
     try mp.add(tx1);
     try testing.expectEqual(@as(usize, 1), mp.size());
-    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob_omni_alice"));
+    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     // Replace with higher fee TX at same nonce
-    var tx2 = makeTxWithFee(2, "ob_omni_alice", "ob_omni_CCCC", 200, 50);
+    var tx2 = makeTxWithFee(2, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", 200, 50);
     tx2.nonce = 5;
     const replaced = mp.replaceByNonce(tx2);
     try testing.expect(replaced);
     try testing.expectEqual(@as(usize, 1), mp.size()); // still 1 TX
-    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob_omni_alice")); // still 1 pending
+    try testing.expectEqual(@as(u64, 1), mp.getPendingCount("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh")); // still 1 pending
 
     // The TX in mempool should now be tx2
     try testing.expectEqual(@as(u32, 2), mp.entries.items[0].tx.id);
@@ -667,12 +745,12 @@ test "Mempool — replaceByNonce returns false if no match" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    var tx1 = makeTx(1, "ob_omni_alice", "ob_omni_BBBB", 100);
+    var tx1 = makeTx(1, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100);
     tx1.nonce = 5;
     try mp.add(tx1);
 
     // Try to replace nonce 6 (doesn't exist)
-    var tx2 = makeTx(2, "ob_omni_alice", "ob_omni_CCCC", 200);
+    var tx2 = makeTx(2, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", 200);
     tx2.nonce = 6;
     const replaced = mp.replaceByNonce(tx2);
     try testing.expect(!replaced);
@@ -688,6 +766,7 @@ fn makeTxWithLocktime(id: u32, from: []const u8, to: []const u8, amount: u64, lo
         .to_address   = to,
         .amount       = amount,
         .fee          = TX_MIN_FEE_SAT,
+        .nonce        = id + 1000, // unique nonce
         .timestamp    = 1_743_000_000,
         .locktime     = locktime,
         .signature    = "",
@@ -700,7 +779,7 @@ test "Mempool — add accepts locked TX (waits in mempool)" {
     defer mp.deinit();
 
     // TX locked until block 1000 — still added to mempool
-    const tx = makeTxWithLocktime(1, "ob_omni_AAAA", "ob_omni_BBBB", 1000, 1000);
+    const tx = makeTxWithLocktime(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 1000, 1000);
     try mp.add(tx);
     try testing.expectEqual(@as(usize, 1), mp.size());
 }
@@ -710,11 +789,11 @@ test "Mempool — getMineable skips locked TXs" {
     defer mp.deinit();
 
     // TX1: immediate (locktime=0)
-    try mp.add(makeTxWithLocktime(1, "ob_omni_AAAA", "ob_omni_BBBB", 100, 0));
+    try mp.add(makeTxWithLocktime(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100, 0));
     // TX2: locked until block 1000
-    try mp.add(makeTxWithLocktime(2, "ob_omni_CCCC", "ob_omni_DDDD", 200, 1000));
+    try mp.add(makeTxWithLocktime(2, "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 200, 1000));
     // TX3: locked until block 5 (already reached)
-    try mp.add(makeTxWithLocktime(3, "ob_omni_EEEE", "ob_omni_FFFF", 300, 5));
+    try mp.add(makeTxWithLocktime(3, "ob1qgzkmy8xzlg6j66pr8ne79am8s90hs6mf79t3pr", "ob1q5pj4vl30hvu30a9re3xv0zn9q3p24twgqg5fu4", 300, 5));
 
     // Current height = 10 → TX1 (locktime=0) and TX3 (locktime=5<=10) are mineable
     const mineable = try mp.getMineable(100, 10, testing.allocator);
@@ -733,8 +812,8 @@ test "Mempool — getMineable all locked returns empty" {
     var mp = Mempool.init(testing.allocator);
     defer mp.deinit();
 
-    try mp.add(makeTxWithLocktime(1, "ob_omni_AAAA", "ob_omni_BBBB", 100, 500));
-    try mp.add(makeTxWithLocktime(2, "ob_omni_CCCC", "ob_omni_DDDD", 200, 1000));
+    try mp.add(makeTxWithLocktime(1, "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q", "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6", 100, 500));
+    try mp.add(makeTxWithLocktime(2, "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7", "ob1q82wjr7r83zpamjy9keykx9a9xhfjtde44juc34", 200, 1000));
 
     // Current height = 3 → both locked
     const mineable = try mp.getMineable(100, 3, testing.allocator);
@@ -751,8 +830,8 @@ test "Mempool — OP_RETURN TX with amount=0 accepted" {
     // OP_RETURN data TX: amount=0 but op_return is set — isValid() should allow it
     const tx = Transaction{
         .id           = 1,
-        .from_address = "ob_omni_AAAA",
-        .to_address   = "ob_omni_BBBB",
+        .from_address = "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q",
+        .to_address   = "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6",
         .amount       = 0,
         .fee          = TX_MIN_FEE_SAT,
         .timestamp    = 1_743_000_000,

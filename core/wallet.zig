@@ -8,93 +8,297 @@ const crypto_mod      = @import("crypto.zig");
 
 const BIP32Wallet = bip32_mod.BIP32Wallet;
 const PQDomainDerivation = bip32_mod.PQDomainDerivation;
+const Network = bip32_mod.Network;
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Ripemd160 = ripemd160_mod.Ripemd160;
 
-/// OmniBus Wallet — derivare reala BIP32 + secp256k1
+/// OmniBus Wallet — BTC-parity metadata + secp256k1 + 5 PQ domains
+///
+/// Exposes the same fields as a full BTC wallet:
+///   mnemonic, master_fingerprint, network, derivation (full_path, purpose,
+///   coin_type, account, chain, address_index), address_info (type, address,
+///   script_pubkey, witness_version), keys (public_key, private_key_wif,
+///   hash160), extended_keys (xpub, xprv, parent_fingerprint),
+///   state (balance, tx_count), metadata (label, is_change, created_at)
 pub const Wallet = struct {
+    // ─── Core identity ──────────────────────────────────────────────────
     /// Adresa primara (OMNI SegWit ob1q...)
     address: []u8,
-    /// Balanta in SAT (actualizata din nod RPC)
-    balance: u64,
-    /// Private key (32 bytes) — tinut in memorie doar cat e nevoie
-    private_key_bytes: [32]u8,
     /// Compressed public key (33 bytes) — secp256k1 real
     public_key_bytes: [33]u8,
+    /// Private key (32 bytes) — tinut in memorie doar cat e nevoie
+    private_key_bytes: [32]u8,
     /// Cele 5 adrese PQ (OMNI + 4 domenii)
     addresses: [5]Address,
     allocator: std.mem.Allocator,
 
+    // ─── BTC-parity: master info ────────────────────────────────────────
+    /// Master fingerprint (4 bytes) — first 4 bytes of Hash160(master_pubkey)
+    master_fingerprint: [4]u8,
+    /// Master fingerprint as hex string (8 chars, e.g. "3442193e")
+    master_fingerprint_hex: []u8,
+    /// Network: mainnet ("OMNI") or testnet ("TOMNI")
+    network: Network,
+
+    // ─── BTC-parity: derivation info ────────────────────────────────────
+    /// Full derivation path string (e.g. "m/44'/777'/0'/0/0")
+    derivation_path: []u8,
+    /// BIP-44 purpose (44 = multi-coin, legacy compatible)
+    purpose: u32 = 44,
+    /// Account index (BIP-44 account')
+    account_index: u32 = 0,
+    /// Chain: 0 = external (receiving), 1 = change
+    chain: u32 = 0,
+    /// Address index within account
+    address_index: u32 = 0,
+
+    // ─── BTC-parity: address info ───────────────────────────────────────
+    /// Address type: "NATIVE_SEGWIT" (v0) or "TAPROOT" (v1)
+    address_type: []const u8 = "NATIVE_SEGWIT",
+    /// Witness version (0 for SegWit, 1 for Taproot)
+    witness_version: u8 = 0,
+    /// Script pubkey (0x0014 + hash160 for P2WPKH) as hex
+    script_pubkey_hex: []u8,
+
+    // ─── BTC-parity: keys ───────────────────────────────────────────────
+    /// Public key as hex string (66 chars compressed)
+    public_key_hex: []u8,
+    /// Private key in WIF format (Base58Check, starts with K/L)
+    private_key_wif: []u8,
+    /// Hash160 of public key as hex (40 chars)
+    hash160_hex: []u8,
+
+    // ─── BTC-parity: extended keys ──────────────────────────────────────
+    /// Extended public key (xpub/opub) — Base58Check, ~111 chars
+    xpub: []u8,
+    /// Extended private key (xprv/oprv) — Base58Check, ~111 chars
+    xprv: []u8,
+    /// Parent fingerprint as hex (8 chars)
+    parent_fingerprint_hex: []u8,
+
+    // ─── BTC-parity: state ──────────────────────────────────────────────
+    /// Balance in SAT (actualizata din nod RPC)
+    balance: u64 = 0,
+    /// Transaction count
+    tx_count: u64 = 0,
+
+    // ─── BTC-parity: metadata ───────────────────────────────────────────
+    /// Human-readable label
+    label: []const u8 = "",
+    /// Is this a change address?
+    is_change: bool = false,
+    /// Creation timestamp (unix seconds)
+    created_at: i64 = 0,
+    /// Last used timestamp (0 = never used)
+    last_used: i64 = 0,
+
     pub const Address = struct {
-        domain: []const u8,      // "omnibus.omni", "omnibus.love", etc.
-        algorithm: []const u8,   // "Dilithium-5 + Kyber-768", etc.
-        omni_address: []u8,      // adresa derivata real (ob_omni_..., ob_k1_...)
-        public_key_hex: []u8,    // compressed pubkey hex (66 chars)
-        coin_type: u32,          // BIP-44 coin type
-        security_level: u32,     // bits: 256, 192, 128
+        domain: []const u8,       // "omnibus.omni", "omnibus.love", etc.
+        algorithm: []const u8,    // "Dilithium-5 + Kyber-768", etc.
+        omni_address: []u8,       // adresa derivata Bech32 (ob1q...)
+        public_key_hex: []u8,     // compressed pubkey hex (66 chars)
+        coin_type: u32,           // BIP-44 coin type
+        security_level: u32,      // bits: 256, 192, 128
+        hash160_hex: []u8,        // RIPEMD160(SHA256(pubkey)) hex (40 chars)
+        script_pubkey_hex: []u8,  // 0014 + hash160 hex (44 chars)
+        witness_version: u8,      // 0 for SegWit, 1 for Taproot
+        private_key_wif: []u8,    // WIF encoded private key (K.../L...)
+        derivation_path: []u8,    // e.g. "m/44'/777'/0'/0/0"
+        xpub: []u8,               // extended public key for this domain
+        xprv: []u8,               // extended private key for this domain
     };
 
-    /// Creeaza wallet din mnemonic (BIP-39) si passphrase
+    /// Creeaza wallet din mnemonic (BIP-39) si passphrase — full BTC-parity metadata
     pub fn fromMnemonic(mnemonic: []const u8, passphrase: []const u8, allocator: std.mem.Allocator) !Wallet {
-        _ = passphrase; // Passphrase support via bip32_wallet.initFromMnemonicPassphrase()
+        return fromMnemonicFull(mnemonic, passphrase, .mainnet, 0, 0, 0, allocator);
+    }
 
-        // BIP-32 master key din mnemonic
-        const bip32 = try BIP32Wallet.initFromMnemonic(mnemonic, allocator);
+    /// Full constructor cu toate parametrele
+    pub fn fromMnemonicFull(
+        mnemonic: []const u8,
+        passphrase: []const u8,
+        network: Network,
+        account: u32,
+        chain: u32,
+        addr_index: u32,
+        allocator: std.mem.Allocator,
+    ) !Wallet {
+        // BIP-32 master key din mnemonic + passphrase (BIP-39)
+        var bip32 = try BIP32Wallet.initFromMnemonicPassphrase(mnemonic, passphrase, allocator);
+        bip32.network = network;
 
-        // Deriva cheie OMNI (coin_type 777) — pentru signing
-        const omni_privkey = try bip32.deriveChildKeyForPath(44, 777, 0);
+        // Master fingerprint
+        const master_fp = try bip32.masterFingerprint();
+        const master_fp_hex = try bip32.masterFingerprintHex(allocator);
+
+        // Deriva cheie OMNI (coin_type 777)
+        const omni_privkey = try bip32.deriveChildKeyForPath(44, 777, addr_index);
         const omni_pubkey  = try Secp256k1Crypto.privateKeyToPublicKey(omni_privkey);
 
-        // Deriva cele 5 domenii PQ — Base58Check address (identic Python OmnibusWallet)
+        // Hash160, script_pubkey, WIF for primary key
+        const omni_h160 = try bip32.deriveHash160(44, 777, addr_index);
+        const omni_script = try bip32.deriveScriptPubkey(44, 777, addr_index);
+        const omni_wif = try bip32.encodeWIF(omni_privkey, allocator);
+
+        // Extended keys
+        const xpub = try bip32.serializeXpub(44, 777, account, allocator);
+        const xprv = try bip32.serializeXprv(44, 777, account, allocator);
+
+        // Parent fingerprint
+        const parent_fp = try bip32.parentFingerprint(44, 777);
+
+        // Derivation path string
+        const deriv_path = try BIP32Wallet.derivationPathString(44, 777, account, chain, addr_index, allocator);
+
+        // Hex conversions
         const hex_chars = "0123456789abcdef";
+
+        // Primary pubkey hex
+        var pk_hex: [66]u8 = undefined;
+        for (omni_pubkey, 0..) |byte, j| {
+            pk_hex[j * 2]     = hex_chars[byte >> 4];
+            pk_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+        }
+        const pk_hex_alloc = try allocator.dupe(u8, &pk_hex);
+
+        // Hash160 hex
+        var h160_hex: [40]u8 = undefined;
+        for (omni_h160, 0..) |byte, j| {
+            h160_hex[j * 2]     = hex_chars[byte >> 4];
+            h160_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+        }
+        const h160_hex_alloc = try allocator.dupe(u8, &h160_hex);
+
+        // Script pubkey hex (22 bytes → 44 hex chars)
+        var sp_hex: [44]u8 = undefined;
+        for (omni_script, 0..) |byte, j| {
+            sp_hex[j * 2]     = hex_chars[byte >> 4];
+            sp_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+        }
+        const sp_hex_alloc = try allocator.dupe(u8, &sp_hex);
+
+        // Parent fingerprint hex
+        var pfp_hex: [8]u8 = undefined;
+        for (parent_fp, 0..) |byte, j| {
+            pfp_hex[j * 2]     = hex_chars[byte >> 4];
+            pfp_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+        }
+        const pfp_hex_alloc = try allocator.dupe(u8, &pfp_hex);
+
+        // Deriva cele 5 domenii PQ
         const domains = PQDomainDerivation.DOMAINS;
         var addresses: [5]Address = undefined;
 
         for (domains, 0..) |domain, i| {
-            const privkey_i = try bip32.deriveChildKeyForPath(44, domain.coin_type, 0);
+            const privkey_i = try bip32.deriveChildKeyForPath(44, domain.coin_type, addr_index);
             const pubkey_i  = try Secp256k1Crypto.privateKeyToPublicKey(privkey_i);
+            const addr_i = try bip32.deriveAddressForDomain(domain.coin_type, addr_index, domain.prefix, allocator);
+            const addr_h160 = try bip32.deriveHash160(44, domain.coin_type, addr_index);
+            const addr_script = try bip32.deriveScriptPubkey(44, domain.coin_type, addr_index);
 
-            // Adresa: prefix + Base58Check(0x4F || RIPEMD160(SHA256(pubkey))) — identic Python
-            const addr_i = try bip32.deriveAddressForDomain(domain.coin_type, 0, domain.prefix, allocator);
-
-            // Pubkey hex (compressed 33 bytes → 66 hex)
-            var pk_hex_i: [66]u8 = undefined;
+            // Pubkey hex
+            var pki_hex: [66]u8 = undefined;
             for (pubkey_i, 0..) |byte, j| {
-                pk_hex_i[j * 2]     = hex_chars[byte >> 4];
-                pk_hex_i[j * 2 + 1] = hex_chars[byte & 0x0F];
+                pki_hex[j * 2]     = hex_chars[byte >> 4];
+                pki_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
             }
-            const pk_hex_alloc = try allocator.dupe(u8, &pk_hex_i);
+
+            // Hash160 hex
+            var hi_hex: [40]u8 = undefined;
+            for (addr_h160, 0..) |byte, j| {
+                hi_hex[j * 2]     = hex_chars[byte >> 4];
+                hi_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+            }
+
+            // Script pubkey hex
+            var si_hex: [44]u8 = undefined;
+            for (addr_script, 0..) |byte, j| {
+                si_hex[j * 2]     = hex_chars[byte >> 4];
+                si_hex[j * 2 + 1] = hex_chars[byte & 0x0F];
+            }
+
+            // WIF, derivation path, xpub/xprv per domain
+            const domain_wif = try bip32.encodeWIF(privkey_i, allocator);
+            const domain_path = try BIP32Wallet.derivationPathString(44, domain.coin_type, account, chain, addr_index, allocator);
+            const domain_xpub = try bip32.serializeXpub(44, domain.coin_type, account, allocator);
+            const domain_xprv = try bip32.serializeXprv(44, domain.coin_type, account, allocator);
 
             addresses[i] = Address{
-                .domain         = domain.name,
-                .algorithm      = domain.algorithm,
-                .omni_address   = addr_i,
-                .public_key_hex = pk_hex_alloc,
-                .coin_type      = domain.coin_type,
-                .security_level = domain.security_level,
+                .domain           = domain.name,
+                .algorithm        = domain.algorithm,
+                .omni_address     = addr_i,
+                .public_key_hex   = try allocator.dupe(u8, &pki_hex),
+                .coin_type        = domain.coin_type,
+                .security_level   = domain.security_level,
+                .hash160_hex      = try allocator.dupe(u8, &hi_hex),
+                .script_pubkey_hex = try allocator.dupe(u8, &si_hex),
+                .witness_version  = 0,
+                .private_key_wif  = domain_wif,
+                .derivation_path  = domain_path,
+                .xpub             = domain_xpub,
+                .xprv             = domain_xprv,
             };
         }
 
-        // Adresa principala = addresses[0].omni_address (ob_omni_) — fara dublura
+        // Adresa principala = addresses[0].omni_address (ob1q...)
         const primary_addr = try allocator.dupe(u8, addresses[0].omni_address);
 
         return Wallet{
-            .address           = primary_addr,
-            .balance           = 0,
-            .private_key_bytes = omni_privkey,
-            .public_key_bytes  = omni_pubkey,
-            .addresses         = addresses,
-            .allocator         = allocator,
+            // Core
+            .address             = primary_addr,
+            .public_key_bytes    = omni_pubkey,
+            .private_key_bytes   = omni_privkey,
+            .addresses           = addresses,
+            .allocator           = allocator,
+            // Master info
+            .master_fingerprint     = master_fp,
+            .master_fingerprint_hex = master_fp_hex,
+            .network                = network,
+            // Derivation
+            .derivation_path = deriv_path,
+            .account_index   = account,
+            .chain           = chain,
+            .address_index   = addr_index,
+            // Address info
+            .script_pubkey_hex = sp_hex_alloc,
+            // Keys
+            .public_key_hex  = pk_hex_alloc,
+            .private_key_wif = omni_wif,
+            .hash160_hex     = h160_hex_alloc,
+            // Extended keys
+            .xpub                  = xpub,
+            .xprv                  = xprv,
+            .parent_fingerprint_hex = pfp_hex_alloc,
+            // State
+            .balance  = 0,
+            .tx_count = 0,
+            // Metadata
+            .created_at = std.time.timestamp(),
         };
     }
 
     pub fn deinit(self: *Wallet) void {
         self.allocator.free(self.address);
+        self.allocator.free(self.master_fingerprint_hex);
+        self.allocator.free(self.derivation_path);
+        self.allocator.free(self.script_pubkey_hex);
+        self.allocator.free(self.public_key_hex);
+        self.allocator.free(self.private_key_wif);
+        self.allocator.free(self.hash160_hex);
+        self.allocator.free(self.xpub);
+        self.allocator.free(self.xprv);
+        self.allocator.free(self.parent_fingerprint_hex);
         // Sterge private key din memorie (securitate)
         @memset(&self.private_key_bytes, 0);
         for (&self.addresses) |*addr| {
             self.allocator.free(addr.omni_address);
             self.allocator.free(addr.public_key_hex);
+            self.allocator.free(addr.hash160_hex);
+            self.allocator.free(addr.script_pubkey_hex);
+            self.allocator.free(addr.private_key_wif);
+            self.allocator.free(addr.derivation_path);
+            self.allocator.free(addr.xpub);
+            self.allocator.free(addr.xprv);
         }
     }
 
@@ -307,26 +511,67 @@ pub const Wallet = struct {
 
 const testing = std.testing;
 
-test "Wallet.fromMnemonic — genereaza adrese reale" {
+test "Wallet.fromMnemonic — genereaza adrese reale + full metadata" {
     const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
 
     const wallet = try Wallet.fromMnemonic(mnemonic, "", arena.allocator());
 
-    // Adresa primara are prefix corect
-    try testing.expect(std.mem.startsWith(u8, wallet.address, "ob_omni_"));
+    // Adresa primara e Bech32 ob1q
+    try testing.expect(std.mem.startsWith(u8, wallet.address, "ob1q"));
+    try testing.expectEqual(@as(usize, 42), wallet.address.len);
 
     // Public key e compressed secp256k1 real
     try testing.expectEqual(@as(usize, 33), wallet.public_key_bytes.len);
     try testing.expect(wallet.public_key_bytes[0] == 0x02 or wallet.public_key_bytes[0] == 0x03);
 
-    // Toate cele 5 adrese PQ au prefixe corecte
-    try testing.expect(std.mem.startsWith(u8, wallet.addresses[0].omni_address, "ob_omni_"));
+    // Domeniu 0 (omni nativ) = Bech32 ob1q, domenii 1-4 = prefix + Base58Check
+    try testing.expect(std.mem.startsWith(u8, wallet.addresses[0].omni_address, "ob1q"));
+    try testing.expectEqual(@as(usize, 42), wallet.addresses[0].omni_address.len);
     try testing.expect(std.mem.startsWith(u8, wallet.addresses[1].omni_address, "ob_k1_"));
     try testing.expect(std.mem.startsWith(u8, wallet.addresses[2].omni_address, "ob_f5_"));
     try testing.expect(std.mem.startsWith(u8, wallet.addresses[3].omni_address, "ob_d5_"));
     try testing.expect(std.mem.startsWith(u8, wallet.addresses[4].omni_address, "ob_s3_"));
+
+    // ─── BTC-parity: master fingerprint ─────────────────────────────
+    try testing.expectEqual(@as(usize, 8), wallet.master_fingerprint_hex.len);
+    var fp_nonzero = false;
+    for (wallet.master_fingerprint) |b| { if (b != 0) fp_nonzero = true; }
+    try testing.expect(fp_nonzero);
+
+    // ─── BTC-parity: network ────────────────────────────────────────
+    try testing.expectEqual(Network.mainnet, wallet.network);
+
+    // ─── BTC-parity: derivation path ────────────────────────────────
+    try testing.expectEqualStrings("m/44'/777'/0'/0/0", wallet.derivation_path);
+    try testing.expectEqual(@as(u32, 44), wallet.purpose);
+    try testing.expectEqual(@as(u32, 0), wallet.account_index);
+    try testing.expectEqual(@as(u32, 0), wallet.chain);
+    try testing.expectEqual(@as(u32, 0), wallet.address_index);
+
+    // ─── BTC-parity: address info ───────────────────────────────────
+    try testing.expectEqualStrings("NATIVE_SEGWIT", wallet.address_type);
+    try testing.expectEqual(@as(u8, 0), wallet.witness_version);
+    try testing.expectEqual(@as(usize, 44), wallet.script_pubkey_hex.len); // 22 bytes → 44 hex
+    try testing.expect(std.mem.startsWith(u8, wallet.script_pubkey_hex, "0014"));
+
+    // ─── BTC-parity: keys ───────────────────────────────────────────
+    try testing.expectEqual(@as(usize, 66), wallet.public_key_hex.len);
+    try testing.expect(wallet.private_key_wif[0] == 'K' or wallet.private_key_wif[0] == 'L');
+    try testing.expectEqual(@as(usize, 40), wallet.hash160_hex.len);
+
+    // ─── BTC-parity: extended keys ──────────────────────────────────
+    try testing.expect(wallet.xpub.len >= 100);
+    try testing.expect(wallet.xprv.len >= 100);
+    try testing.expect(!std.mem.eql(u8, wallet.xpub, wallet.xprv));
+    try testing.expectEqual(@as(usize, 8), wallet.parent_fingerprint_hex.len);
+
+    // ─── BTC-parity: state & metadata ───────────────────────────────
+    try testing.expectEqual(@as(u64, 0), wallet.balance);
+    try testing.expectEqual(@as(u64, 0), wallet.tx_count);
+    try testing.expect(wallet.created_at > 0);
+    try testing.expectEqual(false, wallet.is_change);
 }
 
 test "Wallet — determinist: acelasi mnemonic → aceleasi adrese" {

@@ -693,14 +693,14 @@ pub const ValidatorInfo = struct {
 const testing = std.testing;
 
 test "Validator init" {
-    const v = Validator.init("ob_omni_validator1", VALIDATOR_MIN_STAKE, 100);
+    const v = Validator.init("ob1q7qlex9x88rf8wny0t09vg5emf5fmd0ksamk0xz", VALIDATOR_MIN_STAKE, 100);
     try testing.expectEqual(ValidatorStatus.pending, v.status);
     try testing.expectEqual(VALIDATOR_MIN_STAKE, v.total_stake);
     try testing.expectEqual(VALIDATOR_MIN_STAKE, v.self_stake);
 }
 
 test "Validator uptime" {
-    var v = Validator.init("ob_omni_v1", VALIDATOR_MIN_STAKE, 0);
+    var v = Validator.init("ob1qat0h8a9yrccggrcvypwg248zugvjyjsxuzln5a", VALIDATOR_MIN_STAKE, 0);
     v.blocks_produced = 95;
     v.blocks_missed = 5;
     try testing.expectEqual(@as(u8, 95), v.uptimePct());
@@ -708,7 +708,7 @@ test "Validator uptime" {
 
 test "StakingEngine — register validator" {
     var engine = StakingEngine.init();
-    const idx = try engine.registerValidator("ob_omni_val1", VALIDATOR_MIN_STAKE, 100);
+    const idx = try engine.registerValidator("ob1qn45nph35e84nfjd3dvtx8qpfvm0aljmd9x68z2", VALIDATOR_MIN_STAKE, 100);
     try testing.expectEqual(@as(u8, 0), idx);
     try testing.expectEqual(@as(usize, 1), engine.validator_count);
     try testing.expectEqual(VALIDATOR_MIN_STAKE, engine.total_staked);
@@ -717,19 +717,19 @@ test "StakingEngine — register validator" {
 test "StakingEngine — insufficient stake fails" {
     var engine = StakingEngine.init();
     try testing.expectError(error.InsufficientStake,
-        engine.registerValidator("ob_omni_poor", 1000, 100));
+        engine.registerValidator("ob1q9a93l0vua9shmad50dsq9x4h6gvurvy9t8q3ja", 1000, 100));
 }
 
 test "StakingEngine — duplicate registration fails" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_dup", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1ql4jvfk9f2r6znns0z9n7wygq0gksx8547nuvw9", VALIDATOR_MIN_STAKE, 100);
     try testing.expectError(error.AlreadyRegistered,
-        engine.registerValidator("ob_omni_dup", VALIDATOR_MIN_STAKE, 200));
+        engine.registerValidator("ob1ql4jvfk9f2r6znns0z9n7wygq0gksx8547nuvw9", VALIDATOR_MIN_STAKE, 200));
 }
 
 test "StakingEngine — activate and unbond flow" {
     var engine = StakingEngine.init();
-    const idx = try engine.registerValidator("ob_omni_flow", VALIDATOR_MIN_STAKE, 100);
+    const idx = try engine.registerValidator("ob1q9yuwmz5qqands5hjxezasa3lkyafw22t90n2vn", VALIDATOR_MIN_STAKE, 100);
 
     try engine.activateValidator(idx);
     try testing.expectEqual(ValidatorStatus.active, engine.validators[idx].status);
@@ -751,7 +751,7 @@ test "StakingEngine — activate and unbond flow" {
 
 test "StakingEngine — slash equivocation" {
     var engine = StakingEngine.init();
-    const idx = try engine.registerValidator("ob_omni_bad", VALIDATOR_MIN_STAKE * 2, 100);
+    const idx = try engine.registerValidator("ob1q9mgarh46sx6h2erms78rycteuu94z6gekrd7ul", VALIDATOR_MIN_STAKE * 2, 100);
     try engine.activateValidator(idx);
 
     const slashed = try engine.slashEquivocation(idx);
@@ -763,8 +763,8 @@ test "StakingEngine — slash equivocation" {
 
 test "StakingEngine — select proposer" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_p1", VALIDATOR_MIN_STAKE, 100);
-    _ = try engine.registerValidator("ob_omni_p2", VALIDATOR_MIN_STAKE * 3, 100);
+    _ = try engine.registerValidator("ob1qh4gxcp778xhq6fpuz46u64qt7fv8y9a8l8mgac", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qd976t74mp7ga3td4h8xquf796ks3xzjn3p7pfk", VALIDATOR_MIN_STAKE * 3, 100);
     try engine.activateValidator(0);
     try engine.activateValidator(1);
 
@@ -775,8 +775,8 @@ test "StakingEngine — select proposer" {
 
 test "StakingEngine — distribute rewards" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_r1", VALIDATOR_MIN_STAKE, 100);
-    _ = try engine.registerValidator("ob_omni_r2", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qvk2hztyyxk5rh3r3zkxq3peknrrpvzsdgn8vum", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qxtmhxjw00mkyql4ukgg9vgyjlsw4vq2qkhhcdk", VALIDATOR_MIN_STAKE, 100);
     try engine.activateValidator(0);
     try engine.activateValidator(1);
 
@@ -789,8 +789,8 @@ test "StakingEngine — distribute rewards" {
 
 test "StakingEngine — weighted reward distribution" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_w1", VALIDATOR_MIN_STAKE, 100);     // 100 OMNI
-    _ = try engine.registerValidator("ob_omni_w2", VALIDATOR_MIN_STAKE * 3, 100); // 300 OMNI
+    _ = try engine.registerValidator("ob1qt40fdlsfdvvvl0w88knhkaeckdnzcpvshkwx6n", VALIDATOR_MIN_STAKE, 100);     // 100 OMNI
+    _ = try engine.registerValidator("ob1qd0xalqdwekzlknn4m3nc2espxdyzhxm2urksk6", VALIDATOR_MIN_STAKE * 3, 100); // 300 OMNI
     try engine.activateValidator(0);
     try engine.activateValidator(1);
 
@@ -801,7 +801,7 @@ test "StakingEngine — weighted reward distribution" {
 }
 
 test "Validator — voting power 0 when not active" {
-    var v = Validator.init("ob_omni_inactive", VALIDATOR_MIN_STAKE, 0);
+    var v = Validator.init("ob1q55e7hcjdm4jzqam8x84hxnat3tq96zn3lgv0ks", VALIDATOR_MIN_STAKE, 0);
     try testing.expectEqual(@as(u64, 0), v.votingPower()); // pending -> 0
     v.status = .active;
     try testing.expectEqual(VALIDATOR_MIN_STAKE, v.votingPower()); // active -> stake
@@ -812,7 +812,7 @@ test "Validator — voting power 0 when not active" {
 test "SlashEvidence — double-sign with valid evidence executes 33% slash" {
     var engine = StakingEngine.init();
     const stake = VALIDATOR_MIN_STAKE * 3; // 300 OMNI
-    const idx = try engine.registerValidator("ob_omni_cheater", stake, 100);
+    const idx = try engine.registerValidator("ob1q07wwsqfsufvqpddnktd65l0htscuk72s090s98", stake, 100);
     try engine.activateValidator(idx);
 
     // Create double-sign evidence: two different block hashes at same height
@@ -821,9 +821,9 @@ test "SlashEvidence — double-sign with valid evidence executes 33% slash" {
     const sig1  = [_]u8{0x11} ** 64;
     const sig2  = [_]u8{0x22} ** 64;
     const evidence = SlashEvidence.init(
-        "ob_omni_cheater", .double_sign,
+        "ob1q07wwsqfsufvqpddnktd65l0htscuk72s090s98", .double_sign,
         hash1, hash2, 500, sig1, sig2,
-        "ob_omni_reporter", 1711800000,
+        "ob1qsc95a03hqdmxfpj43gs67ur3tuwh05snre20xd", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -849,7 +849,7 @@ test "SlashEvidence — double-sign with valid evidence executes 33% slash" {
 
 test "SlashEvidence — invalid evidence rejected (same block hash)" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_honest", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qw7y3hp3em4ga4dhz0jtpnqr6fq3sdl6tc69stv", VALIDATOR_MIN_STAKE, 100);
     try engine.activateValidator(0);
 
     // Same hash for both blocks — NOT double-signing
@@ -857,9 +857,9 @@ test "SlashEvidence — invalid evidence rejected (same block hash)" {
     const sig1 = [_]u8{0x11} ** 64;
     const sig2 = [_]u8{0x22} ** 64;
     const evidence = SlashEvidence.init(
-        "ob_omni_honest", .double_sign,
+        "ob1qw7y3hp3em4ga4dhz0jtpnqr6fq3sdl6tc69stv", .double_sign,
         same_hash, same_hash, 500, sig1, sig2,
-        "ob_omni_false_reporter", 1711800000,
+        "ob1q84vr8qpzmztrxh0pp89m9ajmz277srgv7rs58n", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -872,14 +872,14 @@ test "SlashEvidence — invalid evidence rejected (same block hash)" {
 test "SlashEvidence — reporter receives 10% of slashed amount" {
     var engine = StakingEngine.init();
     const stake = VALIDATOR_MIN_STAKE * 10; // 1000 OMNI
-    _ = try engine.registerValidator("ob_omni_bad_val", stake, 100);
+    _ = try engine.registerValidator("ob1qm42rt9lh268j0rl8kmcteyghrle0w3ae0twnn2", stake, 100);
     try engine.activateValidator(0);
 
     const evidence = SlashEvidence.init(
-        "ob_omni_bad_val", .double_sign,
+        "ob1qm42rt9lh268j0rl8kmcteyghrle0w3ae0twnn2", .double_sign,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_good_reporter", 1711800000,
+        "ob1qqxmalxrqce9hh3vy6mw8p438fqc62q7vyjznrw", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -896,14 +896,14 @@ test "SlashEvidence — reporter receives 10% of slashed amount" {
 test "SlashEvidence — downtime penalty is only 1%" {
     var engine = StakingEngine.init();
     const stake = VALIDATOR_MIN_STAKE * 10; // 1000 OMNI
-    _ = try engine.registerValidator("ob_omni_sleepy", stake, 100);
+    _ = try engine.registerValidator("ob1qg202f8sm2vd3pf2cfm3d4drwg53e66c8fpfruj", stake, 100);
     try engine.activateValidator(0);
 
     const evidence = SlashEvidence.init(
-        "ob_omni_sleepy", .downtime,
+        "ob1qg202f8sm2vd3pf2cfm3d4drwg53e66c8fpfruj", .downtime,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_monitor", 1711800000,
+        "ob1qnm0sq0w2ctj7nqq80pmrukpwwx4rkphtfna0pp", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -922,10 +922,10 @@ test "SlashEvidence — normal users cannot be slashed (no stake)" {
     // No validators registered — attempting to slash a non-validator address
 
     const evidence = SlashEvidence.init(
-        "ob_omni_normal_user", .double_sign,
+        "ob1qe9kdhg5pnfekq284ksedqrne6g9x0v265vjvwm", .double_sign,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_reporter", 1711800000,
+        "ob1qsc95a03hqdmxfpj43gs67ur3tuwh05snre20xd", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -936,14 +936,14 @@ test "SlashEvidence — normal users cannot be slashed (no stake)" {
 test "SlashEvidence — invalid_block slashes 10%" {
     var engine = StakingEngine.init();
     const stake = VALIDATOR_MIN_STAKE * 5; // 500 OMNI
-    _ = try engine.registerValidator("ob_omni_bad_miner", stake, 100);
+    _ = try engine.registerValidator("ob1q8vjkl2ulxhgnp9ze74xvzf85duxa9yprrp8tld", stake, 100);
     try engine.activateValidator(0);
 
     const evidence = SlashEvidence.init(
-        "ob_omni_bad_miner", .invalid_block,
+        "ob1q8vjkl2ulxhgnp9ze74xvzf85duxa9yprrp8tld", .invalid_block,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_verifier", 1711800000,
+        "ob1qjpz54z9j8sz7kdy855ykr2fa2cs0982mqadvl4", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -957,41 +957,41 @@ test "SlashEvidence — invalid_block slashes 10%" {
 
 test "SlashEvidence — slash history recorded correctly" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_tracked", VALIDATOR_MIN_STAKE * 5, 100);
+    _ = try engine.registerValidator("ob1q6dfqmn4kpak86f3mzkmzjcv0h0fhl823qtxr5q", VALIDATOR_MIN_STAKE * 5, 100);
     try engine.activateValidator(0);
 
     const evidence = SlashEvidence.init(
-        "ob_omni_tracked", .invalid_block,
+        "ob1q6dfqmn4kpak86f3mzkmzjcv0h0fhl823qtxr5q", .invalid_block,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 777,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_watcher", 1711800000,
+        "ob1qdzmdk6kf2fqxn9t5qv56dfy4yzxxjt9lpsvc6d", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
     try testing.expect(result.valid);
 
     // Check slash history
-    const history = engine.getSlashHistory("ob_omni_tracked");
+    const history = engine.getSlashHistory("ob1q6dfqmn4kpak86f3mzkmzjcv0h0fhl823qtxr5q");
     try testing.expectEqual(@as(usize, 1), history.count);
 
     const record = history.records[0];
-    try testing.expectEqualStrings("ob_omni_tracked", record.getValidator());
+    try testing.expectEqualStrings("ob1q6dfqmn4kpak86f3mzkmzjcv0h0fhl823qtxr5q", record.getValidator());
     try testing.expectEqual(SlashReason.invalid_block, record.reason);
     try testing.expectEqual(@as(u64, 777), record.block_height);
-    try testing.expectEqualStrings("ob_omni_watcher", record.getReporter());
+    try testing.expectEqualStrings("ob1qdzmdk6kf2fqxn9t5qv56dfy4yzxxjt9lpsvc6d", record.getReporter());
     try testing.expectEqual(result.slashed_amount, record.amount_slashed);
 }
 
 test "SlashEvidence — already-slashed validator rejected" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_repeat", VALIDATOR_MIN_STAKE * 3, 100);
+    _ = try engine.registerValidator("ob1qvpnjfq54zs8gjjnus3k2ukc2nlpquer8qd096w", VALIDATOR_MIN_STAKE * 3, 100);
     try engine.activateValidator(0);
 
     const evidence = SlashEvidence.init(
-        "ob_omni_repeat", .double_sign,
+        "ob1qvpnjfq54zs8gjjnus3k2ukc2nlpquer8qd096w", .double_sign,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_reporter", 1711800000,
+        "ob1qsc95a03hqdmxfpj43gs67ur3tuwh05snre20xd", 1711800000,
     );
 
     // First slash succeeds
@@ -1006,15 +1006,15 @@ test "SlashEvidence — already-slashed validator rejected" {
 
 test "SlashEvidence — zero-hash evidence rejected" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_zero", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qzex282t39hhnf3w83s8qkd4urykd5969lurr7f", VALIDATOR_MIN_STAKE, 100);
     try engine.activateValidator(0);
 
     // Zero block hashes — invalid evidence
     const evidence = SlashEvidence.init(
-        "ob_omni_zero", .double_sign,
+        "ob1qzex282t39hhnf3w83s8qkd4urykd5969lurr7f", .double_sign,
         [_]u8{0} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_reporter", 1711800000,
+        "ob1qsc95a03hqdmxfpj43gs67ur3tuwh05snre20xd", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -1023,25 +1023,25 @@ test "SlashEvidence — zero-hash evidence rejected" {
 
 test "SlashEvidence — getValidatorInfo returns slash status" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_infotest", VALIDATOR_MIN_STAKE * 2, 100);
+    _ = try engine.registerValidator("ob1qmptfv85h99as98m6q7kxpxtwj9sxnf8afmfufk", VALIDATOR_MIN_STAKE * 2, 100);
     try engine.activateValidator(0);
 
     // Before slash
-    const info_before = engine.getValidatorInfo("ob_omni_infotest").?;
+    const info_before = engine.getValidatorInfo("ob1qmptfv85h99as98m6q7kxpxtwj9sxnf8afmfufk").?;
     try testing.expectEqual(ValidatorStatus.active, info_before.status);
     try testing.expectEqual(@as(u8, 0), info_before.slash_count);
 
     // Slash
     const evidence = SlashEvidence.init(
-        "ob_omni_infotest", .double_sign,
+        "ob1qmptfv85h99as98m6q7kxpxtwj9sxnf8afmfufk", .double_sign,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_reporter", 1711800000,
+        "ob1qsc95a03hqdmxfpj43gs67ur3tuwh05snre20xd", 1711800000,
     );
     _ = engine.submitSlashEvidence(evidence);
 
     // After slash
-    const info_after = engine.getValidatorInfo("ob_omni_infotest").?;
+    const info_after = engine.getValidatorInfo("ob1qmptfv85h99as98m6q7kxpxtwj9sxnf8afmfufk").?;
     try testing.expectEqual(ValidatorStatus.slashed, info_after.status);
     try testing.expectEqual(@as(u8, 1), info_after.slash_count);
     try testing.expectEqual(@as(u8, 1), info_after.slash_history_count);
@@ -1049,26 +1049,26 @@ test "SlashEvidence — getValidatorInfo returns slash status" {
 
 test "SlashEvidence — findValidatorIndex" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_find1", VALIDATOR_MIN_STAKE, 100);
-    _ = try engine.registerValidator("ob_omni_find2", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1q53pw4mlyd6zal09t9n64y8xxduxwagu243dw92", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1q7q4cpxqdk64k4f2aplx6gfkz3n9y2fcv3hr4vp", VALIDATOR_MIN_STAKE, 100);
 
-    try testing.expectEqual(@as(?usize, 0), engine.findValidatorIndex("ob_omni_find1"));
-    try testing.expectEqual(@as(?usize, 1), engine.findValidatorIndex("ob_omni_find2"));
-    try testing.expectEqual(@as(?usize, null), engine.findValidatorIndex("ob_omni_notfound"));
+    try testing.expectEqual(@as(?usize, 0), engine.findValidatorIndex("ob1q53pw4mlyd6zal09t9n64y8xxduxwagu243dw92"));
+    try testing.expectEqual(@as(?usize, 1), engine.findValidatorIndex("ob1q7q4cpxqdk64k4f2aplx6gfkz3n9y2fcv3hr4vp"));
+    try testing.expectEqual(@as(?usize, null), engine.findValidatorIndex("ob1qg2ynfn7kl0zguy464cdefj5rekl2hfnujpwemu"));
 }
 
 test "SlashEvidence — min slash amount enforced" {
     var engine = StakingEngine.init();
     // Register with exactly min stake (100 OMNI)
-    _ = try engine.registerValidator("ob_omni_minstake", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qnyf830tqvt2ga9eursstnyecqafe5kjlwye74v", VALIDATOR_MIN_STAKE, 100);
     try engine.activateValidator(0);
 
     // Downtime = 1% of 100 OMNI = 1 OMNI = 1_000_000_000 SAT (above MIN_SLASH_AMOUNT)
     const evidence = SlashEvidence.init(
-        "ob_omni_minstake", .downtime,
+        "ob1qnyf830tqvt2ga9eursstnyecqafe5kjlwye74v", .downtime,
         [_]u8{0xAA} ** 32, [_]u8{0xBB} ** 32, 500,
         [_]u8{0x11} ** 64, [_]u8{0x22} ** 64,
-        "ob_omni_monitor", 1711800000,
+        "ob1qnm0sq0w2ctj7nqq80pmrukpwwx4rkphtfna0pp", 1711800000,
     );
 
     const result = engine.submitSlashEvidence(evidence);
@@ -1079,8 +1079,8 @@ test "SlashEvidence — min slash amount enforced" {
 
 test "ValidatorInfo — statusString" {
     var engine = StakingEngine.init();
-    _ = try engine.registerValidator("ob_omni_status", VALIDATOR_MIN_STAKE, 100);
+    _ = try engine.registerValidator("ob1qtl52x3awh05zqpmmqyvv8am67d3c2dvlgqs3se", VALIDATOR_MIN_STAKE, 100);
 
-    const info = engine.getValidatorInfo("ob_omni_status").?;
+    const info = engine.getValidatorInfo("ob1qtl52x3awh05zqpmmqyvv8am67d3c2dvlgqs3se").?;
     try testing.expectEqualStrings("pending", info.statusString());
 }

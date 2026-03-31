@@ -650,7 +650,7 @@ test "spv proof creation" {
 test "bloom filter add and check" {
     var filter = BloomFilter.init(5);
 
-    const address = "ob_omni_alice_12345";
+    const address = "ob1qwy7g9sk5s7qsc2m7d02j9anwyja4jcwwnxs2j7";
     filter.add(address);
 
     try testing.expect(filter.contains(address));
@@ -659,12 +659,12 @@ test "bloom filter add and check" {
 test "bloom filter - non-member not found (probabilistic)" {
     var filter = BloomFilter.init(5);
 
-    filter.add("ob_omni_alice");
-    filter.add("ob_omni_bob");
+    filter.add("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh");
+    filter.add("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas");
 
     // These should (very likely) not match — different data, low fill ratio
     // With 4096 bits, 5 hash funcs, and 2 insertions, false positive rate is ~0.0001%
-    const probably_not = filter.contains("ob_omni_zzz_never_inserted_xyzxyz_foobar");
+    const probably_not = filter.contains("ob1qa5ackdxmacapcf7f4h592yawv6ansjscejxj8h");
     // We cannot assert false due to probabilistic nature, but we can test
     // that NOT everything matches
     const also_check = filter.contains("totally_different_string_abcdefghijklmnop");
@@ -675,11 +675,11 @@ test "bloom filter - non-member not found (probabilistic)" {
 test "bloom filter - clear resets all bits" {
     var filter = BloomFilter.init(5);
 
-    filter.add("ob_omni_alice");
-    try testing.expect(filter.contains("ob_omni_alice"));
+    filter.add("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh");
+    try testing.expect(filter.contains("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 
     filter.clear();
-    try testing.expect(!filter.contains("ob_omni_alice"));
+    try testing.expect(!filter.contains("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 }
 
 test "bloom filter - multiple hash functions reduce false positives" {
@@ -919,8 +919,8 @@ test "light client watchAddress and matchesFilter" {
     var client = LightClient.init(testing.allocator);
     defer client.deinit();
 
-    client.watchAddress("ob_omni_alice");
-    try testing.expect(client.matchesFilter("ob_omni_alice"));
+    client.watchAddress("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh");
+    try testing.expect(client.matchesFilter("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
 }
 
 test "light client getConfirmations" {

@@ -3,6 +3,7 @@
 const std        = @import("std");
 const array_list = std.array_list;
 const genesis_mod = @import("genesis.zig");
+const bech32_mod = @import("bech32.zig");
 
 /// Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)
 pub const MinerWallet = struct {
@@ -17,8 +18,13 @@ pub const MinerWallet = struct {
     pub fn init(allocator: std.mem.Allocator, miner_id: u32, allocated_tokens: u64) !MinerWallet {
         const miner_name = try std.fmt.allocPrint(allocator, "miner-{d}", .{miner_id});
 
-        // Adresa derivata determinist din miner_id (format ob_omni_MINER<id>)
-        const address = try std.fmt.allocPrint(allocator, "ob_omni_MINER{d:0>8}", .{miner_id});
+        // Adresa derivata determinist din miner_id — Bech32 ob1q...
+        // SHA256("miner_genesis_" || miner_id) → first 20 bytes as hash160
+        var seed_buf: [32]u8 = undefined;
+        var id_buf: [32]u8 = undefined;
+        const id_str = std.fmt.bufPrint(&id_buf, "miner_genesis_{d}", .{miner_id}) catch "miner_genesis_0";
+        std.crypto.hash.sha2.Sha256.hash(id_str, &seed_buf, .{});
+        const address = try bech32_mod.encodeOBAddress(seed_buf[0..20].*, allocator);
 
         return MinerWallet{
             .miner_id           = miner_id,

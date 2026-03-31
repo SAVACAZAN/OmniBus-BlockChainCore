@@ -397,7 +397,7 @@ test "BlockchainV2 — validateTransaction amount 0 = false" {
     var bc = try BlockchainV2.init(testing.allocator, 0);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_a", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "ob1qrgq6jnvvhcmp03ur849a85mhdvsvaqf6dprzn4", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 0, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -407,7 +407,7 @@ test "BlockchainV2 — validateTransaction adresa goala = false" {
     var bc = try BlockchainV2.init(testing.allocator, 0);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 100, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expect(!try bc.validateTransaction(&tx));
@@ -417,7 +417,7 @@ test "BlockchainV2 — addTransaction valid merge in mempool" {
     var bc = try BlockchainV2.init(testing.allocator, 0);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_alice", .to_address = "ob_omni_bob",
+        .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 1000, .timestamp = 0, .signature = "", .hash = "",
     };
     try bc.addTransaction(tx);
@@ -428,7 +428,7 @@ test "BlockchainV2 — addTransaction invalid returneaza eroare" {
     var bc = try BlockchainV2.init(testing.allocator, 0);
     defer bc.deinit();
     const tx = Transaction{
-        .id = 1, .from_address = "ob_omni_a", .to_address = "ob_omni_b",
+        .id = 1, .from_address = "ob1qrgq6jnvvhcmp03ur849a85mhdvsvaqf6dprzn4", .to_address = "ob1qn8hr9y543qdvegeueffktd9lkrt2vq6q457xa0",
         .amount = 0, .timestamp = 0, .signature = "", .hash = "",
     };
     try testing.expectError(error.InvalidTransaction, bc.addTransaction(tx));

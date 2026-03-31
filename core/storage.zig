@@ -313,8 +313,8 @@ test "address index" {
     var index = AddressIndex.init(testing.allocator);
     defer index.deinit();
 
-    try index.updateBalance("ob_omni_abc", 1000000);
-    const balance = index.getBalance("ob_omni_abc");
+    try index.updateBalance("ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s", 1000000);
+    const balance = index.getBalance("ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s");
     try testing.expect(balance != null);
     try testing.expectEqual(balance.?, 1000000);
 }

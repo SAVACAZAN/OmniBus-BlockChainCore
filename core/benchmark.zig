@@ -206,8 +206,8 @@ pub const Benchmark = struct {
     pub fn benchTxValidation(iterations: u32) BenchResult {
         const tx = Transaction{
             .id = 1,
-            .from_address = "ob_omni_benchmark_sender_address_1234567890abcdef",
-            .to_address = "ob_omni_benchmark_receiver_address_abcdef1234567890",
+            .from_address = "ob1q8lel793v9h6r49ec2zwc2sxykmw430wy6fmpsy",
+            .to_address = "ob1qgwet8xlkj6es5v4hnrl92av9z0jylx3fpjk556",
             .amount = 50_000_000_000,
             .fee = 1,
             .nonce = 42,
@@ -329,8 +329,8 @@ pub const Benchmark = struct {
         for (0..effective_count) |i| {
             block.transactions.append(.{
                 .id = @intCast(i),
-                .from_address = "ob_omni_bench_from",
-                .to_address = "ob_omni_bench_to",
+                .from_address = "ob1qr067dh7p0m6ceuq3atc7ge6wkjxavdugzducq3",
+                .to_address = "ob1qp0z2dlp5mnzrzcld3gnsa3tkkqtv0au5hgrwt4",
                 .amount = 1000 + @as(u64, @intCast(i)),
                 .fee = 1,
                 .timestamp = 1_700_000_000,
@@ -378,8 +378,8 @@ pub const Benchmark = struct {
         for (0..effective) |i| {
             mempool.add(.{
                 .id = @intCast(i + 1),
-                .from_address = "ob_omni_bench_sender",
-                .to_address = "ob_omni_bench_receiver",
+                .from_address = "ob1qmvzw5wfurey42l64gg5afnrffna9w380f0d6fq",
+                .to_address = "ob1qqhagg05ycvhyydflkgsuuvtg4wtx2tjd4euag8",
                 .amount = 1000,
                 .fee = 1,
                 .nonce = @intCast(i),

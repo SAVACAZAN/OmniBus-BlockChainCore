@@ -574,7 +574,7 @@ test "MultisigWallet 2-of-3 — 2 sigs valid" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key };
     const wallet = try MultisigWallet.create(2, &pks);
 
-    var tx = wallet.createTx("ob_omni_receiver", 1_000_000_000, 100, 1);
+    var tx = wallet.createTx("ob1qya9sq7xpg4shf3r67772vnfg5xre5wvwvgc959", 1_000_000_000, 100, 1);
     try testing.expect(!tx.isComplete());
 
     // First signature — not yet complete
@@ -599,7 +599,7 @@ test "MultisigWallet 2-of-3 — 1 sig insufficient" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key };
     const wallet = try MultisigWallet.create(2, &pks);
 
-    var tx = wallet.createTx("ob_omni_receiver", 500_000_000, 50, 2);
+    var tx = wallet.createTx("ob1qya9sq7xpg4shf3r67772vnfg5xre5wvwvgc959", 500_000_000, 50, 2);
     _ = try wallet.addSignature(&tx, kp2.private_key);
 
     // Only 1 of 2 required — should fail verification
@@ -616,7 +616,7 @@ test "MultisigWallet 3-of-5 — works" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key, kp4.public_key, kp5.public_key };
     const wallet = try MultisigWallet.create(3, &pks);
 
-    var tx = wallet.createTx("ob_omni_target", 2_000_000_000, 200, 3);
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 2_000_000_000, 200, 3);
     _ = try wallet.addSignature(&tx, kp1.private_key);
     _ = try wallet.addSignature(&tx, kp3.private_key);
     const done = try wallet.addSignature(&tx, kp5.private_key);
@@ -633,7 +633,7 @@ test "MultisigWallet — wrong key rejected" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
     const wallet = try MultisigWallet.create(2, &pks);
 
-    var tx = wallet.createTx("ob_omni_target", 1_000_000_000, 100, 4);
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 1_000_000_000, 100, 4);
     try testing.expectError(error.NotASigner, wallet.addSignature(&tx, kp_outsider.private_key));
 }
 
@@ -644,7 +644,7 @@ test "MultisigWallet — duplicate signature rejected" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
     const wallet = try MultisigWallet.create(2, &pks);
 
-    var tx = wallet.createTx("ob_omni_target", 1_000_000_000, 100, 5);
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 1_000_000_000, 100, 5);
     _ = try wallet.addSignature(&tx, kp1.private_key);
     try testing.expectError(error.AlreadySigned, wallet.addSignature(&tx, kp1.private_key));
 }
@@ -656,7 +656,7 @@ test "MultisigTx — txHash is deterministic" {
     const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
     const wallet = try MultisigWallet.create(1, &pks);
 
-    const tx = wallet.createTx("ob_omni_target", 1_000_000_000, 100, 6);
+    const tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 1_000_000_000, 100, 6);
     const h1 = tx.txHash();
     const h2 = tx.txHash();
     try testing.expectEqualSlices(u8, &h1, &h2);

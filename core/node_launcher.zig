@@ -389,6 +389,6 @@ test "NodeLauncher — registerMinerWithPool creeaza pool" {
     });
     defer launcher.deinit();
     try launcher.startSeedNode();
-    try launcher.registerMinerWithPool("miner-1", "ob_omni_miner1", 1000);
+    try launcher.registerMinerWithPool("miner-1", "ob1qj9ryhystn0xx80msugdedkttaufxdelp2lpkkj", 1000);
     try testing.expect(launcher.mining_pool != null);
 }
