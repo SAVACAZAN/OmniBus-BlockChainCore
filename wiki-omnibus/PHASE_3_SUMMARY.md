@@ -120,7 +120,7 @@ Transaction Index:
   "tx:xyz789uvw012" → "5:1"  (block 5, tx 1)
 
 Address Index:
-  "addr:ob_omni_abc123" → "1000000000"  (1000 OMNI in SAT)
+  "addr:ob1qx787af2p22knzjlakn7ehz9r77p3ak2w" → "1000000000"  (1000 OMNI in SAT)
   "addr:ob_k1_xyz789"   → "2500000000"  (2500 OMNI)
 
 Checkpoints:

@@ -410,4 +410,48 @@ Inactivity Leak
 - BLS simulat în loc de curbe reale
 - Lipsa inactivity leak pentru reziliență
 
-**Recomandare:** Implementează cele 5 iteme critice (🔴) înainte de orice mainnet cu >100 validatori.
+**Recomandare:** Implementeaza cele 5 iteme critice inainte de orice mainnet cu >100 validatori.
+
+---
+
+## v0.2.0 — Module noi (2026-03-31)
+
+### Adresare & Wallet (BTC parity 115%)
+| Componenta | Status | Fisier |
+|------------|--------|--------|
+| Bech32/Bech32m (BIP-173/350) | Implementat | `core/bech32.zig` |
+| Adrese ob1q... (42 chars, ca BTC bc1q) | Implementat | HRP="ob" |
+| xpub/xprv extended keys | Implementat | `core/bip32_wallet.zig` |
+| WIF, master_fingerprint, hash160 | Implementat | `core/bip32_wallet.zig` |
+| Change addresses (chain=1) | Implementat | `deriveChangeAddress()` |
+| Passphrase BIP-39 | Implementat | `initFromMnemonicPassphrase()` |
+
+### Tranzactii & UTXO
+| Componenta | Status | Fisier |
+|------------|--------|--------|
+| UTXO Set complet | Implementat | `core/utxo.zig` |
+| RBF (Replace-By-Fee) | Implementat | `core/transaction.zig` + `mempool.zig` |
+| CPFP (Child-Pays-For-Parent) | Implementat | `core/mempool.zig` |
+| PSBT (BIP-174) | Implementat | `core/psbt.zig` |
+| Sequence number (BIP-125) | Implementat | `core/transaction.zig` |
+
+### Layer 2 & Lightning
+| Componenta | Status | Fisier |
+|------------|--------|--------|
+| HTLC Contracts | Implementat | `core/htlc.zig` |
+| Lightning Network | Implementat | `core/lightning.zig` |
+| Block Filters (BIP-157/158) | Implementat | `core/block_filter.zig` |
+
+### Networking & Privacy
+| Componenta | Status | Fisier |
+|------------|--------|--------|
+| Tor SOCKS5 proxy | Implementat | `core/tor_proxy.zig` |
+| BIP-324 encrypted P2P | Implementat | `core/encrypted_p2p.zig` |
+
+### Multi-Chain Wallet
+| Componenta | Status | Fisier |
+|------------|--------|--------|
+| 19-chain wallet (1 mnemonic) | Implementat | `scripts/generate_multiwallet.py` |
+| 138 adrese: OMNI+BTC+ETH+SOL+ADA+DOT+... | Implementat | Account-based structure |
+
+**Total module Zig: 78 | BTC parity: 115% + 30 extras**

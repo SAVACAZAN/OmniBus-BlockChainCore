@@ -226,7 +226,7 @@ Daca adresa apare in State Trie cu Index_ID (4 bytes):
 
 | Shard | Domeniu | Prefix | Coin Type | Tip | Algoritm |
 |---|---|---|---|---|---|
-| 0 | omnibus.omni | `ob_omni_` | 777 | TRANSFERABIL | ML-KEM/Kyber-768 + secp256k1 |
+| 0 | omnibus.omni | `ob1q` (Bech32) | 777 | TRANSFERABIL | ML-KEM/Kyber-768 + secp256k1 |
 | 1 | omnibus.love | `ob_k1_` | 778 | NON-TRANSFERABIL | ML-DSA/Dilithium-5 |
 | 2 | omnibus.food | `ob_f5_` | 779 | NON-TRANSFERABIL | Falcon-512 |
 | 3 | omnibus.rent | `ob_d5_` | 780 | NON-TRANSFERABIL | SLH-DSA/SPHINCS+ |
@@ -606,7 +606,7 @@ Comparatie cu Bitcoin:
   "block_size_max_bytes": 1048576,
   "version_byte": "0x4F",
   "domains": {
-    "omni":     {"coin_type": 777, "prefix": "ob_omni_", "transferable": true},
+    "omni":     {"coin_type": 777, "prefix": "ob1q", "transferable": true},
     "love":     {"coin_type": 778, "prefix": "ob_k1_",   "transferable": false},
     "food":     {"coin_type": 779, "prefix": "ob_f5_",   "transferable": false},
     "rent":     {"coin_type": 780, "prefix": "ob_d5_",   "transferable": false},

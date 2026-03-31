@@ -11,7 +11,7 @@ const POOL_HOST = "127.0.0.1";
 const POOL_PORT = 8332;
 const MINER_ID = process.argv[2] || `miner-${Math.floor(Math.random() * 10000)}`;
 const MINER_NAME = process.argv[3] || MINER_ID;
-const MINER_ADDRESS = process.argv[4] || `ob_omni_${MINER_ID.replace(/[^a-z0-9]/g, '')}xxx`;
+const MINER_ADDRESS = process.argv[4] || `ob1q_${MINER_ID.replace(/[^a-z0-9]/g, '')}xxx`;
 const HASHRATE = parseInt(process.argv[5]) || 1000;
 const KEEPALIVE_INTERVAL = 5000; // 5 seconds
 

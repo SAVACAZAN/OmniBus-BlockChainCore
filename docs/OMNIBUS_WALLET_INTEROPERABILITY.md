@@ -6,7 +6,7 @@
 ## 🎯 Principiul de Bază
 
 **Toate wallet-urile OmniBus trebuie să:**
-1. Recunoască cele 5 formate de adresă (ob_omni_, ob_k1_, ob_f5_, ob_d5_, ob_s3_)
+1. Recunoască cele 5 formate de adresă (ob1q (Bech32 nativ), ob_k1_, ob_f5_, ob_d5_, ob_s3_)
 2. Folosească același BIP-39 seed pentru a deriva toate adresele
 3. Suporte același BIP-32 derivation path (m/44'/777'/0'/0/0 etc.)
 4. Comunice prin același protocol RPC (JSON-RPC 2.0)
@@ -23,7 +23,7 @@
 pub fn isValidOmniBusAddress(address: []const u8) bool {
     // Lista prefixurilor oficiale
     const PREFIXES = [_][]const u8{
-        "ob_omni_",    // Coin 777 - ML-DSA-87
+        "ob1q",    // Coin 777 - ML-DSA-87
         "ob_k1_",      // Coin 778 - ML-DSA-87
         "ob_f5_",      // Coin 779 - Falcon-512
         "ob_d5_",      // Coin 780 - ML-DSA-87
@@ -49,7 +49,7 @@ pub fn isValidOmniBusAddress(address: []const u8) bool {
 
 // Detectează domeniul din adresă
 pub fn detectDomain(address: []const u8) ?OmniBusDomain {
-    if (std.mem.startsWith(u8, address, "ob_omni_")) return .omni;
+    if (std.mem.startsWith(u8, address, "ob1q")) return .omni;
     if (std.mem.startsWith(u8, address, "ob_k1_")) return .love;
     if (std.mem.startsWith(u8, address, "ob_f5_")) return .food;
     if (std.mem.startsWith(u8, address, "ob_d5_")) return .rent;
@@ -146,8 +146,8 @@ const snapWalletCaps: WalletCapabilities = {
       "name": "OmniBus Native",
       "coin_type": 777,
       "algorithm": "ML-DSA-87",
-      "prefix": "ob_omni_",
-      "address": "ob_omni_a1b2c3d4e5f6...",
+      "prefix": "ob1q",
+      "address": "ob1qw6zhsqg29aht23fksk5w54lkgava...",
       "derivation_path": "m/44'/777'/0'/0/0",
       "public_key": "02a1b2c3d4e5f6...",
       "pq_public_key": "2592_bytes_hex_here..."
@@ -246,19 +246,19 @@ async function importOmniBusWallet(backupJson: string): Promise<Wallet> {
 
 ```
 // Plată simplă
-omnibus://pay?to=ob_omni_abc123&amount=1000000000
+omnibus://pay?to=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w&amount=1000000000
 
 // Plată cu domeniu specific
 omnibus://pay?to=ob_f5_def456&amount=500000000&domain=food
 
 // Plată cu memo
-omnibus://pay?to=ob_omni_abc123&amount=1000000000&memo=Plata%20factura%20123
+omnibus://pay?to=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w&amount=1000000000&memo=Plata%20factura%20123
 
 // Conectare dApp
 omnibus://connect?uri=wc:abc123@2?relay-protocol=irn&symKey=xyz789
 
 // Deschidere adresă specifică în wallet
-omnibus://wallet?address=ob_omni_abc123&action=receive
+omnibus://wallet?address=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w&action=receive
 ```
 
 ### QR Code Standard
@@ -287,7 +287,7 @@ interface OmniBusQRCode {
 const paymentQR: OmniBusQRCode = {
   type: "omnibus_payment",
   version: 1,
-  to: "ob_omni_abc123...",
+  to: "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
   amount: "1000000000",  // 1 OMNI
   domain: "omni",
   memo: "Plata servicii"

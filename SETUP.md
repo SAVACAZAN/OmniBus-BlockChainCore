@@ -13,7 +13,7 @@ A complete **cross-platform blockchain system** in Zig + TypeScript with:
 - **blockchain.zig** - Consensus engine, block validation, chain management
 - **block.zig** - Block structure, mining, validation
 - **transaction.zig** - TX structure, validation with PQ address support
-- **wallet.zig** - 5 post-quantum address pairs per client (ob_omni_, ob_k1_, ob_f5_, ob_d5_, ob_s3_)
+- **wallet.zig** - 5 post-quantum address pairs per client (ob1q, ob_k1_, ob_f5_, ob_d5_, ob_s3_)
 - **rpc_server.zig** - JSON-RPC 2.0 HTTP/WebSocket endpoint
 - **agent_manager.zig** - Multi-client trading agent coordinator
 - **main.zig** - Entry point with mining loop
@@ -94,7 +94,7 @@ make run-node
 #   - Chain length: 1
 #
 # [WALLET] Wallet initialized
-#   - Address: ob_omni_1q2w3e4r5t6y7u8i9o0p
+#   - Address: ob1q1q2w3e4r5t6y7u8i9o0p
 #   - Balance: 50000000000 SAT
 #
 # [LOOP] Starting mining loop...

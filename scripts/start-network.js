@@ -71,7 +71,7 @@ function deriveAddress(mnemonic) {
   const seed = crypto.pbkdf2Sync(mnemonic, "TREZOR", 2048, 64, "sha512");
   const key = crypto.createHmac("sha256", seed).update("0").digest();
   const hash = crypto.createHash("sha256").update(key).digest("hex");
-  return "ob_omni_" + hash.substring(0, 32);
+  return "ob1q" + hash.substring(0, 32);
 }
 
 async function rpcCall(method, params = []) {

@@ -1,20 +1,28 @@
 # OmniBus-BlockChainCore
 
-**Blockchain post-quantum nativ Windows + Linux**
-**Versiune:** 1.0.0-dev · **Limbă:** Zig 0.15.2 + Node.js + TypeScript/React
-**GitHub:** https://github.com/SAVACAZAN/OmniBus-BlockChainCore
+**Blockchain post-quantum nativ Windows + Linux — 115% Bitcoin parity**
+**Versiune:** 0.2.0-dev · **Limbă:** Zig 0.15.2 + Node.js + TypeScript/React
+**Module:** 78 Zig core modules · **GitHub:** https://github.com/SAVACAZAN/OmniBus-BlockChainCore
 
 ---
 
 ## Ce este
 
-Nod blockchain complet cu criptografie post-quantum reală:
-- **secp256k1 ECDSA** pur Zig (Bitcoin-compatible, zero dependențe externe)
-- **RIPEMD-160** pur Zig (193 linii, testat cu standard vectors Bitcoin)
-- **BIP-32/39 HD wallet** cu HMAC-SHA512 real, 5 domenii PQ
-- **liboqs** — ML-DSA-87, Falcon-512, SLH-DSA-256s, ML-KEM-768
-- **JSON-RPC 2.0** pe port 8332
-- **Mining pool** Node.js cu înregistrare dinamică miners
+Nod blockchain complet cu criptografie post-quantum reala, 115% Bitcoin feature parity + 30 extra features:
+
+**Crypto & Wallet:**
+- **secp256k1 ECDSA** pur Zig (Bitcoin-compatible, zero dependente externe)
+- **Bech32/Bech32m** adrese `ob1q...` (BIP-173/350, identic cu BTC `bc1q`)
+- **BIP-32/39/44** HD wallet cu xpub/xprv, WIF, master_fingerprint, full metadata
+- **5 domenii PQ**: ML-DSA-87, Falcon-512, SLH-DSA-256s, ML-KEM-768
+- **19-chain multi-wallet**: OMNI + BTC(4 tipuri) + ETH + SOL + ADA + DOT + EGLD + ATOM + XLM + XRP + BNB + OP + LTC + DOGE + BCH
+
+**Core:**
+- **UTXO model** + account balances (hybrid), RBF, CPFP, change addresses
+- **PSBT** (BIP-174), **HTLC**, **Lightning Network** (channels, invoices, routing)
+- **Block Filters** (BIP-157/158), **Tor SOCKS5**, **BIP-324 encrypted P2P**
+- **JSON-RPC 2.0** pe port 8332, **WebSocket** pe port 8334
+- **Mining pool** Node.js, sub-block engine (10x0.1s), Casper FFG finality
 
 ---
 
@@ -87,7 +95,7 @@ OmniBus-BlockChainCore/
 │
 ├── rpc-server.js             Mining pool Node.js: 18 metode RPC, balances.json
 ├── miner-client.js           Miner: registerminer + keepalive 5s
-├── create-wallet.js          Generator wallet BIP-39 + ob_omni_ address
+├── create-wallet.js          Generator wallet BIP-39 + ob1q address
 ├── wallets/                  genesis-allocation.json, genesis_miners_*.json
 ├── wiki-omnibus/             Documentație completă (INDEX.md + OMNIBUS_ACADEMIC_REPORT.md)
 └── build.zig                 Build config Zig 0.15.2 + liboqs linkage
@@ -109,7 +117,7 @@ curl -s -X POST http://127.0.0.1:8332 \
 
 # Trimite tranzacție (amount în SAT, 1 OMNI = 1e9 SAT)
 curl -s -X POST http://127.0.0.1:8332 \
-  -d '{"jsonrpc":"2.0","id":1,"method":"sendtransaction","params":["ob_omni_abc123",1000000000]}'
+  -d '{"jsonrpc":"2.0","id":1,"method":"sendtransaction","params":["ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s",1000000000]}'
 ```
 
 | Metodă | Descriere |
@@ -127,7 +135,7 @@ curl -s -X POST http://127.0.0.1:8332 \
 
 | Prefix | CoinType | Algoritm | Security |
 |--------|----------|----------|----------|
-| `ob_omni_` | 777 | ML-DSA-87 + ML-KEM-768 | 256 bit |
+| `ob1q...` (Bech32) | 777 | ML-DSA-87 + ML-KEM-768 | 256 bit |
 | `ob_k1_` | 778 | ML-DSA-87 (Dilithium-5) | 256 bit |
 | `ob_f5_` | 779 | Falcon-512 | 128 bit |
 | `ob_d5_` | 780 | ML-DSA-87 | 256 bit |
@@ -227,4 +235,4 @@ set OMNIBUS_MNEMONIC=word1 word2 ... word12
 ```
 OmnibusSidebar.exe → HTTP POST 127.0.0.1:8332 → omnibus-node.exe
 ```
-Aceleași prefixe adrese (`ob_omni_`, `ob_k1_`, etc.) și aceleași coin types (777-781) în ambele proiecte.
+Aceleasi adrese Bech32 (`ob1q...` nativ, `ob_k1_`, `ob_f5_`, `ob_d5_`, `ob_s3_` PQ) si aceleasi coin types (777-781) in ambele proiecte.

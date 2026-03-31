@@ -215,7 +215,7 @@ var pq_mgr = PQDomainDerivation.init(wallet);
 const addresses = try pq_mgr.deriveAllAddresses(allocator);
 
 // Result:
-// addresses[0] = "ob_omni_abc123def456..."
+// addresses[0] = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2wdef456..."
 // addresses[1] = "ob_k1_xyz789uvw012..."
 // addresses[2] = "ob_f5_qqq111rrr222..."
 // addresses[3] = "ob_d5_sss333ttt444..."

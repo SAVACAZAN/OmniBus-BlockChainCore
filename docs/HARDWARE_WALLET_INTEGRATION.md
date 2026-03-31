@@ -89,7 +89,7 @@ from trezorlib import client, btc
 from trezorlib.transport import get_transport
 from trezorlib.tools import parse_path
 
-def get_omnibus_address(coin_type=777, prefix="ob_omni_"):
+def get_omnibus_address(coin_type=777, prefix="ob1q"):
     """Generează adresă OmniBus pe Trezor"""
     transport = get_transport()
     c = client.TrezorClient(transport)

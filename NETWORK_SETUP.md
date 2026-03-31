@@ -177,7 +177,7 @@ Platform: Cross-Platform (Windows + Linux)
   - Chain length: 1
 
 [WALLET] Wallet initialized
-  - Address: ob_omni_...
+  - Address: ob1q...
   - Balance: 0 SAT
 
 [RPC] JSON-RPC 2.0 Server

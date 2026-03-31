@@ -67,7 +67,7 @@ function deriveAddress(mnemonic, accountIndex = 0) {
   const addressPart = addressHash.toString("hex").substring(0, 32);
 
   return {
-    omniAddress: `ob_omni_${addressPart}`,
+    omniAddress: `ob1q${addressPart}`,
     publicKey: derivedKey.toString("hex").substring(0, 64),
     derivationPath: `m/44'/60'/0'/0/${accountIndex}`,
   };

@@ -70,7 +70,7 @@ Web wallet interface with 300+ lines:
   - Error handling
 - ✅ Transaction confirmation feedback
 - ✅ All 5 post-quantum addresses:
-  - `ob_omni_` - Hybrid (256-bit)
+  - `ob1q` (Bech32) - Hybrid (256-bit)
   - `ob_k1_` - Kyber-768 (256-bit)
   - `ob_f5_` - Falcon-512 (192-bit)
   - `ob_d5_` - Dilithium-5 (256-bit)

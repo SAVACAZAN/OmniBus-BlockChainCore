@@ -93,7 +93,7 @@
 │  │  │                         ▼                                      │   │   │
 │  │  │  ┌─────────────────────────────────────────────────────────┐  │   │   │
 │  │  │  │              BIP-32 Master Key                          │  │   │   │
-│  │  │  │   m/44'/777'/0'/0/0  →  secp256k1  →  ob_omni_...     │  │   │   │
+│  │  │  │   m/44'/777'/0'/0/0  →  secp256k1  →  ob1q...     │  │   │   │
 │  │  │  │   m/44'/778'/0'/0/0  →  secp256k1  →  ob_k1_...       │  │   │   │
 │  │  │  │   m/44'/779'/0'/0/0  →  secp256k1  →  ob_f5_...       │  │   │   │
 │  │  │  │   m/44'/780'/0'/0/0  →  secp256k1  →  ob_d5_...       │  │   │   │
@@ -276,7 +276,7 @@ Toate wallet-urile OmniBus trebuie să recunoască:
 // Format adresă: prefix + base58check(hash160(pubkey))
 // Prefixuri oficiale:
 const PREFIXES = {
-    .omni = "ob_omni_",      // Coin 777
+    .omni = "ob1q",      // Coin 777
     .love = "ob_k1_",        // Coin 778
     .food = "ob_f5_",        // Coin 779
     .rent = "ob_d5_",        // Coin 780
@@ -317,7 +317,7 @@ const VERSION_BYTE = 0x4F;
 
 ```
 // URI Scheme pentru OmniBus
-omnibus://pay?to=ob_omni_abc123&amount=1000000000&domain=omni
+omnibus://pay?to=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w&amount=1000000000&domain=omni
 omnibus://pay?to=ob_f5_def456&amount=500000000&domain=food
 
 // QR Code standard
@@ -325,7 +325,7 @@ omnibus://pay?to=ob_f5_def456&amount=500000000&domain=food
   "type": "omnibus_payment",
   "version": 1,
   "domain": "omni",
-  "to": "ob_omni_abc123...",
+  "to": "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
   "amount": "1000000000",
   "memo": "optional"
 }

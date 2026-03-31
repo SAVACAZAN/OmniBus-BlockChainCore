@@ -148,7 +148,7 @@ npm install @tether/wdk
   "format": "omnibus-wallet-v1",
   "mnemonic": "abandon abandon ... about",
   "addresses": {
-    "omni": { "address": "ob_omni_...", "path": "m/44'/777'/0'/0/0" },
+    "omni": { "address": "ob1q...", "path": "m/44'/777'/0'/0/0" },
     "love": { "address": "ob_k1_...", "path": "m/44'/778'/0'/0/0" },
     "food": { "address": "ob_f5_...", "path": "m/44'/779'/0'/0/0" },
     "rent": { "address": "ob_d5_...", "path": "m/44'/780'/0'/0/0" },

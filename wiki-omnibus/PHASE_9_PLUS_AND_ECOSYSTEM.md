@@ -188,11 +188,11 @@ Module testate (output confirmat):
 
 ### D2 — 5 domenii PQ → 4 domenii în Python, 5 în Zig
 
-**Zig (bip32_wallet.zig):** 5 adrese: `ob_omni_`(777), `ob_k1_`(778), `ob_f5_`(779), `ob_d5_`(780), `ob_s3_`(781)
+**Zig (bip32_wallet.zig):** 5 adrese: `ob1q` (Bech32)(777), `ob_k1_`(778), `ob_f5_`(779), `ob_d5_`(780), `ob_s3_`(781)
 
 **Python (pq_sign.py):** 4 domenii: `omnibus.love`(ML-DSA-87), `omnibus.food`(Falcon-512), `omnibus.rent`(SLH-DSA), `omnibus.vacation`(Falcon-512)
 
-**Reconciliere:** Domeniile Python corespund la `ob_k1_`/`ob_f5_`/`ob_s3_` din Zig. `ob_omni_` (777) = adresa principală cu ML-KEM-768, nu are echivalent direct în Python pq_sign. De adăugat o mapare explicită.
+**Reconciliere:** Domeniile Python corespund la `ob_k1_`/`ob_f5_`/`ob_s3_` din Zig. `ob1q` (Bech32) (777) = adresa principală cu ML-KEM-768, nu are echivalent direct în Python pq_sign. De adăugat o mapare explicită.
 
 ---
 

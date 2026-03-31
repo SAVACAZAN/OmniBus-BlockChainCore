@@ -97,7 +97,7 @@ curl -s -X POST http://127.0.0.1:8332 \
   {
     "id": "miner-0",
     "name": "Miner-0",
-    "address": "ob_omni_abc123...",
+    "address": "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
     "status": "mining",
     "hashrate": 1000,
     "balanceOmni": 450.0,

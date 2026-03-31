@@ -49,9 +49,9 @@ Then open: **http://localhost:3000/genesis-countdown**
 Startup Script
     ↓
 Generate 10 Unique Wallets
-    ├─ miner-0 → ob_omni_miner01xxxxxxxxxxxxx
-    ├─ miner-1 → ob_omni_miner02xxxxxxxxxxxxx
-    ├─ miner-2 → ob_omni_miner03xxxxxxxxxxxxx
+    ├─ miner-0 → ob1qw6zhsqg29aht23fksk5w54lkgava
+    ├─ miner-1 → ob1qh9068vy8r0vs0cn3seglr2ct4aaz
+    ├─ miner-2 → ob1q4wkpwl7vjelgec0ttj5s70r3pfv3
     └─ ... (miner-9)
     ↓
 Save to: wallets/genesis-allocation.json
@@ -200,14 +200,14 @@ Mining Rewards (post-genesis):
 Each miner has 5 unique addresses (post-quantum cryptography):
 
 ```
-1. ob_omni_miner01xxxxxxxxxxxxx (Dilithium-5 + Kyber-768, 256-bit)
+1. ob1qw6zhsqg29aht23fksk5w54lkgava (Dilithium-5 + Kyber-768, 256-bit)
 2. ob_k1_miner01xxxxxxxxxxxxxxx (Kyber-768, 256-bit)
 3. ob_f5_miner01xxxxxxxxxxxxxxx (Falcon-512, 192-bit)
 4. ob_d5_miner01xxxxxxxxxxxxxxx (Dilithium-5, 256-bit)
 5. ob_s3_miner01xxxxxxxxxxxxxxx (SPHINCS+, 128-bit)
 
 Primary address (for mining rewards):
-→ ob_omni_miner01xxxxxxxxxxxxx (Dilithium-5 + Kyber-768)
+→ ob1qw6zhsqg29aht23fksk5w54lkgava (Dilithium-5 + Kyber-768)
 ```
 
 ---
@@ -243,7 +243,7 @@ OmniBus-BlockChainCore/
     {
       "miner_id": 0,
       "miner_name": "miner-0",
-      "address": "ob_omni_miner01xxxxxxxxxxxxx",
+      "address": "ob1qw6zhsqg29aht23fksk5w54lkgava",
       "allocated_omni": 2100000,
       "allocated_sat": 210000000000,
       "status": "genesis_allocated"
@@ -251,7 +251,7 @@ OmniBus-BlockChainCore/
     {
       "miner_id": 1,
       "miner_name": "miner-1",
-      "address": "ob_omni_miner02xxxxxxxxxxxxx",
+      "address": "ob1qh9068vy8r0vs0cn3seglr2ct4aaz",
       "allocated_omni": 2100000,
       "allocated_sat": 210000000000,
       "status": "genesis_allocated"

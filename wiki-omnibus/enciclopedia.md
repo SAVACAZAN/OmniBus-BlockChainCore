@@ -53,7 +53,7 @@
 
 | Prefix | CoinType | Algoritm |
 |--------|----------|----------|
-| `ob_omni_` | 777 | ML-DSA-87 + ML-KEM-768 |
+| `ob1q` (Bech32) | 777 | ML-DSA-87 + ML-KEM-768 |
 | `ob_k1_` | 778 | ML-DSA-87 (Dilithium-5) |
 | `ob_f5_` | 779 | Falcon-512 |
 | `ob_d5_` | 780 | ML-DSA-87 |

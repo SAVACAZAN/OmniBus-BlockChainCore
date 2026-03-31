@@ -175,7 +175,7 @@ curl -X POST http://localhost:8332 \
     "params":[{
       "id":"miner-10",
       "name":"Miner-10",
-      "address":"ob_omni_abc123...",
+      "address":"ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
       "hashrate":1000
     }],
     "id":1
@@ -201,7 +201,7 @@ curl -X POST http://localhost:8332 \
   -d '{
     "jsonrpc":"2.0",
     "method":"minerkeepalive",
-    "params":["ob_omni_abc123..."],
+    "params":["ob1qx787af2p22knzjlakn7ehz9r77p3ak2w..."],
     "id":1
   }'
 ```
@@ -255,7 +255,7 @@ curl -X POST http://localhost:8332 \
   {
     "id": "miner-0",
     "name": "Miner-0",
-    "address": "ob_omni_abc123...",
+    "address": "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
     "status": "mining",
     "hashrate": 1000,
     "balanceOmni": 45.0,
@@ -303,7 +303,7 @@ node create-wallet.js create mypool 1
 ```
 [WALLET] ✓ Wallet Created!
 [WALLET] Mnemonic: abandon ability able about above absent absorb abstract ...
-[WALLET] Address #0: ob_omni_abc123def456...
+[WALLET] Address #0: ob1qx787af2p22knzjlakn7ehz9r77p3ak2wdef456...
 [WALLET] ✓ Saved to: wallets/mypool.json
 ```
 
@@ -318,7 +318,7 @@ node create-wallet.js create mypool 1
   "addresses": [
     {
       "index": 0,
-      "omniAddress": "ob_omni_abc123def456...",
+      "omniAddress": "ob1qx787af2p22knzjlakn7ehz9r77p3ak2wdef456...",
       "publicKey": "a1b2c3d4e5f6...",
       "derivationPath": "m/44'/60'/0'/0/0",
       "balance": 0,
@@ -346,7 +346,7 @@ node create-wallet.js batch 100
   {
     "minerName": "miner-0",
     "mnemonic": "abandon ability able about above absent absorb abstract abuse access accident...",
-    "address": "ob_omni_abc123...",
+    "address": "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...",
     "publicKey": "a1b2c3d4e5f6..."
   },
   ...
@@ -466,7 +466,7 @@ tail -f logs/miner-0.log
 ```
 [MINER] ✓ Successfully registered!
 [MINER] Miner ID: miner-0
-[MINER] Address: ob_omni_abc123...
+[MINER] Address: ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...
 [MINER] Hashrate: 1000 H/s
 [MINER] Sending keepalive every 5 seconds...
 [MINER] Pool: 10/10 miners, Block #45, ⛏️ 225 OMNI mined
@@ -542,7 +542,7 @@ Mnemonic (12 words) → PBKDF2-SHA512 → Seed → HMAC-SHA256 → Address
 Example:
 Mnemonic: "abandon ability able about above absent absorb abstract abuse access accident"
 Seed: (64 bytes derived from PBKDF2)
-Address: ob_omni_abc123def456...
+Address: ob1qx787af2p22knzjlakn7ehz9r77p3ak2wdef456...
 ```
 
 **Key features**:

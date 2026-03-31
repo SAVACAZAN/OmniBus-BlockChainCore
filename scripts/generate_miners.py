@@ -1,6 +1,6 @@
 """
 generate_miners.py — OmniBus Miner Key Generator
-Genereaza 10 mineri cu mnemonic BIP-39 real, adrese ob_omni_,
+Genereaza 10 mineri cu mnemonic BIP-39 real, adrese ob1q (Bech32),
 si exporta JSON compatibil cu OmnibusWallet (import direct in Sidebar).
 
 Rulare:

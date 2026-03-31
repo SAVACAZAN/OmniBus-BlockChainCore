@@ -138,7 +138,7 @@
 | Segregated Witness (SegWit) | UTXO-specific | Avem witness_data.zig (SegWit-style) |
 | Lightning Network | Layer 2 | Avem payment_channel.zig (Hydra L2) |
 | Taproot/Schnorr | Complex | Avem schnorr.zig + multisig.zig |
-| BIP-141 (SegWit addresses) | UTXO-specific | 5 domenii PQ (ob_omni_, ob_k1_, etc) |
+| BIP-141 (SegWit addresses) | UTXO-specific | 5 domenii PQ (ob1q (Bech32 nativ), ob_k1_, etc) |
 
 ---
 

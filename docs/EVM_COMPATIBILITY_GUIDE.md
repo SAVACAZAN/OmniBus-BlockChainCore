@@ -2,14 +2,14 @@
 
 ## 1. Mapare adresă OmniBus → EVM
 
-OmniBus folosește adrese cu prefix `ob_omni_...` dar wallet-urile EVM așteaptă format `0x...`.
+OmniBus folosește adrese cu prefix `ob1q...` dar wallet-urile EVM așteaptă format `0x...`.
 
 ### Soluție: Conversie duală
 
 ```zig
 // core/evm_adapter.zig
 
-/// Convertește adresă OmniBus (ob_omni_...) în adresă EVM (0x...)
+/// Convertește adresă OmniBus (ob1q...) în adresă EVM (0x...)
 pub fn omniToEvmAddress(omni_addr: []const u8) ![20]u8 {
     // Extrage hash160 din adresă (fără prefix)
     const hash160 = try decodeBase58Check(omni_addr);
@@ -50,7 +50,7 @@ pub const EvmAdapter = struct {
     pub fn dispatchEvm(self: *EvmAdapter, method: []const u8, params: json.Value) !json.Value {
         if (std.mem.eql(u8, method, "eth_getBalance")) {
             const evm_addr = params.array.items[0].string;
-            const omni_addr = try evmToOmniAddress(evm_addr, "ob_omni_", self.allocator);
+            const omni_addr = try evmToOmniAddress(evm_addr, "ob1q", self.allocator);
             const balance_sat = try self.omni_rpc.getBalance(omni_addr);
             // Returnează în format hex EVM (wei)
             return json.Value{ .string = try std.fmt.allocPrint(self.allocator, "0x{x}", .{balance_sat * 1_000_000_000}) };
@@ -69,8 +69,8 @@ Format TX EVM → OmniBus:
 EVM TX: { to, value, gas, gasPrice, nonce, data }
        ↓
 OmniBus TX: {
-    from_address: "ob_omni_...",
-    to_address: "ob_omni_...",
+    from_address: "ob1q...",
+    to_address: "ob1q...",
     amount: value / 10^9,  // wei → SAT
     fee: gas * gasPrice / 10^9,
     nonce: nonce,

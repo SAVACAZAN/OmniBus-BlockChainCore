@@ -72,7 +72,7 @@ M0119 pq_crypto liboqs-FFI=[ML-DSA-87 Falcon-512 SLH-DSA-256s ML-KEM-768]
 M0120 key_encryption AES256GCM PBKDF2-100k nonce-random GCM-tag-auth
 
 ;PQ domains
-D0 ob_omni_ ML-KEM-768+Dil5 SoulBound coin=777 IDENTITY
+D0 ob1q ML-KEM-768+Dil5 SoulBound coin=777 IDENTITY
 D1 ob_k1_   Kyber768/MLKEM  Transfer  coin=778 SIGNING
 D2 ob_f5_   Falcon-512      Transfer  coin=779 HFT
 D3 ob_d5_   Dil5/MLDSA5     SoulBound coin=780 ARCHIVAL
@@ -135,7 +135,7 @@ E24 initiateLockMint → op_id status=pending
 E25 relayer[0..N].confirm(sig) → sig_count++
 E26 sig_count>=2 → status=confirmed
 E27 executeOperation → wrapped.mint(omni_amt - fee)
-E28 credit ob_omni_ addr
+E28 credit ob1q addr
 E30 burn reverse → status=burn_and_redeem → E25..E27 → unlock-foreign
 E3F block>initiated+100 → refundExpired status=refunded
 

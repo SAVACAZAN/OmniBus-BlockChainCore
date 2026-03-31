@@ -32,7 +32,7 @@
 **Utilizare:**
 ```zig
 const wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
-// wallet.address = "ob_omni_abc123..."
+// wallet.address = "ob1qx787af2p22knzjlakn7ehz9r77p3ak2w..."
 // wallet.addresses[0..5] = toate cele 5 adrese PQ
 ```
 
@@ -110,7 +110,7 @@ const wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
 │  │                                     │  │  NODE OK  block 12345    │ │
 │  │   CHART AREA (transparent)          │  │                          │ │
 │  │   (afișează grafice prețuri)        │  │  123.4567 OMNI           │ │
-│  │                                     │  │  ob_omni_abc123...       │ │
+│  │                                     │  │  ob1qx787af2p22knzjlakn7ehz9r77p3ak2w...       │ │
 │  │                                     │  │  15 tranzactii           │ │
 │  │                                     │  │                          │ │
 │  │                                     │  │  [Refresh] [Auto 5s]     │ │
@@ -156,7 +156,7 @@ const wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
 **Exemplu:**
 ```bash
 omnibus-node --generate-wallet
-# Output: {"address":"ob_omni_...","mnemonic":"abandon abandon..."}
+# Output: {"address":"ob1q...","mnemonic":"abandon abandon..."}
 ```
 
 ---
@@ -337,7 +337,7 @@ ob_s3_<hash160>     - Coin 781 - SLH-DSA-256s
   "mnemonic": "abandon abandon ... about",
   "created_with": "omnibus-sidebar-v4.0",
   "addresses": {
-    "omni":     { "address": "ob_omni_...", "path": "m/44'/777'/0'/0/0" },
+    "omni":     { "address": "ob1q...", "path": "m/44'/777'/0'/0/0" },
     "love":     { "address": "ob_k1_...",   "path": "m/44'/778'/0'/0/0" },
     "food":     { "address": "ob_f5_...",   "path": "m/44'/779'/0'/0/0" },
     "rent":     { "address": "ob_d5_...",   "path": "m/44'/780'/0'/0/0" },
@@ -348,7 +348,7 @@ ob_s3_<hash160>     - Coin 781 - SLH-DSA-256s
 
 ### Deep Linking
 ```
-omnibus://pay?to=ob_omni_abc123&amount=1000000000&domain=omni
+omnibus://pay?to=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w&amount=1000000000&domain=omni
 ```
 
 ---

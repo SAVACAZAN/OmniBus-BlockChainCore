@@ -186,7 +186,7 @@ const rpcMethods = {
   },
 
   // getBalance(address) — raspuns complet pentru wallet Python
-  // Accepta: getBalance(["ob_omni_..."])  sau  getbalance() fara adresa (total pool)
+  // Accepta: getBalance(["ob1q..."])  sau  getbalance() fara adresa (total pool)
   getbalance: (params) => {
     const address = params && params[0] ? params[0] : null;
 
@@ -368,7 +368,7 @@ const rpcMethods = {
 
   // Pool-specific RPC methods
   registerminer: (params) => {
-    // params: [{ id: "miner-1", name: "Miner-1", address: "ob_omni_...", hashrate: 1000 }]
+    // params: [{ id: "miner-1", name: "Miner-1", address: "ob1q...", hashrate: 1000 }]
     if (!params || !params[0]) {
       return { success: false, error: "Missing miner registration data" };
     }
