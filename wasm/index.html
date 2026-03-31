@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniBus Wallet — WASM Demo</title>
+    <style>
+        :root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --red: #f87171; --text: #e2e8f0; --muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); min-height: 100vh; padding: 30px 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .back { display: inline-block; margin-bottom: 16px; font-size: 0.9rem; }
+        h1 { color: var(--accent); font-size: 1.6rem; margin-bottom: 6px; }
+        .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+        .status { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .status-loading { color: var(--orange); border: 1px solid var(--orange); background: #fb923c11; }
+        .status-ready { color: var(--green); border: 1px solid var(--green); background: #34d39911; }
+        .status-error { color: var(--red); border: 1px solid var(--red); background: #f8717111; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .card h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px; }
+        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        input, textarea { width: 100%; background: #0f172a; border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 0.85rem; margin-bottom: 12px; }
+        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+        textarea { resize: vertical; min-height: 60px; }
+        button { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-family: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        button.secondary { background: #1e293b; color: var(--text); border: 1px solid var(--border); }
+        .result { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 10px; font-size: 0.8rem; word-break: break-all; line-height: 1.5; }
+        .result .label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+        .result .value { color: var(--accent); margin-top: 2px; }
+        .result .value.green { color: var(--green); }
+        .result .value.purple { color: var(--purple); }
+        .result .value.orange { color: var(--orange); }
+        .sep { height: 1px; background: var(--border); margin: 8px 0; }
+        .size-info { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
+        .footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="../index.html" class="back">&larr; Back to Home</a>
+    <h1>OmniBus Wallet <span style="color:var(--muted);font-size:0.9rem;">WASM</span></h1>
+    <p class="subtitle">
+        Cryptographic operations running in your browser — zero server, zero trust
+        <span id="wasm-status" class="status status-loading">Loading WASM...</span>
+    </p>
+
+    <!-- Generate Keypair -->
+    <div class="card">
+        <h2>Generate Keypair</h2>
+        <label>Private Key (hex, 64 chars) — or click Random</label>
+        <input type="text" id="privkey" placeholder="e.g. 0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d" maxlength="64">
+        <button onclick="randomKey()">Random Key</button>
+        <button onclick="generateKeypair()" id="btn-gen" disabled>Generate</button>
+        <div id="keypair-result"></div>
+    </div>
+
+    <!-- Hash -->
+    <div class="card">
+        <h2>SHA-256 / SHA-256d / RIPEMD-160</h2>
+        <label>Input data (text)</label>
+        <input type="text" id="hash-input" placeholder="Hello OmniBus">
+        <button onclick="hashData('sha256')" id="btn-sha" disabled>SHA-256</button>
+        <button onclick="hashData('sha256d')" class="secondary" disabled>SHA-256d</button>
+        <button onclick="hashData('ripemd160')" class="secondary" disabled>RIPEMD-160</button>
+        <div id="hash-result"></div>
+    </div>
+
+    <!-- Sign & Verify -->
+    <div class="card">
+        <h2>Sign & Verify Message</h2>
+        <label>Message</label>
+        <input type="text" id="sign-msg" placeholder="Transfer 100 OMNI to ob_omni_...">
+        <button onclick="signMsg()" id="btn-sign" disabled>Sign with Private Key</button>
+        <button onclick="verifyMsg()" class="secondary" id="btn-verify" disabled>Verify</button>
+        <div id="sign-result"></div>
+    </div>
+
+    <!-- HMAC -->
+    <div class="card">
+        <h2>HMAC-SHA256 / HMAC-SHA512</h2>
+        <label>Key</label>
+        <input type="text" id="hmac-key" placeholder="Bitcoin seed">
+        <label>Message</label>
+        <input type="text" id="hmac-msg" placeholder="my mnemonic words here">
+        <button onclick="hmacCalc('256')" id="btn-hmac" disabled>HMAC-SHA256</button>
+        <button onclick="hmacCalc('512')" class="secondary" disabled>HMAC-SHA512</button>
+        <div id="hmac-result"></div>
+    </div>
+
+    <div class="footer">
+        <p>OmniBus Wallet WASM — secp256k1 + SHA-256 + RIPEMD-160 + HMAC compiled from Zig</p>
+        <p style="margin-top:4px">All computation happens locally in your browser. No data leaves your machine.</p>
+        <p style="margin-top:8px"><a href="../index.html">Home</a> &bull; <a href="../docs/api/">API Docs</a> &bull; <a href="https://github.com/SAVACAZAN/OmniBus-BlockChainCore">GitHub</a></p>
+    </div>
+</div>
+
+<script>
+let wasm = null;
+let memory = null;
+let sharedBufPtr = null;
+
+// Store last generated keypair for signing
+let lastPrivKey = null;
+let lastPubKey = null;
+let lastSignature = null;
+
+async function loadWasm() {
+    const statusEl = document.getElementById('wasm-status');
+    try {
+        const response = await fetch('omnibus-wallet.wasm');
+        const bytes = await response.arrayBuffer();
+        const sizeKB = (bytes.byteLength / 1024).toFixed(0);
+
+        const result = await WebAssembly.instantiate(bytes, {
+            env: { memory: new WebAssembly.Memory({ initial: 256 }) }
+        });
+
+        wasm = result.instance.exports;
+        memory = wasm.memory;
+        sharedBufPtr = wasm.getSharedBuffer();
+
+        statusEl.textContent = `Ready (${sizeKB} KB)`;
+        statusEl.className = 'status status-ready';
+
+        // Enable all buttons
+        document.querySelectorAll('button[disabled]').forEach(b => b.disabled = false);
+    } catch (e) {
+        statusEl.textContent = 'Error: ' + e.message;
+        statusEl.className = 'status status-error';
+        console.error('WASM load failed:', e);
+    }
+}
+
+function readSharedBuf(len) {
+    const buf = new Uint8Array(memory.buffer, sharedBufPtr, len);
+    return new TextDecoder().decode(buf);
+}
+
+function writeToMemory(data) {
+    // Write after shared buffer (offset 8192)
+    const offset = sharedBufPtr + 8192;
+    const buf = new Uint8Array(memory.buffer, offset, data.length);
+    buf.set(data);
+    return offset;
+}
+
+function hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+    }
+    return bytes;
+}
+
+function textToBytes(text) {
+    return new TextEncoder().encode(text);
+}
+
+function randomKey() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    document.getElementById('privkey').value = hex;
+}
+
+function generateKeypair() {
+    const hex = document.getElementById('privkey').value.trim();
+    if (hex.length !== 64) {
+        alert('Private key must be 64 hex characters (32 bytes)');
+        return;
+    }
+
+    const privBytes = hexToBytes(hex);
+    const privPtr = writeToMemory(privBytes);
+
+    // Check validity
+    const valid = wasm.isValidPrivateKey(privPtr);
+    if (!valid) {
+        document.getElementById('keypair-result').innerHTML = `
+            <div class="result"><div class="label">Error</div><div class="value" style="color:var(--red)">Invalid private key (must be in range [1, n-1])</div></div>`;
+        return;
+    }
+
+    // Generate pubkey
+    const pubLen = wasm.generatePublicKey(privPtr);
+    const pubHex = readSharedBuf(pubLen);
+
+    // Generate hash160
+    const h160Len = wasm.generateHash160(privPtr);
+    const h160Hex = readSharedBuf(h160Len);
+
+    // Generate address
+    const addrLen = wasm.generateAddress(privPtr);
+    const address = readSharedBuf(addrLen);
+
+    lastPrivKey = privBytes;
+    lastPubKey = hexToBytes(pubHex);
+
+    document.getElementById('keypair-result').innerHTML = `
+        <div class="result">
+            <div class="label">Private Key</div>
+            <div class="value orange">${hex}</div>
+            <div class="sep"></div>
+            <div class="label">Public Key (compressed, 33 bytes)</div>
+            <div class="value">${pubHex}</div>
+            <div class="sep"></div>
+            <div class="label">Hash160 (SHA256 + RIPEMD160)</div>
+            <div class="value purple">${h160Hex}</div>
+            <div class="sep"></div>
+            <div class="label">OmniBus Address</div>
+            <div class="value green" style="font-size:1rem;font-weight:700;">${address}</div>
+        </div>`;
+}
+
+function hashData(algo) {
+    const text = document.getElementById('hash-input').value;
+    if (!text) { alert('Enter some text'); return; }
+
+    const bytes = textToBytes(text);
+    const ptr = writeToMemory(bytes);
+
+    let len, label;
+    if (algo === 'sha256') {
+        len = wasm.sha256Hash(ptr, bytes.length);
+        label = 'SHA-256';
+    } else if (algo === 'sha256d') {
+        len = wasm.sha256dHash(ptr, bytes.length);
+        label = 'SHA-256d (double)';
+    } else {
+        len = wasm.ripemd160Hash(ptr, bytes.length);
+        label = 'RIPEMD-160';
+    }
+
+    const hex = readSharedBuf(len);
+    document.getElementById('hash-result').innerHTML = `
+        <div class="result">
+            <div class="label">${label}</div>
+            <div class="value">${hex}</div>
+            <div class="size-info">${len / 2} bytes (${len} hex chars)</div>
+        </div>`;
+}
+
+function signMsg() {
+    if (!lastPrivKey) { alert('Generate a keypair first'); return; }
+    const msg = document.getElementById('sign-msg').value;
+    if (!msg) { alert('Enter a message'); return; }
+
+    const msgBytes = textToBytes(msg);
+    const privPtr = writeToMemory(lastPrivKey);
+    const msgPtr = writeToMemory(msgBytes);
+    // Ensure msg doesn't overwrite privkey
+    const msgOffset = sharedBufPtr + 8192 + 32;
+    const msgBuf = new Uint8Array(memory.buffer, msgOffset, msgBytes.length);
+    msgBuf.set(msgBytes);
+
+    const sigLen = wasm.signMessage(privPtr, msgOffset, msgBytes.length);
+    if (sigLen === 0) {
+        document.getElementById('sign-result').innerHTML = `
+            <div class="result"><div class="value" style="color:var(--red)">Signing failed</div></div>`;
+        return;
+    }
+
+    const sigHex = readSharedBuf(sigLen);
+    lastSignature = hexToBytes(sigHex);
+
+    document.getElementById('sign-result').innerHTML = `
+        <div class="result">
+            <div class="label">ECDSA Signature (secp256k1)</div>
+            <div class="value">${sigHex}</div>
+            <div class="size-info">64 bytes (R || S)</div>
+        </div>`;
+}
+
+function verifyMsg() {
+    if (!lastPubKey || !lastSignature) { alert('Sign a message first'); return; }
+    const msg = document.getElementById('sign-msg').value;
+    if (!msg) { alert('Enter a message'); return; }
+
+    const msgBytes = textToBytes(msg);
+    const pubPtr = writeToMemory(lastPubKey);
+
+    const msgOffset = sharedBufPtr + 8192 + 64;
+    const msgBuf = new Uint8Array(memory.buffer, msgOffset, msgBytes.length);
+    msgBuf.set(msgBytes);
+
+    const sigOffset = msgOffset + msgBytes.length;
+    const sigBuf = new Uint8Array(memory.buffer, sigOffset, lastSignature.length);
+    sigBuf.set(lastSignature);
+
+    const valid = wasm.verifySignature(pubPtr, msgOffset, msgBytes.length, sigOffset);
+
+    const existing = document.getElementById('sign-result').innerHTML;
+    document.getElementById('sign-result').innerHTML = existing + `
+        <div class="result" style="margin-top:8px;">
+            <div class="label">Verification</div>
+            <div class="value ${valid ? 'green' : ''}" style="${!valid ? 'color:var(--red)' : ''}">${valid ? 'VALID — Signature verified successfully' : 'INVALID — Signature verification failed'}</div>
+        </div>`;
+}
+
+function hmacCalc(bits) {
+    const key = document.getElementById('hmac-key').value;
+    const msg = document.getElementById('hmac-msg').value;
+    if (!key || !msg) { alert('Enter key and message'); return; }
+
+    const keyBytes = textToBytes(key);
+    const msgBytes = textToBytes(msg);
+
+    const keyPtr = writeToMemory(keyBytes);
+    const msgOffset = sharedBufPtr + 8192 + keyBytes.length;
+    const msgBuf = new Uint8Array(memory.buffer, msgOffset, msgBytes.length);
+    msgBuf.set(msgBytes);
+
+    let len, label;
+    if (bits === '256') {
+        len = wasm.hmacSha256(keyPtr, keyBytes.length, msgOffset, msgBytes.length);
+        label = 'HMAC-SHA256';
+    } else {
+        len = wasm.hmacSha512(keyPtr, keyBytes.length, msgOffset, msgBytes.length);
+        label = 'HMAC-SHA512';
+    }
+
+    const hex = readSharedBuf(len);
+    document.getElementById('hmac-result').innerHTML = `
+        <div class="result">
+            <div class="label">${label}</div>
+            <div class="value purple">${hex}</div>
+            <div class="size-info">${len / 2} bytes</div>
+        </div>`;
+}
+
+// Load WASM on page load
+loadWasm();
+</script>
+
+</body>
+</html>
