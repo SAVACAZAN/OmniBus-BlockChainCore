@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>omni_brain — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>omni_brain</code></h1>
+<p class="module-desc">AI/ML node intelligence — auto-detect optimal NodeType (full/trading/validator/light) based on hardware and network.</p>
+<p class="stats">Source: core/omni_brain.zig &bull; 243 lines &bull; 6 functions &bull; 3 structs &bull; 10 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>BrainConfig</code></h3>
+            <p>Data structure for brain config. Fields include: num_shards, node_type, trading_enabled, chain_enabled, ubi_enabled.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>num_shards</code></td><td><code>u8</code></td><td>Num_shards</td></tr><tr><td><code>node_type</code></td><td><code>NodeType</code></td><td>Node_type</td></tr><tr><td><code>trading_enabled</code></td><td><code>bool</code></td><td>Trading_enabled</td></tr><tr><td><code>chain_enabled</code></td><td><code>bool</code></td><td>Chain_enabled</td></tr><tr><td><code>ubi_enabled</code></td><td><code>bool</code></td><td>Ubi_enabled</td></tr></table>
+            <p class="line">Line: 27</p>
+        </div>
+        <div class="section">
+            <h3><code>BrainStats</code></h3>
+            <p>Data structure for brain stats. Fields include: uptime_blocks, total_cycles, blocks_mined, trades_executed, ubi_epochs.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>uptime_blocks</code></td><td><code>u64</code></td><td>Uptime_blocks</td></tr><tr><td><code>total_cycles</code></td><td><code>u64</code></td><td>Total_cycles</td></tr><tr><td><code>blocks_mined</code></td><td><code>u64</code></td><td>Blocks_mined</td></tr><tr><td><code>trades_executed</code></td><td><code>u64</code></td><td>Trades_executed</td></tr><tr><td><code>ubi_epochs</code></td><td><code>u64</code></td><td>Ubi_epochs</td></tr><tr><td><code>active_channels</code></td><td><code>u64</code></td><td>Active_channels</td></tr></table>
+            <p class="line">Line: 47</p>
+        </div>
+        <div class="section">
+            <h3><code>OmniBrain</code></h3>
+            <p>Data structure for omni brain. Fields include: allocator, config, os_mgr, scheduler, supply.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>config</code></td><td><code>BrainConfig</code></td><td>Config</td></tr><tr><td><code>os_mgr</code></td><td><code>OsModeManager</code></td><td>Os_mgr</td></tr><tr><td><code>scheduler</code></td><td><code>SynapseScheduler</code></td><td>Scheduler</td></tr><tr><td><code>supply</code></td><td><code>SupplyGuard</code></td><td>Supply</td></tr><tr><td><code>stats</code></td><td><code>BrainStats</code></td><td>Stats</td></tr><tr><td><code>started</code></td><td><code>bool</code></td><td>Started</td></tr></table>
+            <p class="line">Line: 58</p>
+        </div>
+
+<h2>Constants (5)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>OsMode</code></td><td><code>os_mode_mod.OsMode</code></td><td>Os mode</td></tr><tr><td><code>OsModeManager</code></td><td><code>os_mode_mod.OsModeManager</code></td><td>Os mode manager</td></tr><tr><td><code>SynapseScheduler</code></td><td><code>synapse_mod.SynapseScheduler</code></td><td>Synapse scheduler</td></tr><tr><td><code>SupplyGuard</code></td><td><code>spark_mod.SupplyGuard</code></td><td>Supply guard</td></tr><tr><td><code>NodeType</code></td><td><code>enum(u8) {</code></td><td>Node type</td></tr></table></div>
+
+<h2>Functions (6)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, config: BrainConfig) OmniBrain {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>config</code></td><td><code>BrainConfig</code></td><td>Config</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>OmniBrain</code></p>
+            <p class="line">Line: 67</p>
+        </div>
+        <div class="section">
+            <h3><code>start()</code></h3>
+            <p class="desc">Porneste OmniBrain: activeaza OS-urile corespunzatoare node_type</p>
+            <pre><code>pub fn start(self: *OmniBrain) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*OmniBrain</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 80</p>
+        </div>
+        <div class="section">
+            <h3><code>runCycles()</code></h3>
+            <p class="desc">Ruleaza N cicluri ale brain-ului</p>
+            <pre><code>pub fn runCycles(self: *OmniBrain, n: u64) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*OmniBrain</code></td><td>The instance</td></tr><tr><td><code>n</code></td><td><code>u64</code></td><td>N</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 120</p>
+        </div>
+        <div class="section">
+            <h3><code>recordTrade()</code></h3>
+            <p class="desc">Inregistreaza un trade executat (din ExecutionOS)</p>
+            <pre><code>pub fn recordTrade(self: *OmniBrain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*OmniBrain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 138</p>
+        </div>
+        <div class="section">
+            <h3><code>assertInvariants()</code></h3>
+            <p class="desc">Verifica invariantii Ada/SPARK</p>
+            <pre><code>pub fn assertInvariants(self: *const OmniBrain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const OmniBrain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 143</p>
+        </div>
+        <div class="section">
+            <h3><code>printStatus()</code></h3>
+            <p class="desc">Performs the print status operation on the omni_brain module.</p>
+            <pre><code>pub fn printStatus(self: *const OmniBrain) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const OmniBrain</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 151</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

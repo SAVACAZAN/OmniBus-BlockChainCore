@@ -71,7 +71,7 @@ pub const ArchiveManager = struct {
 
     /// Get list of restorable blocks
     pub fn getRestorableBlocks(self: *ArchiveManager, allocator: std.mem.Allocator) ![]RestorableBlock {
-        var restorable = std.ArrayList(RestorableBlock).init(allocator);
+        var restorable = std.array_list.Managed(RestorableBlock).init(allocator);
 
         // Simulate list of 10 snapshots
         for (0..10) |i| {
@@ -141,12 +141,12 @@ pub const RestorableBlock = struct {
 /// Archive index for quick lookup
 pub const ArchiveIndex = struct {
     allocator: std.mem.Allocator,
-    snapshots: std.ArrayList(ArchiveSnapshot),
+    snapshots: std.array_list.Managed(ArchiveSnapshot),
 
     pub fn init(allocator: std.mem.Allocator) ArchiveIndex {
         return ArchiveIndex{
             .allocator = allocator,
-            .snapshots = std.ArrayList(ArchiveSnapshot).init(allocator),
+            .snapshots = std.array_list.Managed(ArchiveSnapshot).init(allocator),
         };
     }
 
@@ -172,7 +172,7 @@ pub const ArchiveIndex = struct {
 const testing = std.testing;
 
 test "archive manager initialization" {
-    var mgr = ArchiveManager.init(testing.allocator, "/archive", true);
+    const mgr = ArchiveManager.init(testing.allocator, "/archive", true);
 
     try testing.expect(mgr.compress_enabled);
     try testing.expectEqual(mgr.archived_blocks, 0);

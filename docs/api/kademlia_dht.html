@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kademlia_dht — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>kademlia_dht</code></h1>
+<p class="module-desc">Kademlia distributed hash table — XOR-based distance metric, k-bucket routing, iterative node lookup, peer discovery without central servers.</p>
+<p class="stats">Source: core/kademlia_dht.zig &bull; 352 lines &bull; 12 functions &bull; 3 structs &bull; 13 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>DhtPeer</code></h3>
+            <p>DHT Peer entry</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>id</code></td><td><code>NodeId</code></td><td>Id</td></tr><tr><td><code>ip</code></td><td><code>[4]u8</code></td><td>Ip</td></tr><tr><td><code>port</code></td><td><code>u16</code></td><td>Port</td></tr><tr><td><code>last_seen</code></td><td><code>i64</code></td><td>Last_seen</td></tr><tr><td><code>rtt_ms</code></td><td><code>u16</code></td><td>Rtt_ms</td></tr></table>
+            <p class="line">Line: 73</p>
+        </div>
+        <div class="section">
+            <h3><code>KBucket</code></h3>
+            <p>K-Bucket: stores up to K peers at a specific XOR distance range</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>peers</code></td><td><code>[K_BUCKET_SIZE]DhtPeer</code></td><td>Peers</td></tr><tr><td><code>count</code></td><td><code>u8</code></td><td>Count</td></tr><tr><td><code>last_refresh</code></td><td><code>i64</code></td><td>Last_refresh</td></tr></table>
+            <p class="line">Line: 87</p>
+        </div>
+        <div class="section">
+            <h3><code>DhtRoutingTable</code></h3>
+            <p>Kademlia DHT Routing Table</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>local_id</code></td><td><code>NodeId</code></td><td>Local_id</td></tr><tr><td><code>buckets</code></td><td><code>[NUM_BUCKETS]KBucket</code></td><td>Buckets</td></tr><tr><td><code>total_peers</code></td><td><code>usize</code></td><td>Total_peers</td></tr></table>
+            <p class="line">Line: 164</p>
+        </div>
+
+<h2>Constants (7)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>NODE_ID_SIZE</code></td><td><code>usize = 20</code></td><td>N o d e_ i d_ s i z e</td></tr><tr><td><code>K_BUCKET_SIZE</code></td><td><code>usize = 20</code></td><td>K_ b u c k e t_ s i z e</td></tr><tr><td><code>NUM_BUCKETS</code></td><td><code>usize = 160</code></td><td>N u m_ b u c k e t s</td></tr><tr><td><code>ALPHA</code></td><td><code>usize = 3</code></td><td>A l p h a</td></tr><tr><td><code>MAX_DHT_NODES</code></td><td><code>usize = 256</code></td><td>M a x_ d h t_ n o d e s</td></tr><tr><td><code>BUCKET_REFRESH_INTERVAL</code></td><td><code>u64 = 3600</code></td><td>B u c k e t_ r e f r e s h_ i n t e r v a l</td></tr><tr><td><code>NodeId</code></td><td><code>[NODE_ID_SIZE]u8</code></td><td>Node id</td></tr></table></div>
+
+<h2>Functions (12)</h2>
+        <div class="section">
+            <h3><code>xorDistance()</code></h3>
+            <p class="desc">Compute XOR distance between two node IDs</p>
+            <pre><code>pub fn xorDistance(a: NodeId, b: NodeId) NodeId {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>a</code></td><td><code>NodeId</code></td><td>A</td></tr><tr><td><code>b</code></td><td><code>NodeId</code></td><td>B</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>NodeId</code></p>
+            <p class="line">Line: 36</p>
+        </div>
+        <div class="section">
+            <h3><code>bucketIndex()</code></h3>
+            <p class="desc">Find the bucket index for a given distance (leading zero bits count)</p>
+            <pre><code>pub fn bucketIndex(distance: NodeId) u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>distance</code></td><td><code>NodeId</code></td><td>Distance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u8</code></p>
+            <p class="line">Line: 45</p>
+        </div>
+        <div class="section">
+            <h3><code>generateNodeId()</code></h3>
+            <p class="desc">Generate a node ID from a public key or random bytes</p>
+            <pre><code>pub fn generateNodeId(seed: []const u8) NodeId {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>seed</code></td><td><code>[]const u8</code></td><td>Seed</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>NodeId</code></p>
+            <p class="line">Line: 62</p>
+        </div>
+        <div class="section">
+            <h3><code>isStale()</code></h3>
+            <p class="desc">Checks whether the stale condition is true.</p>
+            <pre><code>pub fn isStale(self: *const DhtPeer, current_time: i64, timeout_sec: i64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const DhtPeer</code></td><td>The instance</td></tr><tr><td><code>current_time</code></td><td><code>i64</code></td><td>Current_time</td></tr><tr><td><code>timeout_sec</code></td><td><code>i64</code></td><td>Timeout_sec</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 81</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init() KBucket {</code></pre>
+            
+            <p class="returns"><strong>Returns:</strong> <code>KBucket</code></p>
+            <p class="line">Line: 92</p>
+        </div>
+        <div class="section">
+            <h3><code>addPeer()</code></h3>
+            <p class="desc">Add or update a peer in the bucket</p>
+            <pre><code>pub fn addPeer(self: *KBucket, peer: DhtPeer) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KBucket</code></td><td>The instance</td></tr><tr><td><code>peer</code></td><td><code>DhtPeer</code></td><td>Peer</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 101</p>
+        </div>
+        <div class="section">
+            <h3><code>findClosest()</code></h3>
+            <p class="desc">Find closest N peers to target ID in this bucket</p>
+            <pre><code>pub fn findClosest(self: *const KBucket, target: NodeId, max_results: usize) [K_BUCKET_SIZE]DhtPeer {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KBucket</code></td><td>The instance</td></tr><tr><td><code>target</code></td><td><code>NodeId</code></td><td>Target</td></tr><tr><td><code>max_results</code></td><td><code>usize</code></td><td>Max_results</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[K_BUCKET_SIZE]DhtPeer</code></p>
+            <p class="line">Line: 134</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(local_id: NodeId) DhtRoutingTable {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>local_id</code></td><td><code>NodeId</code></td><td>Local_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>DhtRoutingTable</code></p>
+            <p class="line">Line: 172</p>
+        </div>
+        <div class="section">
+            <h3><code>addPeer()</code></h3>
+            <p class="desc">Add a peer to the appropriate bucket</p>
+            <pre><code>pub fn addPeer(self: *DhtRoutingTable, peer: DhtPeer) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*DhtRoutingTable</code></td><td>The instance</td></tr><tr><td><code>peer</code></td><td><code>DhtPeer</code></td><td>Peer</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 183</p>
+        </div>
+        <div class="section">
+            <h3><code>findClosest()</code></h3>
+            <p class="desc">Find the K closest peers to a target ID (across all buckets)</p>
+            <pre><code>pub fn findClosest(self: *const DhtRoutingTable, target: NodeId, max_results: usize) [K_BUCKET_SIZE]DhtPeer {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const DhtRoutingTable</code></td><td>The instance</td></tr><tr><td><code>target</code></td><td><code>NodeId</code></td><td>Target</td></tr><tr><td><code>max_results</code></td><td><code>usize</code></td><td>Max_results</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[K_BUCKET_SIZE]DhtPeer</code></p>
+            <p class="line">Line: 193</p>
+        </div>
+        <div class="section">
+            <h3><code>peerCount()</code></h3>
+            <p class="desc">Get total peer count</p>
+            <pre><code>pub fn peerCount(self: *const DhtRoutingTable) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const DhtRoutingTable</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 217</p>
+        </div>
+        <div class="section">
+            <h3><code>evictStale()</code></h3>
+            <p class="desc">Remove stale peers</p>
+            <pre><code>pub fn evictStale(self: *DhtRoutingTable, current_time: i64, timeout_sec: i64) usize {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*DhtRoutingTable</code></td><td>The instance</td></tr><tr><td><code>current_time</code></td><td><code>i64</code></td><td>Current_time</td></tr><tr><td><code>timeout_sec</code></td><td><code>i64</code></td><td>Timeout_sec</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>usize</code></p>
+            <p class="line">Line: 226</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

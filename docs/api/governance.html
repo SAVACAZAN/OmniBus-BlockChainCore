@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>governance — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>governance</code></h1>
+<p class="module-desc">On-chain governance — proposal creation, voting (for/against/abstain), quorum (33%), approval threshold (50%), veto threshold (33%), parameter updates.</p>
+<p class="stats">Source: core/governance.zig &bull; 393 lines &bull; 4 functions &bull; 4 structs &bull; 10 tests</p>
+
+<h2>Structs (4)</h2>
+        <div class="section">
+            <h3><code>VoteRecord</code></h3>
+            <p>O inregistrare de vot</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>voter_address</code></td><td><code>[32]u8</code></td><td>Voter_address</td></tr><tr><td><code>vote</code></td><td><code>Vote</code></td><td>Vote</td></tr><tr><td><code>voting_power</code></td><td><code>u64</code></td><td>Voting_power</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr></table>
+            <p class="line">Line: 51</p>
+        </div>
+        <div class="section">
+            <h3><code>GovernanceParams</code></h3>
+            <p>Parametrii guvernantei (configurabili ei insisi prin governance!)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>deposit_period_blocks</code></td><td><code>u64</code></td><td>Deposit_period_blocks</td></tr><tr><td><code>voting_period_blocks</code></td><td><code>u64</code></td><td>Voting_period_blocks</td></tr><tr><td><code>min_deposit_sat</code></td><td><code>u64</code></td><td>Min_deposit_sat</td></tr><tr><td><code>quorum_pct</code></td><td><code>u8</code></td><td>Quorum_pct</td></tr><tr><td><code>threshold_pct</code></td><td><code>u8</code></td><td>Threshold_pct</td></tr><tr><td><code>veto_pct</code></td><td><code>u8</code></td><td>Veto_pct</td></tr><tr><td><code>fee_burn_pct</code></td><td><code>u8</code></td><td>Fee_burn_pct</td></tr></table>
+            <p class="line">Line: 60</p>
+        </div>
+        <div class="section">
+            <h3><code>Proposal</code></h3>
+            <p>O propunere de governance</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>id</code></td><td><code>u64</code></td><td>Id</td></tr><tr><td><code>proposer</code></td><td><code>[32]u8</code></td><td>Proposer</td></tr><tr><td><code>proposal_type</code></td><td><code>ProposalType</code></td><td>Proposal_type</td></tr><tr><td><code>title</code></td><td><code>[64]u8</code></td><td>Title</td></tr><tr><td><code>title_len</code></td><td><code>u8</code></td><td>Title_len</td></tr><tr><td><code>description</code></td><td><code>[256]u8</code></td><td>Description</td></tr><tr><td><code>desc_len</code></td><td><code>u16</code></td><td>Desc_len</td></tr><tr><td><code>param_name</code></td><td><code>[32]u8</code></td><td>Param_name</td></tr><tr><td><code>param_name_len</code></td><td><code>u8</code></td><td>Param_name_len</td></tr><tr><td><code>param_new_value</code></td><td><code>u64</code></td><td>Param_new_value</td></tr><tr><td><code>deposit_sat</code></td><td><code>u64</code></td><td>Deposit_sat</td></tr><tr><td><code>created_block</code></td><td><code>u64</code></td><td>Created_block</td></tr><tr><td><code>voting_start_block</code></td><td><code>u64</code></td><td>Voting_start_block</td></tr><tr><td><code>voting_end_block</code></td><td><code>u64</code></td><td>Voting_end_block</td></tr><tr><td><code>status</code></td><td><code>ProposalStatus</code></td><td>Status</td></tr><tr><td><code>votes_yes</code></td><td><code>u64</code></td><td>Votes_yes</td></tr><tr><td><code>votes_no</code></td><td><code>u64</code></td><td>Votes_no</td></tr><tr><td><code>votes_abstain</code></td><td><code>u64</code></td><td>Votes_abstain</td></tr><tr><td><code>votes_veto</code></td><td><code>u64</code></td><td>Votes_veto</td></tr><tr><td><code>total_voted_power</code></td><td><code>u64</code></td><td>Total_voted_power</td></tr></table>
+            <p class="line">Line: 78</p>
+        </div>
+        <div class="section">
+            <h3><code>GovernanceEngine</code></h3>
+            <p>Governance Engine</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>params</code></td><td><code>GovernanceParams</code></td><td>Params</td></tr><tr><td><code>next_proposal_id</code></td><td><code>u64</code></td><td>Next_proposal_id</td></tr><tr><td><code>proposals</code></td><td><code>[MAX_PROPOSALS]Proposal</code></td><td>Proposals</td></tr><tr><td><code>proposal_count</code></td><td><code>usize</code></td><td>Proposal_count</td></tr><tr><td><code>self</code></td><td><code>*GovernanceEngine</code></td><td>Self</td></tr><tr><td><code>proposer</code></td><td><code>[32]u8</code></td><td>Proposer</td></tr><tr><td><code>ptype</code></td><td><code>ProposalType</code></td><td>Ptype</td></tr><tr><td><code>title</code></td><td><code>[]const u8</code></td><td>Title</td></tr><tr><td><code>description</code></td><td><code>[]const u8</code></td><td>Description</td></tr><tr><td><code>deposit_sat</code></td><td><code>u64</code></td><td>Deposit_sat</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="line">Line: 144</p>
+        </div>
+
+<h2>Constants (4)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>ProposalType</code></td><td><code>enum(u8) {</code></td><td>Proposal type</td></tr><tr><td><code>ProposalStatus</code></td><td><code>enum(u8) {</code></td><td>Proposal status</td></tr><tr><td><code>Vote</code></td><td><code>enum(u8) {</code></td><td>Vote</td></tr><tr><td><code>MAX_PROPOSALS</code></td><td><code>usize = 256</code></td><td>M a x_ p r o p o s a l s</td></tr></table></div>
+
+<h2>Functions (4)</h2>
+        <div class="section">
+            <h3><code>isVotingActive()</code></h3>
+            <p class="desc">Verifica daca propunerea e in perioada de vot</p>
+            <pre><code>pub fn isVotingActive(self: *const Proposal, current_block: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Proposal</code></td><td>The instance</td></tr><tr><td><code>current_block</code></td><td><code>u64</code></td><td>Current_block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 115</p>
+        </div>
+        <div class="section">
+            <h3><code>tallyResult()</code></h3>
+            <p class="desc">Calculeaza rezultatul final</p>
+            <pre><code>pub fn tallyResult(self: *const Proposal, total_voting_power: u64, params: GovernanceParams) ProposalStatus {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Proposal</code></td><td>The instance</td></tr><tr><td><code>total_voting_power</code></td><td><code>u64</code></td><td>Total_voting_power</td></tr><tr><td><code>params</code></td><td><code>GovernanceParams</code></td><td>Params</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ProposalStatus</code></p>
+            <p class="line">Line: 122</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(params: GovernanceParams) GovernanceEngine {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>params</code></td><td><code>GovernanceParams</code></td><td>Params</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>GovernanceEngine</code></p>
+            <p class="line">Line: 150</p>
+        </div>
+        <div class="section">
+            <h3><code>getProposal()</code></h3>
+            <p class="desc">Get proposal by ID (const)</p>
+            <pre><code>pub fn getProposal(self: *const GovernanceEngine, id: u64) ?*const Proposal {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const GovernanceEngine</code></td><td>The instance</td></tr><tr><td><code>id</code></td><td><code>u64</code></td><td>Id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const Proposal</code></p>
+            <p class="line">Line: 247</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

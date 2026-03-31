@@ -55,6 +55,11 @@ export class OmniBusRpcClient {
     }
   }
 
+  // Raw request (for custom methods)
+  async request_raw(method: string, params: any[] = []): Promise<any> {
+    return this.request(method, params);
+  }
+
   // Blockchain methods
   async getBlockCount(): Promise<number> {
     return this.request("getblockcount");
@@ -89,8 +94,10 @@ export class OmniBusRpcClient {
   }
 
   async getTransactionCount(): Promise<number> {
-    // Real transaction count = actual mining reward transactions
-    return this.request("gettransactioncount");
+    try {
+      const result = await this.request("gettransactions");
+      return result?.count || 0;
+    } catch { return 0; }
   }
 
   async getBlockchainStatsExtended(): Promise<{
@@ -123,19 +130,60 @@ export class OmniBusRpcClient {
   }
 
   async getTransactionHistory(limit: number = 20): Promise<any[]> {
-    return this.request("gettransactionhistory", [limit]);
+    try {
+      const result = await this.request("gettransactions");
+      return result?.transactions || [];
+    } catch { return []; }
   }
 
   async getMinerBalances(): Promise<any[]> {
-    return this.request("getminerbalances");
+    try {
+      const result = await this.request("getminerstats");
+      if (!result?.miners) return [];
+      return result.miners.map((m: any) => ({
+        minerName: (m.miner || "").substring(0, 20),
+        minerID: (m.miner || "").substring(0, 12),
+        address: m.miner || "",
+        balanceOmni: (m.currentBalanceSAT || 0) / 1e9,
+        blocksMined: m.blocksMined || 0,
+      }));
+    } catch { return []; }
   }
 
   async getMiners(): Promise<any[]> {
-    return this.request("getminers");
+    return this.getMinerBalances();
   }
 
   async getPoolStats(): Promise<any> {
     return this.request("getpoolstats");
+  }
+
+  async getMempoolStats(): Promise<any> {
+    return this.request("getmempoolstats");
+  }
+
+  async getPeers(): Promise<any> {
+    return this.request("getpeers");
+  }
+
+  async getSyncStatus(): Promise<any> {
+    return this.request("getsyncstatus");
+  }
+
+  async getNetworkInfo(): Promise<any> {
+    return this.request("getnetworkinfo");
+  }
+
+  async getNodeList(): Promise<any> {
+    return this.request("getnodelist");
+  }
+
+  async getBlocks(from: number, count: number = 10): Promise<any> {
+    return this.request("getblocks", [from, count]);
+  }
+
+  async getMinerInfo(): Promise<any> {
+    return this.request("getminerinfo");
   }
 
   async getMinerStatus(): Promise<any> {
@@ -148,6 +196,36 @@ export class OmniBusRpcClient {
 
   async minerKeepalive(address: string): Promise<any> {
     return this.request("minerkeepalive", [address]);
+  }
+
+  // ── New RPC endpoints ──────────────────────────────────────────────────
+
+  async getTransactionDetail(txid: string): Promise<any> {
+    return this.request("gettransaction", [txid]);
+  }
+
+  async getAddressHistory(address: string): Promise<any> {
+    return this.request("getaddresshistory", [address]);
+  }
+
+  async listTransactions(count: number = 20): Promise<any> {
+    return this.request("listtransactions", [count]);
+  }
+
+  async estimateFee(): Promise<any> {
+    return this.request("estimatefee");
+  }
+
+  async getNonce(address: string): Promise<any> {
+    return this.request("getnonce", [address]);
+  }
+
+  async getHeaders(fromHeight: number, count: number = 10): Promise<any> {
+    return this.request("getheaders", [fromHeight, count]);
+  }
+
+  async getMerkleProof(txid: string): Promise<any> {
+    return this.request("getmerkleproof", [txid]);
   }
 
   // Custom methods for UI

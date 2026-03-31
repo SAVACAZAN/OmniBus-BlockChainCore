@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sub_block — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>sub_block</code></h1>
+<p class="module-desc">Sub-block engine — 10 sub-blocks × 100ms = 1 KeyBlock (1s), faster confirmation times while maintaining security.</p>
+<p class="stats">Source: core/sub_block.zig &bull; 403 lines &bull; 11 functions &bull; 3 structs &bull; 7 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>SubBlock</code></h3>
+            <p>Sub-block — confirmare soft la 0.1s</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr><tr><td><code>block_number</code></td><td><code>u32</code></td><td>Block_number</td></tr><tr><td><code>timestamp_ms</code></td><td><code>i64</code></td><td>Timestamp_ms</td></tr><tr><td><code>merkle_root</code></td><td><code>[32]u8</code></td><td>Merkle_root</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>miner_id</code></td><td><code>[]const u8</code></td><td>Miner_id</td></tr><tr><td><code>nonce</code></td><td><code>u64</code></td><td>Nonce</td></tr><tr><td><code>hash</code></td><td><code>[32]u8</code></td><td>Hash</td></tr><tr><td><code>tx_count</code></td><td><code>u32</code></td><td>Tx_count</td></tr><tr><td><code>transactions</code></td><td><code>array_list.Managed(Transaction)</code></td><td>Transactions</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr><tr><td><code>block_number</code></td><td><code>u32</code></td><td>Block_number</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>miner_id</code></td><td><code>[]const u8</code></td><td>Miner_id</td></tr></table>
+            <p class="line">Line: 18</p>
+        </div>
+        <div class="section">
+            <h3><code>KeyBlock</code></h3>
+            <p>Data structure for key block. Fields include: block_number, sub_blocks, received, state, started_at_ms.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>block_number</code></td><td><code>u32</code></td><td>Block_number</td></tr><tr><td><code>sub_blocks</code></td><td><code>[SUB_BLOCKS_PER_BLOCK]?SubBlock</code></td><td>Sub_blocks</td></tr><tr><td><code>received</code></td><td><code>u8</code></td><td>Received</td></tr><tr><td><code>state</code></td><td><code>KeyBlockState</code></td><td>State</td></tr><tr><td><code>started_at_ms</code></td><td><code>i64</code></td><td>Started_at_ms</td></tr><tr><td><code>finalized_at_ms</code></td><td><code>i64</code></td><td>Finalized_at_ms</td></tr><tr><td><code>sub_merkle_root</code></td><td><code>[32]u8</code></td><td>Sub_merkle_root</td></tr><tr><td><code>key_hash</code></td><td><code>[32]u8</code></td><td>Key_hash</td></tr><tr><td><code>total_reward_sat</code></td><td><code>u64</code></td><td>Total_reward_sat</td></tr></table>
+            <p class="line">Line: 107</p>
+        </div>
+        <div class="section">
+            <h3><code>SubBlockEngine</code></h3>
+            <p>Data structure for sub block engine. Fields include: current_key_block, block_number, sub_counter, miner_id, shard_id.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>current_key_block</code></td><td><code>KeyBlock</code></td><td>Current_key_block</td></tr><tr><td><code>block_number</code></td><td><code>u32</code></td><td>Block_number</td></tr><tr><td><code>sub_counter</code></td><td><code>u8</code></td><td>Sub_counter</td></tr><tr><td><code>miner_id</code></td><td><code>[]const u8</code></td><td>Miner_id</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>miner_id</code></td><td><code>[]const u8</code></td><td>Miner_id</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>self</code></td><td><code>*SubBlockEngine</code></td><td>Self</td></tr><tr><td><code>txs</code></td><td><code>[]Transaction</code></td><td>Txs</td></tr><tr><td><code>reward_sat</code></td><td><code>u64</code></td><td>Reward_sat</td></tr></table>
+            <p class="line">Line: 223</p>
+        </div>
+
+<h2>Constants (5)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>Transaction</code></td><td><code>transaction_mod.Transaction</code></td><td>Transaction</td></tr><tr><td><code>Block</code></td><td><code>blockchain_mod.Block</code></td><td>Block</td></tr><tr><td><code>SUB_BLOCKS_PER_BLOCK</code></td><td><code>u8 = 10</code></td><td>S u b_ b l o c k s_ p e r_ b l o c k</td></tr><tr><td><code>SUB_BLOCK_INTERVAL_MS</code></td><td><code>u64 = 75</code></td><td>S u b_ b l o c k_ i n t e r v a l_ m s</td></tr><tr><td><code>KeyBlockState</code></td><td><code>enum {</code></td><td>Key block state</td></tr></table></div>
+
+<h2>Functions (11)</h2>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *SubBlock) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SubBlock</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 51</p>
+        </div>
+        <div class="section">
+            <h3><code>addTransaction()</code></h3>
+            <p class="desc">Adds a new transaction to the collection.</p>
+            <pre><code>pub fn addTransaction(self: *SubBlock, tx: Transaction) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SubBlock</code></td><td>The instance</td></tr><tr><td><code>tx</code></td><td><code>Transaction</code></td><td>Tx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 55</p>
+        </div>
+        <div class="section">
+            <h3><code>finalize()</code></h3>
+            <p class="desc">Performs the finalize operation on the sub_block module.</p>
+            <pre><code>pub fn finalize(self: *SubBlock) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*SubBlock</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 60</p>
+        </div>
+        <div class="section">
+            <h3><code>isValid()</code></h3>
+            <p class="desc">Checks whether the valid condition is true.</p>
+            <pre><code>pub fn isValid(self: *const SubBlock) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const SubBlock</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 89</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(block_number: u32) KeyBlock {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>block_number</code></td><td><code>u32</code></td><td>Block_number</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>KeyBlock</code></p>
+            <p class="line">Line: 121</p>
+        </div>
+        <div class="section">
+            <h3><code>addSubBlock()</code></h3>
+            <p class="desc">Adauga un sub-bloc (trebuie sa aiba sub_id unic 0-9)
+Returneaza true daca Key-Block-ul e complet (10/10)</p>
+            <pre><code>pub fn addSubBlock(self: *KeyBlock, sb: SubBlock) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyBlock</code></td><td>The instance</td></tr><tr><td><code>sb</code></td><td><code>SubBlock</code></td><td>Sb</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 137</p>
+        </div>
+        <div class="section">
+            <h3><code>finalize()</code></h3>
+            <p class="desc">Finalizeaza Key-Block-ul — calculeaza hash-ul agregat</p>
+            <pre><code>pub fn finalize(self: *KeyBlock, reward_sat: u64) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*KeyBlock</code></td><td>The instance</td></tr><tr><td><code>reward_sat</code></td><td><code>u64</code></td><td>Reward_sat</td></tr></table>
+            
+            <p class="line">Line: 154</p>
+        </div>
+        <div class="section">
+            <h3><code>totalTxCount()</code></h3>
+            <p class="desc">Total TX-uri din toate sub-blocurile</p>
+            <pre><code>pub fn totalTxCount(self: *const KeyBlock) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyBlock</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 163</p>
+        </div>
+        <div class="section">
+            <h3><code>latencyMs()</code></h3>
+            <p class="desc">Latenta totala de la primul sub-bloc la finalizare (ms)</p>
+            <pre><code>pub fn latencyMs(self: *const KeyBlock) i64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyBlock</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>i64</code></p>
+            <p class="line">Line: 172</p>
+        </div>
+        <div class="section">
+            <h3><code>missing()</code></h3>
+            <p class="desc">Cate sub-blocuri lipsesc</p>
+            <pre><code>pub fn missing(self: *const KeyBlock) u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyBlock</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u8</code></p>
+            <p class="line">Line: 178</p>
+        </div>
+        <div class="section">
+            <h3><code>printStatus()</code></h3>
+            <p class="desc">Performs the print status operation on the sub_block module.</p>
+            <pre><code>pub fn printStatus(self: *const KeyBlock) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const KeyBlock</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 209</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

@@ -33,7 +33,7 @@ pub const ShardConfig = struct {
 
     /// Get all sub-block IDs this shard processes
     pub fn getSubBlocksForShard(self: *const ShardConfig, allocator: std.mem.Allocator) ![]u8 {
-        var sub_blocks = std.ArrayList(u8).init(allocator);
+        var sub_blocks = std.array_list.Managed(u8).init(allocator);
 
         for (0..10) |i| {
             const sub_id: u8 = @intCast(i);
@@ -47,6 +47,7 @@ pub const ShardConfig = struct {
 
     /// Get shard distribution info
     pub fn getDistribution(self: *const ShardConfig, allocator: std.mem.Allocator) ![7]ShardInfo {
+        _ = allocator;
         var distribution: [7]ShardInfo = undefined;
 
         for (0..self.num_shards) |shard_id| {
@@ -82,12 +83,12 @@ pub const ShardInfo = struct {
 /// Shard assignment validator
 pub const ShardValidator = struct {
     config: ShardConfig,
-    processed_sub_blocks: std.ArrayList(u8),
+    processed_sub_blocks: std.array_list.Managed(u8),
 
     pub fn init(config: ShardConfig) ShardValidator {
         return ShardValidator{
             .config = config,
-            .processed_sub_blocks = std.ArrayList(u8).init(config.allocator),
+            .processed_sub_blocks = std.array_list.Managed(u8).init(config.allocator),
         };
     }
 
@@ -111,7 +112,6 @@ pub const ShardValidator = struct {
 
     /// Check if all sub-blocks for this shard in a block have been processed
     pub fn blockComplete(self: *const ShardValidator) bool {
-        const expected_count = self.config.getShardForSubBlock(0); // Just to count...
         var count: u8 = 0;
 
         for (0..10) |i| {
@@ -138,7 +138,7 @@ pub const ShardValidator = struct {
 const testing = std.testing;
 
 test "shard assignment" {
-    var config = try ShardConfig.init(testing.allocator, 0);
+    const config = try ShardConfig.init(testing.allocator, 0);
 
     // Sub-block 0 → shard 0
     try testing.expectEqual(config.getShardForSubBlock(0), 0);
@@ -154,7 +154,7 @@ test "shard assignment" {
 }
 
 test "node processes correct shard" {
-    var config = try ShardConfig.init(testing.allocator, 0);
+    const config = try ShardConfig.init(testing.allocator, 0);
 
     // Node 0 should process sub-blocks 0, 7
     try testing.expect(config.shouldProcessSubBlock(0));
@@ -166,7 +166,7 @@ test "node processes correct shard" {
 }
 
 test "distribution" {
-    var config = try ShardConfig.init(testing.allocator, 0);
+    const config = try ShardConfig.init(testing.allocator, 0);
     const dist = try config.getDistribution(testing.allocator);
 
     // Total should be 10 sub-blocks distributed across 7 shards
@@ -179,7 +179,7 @@ test "distribution" {
 }
 
 test "shard validator" {
-    var config = try ShardConfig.init(testing.allocator, 0);
+    const config = try ShardConfig.init(testing.allocator, 0);
     var validator = ShardValidator.init(config);
     defer validator.deinit();
 

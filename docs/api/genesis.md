@@ -1,0 +1,204 @@
+# Module: `genesis`
+
+> Genesis block initialization — creates the first block with network config (mainnet/testnet), initial balances, and chain parameters.
+
+**Source:** `core/genesis.zig` | **Lines:** 247 | **Functions:** 7 | **Structs:** 2 | **Tests:** 6
+
+---
+
+## Contents
+
+### Structs
+- [`NetworkConfig`](#networkconfig) — Configuratia retelei — schimbabila fara sa afecteze trecutul
+- [`GenesisState`](#genesisstate) — Starea Genesis — toate datele necesare pentru primul bloc
+
+### Constants
+- [5 constants defined](#constants)
+
+### Functions
+- [`mainnet()`](#mainnet) — Performs the mainnet operation on the genesis module.
+- [`testnet()`](#testnet) — Performs the testnet operation on the genesis module.
+- [`print()`](#print) — Performs the print operation on the genesis module.
+- [`init()`](#init) — Initialize a new instance. Allocates required memory and sets default ...
+- [`buildBlockchain()`](#buildblockchain) — Construieste Blockchain-ul cu blocul genesis corect
+Returneaza un Bloc...
+- [`validateGenesisBlock()`](#validategenesisblock) — Verifica daca un blockchain existent are genesis-ul corect
+- [`calculateGenesisMessageHash()`](#calculategenesismessagehash) — Calculeaza hash-ul mesajului genesis (pentru audit)
+
+---
+
+## Structs
+
+### `NetworkConfig`
+
+Configuratia retelei — schimbabila fara sa afecteze trecutul
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `[]const u8` | Name |
+| `version` | `u32` | Version |
+| `genesis_timestamp` | `i64` | Genesis_timestamp |
+| `genesis_hash` | `[]const u8` | Genesis_hash |
+| `genesis_message` | `[]const u8` | Genesis_message |
+| `max_supply_sat` | `u64` | Max_supply_sat |
+| `initial_reward_sat` | `u64` | Initial_reward_sat |
+| `halving_interval` | `u64` | Halving_interval |
+| `block_time_ms` | `u32` | Block_time_ms |
+| `micro_blocks` | `u8` | Micro_blocks |
+| `rpc_port` | `u16` | Rpc_port |
+| `initial_difficulty` | `u32` | Initial_difficulty |
+
+*Defined at line 27*
+
+---
+
+### `GenesisState`
+
+Starea Genesis — toate datele necesare pentru primul bloc
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `config` | `NetworkConfig` | Config |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+*Defined at line 120*
+
+---
+
+## Constants
+
+| Name | Value | Description |
+|------|-------|-------------|
+| `Block` | `block_mod.Block` | Block |
+| `Transaction` | `transaction_mod.Transaction` | Transaction |
+| `Blockchain` | `blockchain_mod.Blockchain` | Blockchain |
+| `GENESIS_TIMESTAMP` | `i64 = 1_743_000_000` | G e n e s i s_ t i m e s t a m p |
+| `GENESIS_VERSION` | `u32 = 1` | G e n e s i s_ v e r s i o n |
+
+---
+
+## Functions
+
+### `mainnet()`
+
+Performs the mainnet operation on the genesis module.
+
+```zig
+pub fn mainnet() NetworkConfig {
+```
+
+**Returns:** `NetworkConfig`
+
+*Defined at line 53*
+
+---
+
+### `testnet()`
+
+Performs the testnet operation on the genesis module.
+
+```zig
+pub fn testnet() NetworkConfig {
+```
+
+**Returns:** `NetworkConfig`
+
+*Defined at line 70*
+
+---
+
+### `print()`
+
+Performs the print operation on the genesis module.
+
+```zig
+pub fn print(self: *const NetworkConfig) void {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const NetworkConfig` | The instance |
+
+*Defined at line 87*
+
+---
+
+### `init()`
+
+Initialize a new instance. Allocates required memory and sets default values.
+
+```zig
+pub fn init(config: NetworkConfig, allocator: std.mem.Allocator) GenesisState {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `config` | `NetworkConfig` | Config |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+**Returns:** `GenesisState`
+
+*Defined at line 124*
+
+---
+
+### `buildBlockchain()`
+
+Construieste Blockchain-ul cu blocul genesis corect
+Returneaza un Blockchain gata de mining
+
+```zig
+pub fn buildBlockchain(self: *const GenesisState) !Blockchain {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisState` | The instance |
+
+**Returns:** `!Blockchain`
+
+*Defined at line 130*
+
+---
+
+### `validateGenesisBlock()`
+
+Verifica daca un blockchain existent are genesis-ul corect
+
+```zig
+pub fn validateGenesisBlock(self: *const GenesisState, bc: *const Blockchain) bool {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisState` | The instance |
+| `bc` | `*const Blockchain` | Bc |
+
+**Returns:** `bool`
+
+*Defined at line 156*
+
+---
+
+### `calculateGenesisMessageHash()`
+
+Calculeaza hash-ul mesajului genesis (pentru audit)
+
+```zig
+pub fn calculateGenesisMessageHash(self: *const GenesisState) [32]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `self` | `*const GenesisState` | The instance |
+
+**Returns:** `[32]u8`
+
+*Defined at line 166*
+
+---
+
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

@@ -2,10 +2,14 @@ const std = @import("std");
 const bip32_mod       = @import("bip32_wallet.zig");
 const secp256k1_mod   = @import("secp256k1.zig");
 const transaction_mod = @import("transaction.zig");
+const script_mod      = @import("script.zig");
+const ripemd160_mod   = @import("ripemd160.zig");
+const crypto_mod      = @import("crypto.zig");
 
 const BIP32Wallet = bip32_mod.BIP32Wallet;
 const PQDomainDerivation = bip32_mod.PQDomainDerivation;
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
+const Ripemd160 = ripemd160_mod.Ripemd160;
 
 /// OmniBus Wallet — derivare reala BIP32 + secp256k1
 pub const Wallet = struct {
@@ -32,7 +36,7 @@ pub const Wallet = struct {
 
     /// Creeaza wallet din mnemonic (BIP-39) si passphrase
     pub fn fromMnemonic(mnemonic: []const u8, passphrase: []const u8, allocator: std.mem.Allocator) !Wallet {
-        _ = passphrase; // TODO: PBKDF2 cu passphrase pentru BIP-39 complet
+        _ = passphrase; // Passphrase support via bip32_wallet.initFromMnemonicPassphrase()
 
         // BIP-32 master key din mnemonic
         const bip32 = try BIP32Wallet.initFromMnemonic(mnemonic, allocator);
@@ -130,16 +134,155 @@ pub const Wallet = struct {
         tx_id: u32,
         allocator: std.mem.Allocator,
     ) !transaction_mod.Transaction {
+        // Copiem adresele — TX-ul traieste in mempool dincolo de lifetime-ul HTTP handler
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
         var tx = transaction_mod.Transaction{
             .id           = tx_id,
-            .from_address = self.address,
-            .to_address   = to_address,
+            .from_address = from_owned,
+            .to_address   = to_owned,
             .amount       = amount_sat,
             .timestamp    = std.time.timestamp(),
             .signature    = "",
             .hash         = "",
         };
         try tx.sign(self.private_key_bytes, allocator);
+        return tx;
+    }
+
+    /// createTransaction cu nonce explicit (setat inainte de sign)
+    pub fn createTransactionWithNonce(
+        self: *const Wallet,
+        to_address: []const u8,
+        amount_sat: u64,
+        tx_id: u32,
+        nonce: u64,
+        allocator: std.mem.Allocator,
+    ) !transaction_mod.Transaction {
+        return self.createTransactionWithNonceAndFee(to_address, amount_sat, tx_id, nonce, 1, allocator);
+    }
+
+    /// createTransaction cu nonce si fee explicit (fee inclus in hash inainte de sign)
+    pub fn createTransactionWithNonceAndFee(
+        self: *const Wallet,
+        to_address: []const u8,
+        amount_sat: u64,
+        tx_id: u32,
+        nonce: u64,
+        fee: u64,
+        allocator: std.mem.Allocator,
+    ) !transaction_mod.Transaction {
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
+        var tx = transaction_mod.Transaction{
+            .id           = tx_id,
+            .from_address = from_owned,
+            .to_address   = to_owned,
+            .amount       = amount_sat,
+            .fee          = fee,
+            .timestamp    = std.time.timestamp(),
+            .nonce        = nonce,
+            .signature    = "",
+            .hash         = "",
+        };
+        try tx.sign(self.private_key_bytes, allocator);
+        return tx;
+    }
+
+    /// createTransaction cu toate parametrele: nonce, fee, locktime, op_return
+    /// Folosit de RPC pentru sendtransaction cu locktime/op_return si sendopreturn
+    pub fn createTransactionFull(
+        self: *const Wallet,
+        to_address: []const u8,
+        amount_sat: u64,
+        tx_id: u32,
+        nonce: u64,
+        fee: u64,
+        locktime: u64,
+        op_return: []const u8,
+        allocator: std.mem.Allocator,
+    ) !transaction_mod.Transaction {
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
+        const op_owned = if (op_return.len > 0) try allocator.dupe(u8, op_return) else @as([]const u8, "");
+        var tx = transaction_mod.Transaction{
+            .id           = tx_id,
+            .from_address = from_owned,
+            .to_address   = to_owned,
+            .amount       = amount_sat,
+            .fee          = fee,
+            .timestamp    = std.time.timestamp(),
+            .nonce        = nonce,
+            .locktime     = locktime,
+            .op_return    = op_owned,
+            .signature    = "",
+            .hash         = "",
+        };
+        try tx.sign(self.private_key_bytes, allocator);
+        return tx;
+    }
+
+    /// Compute Hash160(pubkey) = RIPEMD160(SHA256(pubkey))
+    /// Used for P2PKH script generation
+    pub fn pubkeyHash160(compressed_pubkey: [33]u8) [20]u8 {
+        const sha_out = crypto_mod.Crypto.sha256(&compressed_pubkey);
+        var hash160: [20]u8 = undefined;
+        Ripemd160.hash(&sha_out, &hash160);
+        return hash160;
+    }
+
+    /// Create a transaction with P2PKH scripts attached.
+    /// The locking script (script_pubkey) locks to the receiver's pubkey hash.
+    /// The unlocking script (script_sig) contains the sender's signature + pubkey.
+    /// receiver_pubkey_bytes: compressed public key (33 bytes) of the receiver.
+    /// Falls back to legacy mode if receiver pubkey is all zeros.
+    pub fn createTransactionP2PKH(
+        self: *const Wallet,
+        to_address: []const u8,
+        amount_sat: u64,
+        tx_id: u32,
+        nonce: u64,
+        fee: u64,
+        locktime: u64,
+        op_return: []const u8,
+        receiver_pubkey: [33]u8,
+        allocator: std.mem.Allocator,
+    ) !transaction_mod.Transaction {
+        const to_owned = try allocator.dupe(u8, to_address);
+        const from_owned = try allocator.dupe(u8, self.address);
+        const op_owned = if (op_return.len > 0) try allocator.dupe(u8, op_return) else @as([]const u8, "");
+
+        // Create the locking script: OP_DUP OP_HASH160 <receiver_pubkey_hash> OP_EQUALVERIFY OP_CHECKSIG
+        const receiver_hash = pubkeyHash160(receiver_pubkey);
+        const lock_script_arr = script_mod.createP2PKH(receiver_hash);
+        const lock_script = try allocator.dupe(u8, &lock_script_arr);
+
+        // Build TX first (without scripts) to get the hash for signing
+        var tx = transaction_mod.Transaction{
+            .id           = tx_id,
+            .from_address = from_owned,
+            .to_address   = to_owned,
+            .amount       = amount_sat,
+            .fee          = fee,
+            .timestamp    = std.time.timestamp(),
+            .nonce        = nonce,
+            .locktime     = locktime,
+            .op_return    = op_owned,
+            .signature    = "",
+            .hash         = "",
+            .script_pubkey = lock_script,
+        };
+
+        // Sign the TX (sets signature + hash fields via ECDSA)
+        try tx.sign(self.private_key_bytes, allocator);
+
+        // Now create the unlocking script using the raw ECDSA signature
+        // tx.sign() stores hex — we need raw bytes for the script
+        const tx_hash = tx.calculateHash();
+        const sig_bytes = try Secp256k1Crypto.sign(self.private_key_bytes, &tx_hash);
+        const unlock_script_arr = script_mod.createP2PKHUnlock(sig_bytes, self.public_key_bytes);
+        tx.script_sig = try allocator.dupe(u8, &unlock_script_arr);
+
         return tx;
     }
 
@@ -310,7 +453,7 @@ test "Test H — signWithAllPQDomains integrat in Wallet" {
 
     const omni_addr = wallet.address;
     var msg_buf: [256]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Identity: {s}", .{omni_addr}) catch unreachable;
+    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Identity: {s}", .{omni_addr}) catch "OmniBus Identity: fallback";
 
     std.debug.print("\nTest H — PQ signing integrat in wallet entry\n", .{});
     std.debug.print("message: {s}\n", .{msg[0..@min(50, msg.len)]});

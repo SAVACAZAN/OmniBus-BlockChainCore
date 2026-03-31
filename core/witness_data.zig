@@ -20,7 +20,7 @@ pub const WitnessData = struct {
             .sig_len = 0,
             .public_key = [_]u8{0} ** 128,
             .pub_key_len = 0,
-            .timestamp = std.time.timestamp(),
+            .timestamp = @as(u64, @bitCast(std.time.timestamp())),
             .flags = 0,
         };
     }
@@ -56,7 +56,7 @@ pub const WitnessData = struct {
         var offset: usize = 0;
 
         // TX ID (4 bytes)
-        std.mem.writeInt(u32, buffer[offset .. offset + 4], self.tx_id, .little);
+        std.mem.writeInt(u32, buffer[offset..][0..4], self.tx_id, .little);
         offset += 4;
 
         // Sig type (1 byte)
@@ -64,7 +64,7 @@ pub const WitnessData = struct {
         offset += 1;
 
         // Signature length (2 bytes)
-        std.mem.writeInt(u16, buffer[offset .. offset + 2], self.sig_len, .little);
+        std.mem.writeInt(u16, buffer[offset..][0..2], self.sig_len, .little);
         offset += 2;
 
         // Signature data
@@ -72,7 +72,7 @@ pub const WitnessData = struct {
         offset += self.sig_len;
 
         // Public key length (2 bytes)
-        std.mem.writeInt(u16, buffer[offset .. offset + 2], self.pub_key_len, .little);
+        std.mem.writeInt(u16, buffer[offset..][0..2], self.pub_key_len, .little);
         offset += 2;
 
         // Public key data
@@ -80,7 +80,7 @@ pub const WitnessData = struct {
         offset += self.pub_key_len;
 
         // Timestamp (8 bytes)
-        std.mem.writeInt(u64, buffer[offset .. offset + 8], @bitCast(self.timestamp), .little);
+        std.mem.writeInt(u64, buffer[offset..][0..8], self.timestamp, .little);
         offset += 8;
 
         // Flags (1 byte)
@@ -91,6 +91,7 @@ pub const WitnessData = struct {
 
     /// Deserialize witness from binary
     pub fn deserialize(data: []const u8, allocator: std.mem.Allocator) !WitnessData {
+        _ = allocator;
         if (data.len < 18) return error.InsufficientData;
 
         var offset: usize = 0;
@@ -98,7 +99,7 @@ pub const WitnessData = struct {
         var witness = WitnessData.init(0, 0);
 
         // Read TX ID
-        witness.tx_id = std.mem.readInt(u32, data[offset .. offset + 4], .little);
+        witness.tx_id = std.mem.readInt(u32, data[offset..][0..4], .little);
         offset += 4;
 
         // Read sig type
@@ -106,7 +107,7 @@ pub const WitnessData = struct {
         offset += 1;
 
         // Read signature length
-        witness.sig_len = std.mem.readInt(u16, data[offset .. offset + 2], .little);
+        witness.sig_len = std.mem.readInt(u16, data[offset..][0..2], .little);
         offset += 2;
 
         if (offset + witness.sig_len > data.len) return error.InsufficientData;
@@ -117,7 +118,7 @@ pub const WitnessData = struct {
 
         // Read public key length
         if (offset + 2 > data.len) return error.InsufficientData;
-        witness.pub_key_len = std.mem.readInt(u16, data[offset .. offset + 2], .little);
+        witness.pub_key_len = std.mem.readInt(u16, data[offset..][0..2], .little);
         offset += 2;
 
         if (offset + witness.pub_key_len > data.len) return error.InsufficientData;
@@ -128,7 +129,7 @@ pub const WitnessData = struct {
 
         // Read timestamp
         if (offset + 8 > data.len) return error.InsufficientData;
-        witness.timestamp = @bitCast(std.mem.readInt(u64, data[offset .. offset + 8], .little));
+        witness.timestamp = std.mem.readInt(u64, data[offset..][0..8], .little);
         offset += 8;
 
         // Read flags
@@ -149,14 +150,14 @@ pub const WitnessData = struct {
 /// Witness pool - manages all signatures for a block
 pub const WitnessPool = struct {
     allocator: std.mem.Allocator,
-    witnesses: std.ArrayList(WitnessData),
+    witnesses: std.array_list.Managed(WitnessData),
     witness_map: std.AutoHashMap(u32, usize),  // tx_id -> index in witnesses
     total_size: u64 = 0,
 
     pub fn init(allocator: std.mem.Allocator) WitnessPool {
         return WitnessPool{
             .allocator = allocator,
-            .witnesses = std.ArrayList(WitnessData).init(allocator),
+            .witnesses = std.array_list.Managed(WitnessData).init(allocator),
             .witness_map = std.AutoHashMap(u32, usize).init(allocator),
         };
     }
@@ -200,7 +201,7 @@ pub const WitnessPool = struct {
 
     /// Serialize all witnesses to binary
     pub fn serialize(self: *const WitnessPool) ![]u8 {
-        var buffer = std.ArrayList(u8).init(self.allocator);
+        var buffer = std.array_list.Managed(u8).init(self.allocator);
 
         // Write witness count (4 bytes)
         try buffer.appendSlice(&std.mem.toBytes(@as(u32, @intCast(self.witnesses.items.len))));
@@ -268,14 +269,14 @@ pub const CompressionStats = struct {
 /// Witness archive for old blocks
 pub const WitnessArchive = struct {
     allocator: std.mem.Allocator,
-    block_witnesses: std.ArrayList(WitnessPool),
-    block_heights: std.ArrayList(u32),
+    block_witnesses: std.array_list.Managed(WitnessPool),
+    block_heights: std.array_list.Managed(u32),
 
     pub fn init(allocator: std.mem.Allocator) WitnessArchive {
         return WitnessArchive{
             .allocator = allocator,
-            .block_witnesses = std.ArrayList(WitnessPool).init(allocator),
-            .block_heights = std.ArrayList(u32).init(allocator),
+            .block_witnesses = std.array_list.Managed(WitnessPool).init(allocator),
+            .block_heights = std.array_list.Managed(u32).init(allocator),
         };
     }
 
@@ -317,7 +318,7 @@ pub const WitnessArchive = struct {
 const testing = std.testing;
 
 test "witness data creation" {
-    var witness = WitnessData.init(42, 0);
+    const witness = WitnessData.init(42, 0);
 
     try testing.expectEqual(witness.tx_id, 42);
     try testing.expectEqual(witness.sig_type, 0);

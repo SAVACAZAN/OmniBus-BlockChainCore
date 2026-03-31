@@ -91,3 +91,41 @@ fn readFromVault(allocator: std.mem.Allocator) ![]const u8 {
     const secret = resp_buf[3..3 + payload_len];
     return try allocator.dupe(u8, secret);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests
+// Pipe-ul va esua in mediul de test (nu ruleaza vault_service) — e intentionat.
+// Testam fallback-ul pana la dev default mnemonic.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const testing = std.testing;
+
+test "vault_reader — dev default mnemonic non-gol" {
+    const mnemonic = try readMnemonic(testing.allocator);
+    defer testing.allocator.free(mnemonic);
+    try testing.expect(mnemonic.len > 0);
+    try testing.expect(std.mem.indexOf(u8, mnemonic, "abandon") != null);
+}
+
+test "vault_reader — dev default mnemonic este BIP39 standard" {
+    const mnemonic = try readMnemonic(testing.allocator);
+    defer testing.allocator.free(mnemonic);
+    try testing.expectEqualStrings(DEV_MNEMONIC, mnemonic);
+}
+
+test "vault_reader — dev mnemonic are 12 cuvinte" {
+    const mnemonic = try readMnemonic(testing.allocator);
+    defer testing.allocator.free(mnemonic);
+    var count: usize = 0;
+    var it = std.mem.splitScalar(u8, mnemonic, ' ');
+    while (it.next()) |word| {
+        if (word.len > 0) count += 1;
+    }
+    try testing.expectEqual(@as(usize, 12), count);
+}
+
+test "vault_reader — dev mnemonic incepe cu abandon" {
+    const mnemonic = try readMnemonic(testing.allocator);
+    defer testing.allocator.free(mnemonic);
+    try testing.expect(std.mem.startsWith(u8, mnemonic, "abandon"));
+}

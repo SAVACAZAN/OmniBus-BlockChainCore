@@ -76,34 +76,48 @@ pub const Crypto = struct {
 
     /// Random number generation
     pub fn randomBytes(buffer: []u8) !void {
-        var rng = std.rand.DefaultPrng.init(@as(u64, @bitCast(std.time.timestamp())));
-        const rand = rng.random();
-
-        for (buffer) |*byte| {
-            byte.* = rand.int(u8);
-        }
+        std.crypto.random.bytes(buffer);
     }
 
-    /// AES-256 encryption (XOR-based simplified for now)
-    /// In production: use real AES-256-CBC
-    pub fn encryptAES256(plaintext: []const u8, key: [32]u8) ![32]u8 {
-        var ciphertext: [32]u8 = undefined;
+    /// AES-256-GCM encryption — real AEAD, nu XOR
+    /// Output: [nonce:12][tag:16][ciphertext:plaintext.len] — max plaintext 32 bytes
+    /// Returneaza buffer de 12+16+32 = 60 bytes (plaintext padding 0 la 32 daca mai scurt)
+    pub fn encryptAES256(plaintext: []const u8, key: [32]u8) ![60]u8 {
+        const Aes256Gcm = std.crypto.aead.aes_gcm.Aes256Gcm;
+        const NONCE_LEN = Aes256Gcm.nonce_length; // 12
+        const TAG_LEN   = Aes256Gcm.tag_length;   // 16
+        const PT_LEN    = 32;
 
-        for (plaintext[0..@min(plaintext.len, 32)], 0..) |byte, i| {
-            ciphertext[i] = byte ^ key[i];
-        }
+        var padded: [PT_LEN]u8 = @splat(0);
+        const copy_len = @min(plaintext.len, PT_LEN);
+        @memcpy(padded[0..copy_len], plaintext[0..copy_len]);
 
-        return ciphertext;
+        var nonce: [NONCE_LEN]u8 = undefined;
+        std.crypto.random.bytes(&nonce);
+
+        var ct: [PT_LEN]u8 = undefined;
+        var tag: [TAG_LEN]u8 = undefined;
+        Aes256Gcm.encrypt(&ct, &tag, &padded, "", nonce, key);
+
+        var out: [60]u8 = undefined;
+        @memcpy(out[0..NONCE_LEN], &nonce);
+        @memcpy(out[NONCE_LEN..][0..TAG_LEN], &tag);
+        @memcpy(out[NONCE_LEN + TAG_LEN..], &ct);
+        return out;
     }
 
-    /// AES-256 decryption
-    pub fn decryptAES256(ciphertext: [32]u8, key: [32]u8) [32]u8 {
+    /// AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.AuthenticationFailed
+    pub fn decryptAES256(ciphertext: [60]u8, key: [32]u8) ![32]u8 {
+        const Aes256Gcm = std.crypto.aead.aes_gcm.Aes256Gcm;
+        const NONCE_LEN = Aes256Gcm.nonce_length;
+        const TAG_LEN   = Aes256Gcm.tag_length;
+
+        const nonce = ciphertext[0..NONCE_LEN].*;
+        const tag   = ciphertext[NONCE_LEN..][0..TAG_LEN].*;
+        const ct    = ciphertext[NONCE_LEN + TAG_LEN..].*;
+
         var plaintext: [32]u8 = undefined;
-
-        for (ciphertext, 0..) |byte, i| {
-            plaintext[i] = byte ^ key[i];
-        }
-
+        try Aes256Gcm.decrypt(&plaintext, &ct, tag, "", nonce, key);
         return plaintext;
     }
 
@@ -147,6 +161,21 @@ test "bytesToHex" {
     const bytes = [_]u8{ 0xAB, 0xCD };
     const hex = try Crypto.bytesToHex(&bytes, arena.allocator());
     try testing.expectEqualStrings(hex, "abcd");
+}
+
+test "AES-256-GCM round-trip" {
+    const key: [32]u8 = @splat(0x42);
+    const plaintext = "Hello OmniBus!";
+    const encrypted = try Crypto.encryptAES256(plaintext, key);
+    const decrypted = try Crypto.decryptAES256(encrypted, key);
+    try testing.expectEqualSlices(u8, plaintext, decrypted[0..plaintext.len]);
+}
+
+test "AES-256-GCM wrong key fails" {
+    const key: [32]u8 = @splat(0x42);
+    const bad_key: [32]u8 = @splat(0x99);
+    const encrypted = try Crypto.encryptAES256("secret data!!", key);
+    try testing.expectError(error.AuthenticationFailed, Crypto.decryptAES256(encrypted, bad_key));
 }
 
 test "password strength" {

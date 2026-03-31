@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>shard_config — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>shard_config</code></h1>
+<p class="module-desc">Shard configuration — 7-way sharding parameters, load thresholds, shard assignment rules.</p>
+<p class="stats">Source: core/shard_config.zig &bull; 191 lines &bull; 11 functions &bull; 3 structs &bull; 4 tests</p>
+
+<h2>Structs (3)</h2>
+        <div class="section">
+            <h3><code>ShardConfig</code></h3>
+            <p>Shard configuration for distributed sub-block processing</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>num_shards</code></td><td><code>u8</code></td><td>Num_shards</td></tr><tr><td><code>current_node_shard</code></td><td><code>u8</code></td><td>Current_node_shard</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="line">Line: 7</p>
+        </div>
+        <div class="section">
+            <h3><code>ShardInfo</code></h3>
+            <p>Information about a single shard</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>sub_block_count</code></td><td><code>u8</code></td><td>Sub_block_count</td></tr><tr><td><code>sub_block_ids</code></td><td><code>[]u8</code></td><td>Sub_block_ids</td></tr></table>
+            <p class="line">Line: 77</p>
+        </div>
+        <div class="section">
+            <h3><code>ShardValidator</code></h3>
+            <p>Shard assignment validator</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>config</code></td><td><code>ShardConfig</code></td><td>Config</td></tr><tr><td><code>processed_sub_blocks</code></td><td><code>std.array_list.Managed(u8)</code></td><td>Processed_sub_blocks</td></tr></table>
+            <p class="line">Line: 84</p>
+        </div>
+
+<h2>Constants (1)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>SubBlock</code></td><td><code>sub_block_mod.SubBlock</code></td><td>Sub block</td></tr></table></div>
+
+<h2>Functions (11)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, current_node_shard: u8) !ShardConfig {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>current_node_shard</code></td><td><code>u8</code></td><td>Current_node_shard</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!ShardConfig</code></p>
+            <p class="line">Line: 12</p>
+        </div>
+        <div class="section">
+            <h3><code>getShardForSubBlock()</code></h3>
+            <p class="desc">Calculate which shard should process a sub-block</p>
+            <pre><code>pub fn getShardForSubBlock(self: *const ShardConfig, sub_id: u8) u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardConfig</code></td><td>The instance</td></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u8</code></p>
+            <p class="line">Line: 25</p>
+        </div>
+        <div class="section">
+            <h3><code>shouldProcessSubBlock()</code></h3>
+            <p class="desc">Check if this node should process the sub-block</p>
+            <pre><code>pub fn shouldProcessSubBlock(self: *const ShardConfig, sub_id: u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardConfig</code></td><td>The instance</td></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 30</p>
+        </div>
+        <div class="section">
+            <h3><code>getSubBlocksForShard()</code></h3>
+            <p class="desc">Get all sub-block IDs this shard processes</p>
+            <pre><code>pub fn getSubBlocksForShard(self: *const ShardConfig, allocator: std.mem.Allocator) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardConfig</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 35</p>
+        </div>
+        <div class="section">
+            <h3><code>getDistribution()</code></h3>
+            <p class="desc">Get shard distribution info</p>
+            <pre><code>pub fn getDistribution(self: *const ShardConfig, allocator: std.mem.Allocator) ![7]ShardInfo {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardConfig</code></td><td>The instance</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![7]ShardInfo</code></p>
+            <p class="line">Line: 49</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(config: ShardConfig) ShardValidator {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>config</code></td><td><code>ShardConfig</code></td><td>Config</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>ShardValidator</code></p>
+            <p class="line">Line: 88</p>
+        </div>
+        <div class="section">
+            <h3><code>validateSubBlockShard()</code></h3>
+            <p class="desc">Validate that sub-block was processed by correct shard</p>
+            <pre><code>pub fn validateSubBlockShard(self: *const ShardValidator, sub: *const SubBlock) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardValidator</code></td><td>The instance</td></tr><tr><td><code>sub</code></td><td><code>*const SubBlock</code></td><td>Sub</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 96</p>
+        </div>
+        <div class="section">
+            <h3><code>recordProcessed()</code></h3>
+            <p class="desc">Track processed sub-blocks for this node's shard</p>
+            <pre><code>pub fn recordProcessed(self: *ShardValidator, sub_id: u8) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ShardValidator</code></td><td>The instance</td></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 105</p>
+        </div>
+        <div class="section">
+            <h3><code>blockComplete()</code></h3>
+            <p class="desc">Check if all sub-blocks for this shard in a block have been processed</p>
+            <pre><code>pub fn blockComplete(self: *const ShardValidator) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const ShardValidator</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 114</p>
+        </div>
+        <div class="section">
+            <h3><code>reset()</code></h3>
+            <p class="desc">Reset for next block</p>
+            <pre><code>pub fn reset(self: *ShardValidator) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ShardValidator</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 128</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *ShardValidator) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*ShardValidator</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 132</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

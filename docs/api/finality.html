@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>finality — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>finality</code></h1>
+<p class="module-desc">Casper FFG finality gadget — checkpoint creation, validator attestations, supermajority detection (2/3+1), epoch finalization.</p>
+<p class="stats">Source: core/finality.zig &bull; 355 lines &bull; 7 functions &bull; 4 structs &bull; 8 tests</p>
+
+<h2>Structs (4)</h2>
+        <div class="section">
+            <h3><code>Checkpoint</code></h3>
+            <p>A checkpoint in the finality chain</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>epoch</code></td><td><code>u64</code></td><td>Epoch</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>block_hash</code></td><td><code>[32]u8</code></td><td>Block_hash</td></tr><tr><td><code>status</code></td><td><code>CheckpointStatus</code></td><td>Status</td></tr><tr><td><code>attestation_count</code></td><td><code>u32</code></td><td>Attestation_count</td></tr><tr><td><code>attested_power</code></td><td><code>u64</code></td><td>Attested_power</td></tr><tr><td><code>first_attestation_block</code></td><td><code>u64</code></td><td>First_attestation_block</td></tr><tr><td><code>parent_epoch</code></td><td><code>u64</code></td><td>Parent_epoch</td></tr></table>
+            <p class="line">Line: 40</p>
+        </div>
+        <div class="section">
+            <h3><code>Attestation</code></h3>
+            <p>Attestation from a validator</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>validator_id</code></td><td><code>u16</code></td><td>Validator_id</td></tr><tr><td><code>target_epoch</code></td><td><code>u64</code></td><td>Target_epoch</td></tr><tr><td><code>source_epoch</code></td><td><code>u64</code></td><td>Source_epoch</td></tr><tr><td><code>voting_power</code></td><td><code>u64</code></td><td>Voting_power</td></tr><tr><td><code>block_hash</code></td><td><code>[32]u8</code></td><td>Block_hash</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr></table>
+            <p class="line">Line: 67</p>
+        </div>
+        <div class="section">
+            <h3><code>SlashingEvidence</code></h3>
+            <p>Slashing condition: equivocation (voting for two different blocks at same epoch)</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>validator_id</code></td><td><code>u16</code></td><td>Validator_id</td></tr><tr><td><code>epoch</code></td><td><code>u64</code></td><td>Epoch</td></tr><tr><td><code>hash_a</code></td><td><code>[32]u8</code></td><td>Hash_a</td></tr><tr><td><code>hash_b</code></td><td><code>[32]u8</code></td><td>Hash_b</td></tr></table>
+            <p class="line">Line: 82</p>
+        </div>
+        <div class="section">
+            <h3><code>FinalityEngine</code></h3>
+            <p>Finality Engine</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>checkpoints</code></td><td><code>[MAX_CHECKPOINTS]Checkpoint</code></td><td>Checkpoints</td></tr><tr><td><code>checkpoint_count</code></td><td><code>usize</code></td><td>Checkpoint_count</td></tr><tr><td><code>last_justified_epoch</code></td><td><code>u64</code></td><td>Last_justified_epoch</td></tr><tr><td><code>last_finalized_epoch</code></td><td><code>u64</code></td><td>Last_finalized_epoch</td></tr><tr><td><code>last_finalized_height</code></td><td><code>u64</code></td><td>Last_finalized_height</td></tr><tr><td><code>total_voting_power</code></td><td><code>u64</code></td><td>Total_voting_power</td></tr><tr><td><code>validator_votes</code></td><td><code>[MAX_VALIDATORS]u64</code></td><td>Validator_votes</td></tr><tr><td><code>slash_count</code></td><td><code>u32</code></td><td>Slash_count</td></tr></table>
+            <p class="line">Line: 92</p>
+        </div>
+
+<h2>Constants (5)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>CHECKPOINT_INTERVAL</code></td><td><code>u64 = 64</code></td><td>C h e c k p o i n t_ i n t e r v a l</td></tr><tr><td><code>SOFT_FINALITY_CONFIRMS</code></td><td><code>u32 = 6</code></td><td>S o f t_ f i n a l i t y_ c o n f i r m s</td></tr><tr><td><code>MAX_CHECKPOINTS</code></td><td><code>usize = 256</code></td><td>M a x_ c h e c k p o i n t s</td></tr><tr><td><code>MAX_VALIDATORS</code></td><td><code>usize = 128</code></td><td>M a x_ v a l i d a t o r s</td></tr><tr><td><code>CheckpointStatus</code></td><td><code>enum(u8) {</code></td><td>Checkpoint status</td></tr></table></div>
+
+<h2>Functions (7)</h2>
+        <div class="section">
+            <h3><code>hasSupermajority()</code></h3>
+            <p class="desc">Check if this checkpoint has supermajority (2/3+)</p>
+            <pre><code>pub fn hasSupermajority(self: *const Checkpoint, total_power: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Checkpoint</code></td><td>The instance</td></tr><tr><td><code>total_power</code></td><td><code>u64</code></td><td>Total_power</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 59</p>
+        </div>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(total_voting_power: u64) FinalityEngine {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>total_voting_power</code></td><td><code>u64</code></td><td>Total_voting_power</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>FinalityEngine</code></p>
+            <p class="line">Line: 108</p>
+        </div>
+        <div class="section">
+            <h3><code>proposeCheckpoint()</code></h3>
+            <p class="desc">Propose a new checkpoint at given block height</p>
+            <pre><code>pub fn proposeCheckpoint(self: *FinalityEngine, block_height: u64, block_hash: [32]u8) !u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*FinalityEngine</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>block_hash</code></td><td><code>[32]u8</code></td><td>Block_hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!u64</code></p>
+            <p class="line">Line: 135</p>
+        </div>
+        <div class="section">
+            <h3><code>attest()</code></h3>
+            <p class="desc">Submit an attestation for a checkpoint</p>
+            <pre><code>pub fn attest(self: *FinalityEngine, attestation: Attestation) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*FinalityEngine</code></td><td>The instance</td></tr><tr><td><code>attestation</code></td><td><code>Attestation</code></td><td>Attestation</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 157</p>
+        </div>
+        <div class="section">
+            <h3><code>isFinalized()</code></h3>
+            <p class="desc">Check if a block height is finalized (can never be reverted)</p>
+            <pre><code>pub fn isFinalized(self: *const FinalityEngine, block_height: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const FinalityEngine</code></td><td>The instance</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 205</p>
+        </div>
+        <div class="section">
+            <h3><code>hasSoftFinality()</code></h3>
+            <p class="desc">Check if a block has soft finality (N confirmations, like Bitcoin)</p>
+            <pre><code>pub fn hasSoftFinality(_: *const FinalityEngine, block_height: u64, current_height: u64) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>_</code></td><td><code>*const FinalityEngine</code></td><td>_</td></tr><tr><td><code>block_height</code></td><td><code>u64</code></td><td>Block_height</td></tr><tr><td><code>current_height</code></td><td><code>u64</code></td><td>Current_height</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 210</p>
+        </div>
+        <div class="section">
+            <h3><code>getLastFinalized()</code></h3>
+            <p class="desc">Get the latest finalized checkpoint</p>
+            <pre><code>pub fn getLastFinalized(self: *const FinalityEngine) ?*const Checkpoint {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const FinalityEngine</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>?*const Checkpoint</code></p>
+            <p class="line">Line: 216</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

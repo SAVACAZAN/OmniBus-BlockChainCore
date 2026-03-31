@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>transaction — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>transaction</code></h1>
+<p class="module-desc">Transaction structure and validation — defines TX fields (from, to, amount, fee, nonce, signature), signing via secp256k1, hash integrity checks, and fee calculations.</p>
+<p class="stats">Source: core/transaction.zig &bull; 388 lines &bull; 5 functions &bull; 1 structs &bull; 14 tests</p>
+
+<h2>Structs (1)</h2>
+        <div class="section">
+            <h3><code>Transaction</code></h3>
+            <p>A single transaction transferring value between addresses — includes sender, recipient, amount, fee, and cryptographic signature.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>id</code></td><td><code>u32</code></td><td>Id</td></tr><tr><td><code>from_address</code></td><td><code>[]const u8</code></td><td>From_address</td></tr><tr><td><code>to_address</code></td><td><code>[]const u8</code></td><td>To_address</td></tr><tr><td><code>amount</code></td><td><code>u64</code></td><td>Amount</td></tr><tr><td><code>fee</code></td><td><code>u64</code></td><td>Fee</td></tr><tr><td><code>timestamp</code></td><td><code>i64</code></td><td>Timestamp</td></tr><tr><td><code>nonce</code></td><td><code>u64</code></td><td>Nonce</td></tr><tr><td><code>op_return</code></td><td><code>[]const u8</code></td><td>Op_return</td></tr><tr><td><code>locktime</code></td><td><code>u64</code></td><td>Locktime</td></tr><tr><td><code>script_pubkey</code></td><td><code>[]const u8</code></td><td>Script_pubkey</td></tr><tr><td><code>script_sig</code></td><td><code>[]const u8</code></td><td>Script_sig</td></tr><tr><td><code>signature</code></td><td><code>[]const u8</code></td><td>Signature</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="line">Line: 9</p>
+        </div>
+
+<h2>Constants (1)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>MAX_OP_RETURN</code></td><td><code>usize = 80</code></td><td>M a x_ o p_ r e t u r n</td></tr></table></div>
+
+<h2>Functions (5)</h2>
+        <div class="section">
+            <h3><code>calculateHash()</code></h3>
+            <p class="desc">Calculeaza hash-ul tranzactiei (SHA256d — Bitcoin style)
+Hash = SHA256(SHA256(id || from || to || amount || timestamp || nonce))
+Nonce inclus in hash previne replay attacks (aceeasi TX cu nonce diferit = hash diferit)</p>
+            <pre><code>pub fn calculateHash(self: *const Transaction) [32]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Transaction</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>[32]u8</code></p>
+            <p class="line">Line: 56</p>
+        </div>
+        <div class="section">
+            <h3><code>isValid()</code></h3>
+            <p class="desc">Valideaza tranzactia: amount > 0 (or op_return TX), adrese cu prefix corect, op_return <= 80 bytes</p>
+            <pre><code>pub fn isValid(self: *const Transaction) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Transaction</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 111</p>
+        </div>
+        <div class="section">
+            <h3><code>sign()</code></h3>
+            <p class="desc">Semneaza tranzactia cu private key (secp256k1 ECDSA SHA256d — REAL)
+Seteaza self.signature = hex(R||S) si self.hash = hex(tx_hash)</p>
+            <pre><code>pub fn sign(self: *Transaction, private_key: [32]u8, allocator: std.mem.Allocator) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*Transaction</code></td><td>The instance</td></tr><tr><td><code>private_key</code></td><td><code>[32]u8</code></td><td>Private_key</td></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 134</p>
+        </div>
+        <div class="section">
+            <h3><code>verify()</code></h3>
+            <p class="desc">Verifica semnatura tranzactiei cu public key (secp256k1 ECDSA — REAL)</p>
+            <pre><code>pub fn verify(self: *const Transaction, compressed_pubkey: [33]u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Transaction</code></td><td>The instance</td></tr><tr><td><code>compressed_pubkey</code></td><td><code>[33]u8</code></td><td>Compressed_pubkey</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 147</p>
+        </div>
+        <div class="section">
+            <h3><code>verifyWithHexPubkey()</code></h3>
+            <p class="desc">Verifica semnatura cu public key in format hex (66 chars)</p>
+            <pre><code>pub fn verifyWithHexPubkey(self: *const Transaction, pubkey_hex: []const u8) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const Transaction</code></td><td>The instance</td></tr><tr><td><code>pubkey_hex</code></td><td><code>[]const u8</code></td><td>Pubkey_hex</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 167</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

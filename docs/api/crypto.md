@@ -1,0 +1,253 @@
+# Module: `crypto`
+
+> Cryptographic primitives — SHA-256, SHA-256d (double hash), HMAC-SHA256, AES-256 encryption/decryption for key protection.
+
+**Source:** `core/crypto.zig` | **Lines:** 185 | **Functions:** 11 | **Structs:** 1 | **Tests:** 6
+
+---
+
+## Contents
+
+### Structs
+- [`Crypto`](#crypto) — Cryptographic primitives for OmniBus blockchain
+
+### Functions
+- [`sha256()`](#sha256) — SHA-256 hash
+- [`sha256d()`](#sha256d) — SHA-256 double hash (Bitcoin style)
+- [`hmacSha256()`](#hmacsha256) — HMAC-SHA256
+- [`hmacSha512()`](#hmacsha512) — HMAC-SHA512 (BIP32 standard)
+- [`ripemd160()`](#ripemd160) — RIPEMD-160 (for Bitcoin addresses)
+Simplified - returns first 20 bytes...
+- [`bytesToHex()`](#bytestohex) — Convert bytes to hex string
+- [`hexToBytes()`](#hextobytes) — Convert hex string to bytes
+- [`randomBytes()`](#randombytes) — Random number generation
+- [`encryptAES256()`](#encryptaes256) — AES-256-GCM encryption — real AEAD, nu XOR
+Output: [nonce:12][tag:16][...
+- [`decryptAES256()`](#decryptaes256) — AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.Authent...
+- [`isStrongPassword()`](#isstrongpassword) — Verify password strength
+
+---
+
+## Structs
+
+### `Crypto`
+
+Cryptographic primitives for OmniBus blockchain
+
+*Defined at line 4*
+
+---
+
+## Functions
+
+### `sha256()`
+
+SHA-256 hash
+
+```zig
+pub fn sha256(data: []const u8) [32]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
+
+**Returns:** `[32]u8`
+
+*Defined at line 6*
+
+---
+
+### `sha256d()`
+
+SHA-256 double hash (Bitcoin style)
+
+```zig
+pub fn sha256d(data: []const u8) [32]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
+
+**Returns:** `[32]u8`
+
+*Defined at line 15*
+
+---
+
+### `hmacSha256()`
+
+HMAC-SHA256
+
+```zig
+pub fn hmacSha256(key: []const u8, message: []const u8) [32]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `[]const u8` | Key |
+| `message` | `[]const u8` | Message |
+
+**Returns:** `[32]u8`
+
+*Defined at line 25*
+
+---
+
+### `hmacSha512()`
+
+HMAC-SHA512 (BIP32 standard)
+
+```zig
+pub fn hmacSha512(key: []const u8, message: []const u8) [64]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `[]const u8` | Key |
+| `message` | `[]const u8` | Message |
+
+**Returns:** `[64]u8`
+
+*Defined at line 33*
+
+---
+
+### `ripemd160()`
+
+RIPEMD-160 (for Bitcoin addresses)
+Simplified - returns first 20 bytes of SHA256 for now
+
+```zig
+pub fn ripemd160(data: []const u8) [20]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[]const u8` | Data |
+
+**Returns:** `[20]u8`
+
+*Defined at line 42*
+
+---
+
+### `bytesToHex()`
+
+Convert bytes to hex string
+
+```zig
+pub fn bytesToHex(bytes: []const u8, allocator: std.mem.Allocator) ![]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `[]const u8` | Bytes |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+**Returns:** `![]u8`
+
+*Defined at line 50*
+
+---
+
+### `hexToBytes()`
+
+Convert hex string to bytes
+
+```zig
+pub fn hexToBytes(hex: []const u8, allocator: std.mem.Allocator) ![]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hex` | `[]const u8` | Hex |
+| `allocator` | `std.mem.Allocator` | Allocator |
+
+**Returns:** `![]u8`
+
+*Defined at line 63*
+
+---
+
+### `randomBytes()`
+
+Random number generation
+
+```zig
+pub fn randomBytes(buffer: []u8) !void {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[]u8` | Buffer |
+
+**Returns:** `!void`
+
+*Defined at line 78*
+
+---
+
+### `encryptAES256()`
+
+AES-256-GCM encryption — real AEAD, nu XOR
+Output: [nonce:12][tag:16][ciphertext:plaintext.len] — max plaintext 32 bytes
+Returneaza buffer de 12+16+32 = 60 bytes (plaintext padding 0 la 32 daca mai scurt)
+
+```zig
+pub fn encryptAES256(plaintext: []const u8, key: [32]u8) ![60]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `plaintext` | `[]const u8` | Plaintext |
+| `key` | `[32]u8` | Key |
+
+**Returns:** `![60]u8`
+
+*Defined at line 85*
+
+---
+
+### `decryptAES256()`
+
+AES-256-GCM decryption — returneaza [32]u8 plaintext sau error.AuthenticationFailed
+
+```zig
+pub fn decryptAES256(ciphertext: [60]u8, key: [32]u8) ![32]u8 {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ciphertext` | `[60]u8` | Ciphertext |
+| `key` | `[32]u8` | Key |
+
+**Returns:** `![32]u8`
+
+*Defined at line 110*
+
+---
+
+### `isStrongPassword()`
+
+Verify password strength
+
+```zig
+pub fn isStrongPassword(password: []const u8) bool {
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `password` | `[]const u8` | Password |
+
+**Returns:** `bool`
+
+*Defined at line 125*
+
+---
+
+
+---
+
+*Generated by OmniBus Doc Generator v2.0 — 2026-03-31 02:16*

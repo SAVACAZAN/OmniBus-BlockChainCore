@@ -27,6 +27,10 @@ pub const LightMiner = struct {
         };
     }
 
+    pub fn deinit(self: *LightMiner, allocator: std.mem.Allocator) void {
+        allocator.free(self.instance_name);
+    }
+
     pub fn connect(self: *LightMiner) void {
         self.is_connected = true;
         self.status = .mining;
@@ -97,14 +101,14 @@ pub const MinerStatus = enum {
     connecting,
     mining,
     block_found,
-    error,
+    mining_error,
     shutdown,
 };
 
 /// Manager for multiple light miner instances
 pub const MinerPool = struct {
     allocator: std.mem.Allocator,
-    miners: std.ArrayList(LightMiner),
+    miners: std.array_list.Managed(LightMiner),
     total_hashrate: u64 = 0,
     pool_status: PoolStatus = .initializing,
     genesis_started: bool = false,
@@ -113,13 +117,13 @@ pub const MinerPool = struct {
     pub fn init(allocator: std.mem.Allocator) MinerPool {
         return MinerPool{
             .allocator = allocator,
-            .miners = std.ArrayList(LightMiner).init(allocator),
+            .miners = std.array_list.Managed(LightMiner).init(allocator),
         };
     }
 
     /// Add new miner to pool
     pub fn addMiner(self: *MinerPool, id: u32, hashrate: u64) !void {
-        var miner = try LightMiner.init(self.allocator, id, hashrate);
+        const miner = try LightMiner.init(self.allocator, id, hashrate);
         try self.miners.append(miner);
         self.total_hashrate += hashrate;
 
@@ -243,6 +247,7 @@ pub const MinerPool = struct {
     }
 
     pub fn deinit(self: *MinerPool) void {
+        for (self.miners.items) |*m| m.deinit(self.allocator);
         self.miners.deinit();
     }
 };
@@ -253,7 +258,7 @@ pub const PoolStatus = enum {
     ready_for_genesis,
     genesis_mining,
     mining,
-    error,
+    pool_error,
     shutdown,
 };
 
@@ -273,7 +278,7 @@ pub const MinerPoolStats = struct {
 const testing = std.testing;
 
 test "light miner creation" {
-    var miner = try LightMiner.init(testing.allocator, 1, 5000);
+    const miner = try LightMiner.init(testing.allocator, 1, 5000);
     defer testing.allocator.free(miner.instance_name);
 
     try testing.expectEqual(miner.miner_id, 1);

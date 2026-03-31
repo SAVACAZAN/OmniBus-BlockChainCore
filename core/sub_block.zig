@@ -12,7 +12,7 @@ pub const Block       = blockchain_mod.Block;
 pub const SUB_BLOCKS_PER_BLOCK: u8 = 10;
 
 /// Intervalul unui sub-bloc in ms
-pub const SUB_BLOCK_INTERVAL_MS: u64 = 100;
+pub const SUB_BLOCK_INTERVAL_MS: u64 = 75; // 10×75ms=750ms + ~250ms overhead ≈ 1s block
 
 /// Sub-block — confirmare soft la 0.1s
 pub const SubBlock = struct {

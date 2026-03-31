@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blockchain_v2 — OmniBus API</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 30px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.5rem; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--orange); font-size: 1rem; margin-bottom: 8px; }
+.desc { color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+.module-desc { color: var(--muted); margin: 8px 0 20px; line-height: 1.5; font-size: 0.9rem; }
+.stats { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+pre { background: #0f172a; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+th { background: #0f172a; color: var(--accent); padding: 8px 12px; text-align: left; }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+.line { color: #4b5563; font-size: 0.75rem; margin-top: 10px; }
+.returns { color: var(--purple); margin-top: 8px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; font-size: 0.9rem; }
+.footer { text-align: center; margin-top: 40px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="index.html" class="back">&larr; Back to Index</a>
+<h1>Module: <code>blockchain_v2</code></h1>
+<p class="module-desc">Enhanced blockchain v2 — sub-block support, sharding integration, binary encoding, pruning support.</p>
+<p class="stats">Source: core/blockchain_v2.zig &bull; 541 lines &bull; 20 functions &bull; 2 structs &bull; 22 tests</p>
+
+<h2>Structs (2)</h2>
+        <div class="section">
+            <h3><code>BlockchainV2</code></h3>
+            <p>Blockchain v2 - with sub-blocks, sharding, and pruning support</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>chain</code></td><td><code>array_list.Managed(Block)</code></td><td>Chain</td></tr><tr><td><code>mempool</code></td><td><code>array_list.Managed(Transaction)</code></td><td>Mempool</td></tr><tr><td><code>sub_block_engine</code></td><td><code>SubBlockEngine</code></td><td>Sub_block_engine</td></tr><tr><td><code>shard_config</code></td><td><code>ShardConfig</code></td><td>Shard_config</td></tr><tr><td><code>prune_config</code></td><td><code>PruneConfig</code></td><td>Prune_config</td></tr><tr><td><code>archive_mgr</code></td><td><code>?ArchiveManager</code></td><td>Archive_mgr</td></tr></table>
+            <p class="line">Line: 24</p>
+        </div>
+        <div class="section">
+            <h3><code>BlockStats</code></h3>
+            <p>Data structure for block stats. Fields include: block_count, transaction_count, sub_blocks_pending, difficulty, shard_id.</p>
+            <table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td><code>block_count</code></td><td><code>usize</code></td><td>Block_count</td></tr><tr><td><code>transaction_count</code></td><td><code>usize</code></td><td>Transaction_count</td></tr><tr><td><code>sub_blocks_pending</code></td><td><code>u8</code></td><td>Sub_blocks_pending</td></tr><tr><td><code>difficulty</code></td><td><code>u32</code></td><td>Difficulty</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr></table>
+            <p class="line">Line: 337</p>
+        </div>
+
+<h2>Constants (10)</h2><div class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr><tr><td><code>Block</code></td><td><code>block_mod.Block</code></td><td>Block</td></tr><tr><td><code>Transaction</code></td><td><code>transaction_mod.Transaction</code></td><td>Transaction</td></tr><tr><td><code>SubBlock</code></td><td><code>sub_block_mod.SubBlock</code></td><td>Sub block</td></tr><tr><td><code>SubBlockEngine</code></td><td><code>sub_block_mod.SubBlockEngine</code></td><td>Sub block engine</td></tr><tr><td><code>ShardConfig</code></td><td><code>shard_config.ShardConfig</code></td><td>Shard config</td></tr><tr><td><code>BinaryEncoder</code></td><td><code>binary_codec.BinaryEncoder</code></td><td>Binary encoder</td></tr><tr><td><code>BinaryDecoder</code></td><td><code>binary_codec.BinaryDecoder</code></td><td>Binary decoder</td></tr><tr><td><code>PruneConfig</code></td><td><code>prune_config.PruneConfig</code></td><td>Prune config</td></tr><tr><td><code>PruneStats</code></td><td><code>prune_config.PruneStats</code></td><td>Prune stats</td></tr><tr><td><code>ArchiveManager</code></td><td><code>archive_manager_mod.ArchiveManager</code></td><td>Archive manager</td></tr></table></div>
+
+<h2>Functions (20)</h2>
+        <div class="section">
+            <h3><code>init()</code></h3>
+            <p class="desc">Initialize a new instance. Allocates required memory and sets default values.</p>
+            <pre><code>pub fn init(allocator: std.mem.Allocator, shard_id: u8) !BlockchainV2 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!BlockchainV2</code></p>
+            <p class="line">Line: 36</p>
+        </div>
+        <div class="section">
+            <h3><code>initWithPruning()</code></h3>
+            <p class="desc">Performs the init with pruning operation on the blockchain_v2 module.</p>
+            <pre><code>pub fn initWithPruning(allocator: std.mem.Allocator, shard_id: u8, prune_cfg: PruneConfig) !BlockchainV2 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>allocator</code></td><td><code>std.mem.Allocator</code></td><td>Allocator</td></tr><tr><td><code>shard_id</code></td><td><code>u8</code></td><td>Shard_id</td></tr><tr><td><code>prune_cfg</code></td><td><code>PruneConfig</code></td><td>Prune_cfg</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!BlockchainV2</code></p>
+            <p class="line">Line: 40</p>
+        </div>
+        <div class="section">
+            <h3><code>deinit()</code></h3>
+            <p class="desc">Clean up and free all allocated memory. Must be called when done.</p>
+            <pre><code>pub fn deinit(self: *BlockchainV2) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 81</p>
+        </div>
+        <div class="section">
+            <h3><code>addTransaction()</code></h3>
+            <p class="desc">Add transaction to mempool</p>
+            <pre><code>pub fn addTransaction(self: *BlockchainV2, tx: Transaction) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>tx</code></td><td><code>Transaction</code></td><td>Tx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 94</p>
+        </div>
+        <div class="section">
+            <h3><code>validateTransaction()</code></h3>
+            <p class="desc">Validate transaction (delegates to Transaction.isValid + hash integrity)</p>
+            <pre><code>pub fn validateTransaction(self: *BlockchainV2, tx: *const Transaction) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>tx</code></td><td><code>*const Transaction</code></td><td>Tx</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 102</p>
+        </div>
+        <div class="section">
+            <h3><code>createSubBlock()</code></h3>
+            <p class="desc">Create sub-block (0.1s interval)</p>
+            <pre><code>pub fn createSubBlock(self: *BlockchainV2, sub_id: u8, miner_id: []const u8) !SubBlock {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>sub_id</code></td><td><code>u8</code></td><td>Sub_id</td></tr><tr><td><code>miner_id</code></td><td><code>[]const u8</code></td><td>Miner_id</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!SubBlock</code></p>
+            <p class="line">Line: 116</p>
+        </div>
+        <div class="section">
+            <h3><code>addSubBlock()</code></h3>
+            <p class="desc">Add sub-block via engine</p>
+            <pre><code>pub fn addSubBlock(self: *BlockchainV2, sub: SubBlock) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>sub</code></td><td><code>SubBlock</code></td><td>Sub</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 138</p>
+        </div>
+        <div class="section">
+            <h3><code>isSubBlockPoolComplete()</code></h3>
+            <p class="desc">Check if all 10 sub-blocks are collected</p>
+            <pre><code>pub fn isSubBlockPoolComplete(self: *const BlockchainV2) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 145</p>
+        </div>
+        <div class="section">
+            <h3><code>createBlockFromSubBlocks()</code></h3>
+            <p class="desc">Create main block from complete sub-block pool</p>
+            <pre><code>pub fn createBlockFromSubBlocks(self: *BlockchainV2) !Block {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!Block</code></p>
+            <p class="line">Line: 150</p>
+        </div>
+        <div class="section">
+            <h3><code>mineBlock()</code></h3>
+            <p class="desc">Mine block (simple PoW)</p>
+            <pre><code>pub fn mineBlock(self: *BlockchainV2, block: *Block) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 186</p>
+        </div>
+        <div class="section">
+            <h3><code>calculateBlockHash()</code></h3>
+            <p class="desc">Calculate block hash (shared implementation in hex_utils)</p>
+            <pre><code>pub fn calculateBlockHash(self: *BlockchainV2, block: *const Block) ![]const u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]const u8</code></p>
+            <p class="line">Line: 205</p>
+        </div>
+        <div class="section">
+            <h3><code>isValidHash()</code></h3>
+            <p class="desc">Validate hash meets difficulty (delegates to shared hex_utils)</p>
+            <pre><code>pub fn isValidHash(self: *BlockchainV2, hash: []const u8) !bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>hash</code></td><td><code>[]const u8</code></td><td>Hash</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!bool</code></p>
+            <p class="line">Line: 210</p>
+        </div>
+        <div class="section">
+            <h3><code>encodeBlockBinary()</code></h3>
+            <p class="desc">Encode block to binary format (93% compression)</p>
+            <pre><code>pub fn encodeBlockBinary(self: *BlockchainV2, block: *const Block) ![]u8 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr><tr><td><code>block</code></td><td><code>*const Block</code></td><td>Block</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>![]u8</code></p>
+            <p class="line">Line: 215</p>
+        </div>
+        <div class="section">
+            <h3><code>getStats()</code></h3>
+            <p class="desc">Get blockchain statistics</p>
+            <pre><code>pub fn getStats(self: *const BlockchainV2) BlockStats {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>BlockStats</code></p>
+            <p class="line">Line: 238</p>
+        </div>
+        <div class="section">
+            <h3><code>getBlockCount()</code></h3>
+            <p class="desc">Returns the current block count.</p>
+            <pre><code>pub fn getBlockCount(self: *const BlockchainV2) u32 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u32</code></p>
+            <p class="line">Line: 248</p>
+        </div>
+        <div class="section">
+            <h3><code>pruneOldBlocks()</code></h3>
+            <p class="desc">Prune old blocks based on configuration</p>
+            <pre><code>pub fn pruneOldBlocks(self: *BlockchainV2) !void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>!void</code></p>
+            <p class="line">Line: 253</p>
+        </div>
+        <div class="section">
+            <h3><code>needsPruning()</code></h3>
+            <p class="desc">Check if pruning is needed</p>
+            <pre><code>pub fn needsPruning(self: *const BlockchainV2) bool {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>bool</code></p>
+            <p class="line">Line: 297</p>
+        </div>
+        <div class="section">
+            <h3><code>getPruneStats()</code></h3>
+            <p class="desc">Get pruning statistics</p>
+            <pre><code>pub fn getPruneStats(self: *const BlockchainV2) PruneStats {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>PruneStats</code></p>
+            <p class="line">Line: 302</p>
+        </div>
+        <div class="section">
+            <h3><code>getEstimatedStorageSize()</code></h3>
+            <p class="desc">Get estimated storage size</p>
+            <pre><code>pub fn getEstimatedStorageSize(self: *const BlockchainV2) u64 {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            <p class="returns"><strong>Returns:</strong> <code>u64</code></p>
+            <p class="line">Line: 307</p>
+        </div>
+        <div class="section">
+            <h3><code>printInfo()</code></h3>
+            <p class="desc">Print blockchain info including pruning stats</p>
+            <pre><code>pub fn printInfo(self: *const BlockchainV2) void {</code></pre>
+            <table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr><tr><td><code>self</code></td><td><code>*const BlockchainV2</code></td><td>The instance</td></tr></table>
+            
+            <p class="line">Line: 313</p>
+        </div>
+
+<div class="footer">Generated by OmniBus Doc Generator v2.0 &bull; 2026-03-31 02:16</div>
+</div>
+</body></html>

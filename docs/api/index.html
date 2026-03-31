@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniBus Blockchain — API Documentation</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 40px 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 2rem; margin-bottom: 8px; }
+.subtitle { color: var(--muted); margin-bottom: 30px; }
+.stats-bar { display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 40px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.stat { text-align: center; }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.category { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.module-card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-decoration: none; color: var(--text); transition: border-color 0.2s; }
+.module-card:hover { border-color: var(--accent); }
+.module-name { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.module-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 8px; min-height: 2.8em; }
+.module-stats { font-size: 0.7rem; color: #64748b; }
+.footer { text-align: center; margin-top: 60px; color: var(--muted); font-size: 0.8rem; }
+a { color: var(--accent); }
+</style>
+</head><body>
+<div class="container">
+<h1>OmniBus Blockchain — API Documentation</h1>
+<p class="subtitle">Complete reference for all 69 core modules &bull; Generated 2026-03-31 02:16</p>
+
+<div class="stats-bar">
+<div class="stat"><div class="stat-value">69</div><div class="stat-label">Modules</div></div>
+<div class="stat"><div class="stat-value">873</div><div class="stat-label">Functions</div></div>
+<div class="stat"><div class="stat-value">217</div><div class="stat-label">Structs</div></div>
+<div class="stat"><div class="stat-value">33,123</div><div class="stat-label">Lines of Code</div></div>
+<div class="stat"><div class="stat-value">811</div><div class="stat-label">Tests</div></div>
+</div>
+
+<h2 class="category">Blockchain & Consensus</h2>
+<div class="module-grid"><a href="blockchain.html" class="module-card">
+                    <div class="module-name">blockchain.zig</div>
+                    <div class="module-desc">Core blockchain engine — manages the chain, validates blocks, handles reorgs, tracks balances per ad...</div>
+                    <div class="module-stats">33 functions &bull; 2 structs &bull; 2127 lines</div>
+                </a>
+<a href="block.html" class="module-card">
+                    <div class="module-name">block.zig</div>
+                    <div class="module-desc">Block data structure — defines a block's fields (index, timestamp, transactions, hash, nonce, merkle...</div>
+                    <div class="module-stats">6 functions &bull; 1 structs &bull; 464 lines</div>
+                </a>
+<a href="transaction.html" class="module-card">
+                    <div class="module-name">transaction.zig</div>
+                    <div class="module-desc">Transaction structure and validation — defines TX fields (from, to, amount, fee, nonce, signature), ...</div>
+                    <div class="module-stats">5 functions &bull; 1 structs &bull; 388 lines</div>
+                </a>
+<a href="consensus.html" class="module-card">
+                    <div class="module-name">consensus.zig</div>
+                    <div class="module-desc">Proof-of-Work consensus engine — SHA256d mining, difficulty validation, block verification, and modu...</div>
+                    <div class="module-stats">12 functions &bull; 4 structs &bull; 280 lines</div>
+                </a>
+<a href="genesis.html" class="module-card">
+                    <div class="module-name">genesis.zig</div>
+                    <div class="module-desc">Genesis block initialization — creates the first block with network config (mainnet/testnet), initia...</div>
+                    <div class="module-stats">7 functions &bull; 2 structs &bull; 247 lines</div>
+                </a>
+<a href="finality.html" class="module-card">
+                    <div class="module-name">finality.zig</div>
+                    <div class="module-desc">Casper FFG finality gadget — checkpoint creation, validator attestations, supermajority detection (2...</div>
+                    <div class="module-stats">7 functions &bull; 4 structs &bull; 355 lines</div>
+                </a>
+<a href="governance.html" class="module-card">
+                    <div class="module-name">governance.zig</div>
+                    <div class="module-desc">On-chain governance — proposal creation, voting (for/against/abstain), quorum (33%), approval thresh...</div>
+                    <div class="module-stats">4 functions &bull; 4 structs &bull; 393 lines</div>
+                </a>
+<a href="staking.html" class="module-card">
+                    <div class="module-name">staking.zig</div>
+                    <div class="module-desc">Proof-of-Stake validator system — deposit/withdraw stake, slashing for equivocation and downtime, un...</div>
+                    <div class="module-stats">29 functions &bull; 8 structs &bull; 1087 lines</div>
+                </a>
+<a href="sub_block.html" class="module-card">
+                    <div class="module-name">sub_block.zig</div>
+                    <div class="module-desc">Sub-block engine — 10 sub-blocks × 100ms = 1 KeyBlock (1s), faster confirmation times while maintain...</div>
+                    <div class="module-stats">11 functions &bull; 3 structs &bull; 403 lines</div>
+                </a>
+<a href="blockchain_v2.html" class="module-card">
+                    <div class="module-name">blockchain_v2.zig</div>
+                    <div class="module-desc">Enhanced blockchain v2 — sub-block support, sharding integration, binary encoding, pruning support.</div>
+                    <div class="module-stats">20 functions &bull; 2 structs &bull; 541 lines</div>
+                </a>
+<a href="e2e_mining.html" class="module-card">
+                    <div class="module-name">e2e_mining.zig</div>
+                    <div class="module-desc">End-to-end mining integration test — full cycle from TX creation through mining to block validation.</div>
+                    <div class="module-stats">0 functions &bull; 0 structs &bull; 216 lines</div>
+                </a>
+</div>
+<h2 class="category">Cryptography</h2>
+<div class="module-grid"><a href="crypto.html" class="module-card">
+                    <div class="module-name">crypto.zig</div>
+                    <div class="module-desc">Cryptographic primitives — SHA-256, SHA-256d (double hash), HMAC-SHA256, AES-256 encryption/decrypti...</div>
+                    <div class="module-stats">11 functions &bull; 1 structs &bull; 185 lines</div>
+                </a>
+<a href="secp256k1.html" class="module-card">
+                    <div class="module-name">secp256k1.zig</div>
+                    <div class="module-desc">Pure Zig secp256k1 ECDSA implementation — private key to public key derivation, ECDSA signing and ve...</div>
+                    <div class="module-stats">6 functions &bull; 1 structs &bull; 142 lines</div>
+                </a>
+<a href="pq_crypto.html" class="module-card">
+                    <div class="module-name">pq_crypto.zig</div>
+                    <div class="module-desc">Post-Quantum cryptography via liboqs C bindings — ML-DSA-87 (Dilithium-5), Falcon-512, SLH-DSA-256s ...</div>
+                    <div class="module-stats">13 functions &bull; 5 structs &bull; 668 lines</div>
+                </a>
+<a href="bip32_wallet.html" class="module-card">
+                    <div class="module-name">bip32_wallet.zig</div>
+                    <div class="module-desc">BIP-32 HD wallet derivation — HMAC-SHA512 master key generation from seed, child key derivation (nor...</div>
+                    <div class="module-stats">12 functions &bull; 3 structs &bull; 399 lines</div>
+                </a>
+<a href="ripemd160.html" class="module-card">
+                    <div class="module-name">ripemd160.zig</div>
+                    <div class="module-desc">Pure Zig RIPEMD-160 hash function — 193 lines, Bitcoin-compatible, used for address generation (RIPE...</div>
+                    <div class="module-stats">4 functions &bull; 1 structs &bull; 193 lines</div>
+                </a>
+<a href="schnorr.html" class="module-card">
+                    <div class="module-name">schnorr.zig</div>
+                    <div class="module-desc">BIP-340 Schnorr signatures over secp256k1 — key aggregation, batch verification, more efficient than...</div>
+                    <div class="module-stats">6 functions &bull; 2 structs &bull; 285 lines</div>
+                </a>
+<a href="bls_signatures.html" class="module-card">
+                    <div class="module-name">bls_signatures.zig</div>
+                    <div class="module-desc">BLS threshold signatures (t-of-n) — aggregate multiple signatures into one, verify against aggregate...</div>
+                    <div class="module-stats">11 functions &bull; 4 structs &bull; 294 lines</div>
+                </a>
+<a href="multisig.html" class="module-card">
+                    <div class="module-name">multisig.zig</div>
+                    <div class="module-desc">M-of-N multisig — create multisig addresses, collect signatures, verify threshold, timelock contract...</div>
+                    <div class="module-stats">14 functions &bull; 5 structs &bull; 664 lines</div>
+                </a>
+<a href="key_encryption.html" class="module-card">
+                    <div class="module-name">key_encryption.zig</div>
+                    <div class="module-desc">Private key encryption — AES-256 with password-derived key, password verification, secure key storag...</div>
+                    <div class="module-stats">4 functions &bull; 3 structs &bull; 341 lines</div>
+                </a>
+<a href="hex_utils.html" class="module-card">
+                    <div class="module-name">hex_utils.zig</div>
+                    <div class="module-desc">Hex/hash utilities — shared hex encoding/decoding, hash formatting functions used across modules.</div>
+                    <div class="module-stats">4 functions &bull; 0 structs &bull; 151 lines</div>
+                </a>
+</div>
+<h2 class="category">Networking & P2P</h2>
+<div class="module-grid"><a href="p2p.html" class="module-card">
+                    <div class="module-name">p2p.zig</div>
+                    <div class="module-desc">TCP P2P networking — binary protocol for peer connections, block/TX propagation, peer discovery, kno...</div>
+                    <div class="module-stats">63 functions &bull; 15 structs &bull; 2718 lines</div>
+                </a>
+<a href="network.html" class="module-card">
+                    <div class="module-name">network.zig</div>
+                    <div class="module-desc">Network layer — manages peer connections, message routing, broadcast to all peers, connection lifecy...</div>
+                    <div class="module-stats">13 functions &bull; 4 structs &bull; 316 lines</div>
+                </a>
+<a href="sync.html" class="module-card">
+                    <div class="module-name">sync.zig</div>
+                    <div class="module-desc">Block synchronization — header-first sync, block download, stall detection, fork resolution, and cha...</div>
+                    <div class="module-stats">22 functions &bull; 7 structs &bull; 638 lines</div>
+                </a>
+<a href="bootstrap.html" class="module-card">
+                    <div class="module-name">bootstrap.zig</div>
+                    <div class="module-desc">Peer discovery and bootstrapping — seed node connections, PEX (Peer Exchange), DNS seed resolution, ...</div>
+                    <div class="module-stats">29 functions &bull; 8 structs &bull; 810 lines</div>
+                </a>
+<a href="kademlia_dht.html" class="module-card">
+                    <div class="module-name">kademlia_dht.zig</div>
+                    <div class="module-desc">Kademlia distributed hash table — XOR-based distance metric, k-bucket routing, iterative node lookup...</div>
+                    <div class="module-stats">12 functions &bull; 3 structs &bull; 352 lines</div>
+                </a>
+<a href="peer_scoring.html" class="module-card">
+                    <div class="module-name">peer_scoring.zig</div>
+                    <div class="module-desc">Peer reputation system — score peers based on behavior, ban misbehaving peers, reward good behavior.</div>
+                    <div class="module-stats">11 functions &bull; 2 structs &bull; 281 lines</div>
+                </a>
+<a href="rpc_server.html" class="module-card">
+                    <div class="module-name">rpc_server.zig</div>
+                    <div class="module-desc">JSON-RPC 2.0 HTTP server on port 8332 — 39 methods including blockchain queries, wallet operations, ...</div>
+                    <div class="module-stats">8 functions &bull; 7 structs &bull; 1965 lines</div>
+                </a>
+<a href="ws_server.html" class="module-card">
+                    <div class="module-name">ws_server.zig</div>
+                    <div class="module-desc">WebSocket server on port 8334 — push new_block, new_transaction, status events to React frontend in ...</div>
+                    <div class="module-stats">7 functions &bull; 4 structs &bull; 420 lines</div>
+                </a>
+<a href="compact_blocks.html" class="module-card">
+                    <div class="module-name">compact_blocks.zig</div>
+                    <div class="module-desc">Compact block relay — send only TX short IDs, ~90% bandwidth reduction, reconstruct blocks from memp...</div>
+                    <div class="module-stats">5 functions &bull; 4 structs &bull; 287 lines</div>
+                </a>
+</div>
+<h2 class="category">Storage & Data</h2>
+<div class="module-grid"><a href="database.html" class="module-card">
+                    <div class="module-name">database.zig</div>
+                    <div class="module-desc">Persistent storage — binary serialization of blockchain state to omnibus-chain.dat, atomic write (tm...</div>
+                    <div class="module-stats">28 functions &bull; 3 structs &bull; 1172 lines</div>
+                </a>
+<a href="storage.html" class="module-card">
+                    <div class="module-name">storage.zig</div>
+                    <div class="module-desc">Key-value storage engine — in-memory with optional disk persistence, iterator support, memory-safe d...</div>
+                    <div class="module-stats">29 functions &bull; 6 structs &bull; 331 lines</div>
+                </a>
+<a href="state_trie.html" class="module-card">
+                    <div class="module-name">state_trie.zig</div>
+                    <div class="module-desc">Merkle Patricia Trie for account state — O(log n) lookups, cryptographic proofs, 50MB vs 1.6TB for 1...</div>
+                    <div class="module-stats">14 functions &bull; 3 structs &bull; 234 lines</div>
+                </a>
+<a href="binary_codec.html" class="module-card">
+                    <div class="module-name">binary_codec.zig</div>
+                    <div class="module-desc">Binary serialization — varint encoding, 93% compression ratio, block/TX serialization for network an...</div>
+                    <div class="module-stats">18 functions &bull; 3 structs &bull; 258 lines</div>
+                </a>
+<a href="archive_manager.html" class="module-card">
+                    <div class="module-name">archive_manager.zig</div>
+                    <div class="module-desc">Block archival — compress old blocks for long-term storage, retrieve archived blocks on demand.</div>
+                    <div class="module-stats">13 functions &bull; 5 structs &bull; 224 lines</div>
+                </a>
+<a href="prune_config.html" class="module-card">
+                    <div class="module-name">prune_config.zig</div>
+                    <div class="module-desc">Pruning configuration — configurable retention (max 10K blocks), auto-prune old data, reduce disk us...</div>
+                    <div class="module-stats">8 functions &bull; 3 structs &bull; 224 lines</div>
+                </a>
+<a href="compact_transaction.html" class="module-card">
+                    <div class="module-name">compact_transaction.zig</div>
+                    <div class="module-desc">SegWit-style compact TX — 161 bytes/TX (63% reduction), witness data separation.</div>
+                    <div class="module-stats">5 functions &bull; 1 structs &bull; 223 lines</div>
+                </a>
+<a href="witness_data.html" class="module-card">
+                    <div class="module-name">witness_data.zig</div>
+                    <div class="module-desc">Signature witness separation — 95% size reduction for stored signatures, backward compatible with fu...</div>
+                    <div class="module-stats">25 functions &bull; 4 structs &bull; 417 lines</div>
+                </a>
+<a href="tx_receipt.html" class="module-card">
+                    <div class="module-name">tx_receipt.zig</div>
+                    <div class="module-desc">Transaction receipts — event logs, gas used, status codes, Ethereum-compatible receipt format.</div>
+                    <div class="module-stats">8 functions &bull; 2 structs &bull; 217 lines</div>
+                </a>
+</div>
+<h2 class="category">Wallet & Identity</h2>
+<div class="module-grid"><a href="wallet.html" class="module-card">
+                    <div class="module-name">wallet.zig</div>
+                    <div class="module-desc">HD Wallet with Post-Quantum support — derives keys from BIP-39 mnemonic via BIP-32 (HMAC-SHA512), ge...</div>
+                    <div class="module-stats">10 functions &bull; 3 structs &bull; 473 lines</div>
+                </a>
+<a href="miner_wallet.html" class="module-card">
+                    <div class="module-name">miner_wallet.zig</div>
+                    <div class="module-desc">Miner-specific wallet — coinbase TX creation, reward tracking, miner key management.</div>
+                    <div class="module-stats">12 functions &bull; 2 structs &bull; 449 lines</div>
+                </a>
+<a href="vault_engine.html" class="module-card">
+                    <div class="module-name">vault_engine.zig</div>
+                    <div class="module-desc">Mnemonic vault — BIP-39 seed storage, encryption, secure derivation.</div>
+                    <div class="module-stats">8 functions &bull; 2 structs &bull; 314 lines</div>
+                </a>
+<a href="vault_reader.html" class="module-card">
+                    <div class="module-name">vault_reader.zig</div>
+                    <div class="module-desc">Vault access — reads mnemonic from SuperVault Named Pipe, environment variable, or dev default fallb...</div>
+                    <div class="module-stats">1 functions &bull; 0 structs &bull; 132 lines</div>
+                </a>
+<a href="miner_genesis.html" class="module-card">
+                    <div class="module-name">miner_genesis.zig</div>
+                    <div class="module-desc">Genesis miner allocation — initial miner addresses, pre-mine distribution for bootstrap.</div>
+                    <div class="module-stats">13 functions &bull; 2 structs &bull; 208 lines</div>
+                </a>
+<a href="mining_pool.html" class="module-card">
+                    <div class="module-name">mining_pool.zig</div>
+                    <div class="module-desc">Mining pool coordination — dynamic miner registration, fair reward distribution, share submission, p...</div>
+                    <div class="module-stats">11 functions &bull; 3 structs &bull; 215 lines</div>
+                </a>
+<a href="light_miner.html" class="module-card">
+                    <div class="module-name">light_miner.zig</div>
+                    <div class="module-desc">Lightweight mining client — reduced resource usage, header-only validation, connects to full nodes f...</div>
+                    <div class="module-stats">21 functions &bull; 3 structs &bull; 351 lines</div>
+                </a>
+<a href="light_client.html" class="module-card">
+                    <div class="module-name">light_client.zig</div>
+                    <div class="module-desc">SPV (Simplified Payment Verification) — header-only sync, Bloom filters, Merkle proofs for TX inclus...</div>
+                    <div class="module-stats">36 functions &bull; 6 structs &bull; 979 lines</div>
+                </a>
+</div>
+<h2 class="category">Sharding & Scaling</h2>
+<div class="module-grid"><a href="metachain.html" class="module-card">
+                    <div class="module-name">metachain.zig</div>
+                    <div class="module-desc">EGLD-style metachain coordination — aggregates shard headers, cross-shard communication, meta-block ...</div>
+                    <div class="module-stats">13 functions &bull; 4 structs &bull; 385 lines</div>
+                </a>
+<a href="shard_coordinator.html" class="module-card">
+                    <div class="module-name">shard_coordinator.zig</div>
+                    <div class="module-desc">4-shard routing — assigns addresses to shards, load balancing, cross-shard TX routing.</div>
+                    <div class="module-stats">8 functions &bull; 2 structs &bull; 268 lines</div>
+                </a>
+<a href="shard_config.html" class="module-card">
+                    <div class="module-name">shard_config.zig</div>
+                    <div class="module-desc">Shard configuration — 7-way sharding parameters, load thresholds, shard assignment rules.</div>
+                    <div class="module-stats">11 functions &bull; 3 structs &bull; 191 lines</div>
+                </a>
+<a href="payment_channel.html" class="module-card">
+                    <div class="module-name">payment_channel.zig</div>
+                    <div class="module-desc">Lightning-style Layer 2 — open/close channels, HTLC (Hash Time-Locked Contracts), off-chain payments...</div>
+                    <div class="module-stats">25 functions &bull; 5 structs &bull; 984 lines</div>
+                </a>
+<a href="bridge_relay.html" class="module-card">
+                    <div class="module-name">bridge_relay.zig</div>
+                    <div class="module-desc">Ethereum bridge relay — lock-and-mint cross-chain transfers, refund on expiry, relay verification.</div>
+                    <div class="module-stats">6 functions &bull; 3 structs &bull; 453 lines</div>
+                </a>
+</div>
+<h2 class="category">Economic & Governance</h2>
+<div class="module-grid"><a href="bread_ledger.html" class="module-card">
+                    <div class="module-name">bread_ledger.zig</div>
+                    <div class="module-desc">Physical redemption system — BreadVoucher QR ledger, 1 OMNI = 1 bread worldwide, voucher tracking.</div>
+                    <div class="module-stats">7 functions &bull; 4 structs &bull; 368 lines</div>
+                </a>
+<a href="ubi_distributor.html" class="module-card">
+                    <div class="module-name">ubi_distributor.zig</div>
+                    <div class="module-desc">Universal Basic Income — 1 OMNI/day per eligible address, epoch-based distribution, built into proto...</div>
+                    <div class="module-stats">5 functions &bull; 3 structs &bull; 310 lines</div>
+                </a>
+<a href="domain_minter.html" class="module-card">
+                    <div class="module-name">domain_minter.zig</div>
+                    <div class="module-desc">PQ domain minting — register domains (omnibus.omni, .love, .food, .rent, .vacation), ownership trans...</div>
+                    <div class="module-stats">10 functions &bull; 2 structs &bull; 419 lines</div>
+                </a>
+<a href="oracle.html" class="module-card">
+                    <div class="module-name">oracle.zig</div>
+                    <div class="module-desc">Price oracle — BID/ASK feeds per exchange, best ask/best bid aggregation, on-chain price attestation...</div>
+                    <div class="module-stats">12 functions &bull; 3 structs &bull; 377 lines</div>
+                </a>
+<a href="guardian.html" class="module-card">
+                    <div class="module-name">guardian.zig</div>
+                    <div class="module-desc">Account guardians — social recovery, activation delay (20K blocks), guardian-approved operations for...</div>
+                    <div class="module-stats">8 functions &bull; 2 structs &bull; 249 lines</div>
+                </a>
+<a href="dns_registry.html" class="module-card">
+                    <div class="module-name">dns_registry.zig</div>
+                    <div class="module-desc">Decentralized DNS — register human-readable names, renewal periods, on-chain resolution.</div>
+                    <div class="module-stats">9 functions &bull; 2 structs &bull; 265 lines</div>
+                </a>
+</div>
+<h2 class="category">Node & Infrastructure</h2>
+<div class="module-grid"><a href="main.html" class="module-card">
+                    <div class="module-name">main.zig</div>
+                    <div class="module-desc">Module for main functionality.</div>
+                    <div class="module-stats">1 functions &bull; 1 structs &bull; 793 lines</div>
+                </a>
+<a href="cli.html" class="module-card">
+                    <div class="module-name">cli.zig</div>
+                    <div class="module-desc">Command-line interface — argument parsing for mode (seed/miner/light), node-id, host, port, seed-hos...</div>
+                    <div class="module-stats">2 functions &bull; 1 structs &bull; 258 lines</div>
+                </a>
+<a href="node_launcher.html" class="module-card">
+                    <div class="module-name">node_launcher.zig</div>
+                    <div class="module-desc">Node orchestration — starts all subsystems in order, manages seed/miner mode, initiates mining loop.</div>
+                    <div class="module-stats">13 functions &bull; 2 structs &bull; 386 lines</div>
+                </a>
+<a href="chain_config.html" class="module-card">
+                    <div class="module-name">chain_config.zig</div>
+                    <div class="module-desc">Chain configuration — mainnet/testnet/regtest parameters, fee estimation, network-specific settings.</div>
+                    <div class="module-stats">7 functions &bull; 4 structs &bull; 271 lines</div>
+                </a>
+<a href="os_mode.html" class="module-card">
+                    <div class="module-name">os_mode.zig</div>
+                    <div class="module-desc">OS mode detection — detects bare-metal vs hosted mode, adjusts behavior for OmniBus OS integration.</div>
+                    <div class="module-stats">10 functions &bull; 2 structs &bull; 204 lines</div>
+                </a>
+<a href="omni_brain.html" class="module-card">
+                    <div class="module-name">omni_brain.zig</div>
+                    <div class="module-desc">AI/ML node intelligence — auto-detect optimal NodeType (full/trading/validator/light) based on hardw...</div>
+                    <div class="module-stats">6 functions &bull; 3 structs &bull; 243 lines</div>
+                </a>
+<a href="spark_invariants.html" class="module-card">
+                    <div class="module-name">spark_invariants.zig</div>
+                    <div class="module-desc">Formal verification — 17 Ada/SPARK-style compile-time invariants for critical blockchain properties.</div>
+                    <div class="module-stats">13 functions &bull; 2 structs &bull; 297 lines</div>
+                </a>
+<a href="synapse_priority.html" class="module-card">
+                    <div class="module-name">synapse_priority.zig</div>
+                    <div class="module-desc">Synapse scheduler — priority queue for internal node operations, ensures critical tasks execute firs...</div>
+                    <div class="module-stats">8 functions &bull; 2 structs &bull; 241 lines</div>
+                </a>
+<a href="benchmark.html" class="module-card">
+                    <div class="module-name">benchmark.zig</div>
+                    <div class="module-desc">Performance benchmarks — measure hash rate, TX throughput, block validation speed, P2P latency.</div>
+                    <div class="module-stats">22 functions &bull; 3 structs &bull; 628 lines</div>
+                </a>
+<a href="mempool.html" class="module-card">
+                    <div class="module-name">mempool.zig</div>
+                    <div class="module-desc">Transaction memory pool — FIFO queue with size/time limits, fee-based priority, duplicate detection,...</div>
+                    <div class="module-stats">18 functions &bull; 2 structs &bull; 766 lines</div>
+                </a>
+<a href="script.html" class="module-card">
+                    <div class="module-name">script.zig</div>
+                    <div class="module-desc">Transaction scripting engine — Bitcoin-style script opcodes, P2PKH/P2SH script evaluation, programma...</div>
+                    <div class="module-stats">10 functions &bull; 1 structs &bull; 736 lines</div>
+                </a>
+</div>
+
+
+<div class="footer">
+<p>OmniBus BlockChain Core — Post-Quantum Hybrid Blockchain</p>
+<p style="margin-top:8px"><a href="https://github.com/SAVACAZAN/OmniBus-BlockChainCore">GitHub</a> &bull; Built with Zig &bull; Generated by doc_generator v2.0</p>
+</div>
+</div>
+</body></html>

@@ -37,6 +37,8 @@ pub const CLI = struct {
                     mode = node_launcher.NodeMode.seed;
                 } else if (std.mem.eql(u8, mode_str, "miner")) {
                     mode = node_launcher.NodeMode.miner;
+                } else if (std.mem.eql(u8, mode_str, "light")) {
+                    mode = node_launcher.NodeMode.light;
                 } else {
                     return error.InvalidMode;
                 }
@@ -70,6 +72,15 @@ pub const CLI = struct {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
                 hashrate = std.fmt.parseInt(u64, args[i], 10) catch return error.InvalidHashrate;
+            } else if (std.mem.eql(u8, arg, "--generate-wallet")) {
+                // Generate wallet from OMNIBUS_MNEMONIC env var, print address, exit
+                const vault_reader = @import("vault_reader.zig");
+                const wallet_mod = @import("wallet.zig");
+                const mnemonic = try vault_reader.readMnemonic(self.allocator);
+                var w = try wallet_mod.Wallet.fromMnemonic(mnemonic, "", self.allocator);
+                defer w.deinit();
+                std.debug.print("{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}\n", .{ w.address, mnemonic });
+                std.process.exit(0);
             } else if (std.mem.eql(u8, arg, "--help")) {
                 printUsage();
                 return error.HelpRequested;
@@ -172,4 +183,75 @@ test "parse miner node arguments" {
     try testing.expectEqual(config.hashrate, 2000);
     try testing.expectEqualStrings(config.seed_host.?, "127.0.0.1");
     try testing.expectEqual(config.seed_port, 9000);
+}
+
+test "CLI — mod lipsa returneaza MissingMode" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{"omnibus-node"};
+    try testing.expectError(error.MissingMode, cli.parseArgs(&args));
+}
+
+test "CLI — mod invalid returneaza InvalidMode" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "invalid" };
+    try testing.expectError(error.InvalidMode, cli.parseArgs(&args));
+}
+
+test "CLI — --help returneaza HelpRequested" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--help" };
+    try testing.expectError(error.HelpRequested, cli.parseArgs(&args));
+}
+
+test "CLI — argument necunoscut returneaza UnknownArgument" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--foobar" };
+    try testing.expectError(error.UnknownArgument, cli.parseArgs(&args));
+}
+
+test "CLI — valori default: host=127.0.0.1, port=9000, max-peers=100" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed" };
+    const config = try cli.parseArgs(&args);
+    try testing.expectEqualStrings("127.0.0.1", config.host);
+    try testing.expectEqual(@as(u16, 9000), config.port);
+    try testing.expect(!config.is_primary);
+    try testing.expectEqual(@as(u32, 100), config.max_peers);
+}
+
+test "CLI — --primary seteaza is_primary=true" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--primary" };
+    const config = try cli.parseArgs(&args);
+    try testing.expect(config.is_primary);
+}
+
+test "CLI — --port custom" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--port", "8888" };
+    const config = try cli.parseArgs(&args);
+    try testing.expectEqual(@as(u16, 8888), config.port);
+}
+
+test "CLI — --max-peers custom" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--max-peers", "50" };
+    const config = try cli.parseArgs(&args);
+    try testing.expectEqual(@as(u32, 50), config.max_peers);
+}
+
+test "CLI — miner fara seed: seed_host/port/hashrate null" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "miner" };
+    const config = try cli.parseArgs(&args);
+    try testing.expect(config.seed_host == null);
+    try testing.expect(config.seed_port == null);
+    try testing.expect(config.hashrate == null);
+}
+
+test "CLI — --host custom" {
+    var cli = CLI.init(testing.allocator);
+    const args = [_][]const u8{ "omnibus-node", "--mode", "seed", "--host", "10.0.0.1" };
+    const config = try cli.parseArgs(&args);
+    try testing.expectEqualStrings("10.0.0.1", config.host);
 }
