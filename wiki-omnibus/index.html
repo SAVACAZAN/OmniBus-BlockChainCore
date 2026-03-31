@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiki OmniBus — Technical Documentation</title>
+<style>
+:root { --bg: #0a0e17; --surface: #111827; --border: #1e293b; --accent: #22d3ee; --green: #34d399; --purple: #a78bfa; --orange: #fb923c; --text: #e2e8f0; --muted: #94a3b8; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 40px 20px; }
+.container { max-width: 1000px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 1.8rem; margin-bottom: 8px; }
+h2 { color: var(--green); font-size: 1.1rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.subtitle { color: var(--muted); margin-bottom: 30px; font-size: 0.9rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 16px; font-size: 0.9rem; }
+.doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.doc-card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-decoration: none; color: var(--text); transition: border-color 0.2s; }
+.doc-card:hover { border-color: var(--accent); }
+.doc-title { font-weight: 700; color: var(--accent); margin-bottom: 4px; font-size: 0.95rem; }
+.doc-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+.doc-tag { display: inline-block; font-size: 0.65rem; padding: 2px 8px; border-radius: 9999px; margin-top: 8px; }
+.tag-core { color: var(--green); border: 1px solid #34d39933; background: #34d39911; }
+.tag-phase { color: var(--orange); border: 1px solid #fb923c33; background: #fb923c11; }
+.tag-ref { color: var(--purple); border: 1px solid #a78bfa33; background: #a78bfa11; }
+.tag-ops { color: var(--accent); border: 1px solid #22d3ee33; background: #22d3ee11; }
+.footer { text-align: center; margin-top: 50px; color: #4b5563; font-size: 0.75rem; }
+</style>
+</head><body>
+<div class="container">
+<a href="../index.html" class="back">&larr; Back to Home</a>
+<h1>Wiki OmniBus</h1>
+<p class="subtitle">Technical documentation, phase summaries, and operational guides &bull; 16 documents</p>
+
+<h2>Core References</h2>
+<div class="doc-grid">
+    <a href="enciclopedia.md" class="doc-card">
+        <div class="doc-title">Encyclopedia</div>
+        <div class="doc-desc">Complete encyclopedic reference — 8 repositories, protocols, economics, architecture, whitepaper, scores</div>
+        <span class="doc-tag tag-core">MUST READ</span>
+    </a>
+    <a href="OMNI_ARCHITECTURE_GENESIS.md" class="doc-card">
+        <div class="doc-title">Architecture Genesis</div>
+        <div class="doc-desc">Economic parameters, halving schedule, sharding design, Ada SPARK integration, HDD/SSD storage</div>
+        <span class="doc-tag tag-core">ARCHITECTURE</span>
+    </a>
+    <a href="OMNIBUS_ACADEMIC_REPORT.md" class="doc-card">
+        <div class="doc-title">Academic Report</div>
+        <div class="doc-desc">Formal academic-style report on the OmniBus blockchain design and implementation</div>
+        <span class="doc-tag tag-ref">RESEARCH</span>
+    </a>
+    <a href="OMNIBUS_OS_MODULES.md" class="doc-card">
+        <div class="doc-title">OmniBus OS Modules</div>
+        <div class="doc-desc">54 bare-metal OS modules — IPC, blockchain_os, omnibus_blockchain_os, network integration</div>
+        <span class="doc-tag tag-core">OS LAYER</span>
+    </a>
+    <a href="INDEX.md" class="doc-card">
+        <div class="doc-title">Wiki Index (Markdown)</div>
+        <div class="doc-desc">Complete markdown index with module table, RPC API (39 methods), PQ domains, economic parameters</div>
+        <span class="doc-tag tag-ref">INDEX</span>
+    </a>
+</div>
+
+<h2>Development Phases</h2>
+<div class="doc-grid">
+    <a href="PHASE_2_SUMMARY.md" class="doc-card">
+        <div class="doc-title">Phase 2 — Wallet + Crypto</div>
+        <div class="doc-desc">BIP-32/39 HD wallet, secp256k1 ECDSA, 5 PQ address domains, key encryption</div>
+        <span class="doc-tag tag-phase">PHASE 2</span>
+    </a>
+    <a href="PHASE_3_SUMMARY.md" class="doc-card">
+        <div class="doc-title">Phase 3 — Storage</div>
+        <div class="doc-desc">In-memory KV storage, RocksDB design, binary persistence to omnibus-chain.dat</div>
+        <span class="doc-tag tag-phase">PHASE 3</span>
+    </a>
+    <a href="PHASE_4_SUMMARY.md" class="doc-card">
+        <div class="doc-title">Phase 4 — Frontend</div>
+        <div class="doc-desc">React block explorer, wallet UI, stats dashboard, dark theme, Vite build</div>
+        <span class="doc-tag tag-phase">PHASE 4</span>
+    </a>
+    <a href="PHASE_6_7_SUMMARY.md" class="doc-card">
+        <div class="doc-title">Phase 6-7 — Sharding</div>
+        <div class="doc-desc">Sub-blocks (10 x 100ms), 4-shard architecture, pruning, compression (1.6TB to 50-100GB)</div>
+        <span class="doc-tag tag-phase">PHASE 6-7</span>
+    </a>
+    <a href="PHASE_8_SUMMARY.md" class="doc-card">
+        <div class="doc-title">Phase 8 — SegWit + State Trie</div>
+        <div class="doc-desc">SegWit-style compact TX (63% reduction), Merkle state trie, light client SPV</div>
+        <span class="doc-tag tag-phase">PHASE 8</span>
+    </a>
+    <a href="PHASE_9_PLUS_AND_ECOSYSTEM.md" class="doc-card">
+        <div class="doc-title">Phase 9+ — Ecosystem</div>
+        <div class="doc-desc">Cross-shard TX, Ethereum bridge, P2P sync, all 8 repo integration fixes</div>
+        <span class="doc-tag tag-phase">PHASE 9+</span>
+    </a>
+</div>
+
+<h2>Operational Guides</h2>
+<div class="doc-grid">
+    <a href="QUICK_START.md" class="doc-card">
+        <div class="doc-title">Quick Start</div>
+        <div class="doc-desc">3-step bootstrap: genesis block, seed node, extra miners</div>
+        <span class="doc-tag tag-ops">GUIDE</span>
+    </a>
+    <a href="POOL.md" class="doc-card">
+        <div class="doc-title">Mining Pool</div>
+        <div class="doc-desc">Dynamic miner registration, fair reward distribution, pool API</div>
+        <span class="doc-tag tag-ops">MINING</span>
+    </a>
+    <a href="TROUBLESHOOTING.md" class="doc-card">
+        <div class="doc-title">Troubleshooting</div>
+        <div class="doc-desc">Port conflicts, miner registration issues, cleanup procedures</div>
+        <span class="doc-tag tag-ops">HELP</span>
+    </a>
+    <a href="OMNIBUS_L2_STARTER.md" class="doc-card">
+        <div class="doc-title">L2 Starter</div>
+        <div class="doc-desc">Layer 2 payment channels, HTLC, off-chain transactions</div>
+        <span class="doc-tag tag-ops">L2</span>
+    </a>
+    <a href="CLAUDE_MEMORY.md" class="doc-card">
+        <div class="doc-title">Claude Memory</div>
+        <div class="doc-desc">Applied fixes log: miner-manager, run.sh, port conflicts resolution</div>
+        <span class="doc-tag tag-ref">LOG</span>
+    </a>
+</div>
+
+<div class="footer">
+    <p>Wiki OmniBus &bull; OmniBus BlockChain Core</p>
+    <p style="margin-top:4px"><a href="../index.html">Home</a> &bull; <a href="../docs/api/">API Docs</a> &bull; <a href="../wiki-kimi-omnibus/index.html">Kimi Wiki</a></p>
+</div>
+</div>
+</body></html>
