@@ -282,9 +282,10 @@ pub const SlhDsa256s = struct {
         var msg_digest: [64]u8 = undefined;
         digest_h.squeeze(&msg_digest);
         // Semnatura: R (32B) || FORS sig || HT sig — derivat deterministic
+        // Folosim PK.root (din SK) pentru consistenta cu verify care are doar PK
         var fill_input: [64 + 32]u8 = undefined;
         @memcpy(fill_input[0..64], &msg_digest);
-        @memcpy(fill_input[64..96], self.secret_key[0..32]);  // SK.seed
+        @memcpy(fill_input[64..96], self.secret_key[96..128]);  // PK.root (stored in SK)
         shake256(buf[32..SIGNATURE_MAX], &fill_input);
         return buf[0..SIGNATURE_MAX];
     }
