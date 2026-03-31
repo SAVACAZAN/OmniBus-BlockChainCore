@@ -112,6 +112,10 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "script",       "core/script.zig",       target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "miner-wallet", "core/miner_wallet.zig", target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "payment-ch",  "core/payment_channel.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "metachain",   "core/metachain.zig",      target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "shard-coord", "core/shard_coordinator.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "oracle",      "core/oracle.zig",         target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "spark-inv",   "core/spark_invariants.zig", target, optimize).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -123,6 +127,7 @@ pub fn build(b: *std.Build) void {
     test_net_step.dependOn(&addTest(b, "bootstrap", "core/bootstrap.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize).step);
     test_net_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "ws-server",    "core/ws_server.zig",    target, optimize).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
     const test_shard_step = b.step("test-shard", "Test sub-blocks + sharding");
@@ -146,6 +151,17 @@ pub fn build(b: *std.Build) void {
     test_light_step.dependOn(&addTest(b, "light-miner",  "core/light_miner.zig",  target, optimize).step);
     test_light_step.dependOn(&addTest(b, "mining-pool",  "core/mining_pool.zig",  target, optimize).step);
     test_light_step.dependOn(&addTest(b, "key-encryption", "core/key_encryption.zig", target, optimize).step);
+
+    // ── Tests: economic + ecosystem ──────────────────────────────────────────
+    const test_econ_step = b.step("test-econ", "Test economic modules (UBI, bread, bridge, vault, domain, brain)");
+    test_econ_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize).step);
 
     // ── Tests: benchmark + metrics ──────────────────────────────────────────
     const test_bench_step = b.step("test-bench", "Test benchmark + metrics");
@@ -222,4 +238,17 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "miner-wallet","core/miner_wallet.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "payment-ch", "core/payment_channel.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "benchmark",  "core/benchmark.zig",    target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "metachain",     "core/metachain.zig",        target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "oracle",        "core/oracle.zig",           target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "shard-coord",   "core/shard_coordinator.zig",target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "spark-inv",     "core/spark_invariants.zig", target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize).step);
 }
