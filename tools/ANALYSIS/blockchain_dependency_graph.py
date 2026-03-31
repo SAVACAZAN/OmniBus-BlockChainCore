@@ -57,22 +57,41 @@ class CycleInfo:
 # =============================================================================
 
 LAYER_MAP = {
-    0: ("CRYPTO", ["crypto", "secp256k1", "ripemd160", "pq_crypto", "key_encryption",
-                    "schnorr", "multisig"]),
-    1: ("TYPES", ["transaction", "block", "bip32_wallet", "compact_transaction", "witness_data",
-                   "hex_utils"]),
-    2: ("CORE", ["blockchain", "blockchain_v2", "genesis", "consensus", "mempool", "wallet",
-                  "sub_block", "miner_genesis", "e2e_mining", "finality", "governance",
-                  "shard_config", "prune_config", "archive_manager", "binary_codec",
-                  "spark_invariants"]),
-    3: ("NETWORK", ["p2p", "sync", "bootstrap", "network", "rpc_server", "ws_server"]),
-    4: ("STORAGE", ["database", "storage", "state_trie"]),
-    5: ("NODE", ["node_launcher", "cli", "vault_reader", "vault_engine",
-                  "mining_pool", "light_client", "light_miner",
-                  "shard_coordinator", "metachain"]),
-    6: ("ECONOMIC", ["bread_ledger", "domain_minter", "ubi_distributor",
-                      "payment_channel", "bridge_relay", "oracle", "omni_brain",
-                      "synapse_priority", "os_mode"]),
+    0: ("CRYPTO", [
+        "crypto", "secp256k1", "ripemd160", "pq_crypto", "key_encryption",
+        "schnorr", "multisig", "bech32", "encrypted_p2p",
+    ]),
+    1: ("TYPES", [
+        "transaction", "block", "bip32_wallet", "compact_transaction", "witness_data",
+        "hex_utils", "utxo", "psbt", "block_filter", "htlc",
+        "compact_blocks", "tx_receipt",
+    ]),
+    2: ("CORE", [
+        "blockchain", "blockchain_v2", "genesis", "consensus", "mempool", "wallet",
+        "sub_block", "miner_genesis", "e2e_mining", "finality", "governance",
+        "shard_config", "prune_config", "archive_manager", "binary_codec",
+        "spark_invariants", "chain_config", "light_client", "database",
+    ]),
+    3: ("NETWORK", [
+        "p2p", "sync", "bootstrap", "network", "ws_server",
+        "peer_scoring", "kademlia_dht", "dns_registry", "tor_proxy",
+    ]),
+    4: ("STORAGE", [
+        "storage", "state_trie",
+    ]),
+    5: ("NODE", [
+        "node_launcher", "cli", "vault_reader", "vault_engine",
+        "mining_pool", "light_miner",
+        "shard_coordinator", "metachain", "miner_wallet",
+        "lightning", "payment_channel", "staking", "benchmark",
+    ]),
+    6: ("SERVICE", [
+        "rpc_server",
+        "bread_ledger", "domain_minter", "ubi_distributor",
+        "bridge_relay", "oracle", "omni_brain",
+        "synapse_priority", "os_mode", "guardian",
+        "agent_manager",
+    ]),
     7: ("ENTRY", ["main"]),
 }
 
