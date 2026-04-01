@@ -1,0 +1,10 @@
+name = "omnibus_ada_gui"
+description = "OmniBus Ada SPARK GUI - Exchange Keys and Wallet"
+version = "1.0.0"
+
+authors = ["OmniBus Team"]
+licenses = "GPL-3.0-or-later"
+project-files = ["omnibus_gtk_gui.gpr"]
+
+[[depends-on]]
+gtkada = "~26.0.0"

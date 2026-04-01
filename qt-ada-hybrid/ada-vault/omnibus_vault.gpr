@@ -1,0 +1,52 @@
+-- ============================================================
+--  omnibus_vault.gpr  --  Ada SPARK vault as shared library
+--
+--  Produces: omnibus_vault.dll (Windows) / libomnibus_vault.so (Linux)
+--
+--  Build:
+--    gprbuild -P omnibus_vault.gpr --target=x86_64-w64-mingw32
+-- ============================================================
+
+library project Omnibus_Vault is
+
+   for Source_Dirs use
+     ("src",
+      "../../ada-gui/src/vault",
+      "../../ada-gui/src/bindings");
+
+   for Object_Dir    use "obj";
+   for Library_Dir   use "lib";
+   for Library_Name  use "omnibus_vault";
+   for Library_Kind  use "dynamic";
+   for Library_Interface use
+     ("Vault_C_API");
+   for Library_Standalone use "encapsulated";
+   for Library_Auto_Init  use "true";
+   for Library_Options   use ("-lcrypt32", "-lws2_32",
+      "-Wl,--stack,67108864");
+
+   type Build_Mode is ("debug", "release");
+   Mode : Build_Mode := external ("MODE", "debug");
+
+   package Compiler is
+      Common_Switches := ("-gnat2022",
+                          "-gnatwa",
+                          "-gnato13",
+                          "-gnatf");
+
+      case Mode is
+         when "debug" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-g", "-O0", "-gnata");
+         when "release" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-O2", "-gnatn");
+      end case;
+   end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use
+        ("-lcrypt32", "-lws2_32");
+   end Linker;
+
+end Omnibus_Vault;

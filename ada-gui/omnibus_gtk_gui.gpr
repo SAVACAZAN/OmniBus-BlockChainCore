@@ -1,0 +1,62 @@
+-- ============================================================
+--  omnibus_gtk_gui.gpr  --  GNAT Project for OmniBus GtkAda GUI
+--
+--  Native GtkAda desktop application
+--  Build:  gprbuild -P omnibus_gtk_gui.gpr
+--  Run:    ./bin/omnibus-ada-gtk
+-- ============================================================
+
+with "gtkada";
+
+project Omnibus_Gtk_Gui is
+
+   for Source_Dirs use
+     ("src/gui",
+      "src",
+      "src/vault",
+      "src/server",
+      "src/bindings");
+
+   for Object_Dir  use "obj";
+   for Exec_Dir    use "bin";
+   for Main        use ("omnibus_gtk_main.adb");
+
+   type Build_Mode is ("debug", "release");
+   Mode : Build_Mode := external ("MODE", "debug");
+
+   type Platform_Type is ("windows", "linux");
+   Platform : Platform_Type := external ("PLATFORM", "windows");
+
+   package Compiler is
+      Common_Switches := ("-gnat2022",
+                          "-gnatwa",
+                          "-gnatVa",
+                          "-gnato13",
+                          "-gnatf");
+
+      case Mode is
+         when "debug" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-g", "-O0", "-gnata");
+         when "release" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-O2", "-gnatn");
+      end case;
+   end Compiler;
+
+   package Builder is
+      for Executable ("omnibus_gtk_main.adb") use "omnibus-ada-gtk";
+   end Builder;
+
+   package Linker is
+      case Platform is
+         when "windows" =>
+            for Default_Switches ("Ada") use
+              ("-lcrypt32", "-lws2_32");
+         when "linux" =>
+            for Default_Switches ("Ada") use
+              ("-lpthread");
+      end case;
+   end Linker;
+
+end Omnibus_Gtk_Gui;

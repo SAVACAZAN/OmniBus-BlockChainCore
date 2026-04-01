@@ -1,0 +1,64 @@
+-- ============================================================
+--  omnibus_gui.gpr  —  GNAT Project for OmniBus Ada GUI
+--
+--  Ada SPARK verified vault + HTTP server + HTML frontend
+--  Build:  gprbuild -P omnibus_gui.gpr
+--  Prove:  gnatprove -P omnibus_gui.gpr --level=2
+-- ============================================================
+
+project Omnibus_Gui is
+
+   for Source_Dirs use ("src", "src/vault", "src/server", "src/bindings");
+   for Object_Dir  use "obj";
+   for Exec_Dir    use "bin";
+   for Main        use ("omnibus_gui_main.adb");
+
+   type Build_Mode is ("debug", "release", "prove");
+   Mode : Build_Mode := external ("MODE", "debug");
+
+   type Platform_Type is ("windows", "linux", "baremetal");
+   Platform : Platform_Type := external ("PLATFORM", "windows");
+
+   package Compiler is
+      Common_Switches := ("-gnat2022",
+                          "-gnatwa",
+                          "-gnatVa",
+                          "-gnato13",
+                          "-gnatf");
+
+      case Mode is
+         when "debug" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-g", "-O0", "-gnata"); -- assertions ON
+         when "release" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-O2", "-gnatn");       -- optimize + inline
+         when "prove" =>
+            for Default_Switches ("Ada") use
+               Common_Switches & ("-g", "-O0", "-gnata");
+      end case;
+   end Compiler;
+
+   package Prove is
+      for Proof_Switches ("Ada") use
+         ("--level=2",
+          "--timeout=30",
+          "--prover=z3,cvc5,altergo");
+   end Prove;
+
+   package Builder is
+      for Executable ("omnibus_gui_main.adb") use "omnibus-ada-gui";
+   end Builder;
+
+   package Linker is
+      case Platform is
+         when "windows" =>
+            for Default_Switches ("Ada") use ("-lcrypt32", "-lws2_32");
+         when "linux" =>
+            for Default_Switches ("Ada") use ("-lpthread");
+         when "baremetal" =>
+            for Default_Switches ("Ada") use ("-nostdlib", "-T", "baremetal.ld");
+      end case;
+   end Linker;
+
+end Omnibus_Gui;
