@@ -105,6 +105,11 @@ const bread_mod        = @import("bread_ledger.zig");
 const schnorr_mod      = @import("schnorr.zig");
 const multisig_mod     = @import("multisig.zig");
 const bls_mod          = @import("bls_signatures.zig");
+const matching_mod     = @import("matching_engine.zig");
+const price_oracle_mod = @import("price_oracle.zig");
+const pouw_mod         = @import("consensus_pouw.zig");
+const orderbook_sync_mod = @import("orderbook_sync.zig");
+const oracle_fetcher_mod = @import("oracle_fetcher.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
@@ -115,6 +120,8 @@ comptime {
     _ = light_client_mod; _ = light_miner_mod; _ = payment_mod;
     _ = bread_mod; _ = schnorr_mod; _ = multisig_mod; _ = bls_mod;
     _ = miner_wallet_mod; _ = benchmark_mod;
+    _ = matching_mod; _ = price_oracle_mod; _ = pouw_mod; _ = orderbook_sync_mod;
+    _ = oracle_fetcher_mod;
     _ = @import("witness_data.zig"); _ = @import("compact_transaction.zig");
     _ = @import("os_mode.zig"); _ = @import("synapse_priority.zig");
     _ = @import("omni_brain.zig"); _ = @import("oracle.zig");
@@ -170,6 +177,15 @@ pub var g_metrics = benchmark_mod.Metrics.init();
 
 // ── Global Payment Channel Manager ─────────────────────────────────────────
 pub var g_channel_mgr = payment_mod.ChannelManager.init();
+
+// ── Global Exchange Modules — PoUW matching, oracle, sync ──────────────────
+pub var g_pouw_engine = pouw_mod.PoUWEngine.init();
+pub var g_price_oracle = price_oracle_mod.DistributedPriceOracle.init();
+// Note: MatchingEngine and OrderbookSyncManager are ~3MB+ each, allocated in mining loop
+
+// ── Global Oracle Fetcher — real exchange prices from LCX, Kraken, Coinbase ──
+// Initialized in main() with a real allocator (needs HTTP client)
+pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 
 // Thread RPC — pornit din main, detach
 const RPCThreadArgs = struct {
@@ -264,8 +280,19 @@ pub fn main() !void {
     std.debug.print("[NETWORK] Mode: {}  ID: {s}  Host: {s}:{d}\n\n",
         .{ config.mode, config.node_id, config.host, config.port });
 
-    // ── Mnemonic — SuperVault Named Pipe → env var → dev default ─────────────
-    const mnemonic = try vault_reader.readMnemonic(allocator);
+    if (config.testnet) {
+        std.debug.print("[TESTNET] Single-miner mode — mining without peers\n", .{});
+    }
+
+    // ── Mnemonic — CLI flag → SuperVault Named Pipe → env var → dev default ──
+    const mnemonic = if (config.mnemonic) |m|
+        try allocator.dupe(u8, m)
+    else
+        try vault_reader.readMnemonic(allocator);
+
+    if (config.mnemonic != null) {
+        std.debug.print("[WALLET] Using mnemonic from --mnemonic CLI flag\n", .{});
+    }
 
     // ── Init database (persistent storage) ───────────────────────────────────
     var pbc = try PersistentBlockchain.loadFromDisk(allocator, DB_PATH);
@@ -305,6 +332,9 @@ pub fn main() !void {
     defer wallet.deinit();
 
     std.debug.print("[WALLET] Address: {s}\n", .{wallet.address});
+    if (config.wallet_index > 0) {
+        std.debug.print("[WALLET] Derivation index: {d} (BIP-44 m/44'/777'/{d}'/0/0)\n", .{ config.wallet_index, config.wallet_index });
+    }
     std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
         .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
 
@@ -485,6 +515,12 @@ pub fn main() !void {
     // ── Mining loop (1s per bloc, conform net_cfg) ────────────────────────────
     std.debug.print("[LOOP] Starting mining loop ({d}ms blocks)...\n\n",
         .{net_cfg.block_time_ms});
+    std.debug.print("[POUW] Proof-of-Useful-Work engine initialized\n", .{});
+    std.debug.print("[ORACLE] Distributed price oracle initialized\n", .{});
+
+    // ── Oracle Fetcher: real prices from LCX, Kraken, Coinbase ────────────────
+    g_oracle_fetcher = oracle_fetcher_mod.OracleFetcher.init(allocator);
+    std.debug.print("[ORACLE-FETCHER] Real price fetcher initialized (LCX + Kraken + Coinbase)\n", .{});
 
     // ── Performance Metrics init ───────────────────────────────────────────────
     g_metrics = benchmark_mod.Metrics.init();
@@ -584,6 +620,29 @@ pub fn main() !void {
                 g_metrics.recordTx();
             }
 
+            // ── PoUW: Track mining work for reward distribution ─────────
+            {
+                var work = pouw_mod.WorkReport{
+                    .miner_address = undefined,
+                    .miner_addr_len = 0,
+                    .work_type = .matching,
+                    .block_height = block_count,
+                    .timestamp_ms = @intCast(std.time.milliTimestamp()),
+                    .fills_count = 0,
+                    .volume_matched_sat = 0,
+                    .price_updates = 0,
+                    .settlements_count = 0,
+                    .work_hash = std.mem.zeroes([32]u8),
+                    .signature = std.mem.zeroes([64]u8),
+                };
+                // Copy miner address
+                const addr_bytes = miner_addr;
+                const addr_len: u8 = @intCast(@min(addr_bytes.len, 64));
+                @memcpy(work.miner_address[0..addr_len], addr_bytes[0..addr_len]);
+                work.miner_addr_len = addr_len;
+                g_pouw_engine.submitWorkReport(work) catch {};
+            }
+
             // Anunta blocul la peerii P2P (legacy announce + gossip relay)
             p2p.chain_height = block_count;
             p2p.broadcastBlock(block_count, new_block.hash, reward_sat);
@@ -597,6 +656,26 @@ pub fn main() !void {
                 bc.difficulty,
                 mempool.size(),
             );
+
+            // ── PoUW: Calculate and log rewards for this block ──────────
+            g_pouw_engine.calculateRewards(block_count);
+            g_pouw_engine.resetBlock();
+
+            // ── Price Oracle: Reset submissions for next round ──────────
+            g_price_oracle.resetRound();
+
+            // ── Oracle Fetcher: fetch real prices every 10 blocks (~10s) ─────
+            if (block_count % 10 == 0) {
+                if (g_oracle_fetcher) |*fetcher| {
+                    fetcher.fetchAll();
+                    if (fetcher.getMedianPrice()) |median| {
+                        std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
+                            .{ median / 1_000_000, (median % 1_000_000) / 10_000, fetcher.price_count });
+                    } else {
+                        std.debug.print("[ORACLE-FETCHER] No prices available (network unreachable?)\n", .{});
+                    }
+                }
+            }
 
             // ── Metachain: inregistreaza shard header pentru acest bloc ───────
             const shard_id = metachain.coordinator.getShardForAddress(wallet.address);

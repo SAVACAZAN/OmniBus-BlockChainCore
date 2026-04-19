@@ -23,6 +23,9 @@ pub const CLI = struct {
         var seed_host: ?[]const u8 = null;
         var seed_port: ?u16 = null;
         var hashrate: ?u64 = null;
+        var mnemonic: ?[]const u8 = null;
+        var wallet_index: u32 = 0;
+        var testnet: bool = false;
 
         var i: usize = 1; // Skip program name
         while (i < args.len) : (i += 1) {
@@ -76,11 +79,21 @@ pub const CLI = struct {
                 // Generate wallet from OMNIBUS_MNEMONIC env var, print address, exit
                 const vault_reader = @import("vault_reader.zig");
                 const wallet_mod = @import("wallet.zig");
-                const mnemonic = try vault_reader.readMnemonic(self.allocator);
-                var w = try wallet_mod.Wallet.fromMnemonic(mnemonic, "", self.allocator);
+                const gen_mnemonic = try vault_reader.readMnemonic(self.allocator);
+                var w = try wallet_mod.Wallet.fromMnemonic(gen_mnemonic, "", self.allocator);
                 defer w.deinit();
-                std.debug.print("{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}\n", .{ w.address, mnemonic });
+                std.debug.print("{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}\n", .{ w.address, gen_mnemonic });
                 std.process.exit(0);
+            } else if (std.mem.eql(u8, arg, "--mnemonic")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                mnemonic = args[i];
+            } else if (std.mem.eql(u8, arg, "--wallet-index")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                wallet_index = std.fmt.parseInt(u32, args[i], 10) catch return error.InvalidWalletIndex;
+            } else if (std.mem.eql(u8, arg, "--testnet")) {
+                testnet = true;
             } else if (std.mem.eql(u8, arg, "--help")) {
                 printUsage();
                 return error.HelpRequested;
@@ -104,6 +117,9 @@ pub const CLI = struct {
             .seed_host = seed_host,
             .seed_port = seed_port,
             .hashrate = hashrate,
+            .mnemonic = mnemonic,
+            .wallet_index = wallet_index,
+            .testnet = testnet,
             .allocator = self.allocator,
         };
     }
@@ -135,6 +151,9 @@ pub const CLI = struct {
             \\  --seed-host ADDRESS  Seed node address (required)
             \\  --seed-port PORT     Seed node port (required)
             \\  --hashrate H/s       Mining hashrate in H/s (default: 1000)
+            \\  --mnemonic PHRASE    Use custom mnemonic (12/24 words)
+            \\  --wallet-index N     BIP-44 derivation index (default: 0)
+            \\  --testnet            Mine with 0 peers (development mode)
             \\
             \\EXAMPLES:
             \\  # Start primary seed node
@@ -151,6 +170,10 @@ pub const CLI = struct {
             \\  omnibus-node --mode miner --node-id miner-2 \
             \\    --host 192.168.1.101 --port 9002 \
             \\    --seed-host 10.0.0.1 --seed-port 9000 --hashrate 1500
+            \\
+            \\  # Start miner with custom wallet (index 2 from saved wallets)
+            \\  omnibus-node --mode miner --node-id miner-3 \
+            \\    --mnemonic "flush live wheel sun govern..." --wallet-index 2
             \\
             \\
         , .{});

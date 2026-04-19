@@ -131,6 +131,10 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "htlc",        "core/htlc.zig",           target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "lightning",   "core/lightning.zig",       target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "block-filter","core/block_filter.zig",    target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "matching",   "core/matching_engine.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "price-oracle","core/price_oracle.zig",   target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "pouw",       "core/consensus_pouw.zig",  target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "oracle-fetcher", "core/oracle_fetcher.zig", target, optimize).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -144,6 +148,9 @@ pub fn build(b: *std.Build) void {
     test_net_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "ws-server",    "core/ws_server.zig",    target, optimize).step);
     test_net_step.dependOn(&addTest(b, "tor-proxy",    "core/tor_proxy.zig",    target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "ob-sync",     "core/orderbook_sync.zig", target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "br-listener", "core/bridge_listener.zig", target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "settlement",  "core/settlement_submitter.zig", target, optimize).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
     const test_shard_step = b.step("test-shard", "Test sub-blocks + sharding");
@@ -267,4 +274,12 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize).step);
     test_all_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize).step);
     test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "matching",      "core/matching_engine.zig",  target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "price-oracle",  "core/price_oracle.zig",     target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "pouw",          "core/consensus_pouw.zig",   target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "ob-sync",       "core/orderbook_sync.zig",   target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "br-listener",   "core/bridge_listener.zig",  target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "settlement",    "core/settlement_submitter.zig", target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "integration",   "core/integration_test.zig",     target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "oracle-fetcher","core/oracle_fetcher.zig",       target, optimize).step);
 }

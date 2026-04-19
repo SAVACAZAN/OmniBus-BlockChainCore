@@ -23,6 +23,12 @@ pub const NodeConfig = struct {
     seed_host: ?[]const u8 = null,
     seed_port: ?u16 = null,
     hashrate: ?u64 = null,
+    /// Custom mnemonic (overrides vault_reader / env var / default)
+    mnemonic: ?[]const u8 = null,
+    /// Wallet derivation index (BIP-44 index, default 0)
+    wallet_index: u32 = 0,
+    /// Testnet mode: mine with 0 peers (for development/testing)
+    testnet: bool = false,
     allocator: std.mem.Allocator,
 };
 
@@ -141,6 +147,9 @@ pub const NodeLauncher = struct {
 
     /// Transition to mining when ready (requires MIN_PEERS_FOR_MINING connected)
     pub fn readyForMining(self: *NodeLauncher) bool {
+        // Testnet mode: always ready (single miner)
+        if (self.config.testnet) return true;
+
         if (self.bootstrap_node) |node| {
             return node.readyForMining();
         }
