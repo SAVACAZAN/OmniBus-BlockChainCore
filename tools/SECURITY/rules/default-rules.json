@@ -1,0 +1,187 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-04-19",
+  "description": "OmniBus BlockChainCore default vulnerability detection rules for Zig source",
+  "rules": [
+    {
+      "id": "VLN-001",
+      "version": "1.0",
+      "pattern": "\\+|\\-|\\*(?!.*@)|/(?!.*@).*price|amount|balance|reward|fee",
+      "severity": "HIGH",
+      "description": "Unchecked arithmetic in financial calculation (price/amount/balance/reward)",
+      "affected_modules": ["transaction.zig", "consensus.zig", "staking.zig", "governance.zig"],
+      "fix_suggestion": "Use @addWithOverflow / @mulWithOverflow or Zig's checked math for all financial values"
+    },
+    {
+      "id": "VLN-002",
+      "version": "1.0",
+      "pattern": "recv\\(|read\\(.*\\.len(?!.*bounds|limit|max_len)",
+      "severity": "HIGH",
+      "description": "Missing bounds check on P2P message length — buffer overflow risk",
+      "affected_modules": ["p2p.zig", "sync.zig", "bootstrap.zig"],
+      "fix_suggestion": "Validate message length against MAX_P2P_MSG_SIZE before processing"
+    },
+    {
+      "id": "VLN-003",
+      "version": "1.0",
+      "pattern": "\"127\\.0\\.0\\.1\"|\"localhost\"|\"seed\\d*\\.omnibus",
+      "severity": "MEDIUM",
+      "description": "Hardcoded seed peer addresses should be configurable",
+      "affected_modules": ["bootstrap.zig", "p2p.zig", "main.zig"],
+      "fix_suggestion": "Move seed peer addresses to config file (omnibus.toml) or CLI args"
+    },
+    {
+      "id": "VLN-004",
+      "version": "1.0",
+      "pattern": "nonce.*=.*0|nonce.*\\+.*1(?!.*verify|valid|check)",
+      "severity": "HIGH",
+      "description": "Missing nonce validation in transaction — replay attack risk",
+      "affected_modules": ["transaction.zig", "mempool.zig"],
+      "fix_suggestion": "Verify nonce is exactly expected_nonce for sender; reject gaps and replays"
+    },
+    {
+      "id": "VLN-005",
+      "version": "1.0",
+      "pattern": "timestamp.*=.*std\\.time|@intCast.*time(?!.*valid|check|verify|network_time)",
+      "severity": "MEDIUM",
+      "description": "Block timestamp not validated against network median time",
+      "affected_modules": ["block.zig", "consensus.zig", "sub_block.zig"],
+      "fix_suggestion": "Validate timestamp within +/- MAX_TIME_DRIFT of median of last 11 blocks"
+    },
+    {
+      "id": "VLN-006",
+      "version": "1.0",
+      "pattern": "difficulty.*=|target.*=(?!.*validateDifficulty|adjustDifficulty|checkDiff)",
+      "severity": "HIGH",
+      "description": "Missing difficulty validation — could accept blocks with wrong difficulty",
+      "affected_modules": ["consensus.zig", "block.zig"],
+      "fix_suggestion": "Always recalculate expected difficulty and reject blocks that don't match"
+    },
+    {
+      "id": "VLN-007",
+      "version": "1.0",
+      "pattern": "alloc\\(|ArrayList|ArrayListUnmanaged|AutoArrayHashMap(?!.*max_|capacity|bounded)",
+      "severity": "MEDIUM",
+      "description": "Unbounded allocation in message handler — DoS via memory exhaustion",
+      "affected_modules": ["p2p.zig", "rpc_server.zig", "mempool.zig"],
+      "fix_suggestion": "Use bounded allocations with max size limits; use FixedBufferAllocator for P2P messages"
+    },
+    {
+      "id": "VLN-008",
+      "version": "1.0",
+      "pattern": "peer.*accept|connection.*new(?!.*rate_limit|throttle|max_peers|peer_limit)",
+      "severity": "MEDIUM",
+      "description": "Missing peer connection rate limiting — DoS risk from connection flood",
+      "affected_modules": ["p2p.zig", "bootstrap.zig"],
+      "fix_suggestion": "Limit connections per IP to MAX_CONN_PER_IP; implement connection rate limiter"
+    },
+    {
+      "id": "VLN-009",
+      "version": "1.0",
+      "pattern": "std\\.rand|std\\.Random\\.DefaultPrng|xoshiro|Xoroshiro(?!.*test)",
+      "severity": "HIGH",
+      "description": "Non-cryptographic PRNG used — insecure for key generation or nonces",
+      "affected_modules": ["wallet.zig", "transaction.zig", "consensus.zig"],
+      "fix_suggestion": "Use std.crypto.random or OS entropy source for all security-sensitive randomness"
+    },
+    {
+      "id": "VLN-010",
+      "version": "1.0",
+      "pattern": "signature.*s.*>.*n/2|malleab|high.s(?!.*reject|normal|lower)",
+      "severity": "HIGH",
+      "description": "Missing signature malleability check (high-S value) — transaction ID mutation",
+      "affected_modules": ["secp256k1.zig", "transaction.zig"],
+      "fix_suggestion": "Enforce low-S signatures (BIP-62/BIP-146): if s > N/2, set s = N - s"
+    },
+    {
+      "id": "VLN-011",
+      "version": "1.0",
+      "pattern": "genesis.*hash.*=.*\"[0-9a-f]{64}\"",
+      "severity": "LOW",
+      "description": "Hardcoded genesis hash — ensure it matches the official genesis block",
+      "affected_modules": ["genesis.zig", "chain_config.zig"],
+      "fix_suggestion": "Compute genesis hash at startup and verify against config; don't hardcode"
+    },
+    {
+      "id": "VLN-012",
+      "version": "1.0",
+      "pattern": "memcpy|@memcpy|@memset(?!.*len.*<|bounded|safe)",
+      "severity": "MEDIUM",
+      "description": "Unchecked memory copy — potential for out-of-bounds write",
+      "affected_modules": ["binary_codec.zig", "compact_blocks.zig"],
+      "fix_suggestion": "Always verify destination buffer size >= source length before @memcpy"
+    },
+    {
+      "id": "VLN-013",
+      "version": "1.0",
+      "pattern": "catch.*unreachable|catch.*undefined",
+      "severity": "HIGH",
+      "description": "Error suppressed with unreachable — will crash on unexpected input",
+      "affected_modules": ["*"],
+      "fix_suggestion": "Handle errors explicitly; use catch |err| with proper error propagation"
+    },
+    {
+      "id": "VLN-014",
+      "version": "1.0",
+      "pattern": "@ptrCast|@alignCast|@intToPtr",
+      "severity": "MEDIUM",
+      "description": "Unsafe pointer cast — could cause alignment faults or type confusion",
+      "affected_modules": ["binary_codec.zig", "p2p.zig"],
+      "fix_suggestion": "Minimize pointer casts; use @as or std.mem.bytesAsSlice for safe conversion"
+    },
+    {
+      "id": "VLN-015",
+      "version": "1.0",
+      "pattern": "while.*true|while.*1(?!.*break.*timeout|deadline|max_iter)",
+      "severity": "MEDIUM",
+      "description": "Unbounded loop without timeout — could hang indefinitely",
+      "affected_modules": ["p2p.zig", "sync.zig", "main.zig"],
+      "fix_suggestion": "Add iteration limit or timeout check in all indefinite loops"
+    },
+    {
+      "id": "VLN-016",
+      "version": "1.0",
+      "pattern": "pub fn.*\\(.*anytype(?!.*comptime)",
+      "severity": "LOW",
+      "description": "Function accepting anytype without comptime constraint — type confusion risk",
+      "affected_modules": ["*"],
+      "fix_suggestion": "Add comptime type validation or use explicit types for public APIs"
+    },
+    {
+      "id": "VLN-017",
+      "version": "1.0",
+      "pattern": "orphan.*block|stale.*block(?!.*reject|discard|limit)",
+      "severity": "MEDIUM",
+      "description": "Orphan/stale block handling may allow chain pollution DoS",
+      "affected_modules": ["blockchain.zig", "blockchain_v2.zig", "sync.zig"],
+      "fix_suggestion": "Limit orphan block storage; expire orphans older than MAX_ORPHAN_AGE"
+    },
+    {
+      "id": "VLN-018",
+      "version": "1.0",
+      "pattern": "merkle.*root.*=.*0{64}|merkle.*=.*null",
+      "severity": "CRITICAL",
+      "description": "Zero or null Merkle root accepted — Nomad-style bridge attack vector",
+      "affected_modules": ["block.zig", "bridge_relay.zig", "state_trie.zig"],
+      "fix_suggestion": "Reject any block or proof with zero/null Merkle root"
+    },
+    {
+      "id": "VLN-019",
+      "version": "1.0",
+      "pattern": "coinbase.*=|miner_reward.*=(?!.*halving|schedule|max_supply)",
+      "severity": "MEDIUM",
+      "description": "Block reward calculation without halving schedule check",
+      "affected_modules": ["consensus.zig", "block.zig"],
+      "fix_suggestion": "Always compute reward from halving schedule; verify coinbase <= expected_reward"
+    },
+    {
+      "id": "VLN-020",
+      "version": "1.0",
+      "pattern": "checkpoint|finality.*=(?!.*verify|validate|quorum|threshold)",
+      "severity": "HIGH",
+      "description": "Finality checkpoint set without quorum validation — fake finality risk",
+      "affected_modules": ["finality.zig", "consensus.zig"],
+      "fix_suggestion": "Require 2/3+ validator signatures before accepting a finality checkpoint"
+    }
+  ]
+}
