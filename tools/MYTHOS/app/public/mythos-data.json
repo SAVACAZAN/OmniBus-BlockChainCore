@@ -1,0 +1,44 @@
+{
+  "generated": "2026-04-19T23:00:00Z",
+  "master_index": {
+    "total_extracted": 1131,
+    "unique_blocks": 1130,
+    "duplicates_removed": 1,
+    "already_implemented": 0,
+    "new_blocks": 1130,
+    "by_language": {
+      "python": 263,
+      "cpp": 852,
+      "go": 7,
+      "csharp": 1,
+      "text": 7
+    },
+    "by_type": {
+      "general": 824,
+      "oracle": 47,
+      "governance": 6,
+      "consensus": 34,
+      "mev": 66,
+      "bridge": 103,
+      "wallet": 5,
+      "reentrancy": 5,
+      "flash_loan": 16,
+      "privacy": 11,
+      "denial_of_service": 9
+    }
+  },
+  "module_manifest": {
+    "total_planned": 833,
+    "total_implemented": 19,
+    "total_missing": 814,
+    "coverage_percent": 2.3,
+    "modules": 27
+  },
+  "sources": {
+    "all_codes": 177,
+    "satellite": 952,
+    "conversations": 2
+  },
+  "score": 2.3,
+  "score_label": "2.3% coverage"
+}

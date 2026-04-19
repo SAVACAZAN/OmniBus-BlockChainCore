@@ -1,0 +1,15 @@
+{
+  "total_unique": 2,
+  "blocks": [
+    {
+      "lang": "txt",
+      "code": "1class BitVerifier:\n 2    \"\"\"Verific\u0103 un bit \u00eentr-o pozi\u021bie dat\u0103\"\"\"\n 3    def verify(self, position: int, expected: int) -> bool:\n 4        return self.state[position] == expected\n 5\n 6    def verify_all(self) -> dict:\n 7        \"\"\"Verific\u0103 to\u021bi bi\u021bii\"\"\"\n 8        results = []\n 9        for i in range(256):\n10            results.append(self.verify(i, self.expected[i]))\n11        return {'total': len(results), 'passed': sum(results)}",
+      "hash": "3273fbffc0ecc7a42e8be80c5ec483c288092fd62380c654538e497be1f31950"
+    },
+    {
+      "lang": "txt",
+      "code": "class EigenlayerOperatorCompromise:\n    def compromise_operator(self, operator: str, amount: int):\n        \"\"\"Compromite operator EigenLayer\"\"\"\n        return {'stolen': amount, 'operator': operator[:16]}",
+      "hash": "461c1a1f6a5a5710b77e1d99fff7ee384a20d93ec9911e8c5044aa9934dcf289"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSP disabled for Tauri desktop app -->
+  <title>MYTHOS LAB</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <div class="hdr" id="header"></div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="side" id="sidebar"></div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="tab-bar" id="tabBar">
+        <div class="tab-add" id="addTab" title="New Terminal Tab (CMD)">+</div>
+      </div>
+      <div class="pages" id="pages"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar" id="statusbar"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

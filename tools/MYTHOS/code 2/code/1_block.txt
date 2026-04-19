@@ -1,0 +1,34 @@
+src/
+├── main.js
+├── style.css
+├── app.js
+├── core/
+│   ├── constants.js
+│   ├── tauri-api.js
+│   ├── tab-manager.js
+│   ├── process-manager.js
+│   └── event-bus.js
+├── components/
+│   ├── sidebar.js
+│   ├── header.js
+│   ├── status-bar.js
+│   ├── terminal.js
+│   ├── webview-tab.js
+│   ├── file-tree.js
+│   ├── code-viewer.js
+│   ├── stat-card.js
+│   └── phase-card.js
+└── pages/
+    ├── dashboard.js
+    ├── console-page.js
+    ├── claude-page.js
+    ├── kimi-page.js
+    ├── python-page.js
+    ├── files-page.js
+    ├── agents-page.js
+    ├── exploits-page.js
+    ├── skills-page.js
+    ├── learning-page.js
+    ├── history-page.js
+    ├── logs-page.js
+    └── settings-page.js
