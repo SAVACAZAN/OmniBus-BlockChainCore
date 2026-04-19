@@ -30,6 +30,7 @@ BIP32_TEST_VECTORS: List[Dict[str, Any]] = [
     {
         "seed_hex": "000102030405060708090a0b0c0d0e0f",
         "path": "m",
+        "expected_private_key": "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35",
         "expected_chain_code": "873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508",
     },
     {
@@ -48,9 +49,10 @@ def bip32_seed_to_master(seed: bytes) -> Tuple[bytes, bytes]:
 def derive_child(parent_key: bytes, parent_chain: bytes, index: int, hardened: bool) -> Tuple[bytes, bytes]:
     # Simplified BIP-32 child derivation using HMAC-SHA512
     if hardened:
-        data = b"\x00" + parent_key + index.to_bytes(4, "big")
+        # BIP-32: hardened child uses 0x80000000 + index
+        data = b"\x00" + parent_key + (0x80000000 + index).to_bytes(4, "big")
     else:
-        # pubkey placeholder
+        # pubkey placeholder (simplified: use raw key bytes)
         data = parent_key + index.to_bytes(4, "big")
     h = hmac.new(parent_chain, data, hashlib.sha512).digest()
     return h[:32], h[32:]
@@ -70,8 +72,12 @@ def test_bip32_vectors() -> List[Dict[str, Any]]:
             idx = int(part.rstrip("'"))
             key, chain = derive_child(key, chain, idx, hardened)
 
-        ok = chain.hex() == vec["expected_chain_code"]
-        results.append({"path": path, "pass": ok, "chain_code": chain.hex()})
+        chain_ok = chain.hex() == vec["expected_chain_code"]
+        key_ok = True
+        if "expected_private_key" in vec:
+            key_ok = key.hex() == vec["expected_private_key"]
+        ok = chain_ok and key_ok
+        results.append({"path": path, "pass": ok, "chain_code": chain.hex(), "private_key": key.hex()})
         color = GREEN if ok else RED
         cprint(color, f"BIP-32 {path}: {'PASS' if ok else 'FAIL'}")
     return results

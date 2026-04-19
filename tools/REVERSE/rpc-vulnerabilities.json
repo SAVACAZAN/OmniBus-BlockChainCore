@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-04-19T17:15:45.669611+00:00",
+  "target_url": "http://127.0.0.1:8332",
+  "cases_run": 15,
+  "unexpected_behaviors": 4,
+  "results": [
+    {
+      "name": "valid_getblockcount",
+      "expected_error": false,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2059.93,
+      "unexpected": true
+    },
+    {
+      "name": "missing_method",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2047.51,
+      "unexpected": false
+    },
+    {
+      "name": "missing_params",
+      "expected_error": false,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2049.97,
+      "unexpected": true
+    },
+    {
+      "name": "params_as_string",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2045.26,
+      "unexpected": false
+    },
+    {
+      "name": "huge_payload_1mb",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2044.85,
+      "unexpected": false
+    },
+    {
+      "name": "deeply_nested_100",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2065.89,
+      "unexpected": false
+    },
+    {
+      "name": "sql_injection_string",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2065.01,
+      "unexpected": false
+    },
+    {
+      "name": "null_bytes_in_json",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2065.51,
+      "unexpected": false
+    },
+    {
+      "name": "unicode_overload",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2062.62,
+      "unexpected": false
+    },
+    {
+      "name": "negative_id",
+      "expected_error": false,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2049.71,
+      "unexpected": true
+    },
+    {
+      "name": "method_is_array",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2059.42,
+      "unexpected": false
+    },
+    {
+      "name": "empty_batch",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2063.4,
+      "unexpected": false
+    },
+    {
+      "name": "batch_mixed",
+      "expected_error": false,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2064.79,
+      "unexpected": true
+    },
+    {
+      "name": "extreme_number",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2050.62,
+      "unexpected": false
+    },
+    {
+      "name": "trailing_garbage",
+      "expected_error": true,
+      "http_status": null,
+      "rpc_error": false,
+      "network_error": "ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8332): Max retries exceeded with url: / (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8332): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+      "response_preview": null,
+      "elapsed_ms": 2061.24,
+      "unexpected": false
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "timestamp": "2026-04-19T22:02:15.796947",
+  "total_time": 2039.5210196971893,
+  "passed": 33,
+  "failed": 1,
+  "skipped": 1,
+  "phases": {
+    "crypto": [
+      {
+        "name": "NIST ECDSA secp256k1",
+        "status": "pass",
+        "time": 2.275221586227417,
+        "output": "m2/2 tests\u001b[0m\n\u001b[92m[8/10] Large private key (close to n) ...\u001b[0m \u001b[92m3/3 tests\u001b[0m\n\u001b[92m[9/10] Bitcoin Core test: sign deterministic (RFC 6979) ...\u001b[0m \u001b[92m4/4 tests\u001b[0m\n\u001b[92m[10/10] High-S normalization test ...\u001b[0m \u001b[92m4/4 tests\u001b[0m\n\n\u001b[96m============================================================\n RESULTS\n============================================================\u001b[0m\n  Vectors:  10/10 passed\n  Tests:    \u001b[92m33 pass\u001b[0m / \u001b[91m0 fail\u001b[0m\n  Verdict:  \u001b[92m\u001b[1mPASS\u001b[0m\n  Elapsed:  0.01s\n"
+      },
+      {
+        "name": "Wycheproof test vectors",
+        "status": "pass",
+        "time": 0.43054914474487305,
+        "output": "[0m\n  \u001b[91mDownload failed: HTTP Error 404: Not Found\u001b[0m\n\u001b[93m  Using hardcoded minimal vectors as fallback\u001b[0m\n\n\u001b[96m============================================================\n RESULTS\n============================================================\u001b[0m\n  Total vectors:    2\n  Passed:           \u001b[92m2\u001b[0m\n  Failed:           \u001b[91m0\u001b[0m\n  Skipped:          \u001b[93m0\u001b[0m\n  High-S detected:  0\n  DER edge cases:   1\n  Zero-len msgs:    1\n\n  Verdict:          \u001b[92m\u001b[1mPASS\u001b[0m\n  Elapsed:          0.00s\n"
+      },
+      {
+        "name": "SHA-256 + RIPEMD-160",
+        "status": "pass",
+        "time": 0.22813010215759277,
+        "output": "ssed\u001b[0m\n\u001b[92m[2/4] RIPEMD-160 test vectors ...\u001b[0m\n  \u001b[92m8/8 passed\u001b[0m\n\u001b[92m[3/4] HASH160 consistency ...\u001b[0m\n  \u001b[92m3/3 passed\u001b[0m\n\u001b[92m[4/4] Zig cross-check ...\u001b[0m\n  \u001b[92mZig test core/ripemd160.zig: PASS\u001b[0m\n\n\u001b[96m============================================================\n RESULTS\n============================================================\u001b[0m\n  SHA-256:     8/8\n  RIPEMD-160:  8/8\n  HASH160:     3/3\n  Total:       \u001b[92m19\u001b[0m / 19\n\n  Verdict:     \u001b[92m\u001b[1mPASS\u001b[0m\n  Elapsed:     0.11s\n"
+      },
+      {
+        "name": "FIPS 140-2 RNG tests",
+        "status": "pass",
+        "time": 2.211737632751465,
+        "output": " Runs test ...\u001b[0m \u001b[92mPASS\u001b[0m\n  \u001b[92m[4/5] Long runs test ...\u001b[0m \u001b[92mPASS (max=14)\u001b[0m\n  \u001b[92m[5/5] Autocorrelation test ...\u001b[0m \u001b[92mPASS (deviation=0.000125)\u001b[0m\n\n\u001b[96m============================================================\n FIPS 140-2 COMPLIANCE RESULTS\n============================================================\u001b[0m\n  urandom: \u001b[92m\u001b[1mPASS\u001b[0m\n\n  Overall: \u001b[92m\u001b[1mPASS\u001b[0m\n  \u001b[93mNote: Node PRNG testing requires integration \u2014 add getrandom RPC to omnibus-node\u001b[0m\n  Elapsed: 0.01s\n"
+      },
+      {
+        "name": "Property-based crypto",
+        "status": "pass",
+        "time": 3.1145622730255127,
+        "output": "==============================\u001b[0m\n  sign_verify_roundtrip         : \u001b[92m5000 pass / 0 fail\u001b[0m\n  verify_wrong_msg              : \u001b[92m5000 pass / 0 fail\u001b[0m\n  verify_wrong_key              : \u001b[92m5000 pass / 0 fail\u001b[0m\n  corrupted_sig                 : \u001b[92m5000 pass / 0 fail\u001b[0m\n  double_sha256_determ          : \u001b[92m5000 pass / 0 fail\u001b[0m\n  bip32_path_consistency        : \u001b[92m5000 pass / 0 fail\u001b[0m\n\n  VERDICT                       : \u001b[92m\u001b[1mPASS\u001b[0m\n  Elapsed                       : 2.99s\n"
+      },
+      {
+        "name": "Crypto source audit",
+        "status": "pass",
+        "time": 0.1390056610107422,
+        "output": "RN] secp256k1 NIST vectors: NIST test vectors not explicitly referenced\u001b[0m\n\u001b[93m[WARN] secp256k1 Wycheproof: Wycheproof vectors not explicitly referenced\u001b[0m\n\u001b[93m[WARN] RIPEMD-160 vectors: Only 0/4 vectors present\u001b[0m\n\u001b[92m[PASS] BIP-32 hardened deriv: Hardened derivation detected\u001b[0m\n\u001b[92m[PASS] BIP-32 path parsing: Path parsing logic present\u001b[0m\n\u001b[93m[WARN] Timing analysis: 3 potential timing leaks: schnorr.zig:164 potential branch on secret\u001b[0m\n\u001b[92m\nReport written to audit-report.json\u001b[0m\n"
+      },
+      {
+        "name": "BIP-32/39 wallet test",
+        "status": "pass",
+        "time": 0.12430071830749512,
+        "output": "\u001b[92m=== OmniBus Wallet Tester ===\u001b[0m\n\u001b[92mBIP-32 m: PASS\u001b[0m\n\u001b[92mBIP-32 m/0': PASS\u001b[0m\n\u001b[92mPQ address generation: om1pqb9d1373b652a90a... PASS\u001b[0m\n\u001b[92mSign/verify: PASS\u001b[0m\n\u001b[92m\nOverall: PASS -> wallet-test-report.json\u001b[0m\n"
+      }
+    ],
+    "security": [
+      {
+        "name": "Solidity audit (all contracts)",
+        "status": "pass",
+        "time": 0.19112038612365723,
+        "output": "Code: unchecked {\n\u001b[92m[LOW] contracts\\uniswap-v3-full\\libraries\\TickMath.sol:51 unchecked block\u001b[0m\n    unchecked block disables overflow/underflow checks.\n    Code: unchecked {\n\u001b[92m[LOW] contracts\\uniswap-v4\\types\\BalanceDelta.sol:19 unchecked block\u001b[0m\n    unchecked block disables overflow/underflow checks.\n    Code: unchecked {\n------------------------------------------------------------\nTotals: \u001b[91m1 HIGH\u001b[0m, \u001b[93m6 MEDIUM\u001b[0m, \u001b[92m118 LOW\u001b[0m\n\u001b[93mReview findings before deploying.\u001b[0m\n"
+      },
+      {
+        "name": "Symbolic Solidity analysis",
+        "status": "pass",
+        "time": 0.19441437721252441,
+        "output": "     ] contracts\\uniswap-v4\\types\\PoolId.sol:2 (global)\u001b[0m\n           floating_pragma: Floating pragma version: pragma solidity ^0.8.24;\n           \u001b[92mFix: Pin to exact version for production: pragma solidity 0.8.x;\u001b[0m\n\n\u001b[96m============================================================\n SUMMARY: 65 files scanned, 204 findings\u001b[0m\n   \u001b[91m\u001b[1mCRITICAL: 11\u001b[0m\n   \u001b[91mHIGH    : 57\u001b[0m\n   \u001b[93mMEDIUM  : 83\u001b[0m\n   \u001b[96mLOW     : 53\u001b[0m\n============================================================\n"
+      },
+      {
+        "name": "Vuln signature scan (Solidity)",
+        "status": "pass",
+        "time": 0.2896759510040283,
+        "output": "oit-tester.sol:153\n    Code: (success,) = address(this).delegatecall(\n    Fix:  Ensure storage layout compatibility; use EIP-1967 proxy standard\n\n  \u001b[92m[LOW]\u001b[0m SOL-016: Empty receive/fallback \u2014 contract accepts ETH silently\n    File: scripts\\exploits\\yul-exploit-tester.sol:323\n    Code: receive() external payable {}\n    Fix:  Add explicit logic or revert in receive/fallback if ETH acceptance is unintended\n\n\u001b[1mSummary:\u001b[0m \u001b[91m25 high\u001b[0m | \u001b[93m336 medium\u001b[0m | \u001b[92m11 low\u001b[0m | Total: 372\n"
+      },
+      {
+        "name": "Vuln signature scan (Zig)",
+        "status": "pass",
+        "time": 0.9007630348205566,
+        "output": "ng indefinitely\n    File: ws_server.zig:96\n    Match: while (true) {\n    Fix: Add iteration limit or timeout check in all indefinite loops\n\n  \u001b[93m[MEDIUM]\u001b[0m VLN-015: Unbounded loop without timeout \u2014 could hang indefinitely\n    File: ws_server.zig:336\n    Match: while (total < req_buf.len - 1) {\n    Fix: Add iteration limit or timeout check in all indefinite loops\n\n\u001b[1mSummary:\u001b[0m\n  \u001b[91mCritical/High:\u001b[0m 6819\n  \u001b[93mMedium:\u001b[0m        543\n  \u001b[92mLow/Info:\u001b[0m       3\n  Total:          7365\n"
+      },
+      {
+        "name": "Crypto source audit",
+        "status": "pass",
+        "time": 0.11227989196777344,
+        "output": "RN] secp256k1 NIST vectors: NIST test vectors not explicitly referenced\u001b[0m\n\u001b[93m[WARN] secp256k1 Wycheproof: Wycheproof vectors not explicitly referenced\u001b[0m\n\u001b[93m[WARN] RIPEMD-160 vectors: Only 0/4 vectors present\u001b[0m\n\u001b[92m[PASS] BIP-32 hardened deriv: Hardened derivation detected\u001b[0m\n\u001b[92m[PASS] BIP-32 path parsing: Path parsing logic present\u001b[0m\n\u001b[93m[WARN] Timing analysis: 3 potential timing leaks: schnorr.zig:164 potential branch on secret\u001b[0m\n\u001b[92m\nReport written to audit-report.json\u001b[0m\n"
+      },
+      {
+        "name": "P2P attack patterns (dry)",
+        "status": "pass",
+        "time": 0.11488652229309082,
+        "output": "\u001b[92m=== OmniBus P2P Attack Simulator \u2014 Dry Run ===\u001b[0m\n\u001b[92m  Honest peers:    8\u001b[0m\n\u001b[92m  Malicious peers: 4\u001b[0m\n\u001b[92m  Output path:     attack-report.json\u001b[0m\n\u001b[92m  Attack patterns configured: 3\u001b[0m\n\u001b[92m    - Eclipse\u001b[0m\n\u001b[92m    - Sybil\u001b[0m\n\u001b[92m    - Replay\u001b[0m\n\u001b[92m[DRY-RUN] All attack patterns validated. Pass without --dry-run to execute.\u001b[0m\n"
+      }
+    ],
+    "exploits": [
+      {
+        "name": "Differential fuzzing",
+        "status": "pass",
+        "time": 2.2542169094085693,
+        "output": "ty tests ...\u001b[0m\n\u001b[93m[SKIP] hypothesis not installed\u001b[0m\n\n\u001b[96m============================================================\n RESULTS\n============================================================\u001b[0m\n  sha256              : \u001b[92m1000 pass / 0 fail\u001b[0m\n  hash160             : \u001b[92m500 pass / 0 fail\u001b[0m\n  secp256k1           : \u001b[92m200 pass / 0 fail\u001b[0m\n  hypothesis          : \u001b[92m0 pass / 0 fail\u001b[0m\n\n  VERDICT             : \u001b[92mPASS\u001b[0m\n  Elapsed             : 2.09s\n  Total tested        : 1700\n"
+      },
+      {
+        "name": "Crypto edge cases",
+        "status": "pass",
+        "time": 0.20514941215515137,
+        "output": "ble signature exists (r, n-s)\n\u001b[96m[INFO]\u001b[0m Testing weak nonce / repeated-k leak \u2026\n\u001b[92m[PASS]\u001b[0m   Weak nonce leaked private key\n\u001b[96m[INFO]\u001b[0m Testing low-s normalization \u2026\n\u001b[93m[WARN]\u001b[0m   High-s signature found; low-s normalization possible\n\u001b[96m[INFO]\u001b[0m Testing coincurve edge cases \u2026\n\u001b[92m[PASS]\u001b[0m Report written to C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus-BlockChainCore\\tools\\EXPLOITS\\crypto-edge-results.json\n\u001b[96m[INFO]\u001b[0m Passed: 8, Failed: 0\n"
+      },
+      {
+        "name": "Consensus attack sim",
+        "status": "pass",
+        "time": 0.13183307647705078,
+        "output": "ong-range @ 0.2 stake: feasible=False\n\u001b[96m[INFO]\u001b[0m Long-range @ 0.4 stake: feasible=True\n\u001b[96m[INFO]\u001b[0m Long-range @ 0.6 stake: feasible=True\n\u001b[96m[INFO]\u001b[0m Nothing-at-stake @ 10/100: reward=$50.0\n\u001b[96m[INFO]\u001b[0m Nothing-at-stake @ 30/100: reward=$150.0\n\u001b[96m[INFO]\u001b[0m Nothing-at-stake @ 51/100: reward=$255.0\n\u001b[92m[PASS]\u001b[0m Attack feasibility report written to C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus-BlockChainCore\\tools\\EXPLOITS\\attack-feasibility.json\n"
+      },
+      {
+        "name": "Symbolic exec (source scan)",
+        "status": "pass",
+        "time": 0.5330178737640381,
+        "output": "ic without overflow check: total_sig_size += 512 + 128;  // signature + pubkey at full size\n\u001b[93m[MEDIUM] core\\witness_data.zig:403 \u2014 unchecked_optional_unwrap\u001b[0m\n         Optional unwrap .? without null guard: try testing.expectEqual(found.?.tx_id, 99);\n\n\u001b[96m============================================================\n SUMMARY: 86 files scanned, 1051 findings\n   HIGH:   \u001b[91m896\u001b[0m\n   MEDIUM: \u001b[93m155\u001b[0m\n   LOW:    \u001b[96m0\u001b[0m\n============================================================\u001b[0m\n"
+      },
+      {
+        "name": "Exploit test generator",
+        "status": "pass",
+        "time": 0.12108778953552246,
+        "output": " test\\exploits\\ExploitTest_SimpleStaking_FLASH_MINT.sol\n  \u001b[92mGenerated:\u001b[0m test\\exploits\\ExploitTest_SimpleStaking_GOVERNANCE.sol\n  \u001b[92mGenerated:\u001b[0m test\\exploits\\ExploitTest_SimpleStaking_MEV.sol\n  \u001b[92mGenerated:\u001b[0m test\\exploits\\ExploitTest_SimpleStaking_CROSS_CHAIN_REPLAY.sol\n  \u001b[92mGenerated:\u001b[0m test\\exploits\\ExploitTest_SimpleStaking_GRIEFING.sol\n  \u001b[92mGenerated master test:\u001b[0m ExploitTest_SimpleStaking_Master.sol\n\u001b[92mDone.\u001b[0m 20 exploit test skeletons written to test\\exploits\n"
+      },
+      {
+        "name": "Known exploits DB match",
+        "status": "pass",
+        "time": 0.15185999870300293,
+        "output": "ature) -> 6 files\n    \u001b[91mNomad Bridge\u001b[0m (AccessControl / ZeroRoot) -> 10 files\n    \u001b[91mEuler Finance\u001b[0m (FlashLoan + Reentrancy) -> 4 files\n    \u001b[91mRonin Bridge\u001b[0m (AccessControl / CompromisedKeys) -> 10 files\n    \u001b[91mPoly Network\u001b[0m (AccessControl / PrivilegeEscalation) -> 10 files\n    \u001b[91mCream Finance\u001b[0m (FlashLoan + OracleManipulation) -> 10 files\n    \u001b[91mBeanstalk\u001b[0m (GovernanceAttack) -> 3 files\n    \u001b[91mHarmony Horizon Bridge\u001b[0m (AccessControl / CompromisedKeys) -> 5 files\n"
+      },
+      {
+        "name": "Differential EVM fuzzer",
+        "status": "fail",
+        "time": 2.2019944190979004,
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus - aweb3\\scripts\\exploits\\differential-evm-fuzzer.py\", line 367, in <module>\n    main()\n  File \"C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus - aweb3\\scripts\\exploits\\differential-evm-fuzzer.py\", line 354, in main\n    print(f\"  Calls made:  {results['calls_made']}\")\n                            ~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'calls_made'\n",
+        "stdout": "===========\n OmniBus aweb3 \u2014 Differential EVM Fuzzer\n Contract: contracts/SimpleStaking.sol\n RPC:      http://127.0.0.1:8545\n Sepolia:  11155111 | Liberty: 42069\n Iterations: 10\n============================================================\u001b[0m\n\n\u001b[91m[ERROR] No accounts from Hardhat node at http://127.0.0.1:8545\u001b[0m\n\u001b[93m  Start Hardhat: npx hardhat node\u001b[0m\n\n\u001b[96m============================================================\n RESULTS\n============================================================\u001b[0m\n"
+      },
+      {
+        "name": "Solidity fuzzer",
+        "status": "pass",
+        "time": 0.22781109809875488,
+        "output": "arget: https://testnet-rpc.lcx.com\n  Runs planned: 100\n  ABI: (not provided)\n  Address: (not provided)\n  Fuzz value generation test:\n    uint256: 57896044618658097711785492504343953926634992332820282019728792003956564819967\n    address: 0x0000000000000000000000000000000000000000\n    bool: True\n    int128: 170141183460469231731687303715884105727\n    bytes32: 0x00b986884002a935a8fabdc823e180\n\u001b[92m[DRY-RUN] Fuzzer configuration valid.\u001b[0m\n  Supply --abi <path> --address <addr> to run real fuzzing.\n"
+      }
+    ],
+    "analysis": [
+      {
+        "name": "Module complexity",
+        "status": "pass",
+        "time": 0.2548642158508301,
+        "output": "   86      2      1      4     1  \u001b[92m   1.05\u001b[0m\n  \u001b[2m\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u001b[0m\n\n  \u001b[95m\u001b[1mSummary\u001b[0m\n  \u001b[2m\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u001b[0m\n    Files analyzed:   \u001b[1m86\u001b[0m\n    Total lines:      43,526\n    Code lines:       31,247\n    Functions:        1,436 (1,189 public)\n    Test blocks:      980\n    Imports:          280\n    Avg complexity:   4.75\n    Most complex:     \u001b[93mp2p.zig\u001b[0m (score: 25.69)\n\n"
+      },
+      {
+        "name": "Dependency map",
+        "status": "pass",
+        "time": 0.1275780200958252,
+        "output": "depends on them)\u001b[0m\n    Leaf modules:     38 \u001b[2m(depended upon but depend on nothing)\u001b[0m\n    Isolated:         0 \u001b[2m(no internal deps)\u001b[0m\n    External deps:    builtin, std\n\n    \u001b[93mRoot modules:\u001b[0m block_filter, blockchain_v2, e2e_mining, encrypted_p2p, integration_test, lightning, miner_genesis, psbt, vault_engine, wasm_exports\n    \u001b[92mLeaf modules:\u001b[0m archive_manager, bech32, bread_ledger, bridge_listener, chain_config, compact_blocks, consensus_pouw, crypto, dns_registry, finality\n\n"
+      },
+      {
+        "name": "API surface",
+        "status": "pass",
+        "time": 0.13237214088439941,
+        "output": "                 \u001b[0m      1       0     0      0    0  \u001b[1m    1\u001b[0m\n  \u001b[96me2e_mining                    \u001b[0m      0       0     0      0    0  \u001b[1m    0\u001b[0m\n  \u001b[96mintegration_test              \u001b[0m      0       0     0      0    0  \u001b[1m    0\u001b[0m\n  \u001b[96mwasm_exports                  \u001b[0m      0       0     0      0    0  \u001b[1m    0\u001b[0m\n  \u001b[2m\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u001b[0m\n\n  \u001b[1mTotal:\u001b[0m 1790 public symbols across 86 modules (1189 functions)\n\n"
+      },
+      {
+        "name": "Git evolution analysis",
+        "status": "pass",
+        "time": 0.8352174758911133,
+        "output": "\u001b[96m[INFO]\u001b[0m Fetching up to 200 commits touching core/*.zig \u2026\n\u001b[96m[INFO]\u001b[0m Analyzing 32 commits \u2026\n\u001b[96m[INFO]\u001b[0m   processed 20/32 commits\n\u001b[96m[INFO]\u001b[0m   processed 32/32 commits\n\u001b[92m[PASS]\u001b[0m Report written to C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus-BlockChainCore\\tools/LEARNING/evolution-report.json\n\u001b[96m[INFO]\u001b[0m Modules analyzed: 0\n"
+      },
+      {
+        "name": "Git commit analysis",
+        "status": "pass",
+        "time": 0.38799071311950684,
+        "output": "\u001b[96mAnalyzing git history in C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus - aweb3...\u001b[0m\n\u001b[96mFound 76 commits. Computing hotspots...\u001b[0m\n\u001b[96mComputing file coupling matrix...\u001b[0m\n\u001b[96mExtracting mistake patterns...\u001b[0m\n\u001b[92mSuccess:\u001b[0m Analysis saved to scripts\\learning\\data\\git-analysis.json\n  \u001b[92mCommits analyzed:\u001b[0m 76\n  \u001b[92mHotspots found:\u001b[0m 50\n  \u001b[92mCoupled pairs found:\u001b[0m 43\n  \u001b[92mBuggy commits:\u001b[0m 12\n"
+      },
+      {
+        "name": "Code quality tracker",
+        "status": "pass",
+        "time": 0.20254182815551758,
+        "output": "\u001b[96mTracking code quality for C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus - aweb3...\u001b[0m\n\u001b[92mSnapshot saved.\u001b[0m\n  \u001b[92mCommit:\u001b[0m c880bc9\n  \u001b[92mContracts scanned:\u001b[0m 65\n  \u001b[92mAvg complexity:\u001b[0m 23.92\n  \u001b[92mDeps:\u001b[0m {'npm': 27}\n  \u001b[92mTest coverage proxy:\u001b[0m 0.32\n\n\u001b[92mHistory written to:\u001b[0m scripts\\learning\\data\\quality-history.json\n"
+      },
+      {
+        "name": "Unused components",
+        "status": "pass",
+        "time": 0.3196704387664795,
+        "output": "r\\OmniBusWallets.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Miner\\QRCode.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Names\\OmniNSPanel.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\OmniFaucet\\OmniFaucetPanel.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Pools\\LiquidityPools.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Portfolio\\PortfolioTracker.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Send\\SendPage.tsx\n\u001b[92m[USED]\u001b[0m src\\components\\Swap\\SwapComponent.tsx\n\n==================================================\n\u001b[92mAll components appear to be used.\u001b[0m\n"
+      },
+      {
+        "name": "Gas optimization report",
+        "status": "pass",
+        "time": 0.15274906158447266,
+        "output": " contracts\\uniswap-v4\\test\\PoolSwapTest.sol\n  SSTORE-like ops: 2, SLOAD-like ops: 30\n\nFile: contracts\\uniswap-v4\\types\\BalanceDelta.sol\n  SSTORE-like ops: 1, SLOAD-like ops: 18\n\nFile: contracts\\uniswap-v4\\types\\Currency.sol\n  SSTORE-like ops: 1, SLOAD-like ops: 26\n\nFile: contracts\\uniswap-v4\\types\\PoolId.sol\n  SSTORE-like ops: 0, SLOAD-like ops: 14\n\n============================================================\n\u001b[93mTotal optimization opportunities: 35\u001b[0m\n\u001b[92mReport saved to gas-report.json\u001b[0m\n"
+      }
+    ],
+    "reverse": [
+      {
+        "name": "Binary hardening check",
+        "status": "pass",
+        "time": 6.474159002304077,
+        "output": "protection...\n\u001b[93m[WARN]\u001b[0m No traditional stack canaries \u2014 Zig uses bounds checking + SafeStack instead\n\n\u001b[96m[INFO]\u001b[0m Scanning strings for unsafe C patterns...\n\u001b[96m[INFO]\u001b[0m Total strings in binary: 14245\n\u001b[92m[PASS]\u001b[0m No unsafe C string functions found (expected for pure Zig)\n\n\u001b[1m============================================================\u001b[0m\n\u001b[92m\u001b[1m  RESULT: Binary appears well-hardened (0 critical issues)\u001b[0m\n\u001b[1m============================================================\u001b[0m\n\n"
+      },
+      {
+        "name": "ROP gadget scan",
+        "status": "pass",
+        "time": 1.0917282104492188,
+        "output": "x8d4ce5\u001b[0m: call rax; ...; ret  [ffd0904883c4505dc3]\n\n\u001b[1m============================================================\u001b[0m\n\u001b[1m  ROP Risk Level: \u001b[93mMEDIUM\u001b[0m\n  - 15678 pop+ret gadgets \u2014 sufficient for ROP chain construction\n  - 88 stack pivots found \u2014 enables stack migration attacks\n  - 54 write-what-where gadgets \u2014 enables arbitrary writes\n  - Zig binaries have bounds checking + safe memory model, reducing exploitability\n\u001b[1m============================================================\u001b[0m\n\n"
+      },
+      {
+        "name": "Block malformation test",
+        "status": "timeout",
+        "time": 2012.75874376297
+      },
+      {
+        "name": "ABI reconstructor (check)",
+        "status": "pass",
+        "time": 0.22005152702331543,
+        "output": "usage: abi-reconstructor.py [-h] --address ADDRESS [--rpc RPC]\n                            [--output OUTPUT]\n\nReconstruct partial ABI from deployed contract bytecode.\n\noptions:\n  -h, --help         show this help message and exit\n  --address ADDRESS  Contract address\n  --rpc RPC          JSON-RPC endpoint\n  --output OUTPUT    Output JSON path\n"
+      },
+      {
+        "name": "Event log parser (check)",
+        "status": "pass",
+        "time": 0.2028031349182129,
+        "output": "-h] --address ADDRESS [--rpc RPC]\n                           [--from-block FROM_BLOCK] [--to-block TO_BLOCK]\n                           [--output OUTPUT]\n\nParse event logs for a deployed contract.\n\noptions:\n  -h, --help            show this help message and exit\n  --address ADDRESS     Contract address\n  --rpc RPC             JSON-RPC endpoint\n  --from-block FROM_BLOCK\n                        Start block (hex or decimal)\n  --to-block TO_BLOCK   End block\n  --output OUTPUT       Output JSON path\n"
+      },
+      {
+        "name": "Storage slot reader (check)",
+        "status": "pass",
+        "time": 0.20493006706237793,
+        "output": "ey MAPPING_KEY] [--output OUTPUT]\n\nRead and decode raw contract storage slots.\n\noptions:\n  -h, --help            show this help message and exit\n  --address ADDRESS     Contract address\n  --rpc RPC             JSON-RPC endpoint\n  --slots SLOTS [SLOTS ...]\n                        Storage slot indices to read (hex or decimal)\n  --mapping-key MAPPING_KEY\n                        If provided, compute mapping slot for this key at slot\n                        0\n  --output OUTPUT       Output JSON path\n"
+      }
+    ]
+  }
+}

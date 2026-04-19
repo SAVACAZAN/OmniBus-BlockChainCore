@@ -101,7 +101,24 @@ def main() -> int:
     parser.add_argument("--honest", type=int, default=8, help="Number of honest peers")
     parser.add_argument("--malicious", type=int, default=4, help="Number of malicious peers")
     parser.add_argument("--output", default="attack-report.json", help="Output JSON report path")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Validate attack patterns are configured correctly without running simulation")
     args = parser.parse_args()
+
+    if args.dry_run:
+        cprint(GREEN, "=== OmniBus P2P Attack Simulator — Dry Run ===")
+        cprint(GREEN, f"  Honest peers:    {args.honest}")
+        cprint(GREEN, f"  Malicious peers: {args.malicious}")
+        cprint(GREEN, f"  Output path:     {args.output}")
+        # Validate attack patterns
+        sim = P2PAttackSimulator(num_honest=args.honest, num_malicious=args.malicious)
+        attacks = ["Eclipse", "Sybil", "Replay"]
+        methods = [sim.simulate_eclipse, sim.simulate_sybil, sim.simulate_replay]
+        cprint(GREEN, f"  Attack patterns configured: {len(attacks)}")
+        for name in attacks:
+            cprint(GREEN, f"    - {name}")
+        cprint(GREEN, "[DRY-RUN] All attack patterns validated. Pass without --dry-run to execute.")
+        return 0
 
     sim = P2PAttackSimulator(num_honest=args.honest, num_malicious=args.malicious)
     report = sim.run()

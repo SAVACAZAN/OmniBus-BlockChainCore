@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import sys, os
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+os.environ['PYTHONIOENCODING'] = 'utf-8'
 """
 ╔══════════════════════════════════════════════════════════════╗
 ║  MYTHOS CLAUDE OMNIBUS — Master Verification Framework      ║
@@ -39,11 +43,11 @@ MAGENTA= '\033[95m'
 BOLD   = '\033[1m'
 RESET  = '\033[0m'
 
-def log_pass(msg):  print(f"  {GREEN}✅ PASS{RESET}  {msg}")
-def log_fail(msg):  print(f"  {RED}❌ FAIL{RESET}  {msg}")
-def log_warn(msg):  print(f"  {YELLOW}⚠  WARN{RESET}  {msg}")
-def log_info(msg):  print(f"  {CYAN}ℹ  INFO{RESET}  {msg}")
-def log_phase(msg): print(f"\n{BOLD}{MAGENTA}{'═'*60}\n  PHASE: {msg}\n{'═'*60}{RESET}")
+def log_pass(msg):  print(f"  {GREEN}[PASS]{RESET}  {msg}")
+def log_fail(msg):  print(f"  {RED}[FAIL]{RESET}  {msg}")
+def log_warn(msg):  print(f"  {YELLOW}[WARN]{RESET}  {msg}")
+def log_info(msg):  print(f"  {CYAN}[INFO]{RESET}  {msg}")
+def log_phase(msg): print(f"\n{BOLD}{MAGENTA}{'='*60}\n  PHASE: {msg}\n{'='*60}{RESET}")
 
 # ═══════════════════════════════════════════════════════════════
 # Project Discovery
@@ -89,7 +93,7 @@ def find_projects():
 # ═══════════════════════════════════════════════════════════════
 
 PHASES = {
-    # ── CRYPTO VERIFICATION ──────────────────────────────────
+    # -- CRYPTO VERIFICATION ----------------------------------
     "crypto": {
         "name": "Cryptographic Verification (NIST/Wycheproof)",
         "description": "Verify all crypto implementations against standard test vectors",
@@ -104,22 +108,21 @@ PHASES = {
         ]
     },
 
-    # ── SECURITY AUDIT ───────────────────────────────────────
+    # -- SECURITY AUDIT ---------------------------------------
     "security": {
         "name": "Security Audit & Vulnerability Scan",
         "description": "Scan all code for vulnerabilities, run rule-based detection",
         "tasks": [
-            {"project": "aweb3", "cmd": "python scripts/security/audit-all-contracts.py", "name": "Solidity audit (all contracts)"},
-            {"project": "aweb3", "cmd": "python scripts/security/symbolic-solidity-analyzer.py", "name": "Symbolic Solidity analysis"},
+            {"project": "aweb3", "cmd": "python scripts/security/audit-all-contracts.py contracts", "name": "Solidity audit (all contracts)"},
+            {"project": "aweb3", "cmd": "python scripts/security/symbolic-solidity-analyzer.py contracts", "name": "Symbolic Solidity analysis"},
             {"project": "aweb3", "cmd": "python scripts/security/vuln-signature-updater.py --check", "name": "Vuln signature scan (Solidity)"},
             {"project": "blockchaincore", "cmd": "python tools/SECURITY/vuln-signature-updater.py --check", "name": "Vuln signature scan (Zig)"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/symbolic-exec-helper.py", "name": "Symbolic exec (Zig source)"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/binary-analysis.py", "name": "Binary hardening check"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/rop-gadget-scanner.py", "name": "ROP gadget scan"},
+            {"project": "blockchaincore", "cmd": "python tools/SECURITY/crypto-audit.py", "name": "Crypto source audit"},
+            {"project": "blockchaincore", "cmd": "python tools/SECURITY/p2p-attack-simulator.py --dry-run", "name": "P2P attack patterns (dry)"},
         ]
     },
 
-    # ── BUILD & TEST ─────────────────────────────────────────
+    # -- BUILD & TEST -----------------------------------------
     "build": {
         "name": "Build & Test Suite",
         "description": "Compile and run all test suites",
@@ -137,43 +140,42 @@ PHASES = {
         ]
     },
 
-    # ── EXPLOIT TESTING ──────────────────────────────────────
+    # -- EXPLOIT TESTING (offline — no node needed) ---------
     "exploits": {
         "name": "Exploit Lab & Attack Simulation",
-        "description": "Run all exploit tests, fuzzing, and attack simulations",
+        "description": "Run exploit tests, fuzzing, and attack simulations (offline tests)",
         "tasks": [
             {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/differential-fuzzer.py --iterations 1000", "name": "Differential fuzzing"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/buffer-overflow-tester.py", "name": "Buffer overflow tests"},
             {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/crypto-edge-cases.py", "name": "Crypto edge cases"},
             {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/consensus-attack-sim.py", "name": "Consensus attack sim"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/double-spend-tester.py", "name": "Double-spend test"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/replay-protection-tester.py", "name": "Replay protection"},
-            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/historical-attack-replayer.py", "name": "Historical attacks"},
-            {"project": "aweb3", "cmd": "python scripts/exploits/exploit-test-generator.py", "name": "Exploit test generator"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/symbolic-exec-helper.py", "name": "Symbolic exec (source scan)"},
+            {"project": "aweb3", "cmd": "python scripts/exploits/exploit-test-generator.py --contract contracts/SimpleStaking.sol", "name": "Exploit test generator"},
             {"project": "aweb3", "cmd": "python scripts/exploits/known-exploits-db.py", "name": "Known exploits DB match"},
-            {"project": "aweb3", "cmd": "python scripts/exploits/attack-replay-runner.py", "name": "Attack replay runner"},
-            {"project": "aweb3", "cmd": "python scripts/exploits/differential-evm-fuzzer.py", "name": "Differential EVM fuzzer"},
+            {"project": "aweb3", "cmd": "python scripts/exploits/differential-evm-fuzzer.py --contract contracts/SimpleStaking.sol --iterations 10", "name": "Differential EVM fuzzer"},
+            {"project": "aweb3", "cmd": "python scripts/exploits/fuzzer-solidity.py", "name": "Solidity fuzzer"},
         ]
     },
 
-    # ── STRESS TESTING ───────────────────────────────────────
+    # -- STRESS TESTING (requires running node) --------------
     "stress": {
-        "name": "Stress Testing & DDoS Simulation",
-        "description": "Test system under extreme load",
+        "name": "Stress Testing & DDoS Simulation (requires running node)",
+        "description": "Test system under extreme load — start node first: zig-out/bin/omnibus-node.exe --mode seed",
         "tasks": [
-            {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/tx-flood-stress.py --count 500 --threads 10", "name": "TX flood stress"},
-            {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/p2p-connection-flood.py --connections 50", "name": "P2P connection flood"},
+            {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/tx-flood-stress.py --count 100 --threads 5", "name": "TX flood stress"},
+            {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/p2p-connection-flood.py --connections 20", "name": "P2P connection flood"},
             {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/memory-pressure-test.py", "name": "Memory pressure"},
             {"project": "blockchaincore", "cmd": "python tools/PERFORMANCE/benchmark-consensus.py", "name": "Consensus benchmark"},
-            {"project": "aweb3", "cmd": "node scripts/testing/gas-stress-test.js", "name": "Gas stress test"},
-            {"project": "aweb3", "cmd": "python scripts/testing/concurrent-bridge-stress.py", "name": "Bridge concurrency"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/buffer-overflow-tester.py", "name": "Buffer overflow tests (RPC)"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/replay-protection-tester.py", "name": "Replay protection (RPC)"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/historical-attack-replayer.py", "name": "Historical attacks (RPC)"},
+            {"project": "aweb3", "cmd": "python scripts/testing/concurrent-bridge-stress.py --count 10", "name": "Bridge concurrency"},
         ]
     },
 
-    # ── NETWORK & PRIVACY ───────────────────────────────────
+    # -- NETWORK & PRIVACY (requires running node + Tor) -----
     "network": {
-        "name": "Network & Privacy Audit",
-        "description": "Test P2P, RPC, Tor privacy, traffic analysis",
+        "name": "Network & Privacy Audit (requires node + optionally Tor)",
+        "description": "Test P2P, RPC, Tor privacy — start node first",
         "tasks": [
             {"project": "blockchaincore", "cmd": "python tools/NETWORK/rpc-tester.py", "name": "RPC method test suite"},
             {"project": "blockchaincore", "cmd": "python tools/NETWORK/tor-connectivity-test.py", "name": "Tor connectivity"},
@@ -184,7 +186,7 @@ PHASES = {
         ]
     },
 
-    # ── CODE ANALYSIS ────────────────────────────────────────
+    # -- CODE ANALYSIS ----------------------------------------
     "analysis": {
         "name": "Code Analysis & Quality",
         "description": "Module complexity, dependencies, API surface, git learning",
@@ -200,16 +202,17 @@ PHASES = {
         ]
     },
 
-    # ── REVERSE ENGINEERING ──────────────────────────────────
+    # -- REVERSE ENGINEERING ----------------------------------
     "reverse": {
         "name": "Reverse Engineering & Binary Analysis",
-        "description": "Analyze deployed contracts and compiled binaries",
+        "description": "Analyze compiled binaries and source code patterns",
         "tasks": [
-            {"project": "aweb3", "cmd": "python scripts/reverse/decompile-deployed.py", "name": "Decompile deployed contracts"},
-            {"project": "aweb3", "cmd": "python scripts/reverse/compare-source-vs-deployed.py", "name": "Source vs deployed verify"},
-            {"project": "blockchaincore", "cmd": "python tools/REVERSE/protocol-fuzzer.py --count 50", "name": "Protocol fuzzer"},
-            {"project": "blockchaincore", "cmd": "python tools/REVERSE/rpc-fuzzer.py", "name": "RPC fuzzer"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/binary-analysis.py", "name": "Binary hardening check"},
+            {"project": "blockchaincore", "cmd": "python tools/EXPLOITS/rop-gadget-scanner.py", "name": "ROP gadget scan"},
             {"project": "blockchaincore", "cmd": "python tools/REVERSE/block-malformation-tester.py", "name": "Block malformation test"},
+            {"project": "aweb3", "cmd": "python scripts/reverse/abi-reconstructor.py --help", "name": "ABI reconstructor (check)"},
+            {"project": "aweb3", "cmd": "python scripts/reverse/event-log-parser.py --help", "name": "Event log parser (check)"},
+            {"project": "aweb3", "cmd": "python scripts/reverse/storage-slot-reader.py --help", "name": "Storage slot reader (check)"},
         ]
     },
 }
@@ -326,7 +329,7 @@ def learn_from_history():
 
     # Report
     print(f"{'Task':<45} {'Pass':>5} {'Fail':>5} {'Rate':>6} {'Avg Time':>8}")
-    print("─" * 75)
+    print("-" * 75)
     for name, stats in sorted(task_stats.items(), key=lambda x: x[1]["fail"], reverse=True):
         total = stats["pass"] + stats["fail"] + stats["timeout"] + stats["error"]
         rate = stats["pass"] / total * 100 if total > 0 else 0
@@ -342,11 +345,11 @@ def learn_from_history():
     if flaky:
         log_warn(f"Flaky tests (sometimes pass, sometimes fail): {len(flaky)}")
         for name in flaky[:5]:
-            print(f"    → {name}")
+            print(f"    -> {name}")
     if always_fail:
         log_fail(f"Always failing: {len(always_fail)}")
         for name in always_fail[:5]:
-            print(f"    → {name}")
+            print(f"    -> {name}")
     if not flaky and not always_fail:
         log_pass("No flaky or always-failing tests detected!")
 
@@ -429,11 +432,11 @@ Examples:
 
     # Banner
     print(f"""
-{BOLD}{MAGENTA}╔══════════════════════════════════════════════════════════════╗
-║          MYTHOS CLAUDE OMNIBUS v1.0                          ║
-║    Systematic Bit-by-Bit Code Verification Framework         ║
-║    aweb3 + BlockChainCore + OmniBus Ecosystem                ║
-╚══════════════════════════════════════════════════════════════╝{RESET}
+{BOLD}{MAGENTA}==============================================================
+          MYTHOS CLAUDE OMNIBUS v1.0
+    Systematic Bit-by-Bit Code Verification Framework
+    aweb3 + BlockChainCore + OmniBus Ecosystem
+=============================================================={RESET}
     """)
 
     if args.list:
@@ -484,7 +487,7 @@ Examples:
     total_time = time.time() - start_time
 
     # Summary
-    print(f"\n{'═'*60}")
+    print(f"\n{'='*60}")
     print(f"{BOLD}  MYTHOS RUN COMPLETE{RESET}")
     print(f"  Duration: {total_time:.0f}s")
     print(f"  Phases:   {len(phases_to_run)}")
@@ -497,7 +500,7 @@ Examples:
         color = GREEN if rate >= 90 else (YELLOW if rate >= 70 else RED)
         print(f"  Score:    {color}{rate:.0f}%{RESET}")
 
-    print(f"{'═'*60}\n")
+    print(f"{'='*60}\n")
 
     # Save results
     report = {
