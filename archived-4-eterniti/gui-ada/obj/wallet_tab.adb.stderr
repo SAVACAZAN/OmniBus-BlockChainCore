@@ -1,0 +1,2 @@
+wallet_tab.adb:58:10: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+wallet_tab.adb:151:12: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

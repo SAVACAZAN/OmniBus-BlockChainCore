@@ -1,0 +1,2 @@
+console_tab.adb:108:31: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+console_tab.ads:26:38: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

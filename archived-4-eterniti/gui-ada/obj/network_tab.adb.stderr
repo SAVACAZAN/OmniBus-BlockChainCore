@@ -1,0 +1,2 @@
+network_tab.adb:10:09: warning: unit "Gtk.Grid" is not referenced [-gnatwu]
+network_tab.adb:103:10: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

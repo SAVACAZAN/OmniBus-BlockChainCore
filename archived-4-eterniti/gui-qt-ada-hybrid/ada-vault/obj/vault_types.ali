@@ -1,0 +1,135 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_IMPLICIT_LOOPS
+RV NO_ELABORATION_CODE
+
+U vault_types%b		vault_types.adb		a803cfca NE OO PK
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.bignums%s	s-bignum.adb		s-bignum.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+
+U vault_types%s		vault_types.ads		73c9ed24 EE OO PU PK
+Z system.assertions%s	s-assert.adb		s-assert.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-bignum.ads		20250808065140 12de6c0f system.bignums%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-shabig.ads		20250808065140 5417e075 system.shared_bignums%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+D vault_types.adb	20260401002122 dbca22ee vault_types%b
+G a e
+G c Z s s [name_stringIP vault_types 50 9 none]
+G c Z s s [key_stringIP vault_types 56 9 none]
+G c Z s s [secret_stringIP vault_types 62 9 none]
+G c Z s s [key_entryIP vault_types 70 9 none]
+G c Z s b [exchange_name vault_types 151 13 none]
+G c Z s b [status_name vault_types 154 13 none]
+G c Z s b [to_name_string vault_types 157 13 none]
+G c Z s b [to_key_string vault_types 160 13 none]
+G c Z s b [to_secret_string vault_types 163 13 none]
+G c Z s s [Tslot_arrayBIP vault_types 89 4 none]
+G c Z s s [Texchange_storeBIP vault_types 91 4 none]
+X 14 vault_types.ads
+10K9*Vault_Types 166l5 166e16 15|7b14 53l5 53t16
+17E9*Exchange_Id 18e7 20r8 91r34 151r33 15|11r33
+17n25*LCX{17E9} 20r25 15|14r15
+17n30*Kraken{17E9} 20r35 15|15r15
+17n38*Coinbase{17E9} 20r48 15|16r15
+22N4*Exchange_Count
+26E9*Key_Status 27e7 29r8 72r20 154r31 15|20r31
+26n24*Status_Free{26E9} 30r8 72r34 80r22 15|23r15
+26n37*Status_Paid{26E9} 31r8 15|24r15
+26n50*Status_Not_Paid{26E9} 32r8 15|25r15
+36N4*Max_Keys_Per_Exchange 87r34
+37N4*Max_Name_Length 46r47 51r27 54r52 158r31
+38N4*Max_Key_Length 47r47 57r27 60r51 161r31
+39N4*Max_Secret_Length 48r47 63r27 66r54 164r31
+41N4*Vault_Magic
+42N4*Vault_Version
+46I12*Name_Index{natural} 52r14
+47I12*Key_Index{natural} 58r14
+48I12*Secret_Index{natural} 64r14
+50R9*Name_String 54e7 73r20 157r48 15|29r48 30r16
+51a7*Data{string} 81m23 15|33m14
+52i7*Len{46I12} 54r45 81m48 15|32m14
+56R9*Key_String 60e7 74r20 160r47 15|37r47 38r16
+57a7*Data{string} 82m23 15|41m14
+58i7*Len{47I12} 60r44 82m48 15|40m14
+62R9*Secret_String 66e7 75r20 163r50 15|45r50 46r16
+63a7*Data{string} 83m23 15|49m14
+64i7*Len{48I12} 66r47 83m48 15|48m14
+70R9*Key_Entry 76e14 78r31 89r45
+71b7*In_Use{boolean} 79m8
+72e7*Status{26E9} 80m8
+73r7*Name{50R9} 81m8
+74r7*Api_Key{56R9} 82m8
+75r7*Api_Secret{62R9} 83m8
+78r4*Empty_Key_Entry{70R9}
+87I9*Slot_Index<short_short_integer> 89r30
+89A9*Slot_Array(70R9)<87I9> 91r50
+91A9*Exchange_Store(89A9)<17E9>
+95E9*Vault_Opcode 108e7 110r8
+96n8*Op_Init{95E9} 111r8
+97n8*Op_Add{95E9} 112r8
+98n8*Op_Get_Meta{95E9} 113r8
+99n8*Op_Delete{95E9} 114r8
+100n8*Op_Lock{95E9} 115r8
+101n8*Op_List{95E9} 116r8
+102n8*Op_Set_Status{95E9} 117r8
+103n8*Op_Save{95E9} 118r8
+104n8*Op_Count{95E9} 119r8
+105n8*Op_Get_Secret{95E9} 120r8
+106n8*Op_Set_Status2{95E9} 121r8
+107n8*Op_Get_Trading_Creds{95E9} 122r8
+126E9*Vault_Error 136e7 138r8
+127n8*Err_OK{126E9} 139r8
+128n8*Err_Not_Found{126E9} 140r8
+129n8*Err_Decrypt{126E9} 141r8
+130n8*Err_IO{126E9} 142r8
+131n8*Err_Locked{126E9} 143r8
+132n8*Err_Invalid{126E9} 144r8
+133n8*Err_No_Service{126E9} 145r8
+134n8*Err_Full{126E9} 146r8
+135n8*Err_Duplicate{126E9} 147r8
+151V13*Exchange_Name{string} 151>28 152r20 15|11b13
+151e28 Ex{17E9} 15|11b28 13r12
+154V13*Status_Name{string} 154>26 155r20 15|20b13
+154e26 St{26E9} 15|20b26 22r12
+157V13*To_Name_String{50R9} 157>29 15|29b13 35l8 35t22
+157a29 S{string} 158r19 15|29b29 32r21 33r25 33r38
+160V13*To_Key_String{56R9} 160>28 15|37b13 43l8 43t21
+160a28 S{string} 161r19 15|37b28 40r21 41r25 41r38
+163V13*To_Secret_String{62R9} 163>31 15|45b13 51l8 51t24
+163a31 S{string} 164r19 15|45b31 48r21 49r25 49r38
+X 15 vault_types.adb
+30r7 Result{14|50R9} 32m7 33m7 34r14
+38r7 Result{14|56R9} 40m7 41m7 42r14
+46r7 Result{14|62R9} 48m7 49m7 50r14
+

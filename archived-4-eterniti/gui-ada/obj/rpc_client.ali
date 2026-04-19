@@ -1,0 +1,292 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_CALENDAR
+RV NO_DELAY
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTION_PROPAGATION
+RV NO_EXCEPTIONS
+RV NO_FIXED_POINT
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_LONG_LONG_INTEGERS
+RV NO_NESTED_FINALIZATION
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_OBSOLESCENT_FEATURES
+
+U rpc_client%b		rpc_client.adb		4e749eb1 NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.calendar%s	a-calend.adb		a-calend.ali
+Z ada.exceptions%s	a-except.adb		a-except.ali
+W ada.streams%s		a-stream.adb		a-stream.ali
+W ada.strings%s		a-string.ads		a-string.ali
+W ada.strings.fixed%s	a-strfix.adb		a-strfix.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z ada.tags%s		a-tags.adb		a-tags.ali
+W gnat%s		gnat.ads		gnat.ali
+W gnat.sockets%s	g-socket.adb		g-socket.ali
+Z system%s		system.ads		system.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.concat_5%s	s-conca5.adb		s-conca5.ali
+Z system.concat_9%s	s-conca9.adb		s-conca9.ali
+Z system.finalization_primitives%s  s-finpri.adb  s-finpri.ali
+Z system.img_int%s	s-imgint.ads		s-imgint.ali
+Z system.img_lli%s	s-imglli.ads		s-imglli.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.soft_links%s	s-soflin.adb		s-soflin.ali
+Z system.standard_library%s  s-stalib.adb	s-stalib.ali
+Z system.val_lli%s	s-vallli.ads		s-vallli.ali
+
+U rpc_client%s		rpc_client.ads		ef99b363 EE NE OO PK
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-calend.ads		20250808065140 bf7f3cc9 ada.calendar%s
+D a-charac.ads		20250808065140 2d3ec45b ada.characters%s
+D a-chlat1.ads		20250808065140 e0d72e76 ada.characters.latin_1%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-finali.ads		20250808065140 bf4f806b ada.finalization%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-strfix.ads		20250808065140 8648dedb ada.strings.fixed%s
+D a-strmap.ads		20250808065140 1f91ebb6 ada.strings.maps%s
+D a-strsea.ads		20250808065140 18c3c634 ada.strings.search%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-strunb.ads		20250808065140 b10770ab ada.strings.unbounded%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20250808065140 c3a8ac65 ada.unchecked_deallocation%s
+D gnat.ads		20250808065140 b5988c27 gnat%s
+D g-socket.ads		20250808065140 6a480829 gnat.sockets%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D rpc_client.ads	20260401011030 ef99b363 rpc_client%s
+D rpc_client.adb	20260401074822 e5d5bb54 rpc_client%b
+D system.ads		20250808065140 a869df9e system%s
+D s-atocou.ads		20250808065140 dc18efc3 system.atomic_counters%s
+D s-conca3.ads		20250808065140 8a7a19a2 system.concat_3%s
+D s-conca5.ads		20250808065140 4099d1db system.concat_5%s
+D s-conca9.ads		20250808065140 54efc86b system.concat_9%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-finpri.ads		20250808065140 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20250808065140 0a7c3ed4 system.finalization_root%s
+D s-imagei.ads		20250808065140 5e131ce0 system.image_i%s
+D s-imgint.ads		20250808065140 67e4edfb system.img_int%s
+D s-imglli.ads		20250808065140 d88f4f3b system.img_lli%s
+D s-memory.ads		20250808065140 18949c1a system.memory%s
+D s-oscons.ads		20250827164332 2ab3e376 system.os_constants%s
+D s-oslock.ads		20250808065140 88eb514b system.os_locks%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-pooglo.ads		20250808065140 91708d21 system.pool_global%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-retsta.ads		20250808065140 0f6b06cb system.return_stack%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stalib.adb		20250808065140 eb464a47 system.standard_library%b
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-stopoo.ads		20250808065140 e9fa2dd8 system.storage_pools%s
+D s-stratt.ads		20250808065140 516607ae system.stream_attributes%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-vallli.ads		20250808065140 353103fd system.val_lli%s
+D s-valllu.ads		20250808065140 4134fa35 system.val_llu%s
+D s-valspe.ads		20250808065140 f810d31c system.val_spec%s
+D s-valuei.ads		20250808065140 d9377ca5 system.value_i%s
+D s-vaispe.ads		20250808065140 8280550e system.value_i_spec%s
+D s-valueu.ads		20250808065140 a38d32a6 system.value_u%s
+D s-vauspe.ads		20250808065140 89269ba5 system.value_u_spec%s
+D s-vs_int.ads		20250808065140 06b6b724 system.vs_int%s
+D s-vs_lli.ads		20250808065140 b945cf7d system.vs_lli%s
+D s-vs_llu.ads		20250808065140 8f3536c5 system.vs_llu%s
+D s-vs_uns.ads		20250808065140 e7f47a27 system.vs_uns%s
+D s-win32.ads		20250808065140 f77987dc system.win32%s
+G a e
+G c Z s b [set_host rpc_client 28 14 none]
+G c Z s b [set_port rpc_client 29 14 none]
+G c Z s b [call rpc_client 32 14 none]
+G c Z s b [get_block_height rpc_client 39 14 none]
+G c Z s b [get_network_info rpc_client 41 14 none]
+G c Z s b [get_mempool rpc_client 43 14 none]
+G c Z s b [get_balance rpc_client 45 14 none]
+G c Z s b [send_transaction rpc_client 49 14 none]
+G c Z s b [get_block rpc_client 56 14 none]
+G c Z s b [get_block_by_hash rpc_client 60 14 none]
+G c Z s b [get_peer_list rpc_client 64 14 none]
+G c Z s b [get_mining_info rpc_client 66 14 none]
+G c Z s b [get_transactions rpc_client 68 14 none]
+G c Z s b [execute_command rpc_client 72 14 none]
+G c Z s b [extract_string rpc_client 77 13 none]
+G c Z s b [extract_number rpc_client 80 13 none]
+G c Z s b [is_connected rpc_client 83 13 none]
+G c Z s s [rpc_resultIP rpc_client 21 9 none]
+G c Z b b [http_post rpc_client 40 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 23|8r6 9r6 10r6 15r8 80r19 138r13 185r11 207r11 327r11
+X 2 a-calend.ads
+36K13*Calendar 440e17 23|8w10 80r23
+42I9*Time<226I9> 23|80r32
+226I9 Time_Rep<long_long_integer>
+X 7 a-stream.ads
+36K13*Streams 90e16 23|9w10 15r12
+42M9*Stream_Element 23|54r16
+44I9*Stream_Element_Offset<long_long_integer> 23|50r41 53r16 68r41 69r14
+. 107r17
+54A9*Stream_Element_Array(42M9)<44I9> 23|49r43 50r14 68r14 106r26
+X 8 a-string.ads
+16K13*Strings 35e16 23|10r10 138r17 185r15 207r15 327r15
+X 9 a-strfix.ads
+49K21*Fixed 1390e22 23|10w18 138r25 185r23 207r23 327r23
+252V13*Index{natural} 23|138s31 187s37 195s38 209s37 328s35
+X 18 gnat.ads
+40K9*GNAT 63e9 23|7r6 14r8
+X 19 g-socket.ads
+56K14*Sockets 1605e17 23|7w11 14r13
+413I9*Socket_Type<integer> 23|44r16
+445O12*Timeval_Duration{duration}
+496I9*Port_Type<integer> 23|76r20
+594R9*Sock_Addr_Type 604e14 23|45r16
+599r13*Addr{521R9} 23|75m12
+600i13*Port{496I9} 23|76m12
+628V13*Inet_Addr{521R9} 23|75s20
+783n7*Socket_Level{782E9} 23|84r19 88r19
+834n7*Send_Timeout{802E9} 23|85r25
+837n7*Receive_Timeout{802E9} 23|89r25
+920e22*Name{802E9} 23|85m14 89m14
+990o13*Timeout{445O12} 23|86m14 90m14
+1125U14*Create_Socket 23|74s7
+1173U14*Close_Socket 23|97s13 130s7 160s13
+1176U14*Connect_Socket 23|94s10
+1230U14*Receive_Socket 23|115s13
+1288U14*Send_Socket 23|109s10
+1327U14*Set_Socket_Option 23|83s10 87s10
+X 22 rpc_client.ads
+10K9*RPC_Client 85l5 85e15 23|12b14 339l5 339t15
+14a4*Default_Host{string} 23|47r65
+15N4*Default_Port 23|19r40
+18N4*Max_Response 19r44 23|68r64 119r25
+19A12*Response_String{string}<integer> 22r17
+21R9*RPC_Result 25e14 35r20 41r45 43r40 47r21 54r23 58r20 62r20 64r42 66r44
+. 70r21 74r21 23|42r21 171r20 241r11 253r45 258r40 265r21 276r23 290r20 299r20
+. 305r42 310r44 317r21 325r21
+22a7*Data{19A12} 23|72m18 121m26 136r43 146m23 245r47
+23i7*Len{natural} 23|72m43 132m14 148m23 245r60
+24b7*Success{boolean} 23|72m53 153m14 158m17 244r12
+28U14*Set_Host 28>24 23|24b14 29l8 29t16
+28a24 Host{string} 23|24b24 25r44 27r32 27r38 27r52
+29U14*Set_Port 29>24 23|31b14 34l8 34t16
+29i24 Port{positive} 23|31b24 33r23
+32U14*Call 33>7 34>7 35<7 23|168b14 178l8 178t12 243s7 255s7 260s7 268s7
+. 281s7 294s7 302s7 307s7 312s7 320s7 331s10 335s10
+33a7 Method{string} 23|169b7 174r57
+34a7 Params{string} 23|170b7 175r28
+35r7 Result{21R9} 23|171b7 177m27
+39U14*Get_Block_Height 39<32 39<54 23|240b14 251l8 251t24
+39i32 Height{natural} 23|240b32 245m10 248m10
+39b54 OK{boolean} 23|240b54 246m10 249m10
+41U14*Get_Network_Info 41<32 23|253b14 256l8 256t24
+41r32 Result{21R9} 23|253b32 255m37
+43U14*Get_Mempool 43<27 23|258b14 261l8 261t19
+43r27 Result{21R9} 23|258b27 260m37
+45U14*Get_Balance 46>7 47<7 23|263b14 269l8 269t19
+46a7 Address{string} 23|264b7 268r47
+47r7 Result{21R9} 23|265b7 268m64
+49U14*Send_Transaction 50>7 51>7 52>7 53>7 54<7 23|271b14 286l8 286t24
+50a7 From_Addr{string} 23|272b7 282r27
+51a7 To_Addr{string} 23|273b7 283r27
+52i7 Amount{long_long_integer} 23|274b7 278r57
+53i7 Fee{long_long_integer} 23|275b7 279r57
+54r7 Result{21R9} 23|276b7 285m47
+56U14*Get_Block 57>7 58<7 23|288b14 295l8 295t17
+57i7 Height{natural} 23|289b7 292r45
+58r7 Result{21R9} 23|290b7 294m65
+60U14*Get_Block_By_Hash 61>7 62<7 23|297b14 303l8 303t25
+61a7 Hash{string} 23|298b7 302r42
+62r7 Result{21R9} 23|299b7 302m56
+64U14*Get_Peer_List 64<29 23|305b14 308l8 308t21
+64r29 Result{21R9} 23|305b29 307m34
+66U14*Get_Mining_Info 66<31 23|310b14 313l8 313t23
+66r31 Result{21R9} 23|310b31 312m36
+68U14*Get_Transactions 69>7 70<7 23|315b14 321l8 321t24
+69a7 Address{string} 23|316b7 320r52
+70r7 Result{21R9} 23|317b7 320m69
+72U14*Execute_Command 73>7 74<7 23|323b14 337l8 337t23
+73a7 Command{string} 23|324b7 328r42 331r16 331r25 332r32 332r54 335r16
+74r7 Result{21R9} 23|325b7 333m15 335m31
+77V13*Extract_String{string} 78>7 78>22 23|182b13 202l8 202t22
+78a7 JSON{string} 23|183b7 187r44 195r45 195r60 200r17
+78a22 Key{string} 23|183b22 186r43
+80V13*Extract_Number{long_long_integer} 81>7 81>22 23|204b13 236l8 236t22
+. 245s29
+81a7 JSON{string} 23|205b7 209r44 220r25 220r44 224r26 225r17 225r53 230r45
+81a22 Key{string} 23|205b22 208r43
+83V13*Is_Connected{boolean} 23|36b13
+X 23 rpc_client.adb
+17a4 Current_Host{string} 27m7 47r31
+18i4 Host_Len{natural} 28m7 47r13 47r50
+19i4 Current_Port{positive} 33m7 76r31
+20b4 Connected{boolean} 36r45 98m13 102m7 157m10
+25i7 L{natural} 27r26 27r65 28r19
+40U14 HTTP_Post 40b14 41>7 42<7 164l8 164t17 177s7
+41a7 Content{string} 63r44 66r9
+42r7 Result{22|21R9} 72m7 121m19 132m7 136r36 146m16 148m16 153m7 158m10
+44i7 Sock{19|413I9} 74m22 84r13 88r13 94r26 97r27 109r23 115r29 130r21 160r27
+45r7 Addr{19|594R9} 75m7 76m7 94r32
+46a7 Host_S{string} 61r20 75r31
+49V16 To_SEA{7|54A9} 49b16 49>24 57l11 57t17 106s50
+49a24 S{string} 50r64 52r19 53r43 54r47
+50a10 R{7|54A9} 53m13 56r17
+52i14 I{integer} 53r39 54r50
+59a7 Request=65:29{string} 106r58
+68a7 Buf{7|54A9} 115m35 116r30 118r22 122r46
+69i7 Last{7|44I9} 115m40 116r23 118r35
+70i7 Pos{natural} 119r19 120m19 120r26 121r32 132r21 136r54 141r41 144r49
+. 147r39
+81o10 Timeout{duration} 86r25 90r25
+106a10 Data{7|54A9} 109r29
+107i10 Sent{7|44I9} 109m35
+118i17 I<long_long_integer> 122r51
+136a10 Full{string} 138r38 147r19
+137i10 Idx{natural} 141r13 141r30 143r49
+143i16 Body_Start{natural} 144r55 147r25
+144i16 Body_Len{natural} 146r34 148r30
+173a7 Payload=175:35{string} 177r18
+186a7 Pattern=186:47{string} 187r50 194r44
+187i7 Idx{natural} 189r10 194r38
+194i10 Start{natural} 195r51 200r23
+195i10 End_Q{natural} 197r13 200r32
+208a7 Pattern=208:47{string} 209r50 216r35
+209i7 Idx{natural} 211r10 216r29
+216i10 Start{natural} 217r30 220r16 220r50 221m13 221r22 223r20 229r22 230r51
+217i10 Finish{natural} 223m10 224r16 225r23 225r59 227m13 227r23 229r13 230r60
+241r7 R{22|21R9} 243m36 244r10 245r45 245r58
+278a7 Amt{string} 284r29 284r39
+279a7 F{string} 285r24 285r32
+292a7 H{string} 294r42 294r50
+328i7 Space{natural} 330r10 331r42 332r41
+X 24 system.ads
+67M9*Address
+X 35 s-memory.ads
+51V13*Alloc{24|67M9} 101i<c,__gnat_malloc>22
+66U14*Free 102i<c,__gnat_free>22
+74V13*Realloc{24|67M9} 103i<c,__gnat_realloc>22
+X 46 s-stalib.adb
+87U14 Break_Start 88i<c,__gnat_break_start>22
+

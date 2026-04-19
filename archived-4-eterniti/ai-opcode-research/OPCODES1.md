@@ -1,0 +1,1115 @@
+# OmniBus Blockchain - OPCODES & CONSTANTS REFERENCE
+
+> **Scop:** Referință centralizată pentru toate opcodurile, constantele, enum-urile și codurile de mesaje.
+> **Generat automat la:** 2026-03-31 04:16:13
+> **Scanat de:** scan_opcodes.py
+
+---
+
+## ⚠️ NOTĂ
+
+Acest document este generat automat de `scan_opcodes.py`.
+Pentru a actualiza, rulează: `python scan_opcodes.py --update`
+
+---
+
+## 📊 CONSTANTE DESCOPERITE
+
+### core\binary_codec.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `SubBlock` | `sub_block_mod.SubBlock` |  |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\bip32_wallet.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `DOMAINS` | `[_]Domain{
+        .{ .name = "omnibus.omni",     .algorithm = "Dilithium-5 + Kyber-768", .prefix...` |  |
+
+### core\block.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_BLOCK_SIZE` | `usize = 1_048_576` | / Maximum block size in bytes (1 MB, like Dogecoin/Bitcoin l... |
+| `MAX_BLOCK_TX` | `usize = 4_096` | / Maximum transactions per block / Reduced from 10,000 to 4,... |
+| `MerkleProof` | `light_client_mod.MerkleProof` |  |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\blockchain.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BLOCK_REWARD_SAT` | `u64 = 8_333_333` | / Block reward: 0.08333333 OMNI in SAT (9 decimale: 1 OMNI =... |
+| `Block` | `block_mod.Block` |  |
+| `COINBASE_MATURITY` | `u32 = 100` | / Coinbase maturity: block rewards nu pot fi cheltuite inain... |
+| `DUST_THRESHOLD_SAT` | `u64 = 100` | / Dust threshold: TX cu amount sub aceasta valoare sunt resp... |
+| `FEE_BURN_PCT` | `u64 = 50` | / Fee burn percentage (0-100): ce procent din fees se ard (c... |
+| `HALVING_INTERVAL` | `u64 = 126_144_000` | 4 ani × 365.25 zile × 86400 sec/zi |
+| `MAX_DIFFICULTY` | `u32 = 256` |  |
+| `MAX_ORPHAN_POOL` | `usize = 64` | / Maximum orphan blocks kept in the pool (prevent memory exh... |
+| `MAX_REORG_DEPTH` | `usize = 100` | / Maximum reorg depth: deeper chain reorganizations are reje... |
+| `MAX_SUPPLY_SAT` | `u64 = 21_000_000_000_000_000` | / Numarul total de SAT emisi vreodata: 21,000,000 × 10^9 = 2... |
+| `MIN_DIFFICULTY` | `u32 = 1` | / Dificultate minima si maxima permisa / Extended range: MAX... |
+| `RETARGET_INTERVAL` | `u64 = 2016` | / Difficulty retarget: la fiecare 2016 blocuri (ca Bitcoin) |
+| `TARGET_BLOCK_TIME_S` | `i64 = 1` | / Timp tinta per bloc: 1 secunda (OmniBus block time) |
+| `TARGET_INTERVAL_S` | `i64 = @intCast(RETARGET_INTERVAL)` | / Timp tinta total pentru un interval retarget: 2016 secunde... |
+| `TX_MIN_FEE` | `u64 = 1` | / Minimum fee per transaction (1 SAT anti-spam, same as memp... |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\blockchain_v2.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `ArchiveManager` | `archive_manager_mod.ArchiveManager` |  |
+| `BinaryDecoder` | `binary_codec.BinaryDecoder` |  |
+| `BinaryEncoder` | `binary_codec.BinaryEncoder` |  |
+| `Block` | `block_mod.Block` |  |
+| `PruneConfig` | `prune_config.PruneConfig` |  |
+| `PruneStats` | `prune_config.PruneStats` |  |
+| `ShardConfig` | `shard_config.ShardConfig` |  |
+| `SubBlock` | `sub_block_mod.SubBlock` |  |
+| `SubBlockEngine` | `sub_block_mod.SubBlockEngine` |  |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\bls_signatures.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BLS_PUBKEY_SIZE` | `usize = 48` | / Production: replace inner crypto with actual BLS12-381 via... |
+| `BLS_SECKEY_SIZE` | `usize = 32` | / BLS Secret Key (32 bytes scalar) |
+| `BLS_SIG_SIZE` | `usize = 96` | / BLS Signature (96 bytes on BLS12-381 curve) |
+
+### core\bootstrap.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `DISCOVERY_INTERVAL_S` | `i64 = 300` | / Periodic discovery interval in seconds (5 minutes) |
+| `MAX_PEERS` | `usize = 32` | / Maximum peers to keep in the known list |
+| `MAX_PEERS_PER_SUBNET` | `usize = 2` | / Maximum peers from same /16 subnet (anti-eclipse) |
+| `MIN_DIVERSE_PEERS` | `usize = 4` | / Minimum diverse peers for eclipse attack resistance / Node... |
+| `MIN_MINERS_FOR_MINING` | `usize = 10` | / Check if ready to start mining / Minimum miners required b... |
+| `MSG_GET_PEERS` | `u8 = 0x10` | / Mesaj PEX: cerere lista de peeri |
+| `MSG_PEER_LIST` | `u8 = 0x11` | / Mesaj PEX: raspuns cu lista de peeri |
+| `PEERS_DAT_PATH` | `"data/peers.dat"` | ─── B12: Peer Persistence — save/load peers from data/peers.... |
+| `PEER_TIMEOUT_S` | `i64 = 1800` | / Unresponsive peer timeout in seconds (30 minutes) |
+
+### core\bread_ledger.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BREAD_PRICE_SAT` | `u64 = 1_000_000_000` | --- CONSTANTE ----------------------------------------------... |
+| `BreadVoucherStatus` | `enum(u8) {
+    pending   = 0,   // emis, neredeemed
+    redeemed  = 1,   // redeemed la un mercha...` | --- TIPURI -------------------------------------------------... |
+| `VOUCHER_EXPIRY_BLOCKS` | `u64 = 30 * 86_400` | / Voucher expira in 30 zile = 30 * 86400 blocuri |
+
+### core\bridge_relay.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BRIDGE_FEE_BPS` | `u64 = 10` | / Fee bridge: 0.1% (in basis points: 10/10000) |
+| `BRIDGE_MAX_RELAYERS` | `u8 = 9` |  |
+| `BRIDGE_REQUIRED_SIGS` | `u8 = 2` | --- CONSTANTE ----------------------------------------------... |
+| `BRIDGE_TIMEOUT_BLOCKS` | `u64 = 100` | / Timeout in blocuri pentru o operatie de bridge |
+| `BridgeOpStatus` | `enum(u8) {
+    pending    = 0,  // Initiata, asteptam confirmari
+    confirmed  = 1,  // N/M rela...` |  |
+| `BridgeOpType` | `enum(u8) {
+    lock_and_mint = 1,   // Extern → OMNI: lock pe chain extern, mint wrapped pe OMNI
+...` | --- TIPURI -------------------------------------------------... |
+| `ChainId` | `oracle_mod.ChainId` |  |
+| `ExchangeId` | `oracle_mod.ExchangeId` |  |
+
+### core\chain_config.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `ChainId` | `enum(u32) {
+    /// Mainnet OmniBus
+    mainnet = 1,
+    /// Testnet (faucet, no real value)
+    ...` | /   - Solana: Cluster configs (mainnet/devnet/testnet) / Cha... |
+
+### core\compact_blocks.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_COMPACT_TX` | `usize = 10_000` | / Maximum TX IDs in a compact block |
+| `MAX_PREFILLED` | `usize = 100` | / Maximum prefilled TX in a compact block |
+| `SHORT_TXID_SIZE` | `usize = 6` | / OmniBus: adaptat pentru 1s blocks si sub-block engine / Sh... |
+| `SIPHASH_KEY_SIZE` | `usize = 16` | / SipHash key size (used for short TX ID derivation) |
+| `ShortTxId` | `[SHORT_TXID_SIZE]u8` | / Short TX ID: first 6 bytes of SipHash(TX hash, nonce) |
+
+### core\compact_transaction.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\consensus.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `block_mod.Block` |  |
+
+### core\dns_registry.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_ENTRIES` | `usize = 1024` | / Maximum registry entries (per-node tracking, full registry... |
+| `MAX_NAME_LEN` | `usize = 25` | /   dns_registry  = human-readable names mapped to addresses... |
+| `MIN_NAME_LEN` | `usize = 3` | / Minimum name length |
+| `REGISTER_COST_SAT` | `u64 = 1_000_000_000` | / Registration cost in SAT (1 OMNI) |
+| `RENEWAL_PERIOD_BLOCKS` | `u64 = 31_557_600` | / Renewal period in blocks (~1 year = 365.25 * 86400 blocks ... |
+
+### core\domain_minter.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `DomainType` | `enum(u8) {
+    omni = 0,  // ob_omni_ — ML-KEM-768 — identity, non-transferabil
+    k1   = 1,  //...` | --- TIPURI -------------------------------------------------... |
+| `MAX_DOMAINS` | `usize = 65_536` | --- DOMAIN REGISTRY ----------------------------------------... |
+| `MAX_LEVEL` | `u8 = 100` |  |
+| `MAX_NAME_LEN` | `usize = 32` |  |
+
+### core\finality.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `CHECKPOINT_INTERVAL` | `u64 = 64` | /   - Finalized blocks can NEVER be reverted (unlike PoW-onl... |
+| `CheckpointStatus` | `enum(u8) {
+    /// Proposed but not yet justified
+    Pending = 0,
+    /// Justified: 2/3+ valida...` | / Checkpoint status |
+| `MAX_CHECKPOINTS` | `usize = 256` | / Maximum number of tracked checkpoints |
+| `MAX_VALIDATORS` | `usize = 128` | / Maximum validators |
+| `SOFT_FINALITY_CONFIRMS` | `u32 = 6` | / Minimum confirmations for soft finality (like Bitcoin's 6 ... |
+
+### core\genesis.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `block_mod.Block` |  |
+| `Blockchain` | `blockchain_mod.Blockchain` |  |
+| `GENESIS_HASH` | `"0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8"` | / Hash genesis — deterministic, hardcodat dupa primul calcul... |
+| `GENESIS_MESSAGE` | `"26/Mar/2026 OmniBus born — 600x faster than Bitcoin — Ada Spark verified — ob_omni_"` | / Mesajul embedded in genesis — dovada ca blocul nu a fost p... |
+| `GENESIS_TIMESTAMP` | `i64 = 1_743_000_000` | / Timestamp Unix fix pentru genesis (26 Mar 2026 00:00:00 UT... |
+| `GENESIS_VERSION` | `u32 = 1` | / Versiunea protocolului la genesis |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\governance.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_PROPOSALS` | `usize = 256` | / Maximum proposals tracked |
+| `ProposalStatus` | `enum(u8) {
+    /// In perioada de depozit (asteapta quorum de deposit)
+    DepositPeriod = 0,
+   ...` | / Starea unei propuneri |
+| `ProposalType` | `enum(u8) {
+    /// Schimbarea unui parametru numeric (fee_burn_pct, ubi_rate, etc.)
+    ParamChan...` | /              EGLD (governance staking), Bitcoin BIP9 (vers... |
+| `Vote` | `enum(u8) {
+    Yes = 1,
+    No = 2,
+    Abstain = 3,
+    NoWithVeto = 4, // No + propunere sa fie...` | / Un vot pe o propunere |
+
+### core\guardian.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `GUARDIAN_ACTIVATION_DELAY` | `u64 = 20_000` | / Activare delayed: 20 epochs (previne hijacking instant) / ... |
+| `GuardianStatus` | `enum(u8) {
+    /// Not yet active (in activation delay)
+    pending = 0,
+    /// Active — require...` | / Guardian status |
+| `MAX_GUARDED_ACCOUNTS` | `usize = 4096` | / Maximum accounts tracked |
+| `MAX_GUARDIANS` | `usize = 3` | / Maximum guardians per account (for future multi-guardian) |
+
+### core\hex_utils.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_NONCE` | `u64 = 4_294_967_296` | / Maximum nonce for PoW mining (2^32, shared constant) |
+
+### core\kademlia_dht.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `ALPHA` | `usize = 3` | / Alpha: parallel lookups |
+| `BUCKET_REFRESH_INTERVAL` | `u64 = 3600` | / Refresh interval in blocks ~1 hour at 1 block/s |
+| `K_BUCKET_SIZE` | `usize = 20` | / K-bucket size (max peers per bucket) |
+| `MAX_DHT_NODES` | `usize = 256` | / Max tracked nodes total |
+| `NODE_ID_SIZE` | `usize = 20` | / OmniBus: Kademlia for peer discovery + fallback to seed no... |
+| `NUM_BUCKETS` | `usize = 160` | / Number of buckets (160 for 160-bit IDs) |
+| `NodeId` | `[NODE_ID_SIZE]u8` | / DHT Node ID |
+
+### core\main.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MinerWalletPool` | `miner_wallet_mod.MinerWalletPool` | ── Global Miner Wallet Pool — shared intre RPC thread si min... |
+
+### core\mempool.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MEMPOOL_EXPIRY_SEC` | `i64   = 14 * 24 * 3600` | / Expiry time: TX neconfirmata dupa 14 zile e stearsa (ca Bi... |
+| `MEMPOOL_MAX_BYTES` | `usize = 1_048_576` | 1 MB per block worth |
+| `MEMPOOL_MAX_MEMORY` | `usize = 314_572_800` | 300 MB total (ca Bitcoin Core) |
+| `MEMPOOL_MAX_TX` | `usize = 10_000` | / Limite mempool |
+| `MempoolError` | `error{
+    Full,
+    TxTooLarge,
+    TxInvalid,
+    TxDuplicate,
+    FeeTooLow,
+}` |  |
+| `TX_MAX_BYTES` | `usize = 512` | max 512 bytes per TX |
+| `TX_MIN_FEE_SAT` | `u64   = 1` | min 1 SAT fee (anti-spam) |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\metachain.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `CrossShardPhase` | `enum(u8) {
+    phase1_debit  = 1,   // Suma scăzută din shard sursei
+    phase2_credit = 2,   // ...` |  |
+| `METACHAIN_SHARD` | `shard_coord_mod.METACHAIN_SHARD` |  |
+| `ShardCoordinator` | `shard_coord_mod.ShardCoordinator` |  |
+
+### core\multisig.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_SIGNATURES` | `usize = 16` | / Maximum signatures that can be collected |
+| `MAX_SIGNERS` | `usize = 16` | / Maximum signers in a multisig scheme |
+| `MULTISIG_PREFIX` | `"ob_ms_"` | / MultiSig address prefix (like Bitcoin P2SH "3...") |
+
+### core\node_launcher.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MIN_PEERS_FOR_MINING` | `usize = 10` | / Minimum peers/miners required before mining can start / Bl... |
+
+### core\omni_brain.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `NodeType` | `enum(u8) {
+    full_node     = 0,   // toate 7 OS-uri active
+    light_node    = 1,   // doar Inf...` |  |
+| `OsMode` | `os_mode_mod.OsMode` |  |
+| `OsModeManager` | `os_mode_mod.OsModeManager` |  |
+| `SupplyGuard` | `spark_mod.SupplyGuard` |  |
+| `SynapseScheduler` | `synapse_mod.SynapseScheduler` |  |
+
+### core\oracle.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `CHAINS` | `usize = 20` |  |
+| `ChainId` | `enum(u8) {
+    omni  = 0,
+    btc   = 1,
+    eth   = 2,
+    egld  = 3,
+    sol   = 4,
+    ada   =...` | --- TIPURI -------------------------------------------------... |
+| `ExchangeId` | `enum(u8) {
+    binance  = 0,
+    kraken   = 1,
+    coinbase = 2,
+    lcx      = 3,
+    bybit    =...` | / Exchange-urile de pe care vin preturile |
+| `MAX_EXCHANGES` | `usize = 9` | --- ORACLE -------------------------------------------------... |
+| `MAX_PRICE_AGE_MS` | `i64 = 60_000` |  |
+
+### core\os_mode.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `ModeStatus` | `enum(u8) {
+    inactive  = 0,
+    starting  = 1,
+    active    = 2,
+    suspended = 3,
+    error_...` |  |
+| `OsMode` | `enum(u8) {
+    /// Modul de executie ultra-low-latency (<40µs per ciclu)
+    execution    = 0,
+  ...` | --- TIPURI -------------------------------------------------... |
+
+### core\p2p.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `block_mod.Block` |  |
+| `Blockchain` | `blockchain_mod.Blockchain` |  |
+| `GossipBlockPayload` | `MsgBlockAnnounce` | / Gossip Block payload: block announce + block hash for rela... |
+| `MAX_BANNED_PEERS` | `usize = 256` | / Max banned peers tracked |
+| `MAX_INBOUND` | `usize = 32` | ─── P2P Hardening Constants ────────────────────────────────... |
+| `MAX_OUTBOUND` | `usize = 8` | / Max outbound connections |
+| `MAX_PEERS` | `usize = MAX_INBOUND + MAX_OUTBOUND` | / Max total peers (inbound + outbound) |
+| `MAX_PEERS_PER_SUBNET` | `usize = 2` | / Max peers from same /16 subnet (anti-eclipse) |
+| `MAX_RECONNECT_ATTEMPTS` | `u8 = 3` | / Max reconnect attempts before removing a peer |
+| `MIN_SUBNET_DIVERSITY` | `usize = 4` | / Minimum distinct /16 subnets for diversity |
+| `MSG_HEADER_SIZE` | `usize = 9` | [6-7] checksum u16      — sum simplu al payload (anti-corupt... |
+| `MessageType` | `network_mod.MessageType` |  |
+| `NetworkNode` | `network_mod.NetworkNode` |  |
+| `P2P_CONNECT_TIMEOUT_MS` | `u64 = 3_000` | / Timeout conexiune TCP in ms |
+| `P2P_MAX_MSG_BYTES` | `u32 = 1_048_576` | / Marimea maxima a unui mesaj P2P (1 MB) |
+| `P2P_PORT_DEFAULT` | `u16 = 8333` | / Port implicit P2P (diferit de RPC 8332) |
+| `P2P_READ_TIMEOUT_MS` | `u64 = 5_000` | / Timeout citire in ms |
+| `P2P_VERSION` | `u8 = 1` | / Versiunea protocolului P2P |
+| `PEX_MAX_PEERS` | `usize = 100` | Wire format for peer_list:  [count:u16LE][peer0: ip4+port_le... |
+| `PEX_PEER_SIZE` | `usize = 6` | 4 bytes IP + 2 bytes port |
+| `RATE_LIMIT_BAN_SCORE` | `i32 = 50` | / Ban score added when rate limit is exceeded |
+| `RATE_LIMIT_BYTES_PER_SEC` | `u64 = 10 * 1024 * 1024` | / Rate limit: max bytes per second per peer (10 MB) |
+| `RATE_LIMIT_MSG_PER_SEC` | `u32 = 100` | / Rate limit: max messages per second per peer |
+| `RECONNECT_DELAY_SEC` | `i64 = 30` | / Delay before reconnect attempt (seconds) |
+| `SPV_HEADER_SIZE` | `usize = 124` | [num_hash_funcs: u8][bits: 512 bytes]    = 513 bytes / Size ... |
+| `SPV_MAX_HEADERS_PER_MSG` | `u32 = 2000` | / Max headers per batch |
+| `SyncManager` | `sync_mod.SyncManager` |  |
+
+### core\payment_channel.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `ChannelState` | `enum(u8) {
+    opening = 0,   // Funding TX submitted, waiting for confirmations
+    open = 1,   ...` | / Channel lifecycle states |
+| `DISPUTE_WINDOW_BLOCKS` | `u64 = 144` |  |
+| `MAX_CHANNELS` | `usize = 64` |  |
+| `MAX_CHANNEL_AMOUNT` | `u64 = 21_000_000 * 1_000_000_000` | 21M OMNI in SAT |
+| `MAX_HTLCS_PER_CHANNEL` | `usize = 16` |  |
+| `SAT_PER_OMNI` | `u64 = 1_000_000_000` |  |
+
+### core\peer_scoring.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BAN_DURATION_SEC` | `i64 = 86400` | / Ban duration in seconds 24 ore |
+| `BAN_THRESHOLD` | `i32 = -100` | / ETH: peer reputation in DevP2P / Ban threshold — peer bann... |
+| `MAX_TRACKED_PEERS` | `usize = 256` | / Maximum tracked peers |
+
+### core\pq_crypto.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `CIPHERTEXT_SIZE` | `usize = 1088` | u (k*256*du/8=960) || v (256*dv/8=128) |
+| `Kyber768` | `MlKem768` |  |
+| `SECRET_KEY_SIZE` | `usize = 4896` |  |
+| `SECRET_KEY_SIZE` | `usize = 1281` |  |
+| `SECRET_KEY_SIZE` | `usize = 128` | SK.seed (32) || SK.prf (32) || PK.seed (32) || PK.root (32) |
+| `SECRET_KEY_SIZE` | `usize = 2400` | s_hat (1152) || pk (1184) || H(pk) (32) || z (32) |
+| `SHARED_SECRET_SIZE` | `usize = 32` |  |
+| `SIGNATURE_MAX` | `usize = 4627` |  |
+| `SIGNATURE_MAX` | `usize = 752` |  |
+| `SIGNATURE_MAX` | `usize = 29792` |  |
+| `SPHINCSPlus` | `SlhDsa256s` |  |
+
+### core\rpc_server.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Blockchain` | `blockchain_mod.Blockchain` |  |
+| `Metrics` | `benchmark_mod.Metrics` |  |
+| `RPCContext` | `ServerCtx` | / Context public expus utilizatorilor externi (alias la Serv... |
+| `Wallet` | `wallet_mod.Wallet` |  |
+
+### core\script.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_MULTISIG_SCRIPT_LEN` | `usize = 3 + 20 * 34` | / Returns the lock script and its actual length. / Max size:... |
+| `OpCode` | `enum(u8) {
+    // Constants
+    OP_0 = 0x00,
+    OP_1 = 0x51,
+    OP_2 = 0x52,
+    OP_3 = 0x53,
+ ...` | ─── OpCode — Bitcoin-compatible script opcodes ─────────────... |
+| `ScriptError` | `error{
+    StackOverflow,
+    StackUnderflow,
+    InvalidScript,
+    InvalidOpcode,
+    VerifyFai...` | ─── Script Errors ──────────────────────────────────────────... |
+
+### core\secp256k1.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `CompressedPubkey` | `[33]u8` | / Compressed public key (33 bytes): 0x02/0x03 + X |
+| `PrivateKey` | `[32]u8` | / Private key (32 bytes) |
+| `Signature` | `[64]u8` | / ECDSA signature (64 bytes: R || S) |
+
+### core\shard_config.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `SubBlock` | `sub_block_mod.SubBlock` |  |
+
+### core\shard_coordinator.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_SHARDS` | `u8 = 32` |  |
+| `METACHAIN_SHARD` | `u8 = 0xFF` |  |
+| `SHARD_MERGE_THRESHOLD` | `u8 = 20` | % capacitate → merge |
+| `SHARD_SPLIT_THRESHOLD` | `u8 = 80` | % capacitate → split |
+
+### core\spark_invariants.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `BLOCK_TIME_MS` | `u64 = 1_000` | / Block time în milisecunde |
+| `HALVING_INTERVAL` | `u64 = 126_144_000` | / Intervalul de halving: 126.144.000 blocuri (~4 ani la 1 bl... |
+| `INITIAL_REWARD_SAT` | `u64 = 83_333_333` | / Reward inițial per bloc: 0.08333333 OMNI = 83_333_333 nano... |
+| `MAX_HALVINGS` | `u64 = 64` | / Numărul maxim de halvings înainte ca reward → 0 |
+| `MAX_SUPPLY_SAT` | `u64 = 21_000_000 * 1_000_000_000` | cu Spark annotation: pragma Assert (Max_Supply = 21_000_000_... |
+| `MICRO_BLOCKS_PER_KEY` | `u64 = BLOCK_TIME_MS / MICRO_BLOCK_TIME_MS` | / Numărul de micro-blocuri per Key-Block |
+| `MICRO_BLOCK_TIME_MS` | `u64 = 100` | / Micro-block time în milisecunde |
+
+### core\staking.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `DOWNTIME_PENALTY_PCT` | `u64 = 1` | / Only 1% for extended downtime — NOT a punitive slash, just... |
+| `MAX_SLASH_RECORDS` | `usize = 64` | / Maximum slash records per validator |
+| `MAX_TOTAL_SLASH_RECORDS` | `usize = 512` | / Maximum total slash records stored in the engine |
+| `MAX_VALIDATORS` | `usize = 128` | / Maximum validators in active set |
+| `MIN_SLASH_AMOUNT` | `u64 = 1_000_000` | / Minimum amount that can be slashed (0.001 OMNI = 1_000_000... |
+| `MIN_UPTIME_PCT` | `u8 = 95` | / Minimum uptime percentage to avoid downtime slashing |
+| `REPORTER_REWARD_PCT` | `u64 = 10` | / Reporter receives 10% of the slashed amount as reward |
+| `REWARD_EPOCH_BLOCKS` | `u64 = 100` | / Epochs between reward distributions |
+| `SLASH_DOUBLE_SIGN_PCT` | `u64 = 33` | / Lose 33% of stake for double-signing (cryptographic proof ... |
+| `SLASH_DOWNTIME_PERMILLE` | `u64 = 10` | / Slashing percentage for downtime — 0.1% (1/1000) — legacy ... |
+| `SLASH_EQUIVOCATION_PCT` | `u64 = SLASH_DOUBLE_SIGN_PCT` | / Legacy alias — kept for backward compatibility with existi... |
+| `SLASH_INVALID_BLOCK_PCT` | `u64 = 10` | / Lose 10% of stake for submitting provably invalid block |
+| `SlashReason` | `enum(u8) {
+    /// Signed 2 different blocks at same height — cryptographic proof required
+    do...` | NEVER punish normal users or honest miners. / Slash reason —... |
+| `UNBONDING_PERIOD` | `u64 = 604_800` | / Unbonding period in blocks (7 days at 1 block/sec = 604800... |
+| `VALIDATOR_MIN_STAKE` | `u64 = 100_000_000_000` | /   - Solana: SOL delegation to validators / Minimum stake t... |
+| `ValidatorStatus` | `enum(u8) {
+    /// Registered but not yet active (in queue)
+    pending = 0,
+    /// Active valid...` | / Validator status |
+
+### core\sub_block.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `blockchain_mod.Block` |  |
+| `SUB_BLOCKS_PER_BLOCK` | `u8 = 10` | / Numarul de sub-blocuri per bloc principal |
+| `SUB_BLOCK_INTERVAL_MS` | `u64 = 75` | / Intervalul unui sub-bloc in ms 10×75ms=750ms + ~250ms over... |
+| `Transaction` | `transaction_mod.Transaction` |  |
+
+### core\synapse_priority.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_TASKS` | `usize = 256` | --- SYNAPSE SCHEDULER --------------------------------------... |
+| `OsMode` | `os_mode.OsMode` |  |
+| `Priority` | `enum(u8) {
+    realtime   = 0,   // P0: ExecutionOS — nu poate fi intrerupt
+    high       = 1,  ...` | --- TIPURI -------------------------------------------------... |
+
+### core\sync.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `block_mod.Block` |  |
+| `Blockchain` | `blockchain_mod.Blockchain` | p2p_mod removed — was causing circular dependency (p2p impor... |
+| `MAX_BLOCKS_PER_REQ` | `u16 = 128` | / Max blocuri per cerere |
+
+### core\transaction.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_OP_RETURN` | `usize = 80` | / Maximum OP_RETURN data size (80 bytes, same as Bitcoin) |
+
+### core\tx_receipt.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `EVENT_APPROVAL` | `[32]u8 = [_]u8{ 0x8C, 0x5B, 0xE1, 0xE5 } ++ [_]u8{0} ** 28` |  |
+| `EVENT_SLASH` | `[32]u8 = [_]u8{ 0x3B, 0x88, 0x1E, 0x5D } ++ [_]u8{0} ** 28` |  |
+| `EVENT_STAKE` | `[32]u8 = [_]u8{ 0xE1, 0xFF, 0xFC, 0xC4 } ++ [_]u8{0} ** 28` |  |
+| `EVENT_TRANSFER` | `[32]u8 = [_]u8{ 0xA9, 0x05, 0x9C, 0xBB } ++ [_]u8{0} ** 28` | / Standard event type IDs (fixed, deterministic) |
+| `MAX_EVENTS` | `usize = 16` | / Ca EGLD: smart contract events / Maximum events per transa... |
+| `MAX_EVENT_DATA` | `usize = 256` | / Maximum data bytes per event |
+| `MAX_TOPICS` | `usize = 4` | / Maximum topics per event |
+| `TxStatus` | `enum(u8) {
+    success = 1,
+    failure = 0,
+    pending = 2,
+}` | / Transaction execution status |
+
+### core\ubi_distributor.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `MAX_BENEFICIARIES` | `usize = 1_000_000_000` |  |
+| `UBI_DAILY_SAT` | `u64 = 1_000_000_000` | / UBI zilnic per beneficiar in Ciclul 1 (in SAT) / 1 OMNI/zi... |
+| `UBI_EPOCH_BLOCKS` | `u64 = 126_144` | / Epoch UBI: la cate blocuri se face distributia / 126144 bl... |
+| `UBI_PER_EPOCH_SAT` | `u64 = UBI_DAILY_SAT * UBI_EPOCH_BLOCKS / 86_400` | / UBI per epoch (proportional cu epoch length) / UBI_DAILY_S... |
+
+### core\vault_engine.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `DOUBLE_FACTOR_PCT` | `u64 = 200` | / Factor de dublare: NAV >= deposit * DOUBLE_FACTOR → return... |
+| `VAULT_MIN_LEVEL` | `u8 = 100` | --- CONSTANTE ----------------------------------------------... |
+| `VAULT_PROTOCOL_FEE_PCT` | `u64 = 10` | / Fee Vault: 10% din profit merge la protocol (restul 90% → ... |
+| `VaultPositionStatus` | `enum(u8) {
+    active    = 0,
+    doubled   = 1,   // Capitalul returnat, profitul in UBI pool
+  ...` | --- TIPURI -------------------------------------------------... |
+
+### core\ws_server.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `WS_PORT` | `u16 = 8334` | / Port WebSocket (diferit de RPC 8332 si P2P 8333) |
+
+### test\blockchain_test.zig
+
+| Constantă | Valoare | Descriere |
+|-----------|---------|-----------|
+| `Block` | `block_mod.Block` |  |
+| `Blockchain` | `blockchain_mod.Blockchain` |  |
+| `Transaction` | `transaction_mod.Transaction` |  |
+| `Wallet` | `wallet_mod.Wallet` |  |
+
+## 🔢 ENUM-URI
+
+### BreadVoucherStatus
+*Fișier: `core\bread_ledger.zig` (linia 26)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `pending` | 0 | emis, neredeemed |
+| `redeemed` | 1 | redeemed la un merchant |
+| `expired` | 2 | expirat nefolosit |
+
+### BridgeOpStatus
+*Fișier: `core\bridge_relay.zig` (linia 40)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `pending` | 0 | Initiata, asteptam confirmari |
+| `confirmed` | 1 | N/M relayeri au confirmat |
+| `executed` | 2 | Executata (mint/redeem facut) |
+| `failed` | 3 | Timeout sau eroare |
+| `refunded` | 4 | Returnat utilizatorului |
+
+### BridgeOpType
+*Fișier: `core\bridge_relay.zig` (linia 35)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `lock_and_mint` | 1 | Extern → OMNI: lock pe chain extern, mint wrapped pe OMNI |
+| `burn_and_redeem` | 2 | OMNI → Extern: burn wrapped pe OMNI, redeem pe chain extern |
+
+### ChainId
+*Fișier: `core\chain_config.zig` (linia 13)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `mainnet` | 1 | - |
+| `testnet` | 2 | - |
+| `devnet` | 3 | - |
+| `regtest` | 4 | - |
+
+### ChainId
+*Fișier: `core\oracle.zig` (linia 17)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `omni` | 0 | - |
+| `btc` | 1 | - |
+| `eth` | 2 | - |
+| `egld` | 3 | - |
+| `sol` | 4 | - |
+| `ada` | 5 | - |
+| `dot` | 6 | - |
+| `avax` | 7 | - |
+| `matic` | 8 | - |
+| `bnb` | 9 | - |
+| `atom` | 10 | - |
+| `near` | 11 | - |
+| `ftm` | 12 | - |
+| `one` | 13 | - |
+| `zil` | 14 | - |
+| `algo` | 15 | - |
+| `xlm` | 16 | - |
+| `xrp` | 17 | - |
+| `ltc` | 18 | - |
+| `doge` | 19 | - |
+| `pub fn name(self: ChainId) []const u8 {` | 19 | - |
+| `return switch (self) {` | 20 | - |
+| `.omni` | > "OMNI" | - |
+| `.egld` | > "EGLD" | - |
+| `.dot` | > "DOT" | - |
+| `.bnb` | > "BNB" | - |
+| `.ftm` | > "FTM" | - |
+| `.algo` | > "ALGO" | - |
+| `.ltc` | > "LTC" | - |
+
+### ChannelState
+*Fișier: `core\payment_channel.zig` (linia 25)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `opening` | 0 | Funding TX submitted, waiting for confirmations |
+| `open` | 1 | Active — off-chain payments possible |
+| `closing` | 2 | One party initiated close, dispute window active |
+| `settled` | 3 | Final balances on-chain, channel done |
+| `disputed` | 4 | Counterparty submitted old state, challenger responded |
+
+### CheckpointStatus
+*Fișier: `core\finality.zig` (linia 30)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `Pending` | 0 | - |
+| `Justified` | 1 | - |
+| `Finalized` | 2 | - |
+
+### ConnDirection
+*Fișier: `core\p2p.zig` (linia 340)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `inbound` | 0 | - |
+| `outbound` | 1 | - |
+
+### ConsensusType
+*Fișier: `core\consensus.zig` (linia 8)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `ProofOfWork` | 0 | - |
+| `MajorityVote` | 1 | - |
+| `PBFT` | 2 | - |
+
+### CrossShardPhase
+*Fișier: `core\metachain.zig` (linia 43)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `phase1_debit` | 1 | Suma scăzută din shard sursei |
+| `phase2_credit` | 2 | Suma creditată în shard destinației |
+| `finalized` | 3 | Ambele faze complete |
+
+### DomainAlgorithm
+*Fișier: `core\pq_crypto.zig` (linia 534)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `MlDsa87, Falcon512, SlhDsa256s` | 0 | - |
+
+### DomainType
+*Fișier: `core\domain_minter.zig` (linia 20)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `omni` | 0 | ob_omni_ — ML-KEM-768 — identity, non-transferabil |
+| `k1` | 1 | ob_k1_   — Dilithium-5 |
+| `f5` | 2 | ob_f5_   — Falcon-512 |
+| `d5` | 3 | ob_d5_   — SLH-DSA — archival, non-transferabil |
+| `s3` | 4 | ob_s3_   — Falcon-Light |
+| `pub fn prefix(self: DomainType) []const u8 {` | 4 | - |
+| `return switch (self) {` | 5 | - |
+| `.omni` | > "ob_omni_" | - |
+| `.k1` | > "ob_k1_" | - |
+| `.f5` | > "ob_f5_" | - |
+| `.d5` | > "ob_d5_" | - |
+| `.s3` | > "ob_s3_" | - |
+
+### ExchangeId
+*Fișier: `core\oracle.zig` (linia 53)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `binance` | 0 | - |
+| `kraken` | 1 | - |
+| `coinbase` | 2 | - |
+| `lcx` | 3 | - |
+| `bybit` | 4 | - |
+| `okx` | 5 | - |
+| `uniswap` | 6 | DEX |
+| `raydium` | 7 | DEX Solana |
+| `egld_dex` | 8 | DEX MultiversX |
+| `pub fn name(self: ExchangeId) []const u8 {` | 8 | - |
+| `return switch (self) {` | 9 | - |
+| `.binance` | > "Binance" | - |
+| `.kraken` | > "Kraken" | - |
+| `.coinbase` | > "Coinbase" | - |
+| `.lcx` | > "LCX" | - |
+| `.bybit` | > "Bybit" | - |
+| `.okx` | > "OKX" | - |
+| `.uniswap` | > "Uniswap" | - |
+| `.raydium` | > "Raydium" | - |
+| `.egld_dex` | > "EGLD-DEX" | - |
+
+### GuardianStatus
+*Fișier: `core\guardian.zig` (linia 30)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `pending` | 0 | - |
+| `active` | 1 | - |
+| `removing` | 2 | - |
+| `removed` | 3 | - |
+
+### KeyBlockState
+*Fișier: `core\sub_block.zig` (linia 101)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `collecting,   // Colecteaza sub-blocuri (0-9)` | 0 | - |
+| `complete,     // 10/10 sub-blocuri primite` | 1 | - |
+| `finalized,    // Hash calculat, gata de adaugat in chain` | 2 | - |
+
+### KnockResult
+*Fișier: `core\p2p.zig` (linia 703)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `alone` | 0 | - |
+| `duplicate_ip` | 1 | - |
+| `broadcast_failed` | 2 | - |
+
+### MessageType
+*Fișier: `core\network.zig` (linia 182)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `ping` | 0 | - |
+| `pong` | 1 | - |
+| `block` | 2 | - |
+| `transaction` | 3 | - |
+| `sync_request` | 4 | - |
+| `sync_response` | 5 | - |
+| `peer_list` | 6 | - |
+| `mining_start` | 7 | - |
+| `mining_stop` | 8 | - |
+| `inv,            // "I have these items" (hashes)` | 9 | - |
+| `getdata,        // "Send me these items"` | 10 | - |
+| `tx_gossip,      // Full TX payload (gossip relay)` | 11 | - |
+| `block_gossip,   // Full block payload (gossip relay)` | 12 | - |
+| `getblocks,      // "What blocks do you have after hash X?"` | 13 | - |
+| `get_peers,      // Request peer list from connected node` | 14 | - |
+| `getheaders_p2p,      // Light client requests headers from start_height` | 15 | - |
+| `headers_p2p,         // Full node responds with serialized headers` | 16 | - |
+| `getmerkleproof_p2p,  // Light client requests Merkle proof for a TX hash` | 17 | - |
+| `merkleproof_p2p,     // Full node responds with Merkle inclusion proof` | 18 | - |
+| `filterload,          // Light client sends Bloom filter to full node` | 19 | - |
+
+### MinerStatus
+*Fișier: `core\light_miner.zig` (linia 99)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `offline` | 0 | - |
+| `connecting` | 1 | - |
+| `mining` | 2 | - |
+| `block_found` | 3 | - |
+| `mining_error` | 4 | - |
+| `shutdown` | 5 | - |
+
+### MinerStatus
+*Fișier: `core\mining_pool.zig` (linia 22)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `offline` | 0 | - |
+| `idle` | 1 | - |
+| `mining` | 2 | - |
+| `submitted_share` | 3 | - |
+
+### ModeStatus
+*Fișier: `core\os_mode.zig` (linia 51)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `inactive` | 0 | - |
+| `starting` | 1 | - |
+| `active` | 2 | - |
+| `suspended` | 3 | - |
+| `error_state` | 4 | - |
+
+### NodeMode
+*Fișier: `core\node_launcher.zig` (linia 8)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `seed,  // Bootstrap/seed node` | 0 | - |
+| `miner, // Mining participant` | 1 | - |
+| `light, // SPV light client — headers only, no full blocks` | 2 | - |
+
+### NodeStatus
+*Fișier: `core\bootstrap.zig` (linia 427)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `starting` | 0 | - |
+| `waiting_for_peers` | 1 | - |
+| `syncing` | 2 | - |
+| `synchronized` | 3 | - |
+| `mining` | 4 | - |
+
+### NodeType
+*Fișier: `core\omni_brain.zig` (linia 40)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `full_node` | 0 | toate 7 OS-uri active |
+| `light_node` | 1 | doar InfraOS + BlockchainOS |
+| `trading_node` | 2 | ExecutionOS + RiskOS + StrategyOS + ValidationOS |
+| `validator_node` | 3 | ValidationOS + GovernanceOS + BlockchainOS |
+
+### OpCode
+*Fișier: `core\script.zig` (linia 9)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `OP_0` | 0x00 | - |
+| `OP_1` | 0x51 | - |
+| `OP_2` | 0x52 | - |
+| `OP_3` | 0x53 | - |
+| `OP_DUP` | 0x76 | - |
+| `OP_DROP` | 0x75 | - |
+| `OP_SWAP` | 0x7c | - |
+| `OP_SHA256` | 0xa8 | - |
+| `OP_HASH160` | 0xa9 | SHA256 + RIPEMD160 |
+| `OP_CHECKSIG` | 0xac | Verify ECDSA signature |
+| `OP_CHECKMULTISIG` | 0xae | - |
+| `OP_EQUAL` | 0x87 | - |
+| `OP_EQUALVERIFY` | 0x88 | - |
+| `OP_VERIFY` | 0x69 | - |
+| `OP_RETURN` | 0x6a | Marks output as unspendable data carrier |
+| `OP_CHECKLOCKTIMEVERIFY` | 0xb1 | BIP-65 |
+| `OP_CHECKSEQUENCEVERIFY` | 0xb2 | BIP-112 |
+| `OP_PUSHDATA1` | 0x4c | - |
+| `OP_PUSHDATA2` | 0x4d | - |
+
+### OsMode
+*Fișier: `core\os_mode.zig` (linia 17)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `execution` | 0 | - |
+| `validation` | 1 | - |
+| `strategy` | 2 | - |
+| `risk` | 3 | - |
+| `infra` | 4 | - |
+| `governance` | 5 | - |
+| `blockchain` | 6 | - |
+| `pub fn name(self: OsMode) []const u8 {` | 6 | - |
+| `return switch (self) {` | 7 | - |
+| `.execution` | > "ExecutionOS" | - |
+| `.validation` | > "ValidationOS" | - |
+| `.strategy` | > "StrategyOS" | - |
+| `.risk` | > "RiskOS" | - |
+| `.infra` | > "InfraOS" | - |
+| `.governance` | > "GovernanceOS" | - |
+| `.blockchain` | > "BlockchainOS" | - |
+
+### PoolStatus
+*Fișier: `core\light_miner.zig` (linia 255)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `initializing` | 0 | - |
+| `waiting_for_miners` | 1 | - |
+| `ready_for_genesis` | 2 | - |
+| `genesis_mining` | 3 | - |
+| `mining` | 4 | - |
+| `pool_error` | 5 | - |
+| `shutdown` | 6 | - |
+
+### Priority
+*Fișier: `core\synapse_priority.zig` (linia 22)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `realtime` | 0 | P0: ExecutionOS — nu poate fi intrerupt |
+| `high` | 1 | P1: RiskOS, ValidationOS |
+| `normal` | 2 | P3: StrategyOS, BlockchainOS |
+| `low` | 3 | P5: InfraOS |
+| `background` | 4 | P6: GovernanceOS |
+| `pub fn canPreempt(self: Priority, other: Priority) bool {` | 4 | - |
+| `return @intFromEnum(self) < @intFromEnum(other);` | 5 | - |
+
+### ProposalStatus
+*Fișier: `core\governance.zig` (linia 27)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `DepositPeriod` | 0 | - |
+| `VotingActive` | 1 | - |
+| `Approved` | 2 | - |
+| `Rejected` | 3 | - |
+| `Expired` | 4 | - |
+| `Executed` | 5 | - |
+
+### ProposalType
+*Fișier: `core\governance.zig` (linia 15)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `ParamChange` | 1 | - |
+| `ProtocolUpgrade` | 2 | - |
+| `Emergency` | 3 | - |
+| `TextSignal` | 4 | - |
+
+### PruneStrategy
+*Fișier: `core\prune_config.zig` (linia 106)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `keep_recent` | 0 | - |
+| `keep_recent_days` | 1 | - |
+| `keep_after_checkpoint` | 2 | - |
+| `custom` | 3 | - |
+
+### Result
+*Fișier: `core\consensus.zig` (linia 141)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `Approved, Rejected, Timeout, Pending` | 0 | - |
+
+### ScoreEvent
+*Fișier: `core\peer_scoring.zig` (linia 24)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `valid_block` | 0 | - |
+| `useful_headers` | 1 | - |
+| `ping_response` | 2 | - |
+| `valid_tx` | 3 | - |
+| `timeout` | 4 | - |
+| `invalid_tx` | 5 | - |
+| `invalid_block` | 6 | - |
+| `malformed_data` | 7 | - |
+| `double_spend_attempt` | 8 | - |
+| `invalid_headers` | 9 | - |
+| `pub fn delta(self: ScoreEvent) i32 {` | 10 | - |
+| `return switch (self) {` | 11 | - |
+| `.valid_block` | > 1 | - |
+| `.useful_headers` | > 2 | - |
+| `.ping_response` | > 1 | - |
+| `.valid_tx` | > 1 | - |
+| `.timeout` | > -5 | - |
+| `.invalid_tx` | > -10 | - |
+| `.invalid_block` | > -50 | - |
+| `.malformed_data` | > -20 | - |
+| `.double_spend_attempt` | > -100 | - |
+| `.invalid_headers` | > -30 | - |
+
+### SlashReason
+*Fișier: `core\staking.zig` (linia 31)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `double_sign` | 0 | - |
+| `invalid_block` | 1 | - |
+| `downtime` | 2 | - |
+
+### SyncStatus
+*Fișier: `core\sync.zig` (linia 180)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `idle,        // Nu sincronizeaza` | 0 | - |
+| `requesting,  // A trimis GetHeaders, asteapta raspuns` | 1 | - |
+| `downloading, // Primeste blocuri` | 2 | - |
+| `synced,      // La zi cu reteaua` | 3 | - |
+
+### TxStatus
+*Fișier: `core\tx_receipt.zig` (linia 22)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `success` | 1 | - |
+| `failure` | 0 | - |
+| `pending` | 2 | - |
+
+### ValidatorStatus
+*Fișier: `core\staking.zig` (linia 196)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `pending` | 0 | - |
+| `active` | 1 | - |
+| `unbonding` | 2 | - |
+| `unbonded` | 3 | - |
+| `slashed` | 4 | - |
+| `jailed` | 5 | - |
+
+### VaultPositionStatus
+*Fișier: `core\vault_engine.zig` (linia 31)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `active` | 0 | - |
+| `doubled` | 1 | Capitalul returnat, profitul in UBI pool |
+| `withdrawn` | 2 | User a retras manual |
+| `liquidated` | 3 | Pozitie lichidata (loss total) |
+
+### Vote
+*Fișier: `core\governance.zig` (linia 43)*
+
+| Variantă | Valoare | Descriere |
+|----------|---------|-----------|
+| `Yes` | 1 | - |
+| `No` | 2 | - |
+| `Abstain` | 3 | - |
+| `NoWithVeto` | 4 | No + propunere sa fie penalizata (Cosmos-style) |
+
+## 📨 MESSAGE TYPES (Auto-detectate)
+
+| Cod | Nume | Descriere |
+|-----|------|-----------|
+| 0 | `ping` | Message type ping |
+| 1 | `pong` | Message type pong |
+| 2 | `block` | Message type block |
+| 3 | `transaction` | Message type transaction |
+| 4 | `sync_request` | Message type sync_request |
+| 5 | `sync_response` | Message type sync_response |
+| 6 | `peer_list` | Message type peer_list |
+| 7 | `mining_start` | Message type mining_start |
+| 8 | `mining_stop` | Message type mining_stop |
+| 9 | `inv,            // "I have these items" (hashes)` | Message type inv,            // "I have these items" (hashes) |
+| 10 | `getdata,        // "Send me these items"` | Message type getdata,        // "Send me these items" |
+| 11 | `tx_gossip,      // Full TX payload (gossip relay)` | Message type tx_gossip,      // Full TX payload (gossip relay) |
+| 12 | `block_gossip,   // Full block payload (gossip relay)` | Message type block_gossip,   // Full block payload (gossip relay) |
+| 13 | `getblocks,      // "What blocks do you have after hash X?"` | Message type getblocks,      // "What blocks do you have after hash X?" |
+| 14 | `get_peers,      // Request peer list from connected node` | Message type get_peers,      // Request peer list from connected node |
+| 15 | `getheaders_p2p,      // Light client requests headers from start_height` | Message type getheaders_p2p,      // Light client requests headers from start_height |
+| 16 | `headers_p2p,         // Full node responds with serialized headers` | Message type headers_p2p,         // Full node responds with serialized headers |
+| 17 | `getmerkleproof_p2p,  // Light client requests Merkle proof for a TX hash` | Message type getmerkleproof_p2p,  // Light client requests Merkle proof for a TX hash |
+| 18 | `merkleproof_p2p,     // Full node responds with Merkle inclusion proof` | Message type merkleproof_p2p,     // Full node responds with Merkle inclusion proof |
+| 19 | `filterload,          // Light client sends Bloom filter to full node` | Message type filterload,          // Light client sends Bloom filter to full node |
+
+---
+
+*Generat automat de scan_opcodes.py la 2026-03-31T04:16:13.613455*
+
+**Statistici scanare:**
+- Constante publice: 246
+- Enums: 38
+- Message types: 20
+- Magic numbers: 0

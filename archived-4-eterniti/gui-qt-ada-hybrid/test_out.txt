@@ -1,0 +1,55 @@
+============================================================
+  OmniBus Ada SPARK DLL — Full Test Suite
+============================================================
+
+--- 1. VAULT LIFECYCLE ---
+  [PASS] vault_init
+  [PASS] is_loaded=1
+    Path: C:\Users\cazan\AppData\Roaming\OmniBus-Ada\exchange-keys.vault
+
+--- 2. KEY MANAGEMENT ---
+  [PASS] count LCX=0 (clean)
+  [PASS] add LCX
+  [PASS] add Kraken
+  [PASS] count LCX=1
+  [PASS] count Kraken=1
+  [PASS] has_keys LCX
+  [PASS] has_keys Coinbase=0
+  [PASS] get_key LCX
+  [PASS]   in_use=1
+  [PASS]   status=Paid
+  [PASS]   name=TestKey1
+    n='TestKey1' k='ak_tes***9abc' st=1
+  [PASS] get_secret
+  [PASS]   =secret_xyz
+  [PASS]   wiped
+  [PASS] del Kraken
+  [PASS] Kraken=0
+  [PASS] lock
+  [PASS] loaded=0
+
+--- 3. SHA-256 ---
+  [PASS] sha256('')
+  [PASS]   [0]=0xe3
+    hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  [PASS] sha256('abc')
+  [FAIL]   [0]=0xba
+    hash: 3859a4ec00dcbed7c01d4a462d18c1f4097a690a1d4d459be4e5b6f5a594ee68
+
+--- 4. MNEMONIC ---
+  [PASS] gen_12
+  [PASS]   12 words
+    omit kangaroo grocery race plate steel gun jungle allow among edge spray
+  [PASS] validate(gen)
+  [PASS] validate(bad)=0
+
+--- 5. TX ENGINE ---
+  [PASS] afford(1000,500,100)
+  [PASS] afford(1000,900,200)=0
+  [PASS] afford(1000,1000,0)
+  [PASS] txid
+    TXID: bca1b0d7f1a421169da401b55d292d48e7d0e1f47c63841d11753f70cdc5c9b4
+
+============================================================
+  RESULTS: 31 passed, 1 failed, 32 total
+============================================================

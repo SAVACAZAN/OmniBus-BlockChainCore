@@ -1,0 +1,186 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_DISPATCH
+RV NO_DISPATCHING_CALLS
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U gui_helpers%b		gui_helpers.adb		68eb93d8 NE OO PK
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W gtk%s			gtk.ads			gtk.ali
+W gtk.style_context%s	gtk-style_context.adb	gtk-style_context.ali
+
+U gui_helpers%s		gui_helpers.ads		b1dbf52d EE NE OO PK
+W gtk%s			gtk.ads			gtk.ali
+W gtk.widget%s		gtk-widget.adb		gtk-widget.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-finali.ads		20250808065140 bf4f806b ada.finalization%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20250808065140 c3a8ac65 ada.unchecked_deallocation%s
+D cairo.ads		20260401014318 925d4aaa cairo%s
+D cairo-region.ads	20260401014318 b7133728 cairo.region%s
+D gdk.ads		20260401014320 96d821f3 gdk%s
+D gdk-color.ads		20260401014318 ef57bc34 gdk.color%s
+D gdk-device.ads	20260401014320 873a4dfe gdk.device%s
+D gdk-device_tool.ads	20260401014320 7548cf02 gdk.device_tool%s
+D gdk-display.ads	20260401014320 2ca984e1 gdk.display%s
+D gdk-drag_contexts.ads	20260401014320 c0b30362 gdk.drag_contexts%s
+D gdk-event.ads		20260401014322 12dba357 gdk.event%s
+D gdk-frame_clock.ads	20260401014322 b23ee86a gdk.frame_clock%s
+D gdk-frame_timings.ads	20260401014322 98b5e7d1 gdk.frame_timings%s
+D gdk-monitor.ads	20260401014322 970cbb66 gdk.monitor%s
+D gdk-pixbuf.ads	20260401014320 499fe1c7 gdk.pixbuf%s
+D gdk-rectangle.ads	20260401014320 7b900608 gdk.rectangle%s
+D gdk-rgba.ads		20260401014322 2609514a gdk.rgba%s
+D gdk-screen.ads	20260401014322 2563f3b9 gdk.screen%s
+D gdk-types.ads		20260401014320 921dc8b2 gdk.types%s
+D gdk-visual.ads	20260401014320 bf09ee2d gdk.visual%s
+D glib.ads		20260401014356 7d107887 glib%s
+D glib-action_group.ads	20260401014322 39f0dcb6 glib.action_group%s
+D glib-error.ads	20260401014354 e055fabe glib.error%s
+D glib-generic_properties.ads  20260401014354 f3dc70df glib.generic_properties%s
+D glib-glist.ads	20260401014354 65a6e1be glib.glist%s
+D glib-gslist.ads	20260401014354 953541be glib.gslist%s
+D glib-object.ads	20260401014354 fb5efa0e glib.object%s
+D glib-properties.ads	20260401014354 4118b916 glib.properties%s
+D glib-string.ads	20260401014324 1c658347 glib.string%s
+D glib-types.ads	20260401014354 86ac71ae glib.types%s
+D glib-values.ads	20260401014354 5ef3ad24 glib.values%s
+D glib-variant.ads	20260401014324 a1ae139c glib.variant%s
+D gnat.ads		20250808065140 b5988c27 gnat%s
+D g-string.ads		20250808065140 c6abc540 gnat.strings%s
+D gtk.ads		20260401014356 cfdeaf1c gtk%s
+D gtk-accel_group.ads	20260401014324 a14a159a gtk.accel_group%s
+D gtk-builder.ads	20260401014328 35d802c2 gtk.builder%s
+D gtk-css_section.ads	20260401014332 91668c7b gtk.css_section%s
+D gtk-enums.ads		20260401014332 e04a0db3 gtk.enums%s
+D gtk-selection_data.ads  20260401014344 061b2148 gtk.selection_data%s
+D gtk-style.ads		20260401014346 3c4cbc07 gtk.style%s
+D gtk-style_context.ads	20260401014346 cdffdd02 gtk.style_context%s
+D gtk-style_provider.ads  20260401014346 e396c135 gtk.style_provider%s
+D gtk-target_entry.ads	20260401014346 02690213 gtk.target_entry%s
+D gtk-target_list.ads	20260401014346 a9d79eb7 gtk.target_list%s
+D gtk-widget.ads	20260401014350 7e1eb2be gtk.widget%s
+D gtkada.ads		20260401014400 57aea1c7 gtkada%s
+D gtkada-bindings.ads	20260401014356 fc9825de gtkada.bindings%s
+D gtkada-c.ads		20260401014356 0f5973e3 gtkada.c%s
+D gtkada-types.ads	20260401014400 471f54b5 gtkada.types%s
+D gui_helpers.ads	20260401073716 cfc54793 gui_helpers%s
+D gui_helpers.adb	20260401074042 6ad10949 gui_helpers%b
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrin.ads		20250808065140 5409c1a4 interfaces.c.strings%s
+D pango.ads		20260401014400 e51ea573 pango%s
+D pango-attributes.ads	20260401014352 21c09ee4 pango.attributes%s
+D pango-context.ads	20260401014352 ab3b8a9f pango.context%s
+D pango-enums.ads	20260401014352 8ddf1b71 pango.enums%s
+D pango-font.ads	20260401014352 90904519 pango.font%s
+D pango-font_face.ads	20260401014352 c62e6ce5 pango.font_face%s
+D pango-font_family.ads	20260401014352 5dd1eb29 pango.font_family%s
+D pango-font_map.ads	20260401014352 7959860d pango.font_map%s
+D pango-font_metrics.ads  20260401014352 38b0be76 pango.font_metrics%s
+D pango-fontset.ads	20260401014352 af4fe708 pango.fontset%s
+D pango-language.ads	20260401014352 d0382281 pango.language%s
+D pango-layout.ads	20260401014352 d240b716 pango.layout%s
+D pango-matrix.ads	20260401014352 50fe54f2 pango.matrix%s
+D pango-tabs.ads	20260401014352 0c575925 pango.tabs%s
+D system.ads		20250808065140 a869df9e system%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-finpri.ads		20250808065140 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20250808065140 0a7c3ed4 system.finalization_root%s
+D s-oslock.ads		20250808065140 88eb514b system.os_locks%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-pooglo.ads		20250808065140 91708d21 system.pool_global%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-retsta.ads		20250808065140 0f6b06cb system.return_stack%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-stopoo.ads		20250808065140 e9fa2dd8 system.storage_pools%s
+D s-stratt.ads		20250808065140 516607ae system.stream_attributes%s
+D s-string.ads		20250808065140 582aac7d system.strings%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-win32.ads		20250808065140 f77987dc system.win32%s
+G a e
+G c Z s b [add_class gui_helpers 14 14 none]
+G c Z s b [remove_class gui_helpers 19 14 none]
+G r c none [add_class gui_helpers 14 14 none] [get_style_context gtk__style_context 702 13 none]
+G r c none [add_class gui_helpers 14 14 none] [add_class gtk__style_context 158 14 none]
+G r c none [remove_class gui_helpers 19 14 none] [get_style_context gtk__style_context 702 13 none]
+G r c none [remove_class gui_helpers 19 14 none] [remove_class gtk__style_context 606 14 none]
+X 13 gdk.ads
+46P9*Gdk_Visual<29|153P9>
+X 15 gdk-device.ads
+48P9*Gdk_Device(47R9)
+72V13*Convert{78|67M9} 33|58i21
+73V13*Convert{48P9} 33|59i21
+X 28 gdk-visual.ads
+78V13*Convert[9|23]{78|67M9} 33|58i21
+80V13*Convert[9|23]{13|46P9} 33|59i21
+X 29 glib.ads
+153P9*C_Proxy(150R9)
+X 35 glib-object.ads
+41P9*GObject(40R9)
+675V13*Convert{78|67M9} 33|58i21 34|49i21
+676V13*Convert{41P9} 33|59i21 34|50i21
+X 43 gtk.ads
+41K9*Gtk 79e8 59|7r6 15r31 20r31 60|7r6 12r31 15r22 16r10 22r31 25r22 26r10
+X 47 gtk-enums.ads
+882V13*Convert{78|67M9} 33|58i21 34|49i21
+883V13*Convert{string} 33|59i21 34|50i21
+X 50 gtk-style_context.ads
+103K13*Style_Context 1122e22 60|7w10 15r26 16r14 25r26 26r14
+106P9*Gtk_Style_Context(105R9) 60|15r40 25r40
+158U14*Add_Class 60|18R11
+606U14*Remove_Class 60|28R11
+702V13*Get_Style_Context{106P9} 60|16s28 26s28
+X 54 gtk-widget.ads
+348K13*Widget 5606e15 59|7w10 15r35 20r35 60|12r35 22r35
+350R9*Gtk_Widget_Record<35|40R9> 350e65 59|15r42 20r42 60|12r42 22r42
+351P9*Gtk_Widget(350R9)
+438V13*Convert{78|67M9} 33|58i21 34|49i21
+439V13*Convert{351P9} 33|59i21 34|50i21
+X 59 gui_helpers.ads
+9K9*GUI_Helpers 23l5 23e16 60|9b14 31l5 31t16
+14U14*Add_Class 15^7 16>7 60|11b14 19l8 19t17
+15p7 W(54|350R9) 60|12b7 16r47
+16a7 Class{string} 60|13b7 18r22
+19U14*Remove_Class 20^7 21>7 60|21b14 29l8 29t20
+20p7 W(54|350R9) 60|22b7 26r47
+21a7 Class{string} 60|23b7 28r25
+X 60 gui_helpers.adb
+15p7 Ctx{50|106P9} 18r7
+25p7 Ctx{50|106P9} 28r7
+X 65 pango-attributes.ads
+41P9*Pango_Attribute<29|153P9>
+52V13*Convert{78|67M9} 34|49i21
+53V13*Convert{41P9} 34|50i21
+X 78 system.ads
+67M9*Address
+

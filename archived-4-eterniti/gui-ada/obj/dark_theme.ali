@@ -1,0 +1,27 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_OBSOLESCENT_FEATURES
+
+U dark_theme%s		dark_theme.ads		2f16b6ab NE OO PK
+
+D dark_theme.ads	20260401011018 2f16b6ab dark_theme%s
+D system.ads		20250808065140 a869df9e system%s
+G a e
+X 1 dark_theme.ads
+12K9*Dark_Theme 324l5 324e15
+14a4*CSS{string}
+

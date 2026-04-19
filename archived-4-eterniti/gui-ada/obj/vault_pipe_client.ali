@@ -1,0 +1,259 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U vault_pipe_client%b	vault_pipe_client.adb	c5cedb27 NE OO PK
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W interfaces%s		interfac.ads		interfac.ali
+W interfaces.c%s	i-c.adb			i-c.ali
+W interfaces.c.strings%s  i-cstrin.adb		i-cstrin.ali
+Z system%s		system.ads		system.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.bignums%s	s-bignum.adb		s-bignum.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+W vault_crypto%s	vault_crypto.adb	vault_crypto.ali
+W vault_storage%s	vault_storage.adb	vault_storage.ali
+W win32_pipes%s		win32_pipes.ads		win32_pipes.ali
+
+U vault_pipe_client%s	vault_pipe_client.ads	608929c3 EE NE OO PK
+W vault_types%s		vault_types.adb		vault_types.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrin.ads		20250808065140 5409c1a4 interfaces.c.strings%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-bignum.ads		20250808065140 12de6c0f system.bignums%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-shabig.ads		20250808065140 5417e075 system.shared_bignums%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D vault_crypto.ads	20260401005352 81f3c7eb vault_crypto%s
+D vault_pipe_client.ads	20260401003318 1340c4e7 vault_pipe_client%s
+D vault_pipe_client.adb	20260401005340 caa9ebb2 vault_pipe_client%b
+D vault_storage.ads	20260401002308 c17d5f70 vault_storage%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+D win32_pipes.ads	20260401002158 e1ec3b27 win32_pipes%s
+G a e
+G c Z s b [init vault_pipe_client 24 14 none]
+G c Z s b [pipe_add vault_pipe_client 30 14 none]
+G c Z s b [pipe_delete vault_pipe_client 40 14 none]
+G c Z s b [pipe_lock vault_pipe_client 45 14 none]
+G c Z s b [pipe_count vault_pipe_client 48 14 none]
+G c Z s b [pipe_set_status vault_pipe_client 54 14 none]
+G c Z s b [service_available vault_pipe_client 62 13 none]
+G c Z s b [current_mode vault_pipe_client 66 13 none]
+G c Z b b [Tpipe_bufferBIP vault_pipe_client 26 4 none]
+G c Z b b [call_pipe vault_pipe_client 30 14 none]
+G r c none [init vault_pipe_client 24 14 none] [init vault_storage 23 14 none]
+G r c none [init vault_pipe_client 24 14 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [pipe_add vault_pipe_client 30 14 none] [to_name_string vault_types 157 13 none]
+G r c none [pipe_add vault_pipe_client 30 14 none] [to_key_string vault_types 160 13 none]
+G r c none [pipe_add vault_pipe_client 30 14 none] [to_secret_string vault_types 163 13 none]
+G r c none [pipe_add vault_pipe_client 30 14 none] [add_key vault_storage 34 14 none]
+G r c none [pipe_add vault_pipe_client 30 14 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [pipe_delete vault_pipe_client 40 14 none] [delete_key vault_storage 43 14 none]
+G r c none [pipe_delete vault_pipe_client 40 14 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [pipe_lock vault_pipe_client 45 14 none] [lock vault_storage 29 14 none]
+G r c none [pipe_lock vault_pipe_client 45 14 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [pipe_set_status vault_pipe_client 54 14 none] [set_key_status vault_storage 75 14 none]
+G r c none [pipe_set_status vault_pipe_client 54 14 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [service_available vault_pipe_client 62 13 none] [callnamedpipea win32_pipes 27 13 none]
+G r c none [call_pipe vault_pipe_client 30 14 none] [callnamedpipea win32_pipes 27 13 none]
+X 4 a-stream.ads
+42M9*Stream_Element
+X 10 interfac.ads
+47K9*Interfaces 247e15 29|10r6 11r6 17r8 18r13 44r17 45r13 47r31 48r16 53r33
+. 59r10
+X 11 i-c.ads
+33K20*C 601e17 29|10w17 11r17 17r19 18r24 44r28 45r24 47r42 48r27 53r44 59r21
+62I9*int<integer> 29|18r26 48r29
+73M9*unsigned_long 29|47r44 53r46
+X 12 i-cstrin.ads
+48K22*Strings 171e25 29|11w19 44r30 45r26 59r23
+65P9*chars_ptr 29|44r38
+86V13*New_String{65P9} 29|45s34
+92U14*Free 29|59s31
+X 13 system.ads
+67M9*Address
+X 27 vault_crypto.ads
+12K9*Vault_Crypto 58e17 29|8w6 26r54 107r18 153r27 154r27 158r33 159r33 163r32
+. 167r33 168r33 172r32 176r33 177r33 181r32 228r27 229r27 230r27 231r27 232r27
+. 233r27 269r27 299r27 300r27 353r27 354r27 355r27 356r27 357r27 358r27 359r27
+18M12*Byte{4|42M9} 29|26r67 107r31 153r40 154r40 158r46 159r46 163r45 167r46
+. 168r46 172r45 176r46 177r46 181r45 228r40 229r40 230r40 231r40 232r40 233r40
+. 269r40 299r40 300r40 353r40 354r40 355r40 356r40 357r40 358r40 359r40
+X 28 vault_pipe_client.ads
+14K9*Vault_Pipe_Client 68l5 68e22 29|13b14 379l5 379t22
+20E9*Client_Mode 20e53 25r18 66r33 29|20r18 74r18 117r33
+20n25*Mode_Service{20E9} 29|84r15 144r15 220r15 262r15 292r15 345r15
+20n39*Mode_Embedded{20E9} 25r33 29|20r33 74r33 81r15 90r31 130r15 212r15
+. 258r15 288r15 337r15
+24U14*Init 25>8 26<8 29|73b14 96l8 96t12
+25e8 Mode{20E9} 29|74b8 78r22 80r12
+26b8 Success{boolean} 29|75b8 82m33 87m16 91m36 95r22
+30U14*Pipe_Add 31>8 32>8 33>8 34>8 35<8 29|121b14 201l8 201t16
+31e8 Ex{31|17E9} 29|122b8 135r31 154r63
+32a8 Name{string} 36r19 29|123b8 136r47 158r52 159r52 161r25 163r66
+33a8 Api_Key{string} 37r28 29|124b8 137r46 167r52 168r52 170r25 172r66
+34a8 Secret{string} 38r28 29|125b8 138r49 176r52 177r52 179r25 181r66
+35e8 Result{31|126E9} 29|126b8 141m16 191m25 193m25 197m19
+40U14*Pipe_Delete 41>8 42>8 43<8 29|205b14 251l8 251t19
+41e8 Ex{31|17E9} 29|206b8 216r42 229r63
+42i8 Slot{31|87I9} 29|207b8 216r46 226r53
+43e8 Result{31|126E9} 29|208b8 217m16 241m25 243m25 247m19
+45U14*Pipe_Lock 46<8 29|255b14 275l8 275t17
+46e8 Result{31|126E9} 29|255b25 260m13 272m16
+48U14*Pipe_Count 49>8 50<8 51<8 29|279b14
+49e8 Ex{31|17E9} 29|280b8 289r48 300r63
+50i8 Count{natural} 52r20 29|281b8 285m7 289m13 308m25 312r28 313m28
+51e8 Result{31|126E9} 29|282b8 290m13 315m25 317m25 321m19
+54U14*Pipe_Set_Status 55>8 56>8 57>8 58<8 29|329b14 377l8 377t23
+55e8 Ex{31|17E9} 29|330b8 341r46 354r63
+56i8 Slot{31|87I9} 29|331b8 341r50 351r53
+57e8 Status{31|26E9} 29|332b8 341r56 359r62
+58e8 Result{31|126E9} 29|333b8 342m16 367m25 369m25 373m19
+62V13*Service_Available{boolean} 29|86s16 100b13 113l8 113t25
+66V13*Current_Mode{20E9} 29|117b13
+X 29 vault_pipe_client.adb
+20e4 Active_Mode{28|20E9} 78m7 90m16 117r49 129r12 211r12 257r12 287r12 336r12
+21b4 Initialized{boolean} 95m7
+25N4 Pipe_Buf_Size 26r36 55r33
+26A9 Pipe_Buffer(27|18M12)<integer> 31r19 33r23 101r14 102r14 146r25 147r25
+. 222r23 223r23 264r23 265r23 294r23 295r23 347r23 348r23
+30U14 Call_Pipe 30b14 31>8 32>8 33<8 34<8 35<8 69l8 69t17 109s7 184s16 235s16
+. 271s16 301s16 361s16
+31a8 Request{26A9} 52r33
+32i8 Req_Len{natural} 53r61
+33a8 Response{26A9} 38m7 54m33 54r33
+34i8 Resp_Len{natural} 39m7 62m13
+35b8 Success{boolean} 40m7 63m13 68m10
+44p10 Pipe{12|65P9} 51r33 59m37 59r37
+47m10 Bytes_Read{11|73M9} 56m33 56r33 62r34
+48i10 Ret{11|62I9} 50m10 61r13
+101a7 Req{26A9} 107m7 108m7 109r18
+102a7 Resp{26A9} 109m26
+103i7 R_Len{natural} 109m32
+104b7 OK{boolean} 109m39 110r14
+132b16 OK{boolean} 140m31 141r30
+146a16 Req{26A9} 153m16 154m16 158m16 159m16 163m19 167m16 168m16 172m19
+. 176m16 177m16 181m19 184r27
+147a16 Resp{26A9} 184m37 188r61
+148i16 R_Len{natural} 184m43 186r31
+149i16 Pos{natural} 155m16 158r21 159r21 160m16 160r23 162m19 162r26 163r24
+. 167r21 168r21 169m16 169r23 171m19 171r26 172r24 176r21 177r21 178m16 178r23
+. 180m19 180r26 181r24 184r32
+150b16 OK{boolean} 184m50 186r19
+161i20 I{integer} 163r72
+170i20 I{integer} 172r75
+179i20 I{integer} 181r74
+188i22 Err_Val{natural} 190r25 191r52
+214b16 OK{boolean} 216m52 217r30
+222a16 Req{26A9} 228m16 229m16 230m16 231m16 232m16 233m16 235r27
+223a16 Resp{26A9} 235m35 238r61
+224i16 R_Len{natural} 235m41 236r31
+225b16 OK{boolean} 235m48 236r19
+226i16 S_Val{natural} 230r46 231r47 232r47 233r46
+238i22 Err_Val{natural} 240r25 241r52
+264a16 Req{26A9} 269m16 270m16 271r27
+265a16 Resp{26A9} 271m35
+266i16 R_Len{natural} 271m41
+267b16 OK{boolean} 271m48 272r30
+294a16 Req{26A9} 299m16 300m16 301r27
+295a16 Resp{26A9} 301m35 305r61 308r43 309r43 310r43 311r43
+296i16 R_Len{natural} 301m41 303r31
+297b16 OK{boolean} 301m48 303r19
+305i22 Err_Val{natural} 307r25
+339b16 OK{boolean} 341m64 342r30
+347a16 Req{26A9} 353m16 354m16 355m16 356m16 357m16 358m16 359m16 361r27
+348a16 Resp{26A9} 361m35 364r61
+349i16 R_Len{natural} 361m41 362r31
+350b16 OK{boolean} 361m48 362r19
+351i16 S_Val{natural} 355r46 356r47 357r47 358r46
+364i22 Err_Val{natural} 366r25 367r52
+X 30 vault_storage.ads
+13K9*Vault_Storage 29|7w6 82r13 91r16 134r16 216r16 259r13 289r23 341r16
+. 30|86e18
+23U14*Init 29|82s27 91s30
+29U14*Lock 29|259s27
+34U14*Add_Key 29|134s30
+35e8 Ex{31|17E9} 29|135r20
+36r8 Name{31|50R9} 29|136r20
+37r8 Api_Key{31|56R9} 29|137r20
+38r8 Secret{31|62R9} 29|138r20
+39e8 Status{31|26E9} 29|139r20
+40b8 Success{boolean} 29|140r20
+43U14*Delete_Key 29|216s30
+66V13*Key_Count{natural} 29|289s37
+75U14*Set_Key_Status 29|341s30
+X 31 vault_types.ads
+10K9*Vault_Types 28|12w6 12r24 31|166e16
+17E9*Exchange_Id 28|31r19 41r17 49r17 55r17 29|122r19 154r46 206r17 229r46
+. 280r17 300r46 330r17 354r46 31|18e7
+26E9*Key_Status 28|57r17 29|332r17 359r46 31|27e7
+26n24*Status_Free{26E9} 29|139r31
+36N4*Max_Keys_Per_Exchange 28|52r29 29|312r36 313r37
+37N4*Max_Name_Length 28|36r34
+38N4*Max_Key_Length 28|37r46
+39N4*Max_Secret_Length 28|38r45
+87I9*Slot_Index<short_short_integer> 28|42r17 56r17 29|207r17 331r17
+95E9*Vault_Opcode 29|107r37 31|108e7
+104n8*Op_Count{95E9} 29|107r55
+126E9*Vault_Error 28|35r23 43r21 46r21 51r21 58r21 29|126r23 190r36 190r53
+. 191r35 208r21 240r36 240r53 241r35 255r38 282r21 333r21 366r36 366r53 367r35
+. 31|136e7
+127n8*Err_OK{126E9} 29|141r38 217r38 260r23 272r38 290r23 315r35 342r38
+128n8*Err_Not_Found{126E9} 29|342r50
+130n8*Err_IO{126E9} 29|217r50
+132n8*Err_Invalid{126E9} 29|193r35 243r35 317r35 369r35
+133n8*Err_No_Service{126E9} 29|197r29 247r29 272r50 321r29 373r29
+134n8*Err_Full{126E9} 29|141r50
+157V13*To_Name_String{50R9} 29|136s31
+160V13*To_Key_String{56R9} 29|137s31
+163V13*To_Secret_String{62R9} 29|138s31
+X 32 win32_pipes.ads
+14K9*Win32_Pipes 29|9w6 43r14 32|86e16
+27V13*CallNamedPipeA{11|62I9} 29|50s17
+28p8 lpNamedPipeName{12|65P9} 29|51r14
+29m8 lpInBuffer{13|67M9} 29|52r14
+30m8 nInBufferSize{11|73M9} 29|53r14
+31m8 lpOutBuffer{13|67M9} 29|54r14
+32m8 nOutBufferSize{11|73M9} 29|55r14
+33p8 lpBytesRead(11|73M9) 29|56r14
+34m8 nTimeOut{11|73M9} 29|57r14
+84N4*Default_Pipe_Timeout_Ms 29|57r33
+

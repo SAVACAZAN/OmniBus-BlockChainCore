@@ -1,0 +1,4 @@
+overview_tab.adb:15:10: warning: unit "Glib.Values" is not referenced [-gnatwu]
+overview_tab.adb:16:09: warning: unit "Gtk.Tree_Model" is not referenced [-gnatwu]
+overview_tab.adb:145:10: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+overview_tab.adb:191:10: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

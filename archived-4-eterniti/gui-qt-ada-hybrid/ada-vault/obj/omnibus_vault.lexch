@@ -1,0 +1,33 @@
+[LIBRARY PATH]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\lib\libomnibus_vault.dll
+[OBJECT FILES]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\bip39_words.o
+20260401084828
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_bip32.o
+20260401085440
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_mnemonic.o
+20260401084828
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_secp256k1.o
+20260401090302
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_sha256.o
+20260401084828
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_sha512.o
+20260401085440
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\spark_transaction.o
+20260401090234
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\vault_c_api.o
+20260401101406
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\vault_crypto.o
+20260401082924
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\vault_storage.o
+20260401082924
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\vault_types.o
+20260401082924
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\qt-ada-hybrid\ada-vault\obj\win32_crypt.o
+20260401082924
+[GENERATED SOURCE FILES]
+b__omnibus_vault.ads
+b__omnibus_vault.adb
+b__omnibus_vault.ali
+[GENERATED OBJECT FILES]
+b__omnibus_vault.o

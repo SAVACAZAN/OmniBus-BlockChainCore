@@ -1,0 +1,4 @@
+spark_sha512.ads:23:12: warning: postcondition does not check the outcome of calling "Hash" [-gnatw.t]
+spark_sha512.ads:23:12: warning: postcondition does not mention function result [-gnatw.t]
+spark_sha512.ads:26:12: warning: postcondition does not check the outcome of calling "HMAC_SHA512" [-gnatw.t]
+spark_sha512.ads:26:12: warning: postcondition does not mention function result [-gnatw.t]

@@ -1,0 +1,5 @@
+dependency:gtkada=26.0.0=9bbd709b0510e269c7ceb000a77391dbd13357758175001299c6ff93ca07457e
+external:LIBRARY_TYPE=default
+external:OMNIBUS_ADA_GUI_LIBRARY_TYPE=default
+profile:omnibus_ada_gui=DEVELOPMENT
+switches:omnibus_ada_gui=-Og,-fdata-sections,-ffunction-sections,-g,-gnatVa,-gnatW8,-gnatw.X,-gnatwa,-gnaty-d,-gnaty3,-gnatyA,-gnatyB,-gnatyI,-gnatyO,-gnatyS,-gnatya,-gnatyb,-gnatyc,-gnatye,-gnatyf,-gnatyh,-gnatyi,-gnatyk,-gnatyl,-gnatym,-gnatyn,-gnatyp,-gnatyr,-gnatyt,-gnatyu,-gnatyx

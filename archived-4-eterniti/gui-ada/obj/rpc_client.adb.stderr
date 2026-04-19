@@ -1,0 +1,3 @@
+rpc_client.adb:72:26: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+rpc_client.adb:80:10: warning: use clause for private type "Ada.Calendar.Time" has no effect [-gnatwu]
+rpc_client.ads:22:36: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

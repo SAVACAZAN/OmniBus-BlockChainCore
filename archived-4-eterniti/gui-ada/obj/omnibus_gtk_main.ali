@@ -1,0 +1,444 @@
+V "GNAT Lib v15"
+M P W=b
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_ACCESS_SUBPROGRAMS
+RV NO_ALLOCATORS
+RV NO_DISPATCH
+RV NO_DISPATCHING_CALLS
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTION_PROPAGATION
+RV NO_EXCEPTIONS
+RV NO_IO
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_IMPLICIT_DYNAMIC_CODE
+RV NO_LOCAL_ALLOCATORS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_ALLOCATORS_AFTER_ELABORATION
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_ACCESS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_ATTRIBUTES
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U omnibus_gtk_main%b	omnibus_gtk_main.adb	7a8810b7 NE OO SU
+W ada%s			ada.ads			ada.ali
+W ada.command_line%s	a-comlin.adb		a-comlin.ali
+Z ada.exceptions%s	a-except.adb		a-except.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+W dark_theme%s		dark_theme.ads		dark_theme.ali
+W exchange_manager%s	exchange_manager.adb	exchange_manager.ali
+W gdk%s			gdk.ads			gdk.ali
+W gdk.screen%s		gdk-screen.adb		gdk-screen.ali
+W glib%s		glib.adb		glib.ali
+W glib.error%s		glib-error.adb		glib-error.ali
+W glib.main%s		glib-main.adb		glib-main.ali
+W gtk%s			gtk.ads			gtk.ali
+W gtk.css_provider%s	gtk-css_provider.adb	gtk-css_provider.ali
+W gtk.main%s		gtk-main.adb		gtk-main.ali
+W gtk.style_context%s	gtk-style_context.adb	gtk-style_context.ali
+W gtk.style_provider%s	gtk-style_provider.adb	gtk-style_provider.ali
+W gtk.widget%s		gtk-widget.adb		gtk-widget.ali
+W main_window%s		main_window.adb		main_window.ali
+W rpc_client%s		rpc_client.adb		rpc_client.ali
+Z system%s		system.ads		system.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.img_int%s	s-imgint.ads		s-imgint.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.val_int%s	s-valint.ads		s-valint.ali
+W vault_pipe_client%s	vault_pipe_client.adb	vault_pipe_client.ali
+W welcome_dialog%s	welcome_dialog.adb	welcome_dialog.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-comlin.ads		20250808065140 4aa66568 ada.command_line%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-finali.ads		20250808065140 bf4f806b ada.finalization%s
+D a-ioexce.ads		20250808065140 40018c65 ada.io_exceptions%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-textio.ads		20250808065140 34ef47de ada.text_io%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20250808065140 c3a8ac65 ada.unchecked_deallocation%s
+D block_explorer_tab.ads  20260401011348 d1a4147a block_explorer_tab%s
+D cairo.ads		20260401014318 925d4aaa cairo%s
+D cairo-region.ads	20260401014318 b7133728 cairo.region%s
+D console_tab.ads	20260401011406 1712a4d0 console_tab%s
+D dark_theme.ads	20260401011018 2f16b6ab dark_theme%s
+D exchange_keys_tab.ads	20260401014636 b86c3d4d exchange_keys_tab%s
+D exchange_manager.ads	20260401003624 4079b1be exchange_manager%s
+D gdk.ads		20260401014320 96d821f3 gdk%s
+D gdk-color.ads		20260401014318 ef57bc34 gdk.color%s
+D gdk-device.ads	20260401014320 873a4dfe gdk.device%s
+D gdk-device_tool.ads	20260401014320 7548cf02 gdk.device_tool%s
+D gdk-display.ads	20260401014320 2ca984e1 gdk.display%s
+D gdk-drag_contexts.ads	20260401014320 c0b30362 gdk.drag_contexts%s
+D gdk-drawing_context.ads  20260401014322 5ffa567a gdk.drawing_context%s
+D gdk-event.ads		20260401014322 12dba357 gdk.event%s
+D gdk-frame_clock.ads	20260401014322 b23ee86a gdk.frame_clock%s
+D gdk-frame_timings.ads	20260401014322 98b5e7d1 gdk.frame_timings%s
+D gdk-glcontext.ads	20260401014322 0725b164 gdk.glcontext%s
+D gdk-monitor.ads	20260401014322 970cbb66 gdk.monitor%s
+D gdk-pixbuf.ads	20260401014320 499fe1c7 gdk.pixbuf%s
+D gdk-rectangle.ads	20260401014320 7b900608 gdk.rectangle%s
+D gdk-rgba.ads		20260401014322 2609514a gdk.rgba%s
+D gdk-screen.ads	20260401014322 2563f3b9 gdk.screen%s
+D gdk-types.ads		20260401014320 921dc8b2 gdk.types%s
+D gdk-visual.ads	20260401014320 bf09ee2d gdk.visual%s
+D gdk-window.ads	20260401014322 c5ab0023 gdk.window%s
+D glib.ads		20260401014356 7d107887 glib%s
+D glib-action_group.ads	20260401014322 39f0dcb6 glib.action_group%s
+D glib-error.ads	20260401014354 e055fabe glib.error%s
+D glib-g_icon.ads	20260401014322 04aa38a9 glib.g_icon%s
+D glib-generic_properties.ads  20260401014354 f3dc70df glib.generic_properties%s
+D glib-glist.ads	20260401014354 65a6e1be glib.glist%s
+D glib-gslist.ads	20260401014354 953541be glib.gslist%s
+D glib-main.ads		20260401014354 aec03ed0 glib.main%s
+D glib-main.adb		20260401014354 57fde77b glib.main%b
+D glib-menu_model.ads	20260401014324 b4f2d5a1 glib.menu_model%s
+D glib-object.ads	20260401014354 fb5efa0e glib.object%s
+D glib-poll.ads		20260401014324 3407e670 glib.poll%s
+D glib-properties.ads	20260401014354 4118b916 glib.properties%s
+D glib-spawn.ads	20260401014324 9fc313c4 glib.spawn%s
+D glib-string.ads	20260401014324 1c658347 glib.string%s
+D glib-types.ads	20260401014354 86ac71ae glib.types%s
+D glib-values.ads	20260401014354 5ef3ad24 glib.values%s
+D glib-variant.ads	20260401014324 a1ae139c glib.variant%s
+D gnat.ads		20250808065140 b5988c27 gnat%s
+D g-string.ads		20250808065140 c6abc540 gnat.strings%s
+D gtk.ads		20260401014356 cfdeaf1c gtk%s
+D gtk-accel_group.ads	20260401014324 a14a159a gtk.accel_group%s
+D gtk-action.ads	20260401014326 98120d78 gtk.action%s
+D gtk-actionable.ads	20260401014326 e100f0b2 gtk.actionable%s
+D gtk-activatable.ads	20260401014326 873be5b9 gtk.activatable%s
+D gtk-adjustment.ads	20260401014326 80acb9f5 gtk.adjustment%s
+D gtk-bin.ads		20260401014326 4e8a2236 gtk.bin%s
+D gtk-box.ads		20260401014326 28f6f090 gtk.box%s
+D gtk-buildable.ads	20260401014328 42aefd00 gtk.buildable%s
+D gtk-builder.ads	20260401014328 35d802c2 gtk.builder%s
+D gtk-button.ads	20260401014328 7abde3a0 gtk.button%s
+D gtk-cell_area.ads	20260401014328 5c877c2b gtk.cell_area%s
+D gtk-cell_area_context.ads  20260401014328 5d63dcf9 gtk.cell_area_context%s
+D gtk-cell_editable.ads	20260401014328 a955a31f gtk.cell_editable%s
+D gtk-cell_layout.ads	20260401014328 ceee6a6f gtk.cell_layout%s
+D gtk-cell_renderer.ads	20260401014328 2f5d891e gtk.cell_renderer%s
+D gtk-clipboard.ads	20260401014330 dbd35c3c gtk.clipboard%s
+D gtk-combo_box.ads	20260401014330 f0eab9aa gtk.combo_box%s
+D gtk-combo_box_text.ads  20260401014330 90d3412c gtk.combo_box_text%s
+D gtk-container.ads	20260401014330 229c6e7d gtk.container%s
+D gtk-css_provider.ads	20260401014332 9331490c gtk.css_provider%s
+D gtk-css_section.ads	20260401014332 91668c7b gtk.css_section%s
+D gtk-editable.ads	20260401014332 88eff938 gtk.editable%s
+D gtk-entry_buffer.ads	20260401014332 1f4bba28 gtk.entry_buffer%s
+D gtk-entry_completion.ads  20260401014332 7c4e239a gtk.entry_completion%s
+D gtk-enums.ads		20260401014332 e04a0db3 gtk.enums%s
+D gtk-gentry.ads	20260401014334 87d4eeee gtk.gentry%s
+D gtk-icon_set.ads	20260401014336 47a1cc98 gtk.icon_set%s
+D gtk-icon_source.ads	20260401014336 db17a9de gtk.icon_source%s
+D gtk-image.ads		20260401014338 93b4d986 gtk.image%s
+D gtk-label.ads		20260401014338 d2f6fd4f gtk.label%s
+D gtk-list_store.ads	20260401014338 143bd688 gtk.list_store%s
+D gtk-main.ads		20260401014338 e684a528 gtk.main%s
+D gtk-menu.ads		20260401014338 a2c8593d gtk.menu%s
+D gtk-menu_item.ads	20260401014340 ab552f06 gtk.menu_item%s
+D gtk-menu_shell.ads	20260401014340 63bcc2d2 gtk.menu_shell%s
+D gtk-misc.ads		20260401014340 7021384d gtk.misc%s
+D gtk-notebook.ads	20260401014340 8f7c429f gtk.notebook%s
+D gtk-orientable.ads	20260401014340 673b3a02 gtk.orientable%s
+D gtk-progress_bar.ads	20260401014342 eda3db1c gtk.progress_bar%s
+D gtk-scrollable.ads	20260401014344 3f7643bd gtk.scrollable%s
+D gtk-selection_data.ads  20260401014344 061b2148 gtk.selection_data%s
+D gtk-spin_button.ads	20260401014344 624d7416 gtk.spin_button%s
+D gtk-style.ads		20260401014346 3c4cbc07 gtk.style%s
+D gtk-style_context.ads	20260401014346 cdffdd02 gtk.style_context%s
+D gtk-style_provider.ads  20260401014346 e396c135 gtk.style_provider%s
+D gtk-target_entry.ads	20260401014346 02690213 gtk.target_entry%s
+D gtk-target_list.ads	20260401014346 a9d79eb7 gtk.target_list%s
+D gtk-text_attributes.ads  20260401014346 ee1d2e1a gtk.text_attributes%s
+D gtk-text_buffer.ads	20260401014346 6c63b29e gtk.text_buffer%s
+D gtk-text_child_anchor.ads  20260401014348 f1b3e7e4 gtk.text_child_anchor%s
+D gtk-text_iter.ads	20260401014348 bb2eed53 gtk.text_iter%s
+D gtk-text_mark.ads	20260401014348 9fbe3e8f gtk.text_mark%s
+D gtk-text_tag.ads	20260401014348 011369ae gtk.text_tag%s
+D gtk-text_tag_table.ads  20260401014348 b78f7de7 gtk.text_tag_table%s
+D gtk-text_view.ads	20260401014348 55065df1 gtk.text_view%s
+D gtk-tooltip.ads	20260401014348 9988679c gtk.tooltip%s
+D gtk-tree_drag_dest.ads  20260401014350 f094e3f8 gtk.tree_drag_dest%s
+D gtk-tree_drag_source.ads  20260401014350 0614312b gtk.tree_drag_source%s
+D gtk-tree_model.ads	20260401014350 e664b639 gtk.tree_model%s
+D gtk-tree_selection.ads  20260401014350 e2cfe1bb gtk.tree_selection%s
+D gtk-tree_sortable.ads	20260401014350 15f54a7c gtk.tree_sortable%s
+D gtk-tree_store.ads	20260401014350 fa79af04 gtk.tree_store%s
+D gtk-tree_view.ads	20260401014350 3549d11c gtk.tree_view%s
+D gtk-tree_view_column.ads  20260401014350 54737275 gtk.tree_view_column%s
+D gtk-widget.ads	20260401014350 7e1eb2be gtk.widget%s
+D gtk-window.ads	20260401014350 1e409d40 gtk.window%s
+D gtkada.ads		20260401014400 57aea1c7 gtkada%s
+D gtkada-bindings.ads	20260401014356 fc9825de gtkada.bindings%s
+D gtkada-c.ads		20260401014356 0f5973e3 gtkada.c%s
+D gtkada-types.ads	20260401014400 471f54b5 gtkada.types%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrin.ads		20250808065140 5409c1a4 interfaces.c.strings%s
+D i-cstrea.ads		20250808065140 ffd01b9d interfaces.c_streams%s
+D main_window.ads	20260401081946 5b228dfa main_window%s
+D mining_tab.ads	20260401011308 8f9ba6fb mining_tab%s
+D network_tab.ads	20260401011330 82561015 network_tab%s
+D omnibus_gtk_main.adb	20260401081900 6f9d4e91 omnibus_gtk_main%b
+D overview_tab.ads	20260401011110 27031775 overview_tab%s
+D pango.ads		20260401014400 e51ea573 pango%s
+D pango-attributes.ads	20260401014352 21c09ee4 pango.attributes%s
+D pango-context.ads	20260401014352 ab3b8a9f pango.context%s
+D pango-enums.ads	20260401014352 8ddf1b71 pango.enums%s
+D pango-font.ads	20260401014352 90904519 pango.font%s
+D pango-font_face.ads	20260401014352 c62e6ce5 pango.font_face%s
+D pango-font_family.ads	20260401014352 5dd1eb29 pango.font_family%s
+D pango-font_map.ads	20260401014352 7959860d pango.font_map%s
+D pango-font_metrics.ads  20260401014352 38b0be76 pango.font_metrics%s
+D pango-fontset.ads	20260401014352 af4fe708 pango.fontset%s
+D pango-language.ads	20260401014352 d0382281 pango.language%s
+D pango-layout.ads	20260401014352 d240b716 pango.layout%s
+D pango-matrix.ads	20260401014352 50fe54f2 pango.matrix%s
+D pango-tabs.ads	20260401014352 0c575925 pango.tabs%s
+D receive_tab.ads	20260401011236 8fafdd5e receive_tab%s
+D rpc_client.ads	20260401011030 ef99b363 rpc_client%s
+D send_tab.ads		20260401011216 e10ce648 send_tab%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-conca2.ads		20250808065140 b5fb73f7 system.concat_2%s
+D s-crtl.ads		20250808065140 beb39b9e system.crtl%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250808065140 dc5161d4 system.file_control_block%s
+D s-finpri.ads		20250808065140 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20250808065140 0a7c3ed4 system.finalization_root%s
+D s-imagei.ads		20250808065140 5e131ce0 system.image_i%s
+D s-imgint.ads		20250808065140 67e4edfb system.img_int%s
+D s-oslock.ads		20250808065140 88eb514b system.os_locks%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-pooglo.ads		20250808065140 91708d21 system.pool_global%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-retsta.ads		20250808065140 0f6b06cb system.return_stack%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-stopoo.ads		20250808065140 e9fa2dd8 system.storage_pools%s
+D s-stratt.ads		20250808065140 516607ae system.stream_attributes%s
+D s-string.ads		20250808065140 582aac7d system.strings%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-valint.ads		20250808065140 8bab724f system.val_int%s
+D s-valspe.ads		20250808065140 f810d31c system.val_spec%s
+D s-valuns.ads		20250808065140 f7ddb71d system.val_uns%s
+D s-valuei.ads		20250808065140 d9377ca5 system.value_i%s
+D s-vaispe.ads		20250808065140 8280550e system.value_i_spec%s
+D s-valueu.ads		20250808065140 a38d32a6 system.value_u%s
+D s-vauspe.ads		20250808065140 89269ba5 system.value_u_spec%s
+D s-vs_int.ads		20250808065140 06b6b724 system.vs_int%s
+D s-vs_uns.ads		20250808065140 e7f47a27 system.vs_uns%s
+D s-wchcon.ads		20250808065140 d9032363 system.wch_con%s
+D s-win32.ads		20250808065140 f77987dc system.win32%s
+D transactions_tab.ads	20260401011252 8b50057c transactions_tab%s
+D vault_pipe_client.ads	20260401003318 1340c4e7 vault_pipe_client%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+D wallet_tab.ads	20260401011150 62d49537 wallet_tab%s
+D welcome_dialog.ads	20260401081904 90ec8c06 welcome_dialog%s
+G a e
+G c Z b b [omnibus_gtk_main standard 33 11 none]
+G r s main_window_record [omnibus_gtk_main standard 33 11 none] [main_window_recordIP main_window 33 9 none]
+G r i none [omnibus_gtk_main standard 33 11 none] [generic_sources glib__main 395 12 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [set_host rpc_client 28 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [set_port rpc_client 29 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [init gtk__main 62 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [get_default gdk__screen 391 13 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [gtk_new gtk__css_provider 71 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [load_from_data gtk__css_provider 88 13 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [to_interface gtk__css_provider__implements_gtk_style_provider 100 16 185_4]
+G r c none [omnibus_gtk_main standard 33 11 none] [add_provider_for_screen gtk__style_context 712 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [init exchange_manager 19 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [current_mode vault_pipe_client 66 13 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [run welcome_dialog 13 13 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [create main_window 66 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [on_destroy gtk__widget 4003 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [connect_signals main_window 72 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [refresh_all main_window 74 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [show main_window 68 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [main gtk__main 197 14 none]
+G r c none [omnibus_gtk_main standard 33 11 none] [main_quit gtk__main 205 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 139|14r6 15r6 40r11 97r10 99r10 114r4 115r4 116r4 117r4 118r4
+. 131r4 133r4 137r4 145r13 147r13 149r13 151r13 174r4 175r4 180r4 184r7
+X 3 a-comlin.ads
+40K13*Command_Line 148e21 139|15w10 40r15
+43V13*Argument_Count{natural} 139|42s21 43s54 45s57
+56V13*Argument{string} 139|43s13 44s34 45s16 46s50
+X 12 a-textio.ads
+58K13*Text_IO 785e16 139|14w10 97r14 99r14 114r8 115r8 116r8 117r8 118r8
+. 131r8 133r8 137r8 145r17 147r17 149r17 151r17 174r8 175r8 180r8 184r11
+284U14*New_Line 139|118s16 137s16 175s16
+565U14*Put_Line 139|97s22 99s22 114s16 115s16 116s16 117s16 131s16 133s16
+. 145s25 147s25 149s25 151s25 174s16 180s16 184s19
+X 19 dark_theme.ads
+12K9*Dark_Theme 324e15 139|26w6 65r43
+14a4*CSS{string} 139|65r54
+X 21 exchange_manager.ads
+13K9*Exchange_Manager 78e21 139|29w6 95r7
+19U14*Init 139|95s24
+X 22 gdk.ads
+38K9*Gdk 48e8 139|21r6 58r27 59r10
+43P9*Gdk_Window<41|153P9>
+46P9*Gdk_Visual<41|153P9>
+X 24 gdk-device.ads
+48P9*Gdk_Device(47R9)
+72V13*Convert{158|67M9} 46|58i21
+73V13*Convert{48P9} 46|59i21
+X 37 gdk-screen.ads
+50K13*Screen 459e15 139|21w10 58r31 59r14
+53P9*Gdk_Screen(52R9) 139|58r38
+391V13*Get_Default{53P9} 139|59s21
+X 39 gdk-visual.ads
+78V13*Convert[13|23]{158|67M9} 46|58i21
+80V13*Convert[13|23]{22|46P9} 46|59i21
+X 40 gdk-window.ads
+309V13*Convert{158|67M9} 46|58i21
+310V13*Convert{22|43P9} 46|59i21
+X 41 glib.ads
+38K9*Glib 429e9 139|22w6 23r6 24r6 60r26 75r15 78r28
+55M9*Guint<133|71M9>
+153P9*C_Proxy(150R9)
+X 43 glib-error.ads
+33K14*Error 68e15 139|23w11 60r31
+36P9*GError<41|153P9> 139|60r37
+X 48 glib-main.ads
+86K14*Main 523e14 139|24w11 75r20 78r33
+153M9*G_Source_Id<41|55M9> 139|75r25
+395k12*Generic_Sources 442e23 139|78r38
+414V16 Timeout_Add{153M9} 139|169s25[78]
+X 51 glib-object.ads
+41P9*GObject(40R9)
+675V13*Convert{158|67M9} 46|58i21 47|49i21
+676V13*Convert{41P9} 46|59i21 47|50i21
+X 56 glib-types.ads
+90M9*GType_Interface<158|67M9>
+X 61 gtk.ads
+41K9*Gtk 79e8 139|16r6 17r6 18r6 19r6 20r6 56r11 67r7 70r10 106r21 110r7
+. 123r4 178r4 185r7
+X 76 gtk-cell_renderer.ads
+84P9*Gtk_Cell_Renderer(83R9)
+105V13*Convert{158|67M9} 46|58i21
+106V13*Convert{84P9} 46|59i21
+X 81 gtk-css_provider.ads
+62K13*Css_Provider 196e21 139|18w10 56r15
+65P9*Gtk_Css_Provider(64R9) 139|57r18
+71U14*Gtk_New 139|64s7
+88V13*Load_From_Data{boolean} 139|65R27
+187V14*"+"=190:42{106|40M9} 139|69s10
+X 86 gtk-enums.ads
+882V13*Convert{158|67M9} 46|58i21 47|49i21
+883V13*Convert{string} 46|59i21 47|50i21
+X 93 gtk-main.ads
+33K13*Main 327e13 139|16w10 110r11 123r8 178r8 185r11
+62U14*Init 139|123s13
+197U14*Main 139|178s13
+205U14*Main_Quit 139|110s16 185s16
+X 105 gtk-style_context.ads
+103K13*Style_Context 1122e22 139|20w10 67r11
+712U14*Add_Provider_For_Screen 139|67s25
+X 106 gtk-style_provider.ads
+38K13*Style_Provider 104e23 139|19w10 70r14
+40M9*Gtk_Style_Provider<56|90M9>
+73M12*Priority{41|55M9}
+84m4*Priority_Application{73M12} 139|70r29
+X 114 gtk-text_tag.ads
+56P9*Gtk_Text_Tag(55R9)
+58V13*Convert{158|67M9} 47|49i21
+59V13*Convert{56P9} 47|50i21
+X 120 gtk-tree_model.ads
+810V13*Convert{158|67M9} 46|58i21
+811V13*Convert{221R9} 46|59i21
+X 125 gtk-tree_view_column.ads
+55P9*Gtk_Tree_View_Column(54R9)
+66V13*Convert{158|67M9} 46|58i21
+67V13*Convert{55P9} 46|59i21
+X 126 gtk-widget.ads
+348K13*Widget 5606e15 139|17w10 106r25
+350R9*Gtk_Widget_Record<51|40R9> 350e65 139|106r32
+351P9*Gtk_Widget(350R9)
+438V13*Convert{158|67M9} 46|58i21 47|49i21
+439V13*Convert{351P9} 46|59i21 47|50i21
+4003U14*On_Destroy 139|160R15
+X 127 gtk-window.ads
+93P9*Gtk_Window(92R9)
+X 133 i-c.ads
+71M9*unsigned
+X 136 main_window.ads
+29K9*Main_Window 76e16 139|27w6 35r18 83r7 157r4 163r4 166r4 172r4
+33R9*Main_Window_Record 64e14 139|35r30
+34p7*Window{127|93P9} 139|160r8
+66U14*Create 139|157s16
+68U14*Show 139|172s16
+72U14*Connect_Signals 139|163s16
+74U14*Refresh_All 139|83s19 166s16
+X 139 omnibus_gtk_main.adb
+33U11*Omnibus_Gtk_Main 33b11 186l5 186t21
+35r4 Win{136|33R9} 83m32 83r32 157m24 160m4 160r4 163m33 163r33 166m29 166r29
+. 172r22
+39U14 Parse_Args 39b14 51l8 51t18 120s4
+42i11 I{integer} 43r23 43r50 44r44 45r26 45r53 46r60
+55U14 Apply_Theme 55b14 71l8 71t19 126s4
+57p7 Provider{81|65P9} 64m16 64r16 65r18 69r11
+58p7 Screen{37|53P9} 68r10
+60p7 Error{43|36P9} 65m59 65r59
+61b7 Success{boolean} 62r28 65m7
+75m4 Timer_ID{48|153M9} 76r25 169m4
+78K12 Timer_Cb[48|395] 169r16
+80V13 On_Timer{boolean} 80b13 80>23 88l8 88t16 169r45
+80b23 Dummy{boolean} 81r28
+92U14 Init_Vault 92b14 101l8 101t18 129s4
+93b7 OK{boolean} 95m30 96r10
+105U14 On_Destroy 105b14 106^7 111l8 111t18 160r27
+106p7 Self(126|350R9) 108r28
+141e7 Choice{198|11E9} 143r12
+X 142 pango-attributes.ads
+41P9*Pango_Attribute<41|153P9>
+52V13*Convert{158|67M9} 47|49i21
+53V13*Convert{41P9} 47|50i21
+X 156 rpc_client.ads
+10K9*RPC_Client 139|28w6 44r13 46r13 132r38 156|85e15
+15N4*Default_Port 139|132r49
+28U14*Set_Host 139|44s24
+29U14*Set_Port 139|46s24
+X 158 system.ads
+67M9*Address
+X 195 vault_pipe_client.ads
+14K9*Vault_Pipe_Client 139|30w6 30r29 195|68e22
+20n25*Mode_Service{20E9} 139|134r26
+66V13*Current_Mode{20E9} 139|134s11
+X 198 welcome_dialog.ads
+7K9*Welcome_Dialog 139|31w6 141r25 141r55 144r15 146r15 148r15 150r15 198|17e19
+11E9*User_Choice 139|141r40 198|11e79
+11n25*Create_Wallet{11E9} 139|144r30
+11n40*Import_Wallet{11E9} 139|146r30
+11n55*Connect_Node{11E9} 139|148r30
+11n69*No_Choice{11E9} 139|150r30
+13V13*Run{11E9} 139|141s70
+

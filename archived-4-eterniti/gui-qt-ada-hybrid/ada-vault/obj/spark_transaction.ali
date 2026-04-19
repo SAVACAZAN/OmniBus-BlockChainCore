@@ -1,0 +1,147 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_LONG_LONG_INTEGERS
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U spark_transaction%b	spark_transaction.adb	df9483e3 NE OO PK
+W spark_secp256k1%s	spark_secp256k1.adb	spark_secp256k1.ali
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+
+U spark_transaction%s	spark_transaction.ads	de432c6b EE NE OO PK
+W spark_secp256k1%s	spark_secp256k1.adb	spark_secp256k1.ali
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D spark_secp256k1.ads	20260401085924 2ed5fbb7 spark_secp256k1%s
+D spark_sha256.ads	20260401084406 95cc5a5d spark_sha256%s
+D spark_transaction.ads	20260401090106 655a8d81 spark_transaction%s
+D spark_transaction.adb	20260401090134 01d7af88 spark_transaction%b
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+G a e
+G c Z s b [calculate_fee spark_transaction 38 13 none]
+G c Z s b [can_afford spark_transaction 44 13 none]
+G c Z s b [build_and_sign spark_transaction 55 14 none]
+G c Z s b [verify_tx spark_transaction 70 13 none]
+G c Z s b [compute_txid spark_transaction 76 13 none]
+G c Z s s [tx_resultIP spark_transaction 29 9 none]
+G c Z b b [write_u32_le spark_transaction 43 14 none]
+G c Z b b [write_u64_le spark_transaction 55 14 none]
+G c Z b b [write_varint spark_transaction 67 14 none]
+G c Z b b [write_bytes spark_transaction 84 14 none]
+G c Z b b [write_string spark_transaction 95 14 none]
+G r c none [verify_tx spark_transaction 70 13 none] [hash256 spark_sha256 39 13 none]
+G r c none [verify_tx spark_transaction 70 13 none] [verify spark_secp256k1 57 13 none]
+G r c none [compute_txid spark_transaction 76 13 none] [hash256 spark_sha256 39 13 none]
+X 4 spark_secp256k1.ads
+18K9*SPARK_Secp256k1 86e20 6|13w6 13r27 7|8w6 8r27
+24A12*Privkey_Bytes{5|20A9}<integer> 6|56r29 7|108r29
+25A12*Pubkey_Bytes{5|20A9}<integer> 6|72r19 7|115r16 189r19
+27A12*Signature_Bytes{5|20A9}<integer> 7|117r16 193r28
+28A12*Hash20_Bytes{5|20A9}<integer> 7|152r31
+39U14*Pubkey_From_Privkey 7|124s7
+48U14*Sign 7|173s10
+57V13*Verify{boolean} 7|195s14
+69V13*Hash160{28A12} 7|152s47
+X 5 spark_sha256.ads
+10K9*SPARK_SHA256 42e17 6|12w6 12r27 7|7w6 7r27
+17M9*Byte 7|50r23 62r23 73r23 78r23 80r23 101r23
+20A9*Byte_Array(17M9)<integer> 6|26r24 71r19 76r37 7|86r15 152r56 158r41
+. 188r19 200r37
+22A12*Hash_Bytes{20A9}<integer> 6|27r26 7|170r29 191r26
+39V13*Hash256{22A12} 7|171s13 191s40 202s14
+X 6 spark_transaction.ads
+15K9*SPARK_Transaction 79l5 79e22 7|10b14 205l5 205t22
+21N4*SAT_PER_OMNI
+22N4*Max_TX_Size 26r41
+26A12*TX_Bytes{5|20A9}<integer> 30r17 7|44r21 56r21 68r21 85r21 96r21
+27A12*TXID_Bytes{5|22A12}<integer> 32r17 76r56 7|200r56
+29R9*TX_Result 34e14 60r26 7|112r26
+30a7*Data{26A12} 7|120m18 133m28 136m28 138m27 140m28 142m28 144m28 147m28
+. 149m28 154m31 155m33 156m33 157m33 158m30 159m33 160m33 164m28 171r29
+31i7*Len{natural} 63r30 7|120m41 166m14
+32a7*TXID{27A12} 64r30 7|121m18 174m17
+33b7*Success{boolean} 62r31 7|121m41 182m14
+38V13*Calculate_Fee{natural} 39>8 40>8 41r20 7|16b13
+39i8 TX_Size_Bytes{natural} 7|17b8 22r10 26r10 29r14
+40i8 Fee_Per_Byte{natural} 7|18b8 22r36 26r37 29r30
+44V13*Can_Afford{boolean} 45>8 46>8 47>8 48r20 7|32b13
+45i8 Balance{natural} 49r31 50r28 7|33b8 38r24 38r48
+46i8 Amount{natural} 49r21 50r38 7|34b8 38r14 38r58
+47i8 Fee{natural} 50r21 7|35b8 38r41
+55U14*Build_And_Sign 56=8 57>8 58>8 59>8 60<8 7|107b14
+56a8 Privkey{4|24A12} 7|108b8 124r28 173r16 178r16 179m10
+57a8 To_Address{string} 7|109b8
+58i8 Amount_Sat{natural} 61r20 7|110b8 149r58
+59i8 Fee_Sat{natural} 61r44 7|111b8
+60r8 Result{29R9} 62r24 63r23 64r23 7|112b8 120m7 133m21 133r21 136m21 136r21
+. 138m20 138r20 140m21 140r21 142m21 142r21 144m21 144r21 147m21 147r21 149m21
+. 149r21 154m24 154r24 155m26 156m26 157m26 158m23 158r23 159m26 160m26 164m21
+. 164r21 166m7 171r22 174m10 182m7
+70V13*Verify_TX{boolean} 71>8 72>8 7|187b13 196l8 196t17
+71a8 TX_Data{5|20A9} 7|188b8 191r49
+72a8 Pubkey{4|25A12} 7|189b8 195r22
+76V13*Compute_TXID{27A12} 76>27 7|200b13 203l8 203t20
+76a27 TX_Data{5|20A9} 7|200b27 202r23
+X 7 spark_transaction.adb
+20i7 Max_Safe{natural} 26r26 27r17
+43U14 Write_U32_LE 43b14 44=8 44=31 44>53 53l8 53t20 133s7 140s7 144s7 164s7
+44a8 Buf{6|26A12} 50m10
+44i31 Pos{natural} 49m10 49r17 50r15
+44i53 Val{natural} 46r22
+46i7 V{natural} 50r29 51m10 51r15
+48i11 I{integer}
+55U14 Write_U64_LE 55b14 56=8 56=31 56>53 65l8 65t20 149s7
+56a8 Buf{6|26A12} 62m10
+56i31 Pos{natural} 61m10 61r17 62r15
+56i53 Val{long_long_integer} 58r32
+58i7 V{long_long_integer} 62r38 63m10 63r15
+60i11 I{integer}
+67U14 Write_Varint 67b14 68=8 68=31 68>53 82l8 82t20 136s7 142s7 147s7 154s10
+68a8 Buf{6|26A12} 73m10 76m10 78m10 80m10
+68i31 Pos{natural} 72m10 72r17 73r15 75m10 75r17 76r15 77m10 77r17 78r15
+. 79m10 79r17 80r15
+68i53 Val{natural} 71r10 73r29 74r13 78r29 80r29
+84U14 Write_Bytes 84b14 85=8 85=31 86>8 93l8 93t19 138s7 158s10
+85a8 Buf{6|26A12} 91m10
+85i31 Pos{natural} 90m10 90r17 91r15
+86a8 Data{5|20A9} 89r16 91r23
+89i11 I{integer} 91r29
+95U14 Write_String 95b14 96=8 96=31 96>53 103l8 103t20
+96a8 Buf{6|26A12} 101m10
+96i31 Pos{natural} 100m10 100r17 101r15
+96a53 S{string} 99r16
+99e11 C=99:16{character} 101r44
+114i7 Pos{natural} 133m34 133r34 136m34 136r34 138m33 138r33 140m34 140r34
+. 142m34 142r34 144m34 144r34 147m34 147r34 149m34 149r34 154m37 154r37 155m10
+. 155r17 155r39 156m10 156r17 156r39 157m10 157r17 157r39 158m36 158r36 159m10
+. 159r17 159r39 160m10 160r17 160r39 164m34 164r34 166r21 171r40
+115a7 Pubkey{4|25A12} 124m37 152r68
+116b7 PK_OK{boolean} 124m45 125r14
+117a7 Sig{4|27A12} 173m34
+118b7 Sig_OK{boolean} 173m39 182r25
+152a10 Addr_Hash{4|28A12} 158r53
+170a10 TX_Hash{5|22A12} 173r25 174r25
+178i11 I{integer} 179r19
+191a7 TX_Hash{5|22A12} 195r30
+193a7 Dummy_Sig{4|27A12} 195r39
+

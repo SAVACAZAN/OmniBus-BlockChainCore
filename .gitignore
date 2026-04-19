@@ -63,3 +63,6 @@ data/wiki_sync_status.json
 scripts/miners_SECRET*
 scripts/miners_env*
 data/tx_log.json
+node_modules/
+dist/
+*.lock

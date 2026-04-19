@@ -1,0 +1,346 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_DISPATCHING_CALLS
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_IO
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_IMPLICIT_LOOPS
+RV NO_ELABORATION_CODE
+
+U vault_storage%b	vault_storage.adb	afee46aa OO PK
+W ada%s			ada.ads			ada.ali
+W ada.directories%s	a-direct.adb		a-direct.ali
+W ada.environment_variables%s  a-envvar.adb	a-envvar.ali
+W ada.streams%s		a-stream.adb		a-stream.ali
+W ada.streams.stream_io%s  a-ststio.adb		a-ststio.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+W vault_crypto%s	vault_crypto.adb	vault_crypto.ali
+
+U vault_storage%s	vault_storage.ads	b2b4b254 EE NE OO PK
+W vault_types%s		vault_types.adb		vault_types.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-calend.ads		20250808065140 bf7f3cc9 ada.calendar%s
+D a-charac.ads		20250808065140 2d3ec45b ada.characters%s
+D a-chlat1.ads		20250808065140 e0d72e76 ada.characters.latin_1%s
+D a-direct.ads		20250808065140 467e87a1 ada.directories%s
+D a-envvar.ads		20250808065140 00080416 ada.environment_variables%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-finali.ads		20250808065140 bf4f806b ada.finalization%s
+D a-ioexce.ads		20250808065140 40018c65 ada.io_exceptions%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-ststio.ads		20250808065140 d6d358e8 ada.streams.stream_io%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-strmap.ads		20250808065140 1f91ebb6 ada.strings.maps%s
+D a-strsea.ads		20250808065140 18c3c634 ada.strings.search%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-strunb.ads		20250808065140 b10770ab ada.strings.unbounded%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrea.ads		20250808065140 ffd01b9d interfaces.c_streams%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-atocou.ads		20250808065140 dc18efc3 system.atomic_counters%s
+D s-conca2.ads		20250808065140 b5fb73f7 system.concat_2%s
+D s-crtl.ads		20250808065140 beb39b9e system.crtl%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250808065140 dc5161d4 system.file_control_block%s
+D s-finpri.ads		20250808065140 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20250808065140 0a7c3ed4 system.finalization_root%s
+D s-oslock.ads		20250808065140 88eb514b system.os_locks%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-retsta.ads		20250808065140 0f6b06cb system.return_stack%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-stratt.ads		20250808065140 516607ae system.stream_attributes%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-win32.ads		20250808065140 f77987dc system.win32%s
+D vault_crypto.ads	20260401005352 81f3c7eb vault_crypto%s
+D vault_storage.ads	20260401002308 c17d5f70 vault_storage%s
+D vault_storage.adb	20260401005420 7fc5056e vault_storage%b
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+G a e
+G c Z s b [is_loaded vault_storage 19 13 none]
+G c Z s b [init vault_storage 23 14 none]
+G c Z s b [save vault_storage 26 14 none]
+G c Z s b [lock vault_storage 29 14 none]
+G c Z s b [add_key vault_storage 34 14 none]
+G c Z s b [delete_key vault_storage 43 14 none]
+G c Z s b [update_key vault_storage 49 14 none]
+G c Z s b [get_key vault_storage 61 13 none]
+G c Z s b [key_count vault_storage 66 13 none]
+G c Z s b [has_keys vault_storage 70 13 none]
+G c Z s b [set_key_status vault_storage 75 14 none]
+G c Z s b [vault_file_path vault_storage 84 13 none]
+G c Z b b [ensure_dir vault_storage 48 14 none]
+G c Z b b [write_u32 vault_storage 74 14 none]
+G c Z b b [read_u32 vault_storage 86 13 none]
+G c Z b b [write_u8 vault_storage 94 14 none]
+G c Z b b [write_str vault_storage 102 14 none]
+G c Z b b [read_str vault_storage 114 13 none]
+G c Z b b [serialize vault_storage 131 14 none]
+G c Z b b [deserialize vault_storage 164 14 none]
+G r c none [save vault_storage 26 14 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [save vault_storage 26 14 none] [secure_wipe vault_crypto 52 14 none]
+G r c none [add_key vault_storage 34 14 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [add_key vault_storage 34 14 none] [secure_wipe vault_crypto 52 14 none]
+G r c none [delete_key vault_storage 43 14 none] [secure_wipe_string vault_crypto 55 14 none]
+G r c none [delete_key vault_storage 43 14 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [delete_key vault_storage 43 14 none] [secure_wipe vault_crypto 52 14 none]
+G r c none [update_key vault_storage 49 14 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [update_key vault_storage 49 14 none] [secure_wipe vault_crypto 52 14 none]
+G r c none [set_key_status vault_storage 75 14 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [set_key_status vault_storage 75 14 none] [secure_wipe vault_crypto 52 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 48|19r6 20r6 21r6 41r10 63r20 64r16 266r11 271r14 282r22 287r19
+. 292r19 293r16 295r13 326r11 351r19 352r16 357r13
+X 6 a-direct.ads
+76K13*Directories 524e20 48|19w10 63r24 64r20 271r18 282r26
+118U14*Create_Path 48|64s32
+307I9*File_Size<long_long_integer>
+310V13*Exists{boolean} 48|63s36 271s30
+321V13*Size{307I9} 48|282s38
+X 7 a-envvar.ads
+19K13*Environment_Variables 69e30 48|20w10 41r14
+29V13*Value{string} 48|41s36
+X 11 a-stream.ads
+36K13*Streams 90e16 48|21r10 266r15 287r23 292r23 293r20 295r17 326r15 351r23
+. 352r20 357r17
+42M9*Stream_Element
+44I9*Stream_Element_Offset<long_long_integer> 48|287r31 293r28 352r28
+54A9*Stream_Element_Array(42M9)<44I9> 48|292r31 351r31
+57x14*Read 48|295R25
+63x14*Write 48|357R25
+X 12 a-ststio.ads
+39K21*Stream_IO 224e26 48|21w18 266r23 326r23
+42P9*Stream_Access(11|39R9) 48|291r17 350r17
+44P9*File_Type 48|280r17 346r14
+47n23*In_File{47E9} 48|289r19
+47n32*Out_File{47E9} 48|348r21
+68U14*Create 48|348s10
+74U14*Open 48|289s10
+80U14*Close 48|300s10 359s10
+92V13*Stream{42P9} 48|291s34 350s34
+X 46 vault_crypto.ads
+12K9*Vault_Crypto 58e17 48|22w6 72r8
+18M12*Byte{11|42M9} 48|79r24 80r24 81r24 82r24 98r24 109r27
+19A9*Byte_Array(18M12)<integer> 48|75r21 86r29 95r21 103r21 115r14 132r18
+. 165r14 283r19 284r19 322r15 324r16
+21N4*Max_Vault_Buffer 48|284r36 322r32 324r33
+28U14*DPAPI_Encrypt 48|338s7
+39U14*DPAPI_Decrypt 48|302s10
+52U14*Secure_Wipe 48|306s13 339s7
+55U14*Secure_Wipe_String 48|376s16 377s16 378s16 424s10 425s10 426s10
+X 47 vault_storage.ads
+13K9*Vault_Storage 86l5 86e18 48|24b14 505l5 505t18
+19V13*Is_Loaded{boolean} 24s37 27s19 30s24 41s19 47s19 57s19 64s19 67s20
+. 71s19 80s19 48|35b13
+23U14*Init 23<20 48|264b14
+23b20 Success{boolean} 24r24 48|264b20 269m7 274m10 305m40 310r17 315m10
+26U14*Save 26<20 48|320b14 365l8 365t12 406s13 429s7 450s7 502s7
+26b20 Success{boolean} 48|320b20 328m7 334m10 338m51 341r14 360m10 363m13
+29U14*Lock 48|369b14
+34U14*Add_Key 35>8 36>8 37>8 38>8 39>8 40<8 48|388b14 411l8 411t15
+35e8 Ex{49|17E9} 48|389b8 399r25 400r21
+36r8 Name{49|50R9} 48|390b8 403r31
+37r8 Api_Key{49|56R9} 48|391b8 404r31
+38r8 Secret{49|62R9} 48|392b8 405r31
+39e8 Status{49|26E9} 48|393b8 402r31
+40b8 Success{boolean} 48|394b8 397m7 406m19
+43U14*Delete_Key 44>8 45>8 46<8 48|415b14 430l8 430t18
+44e8 Ex{49|17E9} 48|416b8 422r40
+45i8 Slot{49|87I9} 48|417b8 422r44
+46b8 Success{boolean} 48|418b8 429m13
+49U14*Update_Key 50>8 51>8 52>8 53>8 54>8 55>8 56<8 48|434b14 451l8 451t18
+50e8 Ex{49|17E9} 48|435b8 444r15
+51i8 Slot{49|87I9} 48|436b8 444r19
+52r8 Name{49|50R9} 48|437b8 447r25
+53r8 Api_Key{49|56R9} 48|438b8 448r25
+54r8 Secret{49|62R9} 48|439b8 449r25
+55e8 Status{49|26E9} 48|440b8 446r25
+56b8 Success{boolean} 48|441b8 450m13
+61V13*Get_Key{49|70R9} 62>8 63>8 48|455b13 461l8 461t15
+62e8 Ex{49|17E9} 48|456b8 460r22
+63i8 Slot{49|87I9} 48|457b8 460r26
+66V13*Key_Count{natural} 66>24 68r20 48|465b13
+66e24 Ex{49|17E9} 48|465b24 469r21
+70V13*Has_Keys{boolean} 70>23 48|478b13 486l8 486t16
+70e23 Ex{49|17E9} 48|478b23 481r21
+75U14*Set_Key_Status 76>8 77>8 78>8 79<8 48|490b14 503l8 503t22
+76e8 Ex{49|17E9} 48|491b8 497r22 501r15
+77i8 Slot{49|87I9} 48|492b8 497r26 501r19
+78e8 Status{49|26E9} 48|493b8 501r35
+79b8 Success{boolean} 48|494b8 498m10 502m13
+84V13*Vault_File_Path{string} 48|39b13 44l8 44t23 265s33 321s34
+X 48 vault_storage.adb
+30a4 Stores{49|91A9} 148r38 244m22 268m7 374m38 374r38 399r17 400m13 422m32
+. 422r32 444m7 460r14 469r13 481r13 497r14 501m7
+31b4 Loaded{boolean} 35r42 273m10 310m7 314m10 383m7
+40a7 App_Data{string} 43r14
+48U14 Ensure_Dir 48b14 48>26 68l8 68t18 329s7
+48a26 Path{string} 52r24 53r13 53r36 59r21 61r38 61r44
+50i7 Last_Sep{natural} 54m13 59r10 61r58
+52i11 I{integer} 53r19 53r42 54r25
+61a13 Dir{string} 63r44 64r45
+74U14 Write_U32 74b14 75=8 75=33 75>55 84l8 84t17 107s7 139s7 140s7 141s7
+. 144s10
+75a8 Buf{46|19A9} 79m7 80m7 81m7 82m7
+75i33 Pos{natural} 79r12 80r12 81r12 82r12 83m7 83r14
+75i55 Val{natural} 77r22
+77i7 V{natural} 79r30 79m42 79r47 80r30 80m42 80r47 81r30 81m42 81r47 82r30
+86V13 Read_U32{natural} 86b13 86>23 86>41 92l8 92t16 118s46 178s16 179s16
+. 180s16 191s29 214s44 224s44 234s46
+86a23 Buf{46|19A9} 88r23 89r23 90r23 91r23
+86i41 Pos{natural} 88r28 89r28 90r28 91r28
+94U14 Write_U8 94b14 95=8 95=33 95>55 100l8 100t16 150s16 151s16
+95a8 Buf{46|19A9} 98m7
+95i33 Pos{natural} 98r12 99m7 99r14
+95i55 Val{natural} 98r30
+102U14 Write_Str 102b14 103=8 103=33 104>8 104>20 112l8 112t17 152s16 153s16
+. 154s16
+103a8 Buf{46|19A9} 107m18 109m10
+103i33 Pos{natural} 107m23 109r15 111m7 111r14
+104a8 S{string} 109r48
+104i20 Len{natural} 107r28 108r21 111r20
+108i11 I{integer} 109r21 109r51
+114V13 Read_Str{string} 114b13 115>8 115=26 116>8 127l8 127t16
+115a8 Buf{46|19A9} 118r56 123r48
+115i26 Pos{natural} 118r61 121m7 121r14 123r53 125m7 125r14
+116i8 Max_Len{natural} 118r67
+118i7 Len{natural} 119r29 122r21 125r20
+119a7 Result{string} 123m10 126r14
+122i11 I{integer} 123r18 123r59
+131U14 Serialize 131b14 132<8 132<30 160l8 160t17 331s7
+132a8 Buf{46|19A9} 136m7 139m18 140m18 141m18 144m21 150m26 151m26 152m27
+. 153m27 154m27
+132i30 Len{natural} 137m7 159m7
+134i7 Pos{natural} 139m23 139r23 140m23 140r23 141m23 141r23 144m26 144r26
+. 150m31 150r31 151m31 151r31 152m32 152r32 153m32 153r32 154m32 154r32 159r14
+143e11 Ex{49|17E9} 148r46
+146i14 S{49|87I9} 148r50
+148r16 E{49|70R9} 150r40 151r52 152r37 152r50 153r37 153r53 154r37 154r56
+164U14 Deserialize 164b14 165>8 165>26 165<41 260l8 260t19 305s13
+165a8 Buf{46|19A9} 178r26 179r26 180r26 191r39 200r34 210r41 214r54 219r62
+. 224r54 229r62 234r56 240r52
+165i26 Len{natural} 174r10
+165b41 Success{boolean} 172m7 259m7
+167i7 Pos{natural} 178r31 178m37 178r44 179r31 179m37 179r44 180r31 180m37
+. 180r44 191r44 193m13 193r20 200r39 209m22 209r29 210r46 211m22 211r29 214r59
+. 216m22 216r29 219r67 221m22 221r29 224r59 226m22 226r29 229r67 231m22 231r29
+. 234r61 236m22 236r29 240r57 242m22 242r29
+168i7 Magic{natural} 178m7 182r10
+169i7 Ver{natural} 179m7 182r39
+170i7 ExCnt{natural} 180m7 187r44
+186e11 Ex{49|17E9} 187r37 244r30
+190i13 Slot_Cnt{natural} 195r27
+195i17 S{integer} 196r19 198r67
+198i22 SI{49|87I9} 244r34
+199i22 In_Use{natural} 245r40
+201i22 St_Val{natural} 210m22 247r32 248r50
+202a22 N_Str{string} 217m22 219m25 250r49
+203i22 N_Len{natural} 214m22 218r36 221r35 250r63
+204a22 K_Str{string} 227m22 229m25 251r49
+205i22 K_Len{natural} 224m22 228r36 231r35 251r63
+206a22 Sec_Str{string} 237m22 239m25 252r49
+207i22 Sec_Len{natural} 234m22 238r36 242r35 252r65
+218i26 I{integer} 219r32 219r73
+228i26 I{integer} 229r32 229r73
+238i26 I{integer} 239r34 240r63
+265a7 Path{string} 271r38 282r44 289r28
+280p10 F{12|44P9} 289m16 289r16 291r42 300m17 300r17
+281i10 Size{natural} 283r36 293r51 302r33
+283a10 Cipher{46|19A9} 297m16 302r25
+284a10 Plain{46|19A9} 302m39 305r26 306m26 306r26
+285i10 P_Len{natural} 302m46 305r33
+286b10 D_OK{boolean} 302m53 304r13
+287i10 Last{11|44I9} 295m43
+291p13 S{12|42P9} 295r31
+292a13 Raw{11|54A9} 295m38 296r22 297r41
+296i17 I<long_long_integer> 297r34 297r46
+321a7 Path{string} 329r19 348r31
+322a7 Plain{46|19A9} 331m18 338r22 339m20 339r20
+323i7 P_Len{natural} 331m25 333r10 338r29
+324a7 Cipher{46|19A9} 338m36 355r27
+325i7 C_Len{natural} 338m44 352r51
+346p10 F{12|44P9} 348m18 348r18 350r42 359m17 359r17
+350p13 S{12|42P9} 357r32
+351a13 Raw{11|54A9} 354r22 355m16 357r39
+354i17 I<long_long_integer> 355r21 355r45
+371e11 Ex{49|17E9} 374r46
+372i14 S{49|87I9} 374r50
+374r16 E{49|70R9} 376r36 377r36 378r36 379r16
+398i11 S{49|87I9} 399r29 400r25
+422r10 E{49|70R9} 424r30 425r30 426r30 427r10
+466i7 N{natural} 470m13 470r18 473r14
+468i11 S{49|87I9} 469r25
+480i11 S{49|87I9} 481r25
+X 49 vault_types.ads
+10K9*Vault_Types 47|11w6 11r24 49|166e16
+17E9*Exchange_Id 47|35r18 44r18 50r18 62r15 66r29 70r28 76r18 48|143r17 186r17
+. 187r20 371r17 389r18 416r18 435r18 456r15 465r29 478r28 491r18 49|18e7
+22N4*Exchange_Count 48|141r28
+26E9*Key_Status 47|39r18 55r18 78r18 48|151r36 247r42 247r58 248r34 393r18
+. 440r18 493r18 49|27e7
+26n24*Status_Free{26E9} 48|249r34
+36N4*Max_Keys_Per_Exchange 47|68r40 48|144r31 191r50
+37N4*Max_Name_Length 48|202r45 215r44
+38N4*Max_Key_Length 48|204r45 225r44
+39N4*Max_Secret_Length 48|206r45 235r46
+41N4*Vault_Magic 48|139r28 182r19
+42N4*Vault_Version 48|140r28 182r46
+46I12*Name_Index{natural}
+47I12*Key_Index{natural}
+48I12*Secret_Index{natural}
+50R9*Name_String 47|36r18 52r18 48|390r18 437r18 49|54e7
+51a7*Data{string} 48|152r44 250m41 376m43 424m37
+52i7*Len{46I12} 48|152r57 250m56
+56R9*Key_String 47|37r18 53r18 48|391r18 438r18 49|60e7
+57a7*Data{string} 48|153r47 251m41 377m46 425m40
+58i7*Len{47I12} 48|153r63 251m56
+62R9*Secret_String 47|38r18 54r18 48|392r18 439r18 49|66e7
+63a7*Data{string} 48|154r50 252m41 378m49 426m43
+64i7*Len{48I12} 48|154r69 252m58
+70R9*Key_Entry 47|63r34 48|148r20 374r20 422r14 457r34 49|76e14
+71b7*In_Use{boolean} 48|150r42 245m26 399r32 401m17 445m11 469r28 481r28
+. 497r32
+72e7*Status{26E9} 48|151r54 246m26 402m17 446m11 501m25
+73r7*Name{50R9} 48|152r39 152r52 250m26 376m38 403m17 424m32 447m11
+74r7*Api_Key{56R9} 48|153r39 153r55 251m26 377m38 404m17 425m32 448m11
+75r7*Api_Secret{62R9} 48|154r39 154r58 252m26 378m38 405m17 426m32 449m11
+78r4*Empty_Key_Entry{70R9} 48|30r55 268r40 379r21 427r15
+87I9*Slot_Index<short_short_integer> 47|45r18 51r18 63r15 77r18 48|146r19
+. 196r33 198r41 198r55 372r19 398r16 417r18 436r18 457r15 468r16 480r16 492r18
+89A9*Slot_Array(70R9)<87I9>
+91A9*Exchange_Store(89A9)<17E9> 48|30r15
+

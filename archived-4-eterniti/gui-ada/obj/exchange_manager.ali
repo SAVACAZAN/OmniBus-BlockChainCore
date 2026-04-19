@@ -1,0 +1,244 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_LOCAL_ALLOCATORS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U exchange_manager%b	exchange_manager.adb	f2e5f53a NE OO PK
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.bignums%s	s-bignum.adb		s-bignum.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.img_int%s	s-imgint.ads		s-imgint.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+W vault_storage%s	vault_storage.adb	vault_storage.ali
+
+U exchange_manager%s	exchange_manager.ads	20f0987d EE NE OO PK
+W vault_pipe_client%s	vault_pipe_client.adb	vault_pipe_client.ali
+W vault_types%s		vault_types.adb		vault_types.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D exchange_manager.ads	20260401003624 4079b1be exchange_manager%s
+D exchange_manager.adb	20260401003656 73e11bf4 exchange_manager%b
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-bignum.ads		20250808065140 12de6c0f system.bignums%s
+D s-conca2.ads		20250808065140 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20250808065140 8a7a19a2 system.concat_3%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-imagei.ads		20250808065140 5e131ce0 system.image_i%s
+D s-imgint.ads		20250808065140 67e4edfb system.img_int%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-shabig.ads		20250808065140 5417e075 system.shared_bignums%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-valspe.ads		20250808065140 f810d31c system.val_spec%s
+D s-vaispe.ads		20250808065140 8280550e system.value_i_spec%s
+D s-vauspe.ads		20250808065140 89269ba5 system.value_u_spec%s
+D s-vs_int.ads		20250808065140 06b6b724 system.vs_int%s
+D s-vs_uns.ads		20250808065140 e7f47a27 system.vs_uns%s
+D vault_pipe_client.ads	20260401003318 1340c4e7 vault_pipe_client%s
+D vault_storage.ads	20260401002308 c17d5f70 vault_storage%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+G a e
+G c Z s b [init exchange_manager 19 14 none]
+G c Z s b [list_keys_json exchange_manager 28 14 none]
+G c Z s b [status_json exchange_manager 34 14 none]
+G c Z s b [handle_add_key exchange_manager 40 14 none]
+G c Z s b [handle_delete_key exchange_manager 51 14 none]
+G c Z s b [handle_update_key exchange_manager 56 14 none]
+G c Z s b [handle_lock exchange_manager 68 14 none]
+G c Z s b [handle_unlock exchange_manager 70 14 none]
+G c Z s b [handle_set_status exchange_manager 72 14 none]
+G c Z b b [append exchange_manager 15 14 none]
+G c Z b b [mask_key exchange_manager 27 13 none]
+G c Z b b [img exchange_manager 36 13 none]
+G c Z b b [escape exchange_manager 47 13 none]
+G r c none [init exchange_manager 19 14 none] [init vault_pipe_client 24 14 none]
+G r c none [list_keys_json exchange_manager 28 14 none] [exchange_name vault_types 151 13 none]
+G r c none [list_keys_json exchange_manager 28 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [list_keys_json exchange_manager 28 14 none] [get_key vault_storage 61 13 none]
+G r c none [list_keys_json exchange_manager 28 14 none] [status_name vault_types 154 13 none]
+G r c none [list_keys_json exchange_manager 28 14 none] [key_count vault_storage 66 13 none]
+G r c none [status_json exchange_manager 34 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [status_json exchange_manager 34 14 none] [current_mode vault_pipe_client 66 13 none]
+G r c none [status_json exchange_manager 34 14 none] [vault_file_path vault_storage 84 13 none]
+G r c none [status_json exchange_manager 34 14 none] [exchange_name vault_types 151 13 none]
+G r c none [status_json exchange_manager 34 14 none] [key_count vault_storage 66 13 none]
+G r c none [handle_add_key exchange_manager 40 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [handle_add_key exchange_manager 40 14 none] [to_name_string vault_types 157 13 none]
+G r c none [handle_add_key exchange_manager 40 14 none] [to_key_string vault_types 160 13 none]
+G r c none [handle_add_key exchange_manager 40 14 none] [to_secret_string vault_types 163 13 none]
+G r c none [handle_add_key exchange_manager 40 14 none] [add_key vault_storage 34 14 none]
+G r c none [handle_delete_key exchange_manager 51 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [handle_delete_key exchange_manager 51 14 none] [delete_key vault_storage 43 14 none]
+G r c none [handle_update_key exchange_manager 56 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [handle_update_key exchange_manager 56 14 none] [to_name_string vault_types 157 13 none]
+G r c none [handle_update_key exchange_manager 56 14 none] [to_key_string vault_types 160 13 none]
+G r c none [handle_update_key exchange_manager 56 14 none] [to_secret_string vault_types 163 13 none]
+G r c none [handle_update_key exchange_manager 56 14 none] [update_key vault_storage 49 14 none]
+G r c none [handle_lock exchange_manager 68 14 none] [lock vault_storage 29 14 none]
+G r c none [handle_unlock exchange_manager 70 14 none] [init vault_storage 23 14 none]
+G r c none [handle_set_status exchange_manager 72 14 none] [is_loaded vault_storage 19 13 none]
+G r c none [handle_set_status exchange_manager 72 14 none] [set_key_status vault_storage 75 14 none]
+X 4 exchange_manager.ads
+13K9*Exchange_Manager 78l5 78e21 5|9b14 277l5 277t21
+19U14*Init 19<20 5|67b14 71l8 71t12
+19b20 Success{boolean} 5|67b20 70m45
+23N4*Max_JSON_Length 25r40 5|20r19
+25A12*JSON_String{string}<integer> 30r19 35r19 5|16r21 77r19 123r19
+28U14*List_Keys_JSON 29>8 30<8 31<8 5|75b14 118l8 118t22
+29e8 Ex{28|17E9} 5|76b8 86r62 92r65 113r73
+30a8 JSON{25A12} 5|77b8 83m7 86m15 87m15 96m30 100m27 101m27 103m27 105m27
+. 107m27 113m15 114m15 115m15
+31i8 Len{natural} 5|78b8 84m7 117m7
+34U14*Status_JSON 35<8 36<8 5|122b14 155l8 155t19
+35a8 JSON{25A12} 5|123b8 128m7 131m15 132m15 134m15 137m15 140m15 143m21
+. 145m18 147m21 149m21 152m15
+36i8 Len{natural} 5|124b8 129m7 154m7
+40U14*Handle_Add_Key 41>8 42>8 43>8 44>8 45>8 46<8 5|159b14 185l8 185t22
+41e8 Ex{28|17E9} 5|160b8 177r25
+42a8 Name{string} 47r19 5|161b8 178r41
+43a8 Api_Key{string} 48r28 5|162b8 179r40
+44a8 Secret{string} 49r28 5|163b8 180r43
+45e8 Status{28|26E9} 5|164b8 181r25
+46e8 Result{28|126E9} 5|165b8 169m10 183m10
+51U14*Handle_Delete_Key 52>8 53>8 54<8 5|189b14 206l8 206t25
+52e8 Ex{28|17E9} 5|190b8 203r36
+53i8 Slot{28|87I9} 5|191b8 203r40
+54e8 Result{28|126E9} 5|192b8 196m10 204m10
+56U14*Handle_Update_Key 57>8 58>8 59>8 60>8 61>8 62>8 63<8 5|210b14 236l8
+. 236t25
+57e8 Ex{28|17E9} 5|211b8 229r14
+58i8 Slot{28|87I9} 5|212b8 229r18
+59a8 Name{string} 64r19 5|213b8 230r30
+60a8 Api_Key{string} 65r28 5|214b8 231r29
+61a8 Secret{string} 66r28 5|215b8 232r32
+62e8 Status{28|26E9} 5|216b8 233r14
+63e8 Result{28|126E9} 5|217b8 221m10 234m10
+68U14*Handle_Lock 68<27 5|240b14 244l8 244t19
+68e27 Result{28|126E9} 5|240b27 243m7
+70U14*Handle_Unlock 70<29 5|248b14 253l8 253t21
+70e29 Result{28|126E9} 5|248b29 252m7
+72U14*Handle_Set_Status 73>8 74>8 75>8 76<8 5|257b14 275l8 275t25
+73e8 Ex{28|17E9} 5|258b8 272r40
+74i8 Slot{28|87I9} 5|259b8 272r44
+75e8 Status{28|26E9} 5|260b8 272r50
+76e8 Result{28|126E9} 5|261b8 265m10 273m10
+X 5 exchange_manager.adb
+15U14 Append 15b14 16=8 16=34 16>56 25l8 25t14 86s7 87s7 96s22 100s19 101s19
+. 103s19 105s19 107s19 113s7 114s7 115s7 131s7 132s7 134s7 137s7 140s7 143s13
+. 145s10 147s13 149s13 152s7
+16a8 Buf{4|25A12} 22m13
+16i34 Pos{natural} 20r13 21m13 21r20 22r18
+16a56 S{string} 19r16 22r26
+19i11 I{integer} 22r29
+27V13 Mask_Key{string} 27b13 27>23 27>35 34l8 34t16 104s24
+27a23 S{string} 30r17 32r17 32r38
+27i35 Len{natural} 29r10 30r25 32r41 32r52
+36V13 Img{string} 36b13 36>18 44l8 44t11 100s53 113s43 114s44 147s32
+36i18 N{natural} 37r45
+37a7 S{string} 40r10 40r32 40r35 41r17 41r20 41r35 43r14
+47V13 Escape{string} 47b13 47>21 63l8 63t14 102s24 138s12
+47a21 S{string} 48r29 51r16 52r13 55r16 59r45
+48a7 Result{string} 53m29 54m29 56m29 57m29 59m29 62r14
+49i7 Pos{natural} 53m13 53r20 53r37 54m13 54r20 54r37 56m13 56r20 56r37 57m13
+. 57r20 57r37 59m13 59r20 59r37 62r27
+51i11 I{integer} 52r16 55r19 59r48
+80i7 Pos{natural} 86m21 86r21 87m21 87r21 96m36 96r36 100m33 100r33 101m33
+. 101r33 103m33 103r33 105m33 105r33 107m33 107r33 113m21 113r21 114m21 114r21
+. 115m21 115r21 117r14
+81b7 First{boolean} 95r26 98m19
+90i14 S{28|87I9} 92r69 100r67
+92r16 E{28|70R9} 94r19 102r32 102r50 104r34 104r50 106r37
+126i7 Pos{natural} 131m21 131r21 132m21 132r21 134m21 134r21 137m21 137r21
+. 140m21 140r21 143m27 143r27 145m24 145r24 147m27 147r27 149m27 149r27 152m21
+. 152r21 154r14
+141e11 Ex{28|17E9} 142r13 145r51 147r62
+174b10 OK{boolean} 182m25 183r24
+201b10 OK{boolean} 203m46 204r24
+226b10 OK{boolean} 233m22 234r24
+249b7 OK{boolean} 251m27 252r21
+270b10 OK{boolean} 272m58 273r24
+X 26 vault_pipe_client.ads
+14K9*Vault_Pipe_Client 4|11w6 11r30 5|70r7 26|68e22
+20n25*Mode_Service{20E9} 5|70r31 135r31
+24U14*Init 5|70s25
+66V13*Current_Mode{20E9} 5|135s16
+X 27 vault_storage.ads
+13K9*Vault_Storage 5|7w6 89r10 92r42 113r48 133r14 138r20 146r13 147r37 168r14
+. 176r10 195r14 203r10 220r14 228r10 242r7 251r7 264r14 272r10 27|86e18
+19V13*Is_Loaded{boolean} 5|89s24 133s28 146s27 168s28 195s28 220s28 264s28
+23U14*Init 5|251s21
+29U14*Lock 5|242s21
+34U14*Add_Key 5|176s24
+35e8 Ex{28|17E9} 5|177r14
+36r8 Name{28|50R9} 5|178r14
+37r8 Api_Key{28|56R9} 5|179r14
+38r8 Secret{28|62R9} 5|180r14
+39e8 Status{28|26E9} 5|181r14
+40b8 Success{boolean} 5|182r14
+43U14*Delete_Key 5|203s24
+49U14*Update_Key 5|228s24
+61V13*Get_Key{28|70R9} 5|92s56
+66V13*Key_Count{natural} 5|113s62 147s51
+75U14*Set_Key_Status 5|272s24
+84V13*Vault_File_Path{string} 5|138s34
+X 28 vault_types.ads
+10K9*Vault_Types 4|10w6 10r30 28|166e16
+17E9*Exchange_Id 4|29r15 41r19 52r17 57r18 73r17 5|76r15 141r17 142r19 160r19
+. 190r17 211r18 258r17 28|18e7
+26E9*Key_Status 4|45r19 62r18 75r17 5|164r19 216r18 260r17 28|27e7
+36N4*Max_Keys_Per_Exchange 5|114r49
+37N4*Max_Name_Length 4|47r34 64r34
+38N4*Max_Key_Length 4|48r46 65r46
+39N4*Max_Secret_Length 4|49r45 66r45
+46I12*Name_Index{natural}
+47I12*Key_Index{natural}
+51a7*Data{string} 5|102r39
+52i7*Len{46I12} 5|102r57
+57a7*Data{string} 5|104r44
+58i7*Len{47I12} 5|104r60
+70R9*Key_Entry 5|92r29 28|76e14
+71b7*In_Use{boolean} 5|94r21
+72e7*Status{26E9} 5|106r39
+73r7*Name{50R9} 5|102r34 102r52
+74r7*Api_Key{56R9} 5|104r36 104r52
+87I9*Slot_Index<short_short_integer> 4|53r17 58r18 74r17 5|90r19 191r17 212r18
+. 259r17
+126E9*Vault_Error 4|46r23 54r21 63r22 68r40 70r42 76r21 5|165r23 192r21 217r22
+. 240r40 248r42 261r21 28|136e7
+127n8*Err_OK{126E9} 5|183r32 204r32 234r32 243r17 252r29 273r32
+128n8*Err_Not_Found{126E9} 5|273r44
+129n8*Err_Decrypt{126E9} 5|252r41
+130n8*Err_IO{126E9} 5|204r44 234r44
+131n8*Err_Locked{126E9} 5|169r20 196r20 221r20 265r20
+134n8*Err_Full{126E9} 5|183r44
+151V13*Exchange_Name{string} 5|86s47 145s36
+154V13*Status_Name{string} 5|106s24
+157V13*To_Name_String{50R9} 5|178s25 230s14
+160V13*To_Key_String{56R9} 5|179s25 231s14
+163V13*To_Secret_String{62R9} 5|180s25 232s14
+

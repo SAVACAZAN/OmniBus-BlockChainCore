@@ -1,0 +1,2 @@
+transactions_tab.adb:67:10: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+transactions_tab.adb:84:12: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

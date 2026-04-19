@@ -1,0 +1,100 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_ATTRIBUTES
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_OBSOLESCENT_FEATURES
+
+U win32_pipes%s		win32_pipes.ads		f4c0b377 NE OO PK
+W interfaces%s		interfac.ads		interfac.ali
+W interfaces.c%s	i-c.adb			i-c.ali
+W interfaces.c.strings%s  i-cstrin.adb		i-cstrin.ali
+W system%s		system.ads		system.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrin.ads		20250808065140 5409c1a4 interfaces.c.strings%s
+D system.ads		20250808065140 a869df9e system%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D win32_pipes.ads	20260401002158 e1ec3b27 win32_pipes%s
+G a e
+G c Z s s [callnamedpipea win32_pipes 27 13 none]
+G c Z s s [createfilea win32_pipes 45 13 none]
+G c Z s s [closehandle win32_pipes 56 13 none]
+G c Z s s [writefile win32_pipes 60 13 none]
+G c Z s s [readfile win32_pipes 69 13 none]
+X 3 interfac.ads
+47K9*Interfaces 247e15 10|10r6 10r34 11r6 28r26 30r26 32r26 33r33 34r26 34r61
+. 46r32 47r32 48r32 50r32 51r32 56r51 63r33 64r40 65r56 72r31 73r38 74r54
+X 4 i-c.ads
+33K20*C 601e17 10|10w17 10r45 11r17 28r37 30r37 32r37 33r44 34r37 34r72 46r43
+. 47r43 48r43 50r43 51r43 56r62 63r44 64r51 65r67 72r42 73r49 74r65
+62I9*int<integer> 10|34r74 56r64 65r69 74r67
+73M9*unsigned_long 10|30r39 32r39 33r46 34r39 47r45 48r45 50r45 51r45 63r46
+. 64r53 72r44 73r51
+X 5 i-cstrin.ads
+48K22*Strings 171e25 10|11w19 28r39 46r45
+65P9*chars_ptr 10|28r47 46r53
+X 6 system.ads
+37K9*System 215e11 10|12w6 20r22 23r7 29r26 31r26 49r32 62r33 65r33 71r31
+. 74r31
+67M9*Address 10|20r29 23r7 29r33 31r33 49r39 62r40 65r40 71r38 74r38
+X 10 win32_pipes.ads
+14K9*Win32_Pipes 86l5 86e16
+20M12*HANDLE{6|67M9} 22r36 52r32 52r47 56r36 61r33 70r31
+22m4*INVALID_HANDLE_VALUE{20M12}
+27V13*CallNamedPipeA{4|62I9} 28>8 29>8 30>8 31>8 32>8 33^8 34>8
+28p8 lpNamedPipeName{5|65P9}
+29m8 lpInBuffer{6|67M9}
+30m8 nInBufferSize{4|73M9}
+31m8 lpOutBuffer{6|67M9}
+32m8 nOutBufferSize{4|73M9}
+33p8 lpBytesRead(4|73M9)
+34m8 nTimeOut{4|73M9}
+40N4*GENERIC_READ
+41N4*GENERIC_WRITE
+42N4*OPEN_EXISTING
+43N4*FILE_ATTRIBUTE_NORMAL
+45V13*CreateFileA{20M12} 46>8 47>8 48>8 49>8 50>8 51>8 52>8
+46p8 lpFileName{5|65P9}
+47m8 dwDesiredAccess{4|73M9}
+48m8 dwShareMode{4|73M9}
+49m8 lpSecurityAttributes{6|67M9}
+50m8 dwCreationDisposition{4|73M9}
+51m8 dwFlagsAndAttributes{4|73M9}
+52m8 hTemplateFile{20M12}
+56V13*CloseHandle{4|62I9} 56>26
+56m26 hObject{20M12}
+60V13*WriteFile{4|62I9} 61>8 62>8 63>8 64^8 65>8
+61m8 hFile{20M12}
+62m8 lpBuffer{6|67M9}
+63m8 nNumberOfBytesToWrite{4|73M9}
+64p8 lpNumberOfBytesWritten(4|73M9)
+65m8 lpOverlapped{6|67M9}
+69V13*ReadFile{4|62I9} 70>8 71>8 72>8 73^8 74>8
+70m8 hFile{20M12}
+71m8 lpBuffer{6|67M9}
+72m8 nNumberOfBytesToRead{4|73M9}
+73p8 lpNumberOfBytesRead(4|73M9)
+74m8 lpOverlapped{6|67M9}
+80a4*Pipe_Name{string}
+84N4*Default_Pipe_Timeout_Ms
+

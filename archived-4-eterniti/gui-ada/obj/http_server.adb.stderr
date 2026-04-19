@@ -1,0 +1,1 @@
+http_server.adb:457:12: warning: variable "E" is not referenced [-gnatwu]

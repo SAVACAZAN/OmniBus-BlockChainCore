@@ -1,0 +1,51 @@
+[GENERATED OBJECT FILE]
+b__omnibus_gtk_main.o
+[PROJECT FILES]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\omnibus_gtk_gui.gpr
+20260401011618 21bf1dfce6cb173a8b3472e300efda28
+C:\Users\cazan\AppData\Local\alire\cache\builds\gtkada_26.0.0_489d17d3\9bbd709b0510e269c7ceb000a77391dbd13357758175001299c6ff93ca07457e\gtk.gpr
+20260401014316 c00d8cb7bb93964428c59c358d5c65aa
+C:\Users\cazan\AppData\Local\alire\cache\builds\gtkada_26.0.0_489d17d3\9bbd709b0510e269c7ceb000a77391dbd13357758175001299c6ff93ca07457e\gtkada_shared.gpr
+20260401014524 634baf2441f175d44ffd61cdd679052c
+C:\Users\cazan\AppData\Local\alire\cache\builds\gtkada_26.0.0_489d17d3\9bbd709b0510e269c7ceb000a77391dbd13357758175001299c6ff93ca07457e\src\gtkada.gpr
+20260401014400 1ae1617fd214e647693c20a3f15272a7
+[BOUND OBJECT FILES]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_types.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\dark_theme.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\gui_helpers.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\block_explorer_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\mining_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\network_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\receive_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\rpc_client.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\console_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\overview_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\send_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\transactions_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\wallet_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\welcome_dialog.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\win32_crypt.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_crypto.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_storage.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\win32_pipes.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_pipe_client.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\exchange_manager.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\exchange_keys_tab.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\main_window.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\omnibus_gtk_main.o
+[GENERATED SOURCE FILES]
+b__omnibus_gtk_main.ads
+b__omnibus_gtk_main.adb
+b__omnibus_gtk_main.ali
+[RESULTING OPTIONS]
+-LC:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\
+-LC:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\
+-LC:\Users\cazan\AppData\Local\alire\cache\builds\gtkada_26.0.0_489d17d3\9bbd709b0510e269c7ceb000a77391dbd13357758175001299c6ff93ca07457e\src\lib\gtkada\relocatable\
+-LC:/users/cazan/appdata/local/alire/cache/toolchains/gnat_native_15.2.1_346e2e00/lib/gcc/x86_64-w64-mingw32/15.2.0/adalib/
+-static
+-shared-libgcc
+-shared-libgcc
+-shared-libgcc
+C:/users/cazan/appdata/local/alire/cache/toolchains/gnat_native_15.2.1_346e2e00/lib/gcc/x86_64-w64-mingw32/15.2.0/adalib/libgnat.a
+-lws2_32
+-Wl,--stack=0x2000000

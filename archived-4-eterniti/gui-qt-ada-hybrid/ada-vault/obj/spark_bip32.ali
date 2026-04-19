@@ -1,0 +1,107 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_DIRECT_BOOLEAN_OPERATORS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U spark_bip32%b		spark_bip32.adb		2ca7c0aa NE OO PK IU
+W spark_sha512%s	spark_sha512.adb	spark_sha512.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+
+U spark_bip32%s		spark_bip32.ads		5ff0f515 EE NE OO PK IU
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D spark_bip32.ads	20260401085038 ca3caf48 spark_bip32%s
+D spark_bip32.adb	20260401085206 d631cbca spark_bip32%b
+D spark_sha256.ads	20260401084406 95cc5a5d spark_sha256%s
+D spark_sha512.ads	20260401084930 30aaa428 spark_sha512%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+G a e
+G c Z s b [master_key_from_seed spark_bip32 34 14 none]
+G c Z s b [derive_child spark_bip32 46 14 none]
+G c Z s b [derive_address_key spark_bip32 57 14 none]
+G c Z s b [wipe_key spark_bip32 66 14 none]
+G c Z s s [extended_keyIP spark_bip32 26 9 none]
+G r c none [derive_child spark_bip32 46 14 none] [hmac_sha512 spark_sha512 25 13 none]
+G r c none [derive_address_key spark_bip32 57 14 none] [hmac_sha512 spark_sha512 25 13 none]
+X 4 spark_bip32.ads
+17K9*SPARK_BIP32 69l5 69e16 5|9b14 189l5 189t16
+23A12*Key_Bytes{6|20A9}<integer> 27r21 5|37r29 106r28
+24A12*Chain_Bytes{6|20A9}<integer> 28r21 5|38r29 107r28
+26R9*Extended_Key 30e14 36r21 47r20 50r24 58r20 60r24 66r36 5|17r21 67r20
+. 70r24 136r20 138r24 140r18 141r18 142r18 143r18 178r36
+27a7*Private_Key{23A12} 39r30 5|23m18 37m14 44r26 45r23 80m17 86r47 90r47
+. 106m13 115r35 116r36 117m19 180r19 181m13
+28a7*Chain_Code{24A12} 40r30 5|24m18 38m14 81m17 101r30 107m13 183r19 184m13
+29b7*Valid{boolean} 38r31 51r26 61r26 67r27 5|25m18 50m17 82m17 122m13 146r22
+. 153r19 160r22 167r21 186m10
+34U14*Master_Key_From_Seed 35=8 36<8 5|15b14
+35a8 Seed{6|20A9} 37r20 5|16b8 34r48 54r16 55m10
+36r8 Master{26R9} 38r24 39r23 40r23 5|17b8 23m7 37m7 38m7 44r19 45r16 50m10
+46U14*Derive_Child 47>8 48>8 49>8 50<8 5|66b14 131l8 131t20 145s7 151s7 158s7
+. 165s7 172s7
+47r8 Parent{26R9} 51r19 5|67b8 86r40 90r40 101r23 116r29
+48i8 Index{natural} 5|68b8 77r54 87r36 91r36
+49b8 Hardened{boolean} 5|69b8 84r10
+50r8 Child{26R9} 5|70b8 80m7 106m7 107m7 115r29 117m13 122m7
+57U14*Derive_Address_Key 58>8 59>8 60<8 5|135b14 174l8 174t26
+58r8 Master{26R9} 61r19 5|136b8 145r21
+59i8 Addr_Idx{natural} 5|137b8 172r29
+60r8 Addr_Key{26R9} 5|138b8 147m10 154m10 161m10 168m10 172m46
+66U14*Wipe_Key 66=24 5|152s7 159s7 166s7 173s7 178b14
+66r24 EK{26R9} 67r24 5|178b24 180r16 181m10 183r16 184m10 186m7
+X 5 spark_bip32.adb
+19a7 Key_Str{string} 20r34 28r16 29r21 30r34
+20a7 Key_B{6|20A9} 29m10 34r41
+21a7 HMAC{7|17A12} 34m7 37r40 38r42 59r16 60m10
+28i11 I{integer} 29r17 30r43
+42b10 All_Zero{boolean} 46m16 50r30
+44i14 I{integer} 45r36
+54i11 I{integer} 55r16
+59i11 I{integer} 60r16
+76a7 Data{6|20A9} 85m10 86m10 89m10 90m10 95m7 96m7 97m7 98m7 101r43 128r16
+. 129m10
+77m7 Idx{6|24M9} 87m10 91m10 95r26 96r27 97r27 98r26
+78a7 HMAC{7|17A12} 100m7 106r39 107r41 125r16 126m10
+111i10 Carry{natural} 116r55 118m13
+112i10 Sum{natural} 115m13 117r44 118r22
+114i14 I{integer} 115r48 116r49 117r32
+125i11 I{integer} 126r16
+128i11 I{integer} 129r16
+140r7 Purpose{4|26R9} 145m39 146r14 151r21 152m17 152r17
+141r7 Coin{4|26R9} 151m39 153r14 158r21 159m17 159r17
+142r7 Account{4|26R9} 158m36 160r14 165r21 166m17 166r17
+143r7 Change{4|26R9} 165m40 167r14 172r21 173m17 173r17
+180i11 I{integer} 181r26
+183i11 I{integer} 184r25
+X 6 spark_sha256.ads
+10K9*SPARK_SHA256 4|15w6 15r24 5|77r14 77r35 87r17 91r17 6|42e17
+17M9*Byte 5|30r13 95r20 96r20 97r20 98r20 117r38
+20A9*Byte_Array(17M9)<integer> 4|23r27 24r27 35r24 5|16r24 20r17 76r14 86r28
+. 90r28 101r11
+24M9*Word 5|77r27 77r48 87r30 91r30
+X 7 spark_sha512.ads
+12K9*SPARK_SHA512 5|7w6 21r17 34r15 78r14 100r15 7|28e17
+17A12*Hash512_Bytes{6|20A9}<integer> 5|21r30 78r27
+25V13*HMAC_SHA512{17A12} 5|34s28 100s28
+

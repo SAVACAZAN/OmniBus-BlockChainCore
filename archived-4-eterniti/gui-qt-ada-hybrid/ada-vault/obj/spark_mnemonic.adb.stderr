@@ -1,0 +1,7 @@
+spark_mnemonic.adb:8:06: warning: redundant with clause in body [-gnatwr]
+spark_mnemonic.adb:8:20: warning: "SPARK_SHA256" is already use-visible through previous use_clause at spark_mnemonic.ads:12 [-gnatwr]
+spark_mnemonic.adb:8:20: warning: use clause for package "SPARK_SHA256" has no effect [-gnatwu]
+spark_mnemonic.adb:38:09: warning: type "Bit_Array" is not referenced [-gnatwu]
+spark_mnemonic.adb:72:26: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+spark_mnemonic.adb:157:07: warning: variable "Pos" is not referenced [-gnatwu]
+spark_mnemonic.ads:28:36: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]

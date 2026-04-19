@@ -1,0 +1,6 @@
+spark_sha256.ads:30:12: warning: postcondition does not check the outcome of calling "Hash" [-gnatw.t]
+spark_sha256.ads:30:12: warning: postcondition does not mention function result [-gnatw.t]
+spark_sha256.ads:35:12: warning: postcondition does not check the outcome of calling "Hash_String" [-gnatw.t]
+spark_sha256.ads:35:12: warning: postcondition does not mention function result [-gnatw.t]
+spark_sha256.ads:40:12: warning: postcondition does not check the outcome of calling "Hash256" [-gnatw.t]
+spark_sha256.ads:40:12: warning: postcondition does not mention function result [-gnatw.t]

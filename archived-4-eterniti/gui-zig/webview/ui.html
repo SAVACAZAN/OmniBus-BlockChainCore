@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniBus Wallet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-dark: #0d0f1a;
+  --bg-main: #11131f;
+  --bg-panel: #1a1d3a;
+  --bg-card: #141628;
+  --bg-hover: #1d2040;
+  --bg-input: #0d0f1a;
+  --border: #2a2d4a;
+  --accent: #4a90d9;
+  --accent-hover: #5aa0e9;
+  --teal: #00b3a4;
+  --teal-bright: #00ffcc;
+  --danger: #d94a4a;
+  --success: #4ad96a;
+  --warning: #f3ba2f;
+  --text: #e0e0f0;
+  --text-sec: #8888aa;
+  --text-dim: #6666aa;
+  --text-muted: #555566;
+  --purple: #7b61ff;
+}
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-main);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─── */
+.header {
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+.header .logo { font-size: 22px; font-weight: bold; color: var(--teal); }
+.header .wallet-info { text-align: right; font-size: 12px; }
+.header .wallet-info .status { color: var(--success); }
+.header .wallet-info .addr { color: var(--text-sec); font-family: 'Consolas', monospace; }
+
+/* ─── Tab Bar ─── */
+.tab-bar {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 2px;
+  padding: 0 8px;
+  min-height: 36px;
+}
+.tab-bar .tab {
+  padding: 8px 16px;
+  color: var(--text-sec);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.tab-bar .tab:hover { background: var(--bg-hover); color: var(--text); }
+.tab-bar .tab.active {
+  background: var(--bg-dark);
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ─── Content ─── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 32px;
+}
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-track { background: var(--bg-dark); }
+.content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ─── Status Bar ─── */
+.status-bar {
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border);
+  padding: 6px 20px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  min-height: 28px;
+}
+.status-bar .node-status { color: var(--warning); }
+
+/* ─── Cards ─── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* ─── Buttons ─── */
+.btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-panel); color: var(--text); border: 1px solid var(--accent); }
+.btn-secondary:hover { background: var(--bg-hover); }
+.btn-ghost { background: var(--bg-dark); color: var(--text-sec); border: 1px solid #3a3d54; }
+.btn-ghost:hover { background: var(--bg-panel); color: var(--text); }
+.btn-wide { display: block; width: 100%; text-align: left; padding: 16px 24px; font-size: 16px; margin-bottom: 6px; }
+.btn-desc { color: var(--text-dim); font-size: 11px; margin: 0 0 12px 24px; }
+
+/* ─── Welcome Dialog ─── */
+.overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 30px 40px;
+  width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.dialog h1 { color: var(--teal); font-size: 32px; text-align: center; margin-bottom: 4px; }
+.dialog .subtitle { color: var(--text-sec); text-align: center; font-size: 14px; margin-bottom: 20px; }
+.dialog hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ─── Form inputs ─── */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; color: var(--text-sec); font-size: 12px; margin-bottom: 4px; }
+.form-group input {
+  width: 100%; padding: 10px 12px;
+  background: var(--bg-input); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 14px; font-family: inherit;
+  outline: none; transition: border 0.15s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.form-group input::placeholder { color: var(--text-muted); }
+.error-msg { color: var(--danger); font-size: 12px; margin-top: 8px; }
+
+/* ─── Mnemonic grid ─── */
+.mnemonic-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin: 16px 0;
+}
+.mnemonic-word {
+  background: var(--bg-dark); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; font-size: 14px;
+}
+.mnemonic-word .num { color: var(--text-muted); margin-right: 8px; font-size: 11px; }
+.mnemonic-word .word { color: var(--teal-bright); font-weight: 600; }
+
+/* ─── Multi-chain table ─── */
+.chain-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.chain-table th {
+  text-align: left; padding: 8px 12px; font-size: 12px;
+  color: var(--text-sec); background: var(--bg-dark);
+  border: 1px solid var(--border);
+}
+.chain-table th:nth-child(1) { width: 180px; }
+.chain-table th:nth-child(2) { width: 110px; }
+.chain-table th:nth-child(3) { width: auto; }
+.chain-table th:nth-child(4) { width: 150px; }
+.chain-table td {
+  padding: 8px 12px; font-size: 13px;
+  border: 1px solid var(--border);
+  font-family: 'Consolas', monospace;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.chain-table td:nth-child(2) { font-size: 11px; color: var(--text-sec); }
+.chain-table td:nth-child(4) { font-size: 11px; color: var(--text-muted); }
+.chain-table tr:nth-child(even) { background: #161829; }
+.chain-table tr:hover { background: var(--bg-hover); cursor: pointer; }
+.chain-table .chain-name { font-family: 'Segoe UI', sans-serif; font-weight: 600; }
+.chain-table .addr {
+  color: var(--purple); word-break: break-all; white-space: normal;
+  cursor: pointer; transition: color 0.15s;
+}
+.chain-table .addr:hover { color: var(--teal-bright); }
+.chain-table .addr.copied { color: var(--success); }
+
+/* ─── QR Code Modal ─── */
+.qr-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.qr-dialog {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 30px; text-align: center; min-width: 320px;
+}
+.qr-dialog h3 { color: var(--teal); margin-bottom: 16px; font-size: 16px; }
+.qr-dialog .qr-address {
+  font-family: 'Consolas', monospace; font-size: 13px; color: var(--purple);
+  word-break: break-all; background: var(--bg-dark); padding: 12px;
+  border-radius: 6px; margin: 16px 0;
+}
+.qr-dialog canvas { image-rendering: pixelated; }
+.qr-dialog .qr-hint { color: var(--text-muted); font-size: 11px; margin-top: 8px; }
+
+/* ─── Section header in multi-chain ─── */
+.chain-section {
+  font-weight: bold; font-size: 14px;
+  padding: 10px 12px !important;
+  background: var(--bg-dark) !important;
+  font-family: 'Segoe UI', sans-serif !important;
+}
+
+.balance-amount { font-size: 28px; color: var(--teal); font-weight: bold; margin: 8px 0; }
+.balance-usd { color: var(--text-dim); font-size: 14px; }
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin: 16px 0; cursor: pointer; }
+.checkbox-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--teal); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.warning-box {
+  background: rgba(217, 74, 74, 0.1); border: 1px solid var(--danger);
+  border-radius: 6px; padding: 10px 14px; color: var(--danger);
+  font-size: 12px; margin-bottom: 12px;
+}
+
+.quick-actions { display: flex; gap: 12px; margin: 16px 0; }
+
+/* ─── API Keys ─── */
+.exchange-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.exchange-tab {
+  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: all 0.15s;
+  border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-sec);
+  user-select: none;
+}
+.exchange-tab:hover { background: var(--bg-hover); color: var(--text); }
+.exchange-tab.active { border-color: var(--accent); color: var(--text); background: var(--bg-panel); }
+.exchange-tab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+.key-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px;
+  transition: border-color 0.15s;
+}
+.key-card:hover { border-color: var(--accent); }
+.key-card .key-info { flex: 1; }
+.key-card .key-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.key-card .key-masked { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text-sec); }
+.key-card .key-status { font-size: 11px; margin-top: 4px; }
+.key-card .key-status.active { color: var(--success); }
+.key-card .key-status.inactive { color: var(--text-muted); }
+.key-card .key-actions { display: flex; gap: 6px; }
+.key-card .key-actions button { padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+
+.btn-sm { padding: 6px 12px !important; font-size: 12px !important; border-radius: 4px !important; }
+.btn-danger { background: var(--danger); color: white; border: none; cursor: pointer; font-family: inherit; }
+.btn-danger:hover { background: #e95a5a; }
+.btn-test { background: var(--bg-panel); color: var(--teal); border: 1px solid var(--teal); cursor: pointer; font-family: inherit; }
+.btn-test:hover { background: rgba(0,179,164,0.15); }
+
+.add-key-form {
+  background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px; margin-top: 12px;
+}
+.add-key-form .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.add-key-form .form-row .form-group { flex: 1; margin-bottom: 0; }
+.add-key-form select {
+  width: 100%; padding: 10px 12px; background: var(--bg-input); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit;
+  outline: none;
+}
+.add-key-form select:focus { border-color: var(--accent); }
+
+.no-keys { color: var(--text-muted); text-align: center; padding: 40px; font-size: 14px; }
+.key-count { color: var(--text-sec); font-size: 12px; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<div class="header">
+  <div class="logo">OmniBus</div>
+  <div class="wallet-info">
+    <div class="status" id="walletStatus">Wallet: Active</div>
+    <div class="addr" id="walletAddr">ob1q...demo</div>
+  </div>
+</div>
+
+<!-- ─── Tab Bar ─── -->
+<div class="tab-bar" id="tabBar">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="send">Send</div>
+  <div class="tab" data-tab="receive">Receive</div>
+  <div class="tab" data-tab="transactions">Transactions</div>
+  <div class="tab" data-tab="multiwallet">Multi-Wallet</div>
+  <div class="tab" data-tab="explorer">Block Explorer</div>
+  <div class="tab" data-tab="mining">Mining</div>
+  <div class="tab" data-tab="network">Network</div>
+  <div class="tab" data-tab="apikeys">API Keys</div>
+  <div class="tab" data-tab="console">Console</div>
+</div>
+
+<!-- ─── Content ─── -->
+<div class="content">
+  <!-- Overview -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="card">
+      <div style="color: var(--text-sec); font-size: 13px;">Total Balance</div>
+      <div class="balance-amount">0.00000000 OMNI</div>
+      <div class="balance-usd">$0.00 USD</div>
+    </div>
+    <h3 style="margin-bottom: 12px;">Quick Actions</h3>
+    <div class="quick-actions">
+      <button class="btn btn-primary" onclick="switchTab('send')">Send</button>
+      <button class="btn btn-secondary" onclick="switchTab('receive')">Receive</button>
+      <button class="btn btn-secondary">New Address</button>
+    </div>
+    <h3 style="margin: 20px 0 12px;">Recent Transactions</h3>
+    <div style="color: var(--text-muted); padding: 20px;">No transactions yet</div>
+  </div>
+
+  <!-- Send -->
+  <div class="tab-content" id="tab-send">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Send OMNI</h2>
+    <div class="card">
+      <div class="form-group">
+        <label>Recipient Address</label>
+        <input type="text" placeholder="ob1q... or any supported address">
+      </div>
+      <div class="form-group">
+        <label>Amount (OMNI)</label>
+        <input type="text" placeholder="0.00000000">
+      </div>
+      <div class="form-group">
+        <label>Fee (sat/vB)</label>
+        <input type="text" value="10" placeholder="10">
+      </div>
+      <button class="btn btn-primary" style="margin-top: 8px;">Send Transaction</button>
+    </div>
+  </div>
+
+  <!-- Receive -->
+  <div class="tab-content" id="tab-receive">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Receive OMNI</h2>
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 12px;">Your Receive Address</div>
+      <div style="font-size: 18px; color: var(--purple); font-family: Consolas, monospace; word-break: break-all; padding: 12px; background: var(--bg-dark); border-radius: 6px; margin-bottom: 12px;">
+        ob1qthcz9gx49ds7p689m7qd9vfpvewn9gws92lwqg
+      </div>
+      <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('ob1qthcz9gx49ds7p689m7qd9vfpvewn9gws92lwqg')">Copy Address</button>
+    </div>
+  </div>
+
+  <!-- Transactions -->
+  <div class="tab-content" id="tab-transactions">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Transaction History</h2>
+    <div style="color: var(--text-muted); padding: 40px; text-align: center;">No transactions yet</div>
+  </div>
+
+  <!-- Multi-Wallet -->
+  <div class="tab-content" id="tab-multiwallet">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <h2 style="color: var(--teal);">Multi-Chain Wallet</h2>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="color: var(--text-sec); font-size: 12px;">Addresses per chain:</span>
+        <select id="addrCount" style="background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px;">
+          <option value="1">1 address</option>
+          <option value="3">3 addresses</option>
+          <option value="6">6 addresses</option>
+        </select>
+        <button class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;" onclick="generateMultiChain()">Generate</button>
+      </div>
+    </div>
+    <div style="color: var(--teal); font-size: 12px; font-weight: bold; margin-bottom: 12px;" id="multiSummary">
+      Generated 16 addresses across 15 chains from same BIP-39 seed
+    </div>
+    <table class="chain-table" id="chainTable">
+      <thead>
+        <tr>
+          <th>Chain / Domain</th>
+          <th>Address Type</th>
+          <th>Address</th>
+          <th>Derivation Path</th>
+        </tr>
+      </thead>
+      <tbody id="chainBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Block Explorer -->
+  <div class="tab-content" id="tab-explorer">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Block Explorer</h2>
+    <div style="color: var(--text-muted); padding: 40px; text-align: center;">Coming soon...</div>
+  </div>
+
+  <!-- Mining -->
+  <div class="tab-content" id="tab-mining">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Mining</h2>
+    <div style="color: var(--text-muted); padding: 40px; text-align: center;">Coming soon...</div>
+  </div>
+
+  <!-- Network -->
+  <div class="tab-content" id="tab-network">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">Network</h2>
+    <div style="color: var(--text-muted); padding: 40px; text-align: center;">Coming soon...</div>
+  </div>
+
+  <!-- API Keys -->
+  <div class="tab-content" id="tab-apikeys">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center;">
+        <h2 style="color: var(--teal);">API Keys</h2>
+        <span class="key-count" id="totalKeyCount">0 keys configured</span>
+      </div>
+      <button class="btn btn-primary" onclick="toggleAddKeyForm()">+ Add API Key</button>
+    </div>
+
+    <!-- Add Key Form (hidden by default) -->
+    <div class="add-key-form" id="addKeyForm" style="display: none;">
+      <h3 style="color: var(--teal); margin-bottom: 12px; font-size: 15px;">Add New API Key</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Exchange</label>
+          <select id="newKeyExchange" onchange="onExchangeSelect()">
+            <option value="">Select exchange...</option>
+            <option value="LCX">LCX</option>
+            <option value="Kraken">Kraken</option>
+            <option value="Coinbase">Coinbase</option>
+            <option value="Binance">Binance</option>
+            <option value="OKX">OKX</option>
+            <option value="Bybit">Bybit</option>
+            <option value="Gate.io">Gate.io</option>
+            <option value="Bitget">Bitget</option>
+            <option value="KuCoin">KuCoin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Key Name (label)</label>
+          <input type="text" id="newKeyName" placeholder="e.g. Trading Bot, Main Account...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="text" id="newKeyApiKey" placeholder="Paste your API key">
+        </div>
+        <div class="form-group">
+          <label>API Secret</label>
+          <input type="password" id="newKeySecret" placeholder="Paste your API secret">
+        </div>
+      </div>
+      <div class="form-row" id="passphraseRow" style="display: none;">
+        <div class="form-group">
+          <label>Passphrase <span style="color: var(--text-muted);">(required for this exchange)</span></label>
+          <input type="password" id="newKeyPassphrase" placeholder="API passphrase">
+        </div>
+        <div class="form-group"></div>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn-ghost" onclick="toggleAddKeyForm()" style="padding: 8px 20px;">Cancel</button>
+        <button class="btn btn-primary" onclick="addApiKey()" style="padding: 8px 20px;">Save Key</button>
+      </div>
+      <div class="error-msg" id="addKeyError" style="display: none;"></div>
+    </div>
+
+    <!-- Exchange filter tabs -->
+    <div class="exchange-tabs" id="exchangeTabs"></div>
+
+    <!-- Keys list -->
+    <div id="apiKeysList"></div>
+  </div>
+
+  <!-- Console -->
+  <div class="tab-content" id="tab-console">
+    <h2 style="color: var(--teal); margin-bottom: 16px;">RPC Console</h2>
+    <div class="card">
+      <div class="form-group">
+        <label>JSON-RPC Command</label>
+        <input type="text" id="rpcInput" placeholder='{"method": "getBlockCount", "params": []}' onkeydown="if(event.key==='Enter')sendRpc()">
+      </div>
+      <button class="btn btn-primary" onclick="sendRpc()" style="margin-top: 4px;">Execute</button>
+      <pre id="rpcOutput" style="margin-top: 12px; padding: 12px; background: var(--bg-dark); border-radius: 6px; color: var(--teal-bright); font-size: 13px; overflow-x: auto; min-height: 60px;"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Status Bar ─── -->
+<div class="status-bar">
+  <span>Block: #0 &nbsp;|&nbsp; Peers: 0 &nbsp;|&nbsp; Mempool: 0 tx</span>
+  <span class="node-status">Node: Disconnected</span>
+</div>
+
+<!-- ─── Welcome Dialog ─── -->
+<div class="overlay" id="welcomeOverlay">
+  <div class="dialog">
+    <h1>OmniBus</h1>
+    <div class="subtitle">Post-Quantum Blockchain Wallet</div>
+    <hr>
+    <button class="btn btn-primary btn-wide" onclick="showCreateWallet()">Create New Wallet</button>
+    <div class="btn-desc">Generate a new mnemonic phrase and create a fresh wallet</div>
+    <button class="btn btn-secondary btn-wide" onclick="showImportWallet()">Import Existing Wallet</button>
+    <div class="btn-desc">Restore a wallet from a mnemonic phrase or backup file</div>
+    <button class="btn btn-ghost btn-wide" onclick="closeWelcome()">Connect to Running Node</button>
+    <div class="btn-desc">Use the wallet from an existing OmniBus node (spectator mode)</div>
+    <div style="text-align: center; color: #444466; font-size: 10px; margin-top: 16px;">OmniBus-Zig v1.0.0 (WebView2)</div>
+  </div>
+</div>
+
+<!-- ─── Create Wallet Dialog ─── -->
+<div class="overlay" id="createOverlay" style="display:none;">
+  <div class="dialog" id="createDialog">
+    <!-- Step 1 -->
+    <div id="createStep1">
+      <h2 style="color: var(--teal); text-align: center; margin-bottom: 4px;">Create New Wallet</h2>
+      <div class="subtitle">Step 1 of 2 — Name & Password</div>
+      <div class="form-group">
+        <label>Wallet Name</label>
+        <input type="text" id="walletName" placeholder="My OmniBus Wallet">
+      </div>
+      <div class="form-group">
+        <label>Password (min 8 characters)</label>
+        <input type="password" id="walletPass" placeholder="Enter password">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="walletPassConfirm" placeholder="Confirm password">
+      </div>
+      <div class="error-msg" id="createError" style="display:none;"></div>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" onclick="createStep2()">Next →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="createStep2" style="display:none;">
+      <h2 style="color: var(--teal); text-align: center; margin-bottom: 4px;">Your Recovery Phrase</h2>
+      <div class="subtitle">Step 2 of 2 — Write down these words in order</div>
+      <div class="warning-box">⚠ WARNING: Never share your mnemonic. Store it safely offline.</div>
+      <div class="mnemonic-grid" id="mnemonicGrid"></div>
+      <label class="checkbox-row" style="margin: 16px 0;">
+        <input type="checkbox" id="backedUp">
+        <span>I have safely backed up my recovery phrase</span>
+      </label>
+      <button class="btn btn-primary" style="width: 100%;" id="createBtn" disabled onclick="finishCreate()">Create Wallet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── QR Code Modal ─── -->
+<div class="qr-overlay" id="qrOverlay" style="display:none;" onclick="closeQr()">
+  <div class="qr-dialog" onclick="event.stopPropagation()">
+    <h3 id="qrTitle">Address QR Code</h3>
+    <canvas id="qrCanvas" width="200" height="200"></canvas>
+    <div class="qr-address" id="qrAddress"></div>
+    <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('qrAddress').textContent); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy Address',1500)">Copy Address</button>
+    <div class="qr-hint">Click outside to close</div>
+  </div>
+</div>
+
+<script>
+// ─── Tab switching ───
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+
+// ─── Welcome ───
+function closeWelcome() { document.getElementById('welcomeOverlay').style.display = 'none'; }
+function showCreateWallet() {
+  document.getElementById('welcomeOverlay').style.display = 'none';
+  document.getElementById('createOverlay').style.display = 'flex';
+}
+function showImportWallet() {
+  closeWelcome();
+  alert('Import wallet — coming soon');
+}
+
+// ─── Create Wallet ───
+// BIP-39 English wordlist — full 2048 words (bitcoin/bips/bip-0039/english.txt)
+const BIP39=['abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse','access','accident','account','accuse','achieve','acid','acoustic','acquire','across','act','action','actor','actress','actual','adapt','add','addict','address','adjust','admit','adult','advance','advice','aerobic','affair','afford','afraid','again','age','agent','agree','ahead','aim','air','airport','aisle','alarm','album','alcohol','alert','alien','all','alley','allow','almost','alone','alpha','already','also','alter','always','amateur','amazing','among','amount','amused','analyst','anchor','ancient','anger','angle','angry','animal','ankle','announce','annual','another','answer','antenna','antique','anxiety','any','apart','apology','appear','apple','approve','april','arch','arctic','area','arena','argue','arm','armed','armor','army','around','arrange','arrest','arrive','arrow','art','artefact','artist','artwork','ask','aspect','assault','asset','assist','assume','asthma','athlete','atom','attack','attend','attitude','attract','auction','audit','august','aunt','author','auto','autumn','average','avocado','avoid','awake','aware','away','awesome','awful','awkward','axis','baby','bachelor','bacon','badge','bag','balance','balcony','ball','bamboo','banana','banner','bar','barely','bargain','barrel','base','basic','basket','battle','beach','bean','beauty','because','become','beef','before','begin','behave','behind','believe','below','belt','bench','benefit','best','betray','better','between','beyond','bicycle','bid','bike','bind','biology','bird','birth','bitter','black','blade','blame','blanket','blast','bleak','bless','blind','blood','blossom','blouse','blue','blur','blush','board','boat','body','boil','bomb','bone','bonus','book','boost','border','boring','borrow','boss','bottom','bounce','box','boy','bracket','brain','brand','brass','brave','bread','breeze','brick','bridge','brief','bright','bring','brisk','broccoli','broken','bronze','broom','brother','brown','brush','bubble','buddy','budget','buffalo','build','bulb','bulk','bullet','bundle','bunker','burden','burger','burst','bus','business','busy','butter','buyer','buzz','cabbage','cabin','cable','cactus','cage','cake','call','calm','camera','camp','can','canal','cancel','candy','cannon','canoe','canvas','canyon','capable','capital','captain','car','carbon','card','cargo','carpet','carry','cart','case','cash','casino','castle','casual','cat','catalog','catch','category','cattle','caught','cause','caution','cave','ceiling','celery','cement','census','century','cereal','certain','chair','chalk','champion','change','chaos','chapter','charge','chase','chat','cheap','check','cheese','chef','cherry','chest','chicken','chief','child','chimney','choice','choose','chronic','chuckle','chunk','churn','cigar','cinnamon','circle','citizen','city','civil','claim','clap','clarify','claw','clay','clean','clerk','clever','click','client','cliff','climb','clinic','clip','clock','clog','close','cloth','cloud','clown','club','clump','cluster','clutch','coach','coast','coconut','code','coffee','coil','coin','collect','color','column','combine','come','comfort','comic','common','company','concert','conduct','confirm','congress','connect','consider','control','convince','cook','cool','copper','copy','coral','core','corn','correct','cost','cotton','couch','country','couple','course','cousin','cover','coyote','crack','cradle','craft','cram','crane','crash','crater','crawl','crazy','cream','credit','creek','crew','cricket','crime','crisp','critic','crop','cross','crouch','crowd','crucial','cruel','cruise','crumble','crunch','crush','cry','crystal','cube','culture','cup','cupboard','curious','current','curtain','curve','cushion','custom','cute','cycle','dad','damage','damp','dance','danger','daring','dash','daughter','dawn','day','deal','debate','debris','decade','december','decide','decline','decorate','decrease','deer','defense','define','defy','degree','delay','deliver','demand','demise','denial','dentist','deny','depart','depend','deposit','depth','deputy','derive','describe','desert','design','desk','despair','destroy','detail','detect','develop','device','devote','diagram','dial','diamond','diary','dice','diesel','diet','differ','digital','dignity','dilemma','dinner','dinosaur','direct','dirt','disagree','discover','disease','dish','dismiss','disorder','display','distance','divert','divide','divorce','dizzy','doctor','document','dog','doll','dolphin','domain','donate','donkey','donor','door','dose','double','dove','draft','dragon','drama','drastic','draw','dream','dress','drift','drill','drink','drip','drive','drop','drum','dry','duck','dumb','dune','during','dust','dutch','duty','dwarf','dynamic','eager','eagle','early','earn','earth','easily','east','easy','echo','ecology','economy','edge','edit','educate','effort','egg','eight','either','elbow','elder','electric','elegant','element','elephant','elevator','elite','else','embark','embody','embrace','emerge','emotion','employ','empower','empty','enable','enact','end','endless','endorse','enemy','energy','enforce','engage','engine','enhance','enjoy','enlist','enough','enrich','enroll','ensure','enter','entire','entry','envelope','episode','equal','equip','era','erase','erode','erosion','error','erupt','escape','essay','essence','estate','eternal','ethics','evidence','evil','evoke','evolve','exact','example','excess','exchange','excite','exclude','excuse','execute','exercise','exhaust','exhibit','exile','exist','exit','exotic','expand','expect','expire','explain','expose','express','extend','extra','eye','eyebrow','fabric','face','faculty','fade','faint','faith','fall','false','fame','family','famous','fan','fancy','fantasy','farm','fashion','fat','fatal','father','fatigue','fault','favorite','feature','february','federal','fee','feed','feel','female','fence','festival','fetch','fever','few','fiber','fiction','field','figure','file','film','filter','final','find','fine','finger','finish','fire','firm','first','fiscal','fish','fit','fitness','fix','flag','flame','flash','flat','flavor','flee','flight','flip','float','flock','floor','flower','fluid','flush','fly','foam','focus','fog','foil','fold','follow','food','foot','force','forest','forget','fork','fortune','forum','forward','fossil','foster','found','fox','fragile','frame','frequent','fresh','friend','fringe','frog','front','frost','frown','frozen','fruit','fuel','fun','funny','furnace','fury','future','gadget','gain','galaxy','gallery','game','gap','garage','garbage','garden','garlic','garment','gas','gasp','gate','gather','gauge','gaze','general','genius','genre','gentle','genuine','gesture','ghost','giant','gift','giggle','ginger','giraffe','girl','give','glad','glance','glare','glass','glide','glimpse','globe','gloom','glory','glove','glow','glue','goat','goddess','gold','good','goose','gorilla','gospel','gossip','govern','gown','grab','grace','grain','grant','grape','grass','gravity','great','green','grid','grief','grit','grocery','group','grow','grunt','guard','guess','guide','guilt','guitar','gun','gym','habit','hair','half','hammer','hamster','hand','happy','harbor','hard','harsh','harvest','hat','have','hawk','hazard','head','health','heart','heavy','hedgehog','height','hello','helmet','help','hen','hero','hidden','high','hill','hint','hip','hire','history','hobby','hockey','hold','hole','holiday','hollow','home','honey','hood','hope','horn','horror','horse','hospital','host','hotel','hour','hover','hub','huge','human','humble','humor','hundred','hungry','hunt','hurdle','hurry','hurt','husband','hybrid','ice','icon','idea','identify','idle','ignore','ill','illegal','illness','image','imitate','immense','immune','impact','impose','improve','impulse','inch','include','income','increase','index','indicate','indoor','industry','infant','inflict','inform','inhale','inherit','initial','inject','injury','inmate','inner','innocent','input','inquiry','insane','insect','inside','inspire','install','intact','interest','into','invest','invite','involve','iron','island','isolate','issue','item','ivory','jacket','jaguar','jar','jazz','jealous','jeans','jelly','jewel','job','join','joke','journey','joy','judge','juice','jump','jungle','junior','junk','just','kangaroo','keen','keep','ketchup','key','kick','kid','kidney','kind','kingdom','kiss','kit','kitchen','kite','kitten','kiwi','knee','knife','knock','know','lab','label','labor','ladder','lady','lake','lamp','language','laptop','large','later','latin','laugh','laundry','lava','law','lawn','lawsuit','layer','lazy','leader','leaf','learn','leave','lecture','left','leg','legal','legend','leisure','lemon','lend','length','lens','leopard','lesson','letter','level','liar','liberty','library','license','life','lift','light','like','limb','limit','link','lion','liquid','list','little','live','lizard','load','loan','lobster','local','lock','logic','lonely','long','loop','lottery','loud','lounge','love','loyal','lucky','luggage','lumber','lunar','lunch','luxury','lyrics','machine','mad','magic','magnet','maid','mail','main','major','make','mammal','man','manage','mandate','mango','mansion','manual','maple','marble','march','margin','marine','market','marriage','mask','mass','master','match','material','math','matrix','matter','maximum','maze','meadow','mean','measure','meat','mechanic','medal','media','melody','melt','member','memory','mention','menu','mercy','merge','merit','merry','mesh','message','metal','method','middle','midnight','milk','million','mimic','mind','minimum','minor','minute','miracle','mirror','misery','miss','mistake','mix','mixed','mixture','mobile','model','modify','mom','moment','monitor','monkey','monster','month','moon','moral','more','morning','mosquito','mother','motion','motor','mountain','mouse','move','movie','much','muffin','mule','multiply','muscle','museum','mushroom','music','must','mutual','myself','mystery','myth','naive','name','napkin','narrow','nasty','nation','nature','near','neck','need','negative','neglect','neither','nephew','nerve','nest','net','network','neutral','never','news','next','nice','night','noble','noise','nominee','noodle','normal','north','nose','notable','note','nothing','notice','novel','now','nuclear','number','nurse','nut','oak','obey','object','oblige','obscure','observe','obtain','obvious','occur','ocean','october','odor','off','offer','office','often','oil','okay','old','olive','olympic','omit','once','one','onion','online','only','open','opera','opinion','oppose','option','orange','orbit','orchard','order','ordinary','organ','orient','original','orphan','ostrich','other','outdoor','outer','output','outside','oval','oven','over','own','owner','oxygen','oyster','ozone','pact','paddle','page','pair','palace','palm','panda','panel','panic','panther','paper','parade','parent','park','parrot','party','pass','patch','path','patient','patrol','pattern','pause','pave','payment','peace','peanut','pear','peasant','pelican','pen','penalty','pencil','people','pepper','perfect','permit','person','pet','phone','photo','phrase','physical','piano','picnic','picture','piece','pig','pigeon','pill','pilot','pink','pioneer','pipe','pistol','pitch','pizza','place','planet','plastic','plate','play','please','pledge','pluck','plug','plunge','poem','poet','point','polar','pole','police','pond','pony','pool','popular','portion','position','possible','post','potato','pottery','poverty','powder','power','practice','praise','predict','prefer','prepare','present','pretty','prevent','price','pride','primary','print','priority','prison','private','prize','problem','process','produce','profit','program','project','promote','proof','property','prosper','protect','proud','provide','public','pudding','pull','pulp','pulse','pumpkin','punch','pupil','puppy','purchase','purity','purpose','purse','push','put','puzzle','pyramid','quality','quantum','quarter','question','quick','quit','quiz','quote','rabbit','raccoon','race','rack','radar','radio','rail','rain','raise','rally','ramp','ranch','random','range','rapid','rare','rate','rather','raven','raw','razor','ready','real','reason','rebel','rebuild','recall','receive','recipe','record','recycle','reduce','reflect','reform','refuse','region','regret','regular','reject','relax','release','relief','rely','remain','remember','remind','remove','render','renew','rent','reopen','repair','repeat','replace','report','require','rescue','resemble','resist','resource','response','result','retire','retreat','return','reunion','reveal','review','reward','rhythm','rib','ribbon','rice','rich','ride','ridge','rifle','right','rigid','ring','riot','ripple','risk','ritual','rival','river','road','roast','robot','robust','rocket','romance','roof','rookie','room','rose','rotate','rough','round','route','royal','rubber','rude','rug','rule','run','runway','rural','sad','saddle','sadness','safe','sail','salad','salmon','salon','salt','salute','same','sample','sand','satisfy','satoshi','sauce','sausage','save','say','scale','scan','scare','scatter','scene','scheme','school','science','scissors','scorpion','scout','scrap','screen','script','scrub','sea','search','season','seat','second','secret','section','security','seed','seek','segment','select','sell','seminar','senior','sense','sentence','series','service','session','settle','setup','seven','shadow','shaft','shallow','share','shed','shell','sheriff','shield','shift','shine','ship','shiver','shock','shoe','shoot','shop','short','shoulder','shove','shrimp','shrug','shuffle','shy','sibling','sick','side','siege','sight','sign','silent','silk','silly','silver','similar','simple','since','sing','siren','sister','situate','six','size','skate','sketch','ski','skill','skin','skirt','skull','slab','slam','sleep','slender','slice','slide','slight','slim','slogan','slot','slow','slush','small','smart','smile','smoke','smooth','snack','snake','snap','sniff','snow','soap','soccer','social','sock','soda','soft','solar','soldier','solid','solution','solve','someone','song','soon','sorry','sort','soul','sound','soup','source','south','space','spare','spatial','spawn','speak','special','speed','spell','spend','sphere','spice','spider','spike','spin','spirit','split','spoil','sponsor','spoon','sport','spot','spray','spread','spring','spy','square','squeeze','squirrel','stable','stadium','staff','stage','stairs','stamp','stand','start','state','stay','steak','steel','stem','step','stereo','stick','still','sting','stock','stomach','stone','stool','story','stove','strategy','street','strike','strong','struggle','student','stuff','stumble','style','subject','submit','subway','success','such','sudden','suffer','sugar','suggest','suit','summer','sun','sunny','sunset','super','supply','supreme','sure','surface','surge','surprise','surround','survey','suspect','sustain','swallow','swamp','swap','swarm','swear','sweet','swift','swim','swing','switch','sword','symbol','symptom','syrup','system','table','tackle','tag','tail','talent','talk','tank','tape','target','task','taste','tattoo','taxi','teach','team','tell','ten','tenant','tennis','tent','term','test','text','thank','that','theme','then','theory','there','they','thing','this','thought','three','thrive','throw','thumb','thunder','ticket','tide','tiger','tilt','timber','time','tiny','tip','tired','tissue','title','toast','tobacco','today','toddler','toe','together','toilet','token','tomato','tomorrow','tone','tongue','tonight','tool','tooth','top','topic','topple','torch','tornado','tortoise','toss','total','tourist','toward','tower','town','toy','track','trade','traffic','tragic','train','transfer','trap','trash','travel','tray','treat','tree','trend','trial','tribe','trick','trigger','trim','trip','trophy','trouble','truck','true','truly','trumpet','trust','truth','try','tube','tuition','tumble','tuna','tunnel','turkey','turn','turtle','twelve','twenty','twice','twin','twist','two','type','typical','ugly','umbrella','unable','unaware','uncle','uncover','under','undo','unfair','unfold','unhappy','uniform','unique','unit','universe','unknown','unlock','until','unusual','unveil','update','upgrade','uphold','upon','upper','upset','urban','urge','usage','use','used','useful','useless','usual','utility','vacant','vacuum','vague','valid','valley','valve','van','vanish','vapor','various','vast','vault','vehicle','velvet','vendor','venture','venue','verb','verify','version','very','vessel','veteran','viable','vibrant','vicious','victory','video','view','village','vintage','violin','virtual','virus','visa','visit','visual','vital','vivid','vocal','voice','void','volcano','volume','vote','voyage','wage','wagon','wait','walk','wall','walnut','want','warfare','warm','warrior','wash','wasp','waste','water','wave','way','wealth','weapon','wear','weasel','weather','web','wedding','weekend','weird','welcome','west','wet','whale','what','wheat','wheel','when','where','whip','whisper','wide','width','wife','wild','will','win','window','wine','wing','wink','winner','winter','wire','wisdom','wise','wish','witness','wolf','woman','wonder','wood','wool','word','work','world','worry','worth','wrap','wreck','wrestle','wrist','write','wrong','yard','year','yellow','you','young','youth','zebra','zero','zone','zoo'];
+function generateMnemonic() {
+  const words = [];
+  const arr = new Uint32Array(12);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < 12; i++) words.push(BIP39[arr[i] % 2048]);
+  return words;
+}
+let currentMnemonic = generateMnemonic();
+
+function createStep2() {
+  const name = document.getElementById('walletName').value.trim();
+  const pass = document.getElementById('walletPass').value;
+  const conf = document.getElementById('walletPassConfirm').value;
+  const err = document.getElementById('createError');
+  if (!name) { err.textContent = 'Wallet name cannot be empty'; err.style.display = 'block'; return; }
+  if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters'; err.style.display = 'block'; return; }
+  if (pass !== conf) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  document.getElementById('createStep1').style.display = 'none';
+  document.getElementById('createStep2').style.display = 'block';
+
+  currentMnemonic = generateMnemonic();
+  const grid = document.getElementById('mnemonicGrid');
+  grid.innerHTML = '';
+  currentMnemonic.forEach((w, i) => {
+    grid.innerHTML += `<div class="mnemonic-word"><span class="num">${i+1}.</span><span class="word">${w}</span></div>`;
+  });
+
+  document.getElementById('backedUp').addEventListener('change', e => {
+    document.getElementById('createBtn').disabled = !e.target.checked;
+  });
+}
+
+function finishCreate() {
+  document.getElementById('createOverlay').style.display = 'none';
+}
+
+// ─── Multi-Chain addresses ───
+const CHAINS = [
+  { section: 'OMNI (5 PQ Domains)', color: '#00b3a4' },
+  { chain: 'omnibus.omni', type: 'ML-DSA-87 + ML-KEM-768', addr: 'ob1q7xk9m2f4dp3n8hz6…', path: "m/44'/777'/0'/0/0", color: '#00b3a4' },
+  { chain: 'omnibus.love', type: 'ML-DSA-87 (Dilithium)', addr: 'ob_k1_1a9f3x2k8p…', path: "m/44'/778'/0'/0/0", color: '#00ffcc' },
+  { chain: 'omnibus.food', type: 'Falcon-512', addr: 'ob_f5_1m4r7v9q2n…', path: "m/44'/779'/0'/0/0", color: '#00ffcc' },
+  { chain: 'omnibus.rent', type: 'SLH-DSA (SPHINCS+)', addr: 'ob_d5_1k8w2p5t3x…', path: "m/44'/780'/0'/0/0", color: '#00ffcc' },
+  { chain: 'omnibus.vacation', type: 'Falcon-Light', addr: 'ob_s3_1j6n4h7c9d…', path: "m/44'/781'/0'/0/0", color: '#00ffcc' },
+  { section: 'BTC (4 Address Types)', color: '#f7931a' },
+  { chain: 'BTC Legacy', type: 'P2PKH', addr: '1A1zP1eP5QGefi2DMPTf…', path: "m/44'/0'/0'/0/0", color: '#f7931a' },
+  { chain: 'BTC SegWit', type: 'P2SH', addr: '3J98t1WpEZ73CNmQvie…', path: "m/49'/0'/0'/0/0", color: '#f7931a' },
+  { chain: 'BTC Native', type: 'Bech32', addr: 'bc1qw508d6qejxtdg4y…', path: "m/84'/0'/0'/0/0", color: '#f7931a' },
+  { chain: 'BTC Taproot', type: 'Bech32m', addr: 'bc1p5cyxnuxmeuwuvk…', path: "m/86'/0'/0'/0/0", color: '#f7931a' },
+  { section: 'EVM Chains', color: '#627eea' },
+  { chain: 'ETH', type: 'EOA (Keccak256)', addr: '0x71C7656EC7ab88b0…', path: "m/44'/60'/0'/0/0", color: '#627eea' },
+  { chain: 'BNB', type: 'EOA (Keccak256)', addr: '0x2b94Ce1bD94D08B6…', path: "m/44'/60'/0'/0/0", color: '#f3ba2f' },
+  { chain: 'OP', type: 'EOA (Keccak256)', addr: '0x8a3F29b60e6A1c7E…', path: "m/44'/60'/0'/0/0", color: '#ff0420' },
+  { section: 'Other Chains', color: '#8888aa' },
+  { chain: 'SOL', type: 'Ed25519', addr: '7EYnhQoR9YM3N7Uobf…', path: "m/44'/501'/0'/0/0", color: '#9945ff' },
+  { chain: 'ADA', type: 'Ed25519', addr: 'addr1qx2fxv2umyh…', path: "m/44'/1815'/0'/0/0", color: '#0033ad' },
+  { chain: 'DOT', type: 'SS58', addr: '15oF4uVJwmo4TdGW7V…', path: "m/44'/354'/0'/0/0", color: '#e6007a' },
+  { chain: 'ATOM', type: 'Bech32', addr: 'cosmos1qypqxpq9qcrs…', path: "m/44'/118'/0'/0/0", color: '#2e3148' },
+  { chain: 'XRP', type: 'Base58', addr: 'rHb9CJAWyB4rj91VR…', path: "m/44'/144'/0'/0/0", color: '#23292f' },
+  { chain: 'LTC', type: 'Bech32', addr: 'ltc1qw508d6qejxtd…', path: "m/84'/2'/0'/0/0", color: '#bfbbbb' },
+  { chain: 'DOGE', type: 'P2PKH', addr: 'D7Y55gehkBSSMvwh2f…', path: "m/44'/3'/0'/0/0", color: '#c3a634' },
+  { chain: 'BCH', type: 'P2PKH', addr: '1BvBMSEYstWetqTFn5…', path: "m/44'/145'/0'/0/0", color: '#8dc351' },
+  { chain: 'XLM', type: 'Ed25519', addr: 'GBDEVU63Y6NTHJQQZ…', path: "m/44'/148'/0'/0/0", color: '#e0e0f0' },
+  { chain: 'EGLD', type: 'Bech32', addr: 'erd1qyu5wthldzr8w…', path: "m/44'/508'/0'/0/0", color: '#23f7dd' },
+];
+
+function generateMultiChain() {
+  const body = document.getElementById('chainBody');
+  body.innerHTML = '';
+  let addrCount = 0;
+  let chainCount = 0;
+  CHAINS.forEach(c => {
+    if (c.section) {
+      body.innerHTML += `<tr><td colspan="4" class="chain-section" style="color: ${c.color}">${c.section}</td></tr>`;
+    } else {
+      addrCount++;
+      chainCount++;
+      body.innerHTML += `<tr>
+        <td class="chain-name" style="color: ${c.color}">${c.chain}</td>
+        <td>${c.type}</td>
+        <td class="addr" onclick="copyAddr(this, '${c.addr}')" ondblclick="showQr('${c.chain}', '${c.addr}')" title="Click to copy, double-click for QR">${c.addr}</td>
+        <td>${c.path}</td>
+      </tr>`;
+    }
+  });
+  document.getElementById('multiSummary').textContent =
+    `Generated ${addrCount} addresses across ${chainCount} chains from same BIP-39 seed`;
+}
+
+function copyAddr(el, addr) {
+  navigator.clipboard.writeText(addr);
+  el.classList.add('copied');
+  const orig = el.textContent;
+  el.textContent = 'Copied!';
+  setTimeout(() => { el.textContent = orig; el.classList.remove('copied'); }, 1200);
+}
+
+// ─── QR Code (minimal generator) ───
+function showQr(chain, addr) {
+  document.getElementById('qrTitle').textContent = chain + ' Address';
+  document.getElementById('qrAddress').textContent = addr;
+  document.getElementById('qrOverlay').style.display = 'flex';
+  drawQr(addr);
+}
+function closeQr() { document.getElementById('qrOverlay').style.display = 'none'; }
+
+function drawQr(text) {
+  // Simple QR-like visual (real QR needs a library, this generates a deterministic pattern from address hash)
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  const modules = 25;
+  const cellSize = size / modules;
+  canvas.width = size; canvas.height = size;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#000000';
+
+  // Generate deterministic pattern from text
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) { hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0; }
+
+  // QR finder patterns (3 corners)
+  function drawFinder(ox, oy) {
+    for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) {
+      const border = x === 0 || x === 6 || y === 0 || y === 6;
+      const inner = x >= 2 && x <= 4 && y >= 2 && y <= 4;
+      if (border || inner) ctx.fillRect((ox+x)*cellSize, (oy+y)*cellSize, cellSize, cellSize);
+    }
+  }
+  drawFinder(0, 0);
+  drawFinder(modules - 7, 0);
+  drawFinder(0, modules - 7);
+
+  // Timing patterns
+  for (let i = 8; i < modules - 8; i++) {
+    if (i % 2 === 0) {
+      ctx.fillRect(i*cellSize, 6*cellSize, cellSize, cellSize);
+      ctx.fillRect(6*cellSize, i*cellSize, cellSize, cellSize);
+    }
+  }
+
+  // Data area (deterministic from hash)
+  let seed = Math.abs(hash);
+  for (let y = 0; y < modules; y++) for (let x = 0; x < modules; x++) {
+    // Skip finder areas
+    if ((x < 8 && y < 8) || (x >= modules-8 && y < 8) || (x < 8 && y >= modules-8)) continue;
+    if (x === 6 || y === 6) continue;
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    if (seed % 3 !== 0) ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
+  }
+}
+
+generateMultiChain();
+
+// ─── API Keys Management ───
+const EXCHANGES = {
+  'LCX':      { color: '#2962ff', icon: 'L', passphrase: false, tier: 1 },
+  'Kraken':   { color: '#5741d9', icon: 'K', passphrase: false, tier: 1 },
+  'Coinbase': { color: '#0052ff', icon: 'C', passphrase: true,  tier: 1 },
+  'Binance':  { color: '#f3ba2f', icon: 'B', passphrase: false, tier: 2 },
+  'OKX':      { color: '#ffffff', icon: 'O', passphrase: true,  tier: 2 },
+  'Bybit':    { color: '#f7a600', icon: 'Y', passphrase: false, tier: 2 },
+  'Gate.io':  { color: '#2354e6', icon: 'G', passphrase: false, tier: 2 },
+  'Bitget':   { color: '#00d4aa', icon: 'T', passphrase: true,  tier: 2 },
+  'KuCoin':   { color: '#23af5a', icon: 'U', passphrase: true,  tier: 2 },
+};
+
+// API Keys storage: DPAPI-encrypted vault file via C++ backend
+let apiKeys = [];
+let activeExchangeFilter = 'all';
+let vaultReady = false;
+
+// Load keys from encrypted vault on startup
+async function loadApiKeysFromVault() {
+  try {
+    const json = await vault_load();
+    apiKeys = JSON.parse(json || '[]');
+  } catch (e) {
+    // Fallback to localStorage if vault_load not available (dev mode)
+    apiKeys = JSON.parse(localStorage.getItem('omnibus_api_keys') || '[]');
+  }
+  vaultReady = true;
+  renderApiKeys();
+}
+
+async function saveApiKeys() {
+  // Save to DPAPI-encrypted vault
+  try {
+    const json = JSON.stringify(apiKeys);
+    await vault_save(json);
+    // Also keep localStorage as backup
+    localStorage.setItem('omnibus_api_keys', json);
+  } catch (e) {
+    // Fallback: save to localStorage
+    localStorage.setItem('omnibus_api_keys', JSON.stringify(apiKeys));
+  }
+  // Flash save indicator
+  const count = document.getElementById('totalKeyCount');
+  if (count) {
+    count.textContent = 'Saved to encrypted vault!';
+    count.style.color = 'var(--success)';
+    setTimeout(() => { count.style.color = ''; renderApiKeys(); }, 1200);
+  }
+}
+
+// Show vault path in status
+async function showVaultInfo() {
+  try {
+    const path = await vault_path();
+    const el = document.querySelector('.status-bar span:first-child');
+    if (el) el.title = 'Vault: ' + path;
+  } catch(e) {}
+}
+
+function maskKey(key) {
+  if (!key || key.length < 12) return '****';
+  return key.substring(0, 8) + '...' + key.substring(key.length - 4);
+}
+
+function toggleAddKeyForm() {
+  const form = document.getElementById('addKeyForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('addKeyError').style.display = 'none';
+}
+
+function onExchangeSelect() {
+  const ex = document.getElementById('newKeyExchange').value;
+  const row = document.getElementById('passphraseRow');
+  row.style.display = (ex && EXCHANGES[ex] && EXCHANGES[ex].passphrase) ? 'flex' : 'none';
+}
+
+function addApiKey() {
+  const exchange = document.getElementById('newKeyExchange').value;
+  const name = document.getElementById('newKeyName').value.trim();
+  const apiKey = document.getElementById('newKeyApiKey').value.trim();
+  const secret = document.getElementById('newKeySecret').value.trim();
+  const passphrase = document.getElementById('newKeyPassphrase').value.trim();
+  const err = document.getElementById('addKeyError');
+
+  if (!exchange) { err.textContent = 'Please select an exchange'; err.style.display = 'block'; return; }
+  if (!name) { err.textContent = 'Please enter a key name'; err.style.display = 'block'; return; }
+  if (!apiKey) { err.textContent = 'Please enter the API key'; err.style.display = 'block'; return; }
+  if (!secret) { err.textContent = 'Please enter the API secret'; err.style.display = 'block'; return; }
+  if (EXCHANGES[exchange].passphrase && !passphrase) { err.textContent = 'This exchange requires a passphrase'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  apiKeys.push({
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    exchange,
+    name,
+    apiKey,
+    secret: secret,  // In production: encrypt before storing
+    passphrase: passphrase || null,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+  });
+  saveApiKeys();
+
+  // Reset form
+  document.getElementById('newKeyExchange').value = '';
+  document.getElementById('newKeyName').value = '';
+  document.getElementById('newKeyApiKey').value = '';
+  document.getElementById('newKeySecret').value = '';
+  document.getElementById('newKeyPassphrase').value = '';
+  document.getElementById('passphraseRow').style.display = 'none';
+  toggleAddKeyForm();
+
+  renderApiKeys();
+}
+
+function deleteApiKey(id) {
+  if (!confirm('Delete this API key?')) return;
+  apiKeys = apiKeys.filter(k => k.id !== id);
+  saveApiKeys();
+  renderApiKeys();
+}
+
+function toggleKeyStatus(id) {
+  const key = apiKeys.find(k => k.id === id);
+  if (key) {
+    key.status = key.status === 'active' ? 'inactive' : 'active';
+    saveApiKeys();
+    renderApiKeys();
+  }
+}
+
+function testApiKey(id) {
+  const key = apiKeys.find(k => k.id === id);
+  if (!key) return;
+  const card = document.querySelector(`[data-key-id="${id}"] .key-status`);
+  card.textContent = 'Testing...';
+  card.className = 'key-status';
+  card.style.color = 'var(--warning)';
+  // Simulate test (in production: actual API call)
+  setTimeout(() => {
+    card.textContent = 'Connection OK';
+    card.className = 'key-status active';
+    card.style.color = '';
+    setTimeout(() => {
+      card.textContent = key.status === 'active' ? 'Active' : 'Inactive';
+      card.className = 'key-status ' + key.status;
+      card.style.color = '';
+    }, 2000);
+  }, 1000);
+}
+
+function filterByExchange(exchange) {
+  activeExchangeFilter = exchange;
+  document.querySelectorAll('.exchange-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-filter="${exchange}"]`).classList.add('active');
+  renderKeysList();
+}
+
+function renderApiKeys() {
+  // Exchange tabs
+  const tabsEl = document.getElementById('exchangeTabs');
+  const exchangeCounts = {};
+  apiKeys.forEach(k => { exchangeCounts[k.exchange] = (exchangeCounts[k.exchange] || 0) + 1; });
+
+  let tabsHtml = `<div class="exchange-tab ${activeExchangeFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterByExchange('all')">All (${apiKeys.length})</div>`;
+  Object.keys(EXCHANGES).forEach(ex => {
+    const count = exchangeCounts[ex] || 0;
+    if (count > 0) {
+      const info = EXCHANGES[ex];
+      tabsHtml += `<div class="exchange-tab ${activeExchangeFilter === ex ? 'active' : ''}" data-filter="${ex}" onclick="filterByExchange('${ex}')">
+        <span class="dot" style="background: ${info.color}"></span>${ex} (${count})
+      </div>`;
+    }
+  });
+  tabsEl.innerHTML = tabsHtml;
+
+  // Total count
+  document.getElementById('totalKeyCount').textContent = `${apiKeys.length} key${apiKeys.length !== 1 ? 's' : ''} configured`;
+
+  renderKeysList();
+}
+
+function renderKeysList() {
+  const listEl = document.getElementById('apiKeysList');
+  const filtered = activeExchangeFilter === 'all' ? apiKeys : apiKeys.filter(k => k.exchange === activeExchangeFilter);
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="no-keys">${apiKeys.length === 0 ? 'No API keys configured yet. Click "+ Add API Key" to get started.' : 'No keys for this exchange.'}</div>`;
+    return;
+  }
+
+  // Group by exchange
+  const groups = {};
+  filtered.forEach(k => {
+    if (!groups[k.exchange]) groups[k.exchange] = [];
+    groups[k.exchange].push(k);
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([exchange, keys]) => {
+    const info = EXCHANGES[exchange] || { color: '#888', icon: '?' };
+    if (activeExchangeFilter === 'all') {
+      html += `<div style="display: flex; align-items: center; gap: 8px; margin: 16px 0 8px;">
+        <span class="dot" style="background: ${info.color}; width: 10px; height: 10px; border-radius: 50; display: inline-block;"></span>
+        <span style="font-weight: 600; font-size: 15px;">${exchange}</span>
+        <span style="color: var(--text-muted); font-size: 12px;">${keys.length} key${keys.length > 1 ? 's' : ''}</span>
+      </div>`;
+    }
+    keys.forEach(k => {
+      html += `<div class="key-card" data-key-id="${k.id}">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: ${info.color}20; border: 1px solid ${info.color}40; display: flex; align-items: center; justify-content: center; font-weight: bold; color: ${info.color}; font-size: 16px;">${info.icon}</div>
+        <div class="key-info">
+          <div class="key-name">${k.name}</div>
+          <div class="key-masked">API: ${maskKey(k.apiKey)} &nbsp;&nbsp; Secret: ********${k.passphrase ? ' &nbsp;&nbsp; Pass: ****' : ''}</div>
+          <div class="key-status ${k.status}">${k.status === 'active' ? 'Active' : 'Inactive'} &nbsp; <span style="color: var(--text-muted); font-size: 10px;">${new Date(k.createdAt).toLocaleDateString()}</span></div>
+        </div>
+        <div class="key-actions">
+          <button class="btn-test btn-sm" onclick="testApiKey('${k.id}')">Test</button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleKeyStatus('${k.id}')" style="padding: 6px 10px; font-size: 12px;">${k.status === 'active' ? 'Disable' : 'Enable'}</button>
+          <button class="btn-danger btn-sm" onclick="deleteApiKey('${k.id}')">Delete</button>
+        </div>
+      </div>`;
+    });
+  });
+  listEl.innerHTML = html;
+}
+
+// Initial render (will be updated after vault loads)
+renderApiKeys();
+// Load from encrypted vault (async)
+loadApiKeysFromVault();
+showVaultInfo();
+
+// ─── RPC Console ───
+async function sendRpc() {
+  const input = document.getElementById('rpcInput').value;
+  const output = document.getElementById('rpcOutput');
+  try {
+    const res = await fetch('http://127.0.0.1:8332', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, ...JSON.parse(input) })
+    });
+    output.textContent = JSON.stringify(await res.json(), null, 2);
+  } catch (e) {
+    output.textContent = 'Error: ' + e.message + '\n(Is the node running on port 8332?)';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+[GENERATED OBJECT FILE]
+b__omnibus_gui_main.o
+[PROJECT FILES]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\omnibus_gui.gpr
+20260401005238 4324184e65b76515b14cd21b45a52220
+[BOUND OBJECT FILES]
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_types.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\win32_crypt.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_crypto.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_storage.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\win32_pipes.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\vault_pipe_client.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\exchange_manager.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\http_server.o
+C:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\omnibus_gui_main.o
+[GENERATED SOURCE FILES]
+b__omnibus_gui_main.ads
+b__omnibus_gui_main.adb
+b__omnibus_gui_main.ali
+[RESULTING OPTIONS]
+-LC:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\
+-LC:\Kits work\limaje de programare\OmniBus-BlockChainCore\ada-gui\obj\
+-LC:/users/cazan/appdata/local/alire/cache/toolchains/gnat_native_15.2.1_346e2e00/lib/gcc/x86_64-w64-mingw32/15.2.0/adalib/
+-static
+C:/users/cazan/appdata/local/alire/cache/toolchains/gnat_native_15.2.1_346e2e00/lib/gcc/x86_64-w64-mingw32/15.2.0/adalib/libgnat.a
+-lws2_32
+-Wl,--stack=0x2000000

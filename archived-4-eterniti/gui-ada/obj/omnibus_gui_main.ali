@@ -1,0 +1,173 @@
+V "GNAT Lib v15"
+M P W=b
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnatVa
+A -gnato13
+A -gnatf
+A -gnaty3
+A -gnatya
+A -gnatyA
+A -gnatyb
+A -gnatyc
+A -gnatye
+A -gnatyf
+A -gnatyh
+A -gnatyi
+A -gnatyk
+A -gnatyl
+A -gnatyn
+A -gnatyO
+A -gnatyp
+A -gnatyr
+A -gnatyS
+A -gnatyt
+A -gnatyu
+A -gnatyx
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_IO
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_LOCAL_ALLOCATORS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U omnibus_gui_main%b	omnibus_gui_main.adb	cb132019 NE OO SU
+W ada%s			ada.ads			ada.ali
+W ada.command_line%s	a-comlin.adb		a-comlin.ali
+W ada.directories%s	a-direct.adb		a-direct.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+W exchange_manager%s	exchange_manager.adb	exchange_manager.ali
+W http_server%s		http_server.adb		http_server.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.val_int%s	s-valint.ads		s-valint.ali
+W vault_pipe_client%s	vault_pipe_client.adb	vault_pipe_client.ali
+W vault_types%s		vault_types.adb		vault_types.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-calend.ads		20250808065140 bf7f3cc9 ada.calendar%s
+D a-charac.ads		20250808065140 2d3ec45b ada.characters%s
+D a-chlat1.ads		20250808065140 e0d72e76 ada.characters.latin_1%s
+D a-comlin.ads		20250808065140 4aa66568 ada.command_line%s
+D a-direct.ads		20250808065140 467e87a1 ada.directories%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-finali.ads		20250808065140 bf4f806b ada.finalization%s
+D a-ioexce.ads		20250808065140 40018c65 ada.io_exceptions%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-strmap.ads		20250808065140 1f91ebb6 ada.strings.maps%s
+D a-strsea.ads		20250808065140 18c3c634 ada.strings.search%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-strunb.ads		20250808065140 b10770ab ada.strings.unbounded%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-textio.ads		20250808065140 34ef47de ada.text_io%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D exchange_manager.ads	20260401003624 4079b1be exchange_manager%s
+D http_server.ads	20260401003948 09ebbead http_server%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrea.ads		20250808065140 ffd01b9d interfaces.c_streams%s
+D omnibus_gui_main.adb	20260401005216 da3fa3de omnibus_gui_main%b
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-atocou.ads		20250808065140 dc18efc3 system.atomic_counters%s
+D s-conca2.ads		20250808065140 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20250808065140 8a7a19a2 system.concat_3%s
+D s-crtl.ads		20250808065140 beb39b9e system.crtl%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250808065140 dc5161d4 system.file_control_block%s
+D s-finpri.ads		20250808065140 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20250808065140 0a7c3ed4 system.finalization_root%s
+D s-oslock.ads		20250808065140 88eb514b system.os_locks%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-retsta.ads		20250808065140 0f6b06cb system.return_stack%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-stratt.ads		20250808065140 516607ae system.stream_attributes%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-valint.ads		20250808065140 8bab724f system.val_int%s
+D s-valspe.ads		20250808065140 f810d31c system.val_spec%s
+D s-valuns.ads		20250808065140 f7ddb71d system.val_uns%s
+D s-valuei.ads		20250808065140 d9377ca5 system.value_i%s
+D s-vaispe.ads		20250808065140 8280550e system.value_i_spec%s
+D s-valueu.ads		20250808065140 a38d32a6 system.value_u%s
+D s-vauspe.ads		20250808065140 89269ba5 system.value_u_spec%s
+D s-vs_int.ads		20250808065140 06b6b724 system.vs_int%s
+D s-vs_uns.ads		20250808065140 e7f47a27 system.vs_uns%s
+D s-wchcon.ads		20250808065140 d9032363 system.wch_con%s
+D s-win32.ads		20250808065140 f77987dc system.win32%s
+D vault_pipe_client.ads	20260401003318 1340c4e7 vault_pipe_client%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+G a e
+G c Z b b [omnibus_gui_main standard 22 11 none]
+G r c none [omnibus_gui_main standard 22 11 none] [init exchange_manager 19 14 none]
+G r c none [omnibus_gui_main standard 22 11 none] [exchange_name vault_types 151 13 none]
+G r c none [omnibus_gui_main standard 22 11 none] [set_frontend_dir http_server 33 14 none]
+G r c none [omnibus_gui_main standard 22 11 none] [current_mode vault_pipe_client 66 13 none]
+G r c none [omnibus_gui_main standard 22 11 none] [start http_server 27 14 none]
+G r c none [omnibus_gui_main standard 22 11 none] [stop http_server 30 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 26|14r6 15r6 16r6 29r11 44r10 46r13 48r13 57r4 58r4 59r4 60r4
+. 61r4 66r4 69r7 71r7 74r4 82r7 85r4 86r4 87r4 88r4 96r7 99r4 106r7
+X 6 a-comlin.ads
+40K13*Command_Line 148e21 26|15w10 29r15
+43V13*Argument_Count{natural} 26|31s21 32s50
+56V13*Argument{string} 26|32s13 33s37
+X 7 a-direct.ads
+76K13*Directories 524e20 26|16w10 44r14 46r17 48r17
+310V13*Exists{boolean} 26|44s26 46s29 48s29
+X 19 a-textio.ads
+58K13*Text_IO 785e16 26|14w10 57r8 58r8 59r8 60r8 61r8 66r8 69r11 71r11 74r8
+. 82r11 85r8 86r8 87r8 88r8 96r11 99r8 106r11
+284U14*New_Line 26|61s16 85s16 99s16
+515U14*Put 26|66s16
+565U14*Put_Line 26|57s16 58s16 59s16 60s16 69s19 71s19 74s16 82s19 86s16
+. 87s16 88s16 96s19 106s19
+X 21 exchange_manager.ads
+13K9*Exchange_Manager 78e21 26|17w6 67r4
+19U14*Init 26|67s21
+X 22 http_server.ads
+20K9*HTTP_Server 35e16 26|18w6 24r23 81r7 102r4 107r7
+24N4*Default_Port 26|24r35
+27U14*Start 26|102s16
+30U14*Stop 26|107s19
+33U14*Set_Frontend_Dir 26|81s19
+X 26 omnibus_gui_main.adb
+22U11*Omnibus_Gui_Main 22b11 108l5 108t21
+24i4 Port{positive} 33m13 102r23
+28U14 Parse_Args 28b14 38l8 38t18 63s4
+31i11 I{integer} 32r23 32r46 33r47
+42V13 Find_Frontend{string} 42b13 52l8 52t21 79s31
+54b4 OK{boolean} 67m27 68r7
+79a7 FE{string} 81r37 82r46
+92a7 Mode_Str{string} 96r45
+X 60 vault_pipe_client.ads
+14K9*Vault_Pipe_Client 26|20w6 91r11 60|68e22
+20n25*Mode_Service{20E9} 26|93r29
+66V13*Current_Mode{20E9} 26|93s14
+X 61 vault_types.ads
+10K9*Vault_Types 26|19w6 75r25 75r52 61|166e16
+17n25*LCX{17E9} 26|75r64
+151V13*Exchange_Name{string} 26|75s37
+

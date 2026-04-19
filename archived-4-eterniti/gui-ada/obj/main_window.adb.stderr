@@ -1,0 +1,4 @@
+main_window.adb:9:06: warning: redundant with clause in body [-gnatwr]
+main_window.adb:10:06: warning: redundant with clause in body [-gnatwr]
+main_window.adb:14:06: warning: redundant with clause in body [-gnatwr]
+main_window.adb:16:06: warning: redundant with clause in body [-gnatwr]

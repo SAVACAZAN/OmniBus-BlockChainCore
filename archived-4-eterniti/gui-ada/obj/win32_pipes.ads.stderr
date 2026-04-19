@@ -1,0 +1,1 @@
+win32_pipes.ads:10:30: warning: use clause for package "C" has no effect [-gnatwu]

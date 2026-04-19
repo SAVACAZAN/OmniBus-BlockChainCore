@@ -1,0 +1,169 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnatws
+A -g
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_ACCESS_SUBPROGRAMS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_IMPLEMENTATION_ATTRIBUTES
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_IMPLICIT_LOOPS
+RV NO_ELABORATION_CODE
+
+U omnibus_vaultmain%b	b__omnibus_vault.adb	7e135ba1 OO PK IL
+W ada%s			ada.ads			ada.ali
+W ada.exceptions%s	a-except.adb		a-except.ali
+Z system%s		system.ads		system.ali
+
+U omnibus_vaultmain%s	b__omnibus_vault.ads	7b5a24a6 EE NE OO PK IL
+W system%s		system.ads		system.ali
+W system.parameters%s	s-parame.adb		s-parame.ali
+W system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D b__omnibus_vault.ads	20260401101406 b1267edc omnibus_vaultmain%s
+D b__omnibus_vault.adb	20260401101406 28a229a4 omnibus_vaultmain%b
+D system.ads		20250808065140 a869df9e system%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+G a e
+G c Z s b [omnibus_vaultinit omnibus_vaultmain 8 14 none]
+G c Z s b [omnibus_vaultfinal omnibus_vaultmain 12 14 none]
+G c Z b b [Tsec_default_sized_stacksBIP omnibus_vaultmain 53 4 none]
+G c Z b b [finalize_library omnibus_vaultmain 60 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 5|6r6
+X 2 a-except.ads
+44K13*Exceptions 309e19 5|6w10
+X 4 b__omnibus_vault.ads
+6K9*omnibus_vaultmain 291l5 291e22 5|8b14 401l5 401t22
+8U14*omnibus_vaultinit 9i<c,omnibus_vaultinit>22 10r31 5|140b14 379l8 379t25
+12U14*omnibus_vaultfinal 13i<c,omnibus_vaultfinal>22 14r30 5|123b14 135l8
+. 135t26
+16M9*Version_32 17r22 19r22 21r22 23r22 25r22 27r22 29r22 31r22 33r22 35r22
+. 37r22 39r22 41r22 43r22 45r22 47r22 49r22 51r22 53r22 55r22 57r22 59r22
+17m4*u00001{16M9} 18r22
+19m4*u00002{16M9} 20r22
+21m4*u00003{16M9} 22r22
+23m4*u00004{16M9} 24r22
+25m4*u00005{16M9} 26r22
+27m4*u00006{16M9} 28r22
+29m4*u00007{16M9} 30r22
+31m4*u00008{16M9} 32r22
+33m4*u00009{16M9} 34r22
+35m4*u00010{16M9} 36r22
+37m4*u00011{16M9} 38r22
+39m4*u00012{16M9} 40r22
+41m4*u00013{16M9} 42r22
+43m4*u00014{16M9} 44r22
+45m4*u00015{16M9} 46r22
+47m4*u00016{16M9} 48r22
+49m4*u00017{16M9} 50r22
+51m4*u00018{16M9} 52r22
+53m4*u00019{16M9} 54r22
+55m4*u00020{16M9} 56r22
+57m4*u00021{16M9} 58r22
+59m4*u00022{16M9} 60r22
+X 5 b__omnibus_vault.adb
+10i4 E095{short_integer} 10m46 10r46 264r10 267m7 267r15
+11i4 E029{short_integer} 11m46 11r46 214r10 277m7 277r15
+12i4 E034{short_integer} 12m46 12r46 217r10 272m7 272r15
+13i4 E045{short_integer} 13m46 13r46 220r10 223m7 223r15
+14i4 E061{short_integer} 14m46 14r46 224r10 227m7 227r15
+15i4 E091{short_integer} 15m46 15r46 228r10 231m7 231r15
+16i4 E052{short_integer} 16m46 16r46 232r10 235m7 235r15
+17i4 E076{short_integer} 17m46 17r46 236r10 239m7 239r15
+18i4 E078{short_integer} 18m46 18r46 240r10 243m7 243r15
+19i4 E081{short_integer} 19m46 19r46 244r10 247m7 247r15
+20i4 E066{short_integer} 20m46 20r46 248r10 251m7 251r15
+21i4 E046{short_integer} 21m46 21r46 252r10 255m7 255r15
+22i4 E106{short_integer} 22m46 22r46 256r10 259m7 259r15
+23i4 E071{short_integer} 23m46 23r46 260r10 263m7 263r15
+24i4 E041{short_integer} 24m46 24r46 268r10 271m7 271r15
+25i4 E060{short_integer} 25m46 25r46 273r10 276m7 276r15
+26i4 E126{short_integer} 26m46 26r46 278r10 281m7 281r15
+27i4 E130{short_integer} 27m46 27r46 282r10 285m7 285r15
+28i4 E138{short_integer} 28m46 28r46 286r10 289r10 292m7 292r15
+29i4 E128{short_integer} 29m46 29r46 293r10 296m7 296r15
+30i4 E171{short_integer} 30m46 30r46 297r10 300m7 300r15
+31i4 E161{short_integer} 31m46 31r46 301r10 304m7 304r15
+32i4 E214{short_integer} 32m46 32r46 305r10 308m7 308r15
+33i4 E184{short_integer} 33m46 33r46 309r10 312m7 312r15
+34i4 E182{short_integer} 34m46 34r46 313r10 316m7 316r15
+35i4 E211{short_integer} 35m46 35r46 110m10 110r18 111r13 317r10 320m7 320r15
+36i4 E222{short_integer} 36m46 36r46 97m7 97r15 102r13 321r10 324m7 324r15
+37i4 E218{short_integer} 37m46 37r46 325r10 328m7 328r15
+38i4 E196{short_integer} 38m46 38r46 88m7 88r15 93r13 329r10 332m7 332r15
+39i4 E148{short_integer} 39m46 39r46 333r10 336r10 339m7 339r15
+40i4 E177{short_integer} 40m46 40r46 340r10 343m7 343r15
+41i4 E146{short_integer} 41m46 41r46 344r10 347m7 347r15
+42i4 E216{short_integer} 42m46 42r46 79m7 79r15 84r13 348r10 351m7 351r15
+43i4 E173{short_integer} 43m46 43r46 66m10 66r18 67r13 75r13 352r10 355r10
+. 358m7 358r15
+44i4 E021{short_integer} 44m46 44r46 359r10 362m7 362r15
+45i4 E003{short_integer} 45m46 45r46 363m7 363r15
+46i4 E005{short_integer} 46m46 46r46 364r10 367m7 367r15
+47i4 E007{short_integer} 47m46 47r46 368r10 371m7 371r15
+48i4 E013{short_integer} 48m46 48r46 372m7 372r15
+49i4 E017{short_integer} 49m46 49r46 373m7 373r15
+50i4 E019{short_integer} 50m46 50r46 374r10 377m7 377r15
+51i4 E015{short_integer} 51m46 51r46 378m7 378r15
+53a4 Sec_Default_Sized_Stacks(8|43R9) 210m32 210r32
+55a4 Local_Priority_Specific_Dispatching{string} 198r9
+56a4 Local_Interrupt_States{string} 201r27
+58b4 Is_Elaborated{boolean} 129r14 132m7 187r10 190m7
+60U14 finalize_library 60b14 121l8 121t24 134s7
+63U20*F1 64b<ada,ada__directories__finalize_body>30 68s13
+72U20*F2 73b<ada,ada__directories__finalize_spec>30 76s13
+81U20*F3 82b<ada,system__regexp__finalize_spec>30 85s13
+90U20*F4 91b<ada,ada__strings__unbounded__finalize_spec>30 94s13
+99U20*F5 100b<ada,ada__streams__stream_io__finalize_spec>30 103s13
+107U20*F6 108b<ada,system__file_io__finalize_body>30 112s13
+116U20*Reraise_Library_Exception_If_Any 117b<ada,__gnat_reraise_library_exception_if_any>33
+. 119s10
+125U17*Runtime_Finalize 126b<c,__gnat_runtime_finalize>25 133s7
+137P9 No_Param_Proc 138r28 179r34
+141i7*Main_Priority{integer} 142m25 142r25 191m7
+143i7*Time_Slice_Value{integer} 144m25 144r25 192m7
+145e7*WC_Encoding{character} 146m25 146r25 193m7
+147e7*Locking_Policy{character} 148m25 148r25 194m7
+149e7*Queuing_Policy{character} 150m25 150r25 195m7
+151e7*Task_Dispatching_Policy{character} 152m25 152r25 196m7
+153m7*Priority_Specific_Dispatching{6|67M9} 154m25 154r25 197m7
+155i7*Num_Specific_Dispatching{integer} 156m25 156r25 199m7
+157i7*Main_CPU{integer} 158m25 158r25 200m7
+159m7*Interrupt_States{6|67M9} 160m25 160r25 201m7
+161i7*Num_Interrupt_States{integer} 162m25 162r25 202m7
+163i7*Unreserve_All_Interrupts{integer} 164m25 164r25 203m7
+165i7*Detect_Blocking{integer} 166m25 166r25 204m7
+167i7*Default_Stack_Size{integer} 168m25 168r25 205m7
+169i7*Default_Secondary_Stack_Size{7|57I9} 170m25 170r25 208m7
+171m7*Bind_Env_Addr{6|67M9} 172m25 172r25
+173i7*Interrupts_Default_To_System{integer} 174m25 174r25
+176U17*Runtime_Initialize 176>37 177b<c,__gnat_runtime_initialize>25 212s7
+176i37 Install_Handler{integer}
+179p7*Finalize_Library_Objects{137P9} 180m25 180r25
+181i7*Binder_Sec_Stacks_Count{natural} 182m27 182r27 209m7
+183m7*Default_Sized_SS_Pool{6|67M9} 184m27 184r27 210m7
+X 6 system.ads
+37K9*System 4|3w6 4r6 5r6 5|53r57 53r90 153r39 159r26 169r38 171r23 183r31
+. 208r39 6|215e11
+67M9*Address 5|153r46 159r33 171r30 183r38
+X 7 s-parame.ads
+50K16*Parameters 4|4w13 5|53r97 169r45 208r46 7|189e22
+57I9*Size_Type<long_long_integer> 5|169r56
+92i4*Runtime_Default_Sec_Stack_Size{57I9} 5|53r108 208r57
+X 8 s-secsta.ads
+35K16*Secondary_Stack 4|5w13 5|53r64 8|429e27
+43R9*SS_Stack 5|53r80 8|329e14
+

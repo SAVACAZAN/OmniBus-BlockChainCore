@@ -1,0 +1,648 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SL SS ZX
+
+RN
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_CONVERSION
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_OBSOLESCENT_FEATURES
+
+U vault_c_api%b		vault_c_api.adb		be13cccb NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.streams%s		a-stream.adb		a-stream.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z ada.tags%s		a-tags.adb		a-tags.ali
+W ada.unchecked_conversion%s
+W spark_bip32%s		spark_bip32.adb		spark_bip32.ali
+W spark_mnemonic%s	spark_mnemonic.adb	spark_mnemonic.ali
+W spark_secp256k1%s	spark_secp256k1.adb	spark_secp256k1.ali
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+W spark_sha512%s	spark_sha512.adb	spark_sha512.ali
+W spark_transaction%s	spark_transaction.adb	spark_transaction.ali
+W system%s		system.ads		system.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+W system.storage_elements%s  s-stoele.ads	s-stoele.ali
+W vault_crypto%s	vault_crypto.adb	vault_crypto.ali
+W vault_storage%s	vault_storage.adb	vault_storage.ali
+W vault_types%s		vault_types.adb		vault_types.ali
+
+U vault_c_api%s		vault_c_api.ads		6ab70808 EE NE OO PK
+W interfaces%s		interfac.ads		interfac.ali
+W interfaces.c%s	i-c.adb			i-c.ali
+W interfaces.c.strings%s  i-cstrin.adb		i-cstrin.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-stream.ads		20250808065140 17477cbd ada.streams%s
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D i-c.ads		20250808065140 e94c966a interfaces.c%s
+D i-cstrin.ads		20250808065140 5409c1a4 interfaces.c.strings%s
+D spark_bip32.ads	20260401085038 ca3caf48 spark_bip32%s
+D spark_mnemonic.ads	20260401084632 083b101c spark_mnemonic%s
+D spark_secp256k1.ads	20260401085924 2ed5fbb7 spark_secp256k1%s
+D spark_sha256.ads	20260401084406 95cc5a5d spark_sha256%s
+D spark_sha512.ads	20260401084930 30aaa428 spark_sha512%s
+D spark_transaction.ads	20260401090106 655a8d81 spark_transaction%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-conca2.ads		20250808065140 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20250808065140 8a7a19a2 system.concat_3%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-putima.ads		20250808065140 17291fe4 system.put_images%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D vault_c_api.ads	20260401090154 d7f25fc6 vault_c_api%s
+D vault_c_api.adb	20260401101354 0b238101 vault_c_api%b
+D vault_crypto.ads	20260401005352 81f3c7eb vault_crypto%s
+D vault_storage.ads	20260401002308 c17d5f70 vault_storage%s
+D vault_types.ads	20260401002114 73c9ed24 vault_types%s
+G a e
+G c Z s b [vault_init vault_c_api 29 13 none]
+G c Z s b [vault_lock vault_c_api 34 13 none]
+G c Z s b [vault_save vault_c_api 38 13 none]
+G c Z s b [vault_is_loaded vault_c_api 42 13 none]
+G c Z s b [vault_add_key vault_c_api 48 13 none]
+G c Z s b [vault_delete_key vault_c_api 59 13 none]
+G c Z s b [vault_update_key vault_c_api 64 13 none]
+G c Z s b [vault_set_status vault_c_api 73 13 none]
+G c Z s b [vault_key_count vault_c_api 81 13 none]
+G c Z s b [vault_has_keys vault_c_api 84 13 none]
+G c Z s b [vault_get_key vault_c_api 89 13 none]
+G c Z s b [vault_get_secret vault_c_api 102 13 none]
+G c Z s b [mnemonic_generate_12 vault_c_api 112 13 none]
+G c Z s b [mnemonic_generate_24 vault_c_api 119 13 none]
+G c Z s b [mnemonic_validate vault_c_api 125 13 none]
+G c Z s b [mnemonic_to_seed vault_c_api 130 13 none]
+G c Z s b [sha256_hash vault_c_api 141 13 none]
+G c Z s b [sha256_double vault_c_api 149 13 none]
+G c Z s b [bip32_master_from_seed vault_c_api 159 13 none]
+G c Z s b [bip32_derive_address vault_c_api 169 13 none]
+G c Z s b [hmac_sha512 vault_c_api 182 13 none]
+G c Z s b [secp256k1_pubkey vault_c_api 194 13 none]
+G c Z s b [secp256k1_sign vault_c_api 201 13 none]
+G c Z s b [secp256k1_verify vault_c_api 209 13 none]
+G c Z s b [privkey_to_address vault_c_api 216 13 none]
+G c Z s b [tx_can_afford vault_c_api 225 13 none]
+G c Z s b [tx_build_and_sign vault_c_api 232 13 none]
+G c Z s b [tx_compute_txid vault_c_api 245 13 none]
+G c Z s b [vault_encrypt vault_c_api 255 13 none]
+G c Z s b [vault_decrypt vault_c_api 263 13 none]
+G c Z s b [vault_wipe vault_c_api 273 14 none]
+G c Z s b [vault_get_path vault_c_api 278 13 none]
+G c Z s b [vault_lib_init vault_c_api 284 14 none]
+G c Z b b [to_exchange vault_c_api 25 13 none]
+G c Z b b [to_status vault_c_api 34 13 none]
+G c Z b b [to_slot vault_c_api 43 13 none]
+G c Z b b [c_memcpy vault_c_api 51 14 none]
+G c Z b b [to_address vault_c_api 54 13 none]
+G c Z b b [copy_to_c vault_c_api 57 14 none]
+G c Z b b [copy_bytes_to_c vault_c_api 515 14 none]
+G c Z b b [read_bytes_from_c vault_c_api 521 13 none]
+G r c none [vault_init vault_c_api 29 13 none] [init vault_storage 23 14 none]
+G r c none [vault_lock vault_c_api 34 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_lock vault_c_api 34 13 none] [lock vault_storage 29 14 none]
+G r c none [vault_save vault_c_api 38 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_save vault_c_api 38 13 none] [save vault_storage 26 14 none]
+G r c none [vault_is_loaded vault_c_api 42 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_add_key vault_c_api 48 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_add_key vault_c_api 48 13 none] [to_name_string vault_types 157 13 none]
+G r c none [vault_add_key vault_c_api 48 13 none] [to_key_string vault_types 160 13 none]
+G r c none [vault_add_key vault_c_api 48 13 none] [to_secret_string vault_types 163 13 none]
+G r c none [vault_add_key vault_c_api 48 13 none] [add_key vault_storage 34 14 none]
+G r c none [vault_delete_key vault_c_api 59 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_delete_key vault_c_api 59 13 none] [delete_key vault_storage 43 14 none]
+G r c none [vault_update_key vault_c_api 64 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_update_key vault_c_api 64 13 none] [to_name_string vault_types 157 13 none]
+G r c none [vault_update_key vault_c_api 64 13 none] [to_key_string vault_types 160 13 none]
+G r c none [vault_update_key vault_c_api 64 13 none] [to_secret_string vault_types 163 13 none]
+G r c none [vault_update_key vault_c_api 64 13 none] [update_key vault_storage 49 14 none]
+G r c none [vault_set_status vault_c_api 73 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_set_status vault_c_api 73 13 none] [set_key_status vault_storage 75 14 none]
+G r c none [vault_key_count vault_c_api 81 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_key_count vault_c_api 81 13 none] [key_count vault_storage 66 13 none]
+G r c none [vault_has_keys vault_c_api 84 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_has_keys vault_c_api 84 13 none] [has_keys vault_storage 70 13 none]
+G r s key_entry [vault_get_key vault_c_api 89 13 none] [key_entryIP vault_types 70 9 none]
+G r c none [vault_get_key vault_c_api 89 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_get_key vault_c_api 89 13 none] [get_key vault_storage 61 13 none]
+G r s key_entry [vault_get_secret vault_c_api 102 13 none] [key_entryIP vault_types 70 9 none]
+G r c none [vault_get_secret vault_c_api 102 13 none] [is_loaded vault_storage 19 13 none]
+G r c none [vault_get_secret vault_c_api 102 13 none] [get_key vault_storage 61 13 none]
+G r s mnemonic_result [mnemonic_generate_12 vault_c_api 112 13 none] [mnemonic_resultIP spark_mnemonic 27 9 none]
+G r c none [mnemonic_generate_12 vault_c_api 112 13 none] [generate_12 spark_mnemonic 35 14 none]
+G r s mnemonic_result [mnemonic_generate_24 vault_c_api 119 13 none] [mnemonic_resultIP spark_mnemonic 27 9 none]
+G r c none [mnemonic_generate_24 vault_c_api 119 13 none] [generate_24 spark_mnemonic 40 14 none]
+G r c none [mnemonic_validate vault_c_api 125 13 none] [validate spark_mnemonic 47 13 none]
+G r c none [mnemonic_to_seed vault_c_api 130 13 none] [to_seed spark_mnemonic 54 14 none]
+G r c none [sha256_hash vault_c_api 141 13 none] [hash spark_sha256 29 13 none]
+G r c none [sha256_double vault_c_api 149 13 none] [hash256 spark_sha256 39 13 none]
+G r c none [bip32_master_from_seed vault_c_api 159 13 none] [master_key_from_seed spark_bip32 34 14 none]
+G r c none [bip32_master_from_seed vault_c_api 159 13 none] [wipe_key spark_bip32 66 14 none]
+G r c none [bip32_derive_address vault_c_api 169 13 none] [derive_address_key spark_bip32 57 14 none]
+G r c none [bip32_derive_address vault_c_api 169 13 none] [wipe_key spark_bip32 66 14 none]
+G r c none [hmac_sha512 vault_c_api 182 13 none] [hmac_sha512 spark_sha512 25 13 none]
+G r c none [secp256k1_pubkey vault_c_api 194 13 none] [pubkey_from_privkey spark_secp256k1 39 14 none]
+G r c none [secp256k1_sign vault_c_api 201 13 none] [sign spark_secp256k1 48 14 none]
+G r c none [secp256k1_verify vault_c_api 209 13 none] [verify spark_secp256k1 57 13 none]
+G r s address_result [privkey_to_address vault_c_api 216 13 none] [address_resultIP spark_secp256k1 31 9 none]
+G r c none [privkey_to_address vault_c_api 216 13 none] [privkey_to_address spark_secp256k1 82 14 none]
+G r c none [tx_can_afford vault_c_api 225 13 none] [can_afford spark_transaction 44 13 none]
+G r c none [tx_build_and_sign vault_c_api 232 13 none] [build_and_sign spark_transaction 55 14 none]
+G r c none [tx_compute_txid vault_c_api 245 13 none] [compute_txid spark_transaction 76 13 none]
+G r c none [vault_encrypt vault_c_api 255 13 none] [dpapi_encrypt vault_crypto 28 14 none]
+G r c none [vault_decrypt vault_c_api 263 13 none] [dpapi_decrypt vault_crypto 39 14 none]
+G r c none [vault_get_path vault_c_api 278 13 none] [vault_file_path vault_storage 84 13 none]
+X 1 ada.ads
+18K9*Ada 22e8 34|16r6 16r28 19r6 54r31 63r35
+X 4 a-stream.ads
+36K13*Streams 90e16 34|16w10 16r32
+42M9*Stream_Element 34|335r25 376r25
+X 9 a-unccon.ads
+23v14*Unchecked_Conversion 34|19w10 54r35 63r39
+X 10 interfac.ads
+47K9*Interfaces 247e15 33|13r6 13r32 14r6 14r32 34|51r56 332r50 348r10 349r22
+. 373r51 388r10 389r21 404r21 405r10 498r13 499r27 516r11 523r42 540r51 815r23
+. 851r23
+X 11 i-c.ads
+33K20*C 601e17 33|13w17 13r43 14r17 14r43 34|51r67 332r61 348r21 349r33 373r62
+. 388r21 389r32 404r32 405r21 498r24 499r38 516r22 523r53 540r62 815r34 851r34
+62I9*int<integer> 33|21r32 22r32 23r32 24r32 25r32 29r31 34r31 38r31 42r36
+. 49r19 53r19 53r31 60r19 61r19 61r31 65r19 66r19 70r19 70r31 74r19 75r19
+. 76r19 76r31 81r41 81r53 84r40 84r52 90r21 91r21 93r21 95r21 96r28 97r28
+. 97r40 103r21 104r21 106r21 106r33 114r18 114r30 121r18 121r30 126r37 134r21
+. 134r33 143r19 145r19 145r31 151r19 153r19 153r31 161r22 163r40 172r22 174r40
+. 184r19 186r19 188r19 188r31 197r22 197r34 205r22 205r34 212r39 219r22 219r34
+. 226r21 227r21 228r21 228r33 235r22 236r22 238r22 239r29 241r22 241r34 247r21
+. 249r21 249r33 257r21 259r21 260r28 260r40 265r21 267r21 268r28 268r40 273r49
+. 34|25r30 34r28 43r26 44r20 45r38 45r65 58r45 75r31 84r31 95r31 107r36 115r19
+. 119r19 119r31 150r19 151r19 151r31 165r19 166r19 170r19 170r31 201r19 202r19
+. 203r19 203r31 219r41 219r53 224r14 229r40 229r52 242r21 243r21 245r21 247r21
+. 248r28 249r28 249r40 290r21 291r21 293r21 293r33 321r21 323r21 324r28 324r40
+. 345r22 362r21 364r21 365r28 365r40 386r22 402r49 432r18 432r30 452r18 452r30
+. 469r61 483r21 483r33 533r22 535r40 566r22 568r40 600r19 602r19 604r19 604r31
+. 628r22 628r34 652r22 652r34 677r39 695r22 695r34 717r18 718r18 719r18 719r30
+. 732r22 733r22 735r22 736r29 738r22 738r34 757r28 769r19 771r19 771r31 791r19
+. 793r19 793r31 829r19 831r19 831r31
+92M9*size_t 34|51r69 332r63 349r35 373r64 389r34 404r34 499r40 518r48 523r55
+. 540r64 815r36 851r36
+X 12 i-cstrin.ads
+48K22*Strings 171e25 33|14w19 14r45 34|348r23 388r23 405r23 498r26
+65P9*chars_ptr 33|50r19 51r19 52r19 67r19 68r19 69r19 92r21 94r21 105r21
+. 113r18 120r18 126r19 131r21 132r21 133r21 142r19 144r19 150r19 152r19 160r22
+. 162r22 163r22 170r22 171r22 173r22 174r22 183r19 185r19 187r19 195r22 196r22
+. 202r22 203r22 204r22 210r21 211r21 212r21 217r22 218r22 233r22 234r22 237r22
+. 240r22 246r21 248r21 256r21 258r21 264r21 266r21 273r32 278r35 34|55r8
+. 58r28 116r19 117r19 118r19 167r19 168r19 169r19 244r21 246r21 292r21 320r21
+. 322r21 361r21 363r21 402r32 411r17 413r35 431r18 451r18 469r43 480r21 481r21
+. 482r21 515r55 521r38 532r22 534r22 535r22 564r22 565r22 567r22 568r22 599r19
+. 601r19 603r19 626r22 627r22 649r22 650r22 651r22 675r21 676r21 677r21 693r22
+. 694r22 730r22 731r22 734r22 737r22 768r19 770r19 790r19 792r19 828r19 830r19
+70p4*Null_Ptr{65P9} 34|264r25 269r24 307r21 411r30 415r23 437r40 457r40 471r21
+. 488r27 490r21 490r49 542r24 542r53 575r24 575r53 612r20 634r23 659r20 700r21
+. 745r19 745r47 777r21 798r20 836r20
+86V13*New_String{65P9} 34|416s24
+114V13*Value{string} 34|122s31 123s31 124s31 173s31 174s31 175s31 474s43
+. 488s49 494s31 742s33
+118V13*Value{string} 34|332s36 373s36 523s30 540s34
+146U14*Update 34|348s31 388s31 405s31 498s34
+X 13 spark_bip32.ads
+17K9*SPARK_BIP32 69e16 34|13w6 539r16 550r7 555r10 570r16 571r16 579r29 580r29
+. 583r7 588r10 589r10 592r7
+23A12*Key_Bytes{16|20A9}<integer> 34|579r41
+24A12*Chain_Bytes{16|20A9}<integer> 34|580r41
+26R9*Extended_Key 30e14 34|539r28 570r28 571r28
+27a7*Private_Key{23A12} 34|553r46 579m14 586r44
+28a7*Chain_Code{24A12} 34|554r46 580m14 587r44
+29b7*Valid{boolean} 34|552r17 581m14 585r15
+34U14*Master_Key_From_Seed 34|550s19
+57U14*Derive_Address_Key 34|583s19
+66U14*Wipe_Key 34|555s22 588s22 589s22 592s19
+X 14 spark_mnemonic.ads
+14K9*SPARK_Mnemonic 62e19 34|12w6 434r11 436r7 454r11 456r7 474r18 485r14
+. 494r7
+25A12*Mnemonic_String{string}<integer>
+27R9*Mnemonic_Result 31e14 34|434r26 454r26
+28a7*Data{25A12} 34|438r23 441m15 458r23 460m15
+29i7*Len{natural} 34|438r36 440r26 458r36 459r26
+30b7*Success{boolean} 34|437r12 457r12
+35U14*Generate_12 34|436s22
+40U14*Generate_24 34|456s22
+47V13*Validate{boolean} 34|474s33
+52A12*Seed_Bytes{16|20A9}<integer> 34|485r29
+54U14*To_Seed 34|494s22
+X 15 spark_secp256k1.ads
+18K9*SPARK_Secp256k1 86e20 34|14w6 631r13 637r7 638r11 656r14 662r7 663r11
+. 683r18 684r22 686r22 698r12 703r7 704r11 740r14 749r13
+24A12*Privkey_Bytes{16|20A9}<integer> 34|638r27 663r27 704r27 740r30 749r29
+25A12*Pubkey_Bytes{16|20A9}<integer> 34|631r29 684r38
+27A12*Signature_Bytes{16|20A9}<integer> 34|656r30 686r38
+29A12*Address_String{string}<integer>
+31R9*Address_Result 35e14 34|698r28
+32a7*Data{29A12} 34|706r24
+33i7*Len{natural} 34|706r38
+34b7*Success{boolean} 34|705r13
+39U14*Pubkey_From_Privkey 34|637s23
+48U14*Sign 34|662s23
+57V13*Verify{boolean} 34|683s34
+82U14*Privkey_To_Address 34|703s23
+X 16 spark_sha256.ads
+10K9*SPARK_SHA256 42e17 34|10w6 10r28
+17M9*Byte 34|526r24 547r22
+20A9*Byte_Array(17M9)<integer> 34|515r37 521r71 522r16 538r14 553r27 554r27
+. 572r25 573r25 586r27 587r27 608r26 609r26 617r24 630r22 640r27 654r23 655r23
+. 666r27 679r22 680r22 681r22 697r21 741r23 759r27 774r21 781r24 805r30 811r23
+. 842r30 848r23
+22A12*Hash_Bytes{20A9}<integer> 34|664r11 685r22 775r12 796r12 834r12
+29V13*Hash{22A12} 34|807s18 816s18
+39V13*Hash256{22A12} 34|844s18 852s18
+X 17 spark_sha512.ads
+12K9*SPARK_SHA512 28e17 34|11w6 610r11 616r12
+17A12*Hash512_Bytes{16|20A9}<integer> 34|610r24
+25V13*HMAC_SHA512{17A12} 34|616s25
+X 18 spark_transaction.ads
+15K9*SPARK_Transaction 79e22 34|15w6 722r18 743r14 751r7 780r12
+29R9*TX_Result 34e14 34|743r32
+30a7*Data{26A12} 34|756r29
+31i7*Len{natural} 34|756r42 757r35
+32a7*TXID{27A12} 34|759r41
+33b7*Success{boolean} 34|754r12
+44V13*Can_Afford{boolean} 34|722s36
+55U14*Build_And_Sign 34|751s25
+76V13*Compute_TXID{27A12} 34|780s30
+X 19 system.ads
+37K9*System 215e11 34|17w6 18r6 18r35 51r36 55r19 61r14 64r11
+67M9*Address 34|51r43 55r26 61r21 64r18
+X 30 s-stoele.ads
+43K16*Storage_Elements 104e28 34|18w13 18r42
+74V14*"+"{19|67M9} 34|68r23
+X 33 vault_c_api.ads
+16K9*Vault_C_API 287l5 287e16 34|21b14 862l5 862t16
+21i4*VAULT_OK{11|62I9} 34|79r26 90r14 102r26 144r26 159r26 195r26 212r26
+. 284r14 312r14 353r14 393r14 443r17 462r17 506r17 556r17 590r17 618r14 641r17
+. 667r17 707r17 760r17 782r14 822r14 857r14
+22i4*VAULT_ERR{11|62I9} 34|79r40 81r29 92r29 102r40 104r29 133r17 146r29
+. 159r40 161r29 184r17 195r40 197r29 214r29 286r29 314r29 342r17 357r17 383r17
+. 397r17 445r14 447r29 464r14 466r29 491r17 508r14 510r29 543r17 558r14 560r29
+. 576r17 593r14 595r29 613r17 620r29 635r17 643r14 645r29 660r17 669r14 671r29
+. 701r17 709r14 711r29 746r17 762r14 764r29 778r17 784r29 799r17 824r29 837r17
+. 859r29
+23i4*VAULT_NOT_FOUND{11|62I9} 34|212r40 304r17
+24i4*VAULT_LOCKED{11|62I9} 34|87r17 99r17 127r17 156r17 178r17 208r17 254r17
+. 298r17
+25i4*VAULT_FULL{11|62I9} 34|144r40
+29V13*Vault_Init{11|62I9} 34|75b13 82l8 82t18
+34V13*Vault_Lock{11|62I9} 34|84b13 93l8 93t18
+38V13*Vault_Save{11|62I9} 34|95b13 105l8 105t18
+42V13*Vault_Is_Loaded{11|62I9} 34|107b13 110l8 110t23
+48V13*Vault_Add_Key{11|62I9} 49>8 50>8 51>8 52>8 53>8 34|114b13 147l8 147t21
+49i8 Exchange{11|62I9} 34|115b8 137r24
+50p8 Name{12|65P9} 34|116b8 122r38
+51p8 Api_Key{12|65P9} 34|117b8 123r38
+52p8 Secret{12|65P9} 34|118b8 124r38
+53i8 Status{11|62I9} 34|119b8 141r22
+59V13*Vault_Delete_Key{11|62I9} 60>8 61>8 34|149b13 162l8 162t24
+60i8 Exchange{11|62I9} 34|150b8 158r46
+61i8 Slot{11|62I9} 34|151b8 158r66
+64V13*Vault_Update_Key{11|62I9} 65>8 66>8 67>8 68>8 69>8 70>8 34|164b13 198l8
+. 198t24
+65i8 Exchange{11|62I9} 34|165b8 188r24
+66i8 Slot{11|62I9} 34|166b8 188r44
+67p8 Name{12|65P9} 34|167b8 173r38
+68p8 Api_Key{12|65P9} 34|168b8 174r38
+69p8 Secret{12|65P9} 34|169b8 175r38
+70i8 Status{11|62I9} 34|170b8 192r22
+73V13*Vault_Set_Status{11|62I9} 74>8 75>8 76>8 34|200b13 215l8 215t24
+74i8 Exchange{11|62I9} 34|201b8 211r24
+75i8 Slot{11|62I9} 34|202b8 211r44
+76i8 Status{11|62I9} 34|203b8 211r62
+81V13*Vault_Key_Count{11|62I9} 81>30 34|219b13 227l8 227t23
+81i30 Exchange{11|62I9} 34|219b30 224r57
+84V13*Vault_Has_Keys{11|62I9} 84>29 34|229b13 237l8 237t22
+84i29 Exchange{11|62I9} 34|229b29 234r55
+89V13*Vault_Get_Key{11|62I9} 90>8 91>8 92>8 93>8 94>8 95>8 96^8 97^8 34|241b13
+. 287l8 287t21
+90i8 Exchange{11|62I9} 34|242b8 257r48
+91i8 Slot{11|62I9} 34|243b8 257r68
+92p8 Name_Buf{12|65P9} 34|244b8 264r13 265r55
+93i8 Name_Cap{11|62I9} 34|245b8 264r43 265r65
+94p8 Key_Buf{12|65P9} 34|246b8 269r13 276r38 279r64
+95i8 Key_Cap{11|62I9} 34|247b8 269r42 276r47 279r73
+96p8 Status_Out(11|62I9) 34|248b8 260r7
+97p8 In_Use_Out(11|62I9) 34|249b8 259r7
+102V13*Vault_Get_Secret{11|62I9} 103>8 104>8 105>8 106>8 34|289b13 315l8
+. 315t24
+103i8 Exchange{11|62I9} 34|290b8 301r48
+104i8 Slot{11|62I9} 34|291b8 301r68
+105p8 Sec_Buf{12|65P9} 34|292b8 307r10 309r21
+106i8 Sec_Cap{11|62I9} 34|293b8 307r39 309r30
+112V13*Mnemonic_Generate_12{11|62I9} 113>8 114>8 34|430b13 448l8 448t28
+113p8 Out_Buf{12|65P9} 34|431b8 437r29 438r42
+114i8 Out_Cap{11|62I9} 34|432b8 437r58 438r51
+119V13*Mnemonic_Generate_24{11|62I9} 120>8 121>8 34|450b13 467l8 467t28
+120p8 Out_Buf{12|65P9} 34|451b8 457r29 458r42
+121i8 Out_Cap{11|62I9} 34|452b8 457r58 458r51
+125V13*Mnemonic_Validate{11|62I9} 126>8 34|469b13 477l8 477t25
+126p8 Mnemonic{12|65P9} 34|469b32 471r10 474r50
+130V13*Mnemonic_To_Seed{11|62I9} 131>8 132>8 133>8 134>8 34|479b13 511l8
+. 511t24
+131p8 Mnemonic{12|65P9} 34|480b8 490r10 494r38
+132p8 Passphrase{12|65P9} 34|481b8 488r14 488r56
+133p8 Seed_Buf{12|65P9} 34|482b8 490r38 499r17
+134i8 Seed_Cap{11|62I9} 34|483b8 490r66
+141V13*Sha256_Hash{11|62I9} 142>8 143>8 144>8 145>8 34|789b13 825l8 825t19
+142p8 Data{12|65P9} 34|790b8 814r52
+143i8 Data_Len{11|62I9} 34|791b8 795r41
+144p8 Out_Buf{12|65P9} 34|792b8 798r10 821r29
+145i8 Out_Cap{11|62I9} 34|793b8 798r37
+149V13*Sha256_Double{11|62I9} 150>8 151>8 152>8 153>8 34|827b13 860l8 860t21
+150p8 Data{12|65P9} 34|828b8 850r52
+151i8 Data_Len{11|62I9} 34|829b8 833r41
+152p8 Out_Buf{12|65P9} 34|830b8 836r10 856r29
+153i8 Out_Cap{11|62I9} 34|831b8 836r37
+159V13*Bip32_Master_From_Seed{11|62I9} 160>8 161>8 162>8 163>8 34|531b13
+. 561l8 561t30
+160p8 Seed_Buf{12|65P9} 34|532b8 540r41
+161i8 Seed_Len{11|62I9} 34|533b8 537r41
+162p8 Privkey_Buf{12|65P9} 34|534b8 542r10 553r60
+163p8 Chain_Buf{12|65P9} 34|535b8 542r41 554r59
+169V13*Bip32_Derive_Address{11|62I9} 170>8 171>8 172>8 173>8 174>8 34|563b13
+. 596l8 596t28
+170p8 Privkey_In{12|65P9} 34|564b8 572r58
+171p8 Chain_In{12|65P9} 34|565b8 573r58
+172i8 Addr_Index{11|62I9} 34|566b8 583r56
+173p8 Privkey_Out{12|65P9} 34|567b8 575r10 586r58
+174p8 Chain_Out{12|65P9} 34|568b8 575r41 587r57
+182V13*Hmac_Sha512{11|62I9} 183>8 184>8 185>8 186>8 187>8 188>8 34|598b13
+. 621l8 621t19
+183p8 Key_Buf{12|65P9} 34|599b8 608r59
+184i8 Key_Len{11|62I9} 34|600b8 606r41
+185p8 Msg_Buf{12|65P9} 34|601b8 609r59
+186i8 Msg_Len{11|62I9} 34|602b8 607r41
+187p8 Out_Buf{12|65P9} 34|603b8 612r10 617r40
+188i8 Out_Cap{11|62I9} 34|604b8 612r37
+194V13*Secp256k1_Pubkey{11|62I9} 195>8 196>8 197>8 34|625b13 646l8 646t24
+195p8 Privkey_Buf{12|65P9} 34|626b8 630r55
+196p8 Pubkey_Buf{12|65P9} 34|627b8 634r10 640r45
+197i8 Pubkey_Cap{11|62I9} 34|628b8 634r40
+201V13*Secp256k1_Sign{11|62I9} 202>8 203>8 204>8 205>8 34|648b13 672l8 672t22
+202p8 Privkey_Buf{12|65P9} 34|649b8 654r56
+203p8 Hash_Buf{12|65P9} 34|650b8 655r56
+204p8 Sig_Buf{12|65P9} 34|651b8 659r10 666r45
+205i8 Sig_Cap{11|62I9} 34|652b8 659r37
+209V13*Secp256k1_Verify{11|62I9} 210>8 211>8 212>8 34|674b13 690l8 690t24
+210p8 Pubkey_Buf{12|65P9} 34|675b8 679r55
+211p8 Hash_Buf{12|65P9} 34|676b8 680r55
+212p8 Sig_Buf{12|65P9} 34|677b8 681r55
+216V13*Privkey_To_Address{11|62I9} 217>8 218>8 219>8 34|692b13 712l8 712t26
+217p8 Privkey_Buf{12|65P9} 34|693b8 697r54
+218p8 Addr_Buf{12|65P9} 34|694b8 700r10 706r44
+219i8 Addr_Cap{11|62I9} 34|695b8 700r38 706r54
+225V13*TX_Can_Afford{11|62I9} 226>8 227>8 228>8 34|716b13 727l8 727t21
+226i8 Balance{11|62I9} 34|717b8 723r31
+227i8 Amount{11|62I9} 34|718b8 723r50
+228i8 Fee{11|62I9} 34|719b8 723r68
+232V13*TX_Build_And_Sign{11|62I9} 233>8 234>8 235>8 236>8 237>8 238>8 239^8
+. 240>8 241>8 34|729b13 765l8 765t25
+233p8 Privkey_Buf{12|65P9} 34|730b8 741r56
+234p8 To_Address{12|65P9} 34|731b8 742r40
+235i8 Amount_Sat{11|62I9} 34|732b8 752r30
+236i8 Fee_Sat{11|62I9} 34|733b8 752r52
+237p8 TX_Out{12|65P9} 34|734b8 745r10 756r48
+238i8 TX_Cap{11|62I9} 34|735b8
+239p8 TX_Len_Out(11|62I9) 34|736b8 757r10
+240p8 TXID_Out{12|65P9} 34|737b8 745r36 759r48
+241i8 TXID_Cap{11|62I9} 34|738b8
+245V13*TX_Compute_TXID{11|62I9} 246>8 247>8 248>8 249>8 34|767b13 785l8 785t23
+246p8 TX_Buf{12|65P9} 34|768b8 774r54
+247i8 TX_Len{11|62I9} 34|769b8 773r41
+248p8 TXID_Buf{12|65P9} 34|770b8 777r10 781r40
+249i8 TXID_Cap{11|62I9} 34|771b8 777r38
+255V13*Vault_Encrypt{11|62I9} 256>8 257>8 258>8 259>8 260^8 34|319b13 358l8
+. 358t21
+256p8 Plain{12|65P9} 34|320b8 332r43
+257i8 Plain_Len{11|62I9} 34|321b8 326r43
+258p8 Cipher{12|65P9} 34|322b8 349r14
+259i8 Cipher_Cap{11|62I9} 34|323b8 327r43
+260p8 Out_Len(11|62I9) 34|324b8 341r10 345r7 356r10
+263V13*Vault_Decrypt{11|62I9} 264>8 265>8 266>8 267>8 268^8 34|360b13 398l8
+. 398t21
+264p8 Cipher{12|65P9} 34|361b8 373r43
+265i8 Cipher_Len{11|62I9} 34|362b8 367r43
+266p8 Plain{12|65P9} 34|363b8 389r14
+267i8 Plain_Cap{11|62I9} 34|364b8 368r43
+268p8 Out_Len(11|62I9) 34|365b8 382r10 386r7 396r10
+273U14*Vault_Wipe 273>26 273>43 34|402b14 407l8 407t18
+273p26 Buf{12|65P9} 34|402b26 405r39
+273i43 Len{11|62I9} 34|402b43 404r42
+278V13*Vault_Get_Path{12|65P9} 34|413b13 419l8 419t22
+284U14*Vault_Lib_Init 34|423b14 426l8 426t22
+X 34 vault_c_api.adb
+25V13 To_Exchange{37|17E9} 25b13 25>26 32l8 32t19 137s11 158s33 188s11 211s11
+. 224s44 234s42 257s35 301s35
+25i26 I{11|62I9} 27r12
+34V13 To_Status{37|26E9} 34b13 34>24 41l8 41t17 141s11 192s11 211s51
+34i24 I{11|62I9} 36r12
+43V13 To_Slot{37|87I9} 43b13 43>22 49l8 49t15 158s57 188s35 211s35 257s59
+. 301s59
+43i22 I{11|62I9} 44r31 45r34 46r33
+44i7 V{11|62I9} 48r26
+51U14 C_Memcpy 51>24 51>30 51>52 518s7 814s13 821s7 850s13 856s7
+51m24 Dest{19|67M9}
+51m30 Src{19|67M9}
+51m52 N{11|92M9}
+54V13 To_Address[9|23]{19|67M9} 61s32 518s17 814s40 821s17 850s40 856s17
+57U14 Copy_To_C 57b14 58>8 58>22 58>39 71l8 71t17 265s13 276s19 279s16 308s10
+. 438s10 458s10 706s10
+58a8 Src{string} 60r46 67r36 67r41
+58p22 Dst{12|65P9} 61r44
+58i39 Cap{11|62I9} 60r67
+60i7 Len{natural} 66r21
+61m7 Dest{19|67M9} 67r23 68m10 68r18 70r20
+62P12 Char_Acc(character) 64r27
+63V16 To_Char_Acc[9|23]{62P12} 67s10 70s7
+66i11 I{integer} 67r53
+76b7 OK{boolean} 78m27 79r18
+96b7 OK{boolean} 101m27 102r18
+121b7 OK{boolean} 142m11 144r18
+122a7 N{string} 129r10 138r27
+123a7 K{string} 130r10 139r26
+124a7 S{string} 131r10 140r29
+153b7 OK{boolean} 158m73 159r18
+172b7 OK{boolean} 193m11 195r18
+173a7 N{string} 180r10 189r27
+174a7 K{string} 181r10 190r26
+175a7 S{string} 182r10 191r29
+205b7 OK{boolean} 211m71 212r18
+251r7 E{37|70R9} 257m7 259r29 260r41 262r10 265r24 265r42 270r16 273r22 274r22
+. 274r38 274r59 279r27 279r48
+272a19 Masked=273:54{string} 276r30
+295r7 E{37|70R9} 301m7 303r14 308r21 308r45
+326i7 PL{natural} 328r47 332r71 334r21 338r44
+327i7 CC{natural} 329r47
+328a7 P_Bytes{35|19A9} 335m10 338r35
+329a7 C_Bytes{35|19A9} 338m48 350r38
+330i7 C_Len{natural} 338m57 345r27 347r21
+331b7 OK{boolean} 338m64 340r14
+332a7 P_Str{string} 335r56
+334i11 I{integer} 335r19 335r63
+347i11 I{integer} 349r43 350r47
+367i7 CL{natural} 369r47 373r72 375r21 379r44
+368i7 PC{natural} 370r47
+369a7 C_Bytes{35|19A9} 376m10 379r35
+370a7 P_Bytes{35|19A9} 379m48 390r38
+371i7 P_Len{natural} 379m57 386r27 387r21
+372b7 OK{boolean} 379m64 381r14
+373a7 C_Str{string} 376r56
+375i11 I{integer} 376r19 376r63
+387i11 I{integer} 389r42 390r47
+404m11 I{11|92M9} 405r44
+411p4 Path_Store{12|65P9} 415r10 416m10 418r14
+434r7 R{14|27R9} 436m35 437r10 438r21 438r34 440r24 441m13
+440i14 I{integer} 441r21
+454r7 R{14|27R9} 456m35 457r10 458r21 458r34 459r24 460m13
+459i14 I{integer} 460r21
+485a7 Seed{14|52A12} 494m55 500r41 503r19 504m13
+486b7 OK{boolean} 494m61 496r10
+487a7 Pass{string} 494r49
+497i14 I{integer} 499r48 500r47
+503i14 I{integer} 504r19
+515U14 Copy_Bytes_To_C 515b14 515>31 515>49 519l8 519t23 553s10 554s10 586s10
+. 587s10 617s7 640s10 666s10 756s10 759s10 781s7
+515a31 Src{16|20A9} 518r35 518r56
+515p49 Dst{12|65P9} 518r29
+521V13 Read_Bytes_From_C{16|20A9} 521b13 521>32 521>49 529l8 529t25 572s39
+. 573s39 608s40 609s40 630s36 654s37 655s37 679s36 680s36 681s36 697s35 741s37
+. 774s35
+521p32 Src{12|65P9} 523r37
+521i49 Len{natural} 522r33 523r63 525r21
+522a7 Result{16|20A9} 526m10 528r14
+523a7 S{string} 526r45
+525i11 I{integer} 526r18 526r48
+537i7 SL{natural} 538r31 540r72 546r21
+538a7 Seed{16|20A9} 547m10 550m41 550r41
+539r7 Master{13|26R9} 550m47 552r10 553r39 554r39 555m32 555r32
+540a7 S_Str{string} 547r43
+546i11 I{integer} 547r16 547r50
+570r7 Master{13|26R9} 579m7 580m7 581m7 583r39 589m32 589r32 592m29 592r29
+571r7 Addr{13|26R9} 583m69 585r10 586r39 587r39 588m32 588r32
+572a7 PK{16|20A9} 579r52
+573a7 CC{16|20A9} 580r54
+606i7 KL{natural} 608r68
+607i7 ML{natural} 609r68
+608a7 K_Bytes{16|20A9} 616r38
+609a7 M_Bytes{16|20A9} 616r47
+610a7 H{17|17A12} 616m7 617r36
+630a7 PK{16|20A9} 638r42
+631a7 Pub{15|25A12} 638m47 640r39
+632b7 OK{boolean} 638m52 639r10
+654a7 PK{16|20A9} 663r42
+655a7 H{16|20A9} 664r23
+656a7 Sig{15|27A12} 664m27 666r39
+657b7 OK{boolean} 664m32 665r10
+679a7 Pub{16|20A9} 684r52
+680a7 H{16|20A9} 685r34
+681a7 Sig{16|20A9} 686r55
+697a7 PK{16|20A9} 704r42
+698r7 AR{15|31R9} 704m47 705r10 706r21 706r35
+740a7 PK{15|24A12} 749m7 752m11 752r11
+741a7 PK_B{16|20A9} 749r44
+742a7 Addr{string} 752r15
+743r7 R{18|29R9} 752m62 754r10 756r27 756r40 757r33 759r39
+773i7 TL{natural} 774r62
+774a7 TX{16|20A9} 780r44
+775a7 H{16|22A12} 780m7 781r36
+795i7 DL{natural} 802r10 811r40 815r44
+796a7 H{16|22A12} 807m13 816m13 821m39 821r39
+805a13 Empty{16|20A9} 807r24
+811a13 D_Bytes{16|20A9} 814m23 814r23 816r24
+833i7 DL{natural} 840r10 848r40 851r44
+834a7 H{16|22A12} 844m13 852m13 856m39 856r39
+842a13 Empty{16|20A9} 844r27
+848a13 D_Bytes{16|20A9} 850m23 850r23 852r27
+X 35 vault_crypto.ads
+12K9*Vault_Crypto 34|9w6 328r17 329r17 338r7 369r17 370r17 379r7 35|58e17
+19A9*Byte_Array(18M12)<integer> 34|328r30 329r30 369r30 370r30
+28U14*DPAPI_Encrypt 34|338s20
+39U14*DPAPI_Decrypt 34|379s20
+X 36 vault_storage.ads
+13K9*Vault_Storage 34|8w6 78r7 86r14 89r7 98r14 101r7 109r18 126r14 136r7
+. 155r14 158r7 177r14 187r7 207r14 210r7 221r14 224r19 231r14 234r18 253r14
+. 257r12 297r14 301r12 416r36 36|86e18
+19V13*Is_Loaded{boolean} 34|86s28 98s28 109s32 126s28 155s28 177s28 207s28
+. 221s28 231s28 253s28 297s28
+23U14*Init 34|78s21
+26U14*Save 34|101s21
+29U14*Lock 34|89s21
+34U14*Add_Key 34|136s21
+43U14*Delete_Key 34|158s21
+49U14*Update_Key 34|187s21
+61V13*Get_Key{37|70R9} 34|257s26 301s26
+66V13*Key_Count{natural} 34|224s33
+70V13*Has_Keys{boolean} 34|234s32
+75U14*Set_Key_Status 34|210s21
+84V13*Vault_File_Path{string} 34|416s50
+X 37 vault_types.ads
+10K9*Vault_Types 34|7w6 7r26 37|166e16
+17E9*Exchange_Id 34|25r42 37|18e7
+17n25*LCX{17E9} 34|28r32
+17n30*Kraken{17E9} 34|29r32
+17n38*Coinbase{17E9} 34|30r32
+26E9*Key_Status 34|34r40 260r25 37|27e7
+26n24*Status_Free{26E9} 34|37r32
+26n37*Status_Paid{26E9} 34|38r32
+26n50*Status_Not_Paid{26E9} 34|39r32
+37N4*Max_Name_Length 34|129r21 180r21
+38N4*Max_Key_Length 34|130r21 181r21
+39N4*Max_Secret_Length 34|131r21 182r21
+46I12*Name_Index{natural}
+47I12*Key_Index{natural}
+48I12*Secret_Index{natural}
+51a7*Data{string} 34|265r31
+52i7*Len{46I12} 34|265r49
+57a7*Data{string} 34|273r32 274r32 279r37
+58i7*Len{47I12} 34|270r26 274r48 274r69 279r58
+63a7*Data{string} 34|308r34
+64i7*Len{48I12} 34|308r58
+70R9*Key_Entry 34|251r11 295r11 37|76e14
+71b7*In_Use{boolean} 34|259r31 262r12 303r16
+72e7*Status{26E9} 34|260r43
+73r7*Name{50R9} 34|265r26 265r44
+74r7*Api_Key{56R9} 34|270r18 273r24 274r24 274r40 274r61 279r29 279r50
+75r7*Api_Secret{62R9} 34|308r23 308r47
+87I9*Slot_Index<short_short_integer> 34|43r38 45r43 45r70 48r14
+157V13*To_Name_String{50R9} 34|138s11 189s11
+160V13*To_Key_String{56R9} 34|139s11 190s11
+163V13*To_Secret_String{62R9} 34|140s11 191s11
+

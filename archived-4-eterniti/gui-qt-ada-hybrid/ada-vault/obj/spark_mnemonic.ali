@@ -1,0 +1,234 @@
+V "GNAT Lib v15"
+A -O0
+A -gnatA
+A -gnat2022
+A -gnatwa
+A -gnato13
+A -gnatf
+A -g
+A -gnata
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_EXCEPTIONS
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_ASPECT_SPECIFICATIONS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_ELABORATION_CODE
+
+U spark_mnemonic%b	spark_mnemonic.adb	9132e13d OO PK
+W ada%s			ada.ads			ada.ali
+W ada.numerics%s	a-numeri.ads		a-numeri.ali
+W ada.numerics.discrete_random%s
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z ada.tags%s		a-tags.adb		a-tags.ali
+W bip39_words%s		bip39_words.ads		bip39_words.ali
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+W system%s		system.ads		system.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.random_numbers%s  s-rannum.adb		s-rannum.ali
+
+U spark_mnemonic%s	spark_mnemonic.ads	9df74a41 EE NE OO PK
+W spark_sha256%s	spark_sha256.adb	spark_sha256.ali
+
+D ada.ads		20250808065140 76789da1 ada%s
+D a-assert.ads		20250808065140 ba465f5c ada.assertions%s
+D a-except.ads		20250808065140 e7970cd9 ada.exceptions%s
+D a-numeri.ads		20250808065140 84bea7a3 ada.numerics%s
+D a-nudira.ads		20250808065140 5984dff3 ada.numerics.discrete_random%s
+D a-nudira.adb		20250808065140 0bfd6ec4 ada.numerics.discrete_random%b
+D a-string.ads		20250808065140 90ac6797 ada.strings%s
+D a-sttebu.ads		20250808065140 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250808065140 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250808065140 fbca0ad5 ada.tags%s
+D a-unccon.ads		20250808065140 0e9b276f ada.unchecked_conversion%s
+D bip39_words.ads	20260401084612 8d56150c bip39_words%s
+D interfac.ads		20250808065140 9111f9c1 interfaces%s
+D spark_mnemonic.ads	20260401084632 083b101c spark_mnemonic%s
+D spark_mnemonic.adb	20260401084722 d8176183 spark_mnemonic%b
+D spark_sha256.ads	20260401084406 95cc5a5d spark_sha256%s
+D system.ads		20250808065140 a869df9e system%s
+D s-assert.ads		20250808065140 9c4520c7 system.assertions%s
+D s-exctab.ads		20250808065140 91bef6ef system.exception_table%s
+D s-imageu.ads		20250808065140 b0b50650 system.image_u%s
+D s-imguns.ads		20250808065140 c4e23690 system.img_uns%s
+D s-parame.ads		20250808065140 3597fc11 system.parameters%s
+D s-rannum.ads		20250808065140 95815eca system.random_numbers%s
+D s-rannum.adb		20250808065140 0f2dcb9a system.random_numbers%b
+D s-ransee.ads		20250808065140 01a57b33 system.random_seed%s
+D s-secsta.ads		20250808065140 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250808065140 5d88fdea system.soft_links%s
+D s-stache.ads		20250808065140 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250808065140 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250808065140 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250808065140 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250808065140 fa2a7f59 system.unsigned_types%s
+D s-valspe.ads		20250808065140 f810d31c system.val_spec%s
+D s-valuns.ads		20250808065140 f7ddb71d system.val_uns%s
+D s-valueu.ads		20250808065140 a38d32a6 system.value_u%s
+D s-vauspe.ads		20250808065140 89269ba5 system.value_u_spec%s
+D s-vs_uns.ads		20250808065140 e7f47a27 system.vs_uns%s
+G a e
+G c Z s b [generate_12 spark_mnemonic 35 14 none]
+G c Z s b [generate_24 spark_mnemonic 40 14 none]
+G c Z s b [validate spark_mnemonic 47 13 none]
+G c Z s b [to_seed spark_mnemonic 54 14 none]
+G c Z s s [mnemonic_resultIP spark_mnemonic 27 9 none]
+G c Z b b [random spark_mnemonic__rand_byte 54 13 18_4]
+G c Z b b [random spark_mnemonic__rand_byte 56 13 18_4]
+G c Z b b [reset spark_mnemonic__rand_byte 62 14 18_4]
+G c Z b b [reset spark_mnemonic__rand_byte 63 14 18_4]
+G c Z b b [save spark_mnemonic__rand_byte 69 14 18_4]
+G c Z b b [reset spark_mnemonic__rand_byte 70 14 18_4]
+G c Z b b [image spark_mnemonic__rand_byte 74 13 18_4]
+G c Z b b [value spark_mnemonic__rand_byte 75 13 18_4]
+G c Z b b [TstateBIP spark_mnemonic__rand_byte 81 4 18_4]
+G c Z b b [ensure_random spark_mnemonic 22 14 none]
+G c Z b b [random_byte spark_mnemonic 30 13 none]
+G c Z b b [bit_arrayIP spark_mnemonic 38 9 none]
+G c Z b b [get_bit spark_mnemonic 40 13 none]
+G c Z b b [bits_to_index spark_mnemonic 47 13 none]
+G c Z b b [generate_internal spark_mnemonic 61 14 none]
+G c Z b b [find_word spark_mnemonic 138 13 none]
+G r c none [generate_internal spark_mnemonic 61 14 none] [hash spark_sha256 29 13 none]
+X 1 ada.ads
+18K9*Ada 22e8 15|9r6 18r29
+X 4 a-numeri.ads
+20K13*Numerics 36e17 15|9r10 18r33
+X 5 a-nudira.ads
+46k22*Discrete_Random 83e33 15|9w19 18r42
+52R9*Generator<23|65R9> 15|19r20[18]
+54V13 Random{15|17I9} 15|33s30[18]
+63U14 Reset<23|103p14> 15|25s20[18]
+X 6 a-nudira.adb
+53V16 Random[23|86]{15|17I9} 24|402b13[15|18]
+65V16 Random[23|86]{15|17I9} 24|402b13[15|18]
+X 12 bip39_words.ads
+6K9*BIP39_Words 2075e16 15|7w6 90r29 91r16 91r45 140r21 142r26 142r52
+11N4*Word_Count 15|91r57 140r33
+14I12*Word_Len_Range{natural}
+16R9*Word_Entry 19e14 15|90r41 142r38
+17a7*Data{string} 15|104r45 145r18
+18i7*Len{14I12} 15|92r45 144r18 145r31
+21A9*Word_List_Type(16R9)<integer>
+23a4*English{21A9} 15|91r28 142r64
+X 13 interfac.ads
+92M9*Unsigned_32
+95M9*Unsigned_64
+X 14 spark_mnemonic.ads
+14K9*SPARK_Mnemonic 62l5 62e19 15|11b14 339l5 339t19
+20N4*Max_Mnemonic_Words
+21N4*Max_Mnemonic_Len 25r44 15|95r37 102r25
+25A12*Mnemonic_String{string}<integer> 28r17
+27R9*Mnemonic_Result 31e14 36r21 41r21 15|64r28 124r40 131r40
+28a7*Data{25A12} 15|72m18 97m23 104m26
+29i7*Len{natural} 37r51 42r51 15|72m43 110m14
+30b7*Success{boolean} 37r31 42r31 15|72m53 111m14
+35U14*Generate_12 36<8 15|124b14
+36r8 Result{27R9} 37r24 37r44 15|124b27 126m34
+40U14*Generate_24 41<8 15|131b14
+41r8 Result{27R9} 42r24 42r44 15|131b27 133m34
+47V13*Validate{boolean} 47>23 15|154b13 199l8 199t16
+47a23 Mnemonic{string} 15|154b23 157r28 159r10 165r16 166r13 178r30 181r19
+. 181r37 182r20 182r42 185r30 185r49 186r42
+52A12*Seed_Bytes{16|20A9}<integer> 57r25 15|209r25 259r25
+54U14*To_Seed 55>8 56>8 57<8 58<8 15|206b14
+55a8 Mnemonic{string} 15|207b8 305r10 317r40 320r19 321r28 322r37
+56a8 Passphrase{string} 15|208b8 213r48 311r10 312r56
+57a8 Seed{52A12} 59r37 15|209b8 302m7 329m41
+58b8 Success{boolean} 59r24 15|210b8 303m7 330m10
+X 15 spark_mnemonic.adb
+17I9 Byte_Val<short_integer> 18r59
+18K12 Rand_Byte[5|46] 19r10 25r10 33r20
+19r4 Gen{5|52R9[18]} 25r27 33r38
+20b4 Gen_Init{boolean} 24r14 26m10
+22U14 Ensure_Random 22b14 28l8 28t21 32s7
+30V13 Random_Byte{16|17M9} 30b13 34l8 34t19 76s25
+38A9 Bit_Array(boolean)<integer>
+40V13 Get_Bit{boolean} 40b13 40>22 40>41 45l8 45t15 52s13
+40a22 Data{16|20A9} 41r53 44r15
+40i41 Bit_Idx{natural} 41r39 42r43
+41i7 Byte_Pos{positive} 44r21
+42i7 Bit_Pos{natural} 44r39
+47V13 Bits_To_Index{natural} 47b13 47>28 47>47 57l8 57t21 89s40
+47a28 Data{16|20A9} 52r22
+47i47 Start_Bit{natural} 52r28
+48i7 Result{natural} 51m10 51r20 53m13 53r23 56r14
+50i11 I{integer} 52r40
+61U14 Generate_Internal 61b14 62>8 63>8 64<8 120l8 120t25 126s7 133s7
+62i8 Entropy_Bytes{positive} 66r35 69r35 83r22 84r17
+63i8 Word_Count{positive} 87r21
+64r8 Result{14|27R9} 72m7 97m16 104m19 110m7 111m7
+66a7 Entropy{16|20A9} 75r16 76m10 80r25 83r40 114r16 115m10
+67a7 Checksum{16|22A12} 80m7 84r39
+69a7 Combined{16|20A9} 83m7 84m7 89r55 117r16 118m10
+70i7 Pos{natural} 95r31 96m16 96r23 97r29 102r19 103m19 103r26 104r32 110r21
+75i11 I{integer} 76r19
+87i11 W{integer} 89r65 95r16
+89i13 Idx{natural} 91r37
+90r13 Word{12|16R9} 92r40 104r40
+92i13 WLen{natural} 101r27
+101i17 C{integer} 104r51
+114i11 I{integer} 115r19
+117i11 I{integer} 118r20
+138V13 Find_Word{integer} 138b13 138>24 152l8 152t17 188s26
+138a24 S{string} 144r24 145r38
+140i11 I{integer} 142r73 147r23
+142r13 W{12|16R9} 144r16 145r16 145r29
+156i7 WCount{natural} 164m7 167m13 167r23 172r10 172r32
+157i7 Pos{positive}
+165i11 I{integer} 166r23
+178i10 Start{positive} 186r52 193m16
+179i10 Idx{integer} 188m19 189r22
+181i14 I{integer} 182r16 182r52 185r26 185r68 193r25
+184i19 Word_End{natural} 186r61
+186a19 W{string} 188r37
+212a7 Salt_Prefix{string} 213r27 310r18 310r41 312r16
+213a7 Salt{string} 310m7 312m10 312r42 318r40 324r19 325r29 326r37
+216V16 HMAC_SHA256{16|22A12} 216b16 216>29 216>34 253l11 253t22 278s26 283s29
+216a29 Key{16|20A9} 225r13 227r50 232r29 232r44
+216a34 Msg{16|20A9} 221r53 243r52 243r67
+217N10 Block_Size 218r40 219r40 220r40 221r40 222r40 225r26 236r24 242r26
+. 243r21 243r39 248r29 249r24 249r42
+218a10 I_Key_Pad{16|20A9} 237m13 237r30 242r41
+219a10 O_Key_Pad{16|20A9} 238m13 238r30 248r44
+220a10 Key_Block{16|20A9} 229m16 232m13 237r48 238r48
+221a10 Inner_Msg{16|20A9} 242m10 243m10 245r55
+222a10 Outer_Msg{16|20A9} 248m13 249m13 251r26
+227a16 HK{16|22A12} 229r51
+236i14 I{integer} 237r24 237r41 237r59 238r24 238r41 238r59
+245a13 Inner_Hash{16|22A12} 250r28
+256U17 PBKDF2 256b17 257>10 258>10 259<10 299l11 299t17 329s10
+257a10 Password{16|20A9} 278r39 283r42
+258a10 Salt_B{16|20A9} 266r45 271r32 271r50 272r27 273r27 274r27 275r27
+259a10 Output{14|52A12} 294m19
+263i14 Block_Idx{integer} 275r55 292r53
+266a16 Salt_Plus{16|20A9} 271m16 272m16 273m16 274m16 275m16 278r49
+267a16 U_Prev{16|22A12} 278m16 279r30 283r64 287m19
+268a16 U_Curr{16|22A12} 283m19 285r59 287r29
+269a16 Result_Blk{16|22A12} 279m16 284r28 285m22 285r40 295r34
+282i20 Iter{integer}
+284i23 I{integer} 285r34 285r52 285r67
+292i19 Out_Start{positive} 294r27 294r40
+317a10 Pwd_Bytes{16|20A9} 321m13 329r18 333r19 334m13
+318a10 Salt_Bytes{16|20A9} 325m13 329r29
+320i14 I{integer} 321r24 322r47
+324i14 I{integer} 325r25 326r43
+333i14 I{integer} 334r24
+X 16 spark_sha256.ads
+10K9*SPARK_SHA256 14|12w6 12r24 15|8w6 8r24 16|42e17
+17M9*Byte 15|30r32 33r14 275r49 322r16 326r16
+20A9*Byte_Array(17M9)<integer> 14|52r26 15|40r29 47r35 66r18 69r18 216r40
+. 218r23 219r23 220r23 221r23 222r23 229r39 250r16 257r21 258r21 266r28 283r52
+. 295r22 317r23 318r23
+22A12*Hash_Bytes{20A9}<integer> 15|67r18 216r59 227r30 245r35 267r28 268r28
+. 269r29
+29V13*Hash{22A12} 15|80s19 227s44 245s49 251s20
+X 23 s-rannum.ads
+77V13*Random{13|92M9} 24|224i21
+78V13*Random{13|95M9} 24|224i21
+
