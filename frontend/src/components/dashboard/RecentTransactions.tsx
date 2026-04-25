@@ -4,6 +4,18 @@ import OmniBusRpcClient from "../../api/rpc-client";
 
 const rpc = new OmniBusRpcClient();
 
+// Trunchiaza hash/adresa la mijloc cu '**' (gen 0000abcd**1234ef).
+function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
+  if (!s) return "—";
+  if (s.length <= head + tail + 2) return s;
+  return `${s.slice(0, head)}**${s.slice(-tail)}`;
+}
+
+// Click pe hash → deschide modal cu detalii TX (in TxSearch, mai jos)
+declare global {
+  interface Window { __openTx?: (txid: string) => void }
+}
+
 function ConfirmationBadge({ count }: { count: number }) {
   if (count === 0) {
     return (
@@ -118,11 +130,18 @@ export function RecentTransactions() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-mempool-text truncate">
-                    {item.from === "coinbase"
-                      ? "Block Reward"
-                      : item.id.slice(0, 16) + "..."}
-                  </span>
+                  {item.from === "coinbase" ? (
+                    <span className="text-xs font-mono text-mempool-text truncate">Block Reward</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => window.__openTx?.(item.id)}
+                      title={item.id}
+                      className="text-xs font-mono text-mempool-blue hover:underline truncate"
+                    >
+                      {midTrunc(item.id, 10, 8)}
+                    </button>
+                  )}
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded ${
                       item.status === "pending"
@@ -134,9 +153,9 @@ export function RecentTransactions() {
                   </span>
                   <ConfirmationBadge count={item.confirmations} />
                 </div>
-                <p className="text-[10px] text-mempool-text-dim truncate">
-                  {item.from.slice(0, 20)}
-                  {item.to ? ` -> ${item.to.slice(0, 20)}` : ""}
+                <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>
+                  <span className="font-mono">{midTrunc(item.from, 8, 6)}</span>
+                  {item.to ? <> &nbsp;→&nbsp; <span className="font-mono">{midTrunc(item.to, 8, 6)}</span></> : null}
                 </p>
               </div>
 

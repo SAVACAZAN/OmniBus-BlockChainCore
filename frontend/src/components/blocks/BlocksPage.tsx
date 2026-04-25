@@ -6,6 +6,14 @@ import type { BlockData } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
+// Trunchiaza hash/adresa la mijloc cu '**' (gen 0000abcd**1234ef).
+// Pastreaza primele `head` si ultimele `tail` caractere.
+function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
+  if (!s) return "—";
+  if (s.length <= head + tail + 2) return s;
+  return `${s.slice(0, head)}**${s.slice(-tail)}`;
+}
+
 export function BlocksPage() {
   const { state } = useBlockchain();
   const [blocks, setBlocks] = useState<BlockData[]>([]);
@@ -14,9 +22,22 @@ export function BlocksPage() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
+  // Reload only when paging — not on every blockCount tick (would cause
+  // 1 reload per mined block = annoying flicker on Testnet/Regtest where
+  // blocks come at 1/s or faster).
   useEffect(() => {
     loadBlocks();
-  }, [page, state.blockCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // For new blocks: only reload page 0 (the "latest" view), and only every
+  // 5 seconds even if 5 blocks were mined. Older pages don't change.
+  useEffect(() => {
+    if (page !== 0) return;
+    const id = setInterval(() => loadBlocks(), 5000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const loadBlocks = async () => {
     setLoading(true);
@@ -89,23 +110,23 @@ export function BlocksPage() {
               <tr><td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">No blocks</td></tr>
             ) : (
               blocks.map((b) => (
-                <tr key={b.height} className="hover:bg-mempool-bg-light/50 transition-colors cursor-pointer" onClick={() => setSelectedBlock(b)}>
-                  <td className="px-4 py-2.5 font-mono text-mempool-blue font-bold">
+                <tr key={`block-${b.height}`} className="hover:bg-mempool-bg-light/50 transition-colors cursor-pointer" onClick={() => setSelectedBlock(b)}>
+                  <td className="px-4 py-2.5 font-mono text-mempool-blue font-bold whitespace-nowrap">
                     #{b.height}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-mempool-text truncate max-w-[180px]">
-                    {b.hash?.slice(0, 20)}...
+                  <td className="px-4 py-2.5 font-mono text-mempool-text whitespace-nowrap" title={b.hash}>
+                    {midTrunc(b.hash, 8, 6)}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-mempool-text-dim truncate max-w-[150px]">
-                    {b.miner?.slice(0, 18)}...
+                  <td className="px-4 py-2.5 font-mono text-mempool-text-dim whitespace-nowrap" title={b.miner}>
+                    {midTrunc(b.miner, 8, 6)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-mempool-text">
+                  <td className="px-4 py-2.5 text-right font-mono text-mempool-text whitespace-nowrap">
                     {b.txCount + 1}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-mempool-green">
+                  <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
                     {((b.rewardSAT || 0) / 1e9).toFixed(4)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-mempool-text-dim">
+                  <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap">
                     {b.timestamp ? new Date(b.timestamp * 1000).toLocaleTimeString() : "—"}
                   </td>
                 </tr>

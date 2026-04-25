@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { TransactionDetail } from "../../types";
 
@@ -6,16 +6,25 @@ const rpc = new OmniBusRpcClient();
 
 interface TxSearchProps {
   onClose?: () => void;
+  initialQuery?: string;
 }
 
-export function TxSearch({ onClose }: TxSearchProps) {
-  const [query, setQuery] = useState("");
+export function TxSearch({ onClose, initialQuery }: TxSearchProps) {
+  const [query, setQuery] = useState(initialQuery || "");
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<TransactionDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const handleSearch = async () => {
-    const txid = query.trim();
+  // Auto-search daca am primit un TX preselectat (din RecentTransactions click).
+  useEffect(() => {
+    if (initialQuery && initialQuery.trim()) {
+      handleSearch(initialQuery.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
+
+  const handleSearch = async (preset?: string) => {
+    const txid = (preset ?? query).trim();
     if (!txid) return;
     setSearching(true);
     setNotFound(false);
@@ -57,7 +66,7 @@ export function TxSearch({ onClose }: TxSearchProps) {
               className="flex-1 bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue"
             />
             <button
-              onClick={handleSearch}
+              onClick={() => handleSearch()}
               disabled={searching || !query.trim()}
               className="bg-mempool-blue hover:bg-mempool-blue/80 disabled:opacity-30 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors"
             >

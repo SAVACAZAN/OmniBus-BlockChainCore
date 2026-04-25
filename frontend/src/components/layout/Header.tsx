@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+
+declare global {
+  interface Window { __openTx?: (txid: string) => void }
+}
 
 const CHAIN_BADGE: Record<ChainName, { label: string; cls: string }> = {
   mainnet: { label: "Mainnet", cls: "bg-mempool-blue/20 text-mempool-blue" },
@@ -12,7 +16,18 @@ const CHAIN_BADGE: Record<ChainName, { label: string; cls: string }> = {
 export function Header() {
   const { state } = useBlockchain();
   const [showSearch, setShowSearch] = useState(false);
+  const [searchInitial, setSearchInitial] = useState<string>("");
   const activeChain = getActiveChain();
+
+  // Permite altor componente sa deschida cautarea cu un TX preselectat
+  // — RecentTransactions.tsx face <button onClick={() => window.__openTx(id)}>
+  useEffect(() => {
+    window.__openTx = (txid: string) => {
+      setSearchInitial(txid);
+      setShowSearch(true);
+    };
+    return () => { delete window.__openTx; };
+  }, []);
 
   return (
     <>
@@ -117,7 +132,12 @@ export function Header() {
       </header>
 
       {/* TX Search Modal */}
-      {showSearch && <TxSearch onClose={() => setShowSearch(false)} />}
+      {showSearch && (
+        <TxSearch
+          onClose={() => { setShowSearch(false); setSearchInitial(""); }}
+          initialQuery={searchInitial}
+        />
+      )}
     </>
   );
 }
