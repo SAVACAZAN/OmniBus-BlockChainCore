@@ -251,14 +251,31 @@ pub const Blockchain = struct {
         return list.items;
     }
 
-    /// Adauga reward la balanta minerului
+    /// Adauga reward la balanta minerului.
+    /// Lock-uit pentru a preveni race-ul cu RPC threads care citesc balances
+    /// (HashMap-ul Zig nu e thread-safe; concurrent get/put produce segfault).
     pub fn creditBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        try self.creditBalanceLocked(address, amount);
+    }
+
+    /// Internal — caller must already hold self.mutex.
+    /// Folosit din applyBlock / replayState, care deja tin mutex-ul.
+    pub fn creditBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
         const existing = self.balances.get(address) orelse 0;
         try self.balances.put(address, existing + amount);
     }
 
     /// Scade din balanta (pentru tranzactii)
     pub fn debitBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        try self.debitBalanceLocked(address, amount);
+    }
+
+    /// Internal — caller must already hold self.mutex.
+    pub fn debitBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
         const existing = self.balances.get(address) orelse 0;
         if (existing < amount) return error.InsufficientBalance;
         try self.balances.put(address, existing - amount);
@@ -893,8 +910,8 @@ pub const Blockchain = struct {
     fn applyBlock(self: *Blockchain, block: Block) !void {
         var total_fees: u64 = 0;
         for (block.transactions.items) |tx| {
-            self.debitBalance(tx.from_address, tx.amount + tx.fee) catch {};
-            self.creditBalance(tx.to_address, tx.amount) catch {};
+            self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
+            self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
             total_fees += tx.fee;
             const current_nonce = self.nonces.get(tx.from_address) orelse 0;
             self.nonces.put(tx.from_address, current_nonce + 1) catch {};
@@ -909,7 +926,7 @@ pub const Blockchain = struct {
         total_fees_burned_sat += fees_burned;
 
         if (block.miner_address.len > 0 and (block.reward_sat > 0 or fees_to_miner > 0)) {
-            self.creditBalance(block.miner_address, block.reward_sat + fees_to_miner) catch {};
+            self.creditBalanceLocked(block.miner_address, block.reward_sat + fees_to_miner) catch {};
         }
 
         try self.chain.append(block);
@@ -961,8 +978,8 @@ pub const Blockchain = struct {
             const blk = &self.chain.items[i];
             var blk_total_fees: u64 = 0;
             for (blk.transactions.items) |tx| {
-                self.debitBalance(tx.from_address, tx.amount + tx.fee) catch {};
-                self.creditBalance(tx.to_address, tx.amount) catch {};
+                self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
+                self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
                 blk_total_fees += tx.fee;
                 const current_nonce = self.nonces.get(tx.from_address) orelse 0;
                 self.nonces.put(tx.from_address, current_nonce + 1) catch {};
@@ -971,7 +988,7 @@ pub const Blockchain = struct {
             const fees_burned = blk_total_fees * FEE_BURN_PCT / 100;
             const fees_to_miner = blk_total_fees - fees_burned;
             if (blk.miner_address.len > 0 and (blk.reward_sat > 0 or fees_to_miner > 0)) {
-                self.creditBalance(blk.miner_address, blk.reward_sat + fees_to_miner) catch {};
+                self.creditBalanceLocked(blk.miner_address, blk.reward_sat + fees_to_miner) catch {};
             }
         }
     }
