@@ -179,10 +179,10 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     defer ctx.server_ctx.allocator.destroy(ctx);
     defer ctx.conn.stream.close();
 
-    // Reuse existing handleConn logic inline
+    // Reuse existing handleConn logic inline.
+    // Use stream.read() — portable across Windows/Linux/macOS instead of
+    // ws2_32.recv (Winsock-only).
     var buf: [MAX_REQUEST]u8 = undefined;
-    const ws2 = std.os.windows.ws2_32;
-    const sock = ctx.conn.stream.handle;
 
     var total: usize = 0;
     var hdr_end: usize = 0;
@@ -190,10 +190,9 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     var content_len: usize = 0;
 
     while (total < buf.len) {
-        const space: c_int = @intCast(buf.len - total);
-        const got = ws2.recv(sock, buf[total..].ptr, space, 0);
-        if (got <= 0) break;
-        total += @intCast(got);
+        const got = ctx.conn.stream.read(buf[total..]) catch break;
+        if (got == 0) break;
+        total += got;
         if (!got_header) {
             if (std.mem.indexOf(u8, buf[0..total], "\r\n\r\n")) |pos| {
                 hdr_end = pos;

@@ -148,13 +148,14 @@ fn installShutdownHandler() void {
         };
     } else {
         // POSIX: catch SIGINT + SIGTERM
+        // empty_sigset removed in Zig 0.15 — use zeroes for portable empty mask.
         const act = std.posix.Sigaction{
             .handler = .{ .handler = posixSignalHandler },
-            .mask = std.posix.empty_sigset,
+            .mask = std.mem.zeroes(std.posix.sigset_t),
             .flags = 0,
         };
-        std.posix.sigaction(std.posix.SIG.INT, &act, null) catch {};
-        std.posix.sigaction(std.posix.SIG.TERM, &act, null) catch {};
+        std.posix.sigaction(std.posix.SIG.INT, &act, null);
+        std.posix.sigaction(std.posix.SIG.TERM, &act, null);
     }
 }
 
