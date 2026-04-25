@@ -19,19 +19,11 @@ export default defineConfig(({ mode }) => {
       port: 8888,
       host: "0.0.0.0",
       strictPort: false,
-      // Vite 4+ refuses unknown Host headers by default. Explicitly whitelist
-      // our public domain (and "all" via 'all' if more domains are added later).
-      allowedHosts: [
-        "localhost",
-        "127.0.0.1",
-        "38.143.19.97",
-        "omnibusblockchain.cc",
-        "www.omnibusblockchain.cc",
-        "explorer.omnibusblockchain.cc",
-        "mainnet.omnibusblockchain.cc",
-        "testnet.omnibusblockchain.cc",
-        "regtest.omnibusblockchain.cc",
-      ],
+      // Disable host check entirely — Nginx in front already validates
+      // Host header against the SSL cert. Whitelist mode caused issues
+      // when Vite version mismatched between local and VPS.
+      // (Vite 4 accepts string[]; Vite 5/6 also accept "all" as wildcard.)
+      allowedHosts: true as any,
       proxy: {
         // SPECIFIC paths first (longer / chain-suffixed) so they match before
         // the generic /api alias. Vite/http-proxy iterates keys in declared
