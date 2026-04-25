@@ -217,6 +217,9 @@ const RPCThreadArgs = struct {
     channel_mgr: *payment_mod.ChannelManager,
     staking:  *staking_mod.StakingEngine,
     chain_id: u32,
+    /// RPC port from chain config — 8332/18332/28332/38332.
+    /// Without this all chains collide on hardcoded 8332.
+    rpc_port: u16,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -228,6 +231,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .channel_mgr = args.channel_mgr,
         .staking  = args.staking,
         .chain_id = args.chain_id,
+        .port     = args.rpc_port,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -570,6 +574,7 @@ pub fn main() !void {
             .channel_mgr = &g_channel_mgr,
             .staking  = &staking,
             .chain_id = @intFromEnum(net_cfg.chain_id),
+            .rpc_port = net_cfg.rpc_port,
         }});
         t.detach();
         std.debug.print("[RPC] Server pornit pe port {d}\n\n", .{net_cfg.rpc_port});

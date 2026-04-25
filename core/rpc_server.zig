@@ -50,7 +50,10 @@ pub const RPCServer = struct {
 
 // ─── HTTP JSON-RPC 2.0 server ─────────────────────────────────────────────────
 
-const PORT = 8332;
+/// Default RPC port — fallback when caller doesn't pass HTTPConfig.port.
+/// Real port is taken from chain_config (mainnet=8332, testnet=18332,
+/// regtest=28332, signet=38332) and passed via HTTPConfig.port.
+const DEFAULT_PORT: u16 = 8332;
 const MAX_REQUEST = 8192;
 
 /// Un miner inregistrat in retea (via RPC registerminer)
@@ -107,6 +110,9 @@ pub const HTTPConfig = struct {
     pouw: ?*pouw_mod.PoUWEngine = null,
     oracle: ?*price_oracle_mod.DistributedPriceOracle = null,
     chain_id: u32 = 1,
+    /// Port to bind RPC HTTP listener. Default = DEFAULT_PORT (8332 mainnet).
+    /// Pass chain_config.rpc_port so testnet/regtest don't all collide on 8332.
+    port: u16 = DEFAULT_PORT,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -126,11 +132,11 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         .chain_id = cfg.chain_id,
     };
 
-    const addr = try std.net.Address.parseIp4("0.0.0.0", PORT);
+    const addr = try std.net.Address.parseIp4("0.0.0.0", cfg.port);
     var server  = try addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
-    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://0.0.0.0:{d}\n", .{PORT});
+    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://0.0.0.0:{d}\n", .{cfg.port});
 
     // Limita thread-uri concurente (previne OOM sub heavy load)
     var active_threads: std.atomic.Value(u32) = .{ .raw = 0 };
