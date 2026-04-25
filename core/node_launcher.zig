@@ -29,6 +29,8 @@ pub const NodeConfig = struct {
     wallet_index: u32 = 0,
     /// Testnet mode: mine with 0 peers (for development/testing)
     testnet: bool = false,
+    /// Regtest mode: instant single-miner like Bitcoin regtest (skip peer threshold)
+    regtest: bool = false,
     allocator: std.mem.Allocator,
 };
 
@@ -147,8 +149,10 @@ pub const NodeLauncher = struct {
 
     /// Transition to mining when ready (requires MIN_PEERS_FOR_MINING connected)
     pub fn readyForMining(self: *NodeLauncher) bool {
-        // Testnet mode: always ready (single miner)
-        if (self.config.testnet) return true;
+        // Testnet + regtest: always ready (single-miner dev mode).
+        // Regtest is explicitly designed for instant single-node mining
+        // (Bitcoin parity), so the anti-Sybil 10-peer threshold doesn't apply.
+        if (self.config.testnet or self.config.regtest) return true;
 
         if (self.bootstrap_node) |node| {
             return node.readyForMining();

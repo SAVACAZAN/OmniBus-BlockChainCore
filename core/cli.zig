@@ -213,6 +213,7 @@ pub const CLI = struct {
                 .mnemonic = mnemonic,
                 .wallet_index = wallet_index,
                 .testnet = testnet,
+                .regtest = (chain_mode == .regtest),
                 .allocator = self.allocator,
             },
             .chain_mode = chain_mode,
