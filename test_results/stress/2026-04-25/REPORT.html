@@ -1,0 +1,89 @@
+<!doctype html><html><head><meta charset='utf-8'><title>OmniBus Stress Report</title><style>body{font-family:Segoe UI,Arial,sans-serif;max-width:980px;margin:24px auto;padding:0 16px;color:#222}h1{color:#0a4}h2{color:#06c;border-bottom:1px solid #ddd}code{background:#f4f4f4;padding:1px 4px;border-radius:3px}</style></head><body><h1>OmniBus Stress Test Report</h1><br/>
+<br/>
+- Run folder: <code>C:\Kits work\limaje de programare\1_CORE\BlockChainCore\test_results\stress\2026-04-25</code><br/>
+- Generated:  2026-04-25T18:56:07<br/>
+<br/>
+<h2>Reliability</h2><br/>
+<br/>
+- Crashes recorded: <b>79</b><br/>
+- Chaos kills issued: <b>5</b><br/>
+- Recovery (restart-after-kill): <b>5/5 (100.0%)</b><br/>
+<br/>
+<h2>RPC Stress</h2><br/>
+<br/>
+| method | calls | avg_ms | p95_ms | p99_ms | max_ms |<br/>
+| --- | --- | --- | --- | --- | --- |<br/>
+| getblockchaininfo | 10828 | 30.53 | 21.40 | 149.64 | 6180.89 |<br/>
+| eth_chainId | 10685 | 27.93 | 21.83 | 188.62 | 5126.09 |<br/>
+| getblockcount | 11028 | 28.28 | 21.18 | 146.00 | 5742.03 |<br/>
+| getbalance | 10859 | 30.87 | 22.93 | 232.50 | 6185.13 |<br/>
+<br/>
+Status breakdown: <code>ok=2121</code>, <code>http_err:The underlying connection was closed: An unexpected error occurred on a send.=21341</code>, <code>http_err:The underlying connection was closed: An unexpected error occurred on a receive.=17733</code>, <code>http_err:The underlying connection was closed: The connection was closed unexpectedly.=2111</code>, <code>http_err:Unable to connect to the remote server=94</code><br/>
+<br/>
+<h2>EVM Stress</h2><br/>
+<br/>
+| method | calls | avg_ms | p95_ms | p99_ms | max_ms |<br/>
+| --- | --- | --- | --- | --- | --- |<br/>
+| eth_chainId | 4000 | 23.83 | 28.88 | 84.04 | 6181.52 |<br/>
+| eth_blockNumber | 4000 | 21.47 | 26.25 | 80.24 | 10019.09 |<br/>
+| eth_gasPrice | 4000 | 29.62 | 23.27 | 128.19 | 5123.49 |<br/>
+| eth_getCode | 4000 | 33.60 | 12.15 | 507.03 | 4097.82 |<br/>
+| eth_call | 4000 | 28.29 | 10.21 | 33.17 | 4161.21 |<br/>
+| eth_estimateGas | 3500 | 24.77 | 8.13 | 21.33 | 4233.82 |<br/>
+<br/>
+Status breakdown: <code>ok=5275</code>, <code>http_err:The underlying connection was closed: The connection was closed unexpectedly.=853</code>, <code>http_err:The underlying connection was closed: An unexpected error occurred on a send.=10684</code>, <code>http_err:The underlying connection was closed: An unexpected error occurred on a receive.=6243</code>, <code>http_err:Unable to connect to the remote server=46</code>, <code>rpc_err:-32601=398</code>, <code>http_err:The request was aborted: The operation has timed out.=1</code><br/>
+<br/>
+<h2>Concurrent Clients</h2><br/>
+<br/>
+| method | calls | avg_ms | p95_ms | p99_ms | max_ms |<br/>
+| --- | --- | --- | --- | --- | --- |<br/>
+| getblockchaininfo | 1276 | 64.72 | 47.10 | 2275.06 | 5042.21 |<br/>
+| eth_gasPrice | 1297 | 74.46 | 45.90 | 3282.05 | 6346.52 |<br/>
+| eth_chainId | 1168 | 62.29 | 40.48 | 1883.95 | 9230.87 |<br/>
+| getbalance | 1056 | 57.25 | 33.95 | 1984.95 | 4948.79 |<br/>
+| getblockcount | 1175 | 61.53 | 44.05 | 2034.44 | 5593.31 |<br/>
+| eth_blockNumber | 1228 | 76.12 | 50.17 | 3764.03 | 10010.96 |<br/>
+<br/>
+Status breakdown: <code>http_err=7008</code>, <code>ok=123</code>, <code>rpc_err:-32601=69</code><br/>
+<br/>
+<h2>Block Production</h2><br/>
+<br/>
+- <b>samples</b>: 175<br/>
+- <b>first_height</b>: 1<br/>
+- <b>last_height</b>: 1<br/>
+- <b>delta</b>: 0<br/>
+- <b>duration_min</b>: 16.63261363333333<br/>
+- <b>blocks_per_min</b>: 0.0<br/>
+- <b>blocks_per_hour</b>: 0.0<br/>
+- <b>stall_ticks</b>: 170<br/>
+<br/>
+<h2>Process Metrics (leak detection)</h2><br/>
+<br/>
+- <b>samples</b>: 108<br/>
+- <b>ram_first_mb</b>: 14.73<br/>
+- <b>ram_last_mb</b>: 14.8<br/>
+- <b>ram_max_mb</b>: 25.77<br/>
+- <b>ram_growth_mb</b>: 0.07000000000000028<br/>
+- <b>cpu_total_sec</b>: 1.312<br/>
+- <b>handles_max</b>: 117<br/>
+- <b>threads_max</b>: 13<br/>
+- <b>disk_first_mb</b>: 0.0<br/>
+- <b>disk_last_mb</b>: 0.0<br/>
+- <b>duration_min</b>: 16.5935275<br/>
+<br/>
+&gt; Memory growth verdict: <b>OK</b> (+0.1 MB over 16.6 min)<br/>
+<br/>
+<h2>Mempool</h2><br/>
+<br/>
+- <b>samples</b>: 2294<br/>
+- <b>size_max</b>: 0<br/>
+- <b>size_avg</b>: 0.0<br/>
+- <b>bytes_max</b>: 0<br/>
+- <b>inject_breakdown</b>: {&#x27;rpc_err:-32601&#x27;: 303, &#x27;skipped&#x27;: 1835, &#x27;unsupported_or_err&#x27;: 156}<br/>
+<br/>
+<h2>EVM Deploys</h2><br/>
+<br/>
+- <b>rows</b>: 1600<br/>
+- <b>by_status</b>: {&#x27;http_err&#x27;: 1070, &#x27;rpc_err:-32602&#x27;: 263, &#x27;rpc_err:-32601&#x27;: 267}<br/>
+- <b>by_method</b>: {&#x27;eth_estimateGas&#x27;: 800, &#x27;eth_sendTransaction&#x27;: 800}<br/>
+</body></html>

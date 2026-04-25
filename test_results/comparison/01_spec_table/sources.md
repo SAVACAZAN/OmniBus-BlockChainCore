@@ -117,3 +117,23 @@ All URLs verified accessible at time of writing. For metrics flagged as "controv
 - **TVL** values from DefiLlama-style aggregators where DeFi exists; "0" for chains without smart-contract DeFi.
 - **Mainnet date** is the date of public mainnet token genesis, not testnet/devnet.
 - **Where ambiguous**, the lower bound is reported, with notes flagging stress-test peaks vs. sustained values.
+
+---
+
+## Update 2026-04-25 — Added 2 chains
+
+### LCX Liberty Chain
+- https://www.lcx.com/liberty/
+- https://docs.lcx.com/liberty/
+- https://testnet-rpc.lcx.com (chain ID 76847801)
+- Local refs:
+  - `3_DESKTOP_APPS/aweb3/hardhat.config.js` (networks.liberty_testnet)
+  - `3_DESKTOP_APPS/aweb3/deployments-bridge-sepolia.json`
+
+### Base (Coinbase L2)
+- https://docs.base.org/
+- https://github.com/base-org/node
+- https://l2beat.com/scaling/projects/base
+- Local refs:
+  - `3_DESKTOP_APPS/aweb3/hardhat.config.js` (networks.base_sepolia, chainId 84532)
+  - `3_DESKTOP_APPS/aweb3/deployments-bridge-sepolia.json`

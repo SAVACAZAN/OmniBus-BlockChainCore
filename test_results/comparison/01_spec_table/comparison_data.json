@@ -2,7 +2,7 @@
   "generated_at": "2026-04-25T00:00:00Z",
   "as_of": "2025-Q1",
   "schema_version": "1.0",
-  "notes": "TPS realistic = sustained observed in production (block explorers / public benchmarks). TPS theoretical = max in whitepaper / docs. Where ambiguous, lower bound is used. OmniBus has NO mainnet — testnet/devnet only.",
+  "notes": "TPS realistic = sustained observed in production (block explorers / public benchmarks). TPS theoretical = max in whitepaper / docs. Where ambiguous, lower bound is used. OmniBus has NO mainnet — testnet/devnet only. | Updated 2026-04-25: added LCX Liberty Chain + Base (Coinbase L2)",
   "chains": [
     {
       "id": "omnibus",
@@ -27,7 +27,12 @@
         "signature_scheme": "secp256k1 ECDSA (Bitcoin-compatible) + PQ via liboqs",
         "hash_algo": "SHA-256 (PoW), Blake3 (internal)",
         "quantum_resistant": true,
-        "pq_schemes": ["ML-DSA-87 (Dilithium)", "Falcon-512", "SLH-DSA-256s (SPHINCS+)", "ML-KEM-768 (Kyber)"],
+        "pq_schemes": [
+          "ML-DSA-87 (Dilithium)",
+          "Falcon-512",
+          "SLH-DSA-256s (SPHINCS+)",
+          "ML-KEM-768 (Kyber)"
+        ],
         "pq_status": "Native, integrated via liboqs (CRYSTALS NIST PQC standards)"
       },
       "economics": {
@@ -433,6 +438,76 @@
       ]
     },
     {
+      "id": "base",
+      "name": "Base (Coinbase L2)",
+      "performance": {
+        "block_time_ms": 2000,
+        "tps_theoretical": 2000,
+        "tps_realistic": 60,
+        "tps_note": "Block gas limit ~50M; observed ~30-100 TPS sustained. Highest TPS L2 by user activity 2024-2025.",
+        "finality_seconds": 604800
+      },
+      "architecture": {
+        "consensus": "Optimistic Rollup (OP Stack) — sequencer + 7-day fraud proof window",
+        "vm": "EVM (equivalence, OP Stack)",
+        "sharding": false,
+        "layer": "L2 (settles on Ethereum L1)",
+        "language": "Go (op-geth/op-node), Rust (op-reth)"
+      },
+      "crypto": {
+        "signature_scheme": "secp256k1 ECDSA (Ethereum-compatible)",
+        "hash_algo": "Keccak-256",
+        "quantum_resistant": false,
+        "pq_status": "Inherits Ethereum L1 crypto"
+      },
+      "economics": {
+        "max_supply": "no native token (uses ETH for gas)",
+        "block_reward": "no native issuance; sequencer earns priority fees",
+        "halving": null,
+        "tx_cost_avg_usd": 0.01,
+        "tx_cost_note": "Reduced ~10x by EIP-4844 blobs (Mar 2024). Often $0.005-$0.02 typical."
+      },
+      "networking": {
+        "p2p_protocol": "libp2p (op-node)",
+        "default_p2p_port": 9003,
+        "rpc_protocol": "JSON-RPC 2.0 (Ethereum-compatible)",
+        "rpc_url_testnet": "https://sepolia.base.org",
+        "rpc_url_mainnet": "https://mainnet.base.org",
+        "chain_id_testnet": 84532,
+        "chain_id_mainnet": 8453
+      },
+      "ecosystem": {
+        "tvl_usd": 11000000000,
+        "daily_active_addresses": 1800000,
+        "mainnet_launched": 2023,
+        "audit_status": "OP Stack audited by Sigma Prime, Trail of Bits, Spearbit. Fault proofs live since 2024.",
+        "backed_by": "Coinbase (NASDAQ:COIN, $20B+ regulated US exchange)"
+      },
+      "highlights": [
+        "Top L2 by TVL ($11B+) and DAU (1.8M+) in 2024-2025",
+        "Backed by Coinbase — US-regulated, easy onramp from coinbase.com to Base",
+        "Built on OP Stack (Superchain ecosystem with Optimism, Mode, Zora, Worldchain)",
+        "EIP-4844 blobs cut fees ~10x in 2024 (typical tx <$0.02)",
+        "Full EVM equivalence — all Ethereum contracts/tooling work unchanged",
+        "Strong consumer apps (Farcaster, friend.tech legacy, Aerodrome)"
+      ],
+      "weaknesses": [
+        "Centralized sequencer (Coinbase only) — single point of censorship/failure",
+        "7-day withdrawal challenge window (slow L2→L1 exits)",
+        "Inherits Ethereum's quantum vulnerability",
+        "L2 fees still spike when Ethereum L1 base fee surges",
+        "Coinbase company risk: SEC actions, regulatory changes affect Base",
+        "No native token — value capture different from L1s"
+      ],
+      "sources": [
+        "https://docs.base.org/",
+        "https://github.com/base-org/node",
+        "https://l2beat.com/scaling/projects/base",
+        "C:/Kits work/limaje de programare/3_DESKTOP_APPS/aweb3/hardhat.config.js (networks.base_sepolia, chainId 84532)",
+        "C:/Kits work/limaje de programare/3_DESKTOP_APPS/aweb3/deployments-bridge-sepolia.json (bridge supports 84532 Base Sepolia)"
+      ]
+    },
+    {
       "id": "cardano",
       "name": "Cardano",
       "performance": {
@@ -609,6 +684,77 @@
         "https://docs.avax.network/",
         "https://github.com/ava-labs/avalanchego",
         "https://snowtrace.io/"
+      ]
+    },
+    {
+      "id": "lcx-liberty",
+      "name": "LCX Liberty Chain",
+      "performance": {
+        "block_time_ms": 2000,
+        "tps_theoretical": 5000,
+        "tps_realistic": null,
+        "tps_note": "EVM L1, no public production benchmark. Testnet active (chain 76847801). Mainnet timeline unclear as of 2025-Q1.",
+        "finality_seconds": 12
+      },
+      "architecture": {
+        "consensus": "PoA (Proof-of-Authority) — Clique-based, validator set curated by LCX AG",
+        "vm": "EVM (full equivalence)",
+        "sharding": false,
+        "layer": "L1 (EVM-compatible)",
+        "language": "Go (Geth fork, lcx-node)"
+      },
+      "crypto": {
+        "signature_scheme": "secp256k1 ECDSA (Ethereum-compatible)",
+        "hash_algo": "Keccak-256",
+        "quantum_resistant": false,
+        "pq_status": "Inherits Ethereum crypto stack — not PQ"
+      },
+      "economics": {
+        "max_supply": "950,000,000 LCX (initial)",
+        "block_reward": "validator gas fees only (PoA, no inflation)",
+        "halving": null,
+        "tx_cost_avg_usd": 0.001,
+        "tx_cost_note": "Low fees — PoA + low traffic. LCX token used for gas + payments + DEX fees on LCX Exchange"
+      },
+      "networking": {
+        "p2p_protocol": "devp2p / RLPx (Geth)",
+        "default_p2p_port": 30303,
+        "rpc_protocol": "JSON-RPC 2.0 (Ethereum-compatible)",
+        "rpc_url_testnet": "https://testnet-rpc.lcx.com",
+        "rpc_url_mainnet": null,
+        "chain_id_testnet": 76847801,
+        "chain_id_mainnet": null
+      },
+      "ecosystem": {
+        "tvl_usd": 5000000,
+        "daily_active_addresses": 2000,
+        "mainnet_launched": null,
+        "mainnet_status": "Testnet active 2024-2025; mainnet phased rollout",
+        "audit_status": "LCX AG (Liechtenstein-regulated VASP); audits not publicly disclosed",
+        "regulatory": "Liechtenstein FMA registered. EU MiCA-compliant entity (LCX AG). One of few regulated crypto exchanges in EU."
+      },
+      "highlights": [
+        "Operated by LCX AG — one of few EU/Liechtenstein-regulated crypto entities (FMA license, MiCA-aligned)",
+        "EVM-compatible — all Ethereum tooling works (Hardhat, Foundry, MetaMask)",
+        "Native bridge to Sepolia (Ethereum) — see OmniBusBridgeRelay deployment in aweb3 project",
+        "Low fees + 2s blocks suit payment + DEX use cases",
+        "Used as settlement layer for LCX Exchange order book"
+      ],
+      "weaknesses": [
+        "PoA (centralized validator set) — security depends on LCX AG curation, not decentralized",
+        "Mainnet not live yet (testnet only as of 2025-Q1)",
+        "Ecosystem small (DAU ~2k); no major dApps deployed beyond LCX-internal",
+        "TVL ~$5M (estimate) — orders of magnitude below mature L1s",
+        "Not quantum-resistant",
+        "No public smart-contract audits disclosed",
+        "Future mainnet decentralization roadmap unclear"
+      ],
+      "sources": [
+        "https://www.lcx.com/liberty/",
+        "https://docs.lcx.com/liberty/",
+        "https://testnet-rpc.lcx.com (chain ID 76847801)",
+        "C:/Kits work/limaje de programare/3_DESKTOP_APPS/aweb3/hardhat.config.js (networks.liberty_testnet)",
+        "C:/Kits work/limaje de programare/3_DESKTOP_APPS/aweb3/deployments-bridge-sepolia.json"
       ]
     },
     {
@@ -873,7 +1019,10 @@
         "signature_scheme": "XMSS (eXtended Merkle Signature Scheme, RFC 8391) — hash-based, stateful",
         "hash_algo": "SHA-256, SHAKE-128",
         "quantum_resistant": true,
-        "pq_schemes": ["XMSS (NIST SP 800-208)", "Dilithium planned for Zond"],
+        "pq_schemes": [
+          "XMSS (NIST SP 800-208)",
+          "Dilithium planned for Zond"
+        ],
         "pq_status": "First production blockchain with hash-based signatures since 2018"
       },
       "economics": {
@@ -933,7 +1082,9 @@
         "signature_scheme": "CRYSTALS-Dilithium (lattice-based) — primary",
         "hash_algo": "SHA-3",
         "quantum_resistant": true,
-        "pq_schemes": ["CRYSTALS-Dilithium (now ML-DSA, NIST FIPS 204)"],
+        "pq_schemes": [
+          "CRYSTALS-Dilithium (now ML-DSA, NIST FIPS 204)"
+        ],
         "pq_status": "Algorithm choice aligned with NIST PQC standards; mainnet still pending"
       },
       "economics": {

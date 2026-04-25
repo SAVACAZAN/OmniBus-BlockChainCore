@@ -742,13 +742,17 @@ pub const P2PNode = struct {
     /// Pending reconnect entries
     reconnect_queue: [MAX_PEERS]ReconnectInfo = undefined,
     reconnect_count: u16 = 0,
-    /// Connection counters
-    inbound_count: u16 = 0,
-    outbound_count: u16 = 0,
+    /// Connection counters (atomic — racy under high concurrency otherwise)
+    inbound_count: std.atomic.Value(u32) = std.atomic.Value(u32).init(0),
+    outbound_count: std.atomic.Value(u32) = std.atomic.Value(u32).init(0),
     /// Initialized flag for banned_peers array
     hardening_init: bool = false,
     /// Tor proxy configuration (disabled by default)
     tor_config: tor_mod.TorConfig = tor_mod.TorConfig.default(),
+    /// Mutex protejand `peers` ArrayList — prevents segfault from concurrent
+    /// append/swapRemove vs iteration (Thread.zig:509 callFn crash root cause).
+    /// Lock-uit in connectToPeer/acceptLoop/cleanDeadPeers + orice loop pe self.peers.items.
+    peers_mutex: std.Thread.Mutex = .{},
 
     pub fn init(
         local_id:   []const u8,
@@ -814,6 +818,8 @@ pub const P2PNode = struct {
         encodeGetHeaders(start_height, count, &payload);
 
         var sent: usize = 0;
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             peer.send(@intFromEnum(MessageType.getheaders_p2p), &payload) catch |err| {
@@ -835,6 +841,8 @@ pub const P2PNode = struct {
         @memcpy(payload[0..32], &tx_hash);
         std.mem.writeInt(u32, payload[32..36], block_index, .little);
 
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             peer.send(@intFromEnum(MessageType.getmerkleproof_p2p), &payload) catch continue;
@@ -851,6 +859,8 @@ pub const P2PNode = struct {
         encodeBloomFilter(&lc.bloom, &payload);
 
         var sent: usize = 0;
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             peer.send(@intFromEnum(MessageType.filterload), &payload) catch continue;
@@ -862,15 +872,21 @@ pub const P2PNode = struct {
     }
 
     pub fn deinit(self: *P2PNode) void {
+        self.peers_mutex.lock();
         for (self.peers.items) |*peer| peer.close();
         self.peers.deinit();
+        self.peers_mutex.unlock();
     }
 
     /// Conecteaza la un peer (TCP outbound)
     pub fn connectToPeer(self: *P2PNode, host: []const u8, port: u16, node_id: []const u8) !void {
-        // Evita duplicate
-        for (self.peers.items) |p| {
-            if (std.mem.eql(u8, p.node_id, node_id)) return; // deja conectat
+        // Evita duplicate (sub lock — alte threaduri pot append concurent)
+        {
+            self.peers_mutex.lock();
+            defer self.peers_mutex.unlock();
+            for (self.peers.items) |p| {
+                if (std.mem.eql(u8, p.node_id, node_id)) return; // deja conectat
+            }
         }
 
         // ── Hardening: check ban list ────────────────────────────────────
@@ -880,18 +896,26 @@ pub const P2PNode = struct {
         }
 
         // ── Hardening: connection limits ─────────────────────────────────
-        if (self.outbound_count >= MAX_OUTBOUND) {
+        const out_now = self.outbound_count.load(.acquire);
+        if (out_now >= MAX_OUTBOUND) {
             std.debug.print("[P2P] Outbound limit reached ({d}/{d})\n",
-                .{ self.outbound_count, MAX_OUTBOUND });
+                .{ out_now, MAX_OUTBOUND });
             return error.TooManyOutbound;
         }
+        // Lock for the peers cap check + later append (avoid TOCTOU + UAF).
+        self.peers_mutex.lock();
         if (self.peers.items.len >= MAX_PEERS) {
+            const peers_len = self.peers.items.len;
+            self.peers_mutex.unlock();
             std.debug.print("[P2P] Total peer limit reached ({d}/{d})\n",
-                .{ self.peers.items.len, MAX_PEERS });
+                .{ peers_len, MAX_PEERS });
             return error.TooManyPeers;
         }
+        self.peers_mutex.unlock();
 
-        const addr = try std.net.Address.parseIp4(host, port);
+        const addr = std.net.Address.parseIp4(host, port) catch |err| {
+            return err;
+        };
 
         // ── Hardening: subnet diversity (anti-eclipse) ───────────────────
         const ip_bytes = std.mem.toBytes(addr.in.sa.addr);
@@ -919,18 +943,25 @@ pub const P2PNode = struct {
             .ip_bytes  = ip4,
         };
 
-        try self.peers.append(conn);
-        self.outbound_count += 1;
+        // SEGFAULT-FIX [scan-2026-04-25]: lock peers_mutex around append so concurrent
+        // iterators (RPC handlePeers, broadcast*, gossipMaintenance, mining) see a stable
+        // items pointer. The append may realloc; iterators without the lock would UAF.
+        self.peers_mutex.lock();
+        self.peers.append(conn) catch |err| {
+            self.peers_mutex.unlock();
+            return err;
+        };
+        const last_idx = self.peers.items.len - 1;
+        // Send ping under the lock — safe because peers[last_idx] cannot move until we unlock.
+        self.peers.items[last_idx].sendPing(self.local_id, self.chain_height) catch |err| {
+            std.debug.print("[P2P] Ping failed: {}\n", .{err});
+        };
+        self.peers_mutex.unlock();
+        _ = self.outbound_count.fetchAdd(1, .release);
         std.debug.print("[P2P] Connected to peer {s} ({s}:{d})\n", .{ node_id, host, port });
 
         // On successful connect, clear any reconnect entry
         self.clearReconnect(host, port);
-
-        // Trimite PING imediat
-        const last_idx = self.peers.items.len - 1;
-        self.peers.items[last_idx].sendPing(self.local_id, self.chain_height) catch |err| {
-            std.debug.print("[P2P] Ping failed: {}\n", .{err});
-        };
     }
 
     /// Anunta un bloc nou la toti peerii conectati
@@ -941,6 +972,8 @@ pub const P2PNode = struct {
         reward_sat: u64,
     ) void {
         self.chain_height = height;
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             peer.announceBlock(height, hash_hex, self.local_id, reward_sat) catch |err| {
                 std.debug.print("[P2P] Broadcast block to {s} failed: {}\n", .{ peer.node_id, err });
@@ -976,14 +1009,18 @@ pub const P2PNode = struct {
         defer self.allocator.free(payload);
 
         var sent: usize = 0;
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            peer.send(@intFromEnum(MessageType.tx_gossip), payload) catch |err| {
-                std.debug.print("[GOSSIP] TX send to {s} failed: {}\n",
-                    .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-                continue;
-            };
-            sent += 1;
+        {
+            self.peers_mutex.lock();
+            defer self.peers_mutex.unlock();
+            for (self.peers.items) |*peer| {
+                if (!peer.connected) continue;
+                peer.send(@intFromEnum(MessageType.tx_gossip), payload) catch |err| {
+                    std.debug.print("[GOSSIP] TX send to {s} failed: {}\n",
+                        .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
+                    continue;
+                };
+                sent += 1;
+            }
         }
         if (sent > 0) {
             std.debug.print("[GOSSIP] TX {s}.. relayed to {d} peers\n",
@@ -1028,14 +1065,18 @@ pub const P2PNode = struct {
         defer self.allocator.free(payload);
 
         var sent: usize = 0;
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            peer.send(@intFromEnum(MessageType.block_gossip), payload) catch |err| {
-                std.debug.print("[GOSSIP] Block send to {s} failed: {}\n",
-                    .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-                continue;
-            };
-            sent += 1;
+        {
+            self.peers_mutex.lock();
+            defer self.peers_mutex.unlock();
+            for (self.peers.items) |*peer| {
+                if (!peer.connected) continue;
+                peer.send(@intFromEnum(MessageType.block_gossip), payload) catch |err| {
+                    std.debug.print("[GOSSIP] Block send to {s} failed: {}\n",
+                        .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
+                    continue;
+                };
+                sent += 1;
+            }
         }
         if (sent > 0) {
             std.debug.print("[GOSSIP] Block #{d} relayed to {d} peers\n", .{ height, sent });
@@ -1045,6 +1086,8 @@ pub const P2PNode = struct {
     /// Relay a received TX to all peers except the sender.
     /// Called from dispatchMessage when we receive a tx_gossip message.
     fn relayTxExcept(self: *P2PNode, except_peer: []const u8, payload: []const u8) void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             // Don't relay back to sender
@@ -1055,6 +1098,8 @@ pub const P2PNode = struct {
 
     /// Relay a received block to all peers except the sender.
     fn relayBlockExcept(self: *P2PNode, except_peer: []const u8, payload: []const u8) void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             if (std.mem.eql(u8, peer.node_id, except_peer)) continue;
@@ -1090,6 +1135,8 @@ pub const P2PNode = struct {
 
     /// Send get_peers to all connected peers
     pub fn requestPeersFromAll(self: *P2PNode) void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             self.sendGetPeers(peer);
@@ -1102,18 +1149,22 @@ pub const P2PNode = struct {
         // Collect connected peers as PeerAddr entries
         var addrs: [PEX_MAX_PEERS]MsgPeerList.PeerAddr = undefined;
         var count: usize = 0;
-        for (self.peers.items) |p| {
-            if (!p.connected) continue;
-            if (count >= PEX_MAX_PEERS) break;
-            // Parse host IP string to 4 bytes
-            const addr = std.net.Address.parseIp4(p.host, p.port) catch continue;
-            const ip_bytes = addr.in.sa.addr;
-            const ip_raw = std.mem.toBytes(ip_bytes);
-            addrs[count] = .{
-                .ip = .{ ip_raw[0], ip_raw[1], ip_raw[2], ip_raw[3] },
-                .port = p.port,
-            };
-            count += 1;
+        {
+            self.peers_mutex.lock();
+            defer self.peers_mutex.unlock();
+            for (self.peers.items) |p| {
+                if (!p.connected) continue;
+                if (count >= PEX_MAX_PEERS) break;
+                // Parse host IP string to 4 bytes
+                const addr = std.net.Address.parseIp4(p.host, p.port) catch continue;
+                const ip_bytes = addr.in.sa.addr;
+                const ip_raw = std.mem.toBytes(ip_bytes);
+                addrs[count] = .{
+                    .ip = .{ ip_raw[0], ip_raw[1], ip_raw[2], ip_raw[3] },
+                    .port = p.port,
+                };
+                count += 1;
+            }
         }
         return encodePeerList(addrs[0..count], self.allocator);
     }
@@ -1130,7 +1181,9 @@ pub const P2PNode = struct {
     }
 
     /// Numarul de peeri conectati
-    pub fn peerCount(self: *const P2PNode) usize {
+    pub fn peerCount(self: *P2PNode) usize {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         var count: usize = 0;
         for (self.peers.items) |p| {
             if (p.connected) count += 1;
@@ -1139,16 +1192,22 @@ pub const P2PNode = struct {
     }
 
     /// Deconecteaza peerii morti — adauga la reconnect queue in loc de stergere directa
+    /// SEGFAULT-FIX [scan-2026-04-25]: hold peers_mutex for entire iteration. swapRemove
+    /// invalidates iterators of any concurrent reader (RPC, broadcast, mining).
     pub fn cleanDeadPeers(self: *P2PNode) void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         var i: usize = 0;
         while (i < self.peers.items.len) {
             if (!self.peers.items[i].connected) {
                 const peer = &self.peers.items[i];
-                // Track direction for counter update
+                // Track direction for counter update (atomic).
                 if (peer.direction == .inbound) {
-                    if (self.inbound_count > 0) self.inbound_count -= 1;
+                    if (self.inbound_count.load(.acquire) > 0)
+                        _ = self.inbound_count.fetchSub(1, .release);
                 } else {
-                    if (self.outbound_count > 0) self.outbound_count -= 1;
+                    if (self.outbound_count.load(.acquire) > 0)
+                        _ = self.outbound_count.fetchSub(1, .release);
                 }
                 // Add to reconnect queue (outbound only)
                 if (peer.direction == .outbound) {
@@ -1290,6 +1349,8 @@ pub const P2PNode = struct {
 
     /// Disconnect a peer by host:port
     fn disconnectPeerByHost(self: *P2PNode, host: []const u8, port: u16) void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (peer.connected and peer.port == port and std.mem.eql(u8, peer.host, host)) {
                 peer.connected = false;
@@ -1425,7 +1486,9 @@ pub const P2PNode = struct {
 
     /// Check if adding a peer with this IP would violate subnet diversity rules.
     /// Returns true if the peer is allowed, false if too many from same /16 subnet.
-    pub fn checkSubnetDiversity(self: *const P2PNode, ip: [4]u8) bool {
+    pub fn checkSubnetDiversity(self: *P2PNode, ip: [4]u8) bool {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         var same_subnet: usize = 0;
         for (self.peers.items) |p| {
             if (!p.connected) continue;
@@ -1437,7 +1500,9 @@ pub const P2PNode = struct {
     }
 
     /// Count the number of distinct /16 subnets among connected peers
-    pub fn subnetCount(self: *const P2PNode) usize {
+    pub fn subnetCount(self: *P2PNode) usize {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         // Fixed-size tracking (max MAX_PEERS subnets possible)
         var subnets: [MAX_PEERS][2]u8 = undefined;
         var count: usize = 0;
@@ -1460,7 +1525,7 @@ pub const P2PNode = struct {
     }
 
     /// Check if we have enough subnet diversity (at least MIN_SUBNET_DIVERSITY)
-    pub fn hasMinSubnetDiversity(self: *const P2PNode) bool {
+    pub fn hasMinSubnetDiversity(self: *P2PNode) bool {
         // If fewer peers than minimum, don't enforce yet
         if (self.peerCount() < MIN_SUBNET_DIVERSITY) return true;
         return self.subnetCount() >= MIN_SUBNET_DIVERSITY;
@@ -1469,8 +1534,12 @@ pub const P2PNode = struct {
     // ─── Hardening: Connection Limits ───────────────────────────────────────
 
     /// Check if we can accept an inbound connection
-    pub fn canAcceptInbound(self: *const P2PNode) bool {
-        return self.inbound_count < MAX_INBOUND and self.peers.items.len < MAX_PEERS;
+    pub fn canAcceptInbound(self: *P2PNode) bool {
+        const in_now = self.inbound_count.load(.acquire);
+        if (in_now >= MAX_INBOUND) return false;
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
+        return self.peers.items.len < MAX_PEERS;
     }
 
     /// Periodic hardening maintenance
@@ -1480,10 +1549,10 @@ pub const P2PNode = struct {
         self.gossipMaintenance();
     }
 
-    pub fn printStatus(self: *const P2PNode) void {
+    pub fn printStatus(self: *P2PNode) void {
         std.debug.print("[P2P] Node={s} | Peers={d} (in:{d}/out:{d}) | Height={d} | Port={d} | Idle={} | Banned={d} | Reconnect={d}\n", .{
             self.local_id, self.peerCount(),
-            self.inbound_count, self.outbound_count,
+            self.inbound_count.load(.acquire), self.outbound_count.load(.acquire),
             self.chain_height,
             self.local_port, self.is_idle,
             self.banned_count, self.reconnect_count,
@@ -1552,10 +1621,12 @@ pub const P2PNode = struct {
         defer node.allocator.destroy(args);
         defer conn.stream.close();
 
-        // Track inbound connection
-        node.inbound_count += 1;
+        // SEGFAULT-FIX [scan-2026-04-25]: atomic increment/decrement on inbound_count
+        // (was racy plain u32 RMW with multiple handler threads + acceptLoop).
+        _ = node.inbound_count.fetchAdd(1, .release);
         defer {
-            if (node.inbound_count > 0) node.inbound_count -= 1;
+            const cur = node.inbound_count.load(.acquire);
+            if (cur > 0) _ = node.inbound_count.fetchSub(1, .release);
         }
 
         // Genereaza un peer_id temporar din adresa IP
@@ -1595,6 +1666,13 @@ pub const P2PNode = struct {
         std.debug.print("[P2P] Peer {s} deconectat\n", .{peer_id[0..@min(peer_id.len, 24)]});
     }
 
+    // FIXME: SEGFAULT-RISK [scan-2026-04-25] MEDIUM - mutates shared node.chain_height + peer.height without lock
+    // Reason: dispatchMessage runs on each peer's handler thread. node.chain_height is also read/written
+    //   from mining loop and from RPC handlers. Plain u64 writes on x86-64 are atomic but cross-field
+    //   invariants (e.g. node.sync_mgr usage in .ping branch reading node.blockchain.?.chain.items.len)
+    //   are not protected — this races with the unlocked blockchain access already flagged.
+    // Suggested fix: use std.atomic.Value(u64) for chain_height; acquire bc.mutex when reading
+    //   bc.chain.items.len inside dispatchMessage callbacks.
     /// Proceseaza un mesaj primit de la un peer (inbound sau outbound)
     fn dispatchMessage(node: *P2PNode, peer: *PeerConnection, msg_type: u8, payload: []const u8) void {
         const mt: MessageType = @enumFromInt(msg_type);
@@ -1980,6 +2058,8 @@ pub const P2PNode = struct {
     /// Trimite un mesaj raw la un peer specific (dupa node_id)
     /// Folosit de SyncManager pentru GetHeaders etc.
     pub fn sendToPeer(self: *P2PNode, node_id: []const u8, msg_type: u8, payload: []const u8) !void {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (peer.connected and std.mem.eql(u8, peer.node_id, node_id)) {
                 try peer.send(msg_type, payload);
@@ -1995,6 +2075,8 @@ pub const P2PNode = struct {
         var height_buf: [8]u8 = undefined;
         std.mem.writeInt(u64, &height_buf, from_height, .little);
 
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             if (peer.height <= from_height) continue; // peer nu are mai mult decat noi
@@ -2528,8 +2610,8 @@ test "Hardening: canAcceptInbound — initial state" {
     defer node.deinit();
 
     try testing.expect(node.canAcceptInbound());
-    try testing.expectEqual(@as(u16, 0), node.inbound_count);
-    try testing.expectEqual(@as(u16, 0), node.outbound_count);
+    try testing.expectEqual(@as(u32, 0), node.inbound_count.load(.acquire));
+    try testing.expectEqual(@as(u32, 0), node.outbound_count.load(.acquire));
 }
 
 test "Hardening: hardeningMaintenance — no crash on empty" {
@@ -2548,8 +2630,8 @@ test "Hardening: P2PNode init — hardening fields initialized" {
     try testing.expect(node.hardening_init);
     try testing.expectEqual(@as(u16, 0), node.banned_count);
     try testing.expectEqual(@as(u16, 0), node.reconnect_count);
-    try testing.expectEqual(@as(u16, 0), node.inbound_count);
-    try testing.expectEqual(@as(u16, 0), node.outbound_count);
+    try testing.expectEqual(@as(u32, 0), node.inbound_count.load(.acquire));
+    try testing.expectEqual(@as(u32, 0), node.outbound_count.load(.acquire));
 
     // All banned_peers should be inactive
     for (&node.banned_peers) |*bp| {

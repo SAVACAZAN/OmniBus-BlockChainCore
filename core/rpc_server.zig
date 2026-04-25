@@ -21,6 +21,7 @@ const matching_mod     = @import("matching_engine.zig");
 const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
+const evm_executor    = @import("evm_executor.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -82,6 +83,8 @@ const ServerCtx = struct {
     pouw: ?*pouw_mod.PoUWEngine = null,
     /// Distributed price oracle — null if not attached
     oracle: ?*price_oracle_mod.DistributedPriceOracle = null,
+    /// Chain ID for EVM-compat RPC (`eth_chainId`). Default mainnet.
+    chain_id: u32 = 1,
     /// Starea miner-ului: true = idle (ex: duplicate_ip_detected), false = active
     is_idle:   bool = false,
     /// Registru de mineri — creste la fiecare registerminer RPC
@@ -103,6 +106,7 @@ pub const HTTPConfig = struct {
     channel_mgr: ?*payment_mod.ChannelManager = null,
     pouw: ?*pouw_mod.PoUWEngine = null,
     oracle: ?*price_oracle_mod.DistributedPriceOracle = null,
+    chain_id: u32 = 1,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -119,6 +123,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         .metrics = cfg.metrics, .staking = cfg.staking,
         .channel_mgr = cfg.channel_mgr,
         .pouw = cfg.pouw, .oracle = cfg.oracle,
+        .chain_id = cfg.chain_id,
     };
 
     const addr = try std.net.Address.parseIp4("0.0.0.0", PORT);
@@ -143,6 +148,13 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
             continue;
         }
 
+        // FIXME: SEGFAULT-RISK [scan-2026-04-25] LOW - high-concurrency allocator stress
+        // Reason: parent allocator from main.zig is GeneralPurposeAllocator(.{}){} — Zig 0.15.2
+        //   defaults `thread_safe = !single_threaded` so it IS guarded by mutex. However heavy
+        //   contention (4 RPC threads + mining + WS broadcast all allocPrint'ing per request) can
+        //   serialize and amplify any latent UB elsewhere. Not the prime crash cause, but
+        //   noisy mutex traffic masks ordering bugs.
+        // Suggested fix: switch hot RPC path to per-request arena allocator (reset per request).
         const thread_ctx = try allocator.create(ConnCtx);
         thread_ctx.* = .{ .conn = conn, .server_ctx = ctx, .active_counter = &active_threads };
         _ = active_threads.fetchAdd(1, .monotonic);
@@ -318,11 +330,17 @@ fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
 }
 
+// SEGFAULT-FIX [scan-2026-04-25]: use getLatestBlockSnapshot() — locks bc.mutex,
+// copies fields into stable buffers, unlocks. allocPrint runs after the lock is
+// released, on data that no longer aliases chain memory. Eliminates UAF on
+// blk.hash / blk.previous_hash / blk.transactions.items when mining concurrently
+// reallocs/swaps the chain.
 fn handleGetLatestBlock(ctx: *ServerCtx, id: u64) ![]u8 {
-    const blk = ctx.bc.getLatestBlock();
+    var snap = ctx.bc.getLatestBlockSnapshot();
+    defer snap.deinit(ctx.allocator);
     return std.fmt.allocPrint(ctx.allocator,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"index\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"previousHash\":\"{s}\",\"nonce\":{d},\"txCount\":{d}}}}}",
-        .{ id, blk.index, blk.timestamp, blk.hash, blk.previous_hash, blk.nonce, blk.transactions.items.len });
+        .{ id, snap.height, snap.timestamp, snap.hash(), snap.prevHash(), snap.nonce, snap.tx_count });
 }
 
 fn handleGetMempoolSize(ctx: *ServerCtx, id: u64) ![]u8 {
@@ -408,6 +426,13 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
+
+    // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
+    if (std.mem.eql(u8, method, "eth_call"))               return handleEthCall(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_sendRawTransaction")) return handleEthSendRawTransaction(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getCode"))            return handleEthGetCode(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_estimateGas"))        return handleEthEstimateGas(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_chainId"))            return handleEthChainId(ctx, id);
 
     // ── Bitcoin-standard compatibility endpoints ────────────────────────
     if (std.mem.eql(u8, method, "getbestblockhash"))   return handleGetBestBlockHash(ctx, id);
@@ -867,10 +892,17 @@ fn handleRegMiner(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"registered\",\"miner\":\"{s}\",\"node_id\":\"{s}\",\"blockHeight\":{d},\"totalMiners\":{d}}}}}", .{ id, addr, nid, h, ctx.registered_miner_count });
 }
 
+// SEGFAULT-FIX [scan-2026-04-25]: snapshot scalars under bc.mutex, then format outside.
+// Mempool ArrayList is mutated by mining (drains into block) and addTransaction —
+// reading items.len concurrently with realloc/clear is a torn read.
 fn handlePoolStats(ctx: *ServerCtx, id: u64) ![]u8 {
+    ctx.bc.mutex.lock();
     const h = ctx.bc.getBlockCount();
+    const mp_len = ctx.bc.mempool.items.len;
+    const diff = ctx.bc.difficulty;
+    ctx.bc.mutex.unlock();
     const r = blockchain_mod.blockRewardAt(h);
-    return std.fmt.allocPrint(ctx.allocator, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blockHeight\":{d},\"blockRewardSAT\":{d},\"blockRewardOMNI\":{d},\"mempoolSize\":{d},\"difficulty\":{d},\"nodeAddress\":\"{s}\"}}}}", .{ id, h, r, r / 1_000_000_000, ctx.bc.mempool.items.len, ctx.bc.difficulty, ctx.wallet.address });
+    return std.fmt.allocPrint(ctx.allocator, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blockHeight\":{d},\"blockRewardSAT\":{d},\"blockRewardOMNI\":{d},\"mempoolSize\":{d},\"difficulty\":{d},\"nodeAddress\":\"{s}\"}}}}", .{ id, h, r, r / 1_000_000_000, mp_len, diff, ctx.wallet.address });
 }
 
 fn handleAddrBal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -884,24 +916,38 @@ fn handleAddrBal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":{d}}}}}", .{ id, addr, bal, bal / 1_000_000_000 });
 }
 
+// SEGFAULT-FIX [scan-2026-04-25]: snapshot mempool size under bc.mutex (fallback path).
+// External mempool struct (ctx.mempool) has its own internal sync; only the bc.mempool
+// fallback needs the lock here.
 fn handleMpStats(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     if (ctx.mempool) |m| {
         return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":{d}}}}}", .{ id, m.size(), mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES, m.bytes() });
     }
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":0}}}}", .{ id, ctx.bc.mempool.items.len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES });
+    ctx.bc.mutex.lock();
+    const mp_len = ctx.bc.mempool.items.len;
+    ctx.bc.mutex.unlock();
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":0}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES });
 }
 
+// SEGFAULT-FIX [scan-2026-04-25]: hold p2p.peers_mutex for entire iteration.
+// peer.node_id / peer.host are slices into PeerConnection; if acceptLoop appends
+// concurrently and reallocs backing storage we'd UAF on items.ptr. We allocPrint
+// inside the lock — slow but correct; for high-throughput callers, snapshot first.
 fn handlePeers(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const p2p = ctx.p2p orelse return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":0,\"height\":0,\"peers\":[]}}}}", .{id});
     var pj: []u8 = try alloc.dupe(u8, "");
     var pc: usize = 0;
-    for (p2p.peers.items) |peer| {
-        const sep: []const u8 = if (pc == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"id\":\"{s}\",\"host\":\"{s}\",\"port\":{d},\"alive\":{s}}}", .{ sep, peer.node_id, peer.host, peer.port, if (peer.connected) "true" else "false" });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ pj, e });
-        alloc.free(pj); alloc.free(e); pj = m; pc += 1;
+    {
+        p2p.peers_mutex.lock();
+        defer p2p.peers_mutex.unlock();
+        for (p2p.peers.items) |peer| {
+            const sep: []const u8 = if (pc == 0) "" else ",";
+            const e = try std.fmt.allocPrint(alloc, "{s}{{\"id\":\"{s}\",\"host\":\"{s}\",\"port\":{d},\"alive\":{s}}}", .{ sep, peer.node_id, peer.host, peer.port, if (peer.connected) "true" else "false" });
+            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ pj, e });
+            alloc.free(pj); alloc.free(e); pj = m; pc += 1;
+        }
     }
     defer alloc.free(pj);
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"height\":{d},\"peers\":[{s}]}}}}", .{ id, pc, p2p.chain_height, pj });
@@ -916,13 +962,25 @@ fn handleSyncSt(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"synced\",\"localHeight\":{d},\"peerHeight\":{d},\"progress\":100,\"synced\":true,\"stalled\":false}}}}", .{ id, h, h });
 }
 
+// SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,
+// snapshot bc fields under bc.mutex; format outside both locks. Same root cause
+// as handlePeers (p2p) and handlePoolStats (mempool).
 fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+    ctx.bc.mutex.lock();
     const h = ctx.bc.getBlockCount();
+    const diff = ctx.bc.difficulty;
+    const bc_mp_len = ctx.bc.mempool.items.len;
+    ctx.bc.mutex.unlock();
+    const pc: usize = if (ctx.p2p) |p| blk: {
+        p.peers_mutex.lock();
+        const len = p.peers.items.len;
+        p.peers_mutex.unlock();
+        break :blk len;
+    } else 0;
+    const ms: usize = if (ctx.mempool) |m| m.size() else bc_mp_len;
     const r = blockchain_mod.blockRewardAt(h);
-    const pc: usize = if (ctx.p2p) |p| p.peers.items.len else 0;
-    const ms: usize = if (ctx.mempool) |m| m.size() else ctx.bc.mempool.items.len;
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"omnibus-mainnet\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, h, r, ctx.bc.difficulty, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"omnibus-mainnet\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, h, r, diff, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
 }
 
 fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -1962,12 +2020,16 @@ fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// getbestblockhash — returns hash of the latest (best) block as hex string.
 /// Bitcoin-standard.
+// SEGFAULT-FIX [scan-2026-04-25]: use snapshot — hash is copied into snap.hash_buf
+// before bc.mutex is released, so allocPrint formats stable bytes (no UAF on
+// chain-owned hash slice when mining replaces the tip).
 fn handleGetBestBlockHash(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const blk = ctx.bc.getLatestBlock();
+    var snap = ctx.bc.getLatestBlockSnapshot();
+    defer snap.deinit(alloc);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, blk.hash },
+        .{ id, snap.hash() },
     );
 }
 
@@ -2053,6 +2115,197 @@ fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"networkhashps\":{d},\"hashrate\":{d},\"pooledtx\":{d},\"chain\":\"omnibus-mainnet\",\"currentblockreward\":{d}}}}}",
         .{ id, blocks, difficulty, hashrate, hashrate, mp_size, reward },
     );
+}
+
+// ─── EVM-compat RPC Handlers (Ethereum-style) ───────────────────────────────
+//
+// These handlers translate eth_* JSON-RPC requests into calls against the
+// `evm_executor` module which itself wraps revm via FFI.  We only support the
+// minimum surface needed by wallets / scripts:
+//   * eth_call               — view call, no state change
+//   * eth_sendRawTransaction — broadcast (currently: route to evm.call())
+//   * eth_getCode            — fetch deployed bytecode
+//   * eth_estimateGas        — gas estimation
+//   * eth_chainId            — return chain id as 0x... hex (CAIP-2 / EIP-695)
+//
+// Param parsing is pragmatic: we extract object fields with the existing
+// `extractStr`/`extractField*` helpers — full EIP-1474 RPC compatibility is
+// **not** a goal yet.
+
+/// Extract an object field from a params object, handling shapes like
+/// `"params":[{"to":"0xabc","data":"0x"}, "latest"]`.
+/// Falls back to the top-level field if the params object isn't found —
+/// this lets callers POST flat JSON for testing.
+fn extractParamObjectField(json: []const u8, key: []const u8) ?[]const u8 {
+    const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse {
+        return extractStr(json, key);
+    };
+    const obj_start = std.mem.indexOfScalarPos(u8, json, params_pos, '{') orelse return null;
+    // naive: search for `"key"` inside the params region (until matching `}`).
+    // Good enough for one-level objects.
+    var depth: i32 = 0;
+    var end: usize = obj_start;
+    var i: usize = obj_start;
+    while (i < json.len) : (i += 1) {
+        if (json[i] == '{') depth += 1
+        else if (json[i] == '}') {
+            depth -= 1;
+            if (depth == 0) { end = i; break; }
+        }
+    }
+    if (end <= obj_start) return null;
+    return extractStr(json[obj_start .. end + 1], key);
+}
+
+/// Extract a numeric field from the params object.  Accepts both bare ints
+/// (`"value":1000`) and hex strings (`"value":"0x3e8"`).
+fn extractParamObjectU64(json: []const u8, key: []const u8) u64 {
+    if (extractParamObjectField(json, key)) |s| {
+        // hex string?
+        if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
+            return std.fmt.parseInt(u64, s[2..], 16) catch 0;
+        }
+        return std.fmt.parseInt(u64, s, 10) catch 0;
+    }
+    // numeric literal in JSON (no quotes) — fall back via simple search
+    var nbuf: [128]u8 = undefined;
+    if (key.len + 2 > nbuf.len) return 0;
+    nbuf[0] = '"';
+    @memcpy(nbuf[1..1+key.len], key);
+    nbuf[1+key.len] = '"';
+    const needle = nbuf[0..key.len+2];
+    var pos: usize = 0;
+    while (pos + needle.len <= json.len) : (pos += 1) {
+        if (!std.mem.startsWith(u8, json[pos..], needle)) continue;
+        var i = pos + needle.len;
+        while (i < json.len and (json[i] == ' ' or json[i] == ':' or json[i] == '\t')) i += 1;
+        if (i >= json.len) return 0;
+        if (json[i] >= '0' and json[i] <= '9') {
+            const start = i;
+            while (i < json.len and json[i] >= '0' and json[i] <= '9') i += 1;
+            return std.fmt.parseInt(u64, json[start..i], 10) catch 0;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+/// eth_call — view function call. Params: `[{from?,to,data,value?,gas?}, "latest"]`.
+fn handleEthCall(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const to = extractParamObjectField(body, "to") orelse
+        return errorJson(-32602, "eth_call: missing 'to'", id, alloc);
+    const from = extractParamObjectField(body, "from") orelse
+        "0x0000000000000000000000000000000000000000";
+    const data = extractParamObjectField(body, "data") orelse "0x";
+    const value = extractParamObjectU64(body, "value");
+    const gas = blk: {
+        const g = extractParamObjectU64(body, "gas");
+        if (g == 0) break :blk @as(u64, 30_000_000); // default 30M gas
+        break :blk g;
+    };
+
+    var result = evm_executor.call(alloc, to, from, data, value, gas) catch |err| {
+        const msg = switch (err) {
+            error.Reverted => "execution reverted",
+            error.OutOfMemory => "out of memory",
+            else => "evm call failed",
+        };
+        return errorJson(-32603, msg, id, alloc);
+    };
+    defer result.deinit(alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+        .{ id, result.return_data });
+}
+
+/// eth_sendRawTransaction — accept signed RLP-encoded TX hex.
+///
+/// Full RLP+ECDSA decode is deferred to a later patch; this stub keeps the
+/// JSON-RPC surface alive so wallets stop erroring on unknown method, and
+/// returns a deterministic placeholder hash derived from the input. State is
+/// **not** mutated. Once tx_pool integration lands, replace this body.
+fn handleEthSendRawTransaction(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const raw = extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "eth_sendRawTransaction: missing raw tx", id, alloc);
+    if (raw.len < 4) return errorJson(-32602, "eth_sendRawTransaction: tx too short", id, alloc);
+
+    // Hash the raw payload with a Keccak-substitute (SHA-256 prefix) so the
+    // response is at least deterministic. Real Keccak-256 lands with full
+    // RLP decoding.
+    var sha = std.crypto.hash.sha2.Sha256.init(.{});
+    sha.update(raw);
+    var digest: [32]u8 = undefined;
+    sha.final(&digest);
+
+    var hex_buf: [66]u8 = undefined;
+    hex_buf[0] = '0';
+    hex_buf[1] = 'x';
+    const hex = "0123456789abcdef";
+    for (digest, 0..) |b, i| {
+        hex_buf[2 + i * 2]     = hex[b >> 4];
+        hex_buf[2 + i * 2 + 1] = hex[b & 0x0f];
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+        .{ id, hex_buf[0..] });
+}
+
+/// eth_getCode — return deployed bytecode at address.
+fn handleEthGetCode(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "eth_getCode: missing address", id, alloc);
+
+    const code = evm_executor.getCode(alloc, addr) catch |err| {
+        const msg = switch (err) {
+            error.OutOfMemory => "out of memory",
+            else => "evm getCode failed",
+        };
+        return errorJson(-32603, msg, id, alloc);
+    };
+    defer alloc.free(code);
+
+    // If the binding returns raw bytes rather than hex, prefix with "0x".
+    // The Rust side currently emits hex already, so we just forward.
+    if (code.len == 0) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x\"}}", .{id});
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+        .{ id, code });
+}
+
+/// eth_estimateGas — gas estimation. Params: `[{from?,to,data,value?}]`.
+fn handleEthEstimateGas(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const to = extractParamObjectField(body, "to") orelse
+        return errorJson(-32602, "eth_estimateGas: missing 'to'", id, alloc);
+    const from = extractParamObjectField(body, "from") orelse
+        "0x0000000000000000000000000000000000000000";
+    const data = extractParamObjectField(body, "data") orelse "0x";
+    const value = extractParamObjectU64(body, "value");
+
+    const gas = evm_executor.estimateGas(alloc, from, to, data, value) catch |err| {
+        const msg = switch (err) {
+            error.OutOfMemory => "out of memory",
+            else => "evm estimateGas failed",
+        };
+        return errorJson(-32603, msg, id, alloc);
+    };
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
+        .{ id, gas });
+}
+
+/// eth_chainId — return chain id as a hex string (per EIP-695).
+fn handleEthChainId(ctx: *ServerCtx, id: u64) ![]u8 {
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
+        .{ id, ctx.chain_id });
 }
 
 // ─── Teste ────────────────────────────────────────────────────────────────────

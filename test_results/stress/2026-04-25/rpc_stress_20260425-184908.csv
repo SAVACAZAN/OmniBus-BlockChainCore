@@ -1,0 +1,1101 @@
+timestamp,thread,method,latency_ms,status
+2026-04-25T18:49:10.1551947+03:00,0,getblockchaininfo,554.2298,ok
+2026-04-25T18:49:10.1909918+03:00,0,eth_chainId,11.6869,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.1935152+03:00,0,eth_chainId,2.3734,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.1970886+03:00,0,getblockchaininfo,2.1835,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.1993612+03:00,0,getblockcount,3.2528,ok
+2026-04-25T18:49:10.2034055+03:00,0,getblockchaininfo,2.2382,ok
+2026-04-25T18:49:10.2054208+03:00,0,eth_chainId,2.6223,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.2166126+03:00,0,getbalance,9.567,ok
+2026-04-25T18:49:10.2205534+03:00,0,eth_chainId,3.1303,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.2282442+03:00,0,getbalance,7.1205,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.2399926+03:00,0,getbalance,9.8744,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.2541426+03:00,0,getbalance,10.798,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.2699309+03:00,0,getblockchaininfo,12.8083,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.2830086+03:00,0,getbalance,11.0315,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.3008674+03:00,0,eth_chainId,15.1333,ok
+2026-04-25T18:49:10.3135379+03:00,0,getblockcount,10.7794,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.3411846+03:00,0,eth_chainId,27.6795,ok
+2026-04-25T18:49:10.3443872+03:00,0,eth_chainId,1.4229,ok
+2026-04-25T18:49:10.3463961+03:00,0,getblockchaininfo,1.5969,ok
+2026-04-25T18:49:10.3500813+03:00,0,getbalance,2.1167,ok
+2026-04-25T18:49:10.3526715+03:00,0,eth_chainId,3.086,ok
+2026-04-25T18:49:10.3563387+03:00,0,eth_chainId,3.7345,ok
+2026-04-25T18:49:10.4519949+03:00,0,eth_chainId,93.0218,ok
+2026-04-25T18:49:10.4547760+03:00,0,getblockcount,2.5331,ok
+2026-04-25T18:49:10.4663610+03:00,0,getblockchaininfo,9.8926,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.4783624+03:00,0,getblockchaininfo,9.3169,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.4896714+03:00,0,eth_chainId,10.3561,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5038634+03:00,0,getblockchaininfo,11.1785,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5154277+03:00,0,getblockchaininfo,9.7724,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5256840+03:00,0,getblockcount,8.0804,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5352253+03:00,0,getblockcount,8.1641,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5431188+03:00,0,getbalance,5.9783,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5451368+03:00,0,getbalance,2.3015,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5471563+03:00,0,eth_chainId,1.9917,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5496385+03:00,0,getblockchaininfo,1.5529,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5516563+03:00,0,eth_chainId,1.1083,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5516563+03:00,0,getblockcount,1.0342,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5536705+03:00,0,getbalance,1.1201,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5536705+03:00,0,getbalance,0.8239,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5556842+03:00,0,eth_chainId,0.8036,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5576973+03:00,0,getblockchaininfo,0.8737,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5576973+03:00,0,getblockchaininfo,0.7576,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5597097+03:00,0,getblockcount,0.9359,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5612201+03:00,0,getbalance,2.0838,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5655890+03:00,0,eth_chainId,3.5605,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5696125+03:00,0,eth_chainId,3.9793,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5760629+03:00,0,getbalance,4.1853,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5799001+03:00,0,getbalance,3.6665,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5903046+03:00,0,getblockcount,8.9061,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6019870+03:00,0,getblockcount,9.3978,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6138075+03:00,0,getbalance,9.5223,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6372592+03:00,0,getblockchaininfo,21.3176,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6498580+03:00,0,getblockchaininfo,10.7486,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6626400+03:00,0,getbalance,10.1163,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6688726+03:00,0,getblockcount,5.5764,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6720340+03:00,0,eth_chainId,1.6736,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6734358+03:00,0,eth_chainId,1.2008,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.6739889+03:00,0,getblockchaininfo,1.1517,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6760250+03:00,0,eth_chainId,1.2348,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6776092+03:00,0,getblockchaininfo,0.9188,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6781229+03:00,0,getblockchaininfo,0.9207,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.6801503+03:00,0,getblockcount,1.5378,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6821620+03:00,0,eth_chainId,1.612,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6836729+03:00,0,eth_chainId,2.5904,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6940712+03:00,0,getblockcount,8.5167,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7059164+03:00,0,eth_chainId,8.7298,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7159911+03:00,0,getblockcount,9.5076,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7282358+03:00,0,getblockchaininfo,9.3701,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7403201+03:00,0,eth_chainId,10.135,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7461546+03:00,0,getblockcount,3.6907,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7481800+03:00,0,eth_chainId,2.0391,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7490611+03:00,0,getbalance,1.5244,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7516762+03:00,0,getblockchaininfo,1.1853,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7516762+03:00,0,getblockchaininfo,1.1026,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7547224+03:00,0,eth_chainId,1.1501,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7553331+03:00,0,getblockcount,0.9258,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7553331+03:00,0,getblockchaininfo,0.9141,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7573624+03:00,0,getblockchaininfo,0.8258,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7593776+03:00,0,getblockcount,1.4832,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7653330+03:00,0,eth_chainId,5.9102,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7751189+03:00,0,getblockcount,7.4248,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4704430+03:00,0,getbalance,4696.1443,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4759603+03:00,0,getblockchaininfo,6.4635,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4805540+03:00,0,getbalance,1.6822,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4805540+03:00,0,getblockchaininfo,0.805,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4805540+03:00,0,getbalance,0.7786,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4805540+03:00,0,eth_chainId,0.8466,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4805540+03:00,0,eth_chainId,0.8697,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4856523+03:00,0,eth_chainId,0.9002,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4856523+03:00,0,eth_chainId,0.9229,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4856523+03:00,0,eth_chainId,1.0481,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4856523+03:00,0,getbalance,1.0839,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4916949+03:00,0,getblockchaininfo,1.43,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4922125+03:00,0,getblockchaininfo,1.4395,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4922125+03:00,0,getbalance,1.9549,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4922125+03:00,0,getbalance,1.6187,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4922125+03:00,0,eth_chainId,1.7612,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4922125+03:00,0,getblockcount,1.6771,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.5034624+03:00,0,getblockcount,2.1233,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5075279+03:00,0,getblockcount,3.1973,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:09.9160898+03:00,1,eth_chainId,78.1069,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:09.9560307+03:00,1,getbalance,5.527,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:09.9656933+03:00,1,getblockcount,9.6572,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0017111+03:00,1,eth_chainId,29.9573,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0131753+03:00,1,getblockchaininfo,7.3283,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0178019+03:00,1,eth_chainId,4.1169,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0198155+03:00,1,getblockcount,2.9206,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0245408+03:00,1,getbalance,2.9859,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0299282+03:00,1,getblockchaininfo,4.7891,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.0339799+03:00,1,getbalance,2.6576,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0376153+03:00,1,getbalance,2.5721,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.0398833+03:00,1,eth_chainId,2.7286,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5451368+03:00,1,getblockchaininfo,505.6233,ok
+2026-04-25T18:49:10.5496385+03:00,1,getbalance,3.2986,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5536705+03:00,1,getblockcount,2.9919,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5556842+03:00,1,getblockchaininfo,1.8836,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5576973+03:00,1,getblockchaininfo,1.7192,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5612201+03:00,1,eth_chainId,1.9802,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5635765+03:00,1,getblockcount,1.6824,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5655890+03:00,1,getblockchaininfo,1.7868,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5676016+03:00,1,getblockcount,1.9087,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5696125+03:00,1,getblockchaininfo,1.6482,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5716255+03:00,1,getbalance,1.4454,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5736371+03:00,1,getblockchaininfo,1.9345,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5760629+03:00,1,eth_chainId,1.6356,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5778870+03:00,1,eth_chainId,1.8876,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5799001+03:00,1,getbalance,1.5292,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.5819160+03:00,1,getbalance,1.8487,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5839339+03:00,1,eth_chainId,1.8019,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5872501+03:00,1,getblockchaininfo,1.9015,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5903046+03:00,1,getblockchaininfo,2.1603,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5923207+03:00,1,getbalance,2.4174,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.5963629+03:00,1,getblockchaininfo,3.2014,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.5999117+03:00,1,getblockchaininfo,3.339,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.6084916+03:00,1,eth_chainId,6.0878,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6456725+03:00,1,eth_chainId,33.1299,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6720340+03:00,1,getblockchaininfo,23.1619,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6739889+03:00,1,getblockcount,2.3696,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.6781229+03:00,1,getbalance,2.2085,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6801503+03:00,1,getbalance,2.5832,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6836729+03:00,1,eth_chainId,1.9371,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6867128+03:00,1,eth_chainId,2.6151,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6920348+03:00,1,eth_chainId,5.2486,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.6983051+03:00,1,getbalance,3.6663,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7038364+03:00,1,getblockcount,3.7564,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7247236+03:00,1,getblockchaininfo,16.1462,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7446383+03:00,1,getblockchaininfo,15.8183,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7490611+03:00,1,getblockchaininfo,3.5352,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7516762+03:00,1,eth_chainId,2.7042,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:10.7553331+03:00,1,eth_chainId,1.9693,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:10.7573624+03:00,1,getbalance,1.9851,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7593776+03:00,1,eth_chainId,1.7661,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:10.7866074+03:00,1,eth_chainId,26.9688,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.4704430+03:00,1,eth_chainId,4685.0728,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4759603+03:00,1,eth_chainId,6.8835,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.4805540+03:00,1,getblockcount,1.2066,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.4922125+03:00,1,getblockcount,14.5813,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.4922125+03:00,1,getblockchaininfo,1.4152,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.4922125+03:00,1,getblockcount,1.6176,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5024192+03:00,1,getblockchaininfo,1.7842,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5034624+03:00,1,getblockchaininfo,1.7445,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.5075279+03:00,1,getblockchaininfo,2.3424,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.5103598+03:00,1,getbalance,3.0919,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5155513+03:00,1,eth_chainId,4.05,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.5443525+03:00,1,getblockchaininfo,29.1343,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5443525+03:00,1,getblockcount,2.5681,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5529641+03:00,1,getblockcount,2.8204,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5557812+03:00,1,getblockcount,2.2375,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5557812+03:00,1,getblockchaininfo,1.8028,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5557812+03:00,1,getblockcount,1.6428,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5557812+03:00,1,eth_chainId,1.3579,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5619104+03:00,1,getblockchaininfo,1.4263,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.5619104+03:00,1,getbalance,1.4907,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5619104+03:00,1,getblockchaininfo,1.4339,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5619104+03:00,1,getblockchaininfo,1.484,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5619104+03:00,1,getblockcount,1.1941,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5714447+03:00,1,getblockchaininfo,1.3162,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5729570+03:00,1,eth_chainId,1.3341,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5739920+03:00,1,getbalance,1.3286,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5760072+03:00,1,getblockcount,1.8597,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5785195+03:00,1,getbalance,1.5176,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6056159+03:00,1,eth_chainId,26.4276,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.6199869+03:00,1,getblockchaininfo,14.1824,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6356533+03:00,1,getblockcount,13.8112,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6646327+03:00,1,getbalance,25.4929,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6756244+03:00,1,eth_chainId,7.4145,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6796672+03:00,1,getblockchaininfo,3.3267,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6827096+03:00,1,eth_chainId,2.2952,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6847286+03:00,1,getblockchaininfo,1.8673,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6867475+03:00,1,getblockchaininfo,1.6853,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6887642+03:00,1,eth_chainId,1.8933,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6902807+03:00,1,getblockcount,1.6391,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.6922930+03:00,1,getblockcount,1.5967,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6953798+03:00,1,eth_chainId,1.5852,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6963945+03:00,1,eth_chainId,1.6106,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6984097+03:00,1,getblockcount,1.522,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.7004225+03:00,1,getbalance,1.3941,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.7024322+03:00,1,eth_chainId,1.3701,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7044426+03:00,1,getblockchaininfo,1.4485,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.7044426+03:00,1,eth_chainId,1.4808,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:19.9747640+03:00,1,getbalance,4079.2036,ok
+2026-04-25T18:49:19.9860012+03:00,1,getblockchaininfo,12.9578,ok
+2026-04-25T18:49:19.9931988+03:00,1,eth_chainId,3.4477,ok
+2026-04-25T18:49:19.9957703+03:00,1,getblockchaininfo,1.7498,ok
+2026-04-25T18:49:19.9957703+03:00,1,eth_chainId,1.4922,ok
+2026-04-25T18:49:20.0002757+03:00,1,eth_chainId,1.3641,ok
+2026-04-25T18:49:20.0002757+03:00,1,getblockchaininfo,1.1825,ok
+2026-04-25T18:49:20.0002757+03:00,1,getblockcount,1.1027,ok
+2026-04-25T18:49:20.0002757+03:00,1,getblockcount,1.0459,ok
+2026-04-25T18:49:20.0002757+03:00,1,getblockchaininfo,1.006,ok
+2026-04-25T18:49:20.0057615+03:00,1,getbalance,0.9639,ok
+2026-04-25T18:49:20.0057615+03:00,1,getblockcount,0.8898,ok
+2026-04-25T18:49:20.0057615+03:00,1,getblockcount,0.8117,ok
+2026-04-25T18:49:20.0057615+03:00,1,eth_chainId,0.932,ok
+2026-04-25T18:49:20.0057615+03:00,1,getbalance,0.9894,ok
+2026-04-25T18:49:20.0057615+03:00,1,getblockchaininfo,1.0223,ok
+2026-04-25T18:49:20.0057615+03:00,1,getblockcount,0.9724,ok
+2026-04-25T18:49:20.0057615+03:00,1,getbalance,0.9275,ok
+2026-04-25T18:49:20.0148466+03:00,1,getblockchaininfo,1.2137,ok
+2026-04-25T18:49:20.0163597+03:00,1,eth_chainId,1.6342,ok
+2026-04-25T18:49:20.0194420+03:00,1,getblockchaininfo,1.7488,ok
+2026-04-25T18:49:20.0214788+03:00,1,getbalance,1.4787,ok
+2026-04-25T18:49:20.0234922+03:00,1,getbalance,1.5287,ok
+2026-04-25T18:49:20.0250395+03:00,1,eth_chainId,1.6897,ok
+2026-04-25T18:49:20.0271248+03:00,1,getblockcount,1.5181,ok
+2026-04-25T18:49:20.0271248+03:00,1,getblockchaininfo,0.8849,ok
+2026-04-25T18:49:20.0292205+03:00,1,getbalance,1.1998,ok
+2026-04-25T18:49:20.0309781+03:00,1,getbalance,1.0802,ok
+2026-04-25T18:49:20.0319364+03:00,1,eth_chainId,0.9849,ok
+2026-04-25T18:49:20.0324470+03:00,1,getblockchaininfo,1.2747,ok
+2026-04-25T18:49:20.0324470+03:00,1,eth_chainId,1.3769,ok
+2026-04-25T18:49:20.0375958+03:00,1,getblockchaininfo,2.7041,ok
+2026-04-25T18:49:20.0396897+03:00,1,getblockcount,1.6338,ok
+2026-04-25T18:49:20.0411996+03:00,1,getbalance,0.8892,ok
+2026-04-25T18:49:20.0411996+03:00,1,eth_chainId,1.2633,ok
+2026-04-25T18:49:20.0452432+03:00,1,eth_chainId,2.2127,ok
+2026-04-25T18:49:20.0469962+03:00,1,eth_chainId,1.8464,ok
+2026-04-25T18:49:20.0480084+03:00,1,eth_chainId,2.1519,ok
+2026-04-25T18:49:20.0480084+03:00,1,getblockcount,1.494,ok
+2026-04-25T18:49:20.0529013+03:00,1,getbalance,1.6548,ok
+2026-04-25T18:49:20.0529013+03:00,1,getbalance,1.3835,ok
+2026-04-25T18:49:20.0529013+03:00,1,getbalance,1.4335,ok
+2026-04-25T18:49:20.0584902+03:00,1,eth_chainId,0.9218,ok
+2026-04-25T18:49:20.0584902+03:00,1,getblockcount,1.2238,ok
+2026-04-25T18:49:20.0606892+03:00,1,getblockcount,1.0712,ok
+2026-04-25T18:49:20.0627013+03:00,1,eth_chainId,1.921,ok
+2026-04-25T18:49:20.0650540+03:00,1,getblockcount,1.7856,ok
+2026-04-25T18:49:20.0661471+03:00,1,getbalance,2.9208,ok
+2026-04-25T18:49:20.0690754+03:00,1,getblockchaininfo,1.5224,ok
+2026-04-25T18:49:20.0711190+03:00,1,getblockcount,1.4275,ok
+2026-04-25T18:49:20.0729199+03:00,1,getblockcount,2.6695,ok
+2026-04-25T18:49:20.0792833+03:00,1,getblockcount,4.0385,ok
+2026-04-25T18:49:20.0863094+03:00,1,getbalance,5.9219,ok
+2026-04-25T18:49:20.0895148+03:00,1,eth_chainId,2.3457,ok
+2026-04-25T18:49:20.0921142+03:00,1,getbalance,2.6989,ok
+2026-04-25T18:49:20.0951317+03:00,1,getblockcount,2.3331,ok
+2026-04-25T18:49:20.0961313+03:00,1,getblockcount,3.0277,ok
+2026-04-25T18:49:20.1002638+03:00,1,eth_chainId,4.1041,ok
+2026-04-25T18:49:20.1123860+03:00,1,getbalance,7.2562,ok
+2026-04-25T18:49:20.1278828+03:00,1,getbalance,14.1863,ok
+2026-04-25T18:49:20.1442048+03:00,1,getblockchaininfo,11.9651,ok
+2026-04-25T18:49:20.1442048+03:00,1,getblockcount,2.8509,ok
+2026-04-25T18:49:20.1603994+03:00,1,getbalance,12.8144,ok
+2026-04-25T18:49:20.1637493+03:00,1,getblockchaininfo,1.8468,ok
+2026-04-25T18:49:20.1647833+03:00,1,eth_chainId,1.7427,ok
+2026-04-25T18:49:20.1647833+03:00,1,getblockchaininfo,1.4261,ok
+2026-04-25T18:49:20.1647833+03:00,1,eth_chainId,1.021,ok
+2026-04-25T18:49:20.1647833+03:00,1,getblockchaininfo,1.2405,ok
+2026-04-25T18:49:20.1647833+03:00,1,eth_chainId,1.7601,ok
+2026-04-25T18:49:20.1647833+03:00,1,getbalance,1.7866,ok
+2026-04-25T18:49:20.1764861+03:00,1,getblockchaininfo,1.9953,ok
+2026-04-25T18:49:20.1764861+03:00,1,getblockcount,2.2896,ok
+2026-04-25T18:49:20.1764861+03:00,1,getbalance,1.4375,ok
+2026-04-25T18:49:20.1843249+03:00,1,getbalance,3.1625,ok
+2026-04-25T18:49:20.1870339+03:00,1,getbalance,2.2299,ok
+2026-04-25T18:49:20.1870339+03:00,1,getblockcount,1.9188,ok
+2026-04-25T18:49:20.1927643+03:00,1,getbalance,3.847,ok
+2026-04-25T18:49:20.1983965+03:00,1,getblockcount,4.3577,ok
+2026-04-25T18:49:20.2008877+03:00,1,getblockchaininfo,2.9421,ok
+2026-04-25T18:49:20.2008877+03:00,1,getbalance,2.8292,ok
+2026-04-25T18:49:20.2103427+03:00,1,getblockchaininfo,4.3057,ok
+2026-04-25T18:49:20.2164275+03:00,1,eth_chainId,4.3377,ok
+2026-04-25T18:49:20.2299137+03:00,1,eth_chainId,12.6743,ok
+2026-04-25T18:49:20.2510835+03:00,1,getblockchaininfo,17.7294,ok
+2026-04-25T18:49:20.2760236+03:00,1,getbalance,20.0216,ok
+2026-04-25T18:49:20.2812169+03:00,1,eth_chainId,3.1388,ok
+2026-04-25T18:49:20.2837349+03:00,1,getbalance,2.8081,ok
+2026-04-25T18:49:20.2873213+03:00,1,getbalance,2.5214,ok
+2026-04-25T18:49:20.2899344+03:00,1,eth_chainId,2.3585,ok
+2026-04-25T18:49:20.2909638+03:00,1,eth_chainId,2.0996,ok
+2026-04-25T18:49:20.2941176+03:00,1,getblockchaininfo,2.1951,ok
+2026-04-25T18:49:20.2961471+03:00,1,eth_chainId,2.1107,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.2981595+03:00,1,getbalance,1.7431,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3007031+03:00,1,getblockchaininfo,2.4222,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3046629+03:00,1,eth_chainId,2.0266,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3046629+03:00,1,getblockcount,2.0338,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3151633+03:00,1,getblockcount,7.1828,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3300976+03:00,1,getblockcount,14.1846,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3687440+03:00,1,getbalance,36.006,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3774328+03:00,1,getblockchaininfo,6.6408,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:19.8577115+03:00,0,getblockchaininfo,4049.8349,http_err:Unable to connect to the remote server
+2026-04-25T18:49:20.3753984+03:00,0,getblockchaininfo,517.4258,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3794471+03:00,0,getblockchaininfo,3.219,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3824714+03:00,0,eth_chainId,2.5975,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3846405+03:00,0,getblockcount,1.7826,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3866567+03:00,0,eth_chainId,2.1318,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3892079+03:00,0,getblockcount,1.4979,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3892079+03:00,0,eth_chainId,1.421,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3932561+03:00,0,getblockchaininfo,2.3769,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.3995778+03:00,0,getblockcount,6.8309,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4085864+03:00,0,getblockcount,7.6402,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4239418+03:00,0,getblockcount,12.5602,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4558947+03:00,0,getblockchaininfo,31.2389,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4710571+03:00,0,eth_chainId,13.3369,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4771770+03:00,0,getbalance,4.2822,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4799474+03:00,0,getblockcount,2.6344,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4819642+03:00,0,getblockchaininfo,2.5386,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4870332+03:00,0,getblockchaininfo,3.7833,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4905570+03:00,0,getblockcount,2.4491,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4947465+03:00,0,getblockchaininfo,4.3268,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5022928+03:00,0,getblockcount,7.1341,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5078427+03:00,0,getbalance,3.7776,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5121048+03:00,0,eth_chainId,2.8245,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5211760+03:00,0,getblockcount,7.7858,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5352663+03:00,0,getbalance,10.2476,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5538024+03:00,0,getblockchaininfo,16.9611,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5798025+03:00,0,eth_chainId,23.2515,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5981990+03:00,0,eth_chainId,17.5762,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6002171+03:00,0,getbalance,2.4222,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6042503+03:00,0,getblockchaininfo,2.2401,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6057667+03:00,0,getbalance,2.1625,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6098260+03:00,0,getblockchaininfo,2.2534,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6118425+03:00,0,getblockchaininfo,2.5468,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6138591+03:00,0,getblockcount,2.1901,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6179237+03:00,0,getbalance,2.8105,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6199447+03:00,0,getbalance,2.9032,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6239754+03:00,0,eth_chainId,2.9797,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6290194+03:00,0,getblockchaininfo,4.041,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6330814+03:00,0,getblockcount,3.6033,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6371330+03:00,0,getblockchaininfo,3.4838,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6411835+03:00,0,getbalance,3.6961,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6490778+03:00,0,eth_chainId,7.5804,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6622811+03:00,0,getblockcount,11.7894,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6732647+03:00,0,getblockchaininfo,8.615,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6878755+03:00,0,getblockchaininfo,13.6985,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7038487+03:00,0,eth_chainId,14.0394,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7328688+03:00,0,getblockchaininfo,26.9114,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7426776+03:00,0,getblockchaininfo,7.8737,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7462536+03:00,0,getblockcount,2.8797,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7502810+03:00,0,getblockcount,2.8165,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7528085+03:00,0,getblockchaininfo,2.8103,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7883705+03:00,0,getbalance,34.6079,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7901274+03:00,0,eth_chainId,1.8374,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7921401+03:00,0,getblockchaininfo,2.2724,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7961639+03:00,0,getblockcount,3.6262,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8080187+03:00,0,getbalance,8.6462,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8182096+03:00,0,eth_chainId,8.349,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8455886+03:00,0,getblockchaininfo,26.42,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8707289+03:00,0,getblockchaininfo,22.5998,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8828428+03:00,0,getblockchaininfo,10.0706,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8917259+03:00,0,eth_chainId,7.9649,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8970671+03:00,0,getblockcount,5.3508,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8990833+03:00,0,getblockchaininfo,1.5163,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9022027+03:00,0,getblockcount,1.4215,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9042137+03:00,0,eth_chainId,1.5282,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9062238+03:00,0,getblockchaininfo,1.4828,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9062238+03:00,0,getblockchaininfo,1.1807,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9082375+03:00,0,getblockchaininfo,1.1896,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9102546+03:00,0,getblockchaininfo,1.306,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9122688+03:00,0,eth_chainId,1.5633,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9142811+03:00,0,getbalance,1.3905,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9162935+03:00,0,getblockcount,3.1093,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9203214+03:00,0,getbalance,2.0437,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9223374+03:00,0,getbalance,1.2259,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9223374+03:00,0,getblockcount,1.3647,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9243526+03:00,0,getblockcount,1.4972,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9263676+03:00,0,getblockcount,1.3439,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9283827+03:00,0,getblockcount,1.3436,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9303962+03:00,0,getbalance,1.3124,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9309095+03:00,0,getbalance,1.4192,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9324215+03:00,0,getblockcount,1.6248,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9364448+03:00,0,getbalance,2.3866,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9384579+03:00,0,eth_chainId,1.4973,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9402495+03:00,0,getblockcount,1.4921,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9422643+03:00,0,eth_chainId,1.326,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9422643+03:00,0,getblockcount,1.3607,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9442778+03:00,0,getblockchaininfo,1.6423,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9462917+03:00,0,eth_chainId,1.8034,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9503223+03:00,0,eth_chainId,1.9639,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9569925+03:00,0,getblockcount,6.2147,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9666474+03:00,0,getblockchaininfo,8.5963,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9864826+03:00,0,getbalance,17.1039,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:21.0012808+03:00,0,eth_chainId,13.1682,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0130888+03:00,0,getblockchaininfo,9.3599,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0260115+03:00,0,eth_chainId,10.7554,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0380713+03:00,0,getbalance,10.5262,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0508421+03:00,0,getbalance,10.5795,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0567491+03:00,0,eth_chainId,4.4139,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0602861+03:00,0,eth_chainId,1.9537,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:21.0602861+03:00,0,eth_chainId,1.5075,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3824714+03:00,1,eth_chainId,3.3221,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3846405+03:00,1,getbalance,2.4341,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3892079+03:00,1,getbalance,2.6239,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3912411+03:00,1,getblockcount,1.8174,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3932561+03:00,1,getblockchaininfo,2.3549,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3973120+03:00,1,eth_chainId,2.8789,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3995778+03:00,1,getblockchaininfo,3.1615,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4036074+03:00,1,eth_chainId,3.8017,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4085864+03:00,1,getbalance,3.7113,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4116567+03:00,1,getbalance,2.708,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.4218663+03:00,1,getblockchaininfo,9.6757,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4689402+03:00,1,eth_chainId,44.3958,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4771770+03:00,1,getbalance,7.1359,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4819642+03:00,1,getblockcount,4.6222,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4870332+03:00,1,getblockchaininfo,4.064,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4926389+03:00,1,getblockchaininfo,4.9453,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4967607+03:00,1,getbalance,2.934,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4987736+03:00,1,getblockchaininfo,2.9305,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5022928+03:00,1,getblockcount,3.7458,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5063298+03:00,1,eth_chainId,2.7912,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5078427+03:00,1,getbalance,1.6862,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5100894+03:00,1,getblockchaininfo,1.603,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5141522+03:00,1,eth_chainId,2.9689,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5161911+03:00,1,getblockcount,2.3846,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5211760+03:00,1,eth_chainId,3.5236,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5262713+03:00,1,getblockchaininfo,3.9016,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5331676+03:00,1,eth_chainId,6.3737,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.5655697+03:00,1,getblockchaininfo,29.8162,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5981990+03:00,1,getblockchaininfo,29.4295,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6002171+03:00,1,getblockcount,3.0788,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6042503+03:00,1,getblockcount,2.6187,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6057667+03:00,1,getbalance,1.6209,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6098260+03:00,1,eth_chainId,2.737,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6138591+03:00,1,getblockcount,3.676,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6179237+03:00,1,getblockchaininfo,3.3934,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6199447+03:00,1,getbalance,2.024,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6219618+03:00,1,getbalance,1.9857,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6239754+03:00,1,getblockchaininfo,2.4702,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6280068+03:00,1,getblockcount,2.7553,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6310605+03:00,1,getblockchaininfo,3.6692,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6350980+03:00,1,getblockcount,2.5809,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6371330+03:00,1,getbalance,2.7524,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6411835+03:00,1,eth_chainId,2.9062,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6462477+03:00,1,getblockchaininfo,3.96,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6510952+03:00,1,getbalance,4.574,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6541353+03:00,1,getblockchaininfo,3.6857,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6622811+03:00,1,getblockchaininfo,7.0671,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6671008+03:00,1,getbalance,4.4319,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6753657+03:00,1,getblockcount,6.3716,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.6956094+03:00,1,getblockcount,19.9523,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7286532+03:00,1,eth_chainId,28.9468,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7441989+03:00,1,getbalance,11.1998,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7502810+03:00,1,getblockcount,5.6098,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7528085+03:00,1,getbalance,3.3155,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7563543+03:00,1,getbalance,2.0243,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7583675+03:00,1,getblockcount,1.8175,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7603819+03:00,1,getblockchaininfo,1.6174,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7623949+03:00,1,getbalance,1.8125,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7644100+03:00,1,getbalance,1.9381,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7664227+03:00,1,eth_chainId,1.6498,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7684367+03:00,1,getblockcount,1.5628,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7704506+03:00,1,eth_chainId,1.4407,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7724633+03:00,1,getbalance,1.6925,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7742188+03:00,1,getblockcount,1.6248,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7752310+03:00,1,getbalance,1.5733,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7772623+03:00,1,getbalance,1.6595,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7792778+03:00,1,getblockcount,1.4239,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7823028+03:00,1,getblockcount,1.738,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7843418+03:00,1,getbalance,1.4447,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7863580+03:00,1,getbalance,1.857,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7883705+03:00,1,getblockcount,1.7514,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7901274+03:00,1,getblockchaininfo,1.8864,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7921401+03:00,1,getblockchaininfo,1.5019,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7941511+03:00,1,getblockchaininfo,1.8123,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.7961639+03:00,1,eth_chainId,2.2281,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8001912+03:00,1,eth_chainId,2.1958,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8022084+03:00,1,getblockchaininfo,2.3103,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8059961+03:00,1,getblockcount,2.9558,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8100437+03:00,1,eth_chainId,3.7912,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8141031+03:00,1,getblockcount,4.2414,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8543265+03:00,1,getblockcount,36.3509,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8828428+03:00,1,getbalance,25.0931,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8937449+03:00,1,getblockchaininfo,6.6697,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.8990833+03:00,1,getbalance,4.6695,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9082375+03:00,1,getblockcount,9.1137,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9102546+03:00,1,getblockchaininfo,1.8726,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9122688+03:00,1,getblockcount,1.5699,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9142811+03:00,1,getblockchaininfo,1.499,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9162935+03:00,1,eth_chainId,1.5671,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9183067+03:00,1,getbalance,1.5267,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9223374+03:00,1,eth_chainId,3.8505,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9243526+03:00,1,getblockcount,1.5011,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9263676+03:00,1,getbalance,1.4258,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:20.9263676+03:00,1,getbalance,1.2475,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9283827+03:00,1,getblockchaininfo,1.5514,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9309095+03:00,1,getblockcount,1.5612,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:21.0424290+03:00,1,eth_chainId,110.6823,ok
+2026-04-25T18:49:21.0567491+03:00,1,getblockchaininfo,11.2561,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:21.0602861+03:00,1,getbalance,2.4207,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:21.0627005+03:00,1,getblockcount,2.0911,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:15.5557812+03:00,7,getbalance,2014.262,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5785195+03:00,7,eth_chainId,2.6732,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5845557+03:00,7,eth_chainId,4.7998,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5870794+03:00,7,getbalance,2.4717,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5894981+03:00,7,getbalance,2.2802,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5915130+03:00,7,getbalance,2.1792,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5935298+03:00,7,getblockcount,2.1436,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5975584+03:00,7,getbalance,2.3109,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6006073+03:00,7,eth_chainId,2.3258,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6034574+03:00,7,getbalance,2.5987,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6056159+03:00,7,getbalance,2.9312,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6116709+03:00,7,eth_chainId,3.7307,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6179548+03:00,7,getblockcount,6.5914,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6419722+03:00,7,eth_chainId,22.5752,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6735992+03:00,7,getblockchaininfo,27.1383,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6806852+03:00,7,getblockcount,5.4891,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7024322+03:00,7,getblockchaininfo,21.3868,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7064523+03:00,7,getbalance,2.4779,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7084627+03:00,7,getbalance,2.1528,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7104733+03:00,7,getblockcount,2.0719,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7122298+03:00,7,getblockcount,2.1474,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:15.7162621+03:00,7,getblockchaininfo,2.1922,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7182763+03:00,7,getbalance,2.0818,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7202898+03:00,7,getbalance,2.257,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7242155+03:00,7,getbalance,2.1876,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7262298+03:00,7,getblockcount,2.4341,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7300006+03:00,7,getbalance,2.7573,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7320164+03:00,7,getbalance,2.4684,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7354984+03:00,7,eth_chainId,2.3424,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7385263+03:00,7,getblockchaininfo,2.8984,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7415689+03:00,7,eth_chainId,2.4455,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7446483+03:00,7,eth_chainId,2.6008,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7476911+03:00,7,getblockcount,2.5586,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7497078+03:00,7,getblockchaininfo,2.336,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7537336+03:00,7,getblockchaininfo,2.4427,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7566333+03:00,7,getblockcount,2.6932,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7662016+03:00,7,eth_chainId,9.1361,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:19.8083474+03:00,7,eth_chainId,4043.3729,http_err:Unable to connect to the remote server
+2026-04-25T18:49:20.3336708+03:00,7,getbalance,522.6953,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3753984+03:00,7,eth_chainId,40.0796,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3814607+03:00,7,getblockcount,5.825,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4015904+03:00,7,getbalance,19.7965,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4085864+03:00,7,eth_chainId,7.0128,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4218663+03:00,7,getbalance,12.4666,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4730876+03:00,7,getblockcount,46.8005,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4799474+03:00,7,getbalance,5.7872,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4890447+03:00,7,eth_chainId,8.6669,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4967607+03:00,7,eth_chainId,6.7602,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5007841+03:00,7,getblockchaininfo,4.4163,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5043202+03:00,7,eth_chainId,3.7629,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5078427+03:00,7,getblockchaininfo,2.5858,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5121048+03:00,7,getbalance,3.0951,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5141522+03:00,7,eth_chainId,3.057,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.5182699+03:00,7,getblockchaininfo,3.7922,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5242436+03:00,7,getblockchaininfo,5.6015,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5452243+03:00,7,getblockchaininfo,18.9466,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5913651+03:00,7,getbalance,42.4248,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6022335+03:00,7,getbalance,9.7723,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6098260+03:00,7,eth_chainId,6.8511,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6158738+03:00,7,getbalance,5.6994,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6199447+03:00,7,getblockcount,4.8123,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6259923+03:00,7,getblockchaininfo,4.2058,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6290194+03:00,7,getbalance,3.5685,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6350980+03:00,7,getbalance,4.5273,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6411835+03:00,7,getbalance,6.2088,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6462477+03:00,7,getblockchaininfo,6.1021,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6510952+03:00,7,getblockchaininfo,4.293,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6622811+03:00,7,getbalance,9.5406,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6855998+03:00,7,getblockcount,21.6237,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7307649+03:00,7,getbalance,42.2806,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7462536+03:00,7,getblockcount,12.6605,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7522949+03:00,7,getblockchaininfo,4.2227,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7563543+03:00,7,getblockcount,3.9121,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7583675+03:00,7,getbalance,2.7655,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7623949+03:00,7,getblockcount,2.4557,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7644100+03:00,7,eth_chainId,2.6691,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7664227+03:00,7,getblockchaininfo,2.1338,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7704506+03:00,7,getblockcount,2.0068,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.7724633+03:00,7,getblockcount,2.2662,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7752310+03:00,7,getblockcount,2.326,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7772623+03:00,7,getbalance,2.4339,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7792778+03:00,7,getbalance,1.9942,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7823028+03:00,7,eth_chainId,2.395,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7863580+03:00,7,getblockcount,2.3808,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.7883705+03:00,7,eth_chainId,2.5408,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7921401+03:00,7,getbalance,2.2153,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.7941511+03:00,7,eth_chainId,2.5248,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7981775+03:00,7,getblockchaininfo,3.0976,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8022084+03:00,7,getblockcount,3.3487,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8059961+03:00,7,eth_chainId,3.9861,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8120679+03:00,7,getblockchaininfo,5.5216,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8543265+03:00,7,getbalance,40.8981,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8869991+03:00,7,getblockcount,28.8716,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8990833+03:00,7,getblockcount,8.741,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9022027+03:00,7,eth_chainId,3.832,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9062238+03:00,7,getblockchaininfo,2.9269,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9082375+03:00,7,eth_chainId,2.5452,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9122688+03:00,7,getblockchaininfo,2.8079,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9162935+03:00,7,eth_chainId,3.3767,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9183067+03:00,7,getblockchaininfo,2.3281,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5129448+03:00,6,getblockcount,3526.0164,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5619104+03:00,6,getbalance,2.2153,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5619104+03:00,6,getbalance,2.5824,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5619104+03:00,6,getblockcount,3.1124,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5739920+03:00,6,getblockcount,3.1218,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5785195+03:00,6,eth_chainId,3.3291,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5825422+03:00,6,eth_chainId,3.6333,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5894981+03:00,6,getbalance,5.2353,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5935298+03:00,6,getbalance,1.8568,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5955455+03:00,6,getblockcount,1.6085,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5975584+03:00,6,getbalance,1.7627,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.5995735+03:00,6,getbalance,2.4323,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6056159+03:00,6,getblockcount,6.0658,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6179548+03:00,6,eth_chainId,9.7123,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6467452+03:00,6,getbalance,27.2063,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6646327+03:00,6,getblockchaininfo,15.7827,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6902807+03:00,6,eth_chainId,23.4766,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6922930+03:00,6,getblockchaininfo,1.7986,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6953798+03:00,6,eth_chainId,1.8439,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.6963945+03:00,6,eth_chainId,1.8856,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7004225+03:00,6,getblockcount,1.9496,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7024322+03:00,6,eth_chainId,2.0264,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7044426+03:00,6,getblockcount,1.8604,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7064523+03:00,6,eth_chainId,1.9131,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7084627+03:00,6,getbalance,1.9146,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7104733+03:00,6,getblockchaininfo,2.0493,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7142470+03:00,6,eth_chainId,2.0637,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7162621+03:00,6,getblockchaininfo,2.1238,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7182763+03:00,6,getblockchaininfo,2.0639,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7202898+03:00,6,eth_chainId,1.839,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7223041+03:00,6,getbalance,2.1135,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7262298+03:00,6,eth_chainId,2.1031,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7279858+03:00,6,eth_chainId,2.7518,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7320164+03:00,6,getblockcount,2.5446,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7354984+03:00,6,getblockchaininfo,2.3824,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7385263+03:00,6,eth_chainId,3.8271,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7456777+03:00,6,getblockcount,5.2053,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7537336+03:00,6,getblockcount,6.8842,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:15.7586474+03:00,6,getblockcount,5.3085,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:19.8103622+03:00,6,getblockchaininfo,4049.956,http_err:Unable to connect to the remote server
+2026-04-25T18:49:20.3445117+03:00,6,eth_chainId,533.5878,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3753984+03:00,6,getblockcount,27.6726,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3824714+03:00,6,getblockcount,6.4131,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3866567+03:00,6,getblockcount,3.0374,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3892079+03:00,6,eth_chainId,2.4268,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.3912411+03:00,6,getblockchaininfo,2.8003,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4015904+03:00,6,getblockchaininfo,4.4105,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4116567+03:00,6,eth_chainId,11.3828,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4482799+03:00,6,eth_chainId,33.9368,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4761609+03:00,6,getblockcount,24.3879,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4819642+03:00,6,getblockchaininfo,5.9963,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4905570+03:00,6,getbalance,8.1092,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.4987736+03:00,6,eth_chainId,6.5804,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5043202+03:00,6,getbalance,6.2175,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5242436+03:00,6,eth_chainId,17.9786,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5392638+03:00,6,getbalance,13.6348,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.5777108+03:00,6,getblockcount,37.0759,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6002171+03:00,6,getblockchaininfo,20.1807,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6057667+03:00,6,getblockchaininfo,4.6714,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6098260+03:00,6,getbalance,3.5276,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6168876+03:00,6,getblockcount,6.7185,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6219618+03:00,6,getblockcount,4.5483,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6280068+03:00,6,eth_chainId,5.5177,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6330814+03:00,6,getbalance,5.6296,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6391684+03:00,6,eth_chainId,4.3681,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6442070+03:00,6,getbalance,6.4792,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6510952+03:00,6,getblockchaininfo,5.8452,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6691270+03:00,6,eth_chainId,16.6302,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.6915789+03:00,6,getbalance,19.5083,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7244614+03:00,6,getblockchaininfo,31.3802,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7462536+03:00,6,getbalance,19.1043,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7502810+03:00,6,getblockchaininfo,4.4573,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7543413+03:00,6,getbalance,3.8755,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7583675+03:00,6,getbalance,3.5783,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7644100+03:00,6,getblockcount,4.853,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7664227+03:00,6,eth_chainId,1.8403,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7684367+03:00,6,getblockchaininfo,1.9377,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7752310+03:00,6,eth_chainId,4.5698,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7823028+03:00,6,eth_chainId,5.6154,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7843418+03:00,6,eth_chainId,2.0436,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7883705+03:00,6,getblockcount,3.4194,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.7981775+03:00,6,eth_chainId,9.5985,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8120679+03:00,6,eth_chainId,12.5581,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8478311+03:00,6,getbalance,33.2418,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8751363+03:00,6,getbalance,26.0362,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8917259+03:00,6,eth_chainId,13.9745,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.8970671+03:00,6,getblockcount,5.9615,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9010985+03:00,6,getbalance,2.3852,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9022027+03:00,6,getbalance,1.9549,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:20.9062238+03:00,6,getblockcount,2.2482,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9102546+03:00,6,getblockchaininfo,3.5005,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9142811+03:00,6,getblockchaininfo,4.712,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9223374+03:00,6,getbalance,5.9579,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9309095+03:00,6,eth_chainId,7.2916,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9344325+03:00,6,getbalance,3.3468,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9402495+03:00,6,getblockchaininfo,5.475,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9503223+03:00,6,getbalance,9.6413,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9610558+03:00,6,eth_chainId,9.0946,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:20.9807161+03:00,6,getbalance,18.1737,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:21.0012808+03:00,6,getblockchaininfo,17.2656,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1647040+03:00,9,getbalance,2.6341,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1677233+03:00,9,getbalance,2.3744,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1709298+03:00,9,eth_chainId,2.8038,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1729458+03:00,9,eth_chainId,1.8101,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1762304+03:00,9,getblockchaininfo,2.174,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1782294+03:00,9,getbalance,1.9981,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1806609+03:00,9,getbalance,1.6845,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1821856+03:00,9,getbalance,1.5428,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1848484+03:00,9,eth_chainId,1.9784,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1872743+03:00,9,eth_chainId,2.2455,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1898239+03:00,9,eth_chainId,1.9338,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1918540+03:00,9,getblockcount,1.8636,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1939985+03:00,9,getblockchaininfo,1.7983,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1965222+03:00,9,eth_chainId,1.8552,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1980412+03:00,9,getblockcount,1.5392,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2000433+03:00,9,eth_chainId,1.6677,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2012671+03:00,9,eth_chainId,1.571,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2041440+03:00,9,getblockchaininfo,1.6603,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2061804+03:00,9,eth_chainId,1.5616,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2081922+03:00,9,getblockchaininfo,1.5412,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2098982+03:00,9,eth_chainId,1.398,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2110261+03:00,9,getblockchaininfo,1.5585,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2130256+03:00,9,eth_chainId,1.4816,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2152187+03:00,9,getblockcount,1.328,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2168767+03:00,9,getblockchaininfo,1.4711,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2181596+03:00,9,eth_chainId,1.2797,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:48.2200970+03:00,9,getblockcount,1.5468,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2220975+03:00,9,getblockchaininfo,1.6989,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2240984+03:00,9,getblockcount,1.6239,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2282115+03:00,9,getbalance,3.8759,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3529736+03:00,9,getblockchaininfo,4122.9968,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3552941+03:00,9,getblockcount,2.892,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3673476+03:00,9,eth_chainId,10.7603,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3748148+03:00,9,getblockchaininfo,7.8864,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3832188+03:00,9,eth_chainId,7.5129,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3958062+03:00,9,getblockcount,10.9513,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4102230+03:00,9,getblockcount,10.9962,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4141043+03:00,9,getbalance,3.026,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4181417+03:00,9,eth_chainId,2.546,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4197822+03:00,9,getblockcount,1.6317,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4217148+03:00,9,getblockcount,1.0666,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4228397+03:00,9,eth_chainId,1.3812,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4233960+03:00,9,eth_chainId,1.4655,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4269179+03:00,9,getbalance,1.6929,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4269179+03:00,9,getblockcount,1.242,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4304646+03:00,9,getblockcount,2.4822,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4329069+03:00,9,getbalance,2.0083,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4349182+03:00,9,getblockchaininfo,1.3847,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4349182+03:00,9,eth_chainId,1.1489,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4369311+03:00,9,getbalance,1.1398,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4389431+03:00,9,getblockchaininfo,1.7638,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4409559+03:00,9,getblockchaininfo,1.7874,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4429699+03:00,9,getbalance,1.5475,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4447255+03:00,9,getbalance,1.6588,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4467387+03:00,9,getbalance,1.4951,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4487521+03:00,9,eth_chainId,2.1352,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4533065+03:00,9,getblockchaininfo,3.3761,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4562433+03:00,9,eth_chainId,1.6677,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4576345+03:00,9,getblockcount,1.3079,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4593043+03:00,9,getblockchaininfo,1.4285,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4615464+03:00,9,getbalance,1.5247,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4615464+03:00,9,eth_chainId,1.4202,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4635859+03:00,9,getbalance,1.2839,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4655969+03:00,9,getblockchaininfo,1.237,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4686213+03:00,9,getblockcount,1.9164,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4703520+03:00,9,getblockchaininfo,1.4674,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4723652+03:00,9,getblockcount,1.634,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4788259+03:00,9,getblockcount,6.2242,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:56.5394097+03:00,9,getblockcount,4060.6197,http_err:Unable to connect to the remote server
+2026-04-25T18:49:57.0504666+03:00,9,eth_chainId,511.8541,ok
+2026-04-25T18:49:57.0532117+03:00,9,getblockchaininfo,1.938,ok
+2026-04-25T18:49:57.0558825+03:00,9,getblockchaininfo,1.4903,ok
+2026-04-25T18:49:57.0578940+03:00,9,eth_chainId,1.4249,ok
+2026-04-25T18:49:57.0595083+03:00,9,eth_chainId,1.4609,ok
+2026-04-25T18:49:57.0617951+03:00,9,getblockchaininfo,1.6592,ok
+2026-04-25T18:49:57.0634134+03:00,9,getblockcount,1.4493,ok
+2026-04-25T18:49:57.0652607+03:00,9,getblockchaininfo,1.5133,ok
+2026-04-25T18:49:57.0674702+03:00,9,getblockchaininfo,1.6476,ok
+2026-04-25T18:49:57.0693242+03:00,9,getblockcount,2.7767,ok
+2026-04-25T18:49:57.0714418+03:00,9,getbalance,2.1376,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.0764110+03:00,9,getblockchaininfo,3.8469,ok
+2026-04-25T18:49:57.0792157+03:00,9,getblockchaininfo,3.8833,ok
+2026-04-25T18:49:57.0823030+03:00,9,getblockchaininfo,3.2372,ok
+2026-04-25T18:49:57.0915576+03:00,9,getblockchaininfo,5.9559,ok
+2026-04-25T18:49:57.1042683+03:00,9,eth_chainId,10.9878,ok
+2026-04-25T18:49:57.1184865+03:00,9,getblockcount,12.0554,ok
+2026-04-25T18:49:57.1307500+03:00,9,eth_chainId,10.1627,ok
+2026-04-25T18:49:57.1502142+03:00,9,getbalance,16.4753,ok
+2026-04-25T18:49:57.1632911+03:00,9,getblockcount,9.2864,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1653000+03:00,9,getblockcount,2.3814,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1739241+03:00,9,getblockchaininfo,6.9606,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1739241+03:00,9,getbalance,1.155,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1769329+03:00,9,getbalance,1.5503,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1779411+03:00,9,getblockcount,1.6131,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1810687+03:00,9,eth_chainId,1.6372,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1810687+03:00,9,getbalance,1.5065,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1836038+03:00,9,getblockchaininfo,1.445,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1858843+03:00,9,getbalance,1.416,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1884212+03:00,9,getblockcount,1.4263,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1904464+03:00,9,getbalance,1.7801,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1250068+03:00,6,getbalance,11.28,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1615079+03:00,6,getblockcount,34.0908,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1636843+03:00,6,getblockcount,1.8614,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1659582+03:00,6,getblockchaininfo,1.939,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1683442+03:00,6,getbalance,1.6559,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1688984+03:00,6,eth_chainId,1.628,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1709298+03:00,6,getbalance,2.1604,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1752159+03:00,6,getblockchaininfo,2.0295,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1792303+03:00,6,getblockcount,3.1635,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1831844+03:00,6,getblockcount,3.5303,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1872743+03:00,6,eth_chainId,3.5154,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.1898239+03:00,6,eth_chainId,2.3127,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1939985+03:00,6,getblockcount,2.9254,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.1970307+03:00,6,eth_chainId,2.4776,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2000433+03:00,6,getbalance,2.3168,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2012671+03:00,6,getblockchaininfo,1.5045,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2071935+03:00,6,getbalance,4.78,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2120302+03:00,6,getbalance,3.4101,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2210943+03:00,6,getblockcount,7.6273,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2254196+03:00,6,getblockcount,3.3209,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:48.2282115+03:00,6,getblockchaininfo,1.8169,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3509640+03:00,6,getbalance,4122.8634,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3529736+03:00,6,getblockchaininfo,1.2027,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3544828+03:00,6,getblockcount,1.4727,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3601339+03:00,6,getbalance,5.503,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3641548+03:00,6,getblockcount,3.6109,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3707872+03:00,6,getblockchaininfo,7.1907,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3768305+03:00,6,getbalance,4.3449,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3872862+03:00,6,getbalance,9.0922,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3937402+03:00,6,eth_chainId,6.8113,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4038824+03:00,6,getblockcount,7.5119,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4102230+03:00,6,getblockchaininfo,4.7987,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4122506+03:00,6,getblockcount,2.2765,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4141043+03:00,6,getblockcount,1.3841,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4161245+03:00,6,getbalance,1.3643,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4161245+03:00,6,getbalance,1.1301,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4186557+03:00,6,getblockcount,0.9785,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4197822+03:00,6,eth_chainId,1.0446,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4217148+03:00,6,getbalance,1.0587,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4228397+03:00,6,getblockcount,1.0042,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4233960+03:00,6,eth_chainId,0.8109,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4233960+03:00,6,eth_chainId,0.7143,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4254066+03:00,6,getbalance,0.7631,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4254066+03:00,6,eth_chainId,1.0405,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4269179+03:00,6,getbalance,1.6245,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4304646+03:00,6,eth_chainId,1.5276,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4329069+03:00,6,getblockcount,2.0384,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4349182+03:00,6,getbalance,1.6029,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4369311+03:00,6,eth_chainId,1.9412,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4389431+03:00,6,getbalance,1.7201,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4409559+03:00,6,getbalance,1.4047,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4409559+03:00,6,eth_chainId,0.8306,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4429699+03:00,6,eth_chainId,0.8192,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4447255+03:00,6,getblockcount,1.4041,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4467387+03:00,6,getblockchaininfo,2.205,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4487521+03:00,6,getblockcount,2.232,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4507850+03:00,6,getbalance,1.8503,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4533065+03:00,6,eth_chainId,1.411,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4553184+03:00,6,getblockcount,1.1721,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4567640+03:00,6,getbalance,1.1179,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4586295+03:00,6,getbalance,1.9715,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4635859+03:00,6,getblockcount,3.7924,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4655969+03:00,6,getblockcount,2.3215,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4686213+03:00,6,getbalance,2.6934,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4750394+03:00,6,getblockcount,4.6994,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:56.5394097+03:00,6,getblockcount,4064.1782,http_err:Unable to connect to the remote server
+2026-04-25T18:49:57.0504666+03:00,6,getblockchaininfo,512.0227,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.0532117+03:00,6,eth_chainId,1.7919,ok
+2026-04-25T18:49:57.0558825+03:00,6,getbalance,1.6055,ok
+2026-04-25T18:49:57.0558825+03:00,6,eth_chainId,1.1591,ok
+2026-04-25T18:49:57.0601171+03:00,6,getbalance,2.1695,ok
+2026-04-25T18:49:57.0646922+03:00,6,getbalance,3.4265,ok
+2026-04-25T18:49:57.0714418+03:00,6,getblockcount,5.4812,ok
+2026-04-25T18:49:57.0792157+03:00,6,eth_chainId,7.5816,ok
+2026-04-25T18:49:57.0915576+03:00,6,getblockcount,8.2644,ok
+2026-04-25T18:49:57.1001182+03:00,6,eth_chainId,7.2631,ok
+2026-04-25T18:49:57.1143115+03:00,6,eth_chainId,12.894,ok
+2026-04-25T18:49:57.1470310+03:00,6,getblockchaininfo,29.3462,ok
+2026-04-25T18:49:57.1612779+03:00,6,eth_chainId,11.7036,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1653000+03:00,6,getblockchaininfo,2.7002,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1678318+03:00,6,eth_chainId,2.208,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1699168+03:00,6,getblockcount,1.4415,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1699168+03:00,6,getblockchaininfo,0.904,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1719204+03:00,6,eth_chainId,0.8164,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1719204+03:00,6,getbalance,0.7682,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1739241+03:00,6,getblockcount,1.187,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1759289+03:00,6,eth_chainId,0.9338,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1769329+03:00,6,getblockcount,1.2048,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1779411+03:00,6,getbalance,1.4881,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1810687+03:00,6,getbalance,1.8737,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1836038+03:00,6,eth_chainId,1.9788,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1858843+03:00,6,getbalance,2.239,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1884212+03:00,6,getblockchaininfo,2.9492,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1924586+03:00,6,getblockcount,3.2864,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1944673+03:00,6,eth_chainId,1.4056,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1964809+03:00,6,eth_chainId,1.6013,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1984940+03:00,6,getblockchaininfo,1.9028,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2005400+03:00,6,getblockcount,1.4117,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2030575+03:00,6,eth_chainId,1.5346,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2050792+03:00,6,getblockcount,1.3039,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2152187+03:00,2,getblockchaininfo,1.5895,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2168767+03:00,2,getbalance,1.5697,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2189374+03:00,2,getbalance,1.5196,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2210943+03:00,2,getblockchaininfo,1.6614,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:48.2294202+03:00,2,eth_chainId,6.9357,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.3529736+03:00,2,eth_chainId,4122.9557,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3573057+03:00,2,getbalance,3.4566,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3621440+03:00,2,getblockcount,4.6066,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3641548+03:00,2,getbalance,1.5046,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3673476+03:00,2,getblockchaininfo,3.3674,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3687753+03:00,2,getblockcount,1.6338,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3707872+03:00,2,getbalance,1.6266,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3728008+03:00,2,getblockcount,2.0369,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3748148+03:00,2,getblockcount,1.7135,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3768305+03:00,2,getbalance,1.9759,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3798938+03:00,2,getbalance,2.3015,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3832188+03:00,2,eth_chainId,2.9722,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3872862+03:00,2,getbalance,3.1638,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.3937402+03:00,2,eth_chainId,5.7621,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4081855+03:00,2,getblockcount,13.6596,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4122506+03:00,2,getblockcount,1.9296,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4141043+03:00,2,getbalance,1.3888,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4161245+03:00,2,getblockcount,2.0221,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4181417+03:00,2,getbalance,1.6396,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4197822+03:00,2,eth_chainId,1.3767,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4217148+03:00,2,eth_chainId,1.4332,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4228397+03:00,2,getblockcount,0.9519,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4233960+03:00,2,getblockcount,1.4598,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4254066+03:00,2,getblockcount,1.4267,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4269179+03:00,2,getblockcount,1.5163,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4289506+03:00,2,getblockchaininfo,1.7358,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4324764+03:00,2,getbalance,2.1415,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4329069+03:00,2,getblockcount,1.5142,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4349182+03:00,2,eth_chainId,1.8676,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4389431+03:00,2,getblockchaininfo,1.8905,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4409559+03:00,2,getbalance,1.4541,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4409559+03:00,2,getblockcount,1.3685,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4429699+03:00,2,getbalance,1.3967,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4447255+03:00,2,getblockcount,1.4091,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4467387+03:00,2,getblockcount,1.3552,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4487521+03:00,2,getblockchaininfo,1.6159,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4507850+03:00,2,getblockchaininfo,1.4226,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4533065+03:00,2,eth_chainId,1.3873,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4533065+03:00,2,getblockcount,1.4586,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4567640+03:00,2,eth_chainId,1.3446,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4576345+03:00,2,getbalance,1.3894,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4593043+03:00,2,getbalance,1.3863,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4615464+03:00,2,eth_chainId,1.3517,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4635859+03:00,2,getblockchaininfo,1.4196,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4635859+03:00,2,getbalance,1.3578,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4655969+03:00,2,getblockcount,1.3102,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4686213+03:00,2,getbalance,1.4943,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4703520+03:00,2,getblockcount,1.563,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4723652+03:00,2,eth_chainId,1.7049,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4768025+03:00,2,getblockchaininfo,4.671,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:56.5545464+03:00,2,getbalance,4077.2052,http_err:Unable to connect to the remote server
+2026-04-25T18:49:57.0674702+03:00,2,getbalance,512.2561,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.0693242+03:00,2,eth_chainId,2.019,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.0735567+03:00,2,eth_chainId,3.0366,ok
+2026-04-25T18:49:57.0764110+03:00,2,eth_chainId,3.5406,ok
+2026-04-25T18:49:57.0792157+03:00,2,getblockchaininfo,3.6955,ok
+2026-04-25T18:49:57.0823030+03:00,2,getblockcount,3.5464,ok
+2026-04-25T18:49:57.0925981+03:00,2,getblockcount,7.5993,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1083183+03:00,2,getblockcount,12.3035,ok
+2026-04-25T18:49:57.1632911+03:00,2,eth_chainId,16.9866,ok
+2026-04-25T18:49:57.1653000+03:00,2,getblockchaininfo,1.5275,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1678318+03:00,2,getbalance,2.0852,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1699168+03:00,2,getbalance,1.4887,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1719204+03:00,2,getblockchaininfo,0.8815,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1719204+03:00,2,eth_chainId,0.947,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1739241+03:00,2,getbalance,1.1852,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1739241+03:00,2,getblockchaininfo,0.7093,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1769329+03:00,2,getbalance,1.2886,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1779411+03:00,2,getblockchaininfo,1.5924,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1805343+03:00,2,getblockchaininfo,1.4074,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.1810687+03:00,2,getbalance,1.5738,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1836038+03:00,2,getblockchaininfo,1.3986,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1858843+03:00,2,eth_chainId,1.3505,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1873931+03:00,2,getbalance,1.2897,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1884212+03:00,2,getbalance,1.4541,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1904464+03:00,2,getbalance,1.4847,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1924586+03:00,2,getbalance,1.5238,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1944673+03:00,2,getbalance,1.4642,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1964809+03:00,2,getblockchaininfo,1.4374,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1964809+03:00,2,getblockcount,1.4221,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2005400+03:00,2,getbalance,3.48,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2070888+03:00,2,getblockcount,4.8103,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2106508+03:00,2,getblockcount,3.4071,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2137211+03:00,2,getblockcount,1.3837,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2142735+03:00,2,getblockcount,1.347,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2193913+03:00,2,getblockcount,2.8875,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2193913+03:00,2,getblockcount,1.3257,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2214359+03:00,2,getblockchaininfo,1.2963,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.2234557+03:00,2,getblockcount,1.7635,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2259763+03:00,2,getblockchaininfo,2.1743,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2280362+03:00,2,getbalance,1.3992,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2295643+03:00,2,getblockchaininfo,1.5026,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2343295+03:00,2,getblockchaininfo,2.8324,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2369414+03:00,2,getblockcount,3.0633,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2400842+03:00,2,getblockcount,2.6362,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4487521+03:00,8,eth_chainId,1.7151,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4487521+03:00,8,eth_chainId,1.4449,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4507850+03:00,8,eth_chainId,1.6102,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4533065+03:00,8,getbalance,1.4471,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4557349+03:00,8,eth_chainId,1.3305,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4571262+03:00,8,getblockcount,1.1284,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4586295+03:00,8,eth_chainId,1.2958,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4603093+03:00,8,getblockcount,1.2944,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4615464+03:00,8,getblockchaininfo,1.2179,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4615464+03:00,8,getbalance,1.1762,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:52.4635859+03:00,8,getblockchaininfo,1.4746,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4655969+03:00,8,eth_chainId,1.2904,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4686213+03:00,8,getbalance,1.7403,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:52.4703520+03:00,8,getblockcount,1.8847,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4723652+03:00,8,getblockchaininfo,1.5675,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:52.4768025+03:00,8,getblockchaininfo,4.4295,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:56.5394097+03:00,8,getblockchaininfo,4062.3273,http_err:Unable to connect to the remote server
+2026-04-25T18:49:57.0504666+03:00,8,getblockcount,511.6444,ok
+2026-04-25T18:49:57.0532117+03:00,8,getblockcount,1.8571,ok
+2026-04-25T18:49:57.0558825+03:00,8,getblockcount,1.3381,ok
+2026-04-25T18:49:57.0646922+03:00,8,getbalance,1.7392,ok
+2026-04-25T18:49:57.0674702+03:00,8,getbalance,2.6324,ok
+2026-04-25T18:49:57.0693242+03:00,8,eth_chainId,1.9165,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.0714418+03:00,8,getblockcount,2.0833,ok
+2026-04-25T18:49:57.0743387+03:00,8,getbalance,3.0684,ok
+2026-04-25T18:49:57.0792157+03:00,8,getblockcount,3.0645,ok
+2026-04-25T18:49:57.0823030+03:00,8,getbalance,4.4868,ok
+2026-04-25T18:49:57.0894046+03:00,8,eth_chainId,5.4736,ok
+2026-04-25T18:49:57.1001182+03:00,8,getbalance,8.8185,ok
+2026-04-25T18:49:57.1212465+03:00,8,getblockcount,16.6874,ok
+2026-04-25T18:49:57.1419062+03:00,8,getblockchaininfo,17.8844,ok
+2026-04-25T18:49:57.1612779+03:00,8,getbalance,15.5271,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1653000+03:00,8,getbalance,2.37,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1678318+03:00,8,getbalance,2.1306,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1678318+03:00,8,getbalance,1.0361,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1699168+03:00,8,getbalance,1.4652,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1719204+03:00,8,getblockcount,1.6305,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1739241+03:00,8,getblockcount,1.6251,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1769329+03:00,8,eth_chainId,1.3708,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1779411+03:00,8,getblockcount,1.8682,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1810687+03:00,8,getblockchaininfo,1.8167,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1836038+03:00,8,getbalance,1.7301,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1836038+03:00,8,eth_chainId,1.4639,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1858843+03:00,8,getbalance,1.4084,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1884212+03:00,8,getblockcount,1.4362,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1904464+03:00,8,getblockcount,1.5014,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.1924586+03:00,8,eth_chainId,2.4651,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.1964809+03:00,8,getbalance,3.1036,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2005400+03:00,8,eth_chainId,3.6717,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2050792+03:00,8,eth_chainId,3.5899,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2127010+03:00,8,getblockchaininfo,5.3872,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2163249+03:00,8,getblockchaininfo,3.186,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2168470+03:00,8,getblockchaininfo,1.7905,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2193913+03:00,8,getblockcount,1.6583,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2214359+03:00,8,getbalance,1.5251,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2234557+03:00,8,getbalance,1.5148,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2259763+03:00,8,getblockcount,1.9054,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2280362+03:00,8,eth_chainId,1.7867,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2295643+03:00,8,eth_chainId,1.9525,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2338026+03:00,8,eth_chainId,2.2083,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2369414+03:00,8,getblockchaininfo,2.8951,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2400842+03:00,8,getblockcount,5.1815,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.2550595+03:00,8,eth_chainId,10.8813,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.2812586+03:00,8,getblockchaininfo,22.829,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3031258+03:00,8,getblockchaininfo,19.1136,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3226416+03:00,8,getbalance,13.5499,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3262167+03:00,8,getblockchaininfo,2.3333,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3282664+03:00,8,getblockcount,2.0381,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3302767+03:00,8,getblockchaininfo,1.8762,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3327907+03:00,8,getbalance,1.7511,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3350572+03:00,8,getbalance,1.7044,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3355807+03:00,8,getbalance,1.5864,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3376014+03:00,8,getbalance,1.6856,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3402959+03:00,8,getblockcount,1.3767,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.3423030+03:00,8,getblockchaininfo,1.7719,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3443142+03:00,8,getblockcount,1.5103,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3458229+03:00,8,getblockchaininfo,1.6156,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3479725+03:00,8,getblockchaininfo,1.2724,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3479725+03:00,8,getblockcount,1.2867,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3499789+03:00,8,getbalance,1.7067,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3499789+03:00,8,getblockcount,1.4869,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3535755+03:00,8,getblockcount,1.6295,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3570666+03:00,8,getblockcount,1.5217,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3585977+03:00,8,getblockchaininfo,1.4168,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3601331+03:00,8,getbalance,1.6306,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3601331+03:00,8,getblockcount,1.5292,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3601331+03:00,8,getblockchaininfo,1.5694,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3661750+03:00,8,getblockcount,1.5152,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3675151+03:00,8,getblockcount,1.7611,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3675151+03:00,8,getblockcount,1.2692,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3675151+03:00,8,getbalance,1.3791,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3725721+03:00,8,getbalance,1.3387,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3725721+03:00,8,getblockcount,1.1709,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.3725721+03:00,8,eth_chainId,0.9931,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3761343+03:00,8,getbalance,0.8332,http_err:The underlying connection was closed: The connection was closed unexpectedly.
+2026-04-25T18:49:57.3776444+03:00,8,getblockchaininfo,1.2589,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3795617+03:00,8,getblockchaininfo,1.3451,http_err:The underlying connection was closed: An unexpected error occurred on a send.
+2026-04-25T18:49:57.3795617+03:00,8,getbalance,1.3589,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3815710+03:00,8,getblockchaininfo,2.3897,http_err:The underlying connection was closed: An unexpected error occurred on a receive.
+2026-04-25T18:49:57.3880347+03:00,8,getblockchaininfo,3.391,http_err:The underlying connection was closed: An unexpected error occurred on a send.

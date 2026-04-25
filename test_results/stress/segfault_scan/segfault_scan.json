@@ -1,0 +1,257 @@
+{
+  "scan": {
+    "id": "segfault-scan-2026-04-25",
+    "date": "2026-04-25",
+    "scope": "core/*.zig",
+    "zig_version": "0.15.2",
+    "trigger_logs": [
+      "test_results/comparison/02_omnibus_scanner/node.log",
+      "test_results/comparison/02_omnibus_scanner/node2.log"
+    ],
+    "crash_signature": {
+      "location": "std.Thread.zig:509 callFn",
+      "context": "100+ sequential RPC calls while mining active",
+      "addresses_observed": [
+        "0x24decf10080",
+        "0x24ded280080",
+        "0x1ed3a330080",
+        "0x1ed3a350080"
+      ],
+      "address_pattern_offset": "0x80",
+      "interpretation": "Use-after-free deref of struct field at offset 0x80 — recurring layout suggests Block, PeerConnection, or WsClient"
+    }
+  },
+  "summary": {
+    "total_sites": 13,
+    "by_severity": { "HIGH": 5, "MEDIUM": 6, "LOW": 2 },
+    "files_with_fixmes": [
+      "core/blockchain.zig",
+      "core/rpc_server.zig",
+      "core/p2p.zig",
+      "core/ws_server.zig"
+    ]
+  },
+  "primary_cause_hypothesis": {
+    "rank_1": {
+      "description": "Race on P2PNode.peers ArrayList between RPC handler threads (handlePeers iterates) and accept thread (acceptLoop appends)",
+      "evidence": [
+        "P2PNode has zero mutex on self.peers (verified via grep — no peers_mutex member, no lock() calls)",
+        "self.peers.append() at p2p.zig:922 has no synchronization",
+        "self.peers.swapRemove() at p2p.zig:1158 has no synchronization",
+        "25+ iteration sites read self.peers.items concurrently",
+        "Crash occurs immediately after RPC server starts under stress"
+      ],
+      "severity": "HIGH"
+    },
+    "rank_2": {
+      "description": "Race on Blockchain.chain between mining loop (chain.append) and unlocked RPC handlers (getlatestblock, getbestblockhash)",
+      "evidence": [
+        "blockchain.zig:1019 getLatestBlock returns Block by value with live heap-borrowed fields (.hash slice, .transactions.items pointer)",
+        "rpc_server.zig handleGetLatestBlock and handleGetBestBlockHash do NOT acquire ctx.bc.mutex",
+        "Other handlers in same file DO acquire mutex (e.g. handleGetBalance line 310, handleGetTx line 481) — inconsistency confirms oversight",
+        "Mining loop runs every 100ms-1s and mutates chain"
+      ],
+      "severity": "HIGH"
+    }
+  },
+  "top_3_priority_fixes": [
+    {
+      "rank": 1,
+      "title": "Add peers_mutex to P2PNode and lock all self.peers access",
+      "file": "core/p2p.zig",
+      "lines_affected": [922, 1158, "iteration sites: 817, 838, 854, 865, 872, 944, 979, 1031, 1048, 1058, 1093, 1105, 1135, 1144, 1293, 1430, 1444, 1473, 1983, 1998"],
+      "fix": "Introduce peers_mutex: std.Thread.Mutex = .{}; lock around append/swapRemove and every read iterator. Promote inbound_count/outbound_count to std.atomic.Value(u32).",
+      "estimated_effort": "1-2h"
+    },
+    {
+      "rank": 2,
+      "title": "Acquire bc.mutex in unlocked RPC handlers",
+      "file": "core/rpc_server.zig",
+      "handlers": [
+        "handleGetLatestBlock (~line 325)",
+        "handleGetBestBlockHash (~line 1973)",
+        "handlePoolStats (~line 869)",
+        "handleNetInfo (~line 917)",
+        "handleMpStats (~line 885)"
+      ],
+      "fix": "Pattern: lock; snapshot scalars + dupe hash strings to local buffers; unlock; allocPrint outside lock.",
+      "estimated_effort": "30min"
+    },
+    {
+      "rank": 3,
+      "title": "Make getLatestBlock lock-aware or return BlockSnapshot",
+      "file": "core/blockchain.zig",
+      "lines": [1019],
+      "fix": "Option A: assert mutex held in debug. Option B (preferred): introduce BlockSnapshot POD with copied scalars + [64]u8 hash buffers; getLatestBlock takes lock internally and returns snapshot.",
+      "estimated_effort": "1h (refactor + update callers)"
+    }
+  ],
+  "sites": [
+    {
+      "id": 1,
+      "severity": "HIGH",
+      "file": "core/blockchain.zig",
+      "line": 1019,
+      "category": "borrow-without-lock",
+      "function": "getLatestBlock",
+      "description": "Returns Block by value with live heap-borrowed fields. Block.transactions.items pointer + Block.hash slice can dangle if mining appends/replaces during caller use.",
+      "suggested_fix": "Require caller hold self.mutex, or refactor to return BlockSnapshot deep-copy."
+    },
+    {
+      "id": 2,
+      "severity": "HIGH",
+      "file": "core/rpc_server.zig",
+      "line": 325,
+      "category": "missing-mutex",
+      "function": "handleGetLatestBlock",
+      "description": "Calls bc.getLatestBlock() then dereferences blk.hash/blk.previous_hash/blk.transactions.items.len without bc.mutex while mining loop concurrently mutates chain.",
+      "suggested_fix": "Lock bc.mutex; copy scalars + dupe hash to local buf; unlock; format."
+    },
+    {
+      "id": 3,
+      "severity": "HIGH",
+      "file": "core/rpc_server.zig",
+      "line": 1973,
+      "category": "missing-mutex",
+      "function": "handleGetBestBlockHash",
+      "description": "Reads blk.hash slice from latest block without bc.mutex.",
+      "suggested_fix": "Same pattern as handleGetLatestBlock."
+    },
+    {
+      "id": 4,
+      "severity": "HIGH",
+      "file": "core/rpc_server.zig",
+      "line": 902,
+      "category": "missing-mutex-peers",
+      "function": "handlePeers",
+      "description": "Iterates p2p.peers.items reading peer.node_id/peer.host while accept thread can append/realloc. Use-after-free of items pointer.",
+      "suggested_fix": "Lock p2p.peers_mutex (to be added); snapshot peer info; unlock; format."
+    },
+    {
+      "id": 5,
+      "severity": "HIGH",
+      "file": "core/p2p.zig",
+      "line": 922,
+      "category": "append-without-mutex",
+      "function": "connectTo",
+      "description": "self.peers.append(conn) — no synchronization. Realloc invalidates readers. outbound_count += 1 also racy.",
+      "suggested_fix": "Add peers_mutex; lock here; promote counters to atomics."
+    },
+    {
+      "id": 6,
+      "severity": "HIGH",
+      "file": "core/p2p.zig",
+      "line": 1158,
+      "category": "swapRemove-without-mutex",
+      "function": "cleanDeadPeers",
+      "description": "swapRemove(i) on self.peers without lock — invalidates concurrent iterators.",
+      "suggested_fix": "Hold peers_mutex for the entire while loop, or batch removals under lock."
+    },
+    {
+      "id": 7,
+      "severity": "MEDIUM",
+      "file": "core/rpc_server.zig",
+      "line": 869,
+      "category": "missing-mutex",
+      "function": "handlePoolStats",
+      "description": "Reads ctx.bc.mempool.items.len without bc.mutex.",
+      "suggested_fix": "Lock bc.mutex; snapshot len; unlock."
+    },
+    {
+      "id": 8,
+      "severity": "MEDIUM",
+      "file": "core/rpc_server.zig",
+      "line": 917,
+      "category": "missing-mutex",
+      "function": "handleNetInfo",
+      "description": "Reads p2p.peers.items.len + bc.mempool.items.len without locks.",
+      "suggested_fix": "Lock both mutexes; snapshot lengths; unlock."
+    },
+    {
+      "id": 9,
+      "severity": "MEDIUM",
+      "file": "core/p2p.zig",
+      "line": 1556,
+      "category": "non-atomic-counter",
+      "function": "handleInboundPeer",
+      "description": "node.inbound_count += 1 / -= 1 across multiple handler threads — racy r-m-w on plain u32. Also read by canAcceptInbound() — possible MAX_INBOUND bypass.",
+      "suggested_fix": "Promote inbound_count to std.atomic.Value(u32); use fetchAdd/fetchSub(.monotonic)."
+    },
+    {
+      "id": 10,
+      "severity": "MEDIUM",
+      "file": "core/p2p.zig",
+      "line": 1599,
+      "category": "shared-mutation-no-lock",
+      "function": "dispatchMessage",
+      "description": "Writes node.chain_height and peer.height from per-peer threads without sync. Also reads node.blockchain.?.chain.items.len unlocked.",
+      "suggested_fix": "Use std.atomic.Value(u64) for chain_height; acquire bc.mutex when reading chain.items.len."
+    },
+    {
+      "id": 11,
+      "severity": "MEDIUM",
+      "file": "core/ws_server.zig",
+      "line": 211,
+      "category": "free-before-lock",
+      "function": "removeClient",
+      "description": "stream.close() and connected=false executed BEFORE srv.mutex.lock(). broadcast() may snapshot the client pointer under lock and call sendText after handler thread destroys the WsClient struct → use-after-free.",
+      "suggested_fix": "Take srv.mutex first; do close + remove + destroy entirely under lock."
+    },
+    {
+      "id": 12,
+      "severity": "LOW",
+      "file": "core/blockchain.zig",
+      "line": 1023,
+      "category": "caller-contract",
+      "function": "getBlockCount",
+      "description": "Returns chain.items.len without lock. Single-read torn issues unlikely on x86-64 but encourages callers to chain unlocked count+access pairs.",
+      "suggested_fix": "Document that callers must hold bc.mutex when correlating count with subsequent chain index access."
+    },
+    {
+      "id": 13,
+      "severity": "LOW",
+      "file": "core/rpc_server.zig",
+      "line": 149,
+      "category": "allocator-pressure",
+      "function": "startHTTPEx",
+      "description": "MAX_CONCURRENT=4 RPC threads + mining + WS broadcast share GPA. GPA in 0.15.2 has thread_safe default true, so safe but contended.",
+      "suggested_fix": "Switch hot RPC path to per-request arena allocator; reset on response send."
+    }
+  ],
+  "files_modified": [
+    {
+      "path": "core/blockchain.zig",
+      "fixme_count": 2,
+      "site_ids": [1, 12]
+    },
+    {
+      "path": "core/rpc_server.zig",
+      "fixme_count": 6,
+      "site_ids": [2, 3, 4, 7, 8, 13]
+    },
+    {
+      "path": "core/p2p.zig",
+      "fixme_count": 4,
+      "site_ids": [5, 6, 9, 10]
+    },
+    {
+      "path": "core/ws_server.zig",
+      "fixme_count": 1,
+      "site_ids": [11]
+    }
+  ],
+  "false-positives-considered": [
+    {
+      "candidate": "RPCThreadArgs passed by value to Thread.spawn (main.zig:530)",
+      "verdict": "NOT a bug — only contains pointers to objects whose lifetime is main() itself (never returns while threads run)."
+    },
+    {
+      "candidate": "@ptrCast in p2p.zig and other modules",
+      "verdict": "All 6 occurrences are @alignCast(@ptrCast(...)) round-trips between matching opaque pointer ABIs — safe."
+    },
+    {
+      "candidate": "GeneralPurposeAllocator thread safety",
+      "verdict": "Default config in Zig 0.15.2 has thread_safe = !single_threaded, so concurrent use is correct (mutex-guarded). Not the cause."
+    }
+  ]
+}

@@ -1016,13 +1016,89 @@ pub const Blockchain = struct {
         return null;
     }
 
+    // FIXME: SEGFAULT-RISK [scan-2026-04-25] HIGH - returns Block by value while mining loop mutates self.chain
+    // Reason: Block contains array_list.Managed(Transaction) holding heap pointers. If mining loop
+    //   calls chain.append() between `len-1` read and the indexed copy, items pointer can be reallocated
+    //   and the returned Block's `.transactions.items` slice points to freed memory. Also `.hash`/`.previous_hash`
+    //   are slices that may reference allocator-owned memory the caller does not lock.
+    // Suggested fix: callers MUST hold self.mutex while using returned Block, OR use
+    //   getLatestBlockSnapshot() which returns a self-contained, allocation-free snapshot.
     pub fn getLatestBlock(self: *Blockchain) Block {
         return self.chain.items[self.chain.items.len - 1];
     }
 
+    // FIXME: SEGFAULT-RISK [scan-2026-04-25] LOW - reads len without lock
+    // Reason: ArrayList.items.len is a single usize so torn-read on x86-64 is not the failure mode here,
+    //   but callers chain this with subsequent index reads without holding mutex (see rpc_server.zig
+    //   getlatestblock / getbestblockhash). Length can change between getBlockCount() and chain[i].
+    // Suggested fix: callers must hold blockchain.mutex when correlating count with chain access.
     pub fn getBlockCount(self: *Blockchain) u32 {
         return @intCast(self.chain.items.len);
     }
+
+    /// Self-contained snapshot of the latest block — no slice-into-chain pointers,
+    /// safe to use after releasing bc.mutex. Eliminates UAF in RPC handlers that
+    /// previously held a Block-by-value while the chain reallocated underneath.
+    /// SEGFAULT-FIX [scan-2026-04-25]: callers no longer need to keep bc.mutex
+    /// locked across allocPrint — they get a stable copy and unlock immediately.
+    pub fn getLatestBlockSnapshot(self: *Blockchain) BlockSnapshot {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        const last = &self.chain.items[self.chain.items.len - 1];
+        var snap = BlockSnapshot{
+            .height       = last.index,
+            .timestamp    = last.timestamp,
+            .nonce        = last.nonce,
+            .difficulty   = self.difficulty,
+            .tx_count     = last.transactions.items.len,
+            .hash_buf     = [_]u8{0} ** 96,
+            .hash_len     = 0,
+            .prev_hash_buf= [_]u8{0} ** 96,
+            .prev_hash_len= 0,
+            .merkle_root  = last.merkle_root,
+        };
+        const hl = @min(last.hash.len, snap.hash_buf.len);
+        @memcpy(snap.hash_buf[0..hl], last.hash[0..hl]);
+        snap.hash_len = hl;
+        const pl = @min(last.previous_hash.len, snap.prev_hash_buf.len);
+        @memcpy(snap.prev_hash_buf[0..pl], last.previous_hash[0..pl]);
+        snap.prev_hash_len = pl;
+        return snap;
+    }
+};
+
+/// Self-contained snapshot of a block's metadata. No heap pointers / no slices
+/// into the chain — safe to read after the originating Blockchain.mutex is released.
+/// SEGFAULT-FIX [scan-2026-04-25]: replaces returning Block-by-value (which kept
+/// hash/prev_hash slices into chain-owned memory and transactions ArrayList items
+/// pointer, causing UAF when mining loop reallocs/swaps the chain).
+pub const BlockSnapshot = struct {
+    height:       u32,
+    timestamp:    i64,
+    nonce:        u64,
+    difficulty:   u32,
+    tx_count:     usize,
+    /// Hex-encoded hash (typically 64 chars) — fixed buffer + length, no slice.
+    hash_buf:     [96]u8,
+    hash_len:     usize,
+    prev_hash_buf:[96]u8,
+    prev_hash_len:usize,
+    /// 32-byte raw merkle root copy.
+    merkle_root:  [32]u8,
+
+    /// Returns the hash as a slice into the snapshot's own buffer. Safe for any
+    /// lifetime ≤ that of the snapshot.
+    pub fn hash(self: *const BlockSnapshot) []const u8 {
+        return self.hash_buf[0..self.hash_len];
+    }
+
+    /// Returns the previous-hash as a slice into the snapshot's own buffer.
+    pub fn prevHash(self: *const BlockSnapshot) []const u8 {
+        return self.prev_hash_buf[0..self.prev_hash_len];
+    }
+
+    /// No-op — kept for API symmetry with future heap-allocated snapshots.
+    pub fn deinit(_: *BlockSnapshot, _: std.mem.Allocator) void {}
 };
 
 // ─── Teste ───────────────────────────────────────────────────────────────────

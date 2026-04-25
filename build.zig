@@ -12,6 +12,36 @@ fn addOqs(step: *std.Build.Step.Compile, enable: bool) void {
     }
 }
 
+// omnibus-evm Rust static lib (revm wrapper).
+// Build with: cd evm && cargo build --release
+// Output: evm/target/release/omnibus_evm.lib (MSVC) / libomnibus_evm.a (gnu/unix).
+const EVM_LIB_DIR = "evm/target/release";
+
+fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
+    if (!enable) return;
+    step.addLibraryPath(.{ .cwd_relative = EVM_LIB_DIR });
+    step.linkSystemLibrary("omnibus_evm");
+    step.linkLibC();
+    // The Rust static lib pulls in Windows system deps (ring, std::sync,
+    // std::time, randomness). Without these the MSVC linker will report
+    // unresolved externals like BCryptGenRandom / GetUserProfileDirectoryW.
+    if (step.rootModuleTarget().os.tag == .windows) {
+        step.linkSystemLibrary("ntdll");
+        step.linkSystemLibrary("userenv");
+        step.linkSystemLibrary("bcrypt");
+        step.linkSystemLibrary("advapi32");
+        step.linkSystemLibrary("ws2_32");
+        step.linkSystemLibrary("kernel32");
+        step.linkSystemLibrary("user32");
+        // MSVC compatibility shim: Rust staticlib (MSVC ABI) references
+        // _fltused (FP usage flag) which MinGW/lld-link doesn't provide.
+        step.addCSourceFile(.{
+            .file  = .{ .cwd_relative = "evm/msvc_compat.c" },
+            .flags = &.{},
+        });
+    }
+}
+
 /// Adauga un test fara dependinte externe (fara liboqs)
 fn addTest(b: *std.Build, name: []const u8, path: []const u8,
            target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Run {
@@ -30,6 +60,7 @@ pub fn build(b: *std.Build) void {
     const target   = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const use_oqs  = b.option(bool, "oqs", "Link liboqs for PQ crypto (default: auto-detect)") orelse true;
+    const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse true;
 
     // ── Executabile ───────────────────────────────────────────────────────────
 
@@ -42,6 +73,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     addOqs(blockchain_exe, use_oqs);
+    addEvm(blockchain_exe, use_evm);
     // p2p.zig uses std.posix.recvfrom (UDP knock-knock) which requires libc
     // Link it unconditionally so -Doqs=false still builds
     blockchain_exe.linkLibC();
@@ -56,6 +88,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     addOqs(rpc_exe, use_oqs);
+    addEvm(rpc_exe, use_evm);
     b.installArtifact(rpc_exe);
 
     // ── Benchmark executable ────────────────────────────────────────────────

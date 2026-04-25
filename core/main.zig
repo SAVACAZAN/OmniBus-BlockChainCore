@@ -113,6 +113,7 @@ const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const oracle_fetcher_mod = @import("oracle_fetcher.zig");
+const evm_executor_mod   = @import("evm_executor.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
@@ -202,6 +203,7 @@ const RPCThreadArgs = struct {
     metrics:  *benchmark_mod.Metrics,
     channel_mgr: *payment_mod.ChannelManager,
     staking:  *staking_mod.StakingEngine,
+    chain_id: u32,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -212,6 +214,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .metrics  = args.metrics,
         .channel_mgr = args.channel_mgr,
         .staking  = args.staking,
+        .chain_id = args.chain_id,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -516,6 +519,13 @@ pub fn main() !void {
         std.debug.print("[LIGHT] SPV light client mode — headers only, no full blocks\n\n", .{});
     }
 
+    // ── EVM Engine (revm) — initialize before RPC so eth_* methods work ──────
+    evm_executor_mod.init() catch |err| {
+        std.debug.print("[EVM] init failed: {} — eth_* RPC methods will return errors\n", .{err});
+    };
+    defer evm_executor_mod.shutdown();
+    std.debug.print("[EVM] Engine initialized (revm)\n", .{});
+
     // ── WebSocket + RPC — doar pe seed node (minerii nu pornesc servere) ──────
     var ws_srv = WsServer.init(ws_mod.WS_PORT, allocator);
     defer ws_srv.deinit();
@@ -537,6 +547,7 @@ pub fn main() !void {
             .metrics  = &g_metrics,
             .channel_mgr = &g_channel_mgr,
             .staking  = &staking,
+            .chain_id = @intFromEnum(net_cfg.chain_id),
         }});
         t.detach();
         std.debug.print("[RPC] Server pornit pe port {d}\n\n", .{net_cfg.rpc_port});
