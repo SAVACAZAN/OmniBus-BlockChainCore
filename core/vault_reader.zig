@@ -8,9 +8,9 @@
 ///   2. Env var OMNIBUS_MNEMONIC
 ///   3. Default dev mnemonic (abandon x11 + about)
 
-const std    = @import("std");
-const windows = std.os.windows;
-const ws2    = std.os.windows.ws2_32;
+const std     = @import("std");
+const builtin = @import("builtin");
+const is_windows = builtin.os.tag == .windows;
 
 // VaaS opcodes (din vault_core.h)
 const VAULT_OP_GET_SECRET: u8 = 0x4A;
@@ -23,13 +23,15 @@ const DEV_MNEMONIC = "abandon abandon abandon abandon abandon " ++
 
 /// Rezultat: mnemonic slice (owned de allocator) sau eroare
 pub fn readMnemonic(allocator: std.mem.Allocator) ![]const u8 {
-    // 1. Incearca Named Pipe (vault_service)
-    if (readFromVault(allocator)) |mnemonic| {
-        std.debug.print("[VAULT] Mnemonic loaded from vault_service\n", .{});
-        return mnemonic;
-    } else |_| {}
+    // 1. Incearca Named Pipe (Windows only — vault_service)
+    if (comptime is_windows) {
+        if (readFromVault(allocator)) |mnemonic| {
+            std.debug.print("[VAULT] Mnemonic loaded from vault_service\n", .{});
+            return mnemonic;
+        } else |_| {}
+    }
 
-    // 2. Env var OMNIBUS_MNEMONIC
+    // 2. Env var OMNIBUS_MNEMONIC (cross-platform)
     {
         var env_map = std.process.getEnvMap(allocator) catch {
             return try allocator.dupe(u8, DEV_MNEMONIC);
@@ -46,10 +48,18 @@ pub fn readMnemonic(allocator: std.mem.Allocator) ![]const u8 {
     return try allocator.dupe(u8, DEV_MNEMONIC);
 }
 
-/// Citeste secret din vault_service via Named Pipe
+/// Citeste secret din vault_service via Named Pipe (Windows only)
 /// Request:  [0x4A][exchange:1][slot:2=0x0000][payload_len:2=0x0000]
 /// Response: [error:1][payload_len:2][secret_bytes]
-fn readFromVault(allocator: std.mem.Allocator) ![]const u8 {
+const readFromVault = if (is_windows) readFromVaultWindows else readFromVaultStub;
+
+fn readFromVaultStub(allocator: std.mem.Allocator) ![]const u8 {
+    _ = allocator;
+    return error.PipeNotAvailable;
+}
+
+fn readFromVaultWindows(allocator: std.mem.Allocator) ![]const u8 {
+    const windows = std.os.windows;
     // Deschide Named Pipe
     const pipe_name_w = std.unicode.utf8ToUtf16LeStringLiteral(PIPE_NAME);
     const handle = windows.kernel32.CreateFileW(

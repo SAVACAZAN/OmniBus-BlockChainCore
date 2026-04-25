@@ -41,12 +41,13 @@ fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
         });
     } else if (tag == .linux) {
         // Rust glibc staticlib needs: pthread (sync), dl (dynamic loading),
-        // m (math), util (random). gcc_s for unwinding.
+        // m (math), util (random), rt (timers), gcc_s (_Unwind_* for panics).
         step.linkSystemLibrary("pthread");
         step.linkSystemLibrary("dl");
         step.linkSystemLibrary("m");
         step.linkSystemLibrary("util");
         step.linkSystemLibrary("rt");
+        step.linkSystemLibrary("gcc_s");
     } else if (tag == .macos) {
         step.linkFramework("Security");
         step.linkFramework("CoreFoundation");

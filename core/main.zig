@@ -6,24 +6,7 @@ const builtin = @import("builtin");
 // Linux/macOS: flock()         /tmp/omnibus-miner.lock
 fn acquireSingleInstanceLock() void {
     if (comptime builtin.os.tag == .windows) {
-        // Pe Windows: CreateFileW cu FILE_FLAG_DELETE_ON_CLOSE + exclusive
-        // Daca fisierul e deja deschis exclusiv de alt proces → eroare → EXIT
-        const lock_path_w = std.unicode.utf8ToUtf16LeStringLiteral("omnibus-miner.lock");
-        const handle = std.os.windows.kernel32.CreateFileW(
-            lock_path_w,
-            std.os.windows.GENERIC_WRITE,
-            0, // ShareMode = 0 → exclusiv, alt proces nu poate deschide
-            null,
-            std.os.windows.OPEN_ALWAYS,
-            std.os.windows.FILE_ATTRIBUTE_NORMAL,
-            null,
-        );
-        if (handle == std.os.windows.INVALID_HANDLE_VALUE) {
-            std.debug.print("\n[BLOCKED] Un miner OmniBus ruleaza deja pe acest PC!\n", .{});
-            std.debug.print("          Un singur miner per masina — regula de retea.\n", .{});
-            std.debug.print("          Opreste instanta curenta inainte sa pornesti alta.\n\n", .{});
-            std.process.exit(1);
-        }
+        windows_lock.acquire();
         // handle ramas deschis pana la exit — OS il elibereaza + sterge fisierul
     } else {
         // Linux / macOS / BSD: flock pe /tmp/omnibus-miner.lock
@@ -143,7 +126,7 @@ var g_shutdown = std.atomic.Value(bool).init(false);
 fn installShutdownHandler() void {
     if (comptime builtin.os.tag == .windows) {
         // Windows: use std.os.windows.SetConsoleCtrlHandler wrapper
-        std.os.windows.SetConsoleCtrlHandler(&windowsCtrlHandler, true) catch {
+        std.os.windows.SetConsoleCtrlHandler(&windows_handlers.windowsCtrlHandler, true) catch {
             std.debug.print("[SHUTDOWN] Failed to install Ctrl+C handler\n", .{});
         };
     } else {
@@ -159,11 +142,40 @@ fn installShutdownHandler() void {
     }
 }
 
-fn windowsCtrlHandler(dwCtrlType: std.os.windows.DWORD) callconv(.winapi) std.os.windows.BOOL {
-    _ = dwCtrlType;
-    g_shutdown.store(true, .monotonic);
-    return std.os.windows.TRUE; // handled, don't terminate immediately
-}
+// Windows-only handler — wrapped in a struct so std.os.windows.DWORD/BOOL
+// type references don't get resolved on non-Windows targets.
+const windows_handlers = if (builtin.os.tag == .windows) struct {
+    pub fn windowsCtrlHandler(dwCtrlType: std.os.windows.DWORD) callconv(.winapi) std.os.windows.BOOL {
+        _ = dwCtrlType;
+        g_shutdown.store(true, .monotonic);
+        return std.os.windows.TRUE; // handled, don't terminate immediately
+    }
+} else struct {};
+
+// Windows-only single-instance lock via CreateFileW exclusive — wrapped so
+// kernel32 symbol references don't leak into non-Windows builds.
+const windows_lock = if (builtin.os.tag == .windows) struct {
+    pub fn acquire() void {
+        const lock_path_w = std.unicode.utf8ToUtf16LeStringLiteral("omnibus-miner.lock");
+        const handle = std.os.windows.kernel32.CreateFileW(
+            lock_path_w,
+            std.os.windows.GENERIC_WRITE,
+            0, // ShareMode = 0 → exclusiv, alt proces nu poate deschide
+            null,
+            std.os.windows.OPEN_ALWAYS,
+            std.os.windows.FILE_ATTRIBUTE_NORMAL,
+            null,
+        );
+        if (handle == std.os.windows.INVALID_HANDLE_VALUE) {
+            std.debug.print("\n[BLOCKED] Un miner OmniBus ruleaza deja pe acest PC!\n", .{});
+            std.debug.print("          Un singur miner per masina — regula de retea.\n", .{});
+            std.debug.print("          Opreste instanta curenta inainte sa pornesti alta.\n\n", .{});
+            std.process.exit(1);
+        }
+    }
+} else struct {
+    pub fn acquire() void {}
+};
 
 fn posixSignalHandler(sig: c_int) callconv(.c) void {
     _ = sig;
