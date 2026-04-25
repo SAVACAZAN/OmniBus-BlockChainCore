@@ -455,23 +455,12 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // ── Discover product list (REST GET → fallback list on failure) ───────
-    const products = fetchCoinbaseProducts(feed.allocator) catch blk: {
-        std.debug.print("[CB-WS] product fetch failed, using {d} fallback majors\n",
-            .{COINBASE_FALLBACK_PRODUCTS.len});
-        break :blk null;
-    };
-    defer if (products) |p| {
-        for (p) |s| feed.allocator.free(s);
-        feed.allocator.free(p);
-    };
-
-    // Subscribe in chunks of COINBASE_SUBSCRIBE_CHUNK product_ids per frame.
-    if (products) |list| {
-        try sendCoinbaseSubscribe(client, feed.allocator, list);
-    } else {
-        try sendCoinbaseSubscribeStatic(client, feed.allocator, &COINBASE_FALLBACK_PRODUCTS);
-    }
+    // ── Subscribe ONLY to the 7 IMPORTANT_PAIRS ────────────────────────────
+    // Earlier full-market mode (~700 products) crashed the small-RAM VPS.
+    // We now stay focused on the 7 pairs the arbitrage panel cares about.
+    var product_buf: [IMPORTANT_PAIRS.len][]const u8 = undefined;
+    for (IMPORTANT_PAIRS, 0..) |p, i| product_buf[i] = p.coinbase;
+    try sendCoinbaseSubscribeStatic(client, feed.allocator, product_buf[0..]);
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -581,6 +570,15 @@ fn parseCoinbaseTicker(feed: *ExchangeFeed, body: []const u8) void {
         }
         const product_id = body[id_start..id_end];
 
+        // Strict whitelist — only the 7 important pairs reach the price map.
+        // Server should already only send these (we subscribed to them only),
+        // but defensive in case of stray "subscriptions" ack frames or future
+        // additions to the IMPORTANT_PAIRS list.
+        if (!isCoinbaseImportant(product_id)) {
+            pos = id_end + 1;
+            continue;
+        }
+
         // Bound the search window to the next ~1 KiB so we don't accidentally
         // grab the next ticker's bid/ask.
         const win_end = @min(body.len, id_end + 1024);
@@ -619,11 +617,20 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // Wildcard "*" subscribes to ALL ticker symbols Kraken publishes.
-    const subscribe =
-        \\{"method":"subscribe","params":{"channel":"ticker","symbol":["*"]}}
-    ;
-    try client.send(subscribe);
+    // Subscribe ONLY to the 7 IMPORTANT_PAIRS (was wildcard "*" before, but
+    // ~600 Kraken pairs flooded the VPS RAM).
+    var sym_list: std.ArrayList(u8) = .empty;
+    defer sym_list.deinit(feed.allocator);
+    try sym_list.appendSlice(feed.allocator,
+        "{\"method\":\"subscribe\",\"params\":{\"channel\":\"ticker\",\"symbol\":[");
+    for (IMPORTANT_PAIRS, 0..) |p, i| {
+        if (i > 0) try sym_list.append(feed.allocator, ',');
+        try sym_list.append(feed.allocator, '"');
+        try sym_list.appendSlice(feed.allocator, p.kraken);
+        try sym_list.append(feed.allocator, '"');
+    }
+    try sym_list.appendSlice(feed.allocator, "]}}");
+    try client.send(sym_list.items);
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -660,6 +667,14 @@ fn parseKrakenMessage(feed: *ExchangeFeed, body: []const u8) void {
             continue;
         }
         const symbol = body[s_start..s_end];
+
+        // Strict whitelist — same defensive filter as Coinbase parser.
+        // Avoids accidentally accepting BTCB/USD, WETH/USD etc. if Kraken
+        // ever expands what they push under the same connection.
+        if (!isKrakenImportant(symbol)) {
+            pos = s_end + 1;
+            continue;
+        }
 
         const win_end = @min(body.len, s_end + 512);
         const window = body[s_end..win_end];
@@ -743,6 +758,35 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 /// We walk EVERY top-level key of `data` (not just BTC/LCX). Each key is a
 /// pair name; its sub-object holds bestBid/bestAsk we parse with the existing
 /// helpers. Brace-balancing isolates each sub-object so neighbours don't bleed.
+/// True if `key` (LCX pair string from a snapshot frame) matches one of the
+/// 7 IMPORTANT_PAIRS in their LCX form. Strict equality — no substring
+/// matching — to avoid confusing similar-looking tickers (e.g. "BTCB/USDC"
+/// (Binance Wrapped BTC) vs "BTC/USDC" or "WETH/USDC" vs "ETH/USDC").
+fn isLcxImportant(key: []const u8) bool {
+    inline for (IMPORTANT_PAIRS) |p| {
+        if (std.mem.eql(u8, key, p.lcx)) return true;
+    }
+    return false;
+}
+
+/// Same as isLcxImportant but for Coinbase Advanced product_id format
+/// ("BTC-USD", "ETH-USD", ...). Strict equality to skip "BTCB-USD",
+/// "WETH-USD", "JSOL-USD" and friends that share a prefix.
+fn isCoinbaseImportant(product_id: []const u8) bool {
+    inline for (IMPORTANT_PAIRS) |p| {
+        if (std.mem.eql(u8, product_id, p.coinbase)) return true;
+    }
+    return false;
+}
+
+/// Same for Kraken v2 symbol format ("BTC/USD", "ETH/USD", ...).
+fn isKrakenImportant(symbol: []const u8) bool {
+    inline for (IMPORTANT_PAIRS) |p| {
+        if (std.mem.eql(u8, symbol, p.kraken)) return true;
+    }
+    return false;
+}
+
 fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
     // Locate the start of the data object: `"data":{`. Everything we want
     // lives inside its braces.
@@ -809,6 +853,14 @@ fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
                     else if (sc == '{') { depth += 1; }
                     else if (sc == '}') { depth -= 1; if (depth == 0) { q += 1; break; } }
                 }
+            }
+            // Filter: keep ONLY the 7 IMPORTANT_PAIRS (LCX symbol field).
+            // LCX subscribe always streams ALL pairs (one snapshot frame
+            // contains 50+ markets). Storing them all crashed the small
+            // VPS, so we discard non-important keys here.
+            if (!isLcxImportant(key)) {
+                i = q - 1;
+                continue;
             }
             const window = body[p..q];
             parseLcxPairWindow(feed, key, window);
