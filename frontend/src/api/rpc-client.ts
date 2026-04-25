@@ -12,6 +12,20 @@ export type ChainName = "mainnet" | "testnet" | "regtest";
 const CHAIN_KEY = "omnibus.chain";
 const VALID_CHAINS: ChainName[] = ["mainnet", "testnet", "regtest"];
 
+// RPC port per chain (matches chain_config.zig). Used to build absolute
+// URLs from the browser's window.location.host — bypasses Vite proxy
+// (which has been unreliable for prefix routing).
+const CHAIN_RPC_PORT: Record<ChainName, number> = {
+  mainnet: 8332,
+  testnet: 18332,
+  regtest: 28332,
+};
+const CHAIN_WS_PORT: Record<ChainName, number> = {
+  mainnet: 8334,
+  testnet: 18334,
+  regtest: 28334,
+};
+
 export function getActiveChain(): ChainName {
   if (typeof localStorage === "undefined") return "mainnet";
   const v = localStorage.getItem(CHAIN_KEY);
@@ -23,6 +37,29 @@ export function setActiveChain(c: ChainName) {
   localStorage.setItem(CHAIN_KEY, c);
   // Trigger reload so all stores re-fetch from the new RPC backend.
   window.location.reload();
+}
+
+// Build an absolute RPC URL using the current page hostname. This avoids
+// Vite's flaky prefix proxy and works whether the page is served from
+// localhost, raw IP, or a domain (and whether it's HTTP or HTTPS).
+//
+// On HTTPS (e.g. https://omnibusblockchain.cc) the browser blocks plain-HTTP
+// requests as mixed content. In that case we fall back to a same-origin
+// proxy path /api-{chain} (must be served by Caddy/Nginx upstream).
+export function rpcUrlFor(chain: ChainName): string {
+  if (typeof window === "undefined") return `/api-${chain}`;
+  if (window.location.protocol === "https:") {
+    return `/api-${chain}`;
+  }
+  return `${window.location.protocol}//${window.location.hostname}:${CHAIN_RPC_PORT[chain]}`;
+}
+
+export function wsUrlFor(chain: ChainName): string {
+  if (typeof window === "undefined") return `/ws-${chain}`;
+  if (window.location.protocol === "https:") {
+    return `wss://${window.location.host}/ws-${chain}`;
+  }
+  return `ws://${window.location.hostname}:${CHAIN_WS_PORT[chain]}`;
 }
 
 interface JsonRpcRequest {
@@ -47,9 +84,8 @@ export class OmniBusRpcClient {
     if (baseUrl) {
       this.baseUrl = baseUrl;
     } else {
-      // Auto-pick proxy path from current chain selection.
-      const chain = getActiveChain();
-      this.baseUrl = `/api-${chain}`;
+      // Auto-pick URL based on chain + page protocol (HTTPS vs HTTP).
+      this.baseUrl = rpcUrlFor(getActiveChain());
     }
   }
 

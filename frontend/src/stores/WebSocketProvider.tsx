@@ -4,15 +4,13 @@ import {
   blockchainReducer,
   initialState,
 } from "./useBlockchainStore";
-import OmniBusRpcClient, { getActiveChain } from "../api/rpc-client";
+import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
 import type { WsEvent, BlockData } from "../types";
 
-// Build WS URL via Vite proxy path /ws-{chain}. Same-origin so it works
-// from any browser — the dev server proxies it to ws://host:8334/18334/28334.
+// On HTTP: connects directly to ws://hostname:{8334|18334|28334}.
+// On HTTPS: routes via wss://host/ws-{chain} (Caddy proxy).
 function buildWsUrl(): string {
-  const chain = getActiveChain();
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${window.location.host}/ws-${chain}`;
+  return wsUrlFor(getActiveChain());
 }
 
 const WS_RECONNECT_MS = 3000;
