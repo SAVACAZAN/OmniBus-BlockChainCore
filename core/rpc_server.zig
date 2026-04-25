@@ -437,6 +437,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getblockchaininfo"))    return handleBlockchainInfo(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return handleOmnibusPrices(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return handleOmnibusExchangeFeed(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
@@ -1999,6 +2000,66 @@ fn handleOmnibusPrices(ctx: *ServerCtx, id: u64) ![]u8 {
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
         .{id},
     );
+}
+
+/// omnibus_getexchangefeed — live BTC + LCX bid/ask from 3 exchanges
+/// (Coinbase, Kraken, LCX) via WebSocket. Returns raw feed snapshot from
+/// `main_mod.g_ws_feed` (NOT the distributed-oracle consensus).
+/// Slots layout:
+///   [0] BTC Coinbase  [1] BTC Kraken  [2] BTC LCX
+///   [3] LCX Coinbase  [4] LCX Kraken  [5] LCX LCX
+fn handleOmnibusExchangeFeed(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    if (main_mod.g_ws_feed) |*feed| {
+        const snap = feed.snapshot();
+        const median_btc = feed.getMedianBtc();
+        const median_lcx = feed.getMedianLcx();
+
+        var buf: [4096]u8 = undefined;
+        var pos: usize = 0;
+        const prefix = std.fmt.bufPrint(buf[pos..],
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[", .{id})
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += prefix.len;
+
+        for (snap, 0..) |p, i| {
+            if (i > 0) { buf[pos] = ','; pos += 1; }
+            // Bid + ask in micro-USD as integer values (avoid float in JSON).
+            const entry = std.fmt.bufPrint(buf[pos..],
+                "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
+                .{ p.exchange, p.pair, p.bid_micro_usd, p.ask_micro_usd, p.timestamp_ms, if (p.success) "true" else "false" },
+            ) catch break;
+            pos += entry.len;
+        }
+
+        // Median BTC: emit number or null.
+        if (median_btc) |m| {
+            const t = std.fmt.bufPrint(buf[pos..], "],\"medianBtcMicroUsd\":{d}", .{m})
+                catch return errorJson(-32603, "buf overflow", id, alloc);
+            pos += t.len;
+        } else {
+            const t = std.fmt.bufPrint(buf[pos..], "],\"medianBtcMicroUsd\":null", .{})
+                catch return errorJson(-32603, "buf overflow", id, alloc);
+            pos += t.len;
+        }
+
+        // Median LCX: emit number or null.
+        if (median_lcx) |m| {
+            const t = std.fmt.bufPrint(buf[pos..], ",\"medianLcxMicroUsd\":{d}}}}}", .{m})
+                catch return errorJson(-32603, "buf overflow", id, alloc);
+            pos += t.len;
+        } else {
+            const t = std.fmt.bufPrint(buf[pos..], ",\"medianLcxMicroUsd\":null}}}}", .{})
+                catch return errorJson(-32603, "buf overflow", id, alloc);
+            pos += t.len;
+        }
+        return alloc.dupe(u8, buf[0..pos]);
+    }
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[],\"medianBtcMicroUsd\":null,\"medianLcxMicroUsd\":null}}}}",
+        .{id});
 }
 
 /// omnibus_getorderbook — placeholder (matching engine not heap-allocated yet)

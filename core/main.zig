@@ -96,6 +96,7 @@ const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const oracle_fetcher_mod = @import("oracle_fetcher.zig");
+const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const evm_executor_mod   = @import("evm_executor.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
@@ -204,6 +205,10 @@ pub var g_price_oracle = price_oracle_mod.DistributedPriceOracle.init();
 // ── Global Oracle Fetcher — real exchange prices from LCX, Kraken, Coinbase ──
 // Initialized in main() with a real allocator (needs HTTP client)
 pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
+
+// ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
+// Initialized in main() after all other inits, before mining loop
+pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
 
 // Thread RPC — pornit din main, detach
 const RPCThreadArgs = struct {
@@ -642,6 +647,10 @@ pub fn main() !void {
     g_metrics.start(); // set start_time at runtime (can't call timestamp() at comptime)
     std.debug.print("[METRICS] Performance tracking initialized\n\n", .{});
 
+    // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX (BTC+LCX) ──
+    g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
+    g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
+
     // Porneste block_count de la inaltimea curenta a lantului (continua, nu de la 0)
     var block_count: u32 = @intCast(bc.chain.items.len - 1);
     var maint_count: u32 = 0;
@@ -783,11 +792,22 @@ pub fn main() !void {
             if (block_count % 10 == 0) {
                 if (g_oracle_fetcher) |*fetcher| {
                     fetcher.fetchAll();
+                    // Count per-asset for accurate "X/3" labels.
+                    var btc_ok: u8 = 0;
+                    var lcx_ok: u8 = 0;
+                    for (fetcher.prices[0..3]) |p| { if (p.success) btc_ok += 1; }
+                    for (fetcher.prices[3..6]) |p| { if (p.success) lcx_ok += 1; }
                     if (fetcher.getMedianPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
-                            .{ median / 1_000_000, (median % 1_000_000) / 10_000, fetcher.price_count });
+                            .{ median / 1_000_000, (median % 1_000_000) / 10_000, btc_ok });
                     } else {
-                        std.debug.print("[ORACLE-FETCHER] No prices available (network unreachable?)\n", .{});
+                        std.debug.print("[ORACLE-FETCHER] BTC: no prices available\n", .{});
+                    }
+                    if (fetcher.getMedianLcxPrice()) |median| {
+                        std.debug.print("[ORACLE-FETCHER] LCX/USD median: ${d}.{d:0>4} ({d}/3 exchanges)\n",
+                            .{ median / 1_000_000, (median % 1_000_000) / 100, lcx_ok });
+                    } else {
+                        std.debug.print("[ORACLE-FETCHER] LCX: no prices available\n", .{});
                     }
                 }
             }
