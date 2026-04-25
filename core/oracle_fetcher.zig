@@ -1,5 +1,9 @@
-/// Oracle Price Fetcher — fetches real BTC/USD prices from LCX, Kraken, and Coinbase
-/// public REST APIs (no authentication required).
+/// Oracle Price Fetcher — fetches real bid/ask prices for BTC and LCX from
+/// LCX Exchange, Kraken, and Coinbase Advanced public REST APIs (no auth).
+///
+/// 6 price slots = 2 assets × 3 exchanges:
+///   [0] BTC LCX        [1] BTC Kraken     [2] BTC Coinbase Advanced
+///   [3] LCX LCX        [4] LCX Kraken     [5] LCX Coinbase Advanced
 ///
 /// Returns prices in micro-USD (u64): 1 USD = 1_000_000 micro-USD.
 /// Example: BTC at $84,321.45 → 84_321_450_000 micro-USD.
@@ -24,8 +28,8 @@ pub const OracleFetcher = struct {
     last_fetch_ms: i64,
     fetch_interval_ms: i64,
 
-    /// Cached prices: [0]=LCX, [1]=Kraken, [2]=Coinbase
-    prices: [3]PriceFetch,
+    /// 6 price slots — see header comment for layout.
+    prices: [6]PriceFetch,
     price_count: u8,
 
     const Self = @This();
@@ -35,20 +39,29 @@ pub const OracleFetcher = struct {
             .allocator = allocator,
             .last_fetch_ms = 0,
             .fetch_interval_ms = 10_000, // 10 seconds default
-            .prices = [3]PriceFetch{
-                .{ .exchange = "LCX", .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "Kraken", .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
+            .prices = [6]PriceFetch{
+                .{ .exchange = "LCX",      .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
+                .{ .exchange = "Kraken",   .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
                 .{ .exchange = "Coinbase", .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
+                .{ .exchange = "LCX",      .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
+                .{ .exchange = "Kraken",   .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
+                .{ .exchange = "Coinbase", .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
             },
             .price_count = 0,
         };
     }
 
-    /// Fetch prices from all 3 exchanges. Best-effort: never returns error.
+    /// Fetch prices from all 3 exchanges, both BTC and LCX. Best-effort: never returns error.
     pub fn fetchAll(self: *Self) void {
-        self.fetchLCX();
-        self.fetchKraken();
-        self.fetchCoinbase();
+        // BTC pair (slots 0-2)
+        self.fetchLcxPair(0, "BTC/USDC", "BTC/USD");
+        self.fetchKrakenPair(1, "XBTUSD",  "BTC/USD");
+        self.fetchCoinbasePair(2, "BTC-USD", "BTC/USD");
+        // LCX pair (slots 3-5)
+        self.fetchLcxPair(3, "LCX/USDC", "LCX/USD");
+        self.fetchKrakenPair(4, "LCXUSD",  "LCX/USD");
+        self.fetchCoinbasePair(5, "LCX-USD", "LCX/USD");
+
         self.last_fetch_ms = std.time.milliTimestamp();
 
         // Count successful fetches
@@ -58,11 +71,17 @@ pub const OracleFetcher = struct {
         }
     }
 
-    /// Fetch BTC/USDC from LCX public ticker API
-    fn fetchLCX(self: *Self) void {
-        // LCX response: {"data":{"bestBid":84000.5,"bestAsk":84001.2,"currentPrice":84000.8,...}}
-        const body = httpGet(self.allocator, "https://exchange-api.lcx.com/api/ticker?pair=BTC/USDC") catch {
-            self.prices[0].success = false;
+    /// Fetch from LCX public ticker API: bestBid / bestAsk in JSON.
+    /// LCX response: {"data":{"bestBid":84000.5,"bestAsk":84001.2,...}}
+    fn fetchLcxPair(self: *Self, slot: usize, lcx_pair: []const u8, label_pair: []const u8) void {
+        var url_buf: [128]u8 = undefined;
+        const url = std.fmt.bufPrint(&url_buf,
+            "https://exchange-api.lcx.com/api/ticker?pair={s}", .{lcx_pair}) catch {
+            self.prices[slot].success = false;
+            return;
+        };
+        const body = httpGet(self.allocator, url) catch {
+            self.prices[slot].success = false;
             return;
         };
         defer self.allocator.free(body);
@@ -71,27 +90,34 @@ pub const OracleFetcher = struct {
         const ask = parseLcxPrice(body, "bestAsk");
 
         if (bid != null or ask != null) {
-            const now = std.time.milliTimestamp();
             const bid_val = bid orelse (ask orelse 0);
             const ask_val = ask orelse (bid orelse 0);
-            self.prices[0] = .{
-                .exchange = "LCX",
-                .pair = "BTC/USD",
+            self.prices[slot] = .{
+                .exchange      = "LCX",
+                .pair          = label_pair,
                 .bid_micro_usd = bid_val,
                 .ask_micro_usd = ask_val,
-                .timestamp_ms = now,
-                .success = true,
+                .timestamp_ms  = std.time.milliTimestamp(),
+                .success       = true,
             };
         } else {
-            self.prices[0].success = false;
+            self.prices[slot].success = false;
         }
     }
 
-    /// Fetch BTC/USD from Kraken public ticker API
-    fn fetchKraken(self: *Self) void {
-        // Kraken response: {"result":{"XXBTZUSD":{"a":["84001.2",...], "b":["84000.5",...], ...}}}
-        const body = httpGet(self.allocator, "https://api.kraken.com/0/public/Ticker?pair=XBTUSD") catch {
-            self.prices[1].success = false;
+    /// Fetch from Kraken public ticker API.
+    /// Response: {"result":{"<KEY>":{"a":["84001.2",...], "b":["84000.5",...], ...}}}
+    /// Note: Kraken uses XBT for BTC. LCX may not be listed → fetch returns
+    /// error or empty result, slot stays unsuccessful.
+    fn fetchKrakenPair(self: *Self, slot: usize, kraken_pair: []const u8, label_pair: []const u8) void {
+        var url_buf: [128]u8 = undefined;
+        const url = std.fmt.bufPrint(&url_buf,
+            "https://api.kraken.com/0/public/Ticker?pair={s}", .{kraken_pair}) catch {
+            self.prices[slot].success = false;
+            return;
+        };
+        const body = httpGet(self.allocator, url) catch {
+            self.prices[slot].success = false;
             return;
         };
         defer self.allocator.free(body);
@@ -100,105 +126,128 @@ pub const OracleFetcher = struct {
         const ask = parseKrakenPrice(body, "\"a\"");
 
         if (bid != null or ask != null) {
-            const now = std.time.milliTimestamp();
             const bid_val = bid orelse (ask orelse 0);
             const ask_val = ask orelse (bid orelse 0);
-            self.prices[1] = .{
-                .exchange = "Kraken",
-                .pair = "BTC/USD",
+            self.prices[slot] = .{
+                .exchange      = "Kraken",
+                .pair          = label_pair,
                 .bid_micro_usd = bid_val,
                 .ask_micro_usd = ask_val,
-                .timestamp_ms = now,
-                .success = true,
+                .timestamp_ms  = std.time.milliTimestamp(),
+                .success       = true,
             };
         } else {
-            self.prices[1].success = false;
+            self.prices[slot].success = false;
         }
     }
 
-    /// Fetch BTC/USD from Coinbase public spot price API
-    fn fetchCoinbase(self: *Self) void {
-        // Coinbase response: {"data":{"base":"BTC","currency":"USD","amount":"84000.50"}}
-        const body = httpGet(self.allocator, "https://api.coinbase.com/v2/prices/BTC-USD/spot") catch {
-            self.prices[2].success = false;
+    /// Fetch from Coinbase Advanced (api.exchange.coinbase.com) public ticker.
+    /// Response: {"ask":"84001.2","bid":"84000.5","price":"84000.85","time":"...","trade_id":...}
+    /// LCX may not be listed → 404 → slot stays unsuccessful.
+    fn fetchCoinbasePair(self: *Self, slot: usize, cb_pair: []const u8, label_pair: []const u8) void {
+        var url_buf: [128]u8 = undefined;
+        const url = std.fmt.bufPrint(&url_buf,
+            "https://api.exchange.coinbase.com/products/{s}/ticker", .{cb_pair}) catch {
+            self.prices[slot].success = false;
+            return;
+        };
+        const body = httpGet(self.allocator, url) catch {
+            self.prices[slot].success = false;
             return;
         };
         defer self.allocator.free(body);
 
-        const price = parseCoinbasePrice(body);
-        if (price) |p| {
-            const now = std.time.milliTimestamp();
-            self.prices[2] = .{
-                .exchange = "Coinbase",
-                .pair = "BTC/USD",
-                .bid_micro_usd = p,
-                .ask_micro_usd = p,
-                .timestamp_ms = now,
-                .success = true,
+        const bid = parseQuotedPrice(body, "\"bid\":\"");
+        const ask = parseQuotedPrice(body, "\"ask\":\"");
+
+        if (bid != null or ask != null) {
+            const bid_val = bid orelse (ask orelse 0);
+            const ask_val = ask orelse (bid orelse 0);
+            self.prices[slot] = .{
+                .exchange      = "Coinbase",
+                .pair          = label_pair,
+                .bid_micro_usd = bid_val,
+                .ask_micro_usd = ask_val,
+                .timestamp_ms  = std.time.milliTimestamp(),
+                .success       = true,
             };
         } else {
-            self.prices[2].success = false;
+            self.prices[slot].success = false;
         }
     }
 
-    /// Get median price across all successful fetches, in micro-USD.
+    /// Get median BTC price across the 3 BTC slots (0..3).
     /// Returns null if no exchange returned a valid price.
     pub fn getMedianPrice(self: *const Self) ?u64 {
-        var valid: [3]u64 = undefined;
-        var count: u8 = 0;
-        for (self.prices) |p| {
-            if (p.success and p.bid_micro_usd > 0) {
-                // Use midpoint of bid/ask
-                valid[count] = (p.bid_micro_usd + p.ask_micro_usd) / 2;
-                count += 1;
-            }
-        }
-
-        if (count == 0) return null;
-        if (count == 1) return valid[0];
-
-        // Sort ascending
-        sortU64(valid[0..count]);
-
-        // Median: middle element or average of two middle
-        if (count == 2) return (valid[0] + valid[1]) / 2;
-        return valid[count / 2]; // count==3 → valid[1]
+        return medianFor(self.prices[0..3]);
     }
 
-    /// Get best bid (highest) across exchanges
+    /// Get median LCX price across the 3 LCX slots (3..6).
+    pub fn getMedianLcxPrice(self: *const Self) ?u64 {
+        return medianFor(self.prices[3..6]);
+    }
+
+    /// Get best BTC bid (highest) across exchanges
     pub fn getBestBid(self: *const Self) ?u64 {
-        var best: ?u64 = null;
-        for (self.prices) |p| {
-            if (p.success and p.bid_micro_usd > 0) {
-                if (best == null or p.bid_micro_usd > best.?) {
-                    best = p.bid_micro_usd;
-                }
-            }
-        }
-        return best;
+        return bestBidFor(self.prices[0..3]);
     }
 
-    /// Get best ask (lowest) across exchanges
+    /// Get best BTC ask (lowest) across exchanges
     pub fn getBestAsk(self: *const Self) ?u64 {
-        var best: ?u64 = null;
-        for (self.prices) |p| {
-            if (p.success and p.ask_micro_usd > 0) {
-                if (best == null or p.ask_micro_usd < best.?) {
-                    best = p.ask_micro_usd;
-                }
-            }
-        }
-        return best;
+        return bestAskFor(self.prices[0..3]);
     }
 
-    /// Format median price as a human-readable string: "$84,321.45"
+    /// Format median BTC price as a human-readable string: "$84,321.45"
     pub fn formatMedianPrice(self: *const Self, buf: []u8) []const u8 {
         const median = self.getMedianPrice() orelse return "N/A";
-        const dollars = median / 1_000_000;
-        const cents = (median % 1_000_000) / 10_000;
-        return std.fmt.bufPrint(buf, "${d}.{d:0>2}", .{ dollars, cents }) catch "ERR";
+        return formatMicroUsd(buf, median);
     }
 };
+
+// ── Helpers shared between BTC and LCX views ────────────────────────────────
+
+fn medianFor(slice: []const PriceFetch) ?u64 {
+    var valid: [3]u64 = undefined;
+    var count: u8 = 0;
+    for (slice) |p| {
+        if (p.success and p.bid_micro_usd > 0) {
+            valid[count] = (p.bid_micro_usd + p.ask_micro_usd) / 2;
+            count += 1;
+            if (count == 3) break;
+        }
+    }
+    if (count == 0) return null;
+    if (count == 1) return valid[0];
+    sortU64(valid[0..count]);
+    if (count == 2) return (valid[0] + valid[1]) / 2;
+    return valid[count / 2];
+}
+
+fn bestBidFor(slice: []const PriceFetch) ?u64 {
+    var best: ?u64 = null;
+    for (slice) |p| {
+        if (p.success and p.bid_micro_usd > 0) {
+            if (best == null or p.bid_micro_usd > best.?) best = p.bid_micro_usd;
+        }
+    }
+    return best;
+}
+
+fn bestAskFor(slice: []const PriceFetch) ?u64 {
+    var best: ?u64 = null;
+    for (slice) |p| {
+        if (p.success and p.ask_micro_usd > 0) {
+            if (best == null or p.ask_micro_usd < best.?) best = p.ask_micro_usd;
+        }
+    }
+    return best;
+}
+
+fn formatMicroUsd(buf: []u8, micro: u64) []const u8 {
+    const dollars = micro / 1_000_000;
+    const cents = (micro % 1_000_000) / 10_000;
+    return std.fmt.bufPrint(buf, "${d}.{d:0>2}", .{ dollars, cents }) catch "ERR";
+}
 
 // ── HTTP client — uses std.http.Client with std.Io.Writer.Allocating ─────────
 
@@ -261,13 +310,18 @@ pub fn parseKrakenPrice(body: []const u8, key: []const u8) ?u64 {
     return floatToMicroUsd(body[quote1 + 1 .. quote2]);
 }
 
-/// Parse Coinbase spot price. Format: {"data":{"amount":"84000.50",...}}
+/// Parse Coinbase spot price (legacy v2 API). Format: {"data":{"amount":"84000.50",...}}
 pub fn parseCoinbasePrice(body: []const u8) ?u64 {
-    const key = "\"amount\":\"";
-    const pos = std.mem.indexOf(u8, body, key) orelse return null;
-    const val_start = pos + key.len;
-    const val_end = std.mem.indexOfPos(u8, body, val_start, "\"") orelse return null;
+    return parseQuotedPrice(body, "\"amount\":\"");
+}
 
+/// Parse a price from a quoted JSON string field.
+/// Pass the full prefix INCLUDING the opening quote, e.g. `"bid":"`.
+/// Used by Coinbase Advanced ticker which returns: {"bid":"84000.5","ask":"84001.2",...}
+pub fn parseQuotedPrice(body: []const u8, prefix_with_quote: []const u8) ?u64 {
+    const pos = std.mem.indexOf(u8, body, prefix_with_quote) orelse return null;
+    const val_start = pos + prefix_with_quote.len;
+    const val_end = std.mem.indexOfPos(u8, body, val_start, "\"") orelse return null;
     if (val_end <= val_start) return null;
     return floatToMicroUsd(body[val_start..val_end]);
 }
