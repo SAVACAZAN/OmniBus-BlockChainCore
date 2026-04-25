@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { MempoolBlock } from "./MempoolBlock";
+import { BlockDetail } from "../blocks/BlockDetail";
+import type { BlockData } from "../../types";
 
 const MAX_VISIBLE_BLOCKS = 8;
 
 export function MempoolBlockStrip() {
   const { state } = useBlockchain();
   const blocks = state.recentBlocks.slice(0, MAX_VISIBLE_BLOCKS);
+  const [selectedBlock, setSelectedBlock] = useState<BlockData | null>(null);
 
   return (
     <section className="w-full">
@@ -29,6 +33,7 @@ export function MempoolBlockStrip() {
               key={`block-${block.height}`}
               block={block}
               isLatest={i === arr.length - 1}
+              onClick={() => setSelectedBlock(block)}
             />
           ))}
 
@@ -57,6 +62,10 @@ export function MempoolBlockStrip() {
           pendingTxs={state.pendingTxs}
         />
       </div>
+
+      {selectedBlock && (
+        <BlockDetail block={selectedBlock} onClose={() => setSelectedBlock(null)} />
+      )}
     </section>
   );
 }

@@ -8,6 +8,9 @@ interface MempoolBlockProps {
   pendingTxs?: PendingTx[];
   isPending?: boolean;
   isLatest?: boolean;
+  /// Optional click handler. When supplied (only for confirmed blocks),
+  /// the card becomes clickable and opens BlockDetail in the parent.
+  onClick?: () => void;
 }
 
 const rpc = new OmniBusRpcClient();
@@ -40,6 +43,7 @@ export function MempoolBlock({
   pendingTxs,
   isPending = false,
   isLatest = false,
+  onClick,
 }: MempoolBlockProps) {
   // Fetch full block detail (with prices array) once per height. Skipped
   // for the pending-block placeholder (no height yet).
@@ -111,13 +115,20 @@ export function MempoolBlock({
     ? new Date(block.timestamp * 1000).toLocaleTimeString()
     : "";
 
+  const clickable = !isPending && typeof onClick === "function";
+
   return (
     <div
+      onClick={clickable ? onClick : undefined}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); } : undefined}
       className={`
         relative flex-shrink-0 w-40 rounded-xl overflow-hidden
         transition-all duration-500 ease-out
         ${isLatest ? "animate-slideInRight" : ""}
         ${isPending ? "animate-pulseGlow" : ""}
+        ${clickable ? "cursor-pointer hover:ring-2 hover:ring-mempool-orange/60 focus:outline-none focus:ring-2 focus:ring-mempool-orange" : ""}
       `}
       style={{
         background: isPending
