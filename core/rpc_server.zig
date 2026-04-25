@@ -1038,9 +1038,37 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const tx_count = blk.transactions.items.len;
     const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
 
+    // Build optional prices array — empty if no snapshot recorded for this height.
+    var prices_buf: [2048]u8 = undefined;
+    var prices_len: usize = 0;
+    {
+        var pos: usize = 0;
+        const open = std.fmt.bufPrint(prices_buf[pos..], "[", .{}) catch {
+            return errorJson(-32603, "buf overflow", id, alloc);
+        };
+        pos += open.len;
+        if (ctx.bc.getBlockPrices(blk.index)) |entries| {
+            for (entries, 0..) |e, i| {
+                if (i > 0) { prices_buf[pos] = ','; pos += 1; }
+                const ex = e.exchange[0..e.exchange_len];
+                const pr = e.pair[0..e.pair_len];
+                const item = std.fmt.bufPrint(prices_buf[pos..],
+                    "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
+                    .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
+                ) catch break;
+                pos += item.len;
+            }
+        }
+        const close = std.fmt.bufPrint(prices_buf[pos..], "]", .{}) catch {
+            return errorJson(-32603, "buf overflow", id, alloc);
+        };
+        pos += close.len;
+        prices_len = pos;
+    }
+
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"prices\":{s}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, prices_buf[0..prices_len] });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {

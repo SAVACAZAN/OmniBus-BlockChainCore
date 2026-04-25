@@ -4,18 +4,53 @@ import type { BlockData } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
+interface PriceEntry {
+  exchange: string;
+  pair: string;
+  bidMicroUsd: number;
+  askMicroUsd: number;
+  timestampMs: number;
+  success: boolean;
+}
+
 interface BlockDetailProps {
   block: BlockData;
   onClose: () => void;
 }
 
+// Format micro-USD as $price with appropriate decimals.
+// BTC needs 2 decimals (huge price), LCX needs 4 (sub-dollar).
+function fmtUsd(micro: number, isLcx: boolean): string {
+  if (!micro) return "—";
+  const usd = micro / 1_000_000;
+  return "$" + usd.toFixed(isLcx ? 4 : 2);
+}
+
+// Format millisecond timestamp with 3 decimals (.123)
+function fmtTs(ms: number): string {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const time = d.toLocaleTimeString([], { hour12: false });
+  const mil = (ms % 1000).toString().padStart(3, "0");
+  return `${time}.${mil}`;
+}
+
 export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prices, setPrices] = useState<PriceEntry[]>([]);
 
   useEffect(() => {
     loadTxs();
+    loadPrices();
   }, [block.height]);
+
+  const loadPrices = async () => {
+    try {
+      const result: any = await rpc.request_raw("getblock", [block.height]);
+      if (Array.isArray(result?.prices)) setPrices(result.prices);
+    } catch {}
+  };
 
   const loadTxs = async () => {
     setLoading(true);
@@ -97,6 +132,55 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               <p className="text-xs font-mono text-mempool-text">{block.nonce?.toLocaleString() || "--"}</p>
             </div>
           </div>
+
+          {/* Oracle Prices captured at mining time */}
+          {prices.length > 0 && (
+            <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-2">
+                Oracle Prices @ Mining (3 exchanges × 2 pairs)
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {(["BTC/USD", "LCX/USD"] as const).map((pair) => {
+                  const isLcx = pair === "LCX/USD";
+                  const rows = prices.filter((p) => p.pair === pair);
+                  return (
+                    <div key={pair}>
+                      <p className="text-[10px] font-bold text-mempool-text mb-1">{pair}</p>
+                      <table className="w-full text-[10px]">
+                        <thead>
+                          <tr className="text-mempool-text-dim">
+                            <th className="text-left pr-1">Ex</th>
+                            <th className="text-right">Bid</th>
+                            <th className="text-right">Ask</th>
+                            <th className="text-right pl-1">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((p) => (
+                            <tr
+                              key={`${p.exchange}-${p.pair}`}
+                              className={p.success ? "" : "opacity-40"}
+                            >
+                              <td className="text-mempool-text-dim pr-1">{p.exchange}</td>
+                              <td className="text-right font-mono text-mempool-green">
+                                {p.success ? fmtUsd(p.bidMicroUsd, isLcx) : "n/a"}
+                              </td>
+                              <td className="text-right font-mono text-mempool-orange">
+                                {p.success ? fmtUsd(p.askMicroUsd, isLcx) : "n/a"}
+                              </td>
+                              <td className="text-right font-mono text-mempool-text-dim pl-1">
+                                {p.success ? fmtTs(p.timestampMs) : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Fee Summary */}
           {txs.length > 0 && (

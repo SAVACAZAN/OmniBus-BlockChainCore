@@ -723,6 +723,29 @@ pub fn main() !void {
             const mine_end_ns: u64 = @intCast(std.time.nanoTimestamp());
             const mine_time_ns = mine_end_ns - mine_start_ns;
 
+            // ── Snapshot prices from WS feed into the mined block ────────
+            // Mapeaza ws_exchange_feed.PriceFetch → blockchain.BlockPriceEntry
+            // (fixed-size strings ca sa traiasca in hashmap fara allocator).
+            if (g_ws_feed) |*feed| {
+                const live = feed.snapshot();
+                var entries: [6]blockchain_mod.BlockPriceEntry = undefined;
+                for (live, 0..) |p, i| {
+                    var e: blockchain_mod.BlockPriceEntry = .{};
+                    const elen = @min(p.exchange.len, 16);
+                    e.exchange_len = @intCast(elen);
+                    @memcpy(e.exchange[0..elen], p.exchange[0..elen]);
+                    const plen = @min(p.pair.len, 16);
+                    e.pair_len = @intCast(plen);
+                    @memcpy(e.pair[0..plen], p.pair[0..plen]);
+                    e.bid_micro_usd = p.bid_micro_usd;
+                    e.ask_micro_usd = p.ask_micro_usd;
+                    e.timestamp_ms  = p.timestamp_ms;
+                    e.success       = p.success;
+                    entries[i] = e;
+                }
+                bc.recordBlockPrices(new_block.index, &entries);
+            }
+
             // Update metrics: hashrate from nonces tried
             g_metrics.updateHashrate(new_block.nonce, mine_time_ns);
 

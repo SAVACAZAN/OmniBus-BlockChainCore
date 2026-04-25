@@ -96,6 +96,26 @@ pub const MultisigConfigEntry = struct {
     },
 };
 
+/// Per-block oracle price entry — copy of ws_exchange_feed.PriceFetch with
+/// fixed-size strings so it can live in a HashMap without allocator deps.
+/// Captured at mining time and exposed via getblock RPC.
+pub const BlockPriceEntry = struct {
+    /// "Coinbase", "Kraken", "LCX" — fixed 16 bytes
+    exchange: [16]u8 = [_]u8{0} ** 16,
+    exchange_len: u8 = 0,
+    /// "BTC/USD" or "LCX/USD" — fixed 16 bytes
+    pair: [16]u8 = [_]u8{0} ** 16,
+    pair_len: u8 = 0,
+    bid_micro_usd: u64 = 0,
+    ask_micro_usd: u64 = 0,
+    /// Milliseconds since Unix epoch (3 decimals — same precision as
+    /// ws_exchange_feed.PriceFetch.timestamp_ms). Drift between the 3
+    /// exchange clocks is typically ±10-50ms via NTP, so 3 decimals
+    /// (1ms) is the highest meaningful precision.
+    timestamp_ms: i64 = 0,
+    success: bool = false,
+};
+
 pub const Blockchain = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
@@ -137,6 +157,12 @@ pub const Blockchain = struct {
     persistent_db: ?*@import("database.zig").PersistentBlockchain = null,
     /// DB file path for auto-save
     db_path: []const u8 = "omnibus-chain.dat",
+    /// Per-block oracle price snapshot (6 slots: BTC×3 exchanges + LCX×3).
+    /// Captured at mining time from g_ws_feed. In-memory only (not persisted
+    /// to disk in DB v2, so a restart loses old prices but new blocks get fresh ones).
+    /// Layout matches ws_exchange_feed.PriceFetch.
+    block_prices: std.AutoHashMap(u32, [6]BlockPriceEntry) = undefined,
+    block_prices_initialized: bool = false,
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
@@ -166,7 +192,41 @@ pub const Blockchain = struct {
             .orphan_blocks = array_list.Managed(Block).init(allocator),
             .address_tx_index = std.StringHashMap(std.ArrayList([]const u8)).init(allocator),
             .utxo_set = utxo_mod.UTXOSet.init(allocator),
+            .block_prices = std.AutoHashMap(u32, [6]BlockPriceEntry).init(allocator),
+            .block_prices_initialized = true,
         };
+    }
+
+    /// Snapshot oracle prices for a freshly mined block. Caller passes the
+    /// 6 PriceFetch entries from g_ws_feed.snapshot(). Stored under block height.
+    /// Trims old entries (>1000 blocks behind tip) to bound memory.
+    pub fn recordBlockPrices(self: *Blockchain, height: u32, entries: []const BlockPriceEntry) void {
+        if (!self.block_prices_initialized) return;
+        if (entries.len < 6) return;
+        var arr: [6]BlockPriceEntry = undefined;
+        for (0..6) |i| arr[i] = entries[i];
+        self.block_prices.put(height, arr) catch return;
+        // Bound memory: drop entries older than 1000 blocks behind current.
+        if (height > 1000) {
+            const cutoff = height - 1000;
+            var it = self.block_prices.iterator();
+            var to_remove: [16]u32 = undefined;
+            var rcount: usize = 0;
+            while (it.next()) |e| {
+                if (e.key_ptr.* < cutoff and rcount < to_remove.len) {
+                    to_remove[rcount] = e.key_ptr.*;
+                    rcount += 1;
+                }
+            }
+            for (to_remove[0..rcount]) |k| _ = self.block_prices.remove(k);
+        }
+    }
+
+    /// Return the 6 price entries snapshot for a block, or null if not recorded
+    /// (e.g. block was mined before WS feed came online, or after node restart).
+    pub fn getBlockPrices(self: *const Blockchain, height: u32) ?[6]BlockPriceEntry {
+        if (!self.block_prices_initialized) return null;
+        return self.block_prices.get(height);
     }
 
     pub fn deinit(self: *Blockchain) void {
