@@ -409,11 +409,28 @@ fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
 
 fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) bool {
     const start = std.mem.indexOf(u8, body, marker) orelse return false;
-    // Bound the window to the pair's sub-object — otherwise we'd pull
-    // bid/ask from the FIRST pair in the snapshot for every slot.
-    // A typical LCX pair sub-object fits in ~600 bytes; 1024 is safe.
-    const window_end = @min(body.len, start + 1024);
-    const window = body[start..window_end];
+    // Find the END of THIS pair's sub-object by balancing { and } brackets.
+    // The marker ends with "{" so depth starts at 1. Skip strings + escapes
+    // so we don't count braces inside JSON string literals.
+    const obj_open = start + marker.len; // points just AFTER the opening '{'
+    var i: usize = obj_open;
+    var depth: i32 = 1;
+    var in_string: bool = false;
+    var escape: bool = false;
+    while (i < body.len) : (i += 1) {
+        const c = body[i];
+        if (in_string) {
+            if (escape) { escape = false; }
+            else if (c == '\\') { escape = true; }
+            else if (c == '"') { in_string = false; }
+        } else {
+            if (c == '"') { in_string = true; }
+            else if (c == '{') { depth += 1; }
+            else if (c == '}') { depth -= 1; if (depth == 0) { i += 1; break; } }
+        }
+    }
+    // Window covers exactly this pair's sub-object — no leak from neighbours.
+    const window = body[start..i];
 
     // Try unquoted (LCX modern) AND quoted (some endpoints) variants,
     // searched ONLY within this pair's window.
