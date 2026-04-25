@@ -322,9 +322,20 @@ pub const Blockchain = struct {
 
     /// Internal — caller must already hold self.mutex.
     /// Folosit din applyBlock / replayState, care deja tin mutex-ul.
+    /// IMPORTANT: StringHashMap stocheaza slice-ul ca key fara sa-l copieze.
+    /// Daca punem mereu slice nou (allocator.dupe in fiecare block), HashMap-ul
+    /// keep slice-ul vechi ca key (vechiul pointer poate deveni invalid),
+    /// produced silent balance corruption — count-ul intra in entries duplicate
+    /// dupa content vs pointer.
+    /// Solutie: getOrPut + dupe DOAR la prima insertie. Update-ul ulterior
+    /// reutilizeaza key-ul deja persistent.
     pub fn creditBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        const existing = self.balances.get(address) orelse 0;
-        try self.balances.put(address, existing + amount);
+        const gop = try self.balances.getOrPut(address);
+        if (!gop.found_existing) {
+            gop.key_ptr.* = try self.allocator.dupe(u8, address);
+            gop.value_ptr.* = 0;
+        }
+        gop.value_ptr.* += amount;
     }
 
     /// Scade din balanta (pentru tranzactii)
@@ -335,10 +346,16 @@ pub const Blockchain = struct {
     }
 
     /// Internal — caller must already hold self.mutex.
+    /// Same getOrPut + dupe pattern as creditBalanceLocked to avoid dangling
+    /// HashMap key pointers when caller passes a transient slice.
     pub fn debitBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        const existing = self.balances.get(address) orelse 0;
-        if (existing < amount) return error.InsufficientBalance;
-        try self.balances.put(address, existing - amount);
+        const gop = try self.balances.getOrPut(address);
+        if (!gop.found_existing) {
+            gop.key_ptr.* = try self.allocator.dupe(u8, address);
+            gop.value_ptr.* = 0;
+        }
+        if (gop.value_ptr.* < amount) return error.InsufficientBalance;
+        gop.value_ptr.* -= amount;
     }
 
     /// Inregistreaza public key-ul unei adrese (pentru verificare semnatura TX)
