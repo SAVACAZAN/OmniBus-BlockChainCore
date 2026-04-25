@@ -481,8 +481,17 @@ pub fn main() !void {
     std.debug.print("[SUBSYSTEMS] StateTrie + Finality + Staking + Governance + PeerScoring + DNS + Guardian\n\n", .{});
 
     // ── Init P2P Node ─────────────────────────────────────────────────────────
-    var p2p = P2PNode.init(config.node_id, config.host, config.port, allocator);
-    defer p2p.deinit();
+    // Heap-allocate: P2PNode is ~1.5 MB (SeenHashes×2 = ~1.3 MB, banned_peers,
+    // reconnect_queue, scoring engine). Returning by-value puts the whole thing
+    // on the stack twice (callee frame + caller copy) and segfaults Linux when
+    // RLIMIT_STACK is tight or other locals push the frame past the guard page.
+    const p2p_heap = try allocator.create(P2PNode);
+    p2p_heap.* = P2PNode.init(config.node_id, config.host, config.port, allocator);
+    defer {
+        p2p_heap.deinit();
+        allocator.destroy(p2p_heap);
+    }
+    const p2p = p2p_heap;
     // Conecteaza la seed node daca e miner (best-effort, nu blocheaza)
     if (config.seed_host) |sh| {
         if (config.seed_port) |sp| {
@@ -555,7 +564,7 @@ pub fn main() !void {
             .wallet   = &wallet,
             .alloc    = allocator,
             .mempool  = &mempool,
-            .p2p      = &p2p,
+            .p2p      = p2p,
             .sync_mgr = &sync_mgr,
             .metrics  = &g_metrics,
             .channel_mgr = &g_channel_mgr,
@@ -573,7 +582,7 @@ pub fn main() !void {
     defer launcher.deinit();
 
     // Ataseaza P2PNode real la launcher — broadcast() va folosi TCP in loc de print-only
-    launcher.attachP2PNode(&p2p);
+    launcher.attachP2PNode(p2p);
 
     if (config.mode == node_launcher.NodeMode.seed) {
         try launcher.startSeedNode();
