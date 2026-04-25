@@ -58,22 +58,31 @@ pub const PriceMap = std.StringHashMap(PriceFetch);
 /// One canonical "important" pair tracked across all 3 exchanges. The label
 /// is the user-facing canonical form ("BTC/USD"); per-exchange fields hold
 /// the exchange-specific symbol used to look up that pair in `prices`.
+///
+/// LCX may not list USDC for every asset — for some pairs it only has EUR
+/// or BTC quotes. We list multiple LCX candidates in priority order; the
+/// parser tries them sequentially and keeps the first match. The matched
+/// quote currency is exposed via PriceFetch.quote so arbitrage can avoid
+/// mixing quote currencies (e.g. EUR vs USD).
 pub const ImportantPair = struct {
-    label: []const u8,
-    lcx: []const u8,
+    label: []const u8,        // canonical label, e.g. "BTC/USD"
+    /// LCX symbol candidates, in priority order. First USDC/USD match wins.
+    /// Add EUR / BTC fallbacks where LCX has no stable-USD listing.
+    lcx_candidates: []const []const u8,
     kraken: []const u8,
     coinbase: []const u8,
 };
 
-/// 7 canonical pairs × 3 exchanges = 21 entries from `getImportantSnapshot`.
+/// 7 canonical pairs × 3 exchanges. LCX falls back through USDC → USD → EUR.
+/// EUR-priced LCX entries are still displayed but excluded from USD arbitrage.
 pub const IMPORTANT_PAIRS = [_]ImportantPair{
-    .{ .label = "BTC/USD",  .lcx = "BTC/USDC",  .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
-    .{ .label = "LCX/USD",  .lcx = "LCX/USDC",  .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
-    .{ .label = "ETH/USD",  .lcx = "ETH/USDC",  .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
-    .{ .label = "SOL/USD",  .lcx = "SOL/USDC",  .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
-    .{ .label = "ADA/USD",  .lcx = "ADA/USDC",  .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
-    .{ .label = "SUI/USD",  .lcx = "SUI/USDC",  .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
-    .{ .label = "EGLD/USD", .lcx = "EGLD/USDC", .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
+    .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USDC",  "BTC/USDT",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
+    .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USDC",  "LCX/USD",   "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
+    .{ .label = "ETH/USD",  .lcx_candidates = &[_][]const u8{ "ETH/USDC",  "ETH/USDT",  "ETH/EUR"  }, .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
+    .{ .label = "SOL/USD",  .lcx_candidates = &[_][]const u8{ "SOL/USDC",  "SOL/USDT",  "SOL/EUR"  }, .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
+    .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USDC",  "ADA/USDT",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
+    .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USDC",  "SUI/USDT",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
+    .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USDC", "EGLD/USDT", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -254,7 +263,14 @@ pub const ExchangeFeed = struct {
             idx += 1;
             out[idx] = self.lookupOrEmpty("Kraken", ip.kraken, ip.label);
             idx += 1;
-            out[idx] = self.lookupOrEmpty("LCX", ip.lcx, ip.label);
+            // LCX: try each candidate (USDC → USDT → EUR) and keep the first hit.
+            // If none match, lookupOrEmpty returns a failed slot (success=false).
+            var lcx_hit: ?PriceFetch = null;
+            for (ip.lcx_candidates) |cand| {
+                const got = self.lookupOrEmpty("LCX", cand, ip.label);
+                if (got.success) { lcx_hit = got; break; }
+            }
+            out[idx] = lcx_hit orelse self.lookupOrEmpty("LCX", ip.lcx_candidates[0], ip.label);
             idx += 1;
         }
         return out;
@@ -758,13 +774,18 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 /// We walk EVERY top-level key of `data` (not just BTC/LCX). Each key is a
 /// pair name; its sub-object holds bestBid/bestAsk we parse with the existing
 /// helpers. Brace-balancing isolates each sub-object so neighbours don't bleed.
-/// True if `key` (LCX pair string from a snapshot frame) matches one of the
-/// 7 IMPORTANT_PAIRS in their LCX form. Strict equality — no substring
-/// matching — to avoid confusing similar-looking tickers (e.g. "BTCB/USDC"
-/// (Binance Wrapped BTC) vs "BTC/USDC" or "WETH/USDC" vs "ETH/USDC").
+/// True if `key` (LCX pair string from a snapshot frame) matches ANY of
+/// the candidate listings in IMPORTANT_PAIRS — typically USDC, USDT, EUR.
+/// Strict equality on each candidate (no substring) to avoid confusing
+/// similar-looking tickers (e.g. "BTCB/USDC" vs "BTC/USDC", "WETH/USDC"
+/// vs "ETH/USDC"). EUR-quoted entries are stored too so the dashboard
+/// can display LCX prices even when no USD-stable listing exists; the
+/// arbitrage handler is responsible for filtering on quote currency.
 fn isLcxImportant(key: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
-        if (std.mem.eql(u8, key, p.lcx)) return true;
+        for (p.lcx_candidates) |cand| {
+            if (std.mem.eql(u8, key, cand)) return true;
+        }
     }
     return false;
 }
