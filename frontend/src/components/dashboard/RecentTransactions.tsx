@@ -83,6 +83,9 @@ export function RecentTransactions() {
         })),
       ].slice(0, 15);
 
+  // Dedupe by id — pending TX + coinbase reward at same block can collide.
+  const uniqueItems = [...new Map(items.map((it) => [it.id, it])).values()];
+
   return (
     <div className="bg-mempool-card rounded-lg border border-mempool-border">
       <div className="px-4 py-3 border-b border-mempool-border">
@@ -91,12 +94,12 @@ export function RecentTransactions() {
         </h3>
       </div>
       <div className="divide-y divide-mempool-border/50 max-h-80 overflow-y-auto">
-        {items.length === 0 ? (
+        {uniqueItems.length === 0 ? (
           <div className="px-4 py-8 text-center text-mempool-text-dim text-sm">
             No transactions yet. Start mining to see activity.
           </div>
         ) : (
-          items.map((item) => (
+          uniqueItems.map((item) => (
             <div
               key={item.id}
               className="px-4 py-2.5 flex items-center gap-3 animate-fadeIn"

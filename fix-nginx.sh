@@ -109,40 +109,52 @@ server {
     location /api-mainnet/ {
         proxy_pass http://127.0.0.1:8332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
     location = /api-mainnet {
         proxy_pass http://127.0.0.1:8332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
 
     location /api-testnet/ {
         proxy_pass http://127.0.0.1:18332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
     location = /api-testnet {
         proxy_pass http://127.0.0.1:18332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
 
     location /api-regtest/ {
         proxy_pass http://127.0.0.1:28332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
     location = /api-regtest {
         proxy_pass http://127.0.0.1:28332/;
         proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
     }
 
     # ===== WebSocket per chain — necesita Upgrade headers =====

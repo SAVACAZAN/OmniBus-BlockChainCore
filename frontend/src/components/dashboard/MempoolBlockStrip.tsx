@@ -20,14 +20,17 @@ export function MempoolBlockStrip() {
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-        {/* Confirmed blocks (newest first, displayed left to right) */}
-        {[...blocks].reverse().map((block, i) => (
-          <MempoolBlock
-            key={block.height}
-            block={block}
-            isLatest={i === blocks.length - 1}
-          />
-        ))}
+        {/* Confirmed blocks (newest first, displayed left to right). Dedupe
+            by height so concurrent WS + RPC fetches don't produce dupes. */}
+        {[...new Map(blocks.map((b) => [b.height, b])).values()]
+          .reverse()
+          .map((block, i, arr) => (
+            <MempoolBlock
+              key={`block-${block.height}`}
+              block={block}
+              isLatest={i === arr.length - 1}
+            />
+          ))}
 
         {/* Arrow separator */}
         <div className="flex-shrink-0 flex items-center px-1">
