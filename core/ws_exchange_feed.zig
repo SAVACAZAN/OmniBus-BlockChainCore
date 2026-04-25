@@ -332,21 +332,22 @@ fn lcxWorker(feed: *ExchangeFeed) void {
 }
 
 fn runLcxSession(feed: *ExchangeFeed) !void {
-    // Per LCX official docs (LCX Exchange API v1.1.0): ws path is "/" NOT
-    // "/ws". We hit /ws by mistake — the server still accepts the upgrade
-    // and the subscribe ack ("Subscribed Successfully") but ticker frames
-    // never flow. Switching to "/" makes them flow.
+    // Confirmed via direct python websockets test against the live server:
+    // - "/" returns HTTP 200 (no WS upgrade) → handshake fails.
+    // - "/ws" accepts upgrade AND streams ticker snapshots/updates.
+    // Docs in 2_SDK/Connect/.../LCX Exchange API v1.1.0.rst document "/" but
+    // the live server at exchange-api.lcx.com rejects it.
     var client = try WsClient.connect(
         feed.allocator,
         "exchange-api.lcx.com",
         443,
-        "/",
+        "/ws",
         true,
     );
     defer client.close();
 
-    // Public ticker subscribe is brand-less; ALL pairs stream and we
-    // filter client-side on data.pair. (Pair field is for orderbook/trade.)
+    // Public ticker subscribe is brand-less; one snapshot frame contains
+    // ALL pairs as a JSON object: {"data":{"BTC/USDC":{...},"LCX/USDC":{...}}}
     const subscribe =
         \\{"Topic":"subscribe","Type":"ticker"}
     ;
@@ -376,42 +377,42 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
     }
 }
 
-/// LCX ticker frame (single pair update):
-///   {"data":{"pair":"BTC/USDC","bestBid":65234.1,"bestAsk":65235.0, ...}}
-/// May also receive subscription ack frames or "pong" — all safely ignored.
+/// LCX ticker snapshot frame format (verified via live test):
+///   {"type":"ticker","topic":"snapshot","pair":"","data":{
+///     "1INCH/EUR":{"bestBid":..,"bestAsk":..,...},
+///     "BTC/USDC":{"bestBid":..,"bestAsk":..,...},
+///     "LCX/USDC":{"bestBid":..,"bestAsk":..,...},
+///     ... ALL pairs in one frame
+///   }}
+/// Update frames (per pair) come later with the same shape but only one
+/// pair populated under data. Either way we look for "BTC/USDC":{ and
+/// "LCX/USDC":{ as anchor markers.
 fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
-    // Log EVERY LCX frame (truncated to 500 chars) so the user can verify
-    // the actual JSON shape and pair-key naming. Verbose by intent —
-    // remove or cap once the LCX pair filter is locked in.
+    // Log every LCX frame head so we can verify the parser still matches
+    // if LCX changes their format. Capped at 500 chars to bound disk usage.
     {
         const head_len = @min(body.len, 500);
         std.debug.print("[LCX-WS] frame: {s}\n", .{body[0..head_len]});
     }
 
-    // Try multiple pair-key variants (LCX has used both `pair` and `Pair`,
-    // and either USDC or USD as the quote). First match wins per slot.
-    const btc_markers = [_][]const u8{
-        "\"pair\":\"BTC/USDC\"",
-        "\"pair\":\"BTC/USD\"",
-        "\"Pair\":\"BTC/USDC\"",
-        "\"Pair\":\"BTC/USD\"",
-        "\"symbol\":\"BTC/USDC\"",
-    };
-    const lcx_markers = [_][]const u8{
-        "\"pair\":\"LCX/USDC\"",
-        "\"pair\":\"LCX/USD\"",
-        "\"Pair\":\"LCX/USDC\"",
-        "\"Pair\":\"LCX/USD\"",
-        "\"symbol\":\"LCX/USDC\"",
-    };
-    for (btc_markers) |m| { if (parseLcxPair(feed, body, m, SLOT_BTC_LCX)) break; }
-    for (lcx_markers) |m| { if (parseLcxPair(feed, body, m, SLOT_LCX_LCX)) break; }
+    // Markers: pair name as a JSON KEY (NOT value). The literal `{` after
+    // the colon is critical because LCX's flat fields like "pair":"" would
+    // false-positive against `"pair":"BTC/USDC"` markers. Looking for the
+    // object-open ensures we land on the per-pair sub-object.
+    _ = parseLcxPair(feed, body, "\"BTC/USDC\":{", SLOT_BTC_LCX);
+    _ = parseLcxPair(feed, body, "\"LCX/USDC\":{", SLOT_LCX_LCX);
 }
 
 fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) bool {
-    if (std.mem.indexOf(u8, body, marker) == null) return false;
+    const start = std.mem.indexOf(u8, body, marker) orelse return false;
+    // Bound the window to the pair's sub-object — otherwise we'd pull
+    // bid/ask from the FIRST pair in the snapshot for every slot.
+    // A typical LCX pair sub-object fits in ~600 bytes; 1024 is safe.
+    const window_end = @min(body.len, start + 1024);
+    const window = body[start..window_end];
 
-    // Try unquoted (LCX modern) AND quoted (some endpoints) variants.
+    // Try unquoted (LCX modern) AND quoted (some endpoints) variants,
+    // searched ONLY within this pair's window.
     const unquoted_pairs = [_]struct { bk: []const u8, ak: []const u8 }{
         .{ .bk = "\"bestBid\":", .ak = "\"bestAsk\":" },
         .{ .bk = "\"bid\":",     .ak = "\"ask\":" },
@@ -424,13 +425,13 @@ fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot:
     var bid: ?u64 = null;
     var ask: ?u64 = null;
     for (unquoted_pairs) |p| {
-        if (bid == null) bid = parseUnquotedPrice(body, p.bk);
-        if (ask == null) ask = parseUnquotedPrice(body, p.ak);
+        if (bid == null) bid = parseUnquotedPrice(window, p.bk);
+        if (ask == null) ask = parseUnquotedPrice(window, p.ak);
         if (bid != null and ask != null) break;
     }
     for (quoted_pairs) |p| {
-        if (bid == null) bid = parseQuotedPrice(body, p.bk);
-        if (ask == null) ask = parseQuotedPrice(body, p.ak);
+        if (bid == null) bid = parseQuotedPrice(window, p.bk);
+        if (ask == null) ask = parseQuotedPrice(window, p.ak);
         if (bid != null and ask != null) break;
     }
 
