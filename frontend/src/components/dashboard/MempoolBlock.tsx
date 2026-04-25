@@ -111,11 +111,22 @@ export function MempoolBlock({
     }
   }
 
+  // Block timestamp may be Unix-seconds (chain) or accidentally Unix-millis.
+  // Year-5000 cutoff (~95e9 seconds since epoch) catches the accidental ms.
   const timeStr = block?.timestamp
-    ? new Date(block.timestamp * 1000).toLocaleTimeString()
+    ? new Date(block.timestamp > 95_000_000_000 ? block.timestamp : block.timestamp * 1000).toLocaleTimeString()
     : "";
 
   const clickable = !isPending && typeof onClick === "function";
+
+  // Empty/coinbase-only blocks need almost no TX area; keep it slim.
+  // Pending block keeps a bit more height so it's visually balanced.
+  const hasTxs = txCount > 0;
+  const txAreaCls = isPending
+    ? "p-2.5 min-h-[60px]"
+    : hasTxs
+      ? "p-2.5 min-h-[60px]"
+      : "p-1.5 min-h-[12px]";
 
   return (
     <div
@@ -124,7 +135,7 @@ export function MempoolBlock({
       tabIndex={clickable ? 0 : undefined}
       onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); } : undefined}
       className={`
-        relative flex-shrink-0 w-40 rounded-xl overflow-hidden
+        relative flex-shrink-0 w-44 rounded-xl overflow-hidden
         transition-all duration-500 ease-out
         ${isLatest ? "animate-slideInRight" : ""}
         ${isPending ? "animate-pulseGlow" : ""}
@@ -139,53 +150,58 @@ export function MempoolBlock({
           : "1px solid rgba(42,45,74,0.8)",
       }}
     >
-      {/* TX Grid */}
-      <div className="p-3 min-h-[120px]">
-        <div
-          className="flex flex-wrap gap-[3px]"
-          style={{ maxHeight: 100, overflow: "hidden" }}
-        >
-          {squares}
-        </div>
-        {txCount > 100 && (
-          <p className="text-[10px] text-mempool-text-dim mt-1">
-            +{txCount - 100} more
-          </p>
+      {/* TX Grid (compact when block has 0 txs — was wasting half the card) */}
+      <div className={txAreaCls}>
+        {hasTxs && (
+          <>
+            <div
+              className="flex flex-wrap gap-[3px]"
+              style={{ maxHeight: 60, overflow: "hidden" }}
+            >
+              {squares}
+            </div>
+            {txCount > 100 && (
+              <p className="text-[10px] text-mempool-text-dim mt-1">
+                +{txCount - 100} more
+              </p>
+            )}
+          </>
         )}
       </div>
 
-      {/* Block Info */}
-      <div className="px-3 pb-2 border-t border-mempool-border/50">
+      {/* Block Info — main content of the card now (was getting squashed
+          under a huge empty TX grid for coinbase-only blocks). */}
+      <div className="px-3 pb-3 border-t border-mempool-border/50">
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs font-mono font-bold text-mempool-text">
+          <span className="text-sm font-mono font-bold text-mempool-text">
             {isPending ? "Next" : `#${height}`}
           </span>
-          <span className="text-[10px] text-mempool-text-dim">
+          <span className="text-[11px] text-mempool-text-dim">
             {txCount} tx{txCount !== 1 ? "s" : ""}
           </span>
         </div>
         {!isPending && (
-          <div className="mt-1">
-            <p className="text-[10px] text-mempool-text-dim truncate">
-              {hash.slice(0, 12)}...
+          <div className="mt-1.5 space-y-0.5">
+            <p className="text-[11px] font-mono text-mempool-text-dim truncate" title={hash}>
+              {hash.slice(0, 14)}...
             </p>
-            <p className="text-[10px] text-mempool-green">
+            <p className="text-[11px] font-mono text-mempool-green">
               +{(reward / 1e9).toFixed(4)} OMNI
             </p>
             {timeStr && (
-              <p className="text-[10px] text-mempool-text-dim">{timeStr}</p>
+              <p className="text-[11px] text-mempool-text-dim">{timeStr}</p>
             )}
             {/* Median oracle price snapshot at mining (3-exchange median).
                 Hidden when no snapshot exists (block mined before WS came up). */}
             {(btcMedian > 0 || lcxMedian > 0) && (
-              <div className="mt-1 pt-1 border-t border-mempool-border/40 space-y-0.5">
+              <div className="mt-1.5 pt-1.5 border-t border-mempool-border/40 space-y-0.5">
                 {btcMedian > 0 && (
-                  <p className="text-[9px] font-mono text-mempool-orange">
+                  <p className="text-[11px] font-mono text-mempool-orange">
                     BTC ${fmtUsd(btcMedian, 2)}
                   </p>
                 )}
                 {lcxMedian > 0 && (
-                  <p className="text-[9px] font-mono text-mempool-blue">
+                  <p className="text-[11px] font-mono text-mempool-blue">
                     LCX ${fmtUsd(lcxMedian, 4)}
                   </p>
                 )}

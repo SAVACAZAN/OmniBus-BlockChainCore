@@ -39,20 +39,47 @@ function fmtTs(ms: number): string {
   return `${time}.${mil}`;
 }
 
+// Block timestamp can be either Unix-seconds (Zig std.time.timestamp())
+// or accidentally Unix-millis. If the value is unreasonably large for
+// 'seconds' (year > 5000), assume it was already millis.
+function blockDate(ts: number | undefined): Date {
+  if (!ts) return new Date(0);
+  // Year 5000 in seconds is ~95e9. Anything larger must already be ms.
+  return new Date(ts > 95_000_000_000 ? ts : ts * 1000);
+}
+
 export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
+  // The `block` prop from a list view often misses miner/nonce/previousHash —
+  // fetch the full block detail and merge over the props so the modal always
+  // has authoritative data.
+  const [full, setFull] = useState<BlockData>(block);
 
   useEffect(() => {
+    setFull(block);
+    setPrices([]);
     loadTxs();
-    loadPrices();
+    loadFull();
   }, [block.height]);
 
-  const loadPrices = async () => {
+  const loadFull = async () => {
     try {
       const result: any = await rpc.request_raw("getblock", [block.height]);
-      if (Array.isArray(result?.prices)) setPrices(result.prices);
+      if (result && typeof result === "object") {
+        setFull({
+          height:       result.height ?? block.height,
+          hash:         result.hash ?? block.hash,
+          previousHash: result.previousHash ?? block.previousHash,
+          timestamp:    result.timestamp ?? block.timestamp,
+          nonce:        result.nonce ?? block.nonce,
+          txCount:      result.txCount ?? block.txCount,
+          miner:        result.miner ?? block.miner,
+          rewardSAT:    result.rewardSAT ?? block.rewardSAT,
+        });
+        if (Array.isArray(result.prices)) setPrices(result.prices);
+      }
     } catch {}
   };
 
@@ -97,7 +124,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-mempool-border">
           <h3 className="text-lg font-bold text-mempool-text">
-            Block #{block.height}
+            Block #{full.height}
           </h3>
           <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-xl">
             x
@@ -109,31 +136,31 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Hash</p>
-              <p className="text-xs font-mono text-mempool-blue break-all">{block.hash}</p>
+              <p className="text-xs font-mono text-mempool-blue break-all">{full.hash}</p>
             </div>
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Previous Hash</p>
-              <p className="text-xs font-mono text-mempool-text-dim break-all">{block.previousHash || "--"}</p>
+              <p className="text-xs font-mono text-mempool-text-dim break-all">{full.previousHash || "--"}</p>
             </div>
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Miner</p>
-              <p className="text-xs font-mono text-mempool-green break-all">{block.miner || "--"}</p>
+              <p className="text-xs font-mono text-mempool-green break-all">{full.miner || "--"}</p>
             </div>
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Reward</p>
               <p className="text-xs font-mono text-mempool-green">
-                {((block.rewardSAT || 0) / 1e9).toFixed(4)} OMNI ({block.rewardSAT?.toLocaleString()} SAT)
+                {((full.rewardSAT || 0) / 1e9).toFixed(4)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
               </p>
             </div>
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Timestamp</p>
               <p className="text-xs text-mempool-text">
-                {block.timestamp ? new Date(block.timestamp * 1000).toLocaleString() : "--"}
+                {full.timestamp ? blockDate(full.timestamp).toLocaleString() : "--"}
               </p>
             </div>
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Nonce</p>
-              <p className="text-xs font-mono text-mempool-text">{block.nonce?.toLocaleString() || "--"}</p>
+              <p className="text-xs font-mono text-mempool-text">{full.nonce?.toLocaleString() || "--"}</p>
             </div>
           </div>
 
@@ -207,23 +234,24 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
           {/* Transactions */}
           <div className="pt-3 border-t border-mempool-border/50">
             <h4 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider mb-2">
-              Transactions ({block.txCount + 1})
+              Transactions ({(full.txCount ?? 0) + 1})
             </h4>
 
-            {/* Coinbase TX (always present) */}
+            {/* Block Reward (coinbase TX). Show the real miner address,
+                not the literal word 'miner...' from before. */}
             <div className="bg-mempool-bg rounded-lg p-3 mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-mempool-green flex-shrink-0" />
-                <span className="text-xs font-mono text-mempool-green font-bold">COINBASE</span>
-                <span className="text-[10px] text-mempool-text-dim ml-auto">Block Reward</span>
-              </div>
-              <div className="mt-1 text-xs text-mempool-text-dim">
-                <span className="text-mempool-text-dim">-&gt; </span>
-                <span className="font-mono text-mempool-blue">{block.miner?.slice(0, 32) || "miner"}...</span>
-                <span className="text-mempool-green ml-2">
-                  +{((block.rewardSAT || 0) / 1e9).toFixed(4)} OMNI
+                <span className="text-xs font-mono text-mempool-green font-bold">Block Reward</span>
+                <span className="text-mempool-green ml-auto font-mono text-xs">
+                  +{((full.rewardSAT || 0) / 1e9).toFixed(4)} OMNI
                 </span>
               </div>
+              {full.miner && (
+                <p className="mt-1 text-[11px] font-mono text-mempool-blue break-all" title={full.miner}>
+                  → {full.miner}
+                </p>
+              )}
             </div>
 
             {/* User TXs */}
