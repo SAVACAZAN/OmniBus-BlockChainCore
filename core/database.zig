@@ -15,6 +15,73 @@ const DB_MAGIC = [4]u8{ 'O', 'M', 'N', 'I' };
 const DB_VERSION: u32 = 2;
 const CRC = std.hash.crc.Crc32;
 
+/// Legacy (pre-v3.1) DB path — hardcoded at repo root, shared by all chains.
+/// DO NOT delete; still used as a fallback when no `chain_name` is provided
+/// so that existing installations continue to work without manual migration.
+pub const LEGACY_DB_FILE: []const u8 = "omnibus-chain.dat";
+
+/// Build an absolute, chain-scoped DB path like `data/<stripped_chain>/chain.dat`.
+///
+/// - `chain_name` comes from ChainConfig.name (e.g. "omnibus-mainnet", "omnibus-testnet",
+///   "omnibus-regtest"). The "omnibus-" prefix is stripped so the directory is short
+///   (e.g. "mainnet", "testnet", "regtest"). If the prefix isn't present, the full name
+///   is used verbatim.
+/// - The parent directory is created recursively with `makePath` if missing.
+/// - Returns a newly-allocated path. **The caller owns the memory** and must free it
+///   via `allocator.free(path)`. Thread-safe: all work is on caller-provided allocator
+///   and the file system — no shared mutable state inside this function.
+pub fn dbPathForChain(allocator: std.mem.Allocator, chain_name: []const u8) ![]u8 {
+    // Strip "omnibus-" prefix if present → short dir name
+    const prefix = "omnibus-";
+    const short_name = if (std.mem.startsWith(u8, chain_name, prefix))
+        chain_name[prefix.len..]
+    else
+        chain_name;
+
+    // Build directory `data/<short_name>` and create it recursively if missing.
+    const dir_path = try std.fmt.allocPrint(allocator, "data/{s}", .{short_name});
+    defer allocator.free(dir_path);
+
+    std.fs.cwd().makePath(dir_path) catch |err| switch (err) {
+        error.PathAlreadyExists => {},
+        else => return err,
+    };
+
+    // Final DB path: `data/<short_name>/chain.dat`
+    return std.fmt.allocPrint(allocator, "data/{s}/chain.dat", .{short_name});
+}
+
+/// Log a warning if a legacy `omnibus-chain.dat` exists at repo root
+/// but the new per-chain layout has no mainnet DB yet. We NEVER move the file
+/// automatically — the user must migrate manually to avoid data loss.
+pub fn checkLegacyMigration(allocator: std.mem.Allocator) void {
+    const cwd = std.fs.cwd();
+
+    // Probe legacy file
+    const legacy_exists = blk: {
+        const f = cwd.openFile(LEGACY_DB_FILE, .{}) catch break :blk false;
+        f.close();
+        break :blk true;
+    };
+    if (!legacy_exists) return;
+
+    // Probe new mainnet path
+    const new_path = dbPathForChain(allocator, "omnibus-mainnet") catch return;
+    defer allocator.free(new_path);
+
+    const new_exists = blk: {
+        const f = cwd.openFile(new_path, .{}) catch break :blk false;
+        f.close();
+        break :blk true;
+    };
+    if (new_exists) return;
+
+    std.debug.print(
+        "[DB] WARN: Found legacy DB at {s}. Move it manually to {s} for new layout.\n",
+        .{ LEGACY_DB_FILE, new_path },
+    );
+}
+
 /// Database: Unified storage layer
 /// Combines block, transaction, address, and checkpoint storage
 pub const Database = struct {
@@ -157,6 +224,22 @@ pub const PersistentBlockchain = struct {
             .db = Database.init(allocator),
             .allocator = allocator,
         };
+    }
+
+    /// Resolve the DB path for a given (optional) chain name.
+    ///
+    /// - If `chain_name` is null, falls back to the legacy `omnibus-chain.dat`
+    ///   at repo root (backward compat for existing installs).
+    /// - If `chain_name` is set, returns `data/<stripped>/chain.dat` and ensures
+    ///   the parent directory exists.
+    ///
+    /// Caller owns the returned slice and must free it with `allocator.free`.
+    pub fn resolveDbPath(allocator: std.mem.Allocator, chain_name: ?[]const u8) ![]u8 {
+        if (chain_name) |name| {
+            return dbPathForChain(allocator, name);
+        }
+        // Legacy fallback — duplicate so caller always owns the buffer.
+        return allocator.dupe(u8, LEGACY_DB_FILE);
     }
 
     pub fn deinit(self: *PersistentBlockchain) void {

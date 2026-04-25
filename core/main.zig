@@ -72,8 +72,11 @@ const Blockchain           = blockchain_mod.Blockchain;
 const Wallet               = wallet_mod.Wallet;
 const CLI                  = cli_mod.CLI;
 const PersistentBlockchain = database_mod.PersistentBlockchain;
-const NetworkConfig        = genesis_mod.NetworkConfig;
+// NOTE: NetworkConfig (din genesis.zig) este DEPRECATED — inlocuit cu ChainConfig.
+// A3 (agent genesis) va actualiza GenesisState.init sa accepte ChainConfig.
 const GenesisState         = genesis_mod.GenesisState;
+const ChainConfig          = @import("chain_config.zig").ChainConfig;
+const ChainId              = @import("chain_config.zig").ChainId;
 const Mempool              = mempool_mod.Mempool;
 const ConsensusConfig      = consensus_mod.ConsensusConfig;
 const ConsensusEngine      = consensus_mod.ConsensusEngine;
@@ -114,7 +117,8 @@ const oracle_fetcher_mod = @import("oracle_fetcher.zig");
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
     _ = finality_mod; _ = governance_mod; _ = staking_mod;
-    _ = chain_config_mod; _ = state_trie_mod; _ = tx_receipt_mod;
+    // chain_config_mod is now actively used via ChainConfig/ChainId re-imports above
+    _ = state_trie_mod; _ = tx_receipt_mod;
     _ = guardian_mod; _ = dns_mod; _ = peer_scoring_mod;
     _ = compact_mod; _ = kademlia_mod; _ = key_enc_mod;
     _ = light_client_mod; _ = light_miner_mod; _ = payment_mod;
@@ -129,7 +133,7 @@ comptime {
     _ = @import("ubi_distributor.zig");
 }
 
-const DB_PATH = "omnibus-chain.dat";
+const LEGACY_DB_PATH = "omnibus-chain.dat";  // mainnet fallback only
 
 // ── Graceful Shutdown — Ctrl+C / SIGINT handler ─────────────────────────────
 // Atomic flag checked by the mining loop; set by OS signal handler.
@@ -257,17 +261,12 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    // ── Network config — mainnet sau testnet ──────────────────────────────────
-    // Schimba in .testnet() pentru development fara sa afectezi trecutul
-    const net_cfg = NetworkConfig.mainnet();
-    net_cfg.print();
-
-    // ── CLI args ──────────────────────────────────────────────────────────────
+    // ── CLI args (parse mai intai — chain selection depinde de flags) ────────
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
     var cli = CLI.init(allocator);
-    const config = cli.parseArgs(args) catch |err| {
+    const parsed = cli.parseArgsFull(args) catch |err| {
         switch (err) {
             error.HelpRequested => return,
             else => {
@@ -276,6 +275,54 @@ pub fn main() !void {
             }
         }
     };
+    // Alias for back-compat with all existing `config.X` references below.
+    const config = parsed.node;
+
+    // ── Chain config — unified ChainConfig via parsed.chain_mode ────────────
+    // ChainMode enum only exposes mainnet/testnet/regtest — devnet not yet
+    // wired through CLI (see cli.zig comment). Use ChainConfig.devnet() directly
+    // if/when ChainMode.devnet is added.
+    const net_cfg: ChainConfig = switch (parsed.chain_mode) {
+        .mainnet => ChainConfig.mainnet(),
+        .testnet => ChainConfig.testnet(),
+        .regtest => ChainConfig.regtest(),
+    };
+
+    std.debug.print(
+        \\
+        \\╔══════════════════════════════════════════════════════╗
+        \\║              OmniBus Network Config                  ║
+        \\╚══════════════════════════════════════════════════════╝
+        \\  Network:     {s}
+        \\  Chain ID:    {d}
+        \\  Genesis:     {d} (Unix)
+        \\  Genesis Hash:{s}
+        \\  Max Supply:  {d} SAT (21,000,000 OMNI)
+        \\  Reward/bloc: {d} SAT (0.08333333 OMNI)
+        \\  Halving at:  {d} blocuri
+        \\  Block time:  {d}ms
+        \\  Difficulty:  {d} (leading zeros)
+        \\  P2P port:    {d}
+        \\  RPC port:    {d}
+        \\  WS port:     {d}
+        \\  Sub-blocks:  {d} per key-block
+        \\
+        \\
+    , .{
+        net_cfg.name,
+        @intFromEnum(net_cfg.chain_id),
+        net_cfg.genesis_timestamp,
+        net_cfg.genesis_hash,
+        net_cfg.max_supply_sat,
+        net_cfg.initial_reward_sat,
+        net_cfg.halving_interval,
+        net_cfg.block_time_ms,
+        net_cfg.initial_difficulty,
+        net_cfg.p2p_port,
+        net_cfg.rpc_port,
+        net_cfg.ws_port,
+        net_cfg.sub_blocks_per_block,
+    });
 
     std.debug.print("[NETWORK] Mode: {}  ID: {s}  Host: {s}:{d}\n\n",
         .{ config.mode, config.node_id, config.host, config.port });
@@ -294,15 +341,45 @@ pub fn main() !void {
         std.debug.print("[WALLET] Using mnemonic from --mnemonic CLI flag\n", .{});
     }
 
+    // ── DB path selection per chain ──────────────────────────────────────────
+    const chain_name = net_cfg.name; // e.g. "omnibus-mainnet" / "omnibus-testnet"
+    const short_name = blk: {
+        // strip "omnibus-" prefix → "mainnet" / "testnet" / "regtest"
+        const prefix = "omnibus-";
+        if (std.mem.startsWith(u8, chain_name, prefix)) {
+            break :blk chain_name[prefix.len..];
+        } else {
+            break :blk chain_name;
+        }
+    };
+
+    // Mainnet only: prefer legacy file if it exists (back-compat).
+    // Testnet/regtest/devnet: ALWAYS use data/{chain}/chain.dat — never legacy.
+    const db_path: []u8 = blk: {
+        if (std.mem.eql(u8, short_name, "mainnet")) {
+            const legacy_exists = std.fs.cwd().access(LEGACY_DB_PATH, .{}) catch null;
+            if (legacy_exists != null) {
+                std.debug.print("[DB] Using legacy mainnet DB at {s}\n", .{LEGACY_DB_PATH});
+                break :blk try allocator.dupe(u8, LEGACY_DB_PATH);
+            }
+        }
+        const new_path = try database_mod.dbPathForChain(allocator, short_name);
+        std.debug.print("[DB] Using chain DB at {s}\n", .{new_path});
+        break :blk new_path;
+    };
+    defer allocator.free(db_path);
+
     // ── Init database (persistent storage) ───────────────────────────────────
-    var pbc = try PersistentBlockchain.loadFromDisk(allocator, DB_PATH);
+    var pbc = try PersistentBlockchain.loadFromDisk(allocator, db_path);
     defer pbc.deinit();
     const loaded_stats = pbc.getStats();
     std.debug.print("[DB] Loaded: {d} blocks, {d} addresses from {s}\n",
-        .{ loaded_stats.total_blocks, loaded_stats.total_addresses, DB_PATH });
+        .{ loaded_stats.total_blocks, loaded_stats.total_addresses, db_path });
 
     // ── Init blockchain cu Genesis oficial ───────────────────────────────────
-    const gs = GenesisState.init(net_cfg, allocator);
+    // A4 added GenesisState.fromChainConfig — accepts ChainConfig directly.
+    // Old GenesisState.init(NetworkConfig, ...) kept for legacy/test back-compat.
+    const gs = GenesisState.fromChainConfig(net_cfg, allocator);
     var bc = try gs.buildBlockchain();
     defer bc.deinit();
 
@@ -313,13 +390,13 @@ pub fn main() !void {
     }
 
     // Reincarca blocurile si balantele salvate anterior (continua lantul)
-    pbc.restoreInto(&bc, DB_PATH) catch |err| {
+    pbc.restoreInto(&bc, db_path) catch |err| {
         std.debug.print("[DB] Restore failed ({}) — pornire de la genesis\n", .{err});
     };
 
     // Attach persistent database to blockchain for auto-save support
     bc.persistent_db = &pbc;
-    bc.db_path = DB_PATH;
+    bc.db_path = db_path;
     bc.last_save_time = std.time.timestamp();
 
     std.debug.print("[INIT] Blockchain initialized\n", .{});
@@ -709,9 +786,9 @@ pub fn main() !void {
             wallet.updateBalance(bc.getAddressBalance(wallet.address));
 
             // Append O(1) la fiecare bloc minat — sync continuu chain→db
-            pbc.appendBlock(&bc, DB_PATH) catch |err| {
+            pbc.appendBlock(&bc, db_path) catch |err| {
                 std.debug.print("[DB] appendBlock failed: {} — fallback saveBlockchain\n", .{err});
-                pbc.saveBlockchain(&bc, DB_PATH) catch {};
+                pbc.saveBlockchain(&bc, db_path) catch {};
             };
 
             if (block_count % 10 == 0) {
@@ -724,7 +801,7 @@ pub fn main() !void {
 
             // Full checkpoint la fiecare 100 blocuri (siguranta maxima)
             if (block_count % 100 == 0) {
-                pbc.saveBlockchain(&bc, DB_PATH) catch |err| {
+                pbc.saveBlockchain(&bc, db_path) catch |err| {
                     std.debug.print("[DB] Checkpoint save failed: {}\n", .{err});
                 };
             }
@@ -862,7 +939,7 @@ pub fn main() !void {
 
     // ── Graceful shutdown — save state before defers run ────────────────────
     std.debug.print("\n[SHUTDOWN] Saving chain to disc...\n", .{});
-    pbc.saveBlockchain(&bc, DB_PATH) catch |err| {
+    pbc.saveBlockchain(&bc, db_path) catch |err| {
         std.debug.print("[SHUTDOWN] Save failed: {} — data may be lost!\n", .{err});
     };
     std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses\n", .{ bc.chain.items.len, bc.balances.count() });

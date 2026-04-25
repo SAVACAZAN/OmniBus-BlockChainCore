@@ -409,6 +409,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
 
+    // ── Bitcoin-standard compatibility endpoints ────────────────────────
+    if (std.mem.eql(u8, method, "getbestblockhash"))   return handleGetBestBlockHash(ctx, id);
+    if (std.mem.eql(u8, method, "getdifficulty"))      return handleGetDifficulty(ctx, id);
+    if (std.mem.eql(u8, method, "getblockhash"))       return handleGetBlockHash(body, ctx, id);
+    if (std.mem.eql(u8, method, "getconnectioncount")) return handleGetConnectionCount(ctx, id);
+    if (std.mem.eql(u8, method, "getpeerinfo"))        return handleGetPeerInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getmininginfo"))      return handleGetMiningInfo(ctx, id);
+
     return errorJson(-32601, "Method not found", id, alloc);
 }
 
@@ -920,9 +928,46 @@ fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
 fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const h_str = extractArrayStr(body, 0);
-    const height: u32 = if (h_str) |s| std.fmt.parseInt(u32, s, 10) catch (std.math.cast(u32, extractArrayNum(body, 0)) orelse 0) else std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-    const blk = ctx.bc.getBlock(height) orelse return errorJson(-32602, "Block not found", id, alloc);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"previousHash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d}}}}}", .{ id, blk.index, blk.timestamp, blk.hash, blk.previous_hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat });
+
+    // Try parse as integer height first; if string is non-numeric and long enough, treat as hash
+    var blk_opt: ?block_mod.Block = null;
+    if (h_str) |s| {
+        if (std.fmt.parseInt(u32, s, 10)) |height| {
+            blk_opt = ctx.bc.getBlock(height);
+        } else |_| {
+            // Bitcoin-standard: getblock(hash) — linear scan blocks for matching hash
+            ctx.bc.mutex.lock();
+            const block_count = ctx.bc.getBlockCount();
+            var bi: u32 = 0;
+            while (bi < block_count) : (bi += 1) {
+                const b = ctx.bc.getBlock(bi) orelse continue;
+                if (std.mem.eql(u8, b.hash, s)) { blk_opt = b; break; }
+            }
+            ctx.bc.mutex.unlock();
+            if (blk_opt == null) return errorJson(-5, "Block not found", id, alloc);
+        }
+    } else {
+        const height: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
+        blk_opt = ctx.bc.getBlock(height);
+    }
+
+    const blk = blk_opt orelse return errorJson(-5, "Block not found", id, alloc);
+
+    // Format merkle_root as hex (it's [32]u8)
+    var mr_hex: [64]u8 = undefined;
+    for (0..32) |i| {
+        const b = blk.merkle_root[i];
+        mr_hex[i * 2] = "0123456789abcdef"[b >> 4];
+        mr_hex[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
+    }
+
+    // Approximate size: header (~80 bytes) + tx_count * avg_tx_bytes (~200)
+    const tx_count = blk.transactions.items.len;
+    const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -1910,6 +1955,103 @@ fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":0}}}}",
         .{ id, size },
+    );
+}
+
+// ─── Bitcoin-standard RPC compatibility handlers ────────────────────────────
+
+/// getbestblockhash — returns hash of the latest (best) block as hex string.
+/// Bitcoin-standard.
+fn handleGetBestBlockHash(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const blk = ctx.bc.getLatestBlock();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+        .{ id, blk.hash },
+    );
+}
+
+/// getdifficulty — returns current network difficulty as a number.
+fn handleGetDifficulty(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
+        .{ id, ctx.bc.difficulty },
+    );
+}
+
+/// getblockhash — params [height: int], returns hash of block at given height.
+/// Error -8 (Bitcoin standard) if out of range.
+fn handleGetBlockHash(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    // Accept either ["123"] (string) or [123] (number)
+    const h_str = extractArrayStr(body, 0);
+    const height: u32 = if (h_str) |s|
+        std.fmt.parseInt(u32, s, 10) catch return errorJson(-8, "Block height out of range", id, alloc)
+    else
+        std.math.cast(u32, extractArrayNum(body, 0)) orelse return errorJson(-8, "Block height out of range", id, alloc);
+
+    const block_count = ctx.bc.getBlockCount();
+    if (height >= block_count) return errorJson(-8, "Block height out of range", id, alloc);
+
+    const blk = ctx.bc.getBlock(height) orelse return errorJson(-8, "Block height out of range", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+        .{ id, blk.hash },
+    );
+}
+
+/// getconnectioncount — returns peer count as integer.
+fn handleGetConnectionCount(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const pc: u64 = if (ctx.p2p) |p| @intCast(p.peers.items.len) else 0;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
+        .{ id, pc },
+    );
+}
+
+/// getpeerinfo — returns array of peer details (addr, height, version, alive).
+/// Note: PeerConnection has no `last_seen` field; emit 0 with comment.
+fn handleGetPeerInfo(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    // Empty array fallback if p2p not attached
+    const p2p = ctx.p2p orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}", .{id});
+
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var n: usize = 0;
+    for (p2p.peers.items) |peer| {
+        const sep: []const u8 = if (n == 0) "" else ",";
+        // last_seen: not tracked on PeerConnection — placeholder 0. TODO: actual timestamp tracking.
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
+            .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries);
+        alloc.free(e);
+        entries = m;
+        n += 1;
+    }
+    defer alloc.free(entries);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[{s}]}}",
+        .{ id, entries });
+}
+
+/// getmininginfo — mining stats: blocks (height), difficulty, hashrate, mempool, chain.
+fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const blocks = ctx.bc.getBlockCount();
+    const difficulty = ctx.bc.difficulty;
+    const mp_size: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
+    // hashrate: from metrics if attached, otherwise hardcoded placeholder.
+    // TODO: actual measurement when metrics not attached.
+    const hashrate: u64 = if (ctx.metrics) |m| m.hashrate else 1000;
+    const reward = blockchain_mod.blockRewardAt(blocks);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"networkhashps\":{d},\"hashrate\":{d},\"pooledtx\":{d},\"chain\":\"omnibus-mainnet\",\"currentblockreward\":{d}}}}}",
+        .{ id, blocks, difficulty, hashrate, hashrate, mp_size, reward },
     );
 }
 

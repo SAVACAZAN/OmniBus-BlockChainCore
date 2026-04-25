@@ -1,5 +1,33 @@
 const std = @import("std");
 const node_launcher = @import("node_launcher.zig");
+const ChainId = @import("chain_config.zig").ChainId;
+
+/// Chain mode selection for CLI — subset of ChainId that is actually
+/// wired up in the launcher right now. We intentionally do NOT expose
+/// `.devnet` here to avoid advertising a mode that isn't implemented.
+pub const ChainMode = enum {
+    mainnet,
+    testnet,
+    regtest,
+
+    /// Map the CLI-facing enum into the chain_config.ChainId used internally.
+    pub fn toChainId(self: ChainMode) ChainId {
+        return switch (self) {
+            .mainnet => ChainId.mainnet,
+            .testnet => ChainId.testnet,
+            .regtest => ChainId.regtest,
+        };
+    }
+};
+
+/// Full parsed CLI result. Wraps the legacy `NodeConfig` (unchanged, for
+/// backward compat with existing callers) with the new explicit `chain_mode`.
+/// Callers that want the new multi-chain selection should use `parseArgsFull`;
+/// older callers that only care about node setup can keep using `parseArgs`.
+pub const ParsedArgs = struct {
+    node: node_launcher.NodeConfig,
+    chain_mode: ChainMode,
+};
 
 /// CLI argument parser for node startup
 pub const CLI = struct {
@@ -9,11 +37,20 @@ pub const CLI = struct {
         return CLI{ .allocator = allocator };
     }
 
-    /// Parse command-line arguments and return NodeConfig
+    /// Parse command-line arguments and return NodeConfig (legacy entrypoint).
+    /// Preserved for backward compat — any caller using `--testnet` still works.
+    /// For explicit chain selection (mainnet/testnet/regtest), use `parseArgsFull`.
+    ///
     /// Usage:
     ///   omnibus-node --mode seed --primary --port 9000
     ///   omnibus-node --mode miner --node-id miner-1 --seed-host 127.0.0.1 --seed-port 9000 --hashrate 1000
     pub fn parseArgs(self: CLI, args: []const []const u8) !node_launcher.NodeConfig {
+        const full = try self.parseArgsFull(args);
+        return full.node;
+    }
+
+    /// Parse command-line arguments and return full ParsedArgs including chain_mode.
+    pub fn parseArgsFull(self: CLI, args: []const []const u8) !ParsedArgs {
         var mode: ?node_launcher.NodeMode = null;
         var node_id: []const u8 = "unknown";
         var host: []const u8 = "127.0.0.1";
@@ -26,6 +63,12 @@ pub const CLI = struct {
         var mnemonic: ?[]const u8 = null;
         var wallet_index: u32 = 0;
         var testnet: bool = false;
+        // Explicit chain selection. Default = mainnet. We keep `testnet` bool
+        // above for backward compat (legacy callers).
+        var chain_mode: ChainMode = .mainnet;
+        // Track whether ANY chain flag was provided, so repeated / conflicting
+        // flags produce a clear error instead of silent last-wins.
+        var chain_flag_seen: bool = false;
 
         var i: usize = 1; // Skip program name
         while (i < args.len) : (i += 1) {
@@ -92,8 +135,51 @@ pub const CLI = struct {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
                 wallet_index = std.fmt.parseInt(u32, args[i], 10) catch return error.InvalidWalletIndex;
+            } else if (std.mem.eql(u8, arg, "--chain")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                const chain_str = args[i];
+                const new_mode: ChainMode = if (std.mem.eql(u8, chain_str, "mainnet"))
+                    .mainnet
+                else if (std.mem.eql(u8, chain_str, "testnet"))
+                    .testnet
+                else if (std.mem.eql(u8, chain_str, "regtest"))
+                    .regtest
+                else {
+                    std.debug.print("[CLI] Invalid --chain value: {s} (expected: mainnet|testnet|regtest)\n", .{chain_str});
+                    return error.InvalidChain;
+                };
+                if (chain_flag_seen and chain_mode != new_mode) {
+                    std.debug.print("[CLI] Conflicting chain flags: already set to {s}, got --chain {s}\n", .{ @tagName(chain_mode), chain_str });
+                    return error.ConflictingChainFlags;
+                }
+                chain_mode = new_mode;
+                chain_flag_seen = true;
+                testnet = (new_mode == .testnet);
+            } else if (std.mem.eql(u8, arg, "--mainnet")) {
+                if (chain_flag_seen and chain_mode != .mainnet) {
+                    std.debug.print("[CLI] Conflicting chain flags: already set to {s}, got --mainnet\n", .{@tagName(chain_mode)});
+                    return error.ConflictingChainFlags;
+                }
+                chain_mode = .mainnet;
+                chain_flag_seen = true;
+                testnet = false;
             } else if (std.mem.eql(u8, arg, "--testnet")) {
+                if (chain_flag_seen and chain_mode != .testnet) {
+                    std.debug.print("[CLI] Conflicting chain flags: already set to {s}, got --testnet\n", .{@tagName(chain_mode)});
+                    return error.ConflictingChainFlags;
+                }
+                chain_mode = .testnet;
+                chain_flag_seen = true;
                 testnet = true;
+            } else if (std.mem.eql(u8, arg, "--regtest")) {
+                if (chain_flag_seen and chain_mode != .regtest) {
+                    std.debug.print("[CLI] Conflicting chain flags: already set to {s}, got --regtest\n", .{@tagName(chain_mode)});
+                    return error.ConflictingChainFlags;
+                }
+                chain_mode = .regtest;
+                chain_flag_seen = true;
+                testnet = false;
             } else if (std.mem.eql(u8, arg, "--help")) {
                 printUsage();
                 return error.HelpRequested;
@@ -107,20 +193,29 @@ pub const CLI = struct {
             return error.MissingMode;
         }
 
-        return node_launcher.NodeConfig{
-            .mode = mode.?,
-            .node_id = node_id,
-            .host = host,
-            .port = port,
-            .is_primary = is_primary,
-            .max_peers = max_peers,
-            .seed_host = seed_host,
-            .seed_port = seed_port,
-            .hashrate = hashrate,
-            .mnemonic = mnemonic,
-            .wallet_index = wallet_index,
-            .testnet = testnet,
-            .allocator = self.allocator,
+        // Final validation: chain_mode is always one of the 3 valid variants
+        // (enum cannot hold anything else). If no chain flag was provided,
+        // `chain_flag_seen == false` and chain_mode defaults to .mainnet.
+        // This is intentional and documented behavior.
+        std.debug.assert(chain_mode == .mainnet or chain_mode == .testnet or chain_mode == .regtest);
+
+        return ParsedArgs{
+            .node = node_launcher.NodeConfig{
+                .mode = mode.?,
+                .node_id = node_id,
+                .host = host,
+                .port = port,
+                .is_primary = is_primary,
+                .max_peers = max_peers,
+                .seed_host = seed_host,
+                .seed_port = seed_port,
+                .hashrate = hashrate,
+                .mnemonic = mnemonic,
+                .wallet_index = wallet_index,
+                .testnet = testnet,
+                .allocator = self.allocator,
+            },
+            .chain_mode = chain_mode,
         };
     }
 
@@ -153,7 +248,12 @@ pub const CLI = struct {
             \\  --hashrate H/s       Mining hashrate in H/s (default: 1000)
             \\  --mnemonic PHRASE    Use custom mnemonic (12/24 words)
             \\  --wallet-index N     BIP-44 derivation index (default: 0)
-            \\  --testnet            Mine with 0 peers (development mode)
+            \\
+            \\CHAIN SELECTION (mutually exclusive):
+            \\  --chain MODE         Chain to run on: mainnet (default), testnet, regtest
+            \\  --mainnet            Alias for --chain mainnet
+            \\  --testnet            Alias for --chain testnet (was: legacy boolean)
+            \\  --regtest            Alias for --chain regtest (instant mining, devmode)
             \\
             \\EXAMPLES:
             \\  # Start primary seed node

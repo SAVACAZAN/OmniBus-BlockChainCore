@@ -91,7 +91,7 @@ pub const ChainConfig = struct {
             .chain_id = .mainnet,
             .name = "omnibus-mainnet",
             .magic = NetworkMagic.MAINNET,
-            .genesis_hash = "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+            .genesis_hash = "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80",
             .genesis_timestamp = 1_743_000_000,
             .p2p_port = 8333,
             .rpc_port = 8332,
@@ -129,6 +129,28 @@ pub const ChainConfig = struct {
         };
     }
 
+    /// Devnet configuration (development local, easy mining, no isolation)
+    pub fn devnet() ChainConfig {
+        return .{
+            .chain_id = .devnet,
+            .name = "omnibus-devnet",
+            .magic = NetworkMagic.DEVNET,
+            .genesis_hash = "0000000000000000000000000000000000000000000000000000000000000003",
+            .genesis_timestamp = 1_743_000_000,
+            .p2p_port = 38333,
+            .rpc_port = 38332,
+            .ws_port = 38334,
+            .initial_difficulty = 1,
+            .block_time_ms = 500,
+            .max_supply_sat = 21_000_000_000_000_000,
+            .initial_reward_sat = 8_333_333,
+            .halving_interval = 50_000,
+            .retarget_interval = 100,
+            .sub_blocks_per_block = 10,
+            .checkpoints = &[_]Checkpoint{},
+        };
+    }
+
     /// Regtest (instant mining, difficulty 1)
     pub fn regtest() ChainConfig {
         return .{
@@ -149,6 +171,55 @@ pub const ChainConfig = struct {
             .sub_blocks_per_block = 10,
             .checkpoints = &[_]Checkpoint{},
         };
+    }
+
+    /// Print configuration in a human-readable banner (similar to NetworkConfig.print)
+    pub fn print(self: ChainConfig) void {
+        const sat_per_omni: f64 = 1_000_000_000.0; // 1e9
+        const max_supply_omni = @as(f64, @floatFromInt(self.max_supply_sat)) / sat_per_omni;
+        const reward_omni = @as(f64, @floatFromInt(self.initial_reward_sat)) / sat_per_omni;
+
+        std.debug.print(
+            \\═══════════════════════════════════════════
+            \\  Chain Configuration
+            \\═══════════════════════════════════════════
+            \\  Name              {s}
+            \\  Chain ID          {d} ({s})
+            \\  Magic             {s}
+            \\  Genesis hash      {s}
+            \\  Genesis timestamp {d}
+            \\  P2P port          {d}
+            \\  RPC port          {d}
+            \\  WebSocket port    {d}
+            \\  Block time        {d} ms
+            \\  Initial difficulty {d}
+            \\  Max supply        {d:.2} OMNI
+            \\  Initial reward    {d:.8} OMNI
+            \\  Halving interval  {d} blocks
+            \\  Retarget interval {d} blocks
+            \\  Sub-blocks/block  {d}
+            \\  Checkpoints       {d}
+            \\═══════════════════════════════════════════
+            \\
+        , .{
+            self.name,
+            @intFromEnum(self.chain_id),
+            @tagName(self.chain_id),
+            self.magic.bytes,
+            self.genesis_hash[0..@min(16, self.genesis_hash.len)],
+            self.genesis_timestamp,
+            self.p2p_port,
+            self.rpc_port,
+            self.ws_port,
+            self.block_time_ms,
+            self.initial_difficulty,
+            max_supply_omni,
+            reward_omni,
+            self.halving_interval,
+            self.retarget_interval,
+            self.sub_blocks_per_block,
+            self.checkpoints.len,
+        });
     }
 };
 
@@ -267,4 +338,9 @@ test "Checkpoints — mainnet has genesis" {
     const cfg = ChainConfig.mainnet();
     try testing.expect(cfg.checkpoints.len > 0);
     try testing.expectEqual(@as(u64, 0), cfg.checkpoints[0].height);
+}
+
+test "ChainConfig print does not crash" {
+    const cfg = ChainConfig.mainnet();
+    cfg.print();
 }

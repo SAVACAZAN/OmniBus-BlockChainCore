@@ -1,0 +1,26 @@
+=== RPC TESTS — Sat Apr 25 12:35:45 GTBDT 2026 ===
+
+--- getblockcount ---
+{"jsonrpc":"2.0","id":1,"result":141}
+--- getbestblockhash ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getdifficulty ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getconnectioncount ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getbalance ---
+{"jsonrpc":"2.0","id":1,"result":{"address":"ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl","balance":0,"balanceOMNI":"0.000000000","confirmed":0,"unconfirmed":0,"utxos":[],"transactions":[],"txCount":0,"nodeHeight":141}}
+--- getmempoolinfo ---
+{"jsonrpc":"2.0","id":1,"result":{"size":0,"bytes":0}}
+--- getblockchaininfo ---
+{"jsonrpc":"2.0","id":1,"result":{"blocks":141,"difficulty":4,"chain":"omnibus-mainnet","mempool_size":0,"peers":0,"version":"0.3.0","subversion":"OmniBus-PoUW"}}
+--- getnetworkinfo ---
+{"jsonrpc":"2.0","id":1,"result":{"chain":"omnibus-mainnet","version":"1.0.0","blockHeight":141,"blockRewardSAT":8333333,"difficulty":4,"mempoolSize":0,"peerCount":0,"nodeAddress":"ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl","nodeBalance":0,"halvingInterval":126144000,"maxSupply":21000000000000000,"blockTimeMs":1000,"subBlocksPerBlock":10}}
+--- getmininginfo ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getpeerinfo ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getblockhash(0) ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+--- getblockhash(140) ---
+{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}

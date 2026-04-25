@@ -1,0 +1,8 @@
+test: PASS
+test-crypto: PASS
+test-chain: PASS
+test-net: PASS
+test-shard: PASS
+test-storage: PASS
+test-light: PASS
+test-pq: PASS
