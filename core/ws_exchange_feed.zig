@@ -34,7 +34,11 @@ pub const PriceFetch = struct {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const RECV_BUF_SIZE: usize = 64 * 1024;
+// Default per-session recv buffer. LCX initial snapshot is one giant frame
+// containing every listed pair (~50 pairs × ~600B chart-stripped, but with
+// chart history can balloon to 200+ KiB). 512 KiB is comfortable headroom;
+// allocator gives back unused pages anyway.
+const RECV_BUF_SIZE: usize = 512 * 1024;
 
 const BACKOFF_INITIAL_MS: u64 = 1_000;
 const BACKOFF_MAX_MS:     u64 = 30_000;
