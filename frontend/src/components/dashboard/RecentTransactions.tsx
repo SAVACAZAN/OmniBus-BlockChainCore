@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 function ConfirmationBadge({ count }: { count: number }) {
   if (count === 0) {

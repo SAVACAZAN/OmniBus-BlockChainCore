@@ -2,7 +2,7 @@ import { useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { TransactionDetail } from "../../types";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 interface TxSearchProps {
   onClose?: () => void;

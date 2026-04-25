@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 const PQ_ADDRESSES = [
   { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },

@@ -3,7 +3,7 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { FeeEstimate } from "../../types";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 const PQ_DOMAINS = [
   { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },

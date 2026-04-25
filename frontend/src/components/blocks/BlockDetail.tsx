@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 interface BlockDetailProps {
   block: BlockData;

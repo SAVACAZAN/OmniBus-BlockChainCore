@@ -86,12 +86,26 @@ server {
     listen 80;
     server_name omnibusblockchain.cc www.omnibusblockchain.cc;
     # Redirect catre HTTPS pe 8443 (portul 443 standard e blocat de iptables port-knock).
-    return 301 https://$host:8443$request_uri;
+    return 301 https://omnibusblockchain.cc:8443$request_uri;
+}
+
+# Redirect www.omnibusblockchain.cc:8443 -> omnibusblockchain.cc:8443
+# (cert e valid pentru ambele dar canonicalizam la non-www)
+server {
+    listen 8443 ssl;
+    server_name www.omnibusblockchain.cc;
+
+    ssl_certificate /etc/letsencrypt/live/omnibusblockchain.cc/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/omnibusblockchain.cc/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    return 301 https://omnibusblockchain.cc:8443$request_uri;
 }
 
 server {
     listen 8443 ssl;
-    server_name omnibusblockchain.cc www.omnibusblockchain.cc;
+    server_name omnibusblockchain.cc;
 
     ssl_certificate /etc/letsencrypt/live/omnibusblockchain.cc/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/omnibusblockchain.cc/privkey.pem;

@@ -4,7 +4,7 @@ import { BlockDetail } from "./BlockDetail";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 
-const rpc = new OmniBusRpcClient("/api");
+const rpc = new OmniBusRpcClient();
 
 export function BlocksPage() {
   const { state } = useBlockchain();
