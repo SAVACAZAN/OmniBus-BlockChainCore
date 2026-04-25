@@ -181,9 +181,15 @@ const ConnCtx = struct {
 };
 
 fn handleConnCounted(ctx: *ConnCtx) void {
-    defer _ = ctx.active_counter.fetchSub(1, .monotonic);
-    defer ctx.server_ctx.allocator.destroy(ctx);
-    defer ctx.conn.stream.close();
+    // Defers run in reverse order — without saving pointers, the counter
+    // decrement would touch ctx AFTER allocator.destroy(ctx) frees it.
+    // Save raw pointers to outlive the destroy.
+    const counter = ctx.active_counter;
+    const stream  = ctx.conn.stream;
+    const alloc   = ctx.server_ctx.allocator;
+    defer _ = counter.fetchSub(1, .monotonic);
+    defer alloc.destroy(ctx);
+    defer stream.close();
 
     // Reuse existing handleConn logic inline.
     // Use stream.read() — portable across Windows/Linux/macOS instead of
