@@ -19,6 +19,9 @@
 set -uo pipefail
 
 DOMAIN="omnibusblockchain.cc"
+# Port HTTPS public — pe acest VPS portul 443 e blocat de iptables
+# (port-knocking ruleaza pe el), deci folosim 8443 ca alternativa.
+HTTPS_PORT="8443"
 ROOT="/root/omnibus-blockchain"
 NGINX_AVAIL="/etc/nginx/sites-available/${DOMAIN}"
 NGINX_ENABL="/etc/nginx/sites-enabled/${DOMAIN}"
@@ -82,11 +85,12 @@ cat > "${NGINX_AVAIL}" <<'NGINXCONF'
 server {
     listen 80;
     server_name omnibusblockchain.cc www.omnibusblockchain.cc;
-    return 301 https://$host$request_uri;
+    # Redirect catre HTTPS pe 8443 (portul 443 standard e blocat de iptables port-knock).
+    return 301 https://$host:8443$request_uri;
 }
 
 server {
-    listen 443 ssl;
+    listen 8443 ssl;
     server_name omnibusblockchain.cc www.omnibusblockchain.cc;
 
     ssl_certificate /etc/letsencrypt/live/omnibusblockchain.cc/fullchain.pem;
@@ -244,13 +248,13 @@ for spec in "mainnet:8332" "testnet:18332" "regtest:28332"; do
 done
 
 # ---------------------------------------------------------------------------
-# 9. Test prin Nginx HTTPS
+# 9. Test prin Nginx HTTPS pe portul real (8443, nu 443 standard)
 # ---------------------------------------------------------------------------
 echo ""
-echo "=== Test HTTPS prin Nginx ==="
+echo "=== Test HTTPS prin Nginx pe :${HTTPS_PORT} ==="
 for chain in mainnet testnet regtest; do
     printf "  /api-%s -> " "$chain"
-    result=$(curl -s -m 5 "https://${DOMAIN}/api-${chain}" \
+    result=$(curl -s -m 5 "https://${DOMAIN}:${HTTPS_PORT}/api-${chain}" \
         -X POST -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","id":1,"method":"getblockcount","params":[]}' 2>&1 || echo "TIMEOUT")
     if [[ -z "${result}" ]]; then
@@ -265,7 +269,7 @@ done
 # ---------------------------------------------------------------------------
 echo ""
 echo "=== Test pagina explorer ==="
-status=$(curl -sI -m 5 "https://${DOMAIN}/" | head -1 || echo "TIMEOUT")
+status=$(curl -sI -m 5 "https://${DOMAIN}:${HTTPS_PORT}/" | head -1 || echo "TIMEOUT")
 echo "  GET / -> ${status}"
 
 # ---------------------------------------------------------------------------
@@ -277,9 +281,9 @@ tail -10 /var/log/nginx/error.log 2>/dev/null || echo "  (gol)"
 
 echo ""
 echo "=========================================="
-echo " URL-uri publice:"
-echo "   https://${DOMAIN}                  -> Explorer"
-echo "   https://${DOMAIN}/api-mainnet      -> Mainnet RPC"
-echo "   https://${DOMAIN}/api-testnet      -> Testnet RPC"
-echo "   https://${DOMAIN}/api-regtest      -> Regtest RPC"
+echo " URL-uri publice (port ${HTTPS_PORT} fiindca 443 e blocat de iptables):"
+echo "   https://${DOMAIN}:${HTTPS_PORT}                  -> Explorer"
+echo "   https://${DOMAIN}:${HTTPS_PORT}/api-mainnet      -> Mainnet RPC"
+echo "   https://${DOMAIN}:${HTTPS_PORT}/api-testnet      -> Testnet RPC"
+echo "   https://${DOMAIN}:${HTTPS_PORT}/api-regtest      -> Regtest RPC"
 echo "=========================================="
