@@ -19,49 +19,62 @@ export default defineConfig(({ mode }) => {
       port: 8888,
       host: "0.0.0.0",
       strictPort: false,
+      // Vite 4+ refuses unknown Host headers by default. Explicitly whitelist
+      // our public domain (and "all" via 'all' if more domains are added later).
+      allowedHosts: [
+        "localhost",
+        "127.0.0.1",
+        "38.143.19.97",
+        "omnibusblockchain.cc",
+        "www.omnibusblockchain.cc",
+        "explorer.omnibusblockchain.cc",
+        "mainnet.omnibusblockchain.cc",
+        "testnet.omnibusblockchain.cc",
+        "regtest.omnibusblockchain.cc",
+      ],
       proxy: {
-        // IMPORTANT: order matters — Vite's micromatch matches first key that fits.
-        // Use regex anchors (`^/api-mainnet$` etc.) so "/api" can't shadow "/api-testnet".
-        "^/api-mainnet$": {
+        // SPECIFIC paths first (longer / chain-suffixed) so they match before
+        // the generic /api alias. Vite/http-proxy iterates keys in declared
+        // order and first match wins. The legacy "/api" stays last.
+        "/api-mainnet": {
           target: `http://${host}:8332`,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/api-mainnet/, ""),
         },
-        "^/api-testnet$": {
+        "/api-testnet": {
           target: `http://${host}:18332`,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/api-testnet/, ""),
         },
-        "^/api-regtest$": {
+        "/api-regtest": {
           target: `http://${host}:28332`,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/api-regtest/, ""),
         },
-        // Legacy `/api` (no chain suffix) — still defaults to mainnet.
-        // Anchored so it cannot accidentally swallow "/api-testnet".
-        "^/api$": {
-          target: `http://${host}:8332`,
-          changeOrigin: true,
-          rewrite: () => "",
-        },
-        // WebSocket per chain — anchored regex too.
-        "^/ws-mainnet$": {
+        "/ws-mainnet": {
           target: `ws://${host}:8334`,
           ws: true,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/ws-mainnet/, ""),
         },
-        "^/ws-testnet$": {
+        "/ws-testnet": {
           target: `ws://${host}:18334`,
           ws: true,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/ws-testnet/, ""),
         },
-        "^/ws-regtest$": {
+        "/ws-regtest": {
           target: `ws://${host}:28334`,
           ws: true,
           changeOrigin: true,
-          rewrite: () => "",
+          rewrite: (p) => p.replace(/^\/ws-regtest/, ""),
+        },
+        // Legacy "/api" (no suffix) — defaults to mainnet. MUST be LAST so the
+        // chain-suffixed routes above are tried first.
+        "/api": {
+          target: `http://${host}:8332`,
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api/, ""),
         },
       },
     },
