@@ -1,7 +1,29 @@
 /**
  * OmniBus RPC Client - TypeScript
  * JSON-RPC 2.0 wrapper for blockchain node
+ *
+ * Multi-chain: client picks proxy path based on selected chain
+ * (persisted in localStorage["omnibus.chain"]). Vite forwards each path
+ * to the correct backend RPC port (8332/18332/28332).
  */
+
+export type ChainName = "mainnet" | "testnet" | "regtest";
+
+const CHAIN_KEY = "omnibus.chain";
+const VALID_CHAINS: ChainName[] = ["mainnet", "testnet", "regtest"];
+
+export function getActiveChain(): ChainName {
+  if (typeof localStorage === "undefined") return "mainnet";
+  const v = localStorage.getItem(CHAIN_KEY);
+  return (VALID_CHAINS.includes(v as ChainName) ? v : "mainnet") as ChainName;
+}
+
+export function setActiveChain(c: ChainName) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(CHAIN_KEY, c);
+  // Trigger reload so all stores re-fetch from the new RPC backend.
+  window.location.reload();
+}
 
 interface JsonRpcRequest {
   jsonrpc: string;
@@ -21,8 +43,14 @@ export class OmniBusRpcClient {
   private baseUrl: string;
   private requestId: number = 1;
 
-  constructor(baseUrl: string = "/api") {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl?: string) {
+    if (baseUrl) {
+      this.baseUrl = baseUrl;
+    } else {
+      // Auto-pick proxy path from current chain selection.
+      const chain = getActiveChain();
+      this.baseUrl = `/api-${chain}`;
+    }
   }
 
   private async request(method: string, params: any[] = []): Promise<any> {
@@ -42,7 +70,18 @@ export class OmniBusRpcClient {
         body: JSON.stringify(request),
       });
 
-      const data: JsonRpcResponse = await response.json();
+      // Some RPC handlers return empty body on unsupported methods.
+      // Fall through to a soft-null result instead of throwing a parse error.
+      const text = await response.text();
+      if (!text) return null;
+
+      let data: JsonRpcResponse;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // Non-JSON response (HTML 500, etc.) — treat as soft fail
+        return null;
+      }
 
       if (data.error) {
         throw new Error(`RPC Error: ${data.error.message}`);

@@ -4,15 +4,23 @@ import {
   blockchainReducer,
   initialState,
 } from "./useBlockchainStore";
-import OmniBusRpcClient from "../api/rpc-client";
+import OmniBusRpcClient, { getActiveChain } from "../api/rpc-client";
 import type { WsEvent, BlockData } from "../types";
 
-const WS_URL = "ws://127.0.0.1:8334";
+// Build WS URL via Vite proxy path /ws-{chain}. Same-origin so it works
+// from any browser — the dev server proxies it to ws://host:8334/18334/28334.
+function buildWsUrl(): string {
+  const chain = getActiveChain();
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}/ws-${chain}`;
+}
+
 const WS_RECONNECT_MS = 3000;
 const POLL_INTERVAL_MS = 10000;
 const MINER_REFRESH_MS = 30000; // 30s — reduce load with many miners
 
-const rpc = new OmniBusRpcClient("/api");
+// rpc-client auto-picks /api-{chain} from localStorage when no arg given.
+const rpc = new OmniBusRpcClient();
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(blockchainReducer, initialState);
@@ -82,7 +90,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
-      const ws = new WebSocket(WS_URL);
+      const ws = new WebSocket(buildWsUrl());
       wsRef.current = ws;
 
       ws.onopen = () => {

@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
+import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+
+const CHAIN_BADGE: Record<ChainName, { label: string; cls: string }> = {
+  mainnet: { label: "Mainnet", cls: "bg-mempool-blue/20 text-mempool-blue" },
+  testnet: { label: "Testnet", cls: "bg-mempool-orange/20 text-mempool-orange" },
+  regtest: { label: "Regtest", cls: "bg-mempool-purple/20 text-mempool-purple" },
+};
 
 export function Header() {
   const { state } = useBlockchain();
   const [showSearch, setShowSearch] = useState(false);
+  const activeChain = getActiveChain();
 
   return (
     <>
@@ -47,6 +55,23 @@ export function Header() {
 
           {/* Status Indicators */}
           <div className="flex items-center gap-4">
+            {/* Chain switcher — saves to localStorage and reloads */}
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${CHAIN_BADGE[activeChain].cls}`}>
+                {CHAIN_BADGE[activeChain].label}
+              </span>
+              <select
+                value={activeChain}
+                onChange={(e) => setActiveChain(e.target.value as ChainName)}
+                className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text hover:border-mempool-blue cursor-pointer"
+                title="Switch chain (reloads page)"
+              >
+                <option value="mainnet">Mainnet :8332</option>
+                <option value="testnet">Testnet :18332</option>
+                <option value="regtest">Regtest :28332</option>
+              </select>
+            </div>
+
             {/* WS Status */}
             <div className="flex items-center gap-2">
               <div
