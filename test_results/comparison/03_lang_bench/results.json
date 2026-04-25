@@ -1,0 +1,78 @@
+{
+  "ran_at": "2026-04-25T14:05:00Z",
+  "host": "Windows 11 x64, Intel Core Ultra 5 125H, 16GB RAM",
+  "compilers": {
+    "zig": "0.15.2",
+    "go": "1.23.4",
+    "rust": "1.94.1"
+  },
+  "build_flags": {
+    "zig": "zig build -Doptimize=ReleaseFast",
+    "go": "go build -ldflags=\"-s -w\"",
+    "rust": "cargo build --release (opt-level=3, lto=true, codegen-units=1)"
+  },
+  "benchmarks": {
+    "sha256_1M": {
+      "iterations": 1000000,
+      "input_bytes": 64,
+      "zig":  {"total_ms": 90, "avg_ns": 90},
+      "go":   {"total_ms": 99, "avg_ns": 99},
+      "rust": {"total_ms": 85, "avg_ns": 85}
+    },
+    "json_serde_100K": {
+      "iterations": 100000,
+      "operation": "serialize + deserialize Block (3 txs)",
+      "zig":  {"total_ms": 2770, "avg_ns": 27708},
+      "go":   {"total_ms": 658,  "avg_ns": 6582},
+      "rust": {"total_ms": 187,  "avg_ns": 1870}
+    },
+    "hmac_100K": {
+      "iterations": 100000,
+      "key_bytes": 32,
+      "msg_bytes": 256,
+      "zig":  {"total_ms": 28, "avg_ns": 281},
+      "go":   {"total_ms": 55, "avg_ns": 552},
+      "rust": {"total_ms": 29, "avg_ns": 291}
+    },
+    "memalloc_1M": {
+      "iterations": 1000000,
+      "obj_bytes": 64,
+      "operation": "alloc + free 1M x 64-byte buffers",
+      "zig":  {"total_ms": 55, "avg_ns": 55},
+      "go":   {"total_ms": 47, "avg_ns": 47},
+      "rust": {"total_ms": 83, "avg_ns": 83}
+    }
+  },
+  "winner_by_test": {
+    "sha256":   "rust",
+    "json":     "rust",
+    "hmac":     "zig",
+    "memalloc": "go"
+  },
+  "ranking_overall": {
+    "1": "rust (2 wins: sha256, json)",
+    "2": "zig (1 win: hmac)",
+    "3": "go (1 win: memalloc)"
+  },
+  "notes": [
+    "Zig used std.crypto.hash.sha2.Sha256 (stdlib)",
+    "Zig used std.crypto.auth.hmac.sha2.HmacSha256 (stdlib)",
+    "Zig used std.json.Stringify + std.json.parseFromSlice (stdlib, 0.15.x API)",
+    "Zig used std.heap.GeneralPurposeAllocator (stdlib)",
+    "Go used crypto/sha256 from stdlib (Sum256)",
+    "Go used crypto/hmac with crypto/sha256 from stdlib",
+    "Go used encoding/json from stdlib",
+    "Go used built-in make() with GC (no explicit free)",
+    "Rust used sha2 v0.10.9 crate",
+    "Rust used hmac v0.12.1 crate with sha2",
+    "Rust used serde v1.0.228 + serde_json v1.0.149",
+    "Rust used Vec<Vec<u8>> via global allocator (Windows HeapAlloc)",
+    "Rust dominates JSON: serde_json compile-time codegen vs reflection (Go) / runtime walking (Zig)",
+    "Zig JSON slow because Stringify uses dynamic dispatch + new Io.Writer.Allocating per iter",
+    "Go MEMALLOC fastest because GC bump-allocator beats glibc-style malloc for short-lived objects",
+    "Rust MEMALLOC slowest because Vec<u8> double-allocates (header + data) and Windows HeapAlloc has overhead",
+    "Zig HMAC fastest, but Rust within 4% — both stdlib crypto are optimized",
+    "SHA-256 essentially tied: Rust 85ms / Zig 90ms / Go 99ms — all use SIMD-friendly impls",
+    "All binaries compiled with native CPU detection on Intel Core Ultra 5 125H"
+  ]
+}

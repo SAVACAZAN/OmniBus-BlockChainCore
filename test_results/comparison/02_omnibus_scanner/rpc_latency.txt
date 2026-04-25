@@ -1,0 +1,6 @@
+getblockcount: avg=62ms (20 calls, total 1254ms)
+getbalance: avg=870ms (20 calls, total 17408ms)
+getbgetblockchaininfo: total=209073ms avg=2090ms (100 calls)
+getbestblockhash: total=208891ms avg=2088ms (100 calls)
+getmininginfo: total=209354ms avg=2093ms (100 calls)
+getnetworkinfo: total=209019ms avg=2090ms (100 calls)

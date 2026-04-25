@@ -1,0 +1,64 @@
+{
+  "scanned_at": "2026-04-25T11:00:25Z",
+  "chain": "omnibus-regtest",
+  "node_version": "v0.3.2",
+  "host": "Windows 11 x64, Zig 0.15.2",
+  "tests": {
+    "startup_time_ms": {
+      "first_run_cold": 1849,
+      "second_run_warm": 645,
+      "note": "Cold start = first invocation; warm = OS file cache populated"
+    },
+    "rpc_latency_ms": {
+      "getblockcount": {
+        "avg": 62, "samples": 20,
+        "note": "Fastest method — in-memory atomic counter"
+      },
+      "getbalance": {
+        "avg": 870, "samples": 20,
+        "note": "Slow due to UTXO chain scan — O(n_blocks)"
+      },
+      "getblockchaininfo": {
+        "avg": 2090, "samples": 100,
+        "samples_secondary": 20, "avg_secondary": 2060,
+        "note": "Cross-validated 100 vs 20 calls — diff <2%, stable"
+      },
+      "getbestblockhash": {
+        "avg": 2088, "samples": 100,
+        "samples_secondary": 20, "avg_secondary": 2068,
+        "note": "Mining loop blocks RPC handler thread"
+      },
+      "getmininginfo": {
+        "avg": 2093, "samples": 100,
+        "samples_secondary": 20, "avg_secondary": 2069,
+        "note": "Highest latency — contends for mining state"
+      },
+      "getnetworkinfo": {
+        "avg": 2090, "samples": 100,
+        "samples_secondary": 20, "avg_secondary": 2067,
+        "note": "Same pattern as other 'heavy' methods"
+      }
+    },
+    "block_production": {
+      "regtest": {
+        "block_time_ms_configured": 100,
+        "note": "Both 30s and 15s sample windows crashed node mid-bench (segfault). Block production rate could not be measured under sustained RPC load."
+      }
+    },
+    "stability_issues": {
+      "crashes_observed": 2,
+      "crash_signature": "Segmentation fault in std.Thread.callFn (Thread.zig:509)",
+      "affected_runs": ["node.log run 1", "node2.log run 2"],
+      "trigger": "Sustained RPC load (100+ sequential calls per method) while mining active",
+      "impact": "Block production measurement impossible under bench load",
+      "recommendation": "Investigate Thread.zig segfault — likely race/UAF in RPC handler thread spawn or mempool/blockchain shared state"
+    },
+    "observations": [
+      "RPC latency varies 33x between methods (62ms vs 2090ms) — mining loop blocks RPC thread under load",
+      "Startup 645ms warm (1849ms cold) — second invocation benefits from OS file cache",
+      "Node crashed twice with segfault during sustained RPC load — Thread.zig:509 frame in stack trace",
+      "DB user mainnet (omnibus-chain.dat, 140 blocks) NOT touched — regtest used data/regtest/chain.dat",
+      "100 vs 20 samples cross-validated — RPC latency numbers are stable (variance <2%)"
+    ]
+  }
+}
