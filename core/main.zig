@@ -553,7 +553,7 @@ pub fn main() !void {
     std.debug.print("[EVM] Engine initialized (revm)\n", .{});
 
     // ── WebSocket + RPC — doar pe seed node (minerii nu pornesc servere) ──────
-    var ws_srv = WsServer.init(ws_mod.WS_PORT, allocator);
+    var ws_srv = WsServer.init(net_cfg.ws_port, allocator);
     defer ws_srv.deinit();
 
     const is_seed = (config.mode == node_launcher.NodeMode.seed);
