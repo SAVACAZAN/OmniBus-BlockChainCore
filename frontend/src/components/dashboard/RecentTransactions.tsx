@@ -154,8 +154,17 @@ export function RecentTransactions() {
                   <ConfirmationBadge count={item.confirmations} />
                 </div>
                 <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>
-                  <span className="font-mono">{midTrunc(item.from, 8, 6)}</span>
-                  {item.to ? <> &nbsp;→&nbsp; <span className="font-mono">{midTrunc(item.to, 8, 6)}</span></> : null}
+                  {item.from === "coinbase" ? (
+                    // Coinbase reward: show only the miner address (the receiver),
+                    // skipping the literal "coinbase" sender label which the user
+                    // doesn't care about and which kept appearing as garbage text.
+                    item.to ? <span className="font-mono text-mempool-green">→ {midTrunc(item.to, 8, 6)}</span> : null
+                  ) : (
+                    <>
+                      <span className="font-mono">{midTrunc(item.from, 8, 6)}</span>
+                      {item.to ? <> &nbsp;→&nbsp; <span className="font-mono">{midTrunc(item.to, 8, 6)}</span></> : null}
+                    </>
+                  )}
                 </p>
               </div>
 

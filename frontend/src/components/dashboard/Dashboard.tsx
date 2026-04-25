@@ -2,6 +2,8 @@ import { StatsBar } from "./StatsBar";
 import { MempoolBlockStrip } from "./MempoolBlockStrip";
 import { RecentTransactions } from "./RecentTransactions";
 import { MinerTable } from "../network/MinerTable";
+import ArbitrageOpportunities from "./ArbitrageOpportunities";
+import AllPricesGrid from "./AllPricesGrid";
 
 // Note: <ExchangePrices /> removed from the dashboard. Prices are now
 // embedded INTO each mined block (timestamp + bid/ask per exchange) and
@@ -16,11 +18,17 @@ export function Dashboard() {
       {/* Mempool Block Strip — the star feature */}
       <MempoolBlockStrip />
 
+      {/* Cross-exchange arbitrage opportunities */}
+      <ArbitrageOpportunities />
+
       {/* Recent Activity (full width) */}
       <RecentTransactions />
 
       {/* Miner Table */}
       <MinerTable />
+
+      {/* Full market feed — bid/ask grid across exchanges */}
+      <AllPricesGrid />
     </div>
   );
 }

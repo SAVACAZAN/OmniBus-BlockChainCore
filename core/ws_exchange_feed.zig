@@ -1,12 +1,8 @@
 /// ws_exchange_feed.zig — Multi-exchange WebSocket ticker feed manager.
 ///
 /// Spawns 3 worker threads (Coinbase, Kraken, LCX) that each connect to a
-/// public market-data WebSocket and push live BTC + LCX bid/ask updates into
-/// a shared 6-slot price array protected by a mutex.
-///
-/// Slot layout:
-///   [0] BTC  Coinbase    [1] BTC  Kraken    [2] BTC  LCX
-///   [3] LCX  Coinbase    [4] LCX  Kraken    [5] LCX  LCX
+/// public market-data WebSocket and push ALL live bid/ask updates into a
+/// shared StringHashMap (`PriceMap`) keyed by `"{exchange}|{pair}"`.
 ///
 /// All prices are stored in micro-USD (u64): 1 USD = 1_000_000 micro-USD.
 /// Treats USDC as USD for LCX (LCX quotes BTC/USDC and LCX/USDC).
@@ -16,6 +12,19 @@
 ///
 /// JSON parsing is intentionally minimal — same indexOf-based approach as
 /// core/oracle_fetcher.zig. We never construct a full DOM.
+///
+/// ── Backward compatibility ────────────────────────────────────────────────
+/// The old fixed-6-slot API (`snapshot()`, `getMedianBtc()`, `getMedianLcx()`)
+/// is preserved: those methods now look up the 6 canonical key combinations
+/// inside `prices` and return them in the same order, so main.zig and
+/// rpc_server.zig keep working unchanged.
+///
+/// ── Anti-OOM circuit breakers ─────────────────────────────────────────────
+/// Two caps prevent runaway memory growth from a hostile / buggy upstream:
+///   - MAX_PAIRS_PER_EXCHANGE = 2000
+///   - MAX_TOTAL_PAIRS        = 5000
+/// On hit, the new entry is dropped and a rate-limited warning is logged
+/// once per minute per exchange.
 const std = @import("std");
 const ws_client = @import("ws_client.zig");
 
@@ -25,11 +34,46 @@ const WsClient = ws_client.WsClient;
 
 pub const PriceFetch = struct {
     exchange: []const u8,        // "Coinbase" | "Kraken" | "LCX"
-    pair: []const u8,            // "BTC/USD"  | "LCX/USD"
+    pair: []const u8,            // canonical pair, exchange-specific format
     bid_micro_usd: u64,
     ask_micro_usd: u64,
     timestamp_ms: i64,
     success: bool,
+
+    /// True if the entry hasn't been refreshed in `threshold_ms` milliseconds.
+    /// `now_ms` should be `std.time.milliTimestamp()`. Default threshold: 30s.
+    pub fn isStale(p: PriceFetch, now_ms: i64, threshold_ms: i64) bool {
+        if (!p.success or p.timestamp_ms == 0) return true;
+        return (now_ms - p.timestamp_ms) > threshold_ms;
+    }
+};
+
+pub const PriceKey = struct {
+    exchange: []const u8,
+    pair: []const u8,
+};
+
+pub const PriceMap = std.StringHashMap(PriceFetch);
+
+/// One canonical "important" pair tracked across all 3 exchanges. The label
+/// is the user-facing canonical form ("BTC/USD"); per-exchange fields hold
+/// the exchange-specific symbol used to look up that pair in `prices`.
+pub const ImportantPair = struct {
+    label: []const u8,
+    lcx: []const u8,
+    kraken: []const u8,
+    coinbase: []const u8,
+};
+
+/// 7 canonical pairs × 3 exchanges = 21 entries from `getImportantSnapshot`.
+pub const IMPORTANT_PAIRS = [_]ImportantPair{
+    .{ .label = "BTC/USD",  .lcx = "BTC/USDC",  .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
+    .{ .label = "LCX/USD",  .lcx = "LCX/USDC",  .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
+    .{ .label = "ETH/USD",  .lcx = "ETH/USDC",  .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
+    .{ .label = "SOL/USD",  .lcx = "SOL/USDC",  .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
+    .{ .label = "ADA/USD",  .lcx = "ADA/USDC",  .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
+    .{ .label = "SUI/USD",  .lcx = "SUI/USDC",  .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
+    .{ .label = "EGLD/USD", .lcx = "EGLD/USDC", .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -47,20 +91,53 @@ const BACKOFF_MAX_MS:     u64 = 30_000;
 // every <= 60s or it disconnects. We send every 30s to be safe.
 const LCX_PING_INTERVAL_MS: i64 = 30_000;
 
-// Slot indices — must match the layout above.
-const SLOT_BTC_COINBASE: usize = 0;
-const SLOT_BTC_KRAKEN:   usize = 1;
-const SLOT_BTC_LCX:      usize = 2;
-const SLOT_LCX_COINBASE: usize = 3;
-const SLOT_LCX_KRAKEN:   usize = 4;
-const SLOT_LCX_LCX:      usize = 5;
+// Anti-OOM circuit breaker caps.
+pub const MAX_PAIRS_PER_EXCHANGE: usize = 2000;
+pub const MAX_TOTAL_PAIRS:        usize = 5000;
+
+/// Default staleness threshold (30 seconds).
+pub const DEFAULT_STALE_THRESHOLD_MS: i64 = 30_000;
+
+// Coinbase REST endpoint listing all spot products.
+const COINBASE_PRODUCTS_URL = "https://api.exchange.coinbase.com/products";
+
+// Coinbase Advanced WS limit: subscribe in chunks so we don't blow past the
+// per-frame size cap on the server side.
+const COINBASE_SUBSCRIBE_CHUNK: usize = 100;
+
+/// Hardcoded fallback list of 30+ Coinbase major USD products. Used if the
+/// REST product fetch fails (DNS down, rate-limited, network outage). Covers
+/// all IMPORTANT_PAIRS plus the most-traded majors so price discovery still
+/// works in degraded mode.
+const COINBASE_FALLBACK_PRODUCTS = [_][]const u8{
+    "BTC-USD",  "ETH-USD",  "SOL-USD",  "LCX-USD",  "ADA-USD",
+    "SUI-USD",  "EGLD-USD", "XRP-USD",  "DOGE-USD", "AVAX-USD",
+    "DOT-USD",  "LINK-USD", "MATIC-USD","LTC-USD",  "BCH-USD",
+    "UNI-USD",  "ATOM-USD", "XLM-USD",  "ETC-USD",  "ALGO-USD",
+    "FIL-USD",  "AAVE-USD", "MKR-USD",  "COMP-USD", "SNX-USD",
+    "GRT-USD",  "SAND-USD", "MANA-USD", "APE-USD",  "SHIB-USD",
+    "CRV-USD",  "NEAR-USD", "OP-USD",   "ARB-USD",  "INJ-USD",
+};
 
 // ── ExchangeFeed ─────────────────────────────────────────────────────────────
 
 pub const ExchangeFeed = struct {
     allocator: std.mem.Allocator,
     mutex: std.Thread.Mutex,
-    prices: [6]PriceFetch,
+
+    /// Unbounded price map. Keys are `"{exchange}|{pair}"`, owned by feed
+    /// allocator (duped on first insertion of each key).
+    prices: PriceMap,
+
+    /// Per-exchange entry counters (used by circuit breakers).
+    coinbase_count: usize,
+    kraken_count: usize,
+    lcx_count: usize,
+
+    /// Last circuit-breaker warning timestamp per exchange (rate-limit log).
+    last_cb_warn_coinbase_ms: i64,
+    last_cb_warn_kraken_ms: i64,
+    last_cb_warn_lcx_ms: i64,
 
     /// Atomic flag — workers exit their reconnect loops when this goes false.
     run: std.atomic.Value(bool),
@@ -73,17 +150,34 @@ pub const ExchangeFeed = struct {
         return .{
             .allocator = allocator,
             .mutex = .{},
+            .prices = PriceMap.init(allocator),
+            .coinbase_count = 0,
+            .kraken_count = 0,
+            .lcx_count = 0,
+            .last_cb_warn_coinbase_ms = 0,
+            .last_cb_warn_kraken_ms = 0,
+            .last_cb_warn_lcx_ms = 0,
             .run = std.atomic.Value(bool).init(false),
             .threads = .{ null, null, null },
-            .prices = [6]PriceFetch{
-                .{ .exchange = "Coinbase", .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "Kraken",   .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "LCX",      .pair = "BTC/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "Coinbase", .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "Kraken",   .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-                .{ .exchange = "LCX",      .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
-            },
         };
+    }
+
+    /// Tear down the map: free every duped key, free every duped pair string,
+    /// then deinit the hashmap. Safe to call multiple times.
+    pub fn deinit(self: *Self) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        var it = self.prices.iterator();
+        while (it.next()) |entry| {
+            // Free the duped composite key.
+            self.allocator.free(entry.key_ptr.*);
+            // Free the duped pair string (exchange string is a static literal).
+            self.allocator.free(entry.value_ptr.pair);
+        }
+        self.prices.deinit();
+        self.coinbase_count = 0;
+        self.kraken_count = 0;
+        self.lcx_count = 0;
     }
 
     /// Spawn the 3 worker threads. Returns immediately. Calling start() twice
@@ -98,6 +192,7 @@ pub const ExchangeFeed = struct {
     }
 
     /// Signal all workers to exit, then join them. Safe to call multiple times.
+    /// Does NOT free the price map — call deinit() for that.
     pub fn stop(self: *Self) void {
         if (!self.run.load(.acquire)) return;
         self.run.store(false, .release);
@@ -110,42 +205,215 @@ pub const ExchangeFeed = struct {
         }
     }
 
-    /// Return a snapshot of all 6 price slots. Holds the mutex briefly.
+    // ── New unbounded API ──────────────────────────────────────────────────
+
+    /// Total number of (exchange, pair) entries currently tracked.
+    pub fn count(self: *Self) usize {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        return self.prices.count();
+    }
+
+    /// Look up a single price entry by (exchange, pair). Returns null if not
+    /// yet seen. Returned slices belong to the feed — copy if you need to
+    /// retain them past the next stop()/deinit().
+    pub fn getPrice(self: *Self, exchange: []const u8, pair: []const u8) ?PriceFetch {
+        var key_buf: [128]u8 = undefined;
+        const key = std.fmt.bufPrint(&key_buf, "{s}|{s}", .{ exchange, pair }) catch return null;
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        return self.prices.get(key);
+    }
+
+    /// Snapshot all entries in the map. Caller owns the returned slice and
+    /// must free it with the supplied allocator. The PriceFetch values still
+    /// hold borrowed slices (exchange/pair) — valid until feed.deinit().
+    pub fn getAllPrices(self: *Self, alloc: std.mem.Allocator) ![]PriceFetch {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        var out = try alloc.alloc(PriceFetch, self.prices.count());
+        var it = self.prices.iterator();
+        var i: usize = 0;
+        while (it.next()) |entry| : (i += 1) {
+            out[i] = entry.value_ptr.*;
+        }
+        return out;
+    }
+
+    /// Per-block snapshot covering the 7 IMPORTANT_PAIRS × 3 exchanges, in
+    /// canonical order. Missing entries appear as zeroed PriceFetch with
+    /// `success=false`. Used by main.zig recordBlockPrices.
+    pub fn getImportantSnapshot(self: *Self) [21]PriceFetch {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
+        var out: [21]PriceFetch = undefined;
+        var idx: usize = 0;
+        for (IMPORTANT_PAIRS) |ip| {
+            out[idx] = self.lookupOrEmpty("Coinbase", ip.coinbase, ip.label);
+            idx += 1;
+            out[idx] = self.lookupOrEmpty("Kraken", ip.kraken, ip.label);
+            idx += 1;
+            out[idx] = self.lookupOrEmpty("LCX", ip.lcx, ip.label);
+            idx += 1;
+        }
+        return out;
+    }
+
+    // ── Backward-compatible 6-slot API ─────────────────────────────────────
+
+    /// Return a snapshot of the canonical 6 slots (BTC × 3 + LCX × 3).
+    /// Slot layout matches the historical ordering used by rpc_server.zig
+    /// and main.zig recordBlockPrices.
     pub fn snapshot(self: *Self) [6]PriceFetch {
         self.mutex.lock();
         defer self.mutex.unlock();
-        return self.prices;
+        return [6]PriceFetch{
+            self.lookupOrEmpty("Coinbase", "BTC-USD",  "BTC/USD"),
+            self.lookupOrEmpty("Kraken",   "BTC/USD",  "BTC/USD"),
+            self.lookupOrEmpty("LCX",      "BTC/USDC", "BTC/USD"),
+            self.lookupOrEmpty("Coinbase", "LCX-USD",  "LCX/USD"),
+            self.lookupOrEmpty("Kraken",   "LCX/USD",  "LCX/USD"),
+            self.lookupOrEmpty("LCX",      "LCX/USDC", "LCX/USD"),
+        };
     }
 
-    /// Median BTC mid-price across the 3 BTC slots. Null if all slots stale/failed.
+    /// Median BTC mid-price across the 3 BTC slots. Null if all stale/failed.
     pub fn getMedianBtc(self: *Self) ?u64 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        return medianFor(self.prices[0..3]);
+        const snap = self.snapshot();
+        return medianFor(snap[0..3]);
     }
 
     /// Median LCX mid-price across the 3 LCX slots. Null if none valid.
     pub fn getMedianLcx(self: *Self) ?u64 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        return medianFor(self.prices[3..6]);
+        const snap = self.snapshot();
+        return medianFor(snap[3..6]);
     }
 
-    // ── Internal: shared write helper ──────────────────────────────────────
+    // ── Internal: shared write helpers ─────────────────────────────────────
 
-    fn updateSlot(self: *Self, slot: usize, bid: u64, ask: u64) void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        self.prices[slot].bid_micro_usd = bid;
-        self.prices[slot].ask_micro_usd = ask;
-        self.prices[slot].timestamp_ms  = std.time.milliTimestamp();
-        self.prices[slot].success       = true;
+    /// Internal lookup — caller must hold mutex. Returns the entry if present,
+    /// else a zeroed placeholder with the requested exchange/pair labels.
+    fn lookupOrEmpty(self: *Self, exchange: []const u8, pair: []const u8, fallback_label: []const u8) PriceFetch {
+        var key_buf: [128]u8 = undefined;
+        const key = std.fmt.bufPrint(&key_buf, "{s}|{s}", .{ exchange, pair }) catch {
+            return .{
+                .exchange = exchange, .pair = fallback_label,
+                .bid_micro_usd = 0, .ask_micro_usd = 0,
+                .timestamp_ms = 0, .success = false,
+            };
+        };
+        if (self.prices.get(key)) |p| {
+            // Override the pair field with the canonical label so legacy
+            // consumers (which expect "BTC/USD" not "BTC/USDC") see what
+            // they always saw.
+            return .{
+                .exchange = p.exchange,
+                .pair = fallback_label,
+                .bid_micro_usd = p.bid_micro_usd,
+                .ask_micro_usd = p.ask_micro_usd,
+                .timestamp_ms = p.timestamp_ms,
+                .success = p.success,
+            };
+        }
+        return .{
+            .exchange = exchange, .pair = fallback_label,
+            .bid_micro_usd = 0, .ask_micro_usd = 0,
+            .timestamp_ms = 0, .success = false,
+        };
     }
 
-    fn markSlotFailed(self: *Self, slot: usize) void {
+    /// Insert or update a (exchange, pair) entry. `exchange` MUST be one of
+    /// the static string literals "Coinbase" / "Kraken" / "LCX" so we don't
+    /// have to dupe it. `pair` is duped on first insertion. Circuit breakers
+    /// drop the entry (and rate-limit-log) if caps would be exceeded.
+    fn upsertPrice(self: *Self, exchange: []const u8, pair: []const u8, bid: u64, ask: u64) void {
+        // Compose the composite key on the stack first.
+        var key_buf: [128]u8 = undefined;
+        const composed = std.fmt.bufPrint(&key_buf, "{s}|{s}", .{ exchange, pair }) catch return;
+
         self.mutex.lock();
         defer self.mutex.unlock();
-        self.prices[slot].success = false;
+
+        if (self.prices.getPtr(composed)) |existing| {
+            // Update in place — no allocation, no counter change.
+            existing.bid_micro_usd = bid;
+            existing.ask_micro_usd = ask;
+            existing.timestamp_ms  = std.time.milliTimestamp();
+            existing.success       = true;
+            return;
+        }
+
+        // New key — check circuit breakers.
+        const total_now = self.prices.count();
+        const ex_count = self.exchangeCountPtr(exchange);
+        if (ex_count.* >= MAX_PAIRS_PER_EXCHANGE) {
+            self.warnCircuitBreaker(exchange, pair, MAX_PAIRS_PER_EXCHANGE, true);
+            return;
+        }
+        if (total_now >= MAX_TOTAL_PAIRS) {
+            self.warnCircuitBreaker(exchange, pair, MAX_TOTAL_PAIRS, false);
+            return;
+        }
+
+        // Dupe key + pair string so they outlive the stack buffer.
+        const owned_key = self.allocator.dupe(u8, composed) catch return;
+        const owned_pair = self.allocator.dupe(u8, pair) catch {
+            self.allocator.free(owned_key);
+            return;
+        };
+
+        const fetch: PriceFetch = .{
+            .exchange = exchange, // static literal, no dupe needed
+            .pair = owned_pair,
+            .bid_micro_usd = bid,
+            .ask_micro_usd = ask,
+            .timestamp_ms = std.time.milliTimestamp(),
+            .success = true,
+        };
+        self.prices.put(owned_key, fetch) catch {
+            self.allocator.free(owned_key);
+            self.allocator.free(owned_pair);
+            return;
+        };
+        ex_count.* += 1;
+    }
+
+    fn exchangeCountPtr(self: *Self, exchange: []const u8) *usize {
+        if (std.mem.eql(u8, exchange, "Coinbase")) return &self.coinbase_count;
+        if (std.mem.eql(u8, exchange, "Kraken"))   return &self.kraken_count;
+        return &self.lcx_count;
+    }
+
+    fn lastWarnPtr(self: *Self, exchange: []const u8) *i64 {
+        if (std.mem.eql(u8, exchange, "Coinbase")) return &self.last_cb_warn_coinbase_ms;
+        if (std.mem.eql(u8, exchange, "Kraken"))   return &self.last_cb_warn_kraken_ms;
+        return &self.last_cb_warn_lcx_ms;
+    }
+
+    /// Rate-limited circuit-breaker warning: at most one log per exchange per
+    /// minute. `per_exchange` flag distinguishes the two cap types in the log.
+    fn warnCircuitBreaker(self: *Self, exchange: []const u8, pair: []const u8, cap: usize, per_exchange: bool) void {
+        const now_ms = std.time.milliTimestamp();
+        const last = self.lastWarnPtr(exchange);
+        if (now_ms - last.* < 60_000) return;
+        last.* = now_ms;
+        const scope = if (per_exchange) "per-exchange" else "global";
+        std.debug.print("[WS-FEED] circuit breaker: dropping {s}|{s} ({s} cap {d})\n",
+            .{ exchange, pair, scope, cap });
+    }
+
+    /// Mark every entry from a given exchange as failed. Used on disconnect
+    /// so consumers can see staleness immediately rather than after timeout.
+    fn markExchangeFailed(self: *Self, exchange: []const u8) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        var it = self.prices.iterator();
+        while (it.next()) |entry| {
+            if (std.mem.eql(u8, entry.value_ptr.exchange, exchange)) {
+                entry.value_ptr.success = false;
+            }
+        }
     }
 };
 
@@ -172,9 +440,7 @@ fn coinbaseWorker(feed: *ExchangeFeed) void {
     var backoff: u64 = BACKOFF_INITIAL_MS;
     while (feed.run.load(.acquire)) {
         runCoinbaseSession(feed) catch {};
-        // Mark slots failed on disconnect so stale data is visible upstream.
-        feed.markSlotFailed(SLOT_BTC_COINBASE);
-        feed.markSlotFailed(SLOT_LCX_COINBASE);
+        feed.markExchangeFailed("Coinbase");
         backoff = sleepBackoff(feed, backoff);
     }
 }
@@ -189,10 +455,23 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    const subscribe =
-        \\{"type":"subscribe","product_ids":["BTC-USD","LCX-USD"],"channel":"ticker"}
-    ;
-    try client.send(subscribe);
+    // ── Discover product list (REST GET → fallback list on failure) ───────
+    const products = fetchCoinbaseProducts(feed.allocator) catch blk: {
+        std.debug.print("[CB-WS] product fetch failed, using {d} fallback majors\n",
+            .{COINBASE_FALLBACK_PRODUCTS.len});
+        break :blk null;
+    };
+    defer if (products) |p| {
+        for (p) |s| feed.allocator.free(s);
+        feed.allocator.free(p);
+    };
+
+    // Subscribe in chunks of COINBASE_SUBSCRIBE_CHUNK product_ids per frame.
+    if (products) |list| {
+        try sendCoinbaseSubscribe(client, feed.allocator, list);
+    } else {
+        try sendCoinbaseSubscribeStatic(client, feed.allocator, &COINBASE_FALLBACK_PRODUCTS);
+    }
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -209,39 +488,113 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
     }
 }
 
+/// Send Coinbase subscribe frames, chunking product_ids to avoid frame size
+/// limits. `products` slice elements are owned strings.
+fn sendCoinbaseSubscribe(client: *WsClient, alloc: std.mem.Allocator, products: []const []const u8) !void {
+    var i: usize = 0;
+    while (i < products.len) : (i += COINBASE_SUBSCRIBE_CHUNK) {
+        const end = @min(i + COINBASE_SUBSCRIBE_CHUNK, products.len);
+        try sendOneCoinbaseChunk(client, alloc, products[i..end]);
+    }
+}
+
+/// Same as sendCoinbaseSubscribe but for a static [_][]const u8 array.
+fn sendCoinbaseSubscribeStatic(client: *WsClient, alloc: std.mem.Allocator, products: []const []const u8) !void {
+    try sendCoinbaseSubscribe(client, alloc, products);
+}
+
+fn sendOneCoinbaseChunk(client: *WsClient, alloc: std.mem.Allocator, products: []const []const u8) !void {
+    var buf: std.ArrayList(u8) = .empty;
+    defer buf.deinit(alloc);
+    try buf.appendSlice(alloc, "{\"type\":\"subscribe\",\"product_ids\":[");
+    for (products, 0..) |p, idx| {
+        if (idx > 0) try buf.append(alloc, ',');
+        try buf.append(alloc, '"');
+        try buf.appendSlice(alloc, p);
+        try buf.append(alloc, '"');
+    }
+    try buf.appendSlice(alloc, "],\"channel\":\"ticker\"}");
+    try client.send(buf.items);
+}
+
+/// One-shot HTTPS GET to https://api.exchange.coinbase.com/products. Returns
+/// a slice of owned product-id strings ("BTC-USD", "ETH-USD", ...). Caller
+/// must free each string AND the outer slice.
+fn fetchCoinbaseProducts(alloc: std.mem.Allocator) ![][]const u8 {
+    var client = std.http.Client{ .allocator = alloc };
+    defer client.deinit();
+
+    var wa = std.Io.Writer.Allocating.init(alloc);
+    defer wa.deinit();
+
+    const result = try client.fetch(.{
+        .location = .{ .url = COINBASE_PRODUCTS_URL },
+        .response_writer = &wa.writer,
+        .keep_alive = false,
+    });
+    const status: u16 = @intCast(@intFromEnum(result.status));
+    if (status != 200) return error.HttpError;
+
+    const body = wa.written();
+
+    // Body is a JSON array of objects: [{"id":"BTC-USD",...},{"id":"ETH-USD",...}]
+    // Walk it with simple indexOf — same minimalist style as the WS parsers.
+    var ids: std.ArrayList([]const u8) = .empty;
+    errdefer {
+        for (ids.items) |s| alloc.free(s);
+        ids.deinit(alloc);
+    }
+
+    const needle = "\"id\":\"";
+    var pos: usize = 0;
+    while (std.mem.indexOfPos(u8, body, pos, needle)) |found| {
+        const v_start = found + needle.len;
+        const v_end = std.mem.indexOfPos(u8, body, v_start, "\"") orelse break;
+        if (v_end > v_start) {
+            const id = try alloc.dupe(u8, body[v_start..v_end]);
+            try ids.append(alloc, id);
+        }
+        pos = v_end + 1;
+    }
+    if (ids.items.len == 0) return error.NoProductsFound;
+    return try ids.toOwnedSlice(alloc);
+}
+
 /// Coinbase Advanced ticker payload format (relevant fields only):
 ///   {"channel":"ticker","events":[{"type":"...","tickers":[
 ///       {"product_id":"BTC-USD","best_bid":"32705.30","best_ask":"32762.60", ...},
-///       {"product_id":"LCX-USD","best_bid":"0.05","best_ask":"0.06", ...}
+///       {"product_id":"ETH-USD","best_bid":"3200.10","best_ask":"3201.40", ...},
+///       ... potentially hundreds of products in one frame
 ///   ]}], ...}
 ///
-/// We don't walk JSON structure; we just locate each ticker object by its
-/// "product_id":"..." marker, then parse best_bid / best_ask within the
-/// short window that follows.
+/// We walk every `"product_id":"<value>"` occurrence, and for each one parse
+/// best_bid / best_ask in the immediately following window. No pre-filtering.
 fn parseCoinbaseTicker(feed: *ExchangeFeed, body: []const u8) void {
-    // Verbose: log everything Coinbase sends so we can confirm format.
-    {
-        const head_len = @min(body.len, 500);
-        std.debug.print("[CB-WS] frame: {s}\n", .{body[0..head_len]});
-    }
-    parseCoinbaseProduct(feed, body, "\"product_id\":\"BTC-USD\"", SLOT_BTC_COINBASE);
-    parseCoinbaseProduct(feed, body, "\"product_id\":\"LCX-USD\"", SLOT_LCX_COINBASE);
-}
+    const needle = "\"product_id\":\"";
+    var pos: usize = 0;
+    while (std.mem.indexOfPos(u8, body, pos, needle)) |found| {
+        const id_start = found + needle.len;
+        const id_end = std.mem.indexOfPos(u8, body, id_start, "\"") orelse break;
+        if (id_end <= id_start) {
+            pos = id_start;
+            continue;
+        }
+        const product_id = body[id_start..id_end];
 
-fn parseCoinbaseProduct(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) void {
-    const pos = std.mem.indexOf(u8, body, marker) orelse return;
-    // A single ticker object is < 1 KiB; bound the search window so we don't
-    // accidentally match the next product's bid/ask.
-    const window_end = @min(body.len, pos + 1024);
-    const window = body[pos..window_end];
+        // Bound the search window to the next ~1 KiB so we don't accidentally
+        // grab the next ticker's bid/ask.
+        const win_end = @min(body.len, id_end + 1024);
+        const window = body[id_end..win_end];
 
-    const bid = parseQuotedPrice(window, "\"best_bid\":\"");
-    const ask = parseQuotedPrice(window, "\"best_ask\":\"");
+        const bid = parseQuotedPrice(window, "\"best_bid\":\"");
+        const ask = parseQuotedPrice(window, "\"best_ask\":\"");
 
-    if (bid != null or ask != null) {
-        const bid_v = bid orelse (ask orelse 0);
-        const ask_v = ask orelse (bid orelse 0);
-        feed.updateSlot(slot, bid_v, ask_v);
+        if (bid != null or ask != null) {
+            const bid_v = bid orelse (ask orelse 0);
+            const ask_v = ask orelse (bid orelse 0);
+            feed.upsertPrice("Coinbase", product_id, bid_v, ask_v);
+        }
+        pos = id_end + 1;
     }
 }
 
@@ -251,8 +604,7 @@ fn krakenWorker(feed: *ExchangeFeed) void {
     var backoff: u64 = BACKOFF_INITIAL_MS;
     while (feed.run.load(.acquire)) {
         runKrakenSession(feed) catch {};
-        feed.markSlotFailed(SLOT_BTC_KRAKEN);
-        feed.markSlotFailed(SLOT_LCX_KRAKEN);
+        feed.markExchangeFailed("Kraken");
         backoff = sleepBackoff(feed, backoff);
     }
 }
@@ -267,8 +619,9 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
+    // Wildcard "*" subscribes to ALL ticker symbols Kraken publishes.
     const subscribe =
-        \\{"method":"subscribe","params":{"channel":"ticker","symbol":["BTC/USD","LCX/USD"]}}
+        \\{"method":"subscribe","params":{"channel":"ticker","symbol":["*"]}}
     ;
     try client.send(subscribe);
 
@@ -289,37 +642,38 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
 
 /// Kraken v2 ticker payload (snapshot OR update):
 ///   {"channel":"ticker","type":"snapshot",
-///    "data":[{"symbol":"BTC/USD","bid":65234.1,"ask":65235.0, ...}]}
+///    "data":[{"symbol":"BTC/USD","bid":65234.1,"ask":65235.0, ...},
+///            {"symbol":"ETH/USD","bid":3200.1, "ask":3201.0, ...}]}
 ///
-/// Status / heartbeat messages are ignored:
-///   {"channel":"status", ...}
-///   {"channel":"heartbeat"}
+/// We walk every `"symbol":"<value>"` and parse the bid/ask in its window.
+/// Status / heartbeat messages are ignored via the cheap channel filter.
 fn parseKrakenMessage(feed: *ExchangeFeed, body: []const u8) void {
-    // Verbose: log everything Kraken sends so we can confirm pair format.
-    {
-        const head_len = @min(body.len, 500);
-        std.debug.print("[KRAKEN-WS] frame: {s}\n", .{body[0..head_len]});
-    }
-    // Cheap channel filter — only act on ticker frames.
     if (std.mem.indexOf(u8, body, "\"channel\":\"ticker\"") == null) return;
 
-    parseKrakenSymbol(feed, body, "\"symbol\":\"BTC/USD\"", SLOT_BTC_KRAKEN);
-    parseKrakenSymbol(feed, body, "\"symbol\":\"LCX/USD\"", SLOT_LCX_KRAKEN);
-}
+    const needle = "\"symbol\":\"";
+    var pos: usize = 0;
+    while (std.mem.indexOfPos(u8, body, pos, needle)) |found| {
+        const s_start = found + needle.len;
+        const s_end = std.mem.indexOfPos(u8, body, s_start, "\"") orelse break;
+        if (s_end <= s_start) {
+            pos = s_start;
+            continue;
+        }
+        const symbol = body[s_start..s_end];
 
-fn parseKrakenSymbol(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) void {
-    const pos = std.mem.indexOf(u8, body, marker) orelse return;
-    const window_end = @min(body.len, pos + 512);
-    const window = body[pos..window_end];
+        const win_end = @min(body.len, s_end + 512);
+        const window = body[s_end..win_end];
 
-    // Kraken v2 emits raw numeric values, not strings.
-    const bid = parseUnquotedPrice(window, "\"bid\":");
-    const ask = parseUnquotedPrice(window, "\"ask\":");
+        // Kraken v2 emits raw numeric values, not strings.
+        const bid = parseUnquotedPrice(window, "\"bid\":");
+        const ask = parseUnquotedPrice(window, "\"ask\":");
 
-    if (bid != null or ask != null) {
-        const bid_v = bid orelse (ask orelse 0);
-        const ask_v = ask orelse (bid orelse 0);
-        feed.updateSlot(slot, bid_v, ask_v);
+        if (bid != null or ask != null) {
+            const bid_v = bid orelse (ask orelse 0);
+            const ask_v = ask orelse (bid orelse 0);
+            feed.upsertPrice("Kraken", symbol, bid_v, ask_v);
+        }
+        pos = s_end + 1;
     }
 }
 
@@ -329,8 +683,7 @@ fn lcxWorker(feed: *ExchangeFeed) void {
     var backoff: u64 = BACKOFF_INITIAL_MS;
     while (feed.run.load(.acquire)) {
         runLcxSession(feed) catch {};
-        feed.markSlotFailed(SLOT_BTC_LCX);
-        feed.markSlotFailed(SLOT_LCX_LCX);
+        feed.markExchangeFailed("LCX");
         backoff = sleepBackoff(feed, backoff);
     }
 }
@@ -339,8 +692,6 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
     // Confirmed via direct python websockets test against the live server:
     // - "/" returns HTTP 200 (no WS upgrade) → handshake fails.
     // - "/ws" accepts upgrade AND streams ticker snapshots/updates.
-    // Docs in 2_SDK/Connect/.../LCX Exchange API v1.1.0.rst document "/" but
-    // the live server at exchange-api.lcx.com rejects it.
     var client = try WsClient.connect(
         feed.allocator,
         "exchange-api.lcx.com",
@@ -381,40 +732,27 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
     }
 }
 
-/// LCX ticker snapshot frame format (verified via live test):
+/// LCX ticker frame format (verified via live test):
 ///   {"type":"ticker","topic":"snapshot","pair":"","data":{
 ///     "1INCH/EUR":{"bestBid":..,"bestAsk":..,...},
 ///     "BTC/USDC":{"bestBid":..,"bestAsk":..,...},
 ///     "LCX/USDC":{"bestBid":..,"bestAsk":..,...},
 ///     ... ALL pairs in one frame
 ///   }}
-/// Update frames (per pair) come later with the same shape but only one
-/// pair populated under data. Either way we look for "BTC/USDC":{ and
-/// "LCX/USDC":{ as anchor markers.
+///
+/// We walk EVERY top-level key of `data` (not just BTC/LCX). Each key is a
+/// pair name; its sub-object holds bestBid/bestAsk we parse with the existing
+/// helpers. Brace-balancing isolates each sub-object so neighbours don't bleed.
 fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
-    // Log every LCX frame head so we can verify the parser still matches
-    // if LCX changes their format. Capped at 500 chars to bound disk usage.
-    {
-        const head_len = @min(body.len, 500);
-        std.debug.print("[LCX-WS] frame: {s}\n", .{body[0..head_len]});
-    }
+    // Locate the start of the data object: `"data":{`. Everything we want
+    // lives inside its braces.
+    const data_marker = "\"data\":{";
+    const data_pos = std.mem.indexOf(u8, body, data_marker) orelse return;
+    const data_open = data_pos + data_marker.len; // points just AFTER outer `{`
 
-    // Markers: pair name as a JSON KEY (NOT value). The literal `{` after
-    // the colon is critical because LCX's flat fields like "pair":"" would
-    // false-positive against `"pair":"BTC/USDC"` markers. Looking for the
-    // object-open ensures we land on the per-pair sub-object.
-    _ = parseLcxPair(feed, body, "\"BTC/USDC\":{", SLOT_BTC_LCX);
-    _ = parseLcxPair(feed, body, "\"LCX/USDC\":{", SLOT_LCX_LCX);
-}
-
-fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) bool {
-    const start = std.mem.indexOf(u8, body, marker) orelse return false;
-    // Find the END of THIS pair's sub-object by balancing { and } brackets.
-    // The marker ends with "{" so depth starts at 1. Skip strings + escapes
-    // so we don't count braces inside JSON string literals.
-    const obj_open = start + marker.len; // points just AFTER the opening '{'
-    var i: usize = obj_open;
-    var depth: i32 = 1;
+    // Walk the object: at depth 1 a `"<key>":{` introduces a per-pair
+    // sub-object; brace-balance to find its matching `}`, then parse.
+    var i: usize = data_open;
     var in_string: bool = false;
     var escape: bool = false;
     while (i < body.len) : (i += 1) {
@@ -423,17 +761,65 @@ fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot:
             if (escape) { escape = false; }
             else if (c == '\\') { escape = true; }
             else if (c == '"') { in_string = false; }
-        } else {
-            if (c == '"') { in_string = true; }
-            else if (c == '{') { depth += 1; }
-            else if (c == '}') { depth -= 1; if (depth == 0) { i += 1; break; } }
+            continue;
+        }
+        if (c == '}') return; // closing the data object → done
+        if (c == '"') {
+            // Start of a key. Read until closing quote.
+            const key_start = i + 1;
+            var j = key_start;
+            var k_escape = false;
+            while (j < body.len) : (j += 1) {
+                const kc = body[j];
+                if (k_escape) { k_escape = false; continue; }
+                if (kc == '\\') { k_escape = true; continue; }
+                if (kc == '"') break;
+            }
+            if (j >= body.len) return;
+            const key = body[key_start..j];
+            // Expect `":` then `{` (skipping whitespace). If anything else,
+            // skip and continue scanning at j+1.
+            var p = j + 1;
+            while (p < body.len and (body[p] == ' ' or body[p] == '\t')) : (p += 1) {}
+            if (p >= body.len or body[p] != ':') { i = j; continue; }
+            p += 1;
+            while (p < body.len and (body[p] == ' ' or body[p] == '\t')) : (p += 1) {}
+            if (p >= body.len) return;
+            if (body[p] != '{') {
+                // Value is not an object — skip past it (could be string,
+                // number, etc.). Advance to next comma at depth 0.
+                i = p;
+                while (i < body.len and body[i] != ',' and body[i] != '}') : (i += 1) {}
+                continue;
+            }
+            // Brace-balance the sub-object.
+            const obj_open = p + 1;
+            var depth: i32 = 1;
+            var sub_in_string = false;
+            var sub_escape = false;
+            var q: usize = obj_open;
+            while (q < body.len) : (q += 1) {
+                const sc = body[q];
+                if (sub_in_string) {
+                    if (sub_escape) { sub_escape = false; }
+                    else if (sc == '\\') { sub_escape = true; }
+                    else if (sc == '"') { sub_in_string = false; }
+                } else {
+                    if (sc == '"') { sub_in_string = true; }
+                    else if (sc == '{') { depth += 1; }
+                    else if (sc == '}') { depth -= 1; if (depth == 0) { q += 1; break; } }
+                }
+            }
+            const window = body[p..q];
+            parseLcxPairWindow(feed, key, window);
+            i = q - 1; // for-loop will i+=1
+            continue;
         }
     }
-    // Window covers exactly this pair's sub-object — no leak from neighbours.
-    const window = body[start..i];
+}
 
-    // Try unquoted (LCX modern) AND quoted (some endpoints) variants,
-    // searched ONLY within this pair's window.
+/// Parse bid/ask from a single pair's sub-object window, then upsert.
+fn parseLcxPairWindow(feed: *ExchangeFeed, pair: []const u8, window: []const u8) void {
     const unquoted_pairs = [_]struct { bk: []const u8, ak: []const u8 }{
         .{ .bk = "\"bestBid\":", .ak = "\"bestAsk\":" },
         .{ .bk = "\"bid\":",     .ak = "\"ask\":" },
@@ -459,10 +845,8 @@ fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot:
     if (bid != null or ask != null) {
         const bid_v = bid orelse (ask orelse 0);
         const ask_v = ask orelse (bid orelse 0);
-        feed.updateSlot(slot, bid_v, ask_v);
-        return true;
+        feed.upsertPrice("LCX", pair, bid_v, ask_v);
     }
-    return false;
 }
 
 // ── JSON parsers (minimal, indexOf-based — same idea as oracle_fetcher.zig) ──
@@ -525,19 +909,19 @@ pub fn floatToMicroUsd(s: []const u8) ?u64 {
 
 fn medianFor(slice: []const PriceFetch) ?u64 {
     var valid: [3]u64 = undefined;
-    var count: u8 = 0;
+    var n: u8 = 0;
     for (slice) |p| {
         if (p.success and p.bid_micro_usd > 0) {
-            valid[count] = (p.bid_micro_usd + p.ask_micro_usd) / 2;
-            count += 1;
-            if (count == 3) break;
+            valid[n] = (p.bid_micro_usd + p.ask_micro_usd) / 2;
+            n += 1;
+            if (n == 3) break;
         }
     }
-    if (count == 0) return null;
-    if (count == 1) return valid[0];
-    sortU64(valid[0..count]);
-    if (count == 2) return (valid[0] + valid[1]) / 2;
-    return valid[count / 2];
+    if (n == 0) return null;
+    if (n == 1) return valid[0];
+    sortU64(valid[0..n]);
+    if (n == 2) return (valid[0] + valid[1]) / 2;
+    return valid[n / 2];
 }
 
 fn sortU64(arr: []u64) void {
@@ -554,7 +938,7 @@ fn sortU64(arr: []u64) void {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Tests — JSON parsing + slot logic only (no live WS connections)
+// Tests — JSON parsing + map logic only (no live WS connections)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test "floatToMicroUsd — integer" {
@@ -622,8 +1006,10 @@ test "parseUnquotedPrice — whitespace tolerated" {
     try std.testing.expectEqual(@as(?u64, 43_000_000), parseUnquotedPrice(json, "\"ask\":"));
 }
 
-test "ExchangeFeed — init has all 6 slots zeroed" {
+test "ExchangeFeed — init starts empty, snapshot returns 6 placeholders" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
+    try std.testing.expectEqual(@as(usize, 0), feed.count());
     const snap = feed.snapshot();
     try std.testing.expectEqual(@as(usize, 6), snap.len);
     for (snap) |p| {
@@ -638,29 +1024,32 @@ test "ExchangeFeed — init has all 6 slots zeroed" {
     try std.testing.expectEqualStrings("LCX/USD",  snap[3].pair);
 }
 
-test "ExchangeFeed — updateSlot writes through mutex" {
+test "ExchangeFeed — upsertPrice writes through mutex" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    feed.updateSlot(SLOT_BTC_KRAKEN, 65_000_000_000, 65_010_000_000);
+    defer feed.deinit();
+    feed.upsertPrice("Kraken", "BTC/USD", 65_000_000_000, 65_010_000_000);
     const snap = feed.snapshot();
-    try std.testing.expect(snap[SLOT_BTC_KRAKEN].success);
-    try std.testing.expectEqual(@as(u64, 65_000_000_000), snap[SLOT_BTC_KRAKEN].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 65_010_000_000), snap[SLOT_BTC_KRAKEN].ask_micro_usd);
-    try std.testing.expect(snap[SLOT_BTC_KRAKEN].timestamp_ms > 0);
+    try std.testing.expect(snap[1].success); // SLOT_BTC_KRAKEN
+    try std.testing.expectEqual(@as(u64, 65_000_000_000), snap[1].bid_micro_usd);
+    try std.testing.expectEqual(@as(u64, 65_010_000_000), snap[1].ask_micro_usd);
+    try std.testing.expect(snap[1].timestamp_ms > 0);
 }
 
-test "ExchangeFeed — markSlotFailed clears success flag" {
+test "ExchangeFeed — markExchangeFailed clears success flag" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    feed.updateSlot(SLOT_LCX_LCX, 50_000, 51_000);
-    feed.markSlotFailed(SLOT_LCX_LCX);
+    defer feed.deinit();
+    feed.upsertPrice("LCX", "LCX/USDC", 50_000, 51_000);
+    feed.markExchangeFailed("LCX");
     const snap = feed.snapshot();
-    try std.testing.expect(!snap[SLOT_LCX_LCX].success);
+    try std.testing.expect(!snap[5].success); // SLOT_LCX_LCX
 }
 
 test "ExchangeFeed — getMedianBtc with 3 slots" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    feed.updateSlot(SLOT_BTC_COINBASE, 84_000_000_000, 84_100_000_000); // mid 84_050
-    feed.updateSlot(SLOT_BTC_KRAKEN,   84_200_000_000, 84_300_000_000); // mid 84_250
-    feed.updateSlot(SLOT_BTC_LCX,      84_100_000_000, 84_100_000_000); // mid 84_100
+    defer feed.deinit();
+    feed.upsertPrice("Coinbase", "BTC-USD",  84_000_000_000, 84_100_000_000); // mid 84_050
+    feed.upsertPrice("Kraken",   "BTC/USD",  84_200_000_000, 84_300_000_000); // mid 84_250
+    feed.upsertPrice("LCX",      "BTC/USDC", 84_100_000_000, 84_100_000_000); // mid 84_100
     const median = feed.getMedianBtc();
     try std.testing.expect(median != null);
     try std.testing.expectEqual(@as(u64, 84_100_000_000), median.?);
@@ -668,8 +1057,9 @@ test "ExchangeFeed — getMedianBtc with 3 slots" {
 
 test "ExchangeFeed — getMedianBtc with 2 slots is average" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    feed.updateSlot(SLOT_BTC_COINBASE, 84_000_000_000, 84_000_000_000);
-    feed.updateSlot(SLOT_BTC_KRAKEN,   84_200_000_000, 84_200_000_000);
+    defer feed.deinit();
+    feed.upsertPrice("Coinbase", "BTC-USD", 84_000_000_000, 84_000_000_000);
+    feed.upsertPrice("Kraken",   "BTC/USD", 84_200_000_000, 84_200_000_000);
     const median = feed.getMedianBtc();
     try std.testing.expect(median != null);
     try std.testing.expectEqual(@as(u64, 84_100_000_000), median.?);
@@ -677,90 +1067,173 @@ test "ExchangeFeed — getMedianBtc with 2 slots is average" {
 
 test "ExchangeFeed — getMedianBtc returns null when empty" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     try std.testing.expectEqual(@as(?u64, null), feed.getMedianBtc());
     try std.testing.expectEqual(@as(?u64, null), feed.getMedianLcx());
 }
 
 test "ExchangeFeed — getMedianLcx independent of BTC slots" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    feed.updateSlot(SLOT_BTC_COINBASE, 84_000_000_000, 84_000_000_000);
-    feed.updateSlot(SLOT_LCX_LCX, 50_000, 60_000); // mid 55_000
+    defer feed.deinit();
+    feed.upsertPrice("Coinbase", "BTC-USD", 84_000_000_000, 84_000_000_000);
+    feed.upsertPrice("LCX", "LCX/USDC", 50_000, 60_000); // mid 55_000
     try std.testing.expectEqual(@as(?u64, 55_000), feed.getMedianLcx());
     try std.testing.expectEqual(@as(?u64, 84_000_000_000), feed.getMedianBtc());
 }
 
-test "Coinbase ticker parse — both products in one frame" {
+test "ExchangeFeed — getPrice + getAllPrices" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
+    feed.upsertPrice("Coinbase", "ETH-USD", 3_200_100_000, 3_201_400_000);
+    feed.upsertPrice("Kraken",   "SOL/USD",   145_500_000, 145_700_000);
+
+    const eth = feed.getPrice("Coinbase", "ETH-USD");
+    try std.testing.expect(eth != null);
+    try std.testing.expectEqual(@as(u64, 3_200_100_000), eth.?.bid_micro_usd);
+
+    try std.testing.expectEqual(@as(usize, 2), feed.count());
+    const all = try feed.getAllPrices(std.testing.allocator);
+    defer std.testing.allocator.free(all);
+    try std.testing.expectEqual(@as(usize, 2), all.len);
+}
+
+test "PriceFetch.isStale" {
+    const now: i64 = 1_000_000;
+    const fresh = PriceFetch{ .exchange = "Coinbase", .pair = "BTC-USD",
+        .bid_micro_usd = 1, .ask_micro_usd = 1, .timestamp_ms = now - 5_000, .success = true };
+    const stale = PriceFetch{ .exchange = "Coinbase", .pair = "BTC-USD",
+        .bid_micro_usd = 1, .ask_micro_usd = 1, .timestamp_ms = now - 60_000, .success = true };
+    const failed = PriceFetch{ .exchange = "Coinbase", .pair = "BTC-USD",
+        .bid_micro_usd = 1, .ask_micro_usd = 1, .timestamp_ms = now - 1_000, .success = false };
+    try std.testing.expect(!fresh.isStale(now, DEFAULT_STALE_THRESHOLD_MS));
+    try std.testing.expect(stale.isStale(now, DEFAULT_STALE_THRESHOLD_MS));
+    try std.testing.expect(failed.isStale(now, DEFAULT_STALE_THRESHOLD_MS));
+}
+
+test "ExchangeFeed — getImportantSnapshot returns 21 entries in canonical order" {
+    var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
+    feed.upsertPrice("Coinbase", "BTC-USD", 84_000_000_000, 84_100_000_000);
+    feed.upsertPrice("Kraken",   "ETH/USD",  3_200_000_000,  3_201_000_000);
+    feed.upsertPrice("LCX",      "SOL/USDC",   145_000_000,    146_000_000);
+
+    const snap = feed.getImportantSnapshot();
+    try std.testing.expectEqual(@as(usize, 21), snap.len);
+
+    // Layout: 7 pairs × {Coinbase, Kraken, LCX}.
+    // BTC/USD Coinbase = idx 0
+    try std.testing.expect(snap[0].success);
+    try std.testing.expectEqualStrings("Coinbase", snap[0].exchange);
+    try std.testing.expectEqualStrings("BTC/USD", snap[0].pair);
+    try std.testing.expectEqual(@as(u64, 84_000_000_000), snap[0].bid_micro_usd);
+
+    // ETH/USD = pair index 2 → base 6. Kraken = +1 = idx 7
+    try std.testing.expect(snap[7].success);
+    try std.testing.expectEqualStrings("Kraken", snap[7].exchange);
+
+    // SOL/USD = pair index 3 → base 9. LCX = +2 = idx 11
+    try std.testing.expect(snap[11].success);
+    try std.testing.expectEqualStrings("LCX", snap[11].exchange);
+
+    // EGLD/USD all 3 unset
+    try std.testing.expect(!snap[18].success);
+    try std.testing.expect(!snap[19].success);
+    try std.testing.expect(!snap[20].success);
+}
+
+test "Coinbase ticker parse — both products in one frame, no pre-filter" {
+    var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     const frame =
         \\{"channel":"ticker","events":[{"type":"snapshot","tickers":[
         \\{"product_id":"BTC-USD","best_bid":"32705.30","best_ask":"32762.60","price":"32733.00"},
-        \\{"product_id":"LCX-USD","best_bid":"0.054320","best_ask":"0.054440","price":"0.05438"}
+        \\{"product_id":"LCX-USD","best_bid":"0.054320","best_ask":"0.054440","price":"0.05438"},
+        \\{"product_id":"ETH-USD","best_bid":"3200.10","best_ask":"3201.40","price":"3200.50"}
         \\]}]}
     ;
     parseCoinbaseTicker(&feed, frame);
-    const snap = feed.snapshot();
-    try std.testing.expect(snap[SLOT_BTC_COINBASE].success);
-    try std.testing.expectEqual(@as(u64, 32_705_300_000), snap[SLOT_BTC_COINBASE].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 32_762_600_000), snap[SLOT_BTC_COINBASE].ask_micro_usd);
-    try std.testing.expect(snap[SLOT_LCX_COINBASE].success);
-    try std.testing.expectEqual(@as(u64, 54_320), snap[SLOT_LCX_COINBASE].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 54_440), snap[SLOT_LCX_COINBASE].ask_micro_usd);
+    try std.testing.expectEqual(@as(usize, 3), feed.count());
+
+    const btc = feed.getPrice("Coinbase", "BTC-USD").?;
+    try std.testing.expectEqual(@as(u64, 32_705_300_000), btc.bid_micro_usd);
+    const lcx = feed.getPrice("Coinbase", "LCX-USD").?;
+    try std.testing.expectEqual(@as(u64, 54_320), lcx.bid_micro_usd);
+    const eth = feed.getPrice("Coinbase", "ETH-USD").?;
+    try std.testing.expectEqual(@as(u64, 3_200_100_000), eth.bid_micro_usd);
 }
 
-test "Kraken ticker parse — BTC update only" {
+test "Kraken ticker parse — multiple symbols, no pre-filter" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     const frame =
-        \\{"channel":"ticker","type":"update","data":[{"symbol":"BTC/USD","bid":65234.1,"ask":65235.0,"last":65234.5}]}
+        \\{"channel":"ticker","type":"update","data":[
+        \\{"symbol":"BTC/USD","bid":65234.1,"ask":65235.0,"last":65234.5},
+        \\{"symbol":"ETH/USD","bid":3200.1,"ask":3201.0,"last":3200.5},
+        \\{"symbol":"DOGE/USD","bid":0.075,"ask":0.076,"last":0.0755}]}
     ;
     parseKrakenMessage(&feed, frame);
-    const snap = feed.snapshot();
-    try std.testing.expect(snap[SLOT_BTC_KRAKEN].success);
-    try std.testing.expectEqual(@as(u64, 65_234_100_000), snap[SLOT_BTC_KRAKEN].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 65_235_000_000), snap[SLOT_BTC_KRAKEN].ask_micro_usd);
-    // LCX slot must remain untouched.
-    try std.testing.expect(!snap[SLOT_LCX_KRAKEN].success);
+    try std.testing.expectEqual(@as(usize, 3), feed.count());
+
+    const btc = feed.getPrice("Kraken", "BTC/USD").?;
+    try std.testing.expectEqual(@as(u64, 65_234_100_000), btc.bid_micro_usd);
+    const doge = feed.getPrice("Kraken", "DOGE/USD").?;
+    try std.testing.expectEqual(@as(u64, 75_000), doge.bid_micro_usd);
 }
 
 test "Kraken parser ignores heartbeat / status frames" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     parseKrakenMessage(&feed, "{\"channel\":\"heartbeat\"}");
     parseKrakenMessage(&feed, "{\"channel\":\"status\",\"data\":[{\"system\":\"online\"}]}");
-    const snap = feed.snapshot();
-    try std.testing.expect(!snap[SLOT_BTC_KRAKEN].success);
-    try std.testing.expect(!snap[SLOT_LCX_KRAKEN].success);
+    try std.testing.expectEqual(@as(usize, 0), feed.count());
 }
 
-test "LCX ticker parse — BTC/USDC pair" {
+test "LCX ticker parse — walks all keys in data object" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     const frame =
-        \\{"data":{"pair":"BTC/USDC","bestBid":65234.5,"bestAsk":65236.7,"lastPrice":65235.6}}
+        \\{"type":"ticker","topic":"snapshot","pair":"","data":{
+        \\"BTC/USDC":{"bestBid":65234.5,"bestAsk":65236.7,"lastPrice":65235.6},
+        \\"LCX/USDC":{"bestBid":0.054321,"bestAsk":0.054440},
+        \\"ETH/USDC":{"bestBid":3200.10,"bestAsk":3201.40}}}
     ;
     parseLcxMessage(&feed, frame);
-    const snap = feed.snapshot();
-    try std.testing.expect(snap[SLOT_BTC_LCX].success);
-    try std.testing.expectEqual(@as(u64, 65_234_500_000), snap[SLOT_BTC_LCX].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 65_236_700_000), snap[SLOT_BTC_LCX].ask_micro_usd);
+    try std.testing.expectEqual(@as(usize, 3), feed.count());
+
+    const btc = feed.getPrice("LCX", "BTC/USDC").?;
+    try std.testing.expectEqual(@as(u64, 65_234_500_000), btc.bid_micro_usd);
+    const lcx = feed.getPrice("LCX", "LCX/USDC").?;
+    try std.testing.expectEqual(@as(u64, 54_321), lcx.bid_micro_usd);
+    const eth = feed.getPrice("LCX", "ETH/USDC").?;
+    try std.testing.expectEqual(@as(u64, 3_200_100_000), eth.bid_micro_usd);
 }
 
-test "LCX ticker parse — LCX/USDC pair" {
+test "LCX parser - single update frame still works" {
     var feed = ExchangeFeed.init(std.testing.allocator);
+    defer feed.deinit();
     const frame =
-        \\{"data":{"pair":"LCX/USDC","bestBid":0.054321,"bestAsk":0.054440}}
+        \\{"data":{"BTC/USDC":{"bestBid":65234.5,"bestAsk":65236.7}}}
     ;
     parseLcxMessage(&feed, frame);
-    const snap = feed.snapshot();
-    try std.testing.expect(snap[SLOT_LCX_LCX].success);
-    try std.testing.expectEqual(@as(u64, 54_321), snap[SLOT_LCX_LCX].bid_micro_usd);
-    try std.testing.expectEqual(@as(u64, 54_440), snap[SLOT_LCX_LCX].ask_micro_usd);
+    const btc = feed.getPrice("LCX", "BTC/USDC").?;
+    try std.testing.expectEqual(@as(u64, 65_234_500_000), btc.bid_micro_usd);
 }
 
-test "LCX parser ignores unknown pair" {
+test "Circuit breaker — per-exchange cap rejects new entries" {
     var feed = ExchangeFeed.init(std.testing.allocator);
-    const frame =
-        \\{"data":{"pair":"ETH/USDC","bestBid":2000.0,"bestAsk":2001.0}}
-    ;
-    parseLcxMessage(&feed, frame);
-    const snap = feed.snapshot();
-    try std.testing.expect(!snap[SLOT_BTC_LCX].success);
-    try std.testing.expect(!snap[SLOT_LCX_LCX].success);
+    defer feed.deinit();
+
+    // Saturate Kraken just under the per-exchange cap, then push past.
+    var i: usize = 0;
+    var pair_buf: [16]u8 = undefined;
+    while (i < MAX_PAIRS_PER_EXCHANGE) : (i += 1) {
+        const pair = std.fmt.bufPrint(&pair_buf, "X{d}/USD", .{i}) catch unreachable;
+        feed.upsertPrice("Kraken", pair, 1, 2);
+    }
+    try std.testing.expectEqual(@as(usize, MAX_PAIRS_PER_EXCHANGE), feed.kraken_count);
+
+    // One past the cap → dropped.
+    feed.upsertPrice("Kraken", "OVERFLOW/USD", 99, 100);
+    try std.testing.expectEqual(@as(usize, MAX_PAIRS_PER_EXCHANGE), feed.kraken_count);
+    try std.testing.expect(feed.getPrice("Kraken", "OVERFLOW/USD") == null);
 }

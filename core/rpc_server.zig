@@ -22,6 +22,7 @@ const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const evm_executor    = @import("evm_executor.zig");
+const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -438,6 +439,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return handleOmnibusPrices(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return handleOmnibusExchangeFeed(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getallprices")) return handleOmnibusAllPrices(ctx, body, id);
+    if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return handleOmnibusArbitrage(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
@@ -2087,6 +2090,262 @@ fn handleOmnibusExchangeFeed(ctx: *ServerCtx, id: u64) ![]u8 {
 
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[],\"medianBtcMicroUsd\":null,\"medianLcxMicroUsd\":null}}}}",
+        .{id});
+}
+
+// ─── omnibus_getallprices / omnibus_getarbitrage ────────────────────────────
+//
+// These two handlers depend on the *new* ExchangeFeed API being landed in
+// core/ws_exchange_feed.zig by the parallel refactor agent:
+//
+//   pub fn getAllPrices(self: *ExchangeFeed, allocator) ![]PriceFetch
+//   pub fn getPrice(self: *ExchangeFeed, exchange: []const u8, pair: []const u8) ?PriceFetch
+//   pub fn count(self: *ExchangeFeed) usize
+//   pub fn isStale(p: PriceFetch, now_ms: i64, threshold_ms: i64) bool
+//
+// Until that lands, the calls below are routed through a tiny shim
+// `feedGetAllPrices` / `feedIsStale` that falls back to the existing
+// `snapshot()` API. Look for `WIRE-UP-MARKER:` comments below — when the
+// parallel agent ships the new API, replace the shim bodies with the direct
+// `feed.getAllPrices(alloc)` / `ws_exchange_feed_mod.isStale(...)` calls.
+
+/// Direct call to ExchangeFeed.getAllPrices (full unbounded PriceMap snapshot).
+fn feedGetAllPrices(
+    feed: *ws_exchange_feed_mod.ExchangeFeed,
+    alloc: std.mem.Allocator,
+) ![]ws_exchange_feed_mod.PriceFetch {
+    return feed.getAllPrices(alloc);
+}
+
+/// Direct call to PriceFetch.isStale method (added in parallel refactor).
+fn feedIsStale(
+    p: ws_exchange_feed_mod.PriceFetch,
+    now_ms: i64,
+    threshold_ms: i64,
+) bool {
+    return p.isStale(now_ms, threshold_ms);
+}
+
+/// Canonicalize a pair label so cross-exchange variants line up.
+/// LCX quotes BTC/USDC and LCX/USDC; we treat USDC ≈ USD here so an arbitrage
+/// scan can match those entries against Coinbase/Kraken BTC/USD.
+fn canonicalPair(pair: []const u8) []const u8 {
+    if (std.mem.eql(u8, pair, "BTC/USDC")) return "BTC/USD";
+    if (std.mem.eql(u8, pair, "LCX/USDC")) return "LCX/USD";
+    if (std.mem.eql(u8, pair, "ETH/USDC")) return "ETH/USD";
+    return pair;
+}
+
+/// omnibus_getallprices — paginated dump of every PriceFetch the feed holds.
+///
+/// Params (all optional, positional):
+///   [0] offset : u64 (default 0)
+///   [1] limit  : u64 (default 1000, capped so the JSON fits in 256 KiB)
+///
+/// Each entry: {exchange, pair, bidMicroUsd, askMicroUsd, timestampMs,
+///              success, stale}. `stale` uses a 30 000 ms threshold.
+fn handleOmnibusAllPrices(ctx: *ServerCtx, body: []const u8, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    if (main_mod.g_ws_feed) |*feed| {
+        const offset: usize = @intCast(extractArrayNum(body, 0));
+        const limit_raw = extractArrayNum(body, 1);
+        const limit: usize = if (limit_raw == 0) 1000 else @intCast(limit_raw);
+
+        // WIRE-UP-MARKER: feed.getAllPrices(alloc) once API lands.
+        const all = try feedGetAllPrices(feed, alloc);
+        defer alloc.free(all);
+
+        const total = all.len;
+        const start = if (offset >= total) total else offset;
+        const want_end = start +| limit;
+        const end = if (want_end > total) total else want_end;
+
+        // 256 KiB output bound. allocPrint into a stack-arena'd buffer
+        // is awkward in Zig 0.15; use a heap buffer with bufPrint cursor and
+        // dupe at the end (same shape as handleOmnibusExchangeFeed).
+        const BUF_SZ: usize = 256 * 1024;
+        var buf = try alloc.alloc(u8, BUF_SZ);
+        defer alloc.free(buf);
+
+        const now_ms = std.time.milliTimestamp();
+        var pos: usize = 0;
+
+        const prefix = std.fmt.bufPrint(buf[pos..],
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[", .{id})
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += prefix.len;
+
+        // Track the most recent timestamp seen across emitted entries.
+        var last_update_ms: i64 = 0;
+        var emitted: usize = 0;
+        // Effective end after pagination, possibly truncated if buffer fills.
+        var i: usize = start;
+        while (i < end) : (i += 1) {
+            const p = all[i];
+            const stale = feedIsStale(p, now_ms, 30_000);
+            const sep = if (emitted == 0) "" else ",";
+            const entry = std.fmt.bufPrint(buf[pos..],
+                "{s}{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s},\"stale\":{s}}}",
+                .{
+                    sep, p.exchange, p.pair, p.bid_micro_usd, p.ask_micro_usd,
+                    p.timestamp_ms,
+                    if (p.success) "true" else "false",
+                    if (stale) "true" else "false",
+                },
+            ) catch {
+                // Buffer would overflow — stop here. Pagination request can
+                // re-query with a smaller limit / next offset.
+                break;
+            };
+            pos += entry.len;
+            emitted += 1;
+            if (p.timestamp_ms > last_update_ms) last_update_ms = p.timestamp_ms;
+        }
+
+        const suffix = std.fmt.bufPrint(buf[pos..],
+            "],\"count\":{d},\"offset\":{d},\"limit\":{d},\"total\":{d},\"lastUpdateMs\":{d}}}}}",
+            .{ emitted, start, limit, total, last_update_ms })
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += suffix.len;
+
+        return alloc.dupe(u8, buf[0..pos]);
+    }
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[],\"count\":0,\"offset\":0,\"limit\":0,\"total\":0,\"lastUpdateMs\":0}}}}",
+        .{id});
+}
+
+/// omnibus_getarbitrage — pre-compute cross-exchange arbitrage opportunities.
+///
+/// For every canonical pair label (BTC/USD, LCX/USD, ETH/USD, …) we collect
+/// non-stale, success=true entries from all exchanges, then for each ordered
+/// (buy, sell) combination compute spread_pct = (sell.bid - buy.ask)/buy.ask*100.
+/// Anything above 0.05 % (5 bps) is emitted; the top 50 by spread are returned.
+fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    if (main_mod.g_ws_feed) |*feed| {
+        // WIRE-UP-MARKER: feed.getAllPrices(alloc) once API lands.
+        const all = try feedGetAllPrices(feed, alloc);
+        defer alloc.free(all);
+
+        const now_ms = std.time.milliTimestamp();
+
+        // Filter to non-stale fresh entries with both bid & ask populated.
+        var fresh = try alloc.alloc(ws_exchange_feed_mod.PriceFetch, all.len);
+        defer alloc.free(fresh);
+        var fresh_n: usize = 0;
+        for (all) |p| {
+            if (!p.success) continue;
+            if (feedIsStale(p, now_ms, 30_000)) continue;
+            if (p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
+            fresh[fresh_n] = p;
+            fresh_n += 1;
+        }
+
+        // Opportunity record.
+        const Opp = struct {
+            pair: []const u8,
+            buy_ex: []const u8,
+            sell_ex: []const u8,
+            buy_ask: u64,
+            sell_bid: u64,
+            spread_micro: u64,
+            spread_pct: f64,
+            buy_ts: i64,
+            sell_ts: i64,
+        };
+
+        // Up to N*(N-1) ordered combos; with 6 slots that's 30 max.
+        const max_combos: usize = if (fresh_n == 0) 1 else fresh_n * fresh_n;
+        var opps = try alloc.alloc(Opp, max_combos);
+        defer alloc.free(opps);
+        var opps_n: usize = 0;
+
+        var i: usize = 0;
+        while (i < fresh_n) : (i += 1) {
+            var j: usize = 0;
+            while (j < fresh_n) : (j += 1) {
+                if (i == j) continue;
+                const buy = fresh[i];
+                const sell = fresh[j];
+                // Match canonical pairs (USDC≈USD).
+                if (!std.mem.eql(u8, canonicalPair(buy.pair), canonicalPair(sell.pair))) continue;
+                // Same exchange isn't arbitrage.
+                if (std.mem.eql(u8, buy.exchange, sell.exchange)) continue;
+                if (sell.bid_micro_usd <= buy.ask_micro_usd) continue;
+                const spread = sell.bid_micro_usd - buy.ask_micro_usd;
+                const pct = (@as(f64, @floatFromInt(spread)) /
+                             @as(f64, @floatFromInt(buy.ask_micro_usd))) * 100.0;
+                if (pct <= 0.05) continue; // 5 bps floor
+                opps[opps_n] = .{
+                    .pair = canonicalPair(buy.pair),
+                    .buy_ex = buy.exchange,
+                    .sell_ex = sell.exchange,
+                    .buy_ask = buy.ask_micro_usd,
+                    .sell_bid = sell.bid_micro_usd,
+                    .spread_micro = spread,
+                    .spread_pct = pct,
+                    .buy_ts = buy.timestamp_ms,
+                    .sell_ts = sell.timestamp_ms,
+                };
+                opps_n += 1;
+            }
+        }
+
+        // Sort descending by spread_pct (insertion sort — opps_n is tiny).
+        var k: usize = 1;
+        while (k < opps_n) : (k += 1) {
+            var m = k;
+            while (m > 0 and opps[m - 1].spread_pct < opps[m].spread_pct) : (m -= 1) {
+                const tmp = opps[m - 1];
+                opps[m - 1] = opps[m];
+                opps[m] = tmp;
+            }
+        }
+
+        const cap: usize = if (opps_n > 50) 50 else opps_n;
+
+        // Emit JSON. 256 KiB plenty for ≤50 opportunities.
+        const BUF_SZ: usize = 256 * 1024;
+        var buf = try alloc.alloc(u8, BUF_SZ);
+        defer alloc.free(buf);
+        var pos: usize = 0;
+
+        const prefix = std.fmt.bufPrint(buf[pos..],
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"opportunities\":[", .{id})
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += prefix.len;
+
+        var emitted: usize = 0;
+        var idx: usize = 0;
+        while (idx < cap) : (idx += 1) {
+            const o = opps[idx];
+            // f64 → 4-decimal string via std.fmt format spec.
+            const sep = if (emitted == 0) "" else ",";
+            const entry = std.fmt.bufPrint(buf[pos..],
+                "{s}{{\"pair\":\"{s}\",\"buyAt\":\"{s}\",\"buyAskMicroUsd\":{d},\"sellAt\":\"{s}\",\"sellBidMicroUsd\":{d},\"spreadMicroUsd\":{d},\"spreadPct\":{d:.4},\"buyTimestampMs\":{d},\"sellTimestampMs\":{d}}}",
+                .{
+                    sep, o.pair, o.buy_ex, o.buy_ask, o.sell_ex, o.sell_bid,
+                    o.spread_micro, o.spread_pct, o.buy_ts, o.sell_ts,
+                },
+            ) catch break;
+            pos += entry.len;
+            emitted += 1;
+        }
+
+        const suffix = std.fmt.bufPrint(buf[pos..],
+            "],\"count\":{d}}}}}", .{emitted})
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += suffix.len;
+
+        return alloc.dupe(u8, buf[0..pos]);
+    }
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"opportunities\":[],\"count\":0}}}}",
         .{id});
 }
 
