@@ -251,7 +251,11 @@ pub const WsServer = struct {
         self.mutex.unlock();
     }
 
-    /// Trimite eveniment "new_block" la toti clientii
+    /// Trimite eveniment "new_block" la toti clientii.
+    /// IMPORTANT: timestamp e in SECONDS (Unix epoch) ca sa fie consistent cu
+    /// getblock RPC care returneaza block.timestamp (i64 seconds din
+    /// std.time.timestamp() la mining). Frontend BlockData mereu * 1000
+    /// inainte de new Date(...). Daca trimitem ms, JS afiseaza an 58285.
     pub fn broadcastBlock(
         self:       *WsServer,
         height:     u64,
@@ -275,7 +279,7 @@ pub const WsServer = struct {
                 reward_sat,
                 difficulty,
                 mempool_sz,
-                std.time.milliTimestamp(),
+                std.time.timestamp(),
             },
         ) catch return;
         self.broadcast(json);
