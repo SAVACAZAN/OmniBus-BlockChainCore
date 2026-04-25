@@ -33,13 +33,16 @@ export function Header() {
     <>
       <header className="sticky top-0 z-50 bg-mempool-bg/95 backdrop-blur-sm border-b border-mempool-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo — Bitcoin-style amber coin with stylized O */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-mempool-blue to-mempool-purple flex items-center justify-center text-white font-bold text-sm">
-              O
-            </div>
+            <img
+              src="/omnibus-logo.svg"
+              alt="OmniBus"
+              className="w-9 h-9 rounded-full shadow-md drop-shadow"
+              draggable={false}
+            />
             <div>
-              <h1 className="text-lg font-bold text-mempool-text leading-tight">
+              <h1 className="text-lg font-bold leading-tight tracking-tight bg-gradient-to-b from-amber-300 to-orange-500 bg-clip-text text-transparent">
                 OmniBus
               </h1>
               <p className="text-xs text-mempool-text-dim">BlockChain Explorer</p>

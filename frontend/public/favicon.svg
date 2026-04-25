@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB347"/>
+      <stop offset="1" stop-color="#E07B0F"/>
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="16" r="15" fill="url(#g)"/>
+  <rect x="12" y="3" width="2" height="4" rx="0.5" fill="#fff"/>
+  <rect x="18" y="3" width="2" height="4" rx="0.5" fill="#fff"/>
+  <rect x="12" y="25" width="2" height="4" rx="0.5" fill="#fff"/>
+  <rect x="18" y="25" width="2" height="4" rx="0.5" fill="#fff"/>
+  <text x="16" y="23" text-anchor="middle"
+        font-family="Arial Black, sans-serif" font-size="20" font-weight="900"
+        fill="#fff">O</text>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Bitcoin-style coin: full color circle + bold letter inside.
+       OmniBus brand uses orange-amber gradient (Bitcoin's #F7931A) and
+       a stylized 'O' with vertical strikethrough lines, mimicking the
+       Bitcoin 'B'-with-bars motif. -->
+  <defs>
+    <linearGradient id="omniGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  style="stop-color:#FFB347;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#F7931A;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#E07B0F;stop-opacity:1"/>
+    </linearGradient>
+    <radialGradient id="omniShine" cx="35%" cy="30%" r="50%">
+      <stop offset="0%"  style="stop-color:#FFD180;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#FFD180;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Coin body -->
+  <circle cx="32" cy="32" r="30" fill="url(#omniGrad)"/>
+  <!-- Subtle highlight on top-left -->
+  <circle cx="32" cy="32" r="30" fill="url(#omniShine)"/>
+  <!-- Outer rim -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#B8650A" stroke-width="1"/>
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#FFFFFF" stroke-width="0.6" opacity="0.25"/>
+
+  <!-- Vertical strikethrough bars (like Bitcoin's 'B' bars) -->
+  <rect x="25" y="9"  width="3" height="6" rx="0.7" fill="#FFFFFF"/>
+  <rect x="36" y="9"  width="3" height="6" rx="0.7" fill="#FFFFFF"/>
+  <rect x="25" y="49" width="3" height="6" rx="0.7" fill="#FFFFFF"/>
+  <rect x="36" y="49" width="3" height="6" rx="0.7" fill="#FFFFFF"/>
+
+  <!-- Stylized 'O' (capital O thick, like Bitcoin's 'B') -->
+  <g font-family="Arial Black, Helvetica, sans-serif"
+     font-size="38"
+     font-weight="900"
+     text-anchor="middle"
+     fill="#FFFFFF">
+    <text x="32" y="46" letter-spacing="-1">O</text>
+  </g>
+</svg>
