@@ -20,46 +20,48 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
       strictPort: false,
       proxy: {
-        // Default RPC = mainnet (backward compat with rpc-client.ts default "/api")
-        "/api-mainnet": {
+        // IMPORTANT: order matters — Vite's micromatch matches first key that fits.
+        // Use regex anchors (`^/api-mainnet$` etc.) so "/api" can't shadow "/api-testnet".
+        "^/api-mainnet$": {
           target: `http://${host}:8332`,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/api-mainnet/, ""),
+          rewrite: () => "",
         },
-        "/api-testnet": {
+        "^/api-testnet$": {
           target: `http://${host}:18332`,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/api-testnet/, ""),
+          rewrite: () => "",
         },
-        "/api-regtest": {
+        "^/api-regtest$": {
           target: `http://${host}:28332`,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/api-regtest/, ""),
+          rewrite: () => "",
         },
-        // Legacy alias — defaults to mainnet.
-        "/api": {
+        // Legacy `/api` (no chain suffix) — still defaults to mainnet.
+        // Anchored so it cannot accidentally swallow "/api-testnet".
+        "^/api$": {
           target: `http://${host}:8332`,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/api/, ""),
+          rewrite: () => "",
         },
-        // WebSocket per chain.
-        "/ws-mainnet": {
+        // WebSocket per chain — anchored regex too.
+        "^/ws-mainnet$": {
           target: `ws://${host}:8334`,
           ws: true,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/ws-mainnet/, ""),
+          rewrite: () => "",
         },
-        "/ws-testnet": {
+        "^/ws-testnet$": {
           target: `ws://${host}:18334`,
           ws: true,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/ws-testnet/, ""),
+          rewrite: () => "",
         },
-        "/ws-regtest": {
+        "^/ws-regtest$": {
           target: `ws://${host}:28334`,
           ws: true,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/ws-regtest/, ""),
+          rewrite: () => "",
         },
       },
     },
