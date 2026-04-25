@@ -215,6 +215,11 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
 /// "product_id":"..." marker, then parse best_bid / best_ask within the
 /// short window that follows.
 fn parseCoinbaseTicker(feed: *ExchangeFeed, body: []const u8) void {
+    // Verbose: log everything Coinbase sends so we can confirm format.
+    {
+        const head_len = @min(body.len, 500);
+        std.debug.print("[CB-WS] frame: {s}\n", .{body[0..head_len]});
+    }
     parseCoinbaseProduct(feed, body, "\"product_id\":\"BTC-USD\"", SLOT_BTC_COINBASE);
     parseCoinbaseProduct(feed, body, "\"product_id\":\"LCX-USD\"", SLOT_LCX_COINBASE);
 }
@@ -286,6 +291,11 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
 ///   {"channel":"status", ...}
 ///   {"channel":"heartbeat"}
 fn parseKrakenMessage(feed: *ExchangeFeed, body: []const u8) void {
+    // Verbose: log everything Kraken sends so we can confirm pair format.
+    {
+        const head_len = @min(body.len, 500);
+        std.debug.print("[KRAKEN-WS] frame: {s}\n", .{body[0..head_len]});
+    }
     // Cheap channel filter — only act on ticker frames.
     if (std.mem.indexOf(u8, body, "\"channel\":\"ticker\"") == null) return;
 
@@ -366,22 +376,67 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 ///   {"data":{"pair":"BTC/USDC","bestBid":65234.1,"bestAsk":65235.0, ...}}
 /// May also receive subscription ack frames or "pong" — all safely ignored.
 fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
-    parseLcxPair(feed, body, "\"pair\":\"BTC/USDC\"", SLOT_BTC_LCX);
-    parseLcxPair(feed, body, "\"pair\":\"LCX/USDC\"", SLOT_LCX_LCX);
+    // Log EVERY LCX frame (truncated to 500 chars) so the user can verify
+    // the actual JSON shape and pair-key naming. Verbose by intent —
+    // remove or cap once the LCX pair filter is locked in.
+    {
+        const head_len = @min(body.len, 500);
+        std.debug.print("[LCX-WS] frame: {s}\n", .{body[0..head_len]});
+    }
+
+    // Try multiple pair-key variants (LCX has used both `pair` and `Pair`,
+    // and either USDC or USD as the quote). First match wins per slot.
+    const btc_markers = [_][]const u8{
+        "\"pair\":\"BTC/USDC\"",
+        "\"pair\":\"BTC/USD\"",
+        "\"Pair\":\"BTC/USDC\"",
+        "\"Pair\":\"BTC/USD\"",
+        "\"symbol\":\"BTC/USDC\"",
+    };
+    const lcx_markers = [_][]const u8{
+        "\"pair\":\"LCX/USDC\"",
+        "\"pair\":\"LCX/USD\"",
+        "\"Pair\":\"LCX/USDC\"",
+        "\"Pair\":\"LCX/USD\"",
+        "\"symbol\":\"LCX/USDC\"",
+    };
+    for (btc_markers) |m| { if (parseLcxPair(feed, body, m, SLOT_BTC_LCX)) break; }
+    for (lcx_markers) |m| { if (parseLcxPair(feed, body, m, SLOT_LCX_LCX)) break; }
 }
 
-fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) void {
-    if (std.mem.indexOf(u8, body, marker) == null) return;
+fn parseLcxPair(feed: *ExchangeFeed, body: []const u8, marker: []const u8, slot: usize) bool {
+    if (std.mem.indexOf(u8, body, marker) == null) return false;
 
-    // bestBid / bestAsk are numeric (not quoted) in LCX WS feed.
-    const bid = parseUnquotedPrice(body, "\"bestBid\":");
-    const ask = parseUnquotedPrice(body, "\"bestAsk\":");
+    // Try unquoted (LCX modern) AND quoted (some endpoints) variants.
+    const unquoted_pairs = [_]struct { bk: []const u8, ak: []const u8 }{
+        .{ .bk = "\"bestBid\":", .ak = "\"bestAsk\":" },
+        .{ .bk = "\"bid\":",     .ak = "\"ask\":" },
+    };
+    const quoted_pairs = [_]struct { bk: []const u8, ak: []const u8 }{
+        .{ .bk = "\"bestBid\":\"", .ak = "\"bestAsk\":\"" },
+        .{ .bk = "\"bid\":\"",     .ak = "\"ask\":\"" },
+    };
+
+    var bid: ?u64 = null;
+    var ask: ?u64 = null;
+    for (unquoted_pairs) |p| {
+        if (bid == null) bid = parseUnquotedPrice(body, p.bk);
+        if (ask == null) ask = parseUnquotedPrice(body, p.ak);
+        if (bid != null and ask != null) break;
+    }
+    for (quoted_pairs) |p| {
+        if (bid == null) bid = parseQuotedPrice(body, p.bk);
+        if (ask == null) ask = parseQuotedPrice(body, p.ak);
+        if (bid != null and ask != null) break;
+    }
 
     if (bid != null or ask != null) {
         const bid_v = bid orelse (ask orelse 0);
         const ask_v = ask orelse (bid orelse 0);
         feed.updateSlot(slot, bid_v, ask_v);
+        return true;
     }
+    return false;
 }
 
 // ── JSON parsers (minimal, indexOf-based — same idea as oracle_fetcher.zig) ──
