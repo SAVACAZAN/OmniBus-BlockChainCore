@@ -341,12 +341,16 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // PascalCase keys, case-sensitive. Empty subscribe → all pairs; we filter
-    // client-side on data.pair.
-    const subscribe =
-        \\{"Topic":"subscribe","Type":"ticker"}
-    ;
-    try client.send(subscribe);
+    // LCX requires per-pair subscribe. The brand-less form
+    // {"Topic":"subscribe","Type":"ticker"} just returns "Subscribed
+    // Successfully" but never sends data. Send one frame per pair.
+    // PascalCase keys are case-sensitive.
+    try client.send(
+        \\{"Topic":"subscribe","Type":"ticker","Pair":"BTC/USDC"}
+    );
+    try client.send(
+        \\{"Topic":"subscribe","Type":"ticker","Pair":"LCX/USDC"}
+    );
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
