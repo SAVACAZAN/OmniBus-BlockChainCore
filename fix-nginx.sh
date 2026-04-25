@@ -196,6 +196,15 @@ ln -sf "${NGINX_AVAIL}" "${NGINX_ENABL}"
 echo "[OK] Symlink: ${NGINX_ENABL} -> ${NGINX_AVAIL}"
 
 # ---------------------------------------------------------------------------
+# 5b. Dezactiveaza vechiul `default` site (intercepteaza :443 cu cert
+#     self-signed pe 38.143.19.97 si blocheaza tot traficul HTTPS catre noi).
+# ---------------------------------------------------------------------------
+if [[ -L /etc/nginx/sites-enabled/default ]]; then
+    rm -f /etc/nginx/sites-enabled/default
+    echo "[OK] Dezactivat /etc/nginx/sites-enabled/default (era default site vechi)"
+fi
+
+# ---------------------------------------------------------------------------
 # 6. Validate + reload
 # ---------------------------------------------------------------------------
 echo ""
