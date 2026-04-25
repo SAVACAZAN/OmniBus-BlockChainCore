@@ -18,12 +18,16 @@ interface BlockDetailProps {
   onClose: () => void;
 }
 
-// Format micro-USD as $price with appropriate decimals.
-// BTC needs 2 decimals (huge price), LCX needs 4 (sub-dollar).
+// Format micro-USD as $price with thousand-comma + dot decimals.
+// BTC -> $100,000.00 (2 decimals), LCX -> $0.0316 (4 decimals).
 function fmtUsd(micro: number, isLcx: boolean): string {
   if (!micro) return "—";
   const usd = micro / 1_000_000;
-  return "$" + usd.toFixed(isLcx ? 4 : 2);
+  const decimals = isLcx ? 4 : 2;
+  return "$" + usd.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 }
 
 // Format millisecond timestamp with 3 decimals (.123)

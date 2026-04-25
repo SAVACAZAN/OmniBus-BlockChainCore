@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { TransactionSquare } from "./TransactionSquare";
-import type { BlockData, PendingTx } from "../../types";
+import OmniBusRpcClient from "../../api/rpc-client";
+import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 
 interface MempoolBlockProps {
   block?: BlockData;
@@ -8,12 +10,63 @@ interface MempoolBlockProps {
   isLatest?: boolean;
 }
 
+const rpc = new OmniBusRpcClient();
+
+// Format USD with thousand-comma + dot decimals: 100,000.00 / 0.0316.
+// `decimals` is min decimals; thousands separator is locale-en-US to lock
+// the comma even when the user's browser is non-EN.
+function fmtUsd(micro: number, decimals: number): string {
+  if (!micro) return "—";
+  const usd = micro / 1_000_000;
+  return usd.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+// Median across the 3 exchange slots for a given pair label.
+function median(prices: BlockPriceSnapshot[] | undefined, pair: string): number {
+  if (!prices) return 0;
+  const valid = prices
+    .filter((p) => p.success && p.pair === pair && p.bidMicroUsd > 0)
+    .map((p) => Math.floor((p.bidMicroUsd + p.askMicroUsd) / 2));
+  if (valid.length === 0) return 0;
+  valid.sort((a, b) => a - b);
+  return valid[Math.floor(valid.length / 2)];
+}
+
 export function MempoolBlock({
   block,
   pendingTxs,
   isPending = false,
   isLatest = false,
 }: MempoolBlockProps) {
+  // Fetch full block detail (with prices array) once per height. Skipped
+  // for the pending-block placeholder (no height yet).
+  const [prices, setPrices] = useState<BlockPriceSnapshot[] | undefined>(
+    block?.prices
+  );
+  useEffect(() => {
+    if (isPending || block?.height == null) return;
+    if (block.prices && block.prices.length > 0) {
+      setPrices(block.prices);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const result: any = await rpc.request_raw("getblock", [block.height]);
+        if (!cancelled && Array.isArray(result?.prices)) {
+          setPrices(result.prices);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [block?.height, isPending]);
+
+  const btcMedian = median(prices, "BTC/USD");
+  const lcxMedian = median(prices, "LCX/USD");
+
   const txCount = isPending
     ? pendingTxs?.length || 0
     : block?.txCount || 0;
@@ -110,6 +163,22 @@ export function MempoolBlock({
             </p>
             {timeStr && (
               <p className="text-[10px] text-mempool-text-dim">{timeStr}</p>
+            )}
+            {/* Median oracle price snapshot at mining (3-exchange median).
+                Hidden when no snapshot exists (block mined before WS came up). */}
+            {(btcMedian > 0 || lcxMedian > 0) && (
+              <div className="mt-1 pt-1 border-t border-mempool-border/40 space-y-0.5">
+                {btcMedian > 0 && (
+                  <p className="text-[9px] font-mono text-mempool-orange">
+                    BTC ${fmtUsd(btcMedian, 2)}
+                  </p>
+                )}
+                {lcxMedian > 0 && (
+                  <p className="text-[9px] font-mono text-mempool-blue">
+                    LCX ${fmtUsd(lcxMedian, 4)}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}

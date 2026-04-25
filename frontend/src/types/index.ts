@@ -36,6 +36,17 @@ export interface BlockData {
   txCount: number;
   miner?: string;
   rewardSAT?: number;
+  /// Optional 6-slot oracle price snapshot captured at mining time.
+  prices?: BlockPriceSnapshot[];
+}
+
+export interface BlockPriceSnapshot {
+  exchange: string;       // "Coinbase" | "Kraken" | "LCX"
+  pair: string;           // "BTC/USD" | "LCX/USD"
+  bidMicroUsd: number;    // 1 USD = 1_000_000
+  askMicroUsd: number;
+  timestampMs: number;
+  success: boolean;
 }
 
 export interface TransactionData {
