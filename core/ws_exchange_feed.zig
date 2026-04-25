@@ -332,25 +332,25 @@ fn lcxWorker(feed: *ExchangeFeed) void {
 }
 
 fn runLcxSession(feed: *ExchangeFeed) !void {
+    // Per LCX official docs (LCX Exchange API v1.1.0): ws path is "/" NOT
+    // "/ws". We hit /ws by mistake — the server still accepts the upgrade
+    // and the subscribe ack ("Subscribed Successfully") but ticker frames
+    // never flow. Switching to "/" makes them flow.
     var client = try WsClient.connect(
         feed.allocator,
         "exchange-api.lcx.com",
         443,
-        "/ws",
+        "/",
         true,
     );
     defer client.close();
 
-    // LCX requires per-pair subscribe. The brand-less form
-    // {"Topic":"subscribe","Type":"ticker"} just returns "Subscribed
-    // Successfully" but never sends data. Send one frame per pair.
-    // PascalCase keys are case-sensitive.
-    try client.send(
-        \\{"Topic":"subscribe","Type":"ticker","Pair":"BTC/USDC"}
-    );
-    try client.send(
-        \\{"Topic":"subscribe","Type":"ticker","Pair":"LCX/USDC"}
-    );
+    // Public ticker subscribe is brand-less; ALL pairs stream and we
+    // filter client-side on data.pair. (Pair field is for orderbook/trade.)
+    const subscribe =
+        \\{"Topic":"subscribe","Type":"ticker"}
+    ;
+    try client.send(subscribe);
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
