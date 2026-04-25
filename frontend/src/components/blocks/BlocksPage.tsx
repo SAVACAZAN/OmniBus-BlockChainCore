@@ -24,11 +24,20 @@ export function BlocksPage() {
       const height = state.blockCount;
       const start = Math.max(0, height - 1 - page * PAGE_SIZE);
       const end = Math.max(0, start - PAGE_SIZE);
-      const promises = [];
-      for (let i = start; i > end && i >= 0; i--) {
-        promises.push(rpc.getBlock(i).catch(() => null));
+      // Batch by 4 to avoid overloading the RPC backend (MAX_CONCURRENT=4
+      // in rpc_server.zig). Sequential batches >> 20 parallel requests
+      // that get refused with ECONNRESET / 502 Bad Gateway through Nginx.
+      const indices: number[] = [];
+      for (let i = start; i > end && i >= 0; i--) indices.push(i);
+      const results: (BlockData | null)[] = [];
+      const BATCH = 4;
+      for (let i = 0; i < indices.length; i += BATCH) {
+        const slice = indices.slice(i, i + BATCH);
+        const batch = await Promise.all(
+          slice.map((idx) => rpc.getBlock(idx).catch(() => null))
+        );
+        results.push(...batch);
       }
-      const results = await Promise.all(promises);
       setBlocks(results.filter(Boolean) as BlockData[]);
     } catch {}
     setLoading(false);

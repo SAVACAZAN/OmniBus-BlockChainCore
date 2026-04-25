@@ -138,9 +138,12 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
 
     std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://0.0.0.0:{d}\n", .{cfg.port});
 
-    // Limita thread-uri concurente (previne OOM sub heavy load)
+    // Limita thread-uri concurente (previne OOM sub heavy load).
+    // Crescut la 16 pentru a deservi explorer-ul React care face 20 cereri
+    // paralele pe BlocksPage. La 4 threads vechi, cele 16 in plus erau
+    // refuzate (ECONNRESET) si Nginx returna 502.
     var active_threads: std.atomic.Value(u32) = .{ .raw = 0 };
-    const MAX_CONCURRENT: u32 = 4; // Keep low — each thread has 4MB stack
+    const MAX_CONCURRENT: u32 = 16; // 16 × 4MB = 64MB stack max
 
     while (true) {
         const conn = server.accept() catch |err| {
