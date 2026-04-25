@@ -22,10 +22,10 @@ fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
     step.addLibraryPath(.{ .cwd_relative = EVM_LIB_DIR });
     step.linkSystemLibrary("omnibus_evm");
     step.linkLibC();
-    // The Rust static lib pulls in Windows system deps (ring, std::sync,
-    // std::time, randomness). Without these the MSVC linker will report
-    // unresolved externals like BCryptGenRandom / GetUserProfileDirectoryW.
-    if (step.rootModuleTarget().os.tag == .windows) {
+    const tag = step.rootModuleTarget().os.tag;
+    // The Rust static lib pulls in OS system deps (ring, std::sync,
+    // std::time, randomness). Different platforms need different libs.
+    if (tag == .windows) {
         step.linkSystemLibrary("ntdll");
         step.linkSystemLibrary("userenv");
         step.linkSystemLibrary("bcrypt");
@@ -39,6 +39,17 @@ fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
             .file  = .{ .cwd_relative = "evm/msvc_compat.c" },
             .flags = &.{},
         });
+    } else if (tag == .linux) {
+        // Rust glibc staticlib needs: pthread (sync), dl (dynamic loading),
+        // m (math), util (random). gcc_s for unwinding.
+        step.linkSystemLibrary("pthread");
+        step.linkSystemLibrary("dl");
+        step.linkSystemLibrary("m");
+        step.linkSystemLibrary("util");
+        step.linkSystemLibrary("rt");
+    } else if (tag == .macos) {
+        step.linkFramework("Security");
+        step.linkFramework("CoreFoundation");
     }
 }
 
