@@ -168,13 +168,18 @@ server {
     }
 
     # ===== Default — Vite explorer (cu HMR WebSocket) =====
+    # Vite 4 face host check pe Host header; ii trimitem localhost ca sa
+    # nu mai conteze ce a cerut clientul. SSL termiat tot in Nginx, deci
+    # bypass-ul Host header e safe (nu ajunge la backend).
     location / {
         proxy_pass http://127.0.0.1:8888;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
+        proxy_set_header Host "localhost:8888";
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 NGINXCONF
