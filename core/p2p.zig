@@ -42,6 +42,10 @@ const blockchain_mod = @import("blockchain.zig");
 const block_mod      = @import("block.zig");
 const sync_mod       = @import("sync.zig");
 const light_client_mod = @import("light_client.zig");
+const oracle_policy_mod = @import("oracle_policy.zig");
+const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
+const oracle_types_mod = @import("oracle_types.zig");
+const main_mod       = @import("main.zig");
 
 pub const NetworkNode   = network_mod.NetworkNode;
 pub const MessageType   = network_mod.MessageType;
@@ -2028,7 +2032,7 @@ pub const P2PNode = struct {
                 break;
             };
 
-            const new_block = Block{
+            var new_block = Block{
                 .index         = @intCast(hdr.height),
                 .timestamp     = hdr.timestamp,
                 .transactions  = std.array_list.Managed(block_mod.Transaction).init(node.allocator),
@@ -2039,6 +2043,54 @@ pub const P2PNode = struct {
                 .reward_sat    = 0,
                 .miner_heap    = true, // hash_hex si miner_addr alocate pe heap
             };
+
+            // ── Oracle price-deviation policy ────────────────────────────────
+            // Run BEFORE appending the block to the chain. Self-mined blocks go
+            // through `mineBlockForMiner`, NOT this path, so they are exempt.
+            // For now, BlockHeader transports only the 88-byte compact form and
+            // doesn't carry the 21-slot price snapshot — `new_block.prices`
+            // is all-default which yields "no signal → accept". When full-block
+            // P2P arrives, the prices will travel with the block and validation
+            // will engage automatically.
+            {
+                main_mod.g_oracle_policy_mutex.lock();
+                const policy_snapshot = main_mod.g_oracle_policy;
+                main_mod.g_oracle_policy_mutex.unlock();
+
+                if (policy_snapshot.enabled) {
+                    const local_snap: [oracle_types_mod.BLOCK_PRICE_SLOTS]ws_exchange_feed_mod.PriceFetch =
+                        if (main_mod.g_ws_feed) |*f| f.getImportantSnapshot()
+                        else [_]ws_exchange_feed_mod.PriceFetch{.{
+                            .exchange = "",
+                            .pair = "",
+                            .bid_micro_usd = 0,
+                            .ask_micro_usd = 0,
+                            .timestamp_ms = 0,
+                            .success = false,
+                        }} ** oracle_types_mod.BLOCK_PRICE_SLOTS;
+
+                    const r = oracle_policy_mod.validateBlockPrices(
+                        policy_snapshot,
+                        new_block.prices,
+                        local_snap,
+                        if (main_mod.g_ws_feed) |*f| f else null,
+                    );
+                    if (!r.accept) {
+                        std.debug.print("[ORACLE-POLICY] REJECT block {d} slot {d}\n",
+                            .{ new_block.index, r.rejected_slot.? });
+                        node.allocator.free(hash_hex);
+                        node.allocator.free(miner_addr);
+                        new_block.transactions.deinit();
+                        break;
+                    }
+                    if (r.warned > 0)
+                        std.debug.print("[ORACLE-POLICY] block {d} warned slots: {d}\n",
+                            .{ new_block.index, r.warned });
+                    if (r.gap_filled > 0)
+                        std.debug.print("[ORACLE-POLICY] block {d} gap-filled {d} slots from peer\n",
+                            .{ new_block.index, r.gap_filled });
+                }
+            }
 
             bc.chain.append(new_block) catch {
                 node.allocator.free(hash_hex);

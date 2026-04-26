@@ -415,6 +415,25 @@ pub const ExchangeFeed = struct {
         };
     }
 
+    /// Public wrapper for upsertPrice — used by oracle_policy gap-fill so it
+    /// can write a peer's plausible value back into the local feed without
+    /// having access to the private worker-thread API. The exchange string
+    /// MUST be one of "Coinbase" / "Kraken" / "LCX" (static literal); pair
+    /// is duped on first insertion.
+    pub fn upsertPriceExternal(self: *Self, exchange: []const u8, pair: []const u8, bid: u64, ask: u64) void {
+        // Map any exchange string back to its static literal so we don't
+        // dupe non-literals on the hot path. Unknown exchange → no-op.
+        const literal: []const u8 = if (std.mem.eql(u8, exchange, "Coinbase"))
+            "Coinbase"
+        else if (std.mem.eql(u8, exchange, "Kraken"))
+            "Kraken"
+        else if (std.mem.eql(u8, exchange, "LCX"))
+            "LCX"
+        else
+            return;
+        self.upsertPrice(literal, pair, bid, ask);
+    }
+
     /// Insert or update a (exchange, pair) entry. `exchange` MUST be one of
     /// the static string literals "Coinbase" / "Kraken" / "LCX" so we don't
     /// have to dupe it. `pair` is duped on first insertion. Circuit breakers

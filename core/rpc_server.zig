@@ -438,12 +438,16 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getblockchaininfo"))    return handleBlockchainInfo(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return handleOmnibusPrices(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getblockprices")) return handleOmnibusBlockPrices(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getpricerange")) return handleOmnibusPriceRange(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return handleOmnibusExchangeFeed(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getallprices")) return handleOmnibusAllPrices(ctx, body, id);
     if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return handleOmnibusArbitrage(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getfxrate"))    return handleOmnibusFxRate(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return handleOmnibusGetOraclePolicy(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
@@ -999,7 +1003,17 @@ fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     } else 0;
     const ms: usize = if (ctx.mempool) |m| m.size() else bc_mp_len;
     const r = blockchain_mod.blockRewardAt(h);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"omnibus-mainnet\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, h, r, diff, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
+    // Derive chain label from chain_id instead of hardcoding "omnibus-mainnet"
+    // (was misleading on testnet/regtest nodes — Network page showed
+    // "omnibus-mainnet" while user was browsing testnet).
+    const chain_label: []const u8 = switch (ctx.chain_id) {
+        1    => "omnibus-mainnet",
+        2    => "omnibus-testnet",
+        3    => "omnibus-regtest",
+        4    => "omnibus-signet",
+        else => "omnibus-unknown",
+    };
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"{s}\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, chain_label, h, r, diff, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
 }
 
 fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -1042,8 +1056,16 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const tx_count = blk.transactions.items.len;
     const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
 
-    // Build optional prices array — empty if no snapshot recorded for this height.
-    var prices_buf: [2048]u8 = undefined;
+    // Build optional prices array. Strategy:
+    //   1) FAST path — read the in-memory `block_prices` map (legacy 6-slot
+    //      snapshot, populated at mining time). This avoids touching the
+    //      block's [21]BlockPriceEntry array on every getblock call.
+    //   2) FALLBACK — if the map has no entry for this height (e.g. after
+    //      a node restart, since the map is in-memory only), read directly
+    //      from `blk.prices` which is the authoritative on-chain copy
+    //      committed via prices_root in the block hash.
+    //   In both cases empty/zero entries are skipped.
+    var prices_buf: [4096]u8 = undefined;
     var prices_len: usize = 0;
     {
         var pos: usize = 0;
@@ -1051,9 +1073,12 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             return errorJson(-32603, "buf overflow", id, alloc);
         };
         pos += open.len;
+        var written: usize = 0;
         if (ctx.bc.getBlockPrices(blk.index)) |entries| {
-            for (entries, 0..) |e, i| {
-                if (i > 0) { prices_buf[pos] = ','; pos += 1; }
+            // Fast path: legacy in-memory cache (6 slots).
+            for (entries) |e| {
+                if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
+                if (written > 0) { prices_buf[pos] = ','; pos += 1; }
                 const ex = e.exchange[0..e.exchange_len];
                 const pr = e.pair[0..e.pair_len];
                 const item = std.fmt.bufPrint(prices_buf[pos..],
@@ -1061,6 +1086,21 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
                 ) catch break;
                 pos += item.len;
+                written += 1;
+            }
+        } else {
+            // Fallback path: read directly from on-chain block (21 slots).
+            for (blk.prices) |e| {
+                if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
+                if (written > 0) { prices_buf[pos] = ','; pos += 1; }
+                const ex = e.exchange[0..e.exchange_len];
+                const pr = e.pair[0..e.pair_len];
+                const item = std.fmt.bufPrint(prices_buf[pos..],
+                    "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
+                    .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
+                ) catch break;
+                pos += item.len;
+                written += 1;
             }
         }
         const close = std.fmt.bufPrint(prices_buf[pos..], "]", .{}) catch {
@@ -1070,9 +1110,20 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         prices_len = pos;
     }
 
+    // Hex-encode prices_root (32 bytes -> 64 lowercase hex chars). All-zero
+    // is the canonical "no prices" sentinel — clients should still treat
+    // pricesValidated=true on an all-zero root as "nothing to verify".
+    var pr_hex: [64]u8 = undefined;
+    for (0..32) |i| {
+        const b = blk.prices_root[i];
+        pr_hex[i * 2] = "0123456789abcdef"[b >> 4];
+        pr_hex[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
+    }
+    const prices_validated = blk.validatePrices();
+
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"prices\":{s}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, prices_buf[0..prices_len] });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -1955,10 +2006,17 @@ fn handleBlockchainInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const difficulty = ctx.bc.difficulty;
     const mp_size: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
     const peer_count: u64 = if (ctx.p2p) |p| @intCast(p.peers.items.len) else 0;
+    const chain_label: []const u8 = switch (ctx.chain_id) {
+        1 => "omnibus-mainnet",
+        2 => "omnibus-testnet",
+        3 => "omnibus-regtest",
+        4 => "omnibus-signet",
+        else => "omnibus-unknown",
+    };
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"chain\":\"omnibus-mainnet\",\"mempool_size\":{d},\"peers\":{d},\"version\":\"0.3.0\",\"subversion\":\"OmniBus-PoUW\"}}}}",
-        .{ id, block_count, difficulty, mp_size, peer_count },
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"chain\":\"{s}\",\"mempool_size\":{d},\"peers\":{d},\"version\":\"0.3.0\",\"subversion\":\"OmniBus-PoUW\"}}}}",
+        .{ id, block_count, difficulty, chain_label, mp_size, peer_count },
     );
 }
 
@@ -2032,6 +2090,185 @@ fn handleOmnibusPrices(ctx: *ServerCtx, id: u64) ![]u8 {
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
         .{id},
     );
+}
+
+// ─── omnibus_getblockprices / omnibus_getpricerange ────────────────────────
+//
+// Lightweight read endpoints for the 21-slot per-block oracle snapshot.
+// Both use the same fast-path/fallback strategy as `getblock`:
+//   1) If the in-memory `block_prices` map has the height, use it (cheap).
+//   2) Otherwise fall back to the on-chain `blk.prices` array (authoritative;
+//      committed via prices_root in the block hash).
+
+/// Renders a single block's prices into the supplied buffer at `pos`. Skips
+/// empty/zero entries. Returns the number of bytes written.
+fn appendPricesJson(
+    bc: *blockchain_mod.Blockchain,
+    blk: *const block_mod.Block,
+    buf: []u8,
+    pos_in: usize,
+) usize {
+    var pos = pos_in;
+    if (pos >= buf.len) return 0;
+    buf[pos] = '['; pos += 1;
+    var written: usize = 0;
+    if (bc.getBlockPrices(blk.index)) |entries| {
+        for (entries) |e| {
+            if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
+            if (written > 0) {
+                if (pos >= buf.len) break;
+                buf[pos] = ','; pos += 1;
+            }
+            const ex = e.exchange[0..e.exchange_len];
+            const pr = e.pair[0..e.pair_len];
+            const item = std.fmt.bufPrint(buf[pos..],
+                "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
+                .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
+            ) catch break;
+            pos += item.len;
+            written += 1;
+        }
+    } else {
+        for (blk.prices) |e| {
+            if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
+            if (written > 0) {
+                if (pos >= buf.len) break;
+                buf[pos] = ','; pos += 1;
+            }
+            const ex = e.exchange[0..e.exchange_len];
+            const pr = e.pair[0..e.pair_len];
+            const item = std.fmt.bufPrint(buf[pos..],
+                "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
+                .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
+            ) catch break;
+            pos += item.len;
+            written += 1;
+        }
+    }
+    if (pos >= buf.len) return pos - pos_in;
+    buf[pos] = ']'; pos += 1;
+    return pos - pos_in;
+}
+
+/// Hex-encode a 32-byte hash into 64 lowercase hex chars (in-place fill).
+fn hashToHex(hash: [32]u8, out: *[64]u8) void {
+    for (0..32) |i| {
+        const b = hash[i];
+        out[i * 2] = "0123456789abcdef"[b >> 4];
+        out[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
+    }
+}
+
+/// `omnibus_getblockprices [height]` — returns just the 21 price entries
+/// for the given block, plus pricesRoot + pricesValidated. Lightweight path
+/// for clients (charts, oracles) that don't need the rest of the block.
+fn handleOmnibusBlockPrices(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const height: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
+    const blk_opt = ctx.bc.getBlock(height);
+    const blk = blk_opt orelse return errorJson(-5, "Block not found", id, alloc);
+
+    var buf: [4096]u8 = undefined;
+    var pos: usize = 0;
+    const prefix = std.fmt.bufPrint(buf[pos..],
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d},\"prices\":",
+        .{ id, blk.index },
+    ) catch return errorJson(-32603, "buf overflow", id, alloc);
+    pos += prefix.len;
+
+    pos += appendPricesJson(ctx.bc, &blk, &buf, pos);
+
+    var pr_hex: [64]u8 = undefined;
+    hashToHex(blk.prices_root, &pr_hex);
+    const validated = blk.validatePrices();
+
+    const suffix = std.fmt.bufPrint(buf[pos..],
+        ",\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
+        .{ pr_hex, if (validated) "true" else "false" },
+    ) catch return errorJson(-32603, "buf overflow", id, alloc);
+    pos += suffix.len;
+
+    return alloc.dupe(u8, buf[0..pos]);
+}
+
+/// `omnibus_getpricerange [from_height, count]` — returns an array of
+/// {height, prices, pricesRoot, pricesValidated} for the range
+/// [from_height, from_height + count). Capped at 100 blocks. Useful for
+/// charting historical bid/ask trajectories.
+fn handleOmnibusPriceRange(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
+    const req_count = extractArrayNum(body, 1);
+    const max_count: u32 = 100;
+    const count: u32 = if (req_count == 0 or req_count > max_count)
+        max_count
+    else
+        std.math.cast(u32, req_count) orelse max_count;
+
+    // Build into a heap buffer — each block can be ~3 KiB at the upper bound,
+    // so a 100-block window is ~300 KiB. Far too large for the stack.
+    const cap: usize = @as(usize, count) * 4096 + 256;
+    var buf = try alloc.alloc(u8, cap);
+    defer alloc.free(buf);
+    var pos: usize = 0;
+
+    const prefix = std.fmt.bufPrint(buf[pos..],
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":{d},\"count\":",
+        .{ id, from },
+    ) catch return errorJson(-32603, "buf overflow", id, alloc);
+    pos += prefix.len;
+
+    // Reserve placeholder for actual count (zero-padded to 4 chars). We
+    // overwrite this once we know how many blocks we actually emitted.
+    const count_marker_pos = pos;
+    {
+        const placeholder = std.fmt.bufPrint(buf[pos..], "0000,\"blocks\":[", .{})
+            catch return errorJson(-32603, "buf overflow", id, alloc);
+        pos += placeholder.len;
+    }
+
+    var emitted: u32 = 0;
+    var h: u32 = from;
+    while (emitted < count) : ({ h += 1; emitted += 1; }) {
+        const blk_opt = ctx.bc.getBlock(h);
+        const blk = blk_opt orelse break;
+
+        if (emitted > 0) {
+            if (pos >= buf.len) break;
+            buf[pos] = ','; pos += 1;
+        }
+        const open = std.fmt.bufPrint(buf[pos..], "{{\"height\":{d},\"prices\":", .{blk.index})
+            catch break;
+        pos += open.len;
+
+        pos += appendPricesJson(ctx.bc, &blk, buf, pos);
+
+        var pr_hex: [64]u8 = undefined;
+        hashToHex(blk.prices_root, &pr_hex);
+        const validated = blk.validatePrices();
+        const close = std.fmt.bufPrint(buf[pos..],
+            ",\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}",
+            .{ pr_hex, if (validated) "true" else "false" },
+        ) catch break;
+        pos += close.len;
+    }
+
+    const suffix = std.fmt.bufPrint(buf[pos..], "]}}}}", .{})
+        catch return errorJson(-32603, "buf overflow", id, alloc);
+    pos += suffix.len;
+
+    // Patch the count placeholder. emitted is at most 100 so 4 chars is plenty.
+    var count_str: [4]u8 = .{ '0', '0', '0', '0' };
+    var n = emitted;
+    var idx: usize = 4;
+    while (idx > 0) {
+        idx -= 1;
+        count_str[idx] = '0' + @as(u8, @intCast(n % 10));
+        n /= 10;
+    }
+    @memcpy(buf[count_marker_pos .. count_marker_pos + 4], &count_str);
+
+    return alloc.dupe(u8, buf[0..pos]);
 }
 
 /// omnibus_getexchangefeed — live BTC + LCX bid/ask from 3 exchanges
@@ -2460,6 +2697,173 @@ fn handleOmnibusBridge(ctx: *ServerCtx, id: u64) ![]u8 {
     );
 }
 
+/// omnibus_getoraclepolicy — return current price-deviation policy as JSON.
+/// Read under the global mutex so callers see a consistent snapshot even if
+/// `omnibus_setoraclepolicy` is racing.
+fn handleOmnibusGetOraclePolicy(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    main_mod.g_oracle_policy_mutex.lock();
+    const pol = main_mod.g_oracle_policy;
+    main_mod.g_oracle_policy_mutex.unlock();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"warn_pct\":{d:.4},\"reject_pct\":{d:.4},\"fillgap_pct\":{d:.4},\"enabled\":{s}}}}}",
+        .{ id, pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
+    );
+}
+
+/// omnibus_setoraclepolicy — atomically replace the price-deviation policy.
+/// Accepts both array and object params shapes:
+///   {"params":[2.0, 5.0, 10.0, true]}
+///   {"params":{"warn_pct":2.0,"reject_pct":5.0,"fillgap_pct":10.0,"enabled":true}}
+/// Missing fields keep their current value. Returns the new policy.
+fn handleOmnibusSetOraclePolicy(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    main_mod.g_oracle_policy_mutex.lock();
+    var pol = main_mod.g_oracle_policy;
+
+    // Try object-shape first: {"params":{...}} or top-level fields.
+    if (extractParamObjectFloat(body, "warn_pct")) |v| pol.warn_pct = v;
+    if (extractParamObjectFloat(body, "reject_pct")) |v| pol.reject_pct = v;
+    if (extractParamObjectFloat(body, "fillgap_pct")) |v| pol.fillgap_pct = v;
+    if (extractParamObjectBool(body, "enabled")) |v| pol.enabled = v;
+
+    // Array-shape fallback: parse `"params":[w,r,f,e]` positionally.
+    if (extractParamArrayFloats(body)) |vals| {
+        if (vals.count >= 1) pol.warn_pct = vals.values[0];
+        if (vals.count >= 2) pol.reject_pct = vals.values[1];
+        if (vals.count >= 3) pol.fillgap_pct = vals.values[2];
+        if (vals.bool_present) pol.enabled = vals.bool_value;
+    }
+
+    main_mod.g_oracle_policy = pol;
+    main_mod.g_oracle_policy_mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"warn_pct\":{d:.4},\"reject_pct\":{d:.4},\"fillgap_pct\":{d:.4},\"enabled\":{s}}}}}",
+        .{ id, pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
+    );
+}
+
+/// Extract a float field from `"params":{...}` (or top-level if no params).
+/// Accepts `"key":2.5` and `"key":"2.5"` forms.
+fn extractParamObjectFloat(json: []const u8, key: []const u8) ?f64 {
+    if (extractParamObjectField(json, key)) |s| {
+        return std.fmt.parseFloat(f64, s) catch null;
+    }
+    // Numeric literal (no quotes) — search `"key"` then read digits/dot/sign.
+    var nbuf: [128]u8 = undefined;
+    if (key.len + 2 > nbuf.len) return null;
+    nbuf[0] = '"';
+    @memcpy(nbuf[1 .. 1 + key.len], key);
+    nbuf[1 + key.len] = '"';
+    const needle = nbuf[0 .. key.len + 2];
+    var pos: usize = 0;
+    while (pos + needle.len <= json.len) : (pos += 1) {
+        if (!std.mem.startsWith(u8, json[pos..], needle)) continue;
+        var i = pos + needle.len;
+        while (i < json.len and (json[i] == ' ' or json[i] == ':' or json[i] == '\t')) i += 1;
+        if (i >= json.len) return null;
+        const start = i;
+        // Allow leading minus, digits, dot, exponent.
+        if (json[i] == '-' or json[i] == '+') i += 1;
+        while (i < json.len and ((json[i] >= '0' and json[i] <= '9') or
+            json[i] == '.' or json[i] == 'e' or json[i] == 'E' or
+            json[i] == '+' or json[i] == '-')) i += 1;
+        if (i == start) return null;
+        return std.fmt.parseFloat(f64, json[start..i]) catch null;
+    }
+    return null;
+}
+
+/// Extract a bool field — looks for `"key":true` or `"key":false`.
+fn extractParamObjectBool(json: []const u8, key: []const u8) ?bool {
+    var nbuf: [128]u8 = undefined;
+    if (key.len + 2 > nbuf.len) return null;
+    nbuf[0] = '"';
+    @memcpy(nbuf[1 .. 1 + key.len], key);
+    nbuf[1 + key.len] = '"';
+    const needle = nbuf[0 .. key.len + 2];
+    var pos: usize = 0;
+    while (pos + needle.len <= json.len) : (pos += 1) {
+        if (!std.mem.startsWith(u8, json[pos..], needle)) continue;
+        var i = pos + needle.len;
+        while (i < json.len and (json[i] == ' ' or json[i] == ':' or json[i] == '\t')) i += 1;
+        if (i + 4 <= json.len and std.mem.startsWith(u8, json[i..], "true")) return true;
+        if (i + 5 <= json.len and std.mem.startsWith(u8, json[i..], "false")) return false;
+        return null;
+    }
+    return null;
+}
+
+const ParamArrayFloats = struct {
+    values: [4]f64 = .{ 0, 0, 0, 0 },
+    count: usize = 0,
+    bool_present: bool = false,
+    bool_value: bool = false,
+};
+
+/// Parse `"params":[w,r,f,e]` positionally. Up to 3 leading floats and 1
+/// trailing bool. Returns null when no params array is found.
+fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
+    const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
+    const arr_start = std.mem.indexOfScalarPos(u8, json, params_pos, '[') orelse return null;
+    // Make sure no `{` appears between "params" and `[` (object shape wins).
+    if (std.mem.indexOfScalarPos(u8, json, params_pos, '{')) |obj_pos| {
+        if (obj_pos < arr_start) return null;
+    }
+
+    var out = ParamArrayFloats{};
+    var i: usize = arr_start + 1;
+    while (i < json.len and out.count < 3) {
+        // Skip whitespace + commas
+        while (i < json.len and (json[i] == ' ' or json[i] == ',' or json[i] == '\t')) i += 1;
+        if (i >= json.len or json[i] == ']') break;
+        // bool detection
+        if (i + 4 <= json.len and std.mem.startsWith(u8, json[i..], "true")) {
+            out.bool_present = true;
+            out.bool_value = true;
+            i += 4;
+            continue;
+        }
+        if (i + 5 <= json.len and std.mem.startsWith(u8, json[i..], "false")) {
+            out.bool_present = true;
+            out.bool_value = false;
+            i += 5;
+            continue;
+        }
+        // numeric
+        const start = i;
+        if (json[i] == '-' or json[i] == '+') i += 1;
+        while (i < json.len and ((json[i] >= '0' and json[i] <= '9') or
+            json[i] == '.' or json[i] == 'e' or json[i] == 'E' or
+            json[i] == '+' or json[i] == '-')) i += 1;
+        if (i == start) {
+            i += 1;
+            continue;
+        }
+        const v = std.fmt.parseFloat(f64, json[start..i]) catch {
+            continue;
+        };
+        out.values[out.count] = v;
+        out.count += 1;
+    }
+    // Continue past the floats in case a trailing bool exists.
+    while (i < json.len and json[i] != ']') : (i += 1) {
+        if (i + 4 <= json.len and std.mem.startsWith(u8, json[i..], "true")) {
+            out.bool_present = true;
+            out.bool_value = true;
+            break;
+        }
+        if (i + 5 <= json.len and std.mem.startsWith(u8, json[i..], "false")) {
+            out.bool_present = true;
+            out.bool_value = false;
+            break;
+        }
+    }
+    return out;
+}
+
 /// getmempoolinfo — mempool stats (matches Bitcoin RPC)
 fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -2565,9 +2969,16 @@ fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     // TODO: actual measurement when metrics not attached.
     const hashrate: u64 = if (ctx.metrics) |m| m.hashrate else 1000;
     const reward = blockchain_mod.blockRewardAt(blocks);
+    const chain_label: []const u8 = switch (ctx.chain_id) {
+        1 => "omnibus-mainnet",
+        2 => "omnibus-testnet",
+        3 => "omnibus-regtest",
+        4 => "omnibus-signet",
+        else => "omnibus-unknown",
+    };
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"networkhashps\":{d},\"hashrate\":{d},\"pooledtx\":{d},\"chain\":\"omnibus-mainnet\",\"currentblockreward\":{d}}}}}",
-        .{ id, blocks, difficulty, hashrate, hashrate, mp_size, reward },
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"networkhashps\":{d},\"hashrate\":{d},\"pooledtx\":{d},\"chain\":\"{s}\",\"currentblockreward\":{d}}}}}",
+        .{ id, blocks, difficulty, hashrate, hashrate, mp_size, chain_label, reward },
     );
 }
 

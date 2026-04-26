@@ -5,10 +5,21 @@ const hex_utils = @import("hex_utils.zig");
 const script_mod = @import("script.zig");
 const multisig_mod = @import("multisig.zig");
 const utxo_mod = @import("utxo.zig");
+const oracle_types = @import("oracle_types.zig");
+// `main_mod` and `ws_exchange_feed_mod` are imported lazily so the WS feed
+// snapshot can be wired into mineBlockForMiner without forcing every test
+// translation unit to pull in the full main.zig graph. Zig resolves these
+// imports lazily — they only matter when the corresponding fields are touched.
+const main_mod = @import("main.zig");
+const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
+/// Re-export so existing call sites (`blockchain_mod.BlockPriceEntry`) keep
+/// working after the type was extracted into oracle_types.zig to break the
+/// block.zig ↔ blockchain.zig circular import.
+pub const BlockPriceEntry = oracle_types.BlockPriceEntry;
 
 /// Block reward: 0.08333333 OMNI in SAT (9 decimale: 1 OMNI = 1,000,000,000 sat)
 /// Echivalent cu 50 OMNI la 10 minute (600 blocuri × 0.08333333 = 50 OMNI)
@@ -96,25 +107,9 @@ pub const MultisigConfigEntry = struct {
     },
 };
 
-/// Per-block oracle price entry — copy of ws_exchange_feed.PriceFetch with
-/// fixed-size strings so it can live in a HashMap without allocator deps.
-/// Captured at mining time and exposed via getblock RPC.
-pub const BlockPriceEntry = struct {
-    /// "Coinbase", "Kraken", "LCX" — fixed 16 bytes
-    exchange: [16]u8 = [_]u8{0} ** 16,
-    exchange_len: u8 = 0,
-    /// "BTC/USD" or "LCX/USD" — fixed 16 bytes
-    pair: [16]u8 = [_]u8{0} ** 16,
-    pair_len: u8 = 0,
-    bid_micro_usd: u64 = 0,
-    ask_micro_usd: u64 = 0,
-    /// Milliseconds since Unix epoch (3 decimals — same precision as
-    /// ws_exchange_feed.PriceFetch.timestamp_ms). Drift between the 3
-    /// exchange clocks is typically ±10-50ms via NTP, so 3 decimals
-    /// (1ms) is the highest meaningful precision.
-    timestamp_ms: i64 = 0,
-    success: bool = false,
-};
+/// `BlockPriceEntry` was moved to `oracle_types.zig` to allow `block.zig`
+/// to embed it directly without a circular import. It is re-exported above
+/// as `blockchain_mod.BlockPriceEntry` so callers don't need to change.
 
 pub const Blockchain = struct {
     chain: array_list.Managed(Block),
@@ -579,6 +574,38 @@ pub const Blockchain = struct {
 
         // Calculate Merkle Root (commits to all TX in block header, like Bitcoin)
         block.merkle_root = block.calculateMerkleRoot();
+
+        // ── Snapshot oracle prices into the block BEFORE PoW ────────────────
+        // Why before PoW: calculateHash() now mixes prices_root into the
+        // header. If prices were attached after mining, an attacker could
+        // swap them without redoing PoW. By calling setPrices() first we
+        // bind the snapshot to the work the miner is about to do — any
+        // tampering invalidates the nonce.
+        //
+        // Conversion: ws_exchange_feed.PriceFetch (slice-backed strings)
+        // → oracle_types.BlockPriceEntry (fixed-size strings, no allocator).
+        // Genesis path never reaches here (index==0 chain is rejected at the
+        // top), but if the WS feed is null we just leave the default-init
+        // empty entries → prices_root stays all-zeros.
+        if (main_mod.g_ws_feed) |*feed| {
+            const live = feed.getImportantSnapshot();
+            var entries: [oracle_types.BLOCK_PRICE_SLOTS]oracle_types.BlockPriceEntry = undefined;
+            for (live, 0..) |p, i| {
+                var e: oracle_types.BlockPriceEntry = .{};
+                const elen = @min(p.exchange.len, 16);
+                e.exchange_len = @intCast(elen);
+                @memcpy(e.exchange[0..elen], p.exchange[0..elen]);
+                const plen = @min(p.pair.len, 16);
+                e.pair_len = @intCast(plen);
+                @memcpy(e.pair[0..plen], p.pair[0..plen]);
+                e.bid_micro_usd = p.bid_micro_usd;
+                e.ask_micro_usd = p.ask_micro_usd;
+                e.timestamp_ms  = p.timestamp_ms;
+                e.success       = p.success;
+                entries[i] = e;
+            }
+            block.setPrices(entries);
+        }
 
         // Proof-of-Work (bounded: max 2^32 nonces before giving up, like Bitcoin)
         var nonce: u64 = 0;

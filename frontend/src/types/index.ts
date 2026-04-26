@@ -45,8 +45,16 @@ export interface BlockData {
   txCount: number;
   miner?: string;
   rewardSAT?: number;
-  /// Optional 6-slot oracle price snapshot captured at mining time.
+  /// Optional oracle price snapshot captured at mining time. Up to 21 slots
+  /// (7 IMPORTANT_PAIRS x 3 exchanges) — empty/zero entries are filtered
+  /// server-side.
   prices?: BlockPriceSnapshot[];
+  /// SHA-256 of the canonical prices encoding, mixed into block hash via
+  /// `prices_root`. 64-char lowercase hex. All-zero = "no prices recorded".
+  pricesRoot?: string;
+  /// True iff the server recomputed pricesRoot from `prices` and it matched
+  /// the on-chain commitment. UI uses this to surface tamper-evident status.
+  pricesValidated?: boolean;
 }
 
 export interface BlockPriceSnapshot {

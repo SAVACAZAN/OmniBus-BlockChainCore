@@ -52,6 +52,11 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
+  // Tip height is used to decide whether prices were read live (from the
+  // in-memory map) or from the on-chain block. Blocks older than tip-100
+  // are likely served from chain.items because the legacy in-memory cache
+  // trims that far behind the tip.
+  const [tipHeight, setTipHeight] = useState<number>(0);
   // The `block` prop from a list view often misses miner/nonce/previousHash —
   // fetch the full block detail and merge over the props so the modal always
   // has authoritative data.
@@ -62,21 +67,33 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
     setPrices([]);
     loadTxs();
     loadFull();
+    loadTip();
   }, [block.height]);
+
+  const loadTip = async () => {
+    try {
+      const r: any = await rpc.request_raw("getblockcount", []);
+      // Some nodes return { count } and others a bare number — handle both.
+      const h = typeof r === "number" ? r : r?.count;
+      if (typeof h === "number") setTipHeight(h);
+    } catch {}
+  };
 
   const loadFull = async () => {
     try {
       const result: any = await rpc.request_raw("getblock", [block.height]);
       if (result && typeof result === "object") {
         setFull({
-          height:       result.height ?? block.height,
-          hash:         result.hash ?? block.hash,
-          previousHash: result.previousHash ?? block.previousHash,
-          timestamp:    result.timestamp ?? block.timestamp,
-          nonce:        result.nonce ?? block.nonce,
-          txCount:      result.txCount ?? block.txCount,
-          miner:        result.miner ?? block.miner,
-          rewardSAT:    result.rewardSAT ?? block.rewardSAT,
+          height:          result.height ?? block.height,
+          hash:            result.hash ?? block.hash,
+          previousHash:    result.previousHash ?? block.previousHash,
+          timestamp:       result.timestamp ?? block.timestamp,
+          nonce:           result.nonce ?? block.nonce,
+          txCount:         result.txCount ?? block.txCount,
+          miner:           result.miner ?? block.miner,
+          rewardSAT:       result.rewardSAT ?? block.rewardSAT,
+          pricesRoot:      result.pricesRoot ?? block.pricesRoot,
+          pricesValidated: result.pricesValidated ?? block.pricesValidated,
         });
         if (Array.isArray(result.prices)) setPrices(result.prices);
       }
@@ -164,54 +181,95 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             </div>
           </div>
 
-          {/* Oracle Prices captured at mining time */}
-          {prices.length > 0 && (
-            <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
-              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-2">
-                Oracle Prices @ Mining (3 exchanges × 2 pairs)
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {(["BTC/USD", "LCX/USD"] as const).map((pair) => {
-                  const isLcx = pair === "LCX/USD";
-                  const rows = prices.filter((p) => p.pair === pair);
-                  return (
-                    <div key={pair}>
-                      <p className="text-[10px] font-bold text-mempool-text mb-1">{pair}</p>
-                      <table className="w-full text-[10px]">
-                        <thead>
-                          <tr className="text-mempool-text-dim">
-                            <th className="text-left pr-1">Ex</th>
-                            <th className="text-right">Bid</th>
-                            <th className="text-right">Ask</th>
-                            <th className="text-right pl-1">Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {rows.map((p) => (
-                            <tr
-                              key={`${p.exchange}-${p.pair}`}
-                              className={p.success ? "" : "opacity-40"}
-                            >
-                              <td className="text-mempool-text-dim pr-1">{p.exchange}</td>
-                              <td className="text-right font-mono text-mempool-green">
-                                {p.success ? fmtUsd(p.bidMicroUsd, isLcx) : "n/a"}
-                              </td>
-                              <td className="text-right font-mono text-mempool-orange">
-                                {p.success ? fmtUsd(p.askMicroUsd, isLcx) : "n/a"}
-                              </td>
-                              <td className="text-right font-mono text-mempool-text-dim pl-1">
-                                {p.success ? fmtTs(p.timestampMs) : "—"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  );
-                })}
-              </div>
+          {/* prices_root commitment badge — shown even when the prices
+              array is empty so users still see the integrity status. */}
+          {(full.pricesRoot || full.pricesValidated !== undefined) && (
+            <div
+              className="flex items-center gap-2 text-[10px] font-mono"
+              title="SHA-256 of canonical prices encoding, mixed into block hash. Verified means tamper-free."
+            >
+              <span className="text-mempool-text-dim uppercase tracking-wider">pricesRoot:</span>
+              <span className="text-mempool-blue truncate">
+                {full.pricesRoot
+                  ? `0x${full.pricesRoot.slice(0, 4)}...${full.pricesRoot.slice(-4)}`
+                  : "0x0000...0000"}
+              </span>
+              {full.pricesValidated ? (
+                <span className="text-mempool-green">✓ verified</span>
+              ) : (
+                <span className="text-mempool-red">✗ root mismatch</span>
+              )}
             </div>
           )}
+
+          {/* Oracle Prices captured at mining time. Source label shows
+              whether the entries were served from the in-memory cache
+              ("live") or read from the on-chain block ("on-chain"). The
+              legacy cache trims after ~100 blocks behind tip, so anything
+              older is almost certainly chain-sourced. */}
+          {prices.length > 0 && (() => {
+            const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
+            const sourceLabel = isOnChain ? "on-chain" : "live";
+            const sourceClass = isOnChain
+              ? "bg-mempool-blue/20 text-mempool-blue"
+              : "bg-mempool-green/20 text-mempool-green";
+            return (
+              <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
+                <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-2">
+                  Oracle Prices @ Mining ({prices.length} entries)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["BTC/USD", "LCX/USD"] as const).map((pair) => {
+                    const isLcx = pair === "LCX/USD";
+                    const rows = prices.filter((p) => p.pair === pair);
+                    if (rows.length === 0) return null;
+                    return (
+                      <div key={pair}>
+                        <p className="text-[10px] font-bold text-mempool-text mb-1 flex items-center gap-1">
+                          {pair}
+                        </p>
+                        <table className="w-full text-[10px]">
+                          <thead>
+                            <tr className="text-mempool-text-dim">
+                              <th className="text-left pr-1">Ex</th>
+                              <th className="text-right">Bid</th>
+                              <th className="text-right">Ask</th>
+                              <th className="text-right pl-1">Time</th>
+                              <th className="text-right pl-1">Src</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map((p) => (
+                              <tr
+                                key={`${p.exchange}-${p.pair}`}
+                                className={p.success ? "" : "opacity-40"}
+                              >
+                                <td className="text-mempool-text-dim pr-1">{p.exchange}</td>
+                                <td className="text-right font-mono text-mempool-green">
+                                  {p.success ? fmtUsd(p.bidMicroUsd, isLcx) : "n/a"}
+                                </td>
+                                <td className="text-right font-mono text-mempool-orange">
+                                  {p.success ? fmtUsd(p.askMicroUsd, isLcx) : "n/a"}
+                                </td>
+                                <td className="text-right font-mono text-mempool-text-dim pl-1">
+                                  {p.success ? fmtTs(p.timestampMs) : "—"}
+                                </td>
+                                <td className="text-right pl-1">
+                                  <span className={`text-[9px] px-1 py-0.5 rounded ${sourceClass}`}>
+                                    {sourceLabel}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Fee Summary */}
           {txs.length > 0 && (

@@ -27,6 +27,15 @@ pub const ChainMode = enum {
 pub const ParsedArgs = struct {
     node: node_launcher.NodeConfig,
     chain_mode: ChainMode,
+    /// Oracle price-deviation policy overrides (null = use defaults for chain).
+    /// See core/oracle_policy.zig — defaultsFor(chain_mode) is applied at
+    /// startup when these are null. Non-null fields override per-knob.
+    price_warn_pct: ?f64 = null,
+    price_reject_pct: ?f64 = null,
+    price_fillgap_pct: ?f64 = null,
+    /// When true, the master switch in OraclePolicy is forced false at
+    /// startup (validation completely bypassed).
+    price_validation_disabled: bool = false,
 };
 
 /// CLI argument parser for node startup
@@ -69,6 +78,11 @@ pub const CLI = struct {
         // Track whether ANY chain flag was provided, so repeated / conflicting
         // flags produce a clear error instead of silent last-wins.
         var chain_flag_seen: bool = false;
+        // Oracle price-deviation policy overrides (null = chain default).
+        var price_warn_pct: ?f64 = null;
+        var price_reject_pct: ?f64 = null;
+        var price_fillgap_pct: ?f64 = null;
+        var price_validation_disabled: bool = false;
 
         var i: usize = 1; // Skip program name
         while (i < args.len) : (i += 1) {
@@ -180,6 +194,20 @@ pub const CLI = struct {
                 chain_mode = .regtest;
                 chain_flag_seen = true;
                 testnet = false;
+            } else if (std.mem.eql(u8, arg, "--price-deviation-warn")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                price_warn_pct = std.fmt.parseFloat(f64, args[i]) catch return error.InvalidPriceDeviationWarn;
+            } else if (std.mem.eql(u8, arg, "--price-deviation-reject")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                price_reject_pct = std.fmt.parseFloat(f64, args[i]) catch return error.InvalidPriceDeviationReject;
+            } else if (std.mem.eql(u8, arg, "--price-deviation-fillgap")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                price_fillgap_pct = std.fmt.parseFloat(f64, args[i]) catch return error.InvalidPriceDeviationFillgap;
+            } else if (std.mem.eql(u8, arg, "--no-price-validation")) {
+                price_validation_disabled = true;
             } else if (std.mem.eql(u8, arg, "--help")) {
                 printUsage();
                 return error.HelpRequested;
@@ -217,6 +245,10 @@ pub const CLI = struct {
                 .allocator = self.allocator,
             },
             .chain_mode = chain_mode,
+            .price_warn_pct = price_warn_pct,
+            .price_reject_pct = price_reject_pct,
+            .price_fillgap_pct = price_fillgap_pct,
+            .price_validation_disabled = price_validation_disabled,
         };
     }
 
@@ -255,6 +287,12 @@ pub const CLI = struct {
             \\  --mainnet            Alias for --chain mainnet
             \\  --testnet            Alias for --chain testnet (was: legacy boolean)
             \\  --regtest            Alias for --chain regtest (instant mining, devmode)
+            \\
+            \\ORACLE PRICE-DEVIATION POLICY (per-node, applied to incoming P2P blocks):
+            \\  --price-deviation-warn PCT     Log warning above this % deviation (default: 2.0)
+            \\  --price-deviation-reject PCT   Reject block above this % deviation (default: 5.0)
+            \\  --price-deviation-fillgap PCT  Allow gap-fill within this % of own median (default: 10.0)
+            \\  --no-price-validation          Disable price validation entirely (regtest default)
             \\
             \\EXAMPLES:
             \\  # Start primary seed node

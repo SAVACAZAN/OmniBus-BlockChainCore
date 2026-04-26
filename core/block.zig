@@ -1,10 +1,13 @@
 const std = @import("std");
 const transaction_mod = @import("transaction.zig");
 const light_client_mod = @import("light_client.zig");
+const oracle_types = @import("oracle_types.zig");
 const array_list = std.array_list;
 
 pub const Transaction = transaction_mod.Transaction;
 pub const MerkleProof = light_client_mod.MerkleProof;
+pub const BlockPriceEntry = oracle_types.BlockPriceEntry;
+pub const BLOCK_PRICE_SLOTS = oracle_types.BLOCK_PRICE_SLOTS;
 
 /// Maximum block size in bytes (1 MB, like Dogecoin/Bitcoin legacy)
 pub const MAX_BLOCK_SIZE: usize = 1_048_576;
@@ -29,6 +32,16 @@ pub const Block = struct {
     reward_sat: u64 = 0,
     /// true daca miner_address e alocat pe heap (restaurat din disc) si trebuie eliberat
     miner_heap: bool = false,
+    /// Oracle price snapshot captured at mining time (21 entries: 7 pairs × 3 venues).
+    /// EMPTY ([21]BlockPriceEntry{}) for the genesis block and for blocks mined
+    /// before the WS feed populated.
+    /// TODO(db-v2): Agent 5 must extend the binary codec / database serialization
+    /// to persist `prices` and `prices_root` so they survive restarts.
+    prices: [BLOCK_PRICE_SLOTS]BlockPriceEntry = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS,
+    /// SHA-256 of the canonical prices encoding (see computePricesRoot below).
+    /// Mixed into calculateHash so the block hash commits to the prices —
+    /// any tampering invalidates PoW. Zero-hash means "no prices recorded".
+    prices_root: [32]u8 = [_]u8{0} ** 32,
 
     /// Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bitcoin)
     pub fn calculateMerkleRoot(self: *const Block) [32]u8 {
@@ -73,10 +86,85 @@ pub const Block = struct {
 
         hasher.update(str);
         hasher.update(&self.merkle_root);
+        // Commit to oracle prices — any tampering with self.prices flips the
+        // block hash and therefore invalidates PoW.
+        hasher.update(&self.prices_root);
 
         var hash: [32]u8 = undefined;
         hasher.final(&hash);
         return hash;
+    }
+
+    /// Canonical encoding of the 21-slot oracle price snapshot, hashed with
+    /// SHA-256. Layout per entry (little-endian for integers):
+    ///   exchange_len: u8
+    ///   exchange:     exchange_len bytes (≤ 16)
+    ///   pair_len:     u8
+    ///   pair:         pair_len bytes (≤ 16)
+    ///   bid_micro_usd: u64 LE
+    ///   ask_micro_usd: u64 LE
+    ///   timestamp_ms:  i64 LE
+    ///   success:       u8 (0 | 1)
+    ///
+    /// If every slot has success=false AND timestamp_ms=0 the entries carry no
+    /// information and we return the all-zero hash (which `validatePrices` and
+    /// downstream tools treat as "no prices recorded for this block").
+    pub fn computePricesRoot(self: *const Block) [32]u8 {
+        // Detect "no data" case: all slots empty.
+        var any_data = false;
+        for (self.prices) |e| {
+            if (e.success or e.timestamp_ms != 0) {
+                any_data = true;
+                break;
+            }
+        }
+        if (!any_data) return [_]u8{0} ** 32;
+
+        var hasher = std.crypto.hash.sha2.Sha256.init(.{});
+        // Per-entry max size: 1 + 16 + 1 + 16 + 8 + 8 + 8 + 1 = 59 bytes.
+        // We hash entry-by-entry rather than via a single big buffer so the
+        // numeric fields keep their little-endian layout regardless of host.
+        var num_buf: [8]u8 = undefined;
+
+        for (self.prices) |entry| {
+            const elen = @min(entry.exchange_len, @as(u8, 16));
+            const plen = @min(entry.pair_len, @as(u8, 16));
+
+            hasher.update(&[_]u8{elen});
+            hasher.update(entry.exchange[0..elen]);
+            hasher.update(&[_]u8{plen});
+            hasher.update(entry.pair[0..plen]);
+
+            std.mem.writeInt(u64, &num_buf, entry.bid_micro_usd, .little);
+            hasher.update(&num_buf);
+            std.mem.writeInt(u64, &num_buf, entry.ask_micro_usd, .little);
+            hasher.update(&num_buf);
+            std.mem.writeInt(i64, &num_buf, entry.timestamp_ms, .little);
+            hasher.update(&num_buf);
+
+            hasher.update(&[_]u8{if (entry.success) @as(u8, 1) else @as(u8, 0)});
+        }
+
+        var out: [32]u8 = undefined;
+        hasher.final(&out);
+        return out;
+    }
+
+    /// Copies the supplied 21-slot snapshot into the block and recomputes
+    /// `prices_root`. Call this BEFORE `calculateHash`/PoW mining so the
+    /// final hash commits to the snapshot.
+    pub fn setPrices(self: *Block, entries: [BLOCK_PRICE_SLOTS]BlockPriceEntry) void {
+        self.prices = entries;
+        self.prices_root = self.computePricesRoot();
+    }
+
+    /// Recomputes the canonical prices root from `self.prices` and compares
+    /// it against the stored `self.prices_root`. Returns true on match. Used
+    /// by the P2P validate path (peer sends a block; we re-hash its prices
+    /// and reject if the commitment doesn't line up).
+    pub fn validatePrices(self: *const Block) bool {
+        const recomputed = self.computePricesRoot();
+        return std.mem.eql(u8, &recomputed, &self.prices_root);
     }
 
     pub fn validateTransactions(self: *const Block) bool {
@@ -460,4 +548,146 @@ test "block - generateMerkleProof 4 TXs verifies all" {
         const p = block.generateMerkleProof(i).?;
         try testing.expect(light_client_mod.verifyMerkleProof(&p));
     }
+}
+
+// ─── Oracle price snapshot tests ─────────────────────────────────────────────
+
+/// Build an empty Block (no transactions) for price-test scenarios.
+fn makePriceTestBlock(allocator: std.mem.Allocator) Block {
+    return Block{
+        .index = 7,
+        .timestamp = 1_700_000_000,
+        .transactions = array_list.Managed(Transaction).init(allocator),
+        .previous_hash = "deadbeef",
+        .nonce = 0,
+        .hash = "0000000000000000000000000000000000000000000000000000000000000000",
+    };
+}
+
+/// Build one populated BlockPriceEntry for tests.
+fn makePriceEntry(exchange: []const u8, pair: []const u8, bid: u64, ask: u64, ts: i64) BlockPriceEntry {
+    var e: BlockPriceEntry = .{};
+    const elen = @min(exchange.len, 16);
+    e.exchange_len = @intCast(elen);
+    @memcpy(e.exchange[0..elen], exchange[0..elen]);
+    const plen = @min(pair.len, 16);
+    e.pair_len = @intCast(plen);
+    @memcpy(e.pair[0..plen], pair[0..plen]);
+    e.bid_micro_usd = bid;
+    e.ask_micro_usd = ask;
+    e.timestamp_ms = ts;
+    e.success = true;
+    return e;
+}
+
+test "block.prices - empty snapshot yields zero prices_root" {
+    const allocator = testing.allocator;
+    var block = makePriceTestBlock(allocator);
+    defer block.transactions.deinit();
+
+    const root = block.computePricesRoot();
+    const zeros = [_]u8{0} ** 32;
+    try testing.expectEqualSlices(u8, &zeros, &root);
+
+    // setPrices with default-init entries also yields zero root.
+    const empty = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    block.setPrices(empty);
+    try testing.expectEqualSlices(u8, &zeros, &block.prices_root);
+}
+
+test "block.prices - one populated entry produces non-zero deterministic root" {
+    const allocator = testing.allocator;
+    var b1 = makePriceTestBlock(allocator);
+    defer b1.transactions.deinit();
+    var b2 = makePriceTestBlock(allocator);
+    defer b2.transactions.deinit();
+
+    var entries = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    entries[0] = makePriceEntry("Coinbase", "BTC/USD", 65_000_000_000, 65_001_000_000, 1_700_000_123);
+
+    b1.setPrices(entries);
+    b2.setPrices(entries);
+
+    // Non-zero
+    const zeros = [_]u8{0} ** 32;
+    try testing.expect(!std.mem.eql(u8, &zeros, &b1.prices_root));
+    // Deterministic across two re-inits with identical input
+    try testing.expectEqualSlices(u8, &b1.prices_root, &b2.prices_root);
+}
+
+test "block.prices - tampering with bid changes prices_root" {
+    const allocator = testing.allocator;
+    var block = makePriceTestBlock(allocator);
+    defer block.transactions.deinit();
+
+    var entries = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    entries[0] = makePriceEntry("Kraken", "ETH/USD", 3_500_000_000, 3_501_000_000, 1_700_000_456);
+    block.setPrices(entries);
+    const original_root = block.prices_root;
+
+    // Mutate bid in place; recompute root and confirm it differs.
+    block.prices[0].bid_micro_usd = 3_500_000_001;
+    const tampered_root = block.computePricesRoot();
+    try testing.expect(!std.mem.eql(u8, &original_root, &tampered_root));
+
+    // validatePrices() now disagrees because stored root reflects the OLD bid.
+    try testing.expect(!block.validatePrices());
+}
+
+test "block.prices - validatePrices true after setPrices" {
+    const allocator = testing.allocator;
+    var block = makePriceTestBlock(allocator);
+    defer block.transactions.deinit();
+
+    var entries = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    entries[0] = makePriceEntry("LCX", "LCX/USD", 200_000, 201_000, 1_700_000_789);
+    entries[5] = makePriceEntry("Coinbase", "ETH/USD", 3_500_000_000, 3_501_000_000, 1_700_000_790);
+    block.setPrices(entries);
+
+    try testing.expect(block.validatePrices());
+
+    // Empty snapshot also validates (zero-hash vs zero-hash).
+    var empty_block = makePriceTestBlock(allocator);
+    defer empty_block.transactions.deinit();
+    try testing.expect(empty_block.validatePrices());
+}
+
+test "block.prices - calculateHash matches across two identical price sets" {
+    const allocator = testing.allocator;
+    var b1 = makePriceTestBlock(allocator);
+    defer b1.transactions.deinit();
+    var b2 = makePriceTestBlock(allocator);
+    defer b2.transactions.deinit();
+
+    var entries = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    entries[0] = makePriceEntry("Coinbase", "BTC/USD", 65_000_000_000, 65_001_000_000, 1_700_111_111);
+    entries[1] = makePriceEntry("Kraken",   "BTC/USD", 64_999_500_000, 65_000_500_000, 1_700_111_112);
+    entries[2] = makePriceEntry("LCX",      "BTC/USD", 65_000_250_000, 65_001_250_000, 1_700_111_113);
+
+    b1.setPrices(entries);
+    b2.setPrices(entries);
+
+    const h1 = try b1.calculateHash();
+    const h2 = try b2.calculateHash();
+    try testing.expectEqualSlices(u8, &h1, &h2);
+}
+
+test "block.prices - calculateHash differs when prices differ" {
+    const allocator = testing.allocator;
+    var b1 = makePriceTestBlock(allocator);
+    defer b1.transactions.deinit();
+    var b2 = makePriceTestBlock(allocator);
+    defer b2.transactions.deinit();
+
+    var entries_a = [_]BlockPriceEntry{.{}} ** BLOCK_PRICE_SLOTS;
+    entries_a[0] = makePriceEntry("Coinbase", "BTC/USD", 65_000_000_000, 65_001_000_000, 1_700_000_000);
+    var entries_b = entries_a;
+    entries_b[0].bid_micro_usd = 65_000_000_001; // 1 micro-USD difference
+
+    b1.setPrices(entries_a);
+    b2.setPrices(entries_b);
+
+    const h1 = try b1.calculateHash();
+    const h2 = try b2.calculateHash();
+    try testing.expect(!std.mem.eql(u8, &h1, &h2));
 }

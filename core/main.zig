@@ -97,6 +97,7 @@ const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const oracle_fetcher_mod = @import("oracle_fetcher.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
+const oracle_policy_mod  = @import("oracle_policy.zig");
 const evm_executor_mod   = @import("evm_executor.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
@@ -111,6 +112,7 @@ comptime {
     _ = miner_wallet_mod; _ = benchmark_mod;
     _ = matching_mod; _ = price_oracle_mod; _ = pouw_mod; _ = orderbook_sync_mod;
     _ = oracle_fetcher_mod;
+    _ = oracle_policy_mod;
     _ = @import("witness_data.zig"); _ = @import("compact_transaction.zig");
     _ = @import("os_mode.zig"); _ = @import("synapse_priority.zig");
     _ = @import("omni_brain.zig"); _ = @import("oracle.zig");
@@ -209,6 +211,13 @@ pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
+
+// ── Global Oracle Policy — per-node price-deviation validation thresholds ──
+// Defaults are applied at startup based on chain (mainnet=strict, regtest=off)
+// and CLI flags can override individual knobs. Modified atomically via the
+// `omnibus_setoraclepolicy` RPC method (protected by g_oracle_policy_mutex).
+pub var g_oracle_policy: oracle_policy_mod.OraclePolicy = .{};
+pub var g_oracle_policy_mutex: std.Thread.Mutex = .{};
 
 // Thread RPC — pornit din main, detach
 const RPCThreadArgs = struct {
@@ -312,6 +321,22 @@ pub fn main() !void {
         .testnet => ChainConfig.testnet(),
         .regtest => ChainConfig.regtest(),
     };
+
+    // ── Oracle policy — per-chain defaults overridden by CLI flags ──────────
+    // Defaults: mainnet strict (5% reject), testnet relaxed (10%), regtest off.
+    // CLI: --price-deviation-{warn,reject,fillgap} <f64>, --no-price-validation
+    {
+        var pol = oracle_policy_mod.defaultsFor(net_cfg.chain_id);
+        if (parsed.price_warn_pct) |v| pol.warn_pct = v;
+        if (parsed.price_reject_pct) |v| pol.reject_pct = v;
+        if (parsed.price_fillgap_pct) |v| pol.fillgap_pct = v;
+        if (parsed.price_validation_disabled) pol.enabled = false;
+        g_oracle_policy = pol;
+        std.debug.print(
+            "[ORACLE-POLICY] warn={d:.1}% reject={d:.1}% fillgap={d:.1}% enabled={s}\n",
+            .{ pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
+        );
+    }
 
     std.debug.print(
         \\

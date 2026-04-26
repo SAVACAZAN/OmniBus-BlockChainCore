@@ -169,3 +169,29 @@ pub fn estimateGas(
     if (rc != 0) return error.FFIError;
     return gas;
 }
+
+// ─── Price Oracle Precompile (TODO) ─────────────────────────────────────────
+//
+// Solidity-compatible read endpoint at the magic precompile address
+// `0x00000000000000000000000000000000000001ee` (1ee = "price oracle"). Calling
+// this address from a contract should return the current per-pair / per-
+// exchange bid/ask snapshot encoded as ABI uint256 fields.
+//
+// Proposed calldata layout (single uint256 input, packed):
+//   bytes 0..30 : 0
+//   byte  31    : (pair_index << 2) | exchange_index
+//                  pair_index    in 0..6 (BTC/USD, ETH/USD, ..., LCX/USD)
+//                  exchange_index in 0..2 (Coinbase, Kraken, LCX)
+//
+// Proposed return data: a single ABI-encoded `(uint256 bid_micro_usd,
+// uint256 ask_micro_usd, uint256 timestamp_ms, uint256 success_flag)`.
+//
+// Implementing this requires hooking into the revm executor on the Rust
+// side (a custom precompile registered at address 0x...01ee that calls back
+// into Zig to read from `g_ws_feed.snapshot()` or the latest block's prices).
+// That work belongs to the EVM bridge agent — for now the on-chain
+// `Block.prices` array (queried via `omnibus_getblockprices`) is the
+// authoritative read path, so this stub is intentionally a no-op.
+pub const PRICE_ORACLE_PRECOMPILE_ADDR: [42]u8 =
+    "0x00000000000000000000000000000000000001ee".*;
+
