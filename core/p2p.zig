@@ -2725,20 +2725,27 @@ pub const P2PNode = struct {
     /// Trimite sync_request la primul peer conectat mai sus decat noi
     /// Payload: [from_height: u64 LE]
     pub fn requestSync(self: *P2PNode, from_height: u64) void {
-        var height_buf: [8]u8 = undefined;
-        std.mem.writeInt(u64, &height_buf, from_height, .little);
+        // FIX (commit after c14c566): wire format MUST match MsgGetHeaders
+        // (10 bytes: u64 from_height + u16 max_count). Old code sent only
+        // 8 bytes (height alone), so VPS dispatch rejected with
+        //   [DEBUG-SYNC-REQ] payload too short (8<10), abort
+        const req = sync_mod.MsgGetHeaders{
+            .from_height = from_height,
+            .max_count   = sync_mod.SyncManager.MAX_HEADERS_PER_REQ,
+        };
+        const payload = req.encode(); // returns [10]u8
 
         self.peers_mutex.lock();
         defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
             if (peer.height <= from_height) continue; // peer nu are mai mult decat noi
-            peer.send(@intFromEnum(MessageType.sync_request), &height_buf) catch |err| {
+            peer.send(@intFromEnum(MessageType.sync_request), &payload) catch |err| {
                 std.debug.print("[P2P] Sync request la {s} failed: {}\n",
                     .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
             };
-            std.debug.print("[P2P] SYNC_REQUEST trimis la {s} (from height={d})\n",
-                .{ peer.node_id[0..@min(peer.node_id.len, 16)], from_height });
+            std.debug.print("[P2P] SYNC_REQUEST trimis la {s} (from height={d}, max={d})\n",
+                .{ peer.node_id[0..@min(peer.node_id.len, 16)], from_height, sync_mod.SyncManager.MAX_HEADERS_PER_REQ });
             return; // trimitem la primul peer disponibil
         }
     }
