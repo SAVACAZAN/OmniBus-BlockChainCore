@@ -2754,13 +2754,18 @@ pub const P2PNode = struct {
             // Reconstituim previous_hash din prev_hash[32] ca hex string
             const prev_block = bc.chain.items[local_len - 1];
 
-            // Reconstituim hash-ul blocului din merkle_root (stocat acolo)
-            // Aloca hash_hex (64 chars) pe heap — va fi eliberat de bc.deinit
+            // Reconstituim hash-ul blocului. Wire format truncates the
+            // 64-char hash to 32 chars (sync.zig:55) and stores those
+            // ASCII chars verbatim in merkle_root[0..32]. To make
+            // local hash[0..32] match what the peer sends back on
+            // re-broadcast (so reorg detection doesn't trigger on
+            // every overlap), we write the merkle_root ASCII bytes
+            // back into hash_hex[0..32] verbatim, then pad the
+            // remaining 32 chars with '0'. Lossy by design — this
+            // is a wire-protocol limitation we live with until v2.
             const hash_hex = node.allocator.alloc(u8, 64) catch break;
-            for (0..32) |i| {
-                _ = std.fmt.bufPrint(hash_hex[i * 2 .. (i + 1) * 2], "{x:0>2}", .{hdr.merkle_root[i]})
-                    catch { node.allocator.free(hash_hex); break; };
-            }
+            @memcpy(hash_hex[0..32], hdr.merkle_root[0..32]);
+            @memset(hash_hex[32..64], '0');
 
             // Aloca miner_address — bloc primit de la peer, nu stim minerul → ""
             const miner_addr = node.allocator.dupe(u8, "") catch {
