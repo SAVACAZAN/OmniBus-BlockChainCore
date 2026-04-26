@@ -457,6 +457,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "eth_getCode"))            return handleEthGetCode(body, ctx, id);
     if (std.mem.eql(u8, method, "eth_estimateGas"))        return handleEthEstimateGas(body, ctx, id);
     if (std.mem.eql(u8, method, "eth_chainId"))            return handleEthChainId(ctx, id);
+    if (std.mem.eql(u8, method, "eth_blockNumber"))        return handleEthBlockNumber(ctx, id);
+    if (std.mem.eql(u8, method, "eth_getBalance"))         return handleEthGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getTransactionCount"))return handleEthGetTransactionCount(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_gasPrice"))           return handleEthGasPrice(ctx, id);
+    if (std.mem.eql(u8, method, "eth_getLogs"))            return handleEthGetLogs(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getTransactionReceipt"))return handleEthGetTransactionReceipt(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getBlockByNumber"))   return handleEthGetBlockByNumber(body, ctx, id);
+    if (std.mem.eql(u8, method, "net_version"))            return handleNetVersion(ctx, id);
 
     // ── Bitcoin-standard compatibility endpoints ────────────────────────
     if (std.mem.eql(u8, method, "getbestblockhash"))   return handleGetBestBlockHash(ctx, id);
@@ -3194,6 +3202,146 @@ fn handleEthChainId(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(ctx.allocator,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
         .{ id, ctx.chain_id });
+}
+
+/// eth_blockNumber — return current chain tip as hex (EIP-695 standard).
+/// Required by ethers.js for any tx flow (deploy, send, query logs).
+fn handleEthBlockNumber(ctx: *ServerCtx, id: u64) ![]u8 {
+    const tip = ctx.bc.getBlockCount();
+    const height: u64 = if (tip == 0) 0 else tip - 1;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
+        .{ id, height });
+}
+
+/// eth_getBalance — return account balance in wei as hex.
+/// Params: `[address, "latest"|"pending"|blockNumber]`. Block tag is
+/// ignored — we always return the current tip balance (no historical
+/// state lookup yet).
+fn handleEthGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    // params[0] = "0x..." address (string).
+    const addr_hex = extractStringFromArrayParams(body, 0) orelse
+        return errorJson(-32602, "eth_getBalance: missing address", id, alloc);
+    // Strip "0x" if present.
+    const addr_no_0x = if (addr_hex.len >= 2 and addr_hex[0] == '0' and (addr_hex[1] == 'x' or addr_hex[1] == 'X'))
+        addr_hex[2..]
+    else
+        addr_hex;
+    if (addr_no_0x.len != 40) {
+        return errorJson(-32602, "eth_getBalance: address must be 20 bytes hex", id, alloc);
+    }
+    // Convert EVM hex address to ob1q... bech32 form OR query by raw bytes.
+    // We don't have an EVM address registry yet, so for V1 return 0 for any
+    // address that doesn't map to a known wallet. This is enough for ethers.js
+    // pre-flight checks (it just wants a non-error response).
+    // TODO(future): map EVM address -> bech32 ob1q via chain state.
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x0\"}}",
+        .{id});
+}
+
+/// eth_getTransactionCount — return account nonce as hex.
+/// Params: `[address, "latest"]`. We track no nonces yet at the EVM-account
+/// level; return 0 so ethers.js can submit txs (which then go through
+/// eth_sendRawTransaction signed).
+fn handleEthGetTransactionCount(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x0\"}}",
+        .{id});
+}
+
+/// eth_gasPrice — return a fixed gas price in wei (1 gwei = 0x3b9aca00).
+/// We have no fee market yet; flat-rate is fine for testnets/regtest.
+fn handleEthGasPrice(ctx: *ServerCtx, id: u64) ![]u8 {
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x3b9aca00\"}}",
+        .{id});
+}
+
+/// net_version — legacy network identifier (decimal, not hex).
+/// Many wallets/libs still use this alongside eth_chainId.
+fn handleNetVersion(ctx: *ServerCtx, id: u64) ![]u8 {
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{d}\"}}",
+        .{ id, ctx.chain_id });
+}
+
+/// eth_getLogs — return matching logs. Params: `[{address, topics, fromBlock, toBlock}]`.
+/// V1 stub: returns empty array. Once the EVM executor wires up event
+/// emission to chain state, this will scan the actual event log.
+fn handleEthGetLogs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
+        .{id});
+}
+
+/// eth_getTransactionReceipt — receipt for a tx hash.
+/// V1 stub: returns null until EVM tx execution writes receipts to chain.
+fn handleEthGetTransactionReceipt(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}",
+        .{id});
+}
+
+/// eth_getBlockByNumber — block by tag/hex. V1 minimal: returns block info
+/// in EIP-1474 shape with hashed-out fields. Sufficient for chain detect.
+fn handleEthGetBlockByNumber(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const tip = ctx.bc.getBlockCount();
+    const height: u64 = if (tip == 0) 0 else tip - 1;
+    // Minimal block object — many fields stubbed but ethers.js parses ok.
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"number\":\"0x{x}\",\"hash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"," ++
+            "\"parentHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"," ++
+            "\"timestamp\":\"0x0\",\"transactions\":[],\"gasLimit\":\"0x1c9c380\",\"gasUsed\":\"0x0\"," ++
+            "\"miner\":\"0x0000000000000000000000000000000000000000\",\"difficulty\":\"0x{x}\"," ++
+            "\"baseFeePerGas\":\"0x0\",\"extraData\":\"0x\"" ++
+        "}}}}",
+        .{ id, height, ctx.bc.difficulty });
+}
+
+/// Helper: extract param[idx] as a JSON string from {"params":[...]}
+/// Trivial parser — assumes params is a plain array of string/object/etc.
+fn extractStringFromArrayParams(body: []const u8, idx: usize) ?[]const u8 {
+    // Find "params":[
+    const params_key = "\"params\"";
+    const k_pos = std.mem.indexOf(u8, body, params_key) orelse return null;
+    var p = k_pos + params_key.len;
+    while (p < body.len and (body[p] == ' ' or body[p] == ':' or body[p] == '\t')) : (p += 1) {}
+    if (p >= body.len or body[p] != '[') return null;
+    p += 1;
+    var current_idx: usize = 0;
+    while (p < body.len) {
+        // Skip whitespace and commas.
+        while (p < body.len and (body[p] == ' ' or body[p] == ',' or body[p] == '\t' or body[p] == '\n')) : (p += 1) {}
+        if (p >= body.len or body[p] == ']') return null;
+        // Element start.
+        if (body[p] == '"') {
+            // String — find closing quote.
+            const start = p + 1;
+            var q = start;
+            while (q < body.len and body[q] != '"') : (q += 1) {
+                if (body[q] == '\\') q += 1;
+            }
+            if (q >= body.len) return null;
+            if (current_idx == idx) {
+                return body[start..q];
+            }
+            p = q + 1;
+        } else {
+            // Non-string element (number/bool/null/object/array) — skip till
+            // matching delim. For our use case only strings at index 0 are
+            // needed, so just bail.
+            return null;
+        }
+        current_idx += 1;
+    }
+    return null;
 }
 
 // ─── Teste ────────────────────────────────────────────────────────────────────
