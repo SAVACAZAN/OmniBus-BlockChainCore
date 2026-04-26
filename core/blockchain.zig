@@ -159,6 +159,12 @@ pub const Blockchain = struct {
     block_prices: std.AutoHashMap(u32, [6]BlockPriceEntry) = undefined,
     block_prices_initialized: bool = false,
 
+    /// Native cross-chain bridge state. Tracks locks, pending unlocks,
+    /// processed nonces, daily volume cap (defense-in-depth from Ronin/
+    /// Wormhole/Nomad/Kelp DAO post-mortems). Defined in bridge_native.zig.
+    /// Nil-init via comptime literal — populated lazily on first bridge TX.
+    bridge_state: ?@import("bridge_native.zig").BridgeState = null,
+
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
@@ -761,6 +767,86 @@ pub const Blockchain = struct {
             return false;
         }
 
+        // 7. Bridge limits — sum bridge-lock TXs in this block + last 86400
+        // blocks must not exceed BRIDGE_MAX_DAILY_SAT, and no single TX may
+        // exceed BRIDGE_MAX_PER_TX_SAT. Defense-in-depth from Ronin/Orbit
+        // hacks: even a malicious miner can't push a giant lock through.
+        if (!self.validateBridgeLimits(block)) {
+            std.debug.print("[VALIDATE_BLOCK] FAIL: bridge cap exceeded in block {d}\n", .{block.index});
+            return false;
+        }
+
+        return true;
+    }
+
+    // ─── Bridge consensus hooks ──────────────────────────────────────────────
+
+    /// Returns true if `tx` is a bridge lock: destination = vault address
+    /// (case-insensitive 0x... 40-hex compare) AND op_return starts with
+    /// "OMNIBRIDGE:". Cheap inline check called on every TX during block
+    /// validation, so kept simple.
+    pub fn isBridgeLockTx(tx: *const Transaction) bool {
+        const cfg = @import("chain_config.zig");
+        const vault = cfg.BRIDGE_VAULT_ADDR_HEX;
+        // to_address may be lowercase or mixed; compare case-insensitive on
+        // the hex chars after "0x".
+        if (tx.to_address.len != vault.len) return false;
+        for (tx.to_address, vault) |a, b| {
+            const al = if (a >= 'A' and a <= 'Z') a + 32 else a;
+            const bl = if (b >= 'A' and b <= 'Z') b + 32 else b;
+            if (al != bl) return false;
+        }
+        const prefix = "OMNIBRIDGE:";
+        if (tx.op_return.len < prefix.len) return false;
+        return std.mem.eql(u8, tx.op_return[0..prefix.len], prefix);
+    }
+
+    /// Sum lock amounts in `block` and verify per-tx + rolling-day caps.
+    /// Caller MUST hold mutex (or be in single-threaded context).
+    fn validateBridgeLimits(self: *Blockchain, block: *const Block) bool {
+        const cfg = @import("chain_config.zig");
+        var block_lock_sum: u64 = 0;
+        for (block.transactions.items) |tx| {
+            if (!isBridgeLockTx(&tx)) continue;
+            // Per-tx hard cap.
+            if (tx.amount == 0 or tx.amount > cfg.BRIDGE_MAX_PER_TX_SAT) {
+                std.debug.print(
+                    "[BRIDGE-LIMIT] TX over per-tx cap: amount={d} max={d}\n",
+                    .{ tx.amount, cfg.BRIDGE_MAX_PER_TX_SAT },
+                );
+                return false;
+            }
+            block_lock_sum +%= tx.amount;
+            if (block_lock_sum < tx.amount) return false; // overflow
+        }
+        if (block_lock_sum == 0) return true; // no bridge TXs in this block
+
+        // Rolling 24h: sum lock TXs in the last BRIDGE_DAILY_WINDOW_BLOCKS
+        // blocks (excluding the candidate block itself, which is not in
+        // chain yet) plus the candidate's own lock sum.
+        const window = cfg.BRIDGE_DAILY_WINDOW_BLOCKS;
+        const tip = self.chain.items.len;
+        const start = if (tip > window) tip - window else 0;
+        var historical: u64 = 0;
+        var i: usize = start;
+        while (i < tip) : (i += 1) {
+            const blk = &self.chain.items[i];
+            for (blk.transactions.items) |htx| {
+                if (isBridgeLockTx(&htx)) {
+                    historical +%= htx.amount;
+                    if (historical < htx.amount) return false; // overflow
+                }
+            }
+        }
+        const grand_total = historical +% block_lock_sum;
+        if (grand_total < historical) return false; // overflow
+        if (grand_total > cfg.BRIDGE_MAX_DAILY_SAT) {
+            std.debug.print(
+                "[BRIDGE-LIMIT] daily cap exceeded: hist={d} block={d} cap={d}\n",
+                .{ historical, block_lock_sum, cfg.BRIDGE_MAX_DAILY_SAT },
+            );
+            return false;
+        }
         return true;
     }
 
@@ -2331,3 +2417,56 @@ test "Blockchain.validateTransaction — script_pubkey set but script_sig empty 
     };
     try testing.expect(!try bc.validateTransaction(&tx));
 }
+
+// ─── Bridge consensus hook tests ─────────────────────────────────────────────
+
+test "Blockchain.isBridgeLockTx — recognizes vault address + OMNIBRIDGE prefix" {
+    const cfg_local = @import("chain_config.zig");
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1quser",
+        .to_address = cfg_local.BRIDGE_VAULT_ADDR_HEX,
+        .amount = 1_000_000,
+        .fee = 1,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .op_return = "OMNIBRIDGE:liberty_testnet:0xabcd",
+        .signature = "",
+        .hash = "",
+    };
+    try testing.expect(Blockchain.isBridgeLockTx(&tx));
+}
+
+test "Blockchain.isBridgeLockTx — rejects non-vault destination" {
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1quser",
+        .to_address = "ob1qsomeotheraddress0000000000000000000000",
+        .amount = 1_000_000,
+        .fee = 1,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .op_return = "OMNIBRIDGE:liberty_testnet:0xabcd",
+        .signature = "",
+        .hash = "",
+    };
+    try testing.expect(!Blockchain.isBridgeLockTx(&tx));
+}
+
+test "Blockchain.isBridgeLockTx — rejects vault dest without OMNIBRIDGE prefix" {
+    const cfg_local = @import("chain_config.zig");
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1quser",
+        .to_address = cfg_local.BRIDGE_VAULT_ADDR_HEX,
+        .amount = 1_000_000,
+        .fee = 1,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .op_return = "regular memo not bridge",
+        .signature = "",
+        .hash = "",
+    };
+    try testing.expect(!Blockchain.isBridgeLockTx(&tx));
+}
+
