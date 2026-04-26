@@ -227,6 +227,16 @@ pub const CLI = struct {
         // This is intentional and documented behavior.
         std.debug.assert(chain_mode == .mainnet or chain_mode == .testnet or chain_mode == .regtest);
 
+        // Cand pornesti miner pe mainnet fara --seed-host, conecteaza-te
+        // automat la VPS-ul live (omnibusblockchain.cc:9000). Asa, oricine
+        // descarca binar-ul si ruleaza `omnibus-node --mode miner` intra
+        // direct in reteaua principala fara configurare manuala.
+        if (mode.? == .miner and seed_host == null and chain_mode == .mainnet) {
+            seed_host = "omnibusblockchain.cc";
+            if (seed_port == null) seed_port = 9000;
+            std.debug.print("[CLI] No --seed-host provided; defaulting to omnibusblockchain.cc:9000 (mainnet bootstrap).\n", .{});
+        }
+
         return ParsedArgs{
             .node = node_launcher.NodeConfig{
                 .mode = mode.?,
