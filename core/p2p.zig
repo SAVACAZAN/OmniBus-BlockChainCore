@@ -2621,14 +2621,11 @@ pub const P2PNode = struct {
         const idx: usize = @intCast(height);
         if (idx >= bc.chain.items.len) return false;
         const local_hex = bc.chain.items[idx].hash;
-        if (local_hex.len < 64) return false;
-        for (0..32) |i| {
-            const hi = std.fmt.charToDigit(local_hex[i * 2], 16) catch return false;
-            const lo = std.fmt.charToDigit(local_hex[i * 2 + 1], 16) catch return false;
-            const local_byte: u8 = (@as(u8, hi) << 4) | @as(u8, lo);
-            if (local_byte != peer_block_hash[i]) return false;
-        }
-        return true;
+        if (local_hex.len < 32) return false;
+        // Wire format quirk (see sync.zig:55): merkle_root is 32 ASCII chars
+        // sliced from the front of the 64-char block hash hex, NOT raw bytes.
+        // So compare directly as bytes — both sides are ASCII hex chars.
+        return std.mem.eql(u8, local_hex[0..32], peer_block_hash[0..32]);
     }
 
     /// Aplica o lista de BlockHeader primite de la peer in blockchain-ul local.
@@ -2732,21 +2729,21 @@ pub const P2PNode = struct {
                 break;
             }
 
-            // Checkpoint enforcement on incoming blocks. If this height has
-            // a baked checkpoint, the incoming hash MUST match — otherwise
-            // we're being fed a fork that diverges at a known good point.
+            // Checkpoint enforcement on incoming blocks. The wire's
+            // merkle_root field is [32]u8 ASCII chars taken from the FIRST
+            // 32 chars of the 64-char block hash hex (legacy truncation in
+            // sync.zig:55). So we compare only the first 32 chars of the
+            // canonical checkpoint hash. Truncated comparison is still
+            // strong: 32 hex chars = 128 bits of collision resistance.
             if (chainConfigFromMagic(node.chain_magic)) |cfg| {
                 for (cfg.checkpoints) |cp| {
                     if (cp.height == hdr.height) {
-                        // Convert merkle_root bytes → lowercase hex and compare.
-                        var got_hex: [64]u8 = undefined;
-                        for (0..32) |i| {
-                            _ = std.fmt.bufPrint(got_hex[i * 2 .. (i + 1) * 2], "{x:0>2}", .{hdr.merkle_root[i]}) catch {};
-                        }
-                        if (!std.mem.eql(u8, &got_hex, &cp.hash)) {
+                        const incoming: []const u8 = hdr.merkle_root[0..32];
+                        const expected: []const u8 = cp.hash[0..32];
+                        if (!std.mem.eql(u8, incoming, expected)) {
                             std.debug.print(
                                 "[CHECKPOINT] Incoming block at h={d} hash mismatch — got {s}, expected {s} — REJECTED\n",
-                                .{ hdr.height, got_hex[0..16], cp.hash[0..16] },
+                                .{ hdr.height, incoming[0..16], expected[0..16] },
                             );
                             return applied;
                         }
