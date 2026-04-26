@@ -952,6 +952,13 @@ pub const P2PNode = struct {
     /// Pointer la WS server — set via attachWsServer(). Used to push
     /// `ibd_progress` events to UI clients in real time.
     ws_server:    ?*ws_mod.WsServer = null,
+    /// Consecutive broadcast failures across ALL peers. When this hits
+    /// FORK_RECOVERY_THRESHOLD, we suspect we mined on a fork that
+    /// peers are rejecting; trunchate the last 1-2 blocks locally and
+    /// trigger a re-sync. Resets to 0 on any successful gossip.
+    /// Atomic so the broadcast loop and main maintenance can both touch
+    /// it without lock dance.
+    consecutive_bcast_fails: std.atomic.Value(u32) = std.atomic.Value(u32).init(0),
     /// Gossip deduplication — recently seen TX hashes
     seen_tx_hashes: SeenHashes = SeenHashes.init(),
     /// Gossip deduplication — recently seen block hashes
@@ -1051,6 +1058,60 @@ pub const P2PNode = struct {
     /// Attach WS server so IBD events can be pushed to UI clients live.
     pub fn attachWsServer(self: *P2PNode, ws: *ws_mod.WsServer) void {
         self.ws_server = ws;
+    }
+
+    /// Threshold of consecutive failed broadcasts that triggers fork
+    /// recovery. 3 was chosen because a healthy network can lose one
+    /// block to a transient TCP glitch but not three in a row.
+    pub const FORK_RECOVERY_THRESHOLD: u32 = 3;
+    /// Maximum blocks to trunchate when recovering. Bitcoin's reorg-
+    /// limit is much larger; we cap at 2 because OmniBus blocks are
+    /// 1s apart and our network is small — losing more than 2 means
+    /// something deeper is wrong (manual intervention).
+    pub const FORK_RECOVERY_MAX_TRUNC: u64 = 2;
+
+    /// If we've failed to broadcast N blocks in a row, our chain is
+    /// almost certainly diverged from peers. Drop the last 1-2 blocks
+    /// locally and ask peers for sync. Returns true if recovery was
+    /// triggered. Idempotent — safe to call from maintenance every tick.
+    pub fn tryForkRecovery(self: *P2PNode) bool {
+        const fails = self.consecutive_bcast_fails.load(.acquire);
+        if (fails < FORK_RECOVERY_THRESHOLD) return false;
+        const bc = self.blockchain orelse return false;
+        bc.mutex.lock();
+        const local_h: u64 = bc.chain.items.len;
+        bc.mutex.unlock();
+        if (local_h <= 2) return false; // need at least genesis + a couple
+        const trunc_to: u64 = local_h - @min(FORK_RECOVERY_MAX_TRUNC, local_h - 1);
+        std.debug.print(
+            "[FORK-RECOVERY] {d} consecutive broadcast fails — trunchating local chain {d} -> {d} (drop {d}) and re-syncing\n",
+            .{ fails, local_h, trunc_to, local_h - trunc_to },
+        );
+        bc.mutex.lock();
+        // Drop blocks above trunc_to. Keep balances/nonces consistent
+        // by replaying — same path the reorg detector uses.
+        while (bc.chain.items.len > trunc_to) {
+            var b = bc.chain.pop() orelse break;
+            // Free heap-owned strings on the popped block (same pattern
+            // as truncateChainTo elsewhere).
+            self.allocator.free(b.hash);
+            if (b.miner_heap and b.miner_address.len > 0) {
+                self.allocator.free(b.miner_address);
+            }
+            b.transactions.deinit();
+        }
+        bc.recalculateFromHeight(@intCast(trunc_to)) catch |err| {
+            std.debug.print("[FORK-RECOVERY] recalculateFromHeight failed: {}\n", .{err});
+        };
+        bc.mutex.unlock();
+        // Reset counter so we don't spam recovery every tick.
+        self.consecutive_bcast_fails.store(0, .release);
+        // Request fresh sync from any live peer.
+        if (self.sync_mgr) |sm| sm.state.status = .downloading;
+        // Also clear is_syncing so IBD path can re-trigger; the next
+        // WELCOME from a peer with higher height will re-set it.
+        self.is_syncing.store(false, .release);
+        return true;
     }
 
     /// Enable Tor proxy for all outbound P2P connections
@@ -1301,6 +1362,8 @@ pub const P2PNode = struct {
         reward_sat: u64,
     ) void {
         self.chain_height = height;
+        var any_success: bool = false;
+        var any_fail: bool = false;
         self.peers_mutex.lock();
         defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
@@ -1308,12 +1371,22 @@ pub const P2PNode = struct {
             peer.announceBlock(height, hash_hex, self.local_id, reward_sat) catch |err| {
                 std.debug.print("[P2P] Broadcast block to {s} failed: {} — marking peer disconnected, scheduling reconnect\n",
                     .{ peer.node_id, err });
-                // Mark dead so we don't keep spamming send() on a closed
-                // socket every block. addReconnect schedules a retry.
                 peer.connected = false;
                 peer.close();
                 self.addReconnect(peer.host, peer.port, peer.node_id[0..@min(peer.node_id.len, 32)]);
+                any_fail = true;
+                continue;
             };
+            any_success = true;
+        }
+        // Track consecutive failures across calls. If a peer keeps closing
+        // mid-broadcast it usually means we're on a fork peers reject.
+        // Threshold + main loop will trigger fork-recovery (trunchate +
+        // re-sync). Resets only on a clean send.
+        if (any_success) {
+            self.consecutive_bcast_fails.store(0, .release);
+        } else if (any_fail) {
+            _ = self.consecutive_bcast_fails.fetchAdd(1, .acq_rel);
         }
         if (self.peers.items.len > 0) {
             std.debug.print("[P2P] Block #{d} anuntat la {d} peeri\n",

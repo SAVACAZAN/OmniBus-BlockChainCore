@@ -1054,6 +1054,11 @@ pub fn main() !void {
             // ConnectionClosed and nothing reconnected.
             p2p.processReconnects();
             p2p.evictExpiredBans();
+            // Fork recovery: if we've been broadcasting blocks that peers
+            // keep rejecting (TCP closed mid-send), we're on a fork. Drop
+            // the last 1-2 blocks and re-sync. Returns true if recovery
+            // was triggered (logs a [FORK-RECOVERY] line).
+            _ = p2p.tryForkRecovery();
 
             // ── Governance: log active proposals ────────────────────────
             if (governance.proposal_count > 0) {
