@@ -611,6 +611,11 @@ pub fn main() !void {
         std.debug.print("[WS] Server start failed on port {d}: {} — continuam fara WS\n", .{ ws_port, err });
     };
     p2p.attachWsServer(&ws_srv);
+    // Tell P2P which wallet address mines on this node, so block
+    // announcements carry the WALLET address as `miner_id` (which is
+    // what peers validate against the slot leader). Without this, peers
+    // saw `local_id` ("vps-testnet" etc.) and rejected every block.
+    p2p.attachMinerAddress(wallet.address);
 
     // RPC bind + auth — read from env vars OMNIBUS_RPC_BIND / OMNIBUS_RPC_TOKEN.
     // Default bind = "127.0.0.1" so a fresh node is NOT exposed to the public

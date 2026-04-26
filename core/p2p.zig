@@ -953,6 +953,15 @@ pub const P2PNode = struct {
     /// Pointer la WS server — set via attachWsServer(). Used to push
     /// `ibd_progress` events to UI clients in real time.
     ws_server:    ?*ws_mod.WsServer = null,
+    /// Address of the wallet that mines on this node (savacazan, dev, etc.).
+    /// Used as `miner_id` in MsgBlockAnnounce — peers validate that the
+    /// claimed_miner matches the slot leader. Without this, broadcasts
+    /// reported `local_id` (e.g. "vps-testnet"), which is the NODE name,
+    /// not the WALLET address — slot-leader validation rejected every
+    /// honest block.
+    /// Set via attachWallet() called from main.zig after wallet derivation.
+    /// Falls back to local_id if not set (legacy behavior, broken validation).
+    miner_address: []const u8 = "",
     /// Consecutive broadcast failures across ALL peers. When this hits
     /// FORK_RECOVERY_THRESHOLD, we suspect we mined on a fork that
     /// peers are rejecting; trunchate the last 1-2 blocks locally and
@@ -1059,6 +1068,13 @@ pub const P2PNode = struct {
     /// Attach WS server so IBD events can be pushed to UI clients live.
     pub fn attachWsServer(self: *P2PNode, ws: *ws_mod.WsServer) void {
         self.ws_server = ws;
+    }
+
+    /// Tell the P2P layer which wallet address mines on this node.
+    /// MUST be called before mining starts; peers use this address to
+    /// validate that claimed_miner == slot_leader.
+    pub fn attachMinerAddress(self: *P2PNode, addr: []const u8) void {
+        self.miner_address = addr;
     }
 
     /// Threshold of consecutive failed broadcasts that triggers fork
@@ -1369,7 +1385,10 @@ pub const P2PNode = struct {
         defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue; // skip already-dead peers
-            peer.announceBlock(height, hash_hex, self.local_id, reward_sat) catch |err| {
+            // Use miner WALLET address as the claimed_miner field — peers
+            // validate against the slot leader (BUG fix 2026-04-26).
+            const claimed = if (self.miner_address.len > 0) self.miner_address else self.local_id;
+            peer.announceBlock(height, hash_hex, claimed, reward_sat) catch |err| {
                 std.debug.print("[P2P] Broadcast block to {s} failed: {} — marking peer disconnected, scheduling reconnect\n",
                     .{ peer.node_id, err });
                 peer.connected = false;
@@ -1454,13 +1473,17 @@ pub const P2PNode = struct {
         self.gossip_block_count += 1;
         self.chain_height = height;
 
-        // Use MsgBlockAnnounce as gossip payload
+        // Use MsgBlockAnnounce as gossip payload. miner_id field carries
+        // the WALLET address that mined the block (peers validate against
+        // slot leader). Falls back to local_id only if attachMinerAddress
+        // wasn't called.
+        const claimed = if (self.miner_address.len > 0) self.miner_address else self.local_id;
         var bh: [32]u8 = @splat(0);
         var mi: [32]u8 = @splat(0);
         const hlen = @min(hash_hex.len, 32);
-        const mlen = @min(self.local_id.len, 32);
+        const mlen = @min(claimed.len, 32);
         @memcpy(bh[0..hlen], hash_hex[0..hlen]);
-        @memcpy(mi[0..mlen], self.local_id[0..mlen]);
+        @memcpy(mi[0..mlen], claimed[0..mlen]);
 
         const ann = MsgBlockAnnounce{
             .block_height = height,
