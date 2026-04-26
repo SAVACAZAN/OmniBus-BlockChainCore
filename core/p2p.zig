@@ -2369,6 +2369,13 @@ pub const P2PNode = struct {
                     if (ann.block_height > node.chain_height) {
                         node.chain_height = ann.block_height;
                     }
+                    // Update peer.height from the announce — otherwise
+                    // requestSync's `peer.height <= from` guard rejects
+                    // sync requests because peer.height stays at 0 (only
+                    // PING/PONG ever updated it before).
+                    if (ann.block_height > peer.height) {
+                        peer.height = ann.block_height;
+                    }
                     // Slot-leader validation on live block announcements.
                     // Only a block produced by the deterministic slot leader
                     // is accepted as a chain extension hint. Anything else
@@ -2573,6 +2580,11 @@ pub const P2PNode = struct {
                     // Update chain height if peer is ahead
                     if (ann.block_height > node.chain_height) {
                         node.chain_height = ann.block_height;
+                    }
+                    // Same fix as .block handler: update peer.height so
+                    // requestSync's eligibility check passes.
+                    if (ann.block_height > peer.height) {
+                        peer.height = ann.block_height;
                     }
 
                     // If we're behind, request sync. chain.items.len is
