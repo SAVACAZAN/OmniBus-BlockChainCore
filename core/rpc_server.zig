@@ -1009,8 +1009,8 @@ fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const chain_label: []const u8 = switch (ctx.chain_id) {
         1    => "omnibus-mainnet",
         2    => "omnibus-testnet",
-        3    => "omnibus-regtest",
-        4    => "omnibus-signet",
+        3    => "omnibus-devnet",
+        4    => "omnibus-regtest",
         else => "omnibus-unknown",
     };
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"{s}\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, chain_label, h, r, diff, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
@@ -2009,8 +2009,8 @@ fn handleBlockchainInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const chain_label: []const u8 = switch (ctx.chain_id) {
         1 => "omnibus-mainnet",
         2 => "omnibus-testnet",
-        3 => "omnibus-regtest",
-        4 => "omnibus-signet",
+        3 => "omnibus-devnet",
+        4 => "omnibus-regtest",
         else => "omnibus-unknown",
     };
 
@@ -2972,8 +2972,8 @@ fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const chain_label: []const u8 = switch (ctx.chain_id) {
         1 => "omnibus-mainnet",
         2 => "omnibus-testnet",
-        3 => "omnibus-regtest",
-        4 => "omnibus-signet",
+        3 => "omnibus-devnet",
+        4 => "omnibus-regtest",
         else => "omnibus-unknown",
     };
     return std.fmt.allocPrint(alloc,
