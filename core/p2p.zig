@@ -917,8 +917,34 @@ pub const P2PNode = struct {
         }
         self.peers_mutex.unlock();
 
-        const addr = std.net.Address.parseIp4(host, port) catch |err| {
-            return err;
+        // Try parseIp4 first (literal "1.2.3.4"); fall back to DNS lookup so
+        // we can also accept hostnames like "omnibusblockchain.cc". Without
+        // this, --seed-host omnibusblockchain.cc fails with InvalidCharacter
+        // and the node sits in single-miner mode forever.
+        const addr = blk: {
+            if (std.net.Address.parseIp4(host, port)) |a| {
+                break :blk a;
+            } else |_| {
+                // Hostname: resolve via getAddressList. Pick first IPv4.
+                var arena = std.heap.ArenaAllocator.init(self.allocator);
+                defer arena.deinit();
+                const list = std.net.getAddressList(arena.allocator(), host, port) catch |dns_err| {
+                    std.debug.print("[P2P] DNS resolve failed for '{s}': {}\n", .{ host, dns_err });
+                    return dns_err;
+                };
+                defer list.deinit();
+                var picked: ?std.net.Address = null;
+                for (list.addrs) |a| {
+                    if (a.any.family == std.posix.AF.INET) { picked = a; break; }
+                }
+                if (picked == null and list.addrs.len > 0) picked = list.addrs[0];
+                if (picked) |a| {
+                    std.debug.print("[P2P] Resolved {s} -> {f}\n", .{ host, a });
+                    break :blk a;
+                }
+                std.debug.print("[P2P] No addresses returned for '{s}'\n", .{host});
+                return error.NoAddressForHost;
+            }
         };
 
         // ── Hardening: subnet diversity (anti-eclipse) ───────────────────
