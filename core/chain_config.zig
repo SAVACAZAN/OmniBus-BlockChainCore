@@ -30,6 +30,26 @@ pub const Checkpoint = struct {
     timestamp: i64,
 };
 
+/// Bridge Vault — smart contract address derived deterministically from
+/// `keccak256("OMNIBUS_BRIDGE_VAULT_V1")[12..]` (last 20 bytes).
+/// Since this is purely a function of the literal string, ANY full node
+/// can recompute and verify the address — no trust needed.
+///
+/// The contract holds locked OMNI balances waiting to be relayed to
+/// partner chains (Liberty testnet, Base Sepolia, etc). It has NO
+/// private key — funds move only via the contract's bridge logic
+/// gated by relayer signatures (multi-sig threshold inside the contract).
+///
+/// To rotate (V2, etc), bump the version suffix and re-derive — old
+/// vault remains as historical state until drain-and-migrate.
+pub const BRIDGE_VAULT_ADDR_HEX = "0xd58169164e9a3b9390dc3e25817d6a385718e409";
+
+/// Bridge wallet — separate adresa derivată tot determinist, folosită
+/// pentru tranzacțiile non-EVM (dacă cineva trimite OMNI direct la o
+/// adresă wallet, nu printr-un contract call). Simbolic — în practica
+/// curentă V1 toate fondurile merg prin contract.
+pub const BRIDGE_WALLET_ADDR_HEX = "0x835947f3731ecd6ca7f14c3c17f9f0fc231987c9";
+
 /// Network magic bytes (ca Bitcoin: 0xF9BEB4D9 mainnet, 0xFABFB5DA testnet)
 /// Primii 4 bytes din fiecare mesaj P2P — identifica reteaua
 pub const NetworkMagic = struct {
