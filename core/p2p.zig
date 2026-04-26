@@ -2012,6 +2012,10 @@ pub const P2PNode = struct {
     fn dispatchMessage(node: *P2PNode, peer: *PeerConnection, msg_type: u8, payload: []const u8) void {
         const mt: MessageType = @enumFromInt(msg_type);
         const pid = peer.node_id[0..@min(peer.node_id.len, 16)];
+        // DEBUG: log every incoming message so we can trace exactly what
+        // hits each side. type=enum_int, size=payload bytes, peer=sender id.
+        std.debug.print("[DEBUG-P2P-RECV] type={d} ({s}) size={d} from={s} peer.height={d} my.height={d}\n",
+            .{ msg_type, @tagName(mt), payload.len, pid, peer.height, node.chain_height });
         switch (mt) {
             // ── HELLO ("WE ARE HERE!!") — first message a dialer sends after dial.
             // Acceptor parses node_id + chain_magic + listen_port, validates, replies WELCOME.
@@ -2164,24 +2168,40 @@ pub const P2PNode = struct {
                 }
             },
             .sync_request => {
+                std.debug.print("[DEBUG-SYNC-REQ] entered handler, payload.len={d}\n", .{payload.len});
                 // Peer cere blocuri de la noi — construim raspuns cu headerele noastre
-                if (payload.len < 10) return;
-                const req = sync_mod.MsgGetHeaders.decode(payload) orelse return;
+                if (payload.len < 10) {
+                    std.debug.print("[DEBUG-SYNC-REQ] payload too short ({d}<10), abort\n", .{payload.len});
+                    return;
+                }
+                const req = sync_mod.MsgGetHeaders.decode(payload) orelse {
+                    std.debug.print("[DEBUG-SYNC-REQ] decode failed\n", .{});
+                    return;
+                };
                 std.debug.print("[P2P] SYNC_REQUEST de la {s} from={d} max={d}\n",
                     .{ pid, req.from_height, req.max_count });
 
                 if (node.blockchain) |bc| {
+                    std.debug.print("[DEBUG-SYNC-REQ] bc attached, chain_len={d}\n", .{bc.chain.items.len});
                     if (node.sync_mgr) |sm| {
+                        std.debug.print("[DEBUG-SYNC-REQ] sm attached, calling buildHeadersResponse\n", .{});
                         const resp_buf = sm.buildHeadersResponse(bc, req) catch |err| {
-                            std.debug.print("[P2P] buildHeadersResponse error: {}\n", .{err});
+                            std.debug.print("[P2P] buildHeadersResponse ERROR: {}\n", .{err});
                             return;
                         };
                         defer node.allocator.free(resp_buf);
-                        peer.send(@intFromEnum(MessageType.sync_response), resp_buf) catch {};
+                        std.debug.print("[DEBUG-SYNC-REQ] buildHeadersResponse OK, resp_buf.len={d}\n", .{resp_buf.len});
+                        peer.send(@intFromEnum(MessageType.sync_response), resp_buf) catch |err| {
+                            std.debug.print("[P2P] SYNC_RESPONSE send ERROR: {}\n", .{err});
+                            return;
+                        };
                         std.debug.print("[P2P] SYNC_RESPONSE trimis la {s} ({d} bytes)\n",
                             .{ pid, resp_buf.len });
+                    } else {
+                        std.debug.print("[DEBUG-SYNC-REQ] sync_mgr is null!\n", .{});
                     }
                 } else {
+                    std.debug.print("[DEBUG-SYNC-REQ] blockchain is null, sending empty response\n", .{});
                     // Nu avem blockchain atasat — raspundem cu raspuns gol
                     peer.send(@intFromEnum(MessageType.sync_response), &.{}) catch {};
                 }
