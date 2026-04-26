@@ -2146,7 +2146,25 @@ pub const P2PNode = struct {
                 if (MsgPing.decode(payload)) |ping| {
                     peer.height = ping.height;
                     std.debug.print("[P2P] PING de la {s} height={d}\n", .{ pid, ping.height });
-                    peer.send(@intFromEnum(MessageType.pong), payload) catch {};
+                    // FIX (commit after 71eba20): build a fresh PONG with OUR
+                    // chain_height — was echoing back the ping payload (peer's
+                    // height=0 at startup), which made the dialer think the
+                    // seed had height=0 too, blocking requestSync (which skips
+                    // peers with height <= from_height). Live observed: PC
+                    // logged "[P2P] PONG de la vps-testnet height=0" while
+                    // VPS chain was actually at 43077.
+                    var pong_id_buf: [32]u8 = @splat(0);
+                    const id_copy = @min(node.local_id.len, 32);
+                    @memcpy(pong_id_buf[0..id_copy], node.local_id[0..id_copy]);
+                    const pong_msg = MsgPing{
+                        .node_id = pong_id_buf,
+                        .height  = node.chain_height,
+                        .version = P2P_VERSION,
+                    };
+                    if (pong_msg.encode(node.allocator)) |pong_payload| {
+                        defer node.allocator.free(pong_payload);
+                        peer.send(@intFromEnum(MessageType.pong), pong_payload) catch {};
+                    } else |_| {}
                     if (ping.height > node.chain_height) node.chain_height = ping.height;
                     // Daca peer-ul e mai avansat, pornim sync
                     if (node.sync_mgr) |sm| {
