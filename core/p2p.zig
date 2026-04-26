@@ -1954,10 +1954,14 @@ pub const P2PNode = struct {
 
         std.debug.print("[P2P] Handler pornit pentru {s}\n", .{peer_id[0..@min(peer_id.len, 24)]});
 
-        // Symmetric peer registration (matches outbound `connectToPeer` line ~980).
-        // Without this, getpeers returns [] on the seed even though connections exist.
-        // Track index so we can swap-remove on disconnect.
+        // CRITICAL FIX (commit after 09a4a54): the registered peer in node.peers
+        // is a COPY of `peer` local var (Zig append makes memcpy). Any subsequent
+        // mutation on `peer` (e.g. HELLO updates peer.node_id) won't reflect in
+        // node.peers[idx] — leading to RPC getpeers showing 'inbound-unknown'
+        // forever. Solution: after append, use a *direct pointer* to the slot
+        // for all subsequent recv/dispatch calls.
         var peer_index: ?usize = null;
+        var peer_ptr: ?*PeerConnection = null;
         node.peers_mutex.lock();
         if (node.peers.items.len < MAX_PEERS) {
             node.peers.append(peer) catch |err| {
@@ -1966,6 +1970,7 @@ pub const P2PNode = struct {
                 return;
             };
             peer_index = node.peers.items.len - 1;
+            peer_ptr = &node.peers.items[peer_index.?];
             std.debug.print("[P2P] Inbound peer registered: {s} (peers={d})\n",
                 .{ peer_id[0..@min(peer_id.len, 24)], node.peers.items.len });
         }
@@ -1982,12 +1987,18 @@ pub const P2PNode = struct {
             }
         }
 
+        // Use the pointer from node.peers[idx] from now on, NOT the local `peer`
+        // variable. dispatchMessage mutates peer.node_id/host/port from HELLO —
+        // those mutations MUST land in node.peers so RPC getpeers + gossip see
+        // the real identity (not "inbound-unknown").
+        const active_peer: *PeerConnection = peer_ptr orelse &peer;
+
         // Trimite PING imediat dupa accept
-        peer.sendPing(node.local_id, node.chain_height) catch {};
+        active_peer.sendPing(node.local_id, node.chain_height) catch {};
 
         // Loop citire mesaje
-        while (peer.connected) {
-            const msg = peer.recv() catch |err| {
+        while (active_peer.connected) {
+            const msg = active_peer.recv() catch |err| {
                 if (err != error.ConnectionClosed) {
                     std.debug.print("[P2P] Recv error ({s}): {}\n", .{ peer_id[0..@min(peer_id.len, 16)], err });
                 }
@@ -1995,7 +2006,7 @@ pub const P2PNode = struct {
             };
             defer node.allocator.free(msg.payload);
 
-            dispatchMessage(node, &peer, msg.msg_type, msg.payload);
+            dispatchMessage(node, active_peer, msg.msg_type, msg.payload);
         }
 
         std.debug.print("[P2P] Peer {s} deconectat\n", .{peer_id[0..@min(peer_id.len, 24)]});
