@@ -73,18 +73,26 @@ pub const ImportantPair = struct {
     coinbase: []const u8,
 };
 
-/// 7 canonical pairs × 3 exchanges. LCX falls back through USD → USDC → USDT → EUR.
-/// "USD" comes first because LCX has true LCX/USD listing (and possibly more);
-/// USDC/USDT are next as US-stable substitutes for arbitrage; EUR is included
-/// for display but excluded from arbitrage matching.
+/// 7 canonical pairs × 3 exchanges. Per-exchange listings as confirmed by
+/// the user (and what the live REST/WS feed actually advertises):
+///
+///   LCX:      <SYM>/USDC and <SYM>/EUR (no direct USD pair)
+///   Kraken:   <SYM>/USD  (and <SYM>/EUR for some)
+///   Coinbase: <SYM>-USD
+///
+/// LCX candidates are listed in the order they should be tried; the parser
+/// keeps the first match. USDC is preferred over EUR for arbitrage (USDC ≈ USD
+/// via canonicalPair). EUR entries are still parsed and stored so the
+/// AllPricesGrid can display them, but the arbitrage matcher leaves their
+/// canonical label as-is so they don't get matched against USD entries.
 pub const IMPORTANT_PAIRS = [_]ImportantPair{
-    .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USD",  "BTC/USDC",  "BTC/USDT",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
-    .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USD",  "LCX/USDC",  "LCX/USDT",  "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
-    .{ .label = "ETH/USD",  .lcx_candidates = &[_][]const u8{ "ETH/USD",  "ETH/USDC",  "ETH/USDT",  "ETH/EUR"  }, .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
-    .{ .label = "SOL/USD",  .lcx_candidates = &[_][]const u8{ "SOL/USD",  "SOL/USDC",  "SOL/USDT",  "SOL/EUR"  }, .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
-    .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USD",  "ADA/USDC",  "ADA/USDT",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
-    .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USD",  "SUI/USDC",  "SUI/USDT",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
-    .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USD", "EGLD/USDC", "EGLD/USDT", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
+    .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USDC",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
+    .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USDC",  "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
+    .{ .label = "ETH/USD",  .lcx_candidates = &[_][]const u8{ "ETH/USDC",  "ETH/EUR"  }, .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
+    .{ .label = "SOL/USD",  .lcx_candidates = &[_][]const u8{ "SOL/USDC",  "SOL/EUR"  }, .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
+    .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USDC",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
+    .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USDC",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
+    .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USDC", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
