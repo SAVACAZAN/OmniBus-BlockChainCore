@@ -23,6 +23,7 @@ const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const evm_executor    = @import("evm_executor.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
+const chain_config    = @import("chain_config.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -449,6 +450,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return handleOmnibusGetOraclePolicy(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return handleOmnibusTotalMined(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_bridge_limits"))   return handleOmnibusBridgeLimits(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
@@ -2725,6 +2727,37 @@ fn handleOmnibusTotalMined(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalMinedSAT\":{d},\"totalMinedOMNI\":\"{d}.{d:0>9}\",\"blockHeight\":{d}}}}}",
         .{ id, total_sat, omni_int, omni_frac, if (tip == 0) 0 else tip - 1 },
+    );
+}
+
+/// omnibus_bridge_limits — public-facing bridge configuration so any wallet
+/// or relayer can verify the active per-tx and daily caps, the threshold
+/// sig requirement, and the challenge window length. Read-only; numbers
+/// come from chain_config compile-time constants.
+fn handleOmnibusBridgeLimits(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"maxPerTxSAT\":{d}," ++
+            "\"maxDailySAT\":{d}," ++
+            "\"dailyWindowBlocks\":{d}," ++
+            "\"requiredSigs\":{d}," ++
+            "\"maxRelayers\":{d}," ++
+            "\"challengeWindowBlocks\":{d}," ++
+            "\"autoPauseFractionBps\":{d}," ++
+            "\"vaultAddrHex\":\"{s}\"" ++
+        "}}}}",
+        .{
+            id,
+            chain_config.BRIDGE_MAX_PER_TX_SAT,
+            chain_config.BRIDGE_MAX_DAILY_SAT,
+            chain_config.BRIDGE_DAILY_WINDOW_BLOCKS,
+            chain_config.BRIDGE_REQUIRED_SIGS,
+            chain_config.BRIDGE_MAX_RELAYERS,
+            chain_config.BRIDGE_CHALLENGE_WINDOW_BLOCKS,
+            chain_config.BRIDGE_AUTO_PAUSE_BLOCK_FRACTION_BPS,
+            chain_config.BRIDGE_VAULT_ADDR_HEX,
+        },
     );
 }
 

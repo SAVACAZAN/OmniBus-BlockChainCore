@@ -50,6 +50,54 @@ pub const BRIDGE_VAULT_ADDR_HEX = "0xd58169164e9a3b9390dc3e25817d6a385718e409";
 /// curentă V1 toate fondurile merg prin contract.
 pub const BRIDGE_WALLET_ADDR_HEX = "0x835947f3731ecd6ca7f14c3c17f9f0fc231987c9";
 
+// ─── Native Bridge V1 — Defense-in-Depth Limits ─────────────────────────────
+//
+// Lessons from 2022-2026 bridge hacks (Ronin $625M, Wormhole $326M, Nomad
+// $190M, Kelp DAO $292M Apr 2026): >90% of losses came from key management
+// and missing source validation. We mitigate at the consensus layer:
+//
+//   1. Per-tx hard cap          → blast radius of any single failure
+//   2. Per-day rolling cap      → catastrophic-drain protection
+//   3. Threshold multi-sig      → no single relayer key compromise
+//   4. Challenge window         → optimistic verification, fraud-proof time
+//   5. Non-upgradeable          → no Nomad-style "set merkle root to 0"
+//
+// All numbers are CONSERVATIVE start values. Increase only after audit + TVL.
+
+/// Maximum OMNI that can be locked in a single bridge TX (in SAT).
+/// Default: 100 OMNI = 100_000_000_000 SAT. Conservative — bumps require
+/// chain upgrade vote. Lecția Ronin: blast radius matters.
+pub const BRIDGE_MAX_PER_TX_SAT: u64 = 100_000_000_000;
+
+/// Rolling 24h limit across ALL bridge locks combined (in SAT).
+/// Default: 1000 OMNI = 1_000_000_000_000 SAT. Anything over auto-rejects
+/// at consensus level (block validation), cannot be bypassed without fork.
+pub const BRIDGE_MAX_DAILY_SAT: u64 = 1_000_000_000_000;
+
+/// Window in blocks for the rolling-day limit. With 1s blocks: 86400.
+pub const BRIDGE_DAILY_WINDOW_BLOCKS: u64 = 86_400;
+
+/// Minimum signatures required to unlock from the bridge vault.
+/// Default: 3 of N. Lecția Kelp DAO (1/1 DVN forjat = $292M): never trust
+/// a single relayer. Lecția Ronin: 5/9 with all keys on same infra was
+/// also compromised — distribuiți cheile pe HW separat fizic.
+pub const BRIDGE_REQUIRED_SIGS: u8 = 3;
+
+/// Maximum number of registered relayers. Even with all N compromised,
+/// the threshold above is the security floor.
+pub const BRIDGE_MAX_RELAYERS: u8 = 9;
+
+/// After threshold sigs are collected for an unlock, the request enters
+/// a challenge window before funds move. Anyone can submit a fraud-proof
+/// during this period (e.g., showing the destination chain mint event
+/// never happened, or amount mismatch). Default: 6h = 21600 blocks @ 1s.
+pub const BRIDGE_CHALLENGE_WINDOW_BLOCKS: u64 = 21_600;
+
+/// Auto-pause threshold: if locked volume in a single block exceeds this
+/// fraction of the daily limit, bridge halts pending manual review.
+/// 0.30 = 30%. A single block draining 30% of daily quota = anomaly.
+pub const BRIDGE_AUTO_PAUSE_BLOCK_FRACTION_BPS: u16 = 3_000; // 30.00%
+
 /// Network magic bytes (ca Bitcoin: 0xF9BEB4D9 mainnet, 0xFABFB5DA testnet)
 /// Primii 4 bytes din fiecare mesaj P2P — identifica reteaua
 pub const NetworkMagic = struct {
