@@ -193,7 +193,7 @@ pub const ChainConfig = struct {
             .halving_interval = 126_144_000,
             .retarget_interval = 2016,
             .sub_blocks_per_block = 10,
-            .checkpoints = &[_]Checkpoint{},
+            .checkpoints = &TESTNET_CHECKPOINTS,
         };
     }
 
@@ -291,10 +291,20 @@ pub const ChainConfig = struct {
     }
 };
 
-/// Mainnet checkpoints (verified block hashes for fast sync)
-/// Nodurile noi pot sari PoW validation pentru blocuri sub ultimul checkpoint
+/// Mainnet checkpoints (verified block hashes for fast sync + reorg protection).
+/// A peer's chain that diverges below the highest checkpoint we know is
+/// rejected outright — no amount of cumulative work can rewrite history
+/// past these points. Founder signs these in each release.
 const MAINNET_CHECKPOINTS = [_]Checkpoint{
     .{ .height = 0, .hash = "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80".*, .timestamp = 1_743_000_000 },
+};
+
+/// Testnet checkpoints — kept short, refreshed each release. Last verified
+/// height is the highest block both VPS seeds + founder PC observed at
+/// release time. Mostly to anchor the chain before the reorg logic ships.
+const TESTNET_CHECKPOINTS = [_]Checkpoint{
+    .{ .height = 0,     .hash = "0000000000000000000000000000000000000000000000000000000000000001".*, .timestamp = 1_743_000_000 },
+    .{ .height = 46000, .hash = "015132990a0bd128f4063330f30fb99f6a56ebf723923067e776a9b6d64a09fb".*, .timestamp = 1_745_700_000 },
 };
 
 /// Gas estimation for transaction fees

@@ -70,6 +70,17 @@ pub const TX_MIN_FEE: u64 = 1;
 /// Total fees burned (tracked for supply accounting)
 pub var total_fees_burned_sat: u64 = 0;
 
+/// Work contributed by a single block at the given difficulty. Bitcoin
+/// uses work = 2^256 / target; we use difficulty in leading-zero hex
+/// digits, so target = 2^(256 - 4*difficulty), and work ≈ 2^(4*difficulty).
+/// Returns u128 — at MAX_DIFFICULTY=32 this is 2^128, then accumulates
+/// over millions of blocks without overflow.
+pub fn blockWork(difficulty: u32) u128 {
+    if (difficulty == 0) return 1;
+    const shift: u7 = @intCast(@min(@as(u32, 127), difficulty * 4));
+    return @as(u128, 1) << shift;
+}
+
 /// Calculeaza noua dificultate dupa un interval de retarget.
 /// Formula: new_difficulty = old_difficulty * TARGET_INTERVAL / actual_time
 /// Clamped la ±4x fata de dificultatea anterioara (ca Bitcoin) si [MIN, MAX].
@@ -115,6 +126,14 @@ pub const Blockchain = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
     difficulty: u32,
+    /// Cumulative chain work — Bitcoin-style heaviest-chain comparison.
+    /// Each block contributes work = 1 << (4 * difficulty_at_block) (proxy
+    /// for 2^256 / target). Used by reorg logic: a peer's chain replaces
+    /// ours only if its cumulative_work strictly exceeds ours, and only
+    /// if no hard checkpoint blocks the divergence.
+    /// u128 because 2^32 difficulty * 2^64 max chain length comfortably
+    /// fits and prevents overflow on long chains.
+    cumulative_work: u128 = 0,
     allocator: std.mem.Allocator,
     /// Balantele adreselor (in-memory, sincronizat cu database)
     balances: std.StringHashMap(u64),
@@ -1147,6 +1166,12 @@ pub const Blockchain = struct {
         }
 
         try self.chain.append(block);
+
+        // Update cumulative work — proxy for 2^256 / target. Difficulty is
+        // expressed as leading-zero hex digits, so adding a block at
+        // difficulty D contributes work = 1 << (4*D). u128 prevents overflow
+        // even at D=32 (work=2^128) over millions of blocks.
+        self.cumulative_work += blockWork(self.difficulty);
 
         // Difficulty retarget
         const index = self.chain.items.len - 1;

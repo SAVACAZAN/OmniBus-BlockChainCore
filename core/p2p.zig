@@ -43,6 +43,7 @@ const block_mod      = @import("block.zig");
 const sync_mod       = @import("sync.zig");
 const light_client_mod = @import("light_client.zig");
 const ws_mod         = @import("ws_server.zig");
+const chain_config_mod = @import("chain_config.zig");
 const oracle_policy_mod = @import("oracle_policy.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const oracle_types_mod = @import("oracle_types.zig");
@@ -2572,6 +2573,19 @@ pub const P2PNode = struct {
     /// (observed live: blockchain.zig:334 in mineBlockForMiner after reorg).
     /// recalculateFromHeight clears + replays state from genesis, leaving
     /// only valid keys.
+    /// Pick the ChainConfig that matches a 4-byte network magic, so we can
+    /// look up the right checkpoint list during reorg. Returns null if the
+    /// magic doesn't match any known chain (defensive — caller skips
+    /// checkpoint enforcement and relies on work alone).
+    fn chainConfigFromMagic(magic: [4]u8) ?chain_config_mod.ChainConfig {
+        const ChainConfig = chain_config_mod.ChainConfig;
+        const M = chain_config_mod.NetworkMagic;
+        if (std.mem.eql(u8, &magic, &M.MAINNET.bytes)) return ChainConfig.mainnet();
+        if (std.mem.eql(u8, &magic, &M.TESTNET.bytes)) return ChainConfig.testnet();
+        if (std.mem.eql(u8, &magic, &M.REGTEST.bytes)) return ChainConfig.regtest();
+        return null;
+    }
+
     fn truncateChainTo(bc: *Blockchain, allocator: std.mem.Allocator, keep_height: u64) void {
         const target: usize = @intCast(keep_height);
         if (target >= bc.chain.items.len) return;
@@ -2656,10 +2670,45 @@ pub const P2PNode = struct {
                         );
                         return 0;
                     }
+
+                    // Hard checkpoint enforcement — Bitcoin-style "assumevalid"
+                    // anchored history. If peer chain diverges below the highest
+                    // known checkpoint, reject regardless of work. This is the
+                    // anti-deep-reorg / anti-history-rewrite guarantee.
+                    if (chainConfigFromMagic(node.chain_magic)) |cfg| {
+                        for (cfg.checkpoints) |cp| {
+                            if (first.height <= cp.height) {
+                                std.debug.print(
+                                    "[CHECKPOINT] Peer chain diverges at h={d} but checkpoint at h={d} " ++
+                                    "is in the way. Rejecting reorg — peer is on a forked history.\n",
+                                    .{ first.height, cp.height },
+                                );
+                                return 0;
+                            }
+                        }
+                    }
+
+                    // Heaviest-chain rule (proxy for cumulative_work when
+                    // difficulty is roughly constant on the divergent segment):
+                    // peer's chain replaces ours only if it ends strictly
+                    // higher than ours after applying these headers. Since
+                    // headers come in batches, we look at the LAST header
+                    // height + 1 vs current local_len. If peer batch tip <=
+                    // local tip, our chain has more work — reject.
+                    const peer_tip = headers[headers.len - 1].height + 1;
+                    if (peer_tip <= local_len_initial) {
+                        std.debug.print(
+                            "[REORG] Peer chain not heavier (peer tip={d} <= local tip={d}). " ++
+                            "Keeping our chain.\n",
+                            .{ peer_tip, local_len_initial },
+                        );
+                        return 0;
+                    }
+
                     std.debug.print(
-                        "[REORG] Chain divergence detected at height {d} ({d} blocks deep). " ++
-                        "Truncating local chain to adopt peer chain.\n",
-                        .{ first.height, reorg_depth },
+                        "[REORG] Chain divergence at height {d} ({d} blocks deep), peer tip={d} > local={d} — " ++
+                        "adopting peer chain (heavier).\n",
+                        .{ first.height, reorg_depth, peer_tip, local_len_initial },
                     );
                     truncateChainTo(bc, node.allocator, first.height);
                 }
@@ -2681,6 +2730,28 @@ pub const P2PNode = struct {
                 std.debug.print("[SYNC] Gap in blocuri: avem {d}, primit {d} — abandon\n",
                     .{ local_len, hdr.height });
                 break;
+            }
+
+            // Checkpoint enforcement on incoming blocks. If this height has
+            // a baked checkpoint, the incoming hash MUST match — otherwise
+            // we're being fed a fork that diverges at a known good point.
+            if (chainConfigFromMagic(node.chain_magic)) |cfg| {
+                for (cfg.checkpoints) |cp| {
+                    if (cp.height == hdr.height) {
+                        // Convert merkle_root bytes → lowercase hex and compare.
+                        var got_hex: [64]u8 = undefined;
+                        for (0..32) |i| {
+                            _ = std.fmt.bufPrint(got_hex[i * 2 .. (i + 1) * 2], "{x:0>2}", .{hdr.merkle_root[i]}) catch {};
+                        }
+                        if (!std.mem.eql(u8, &got_hex, &cp.hash)) {
+                            std.debug.print(
+                                "[CHECKPOINT] Incoming block at h={d} hash mismatch — got {s}, expected {s} — REJECTED\n",
+                                .{ hdr.height, got_hex[0..16], cp.hash[0..16] },
+                            );
+                            return applied;
+                        }
+                    }
+                }
             }
 
             // Reconstituim previous_hash din prev_hash[32] ca hex string
