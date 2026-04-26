@@ -521,6 +521,9 @@ pub fn main() !void {
     // RLIMIT_STACK is tight or other locals push the frame past the guard page.
     const p2p_heap = try allocator.create(P2PNode);
     p2p_heap.* = P2PNode.init(config.node_id, config.host, config.port, allocator);
+    // Tell P2P which chain we are on so HELLO/WELCOME embed the correct magic
+    // and cross-chain peers (testnet vs mainnet) get rejected at handshake.
+    p2p_heap.setChainMagic(chain_config_mod.NetworkMagic.forChain(net_cfg.chain_id).bytes);
     defer {
         p2p_heap.deinit();
         allocator.destroy(p2p_heap);

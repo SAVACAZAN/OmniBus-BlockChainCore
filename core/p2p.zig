@@ -165,6 +165,122 @@ pub const MsgPing = struct {
     }
 };
 
+// ─── 3-way handshake messages — "WE ARE HERE / WE WANT TO WORK / WE ARE STABLE" ──
+//
+// Wire format MsgHello (dialer → acceptor on connect):
+//   [0..32]  node_id (padded)
+//   [32..36] chain_magic (4 bytes — "OMNI"/"TEST"/"DEVN"/"REGT" from chain_config)
+//   [36..38] listen_port u16 LE — the port THIS dialer accepts on (so acceptor can
+//                                  ALSO dial back if it wants peer exchange)
+//   [38..46] height u64 LE
+//   [46]     version u8
+//   = 47 bytes
+//
+// Reply MsgWelcome (acceptor → dialer):
+//   [0..32]  node_id (acceptor's id)
+//   [32..36] chain_magic (echoed; mismatch would already have closed)
+//   [36..44] height u64 LE
+//   [44]     accepted u8 (1 = welcome aboard, 0 = rejected — see reason)
+//   [45]     reason u8 (0 ok, 1 wrong chain, 2 too many peers, 3 banned, 4 dup id)
+//   = 46 bytes
+//
+// MsgStable (either side, after sync settles):
+//   [0..8]   confirmed_height u64 LE
+//   [8..10]  peer_count u16 LE
+//   = 10 bytes
+
+pub const MsgHello = struct {
+    node_id:     [32]u8,
+    chain_magic: [4]u8,
+    listen_port: u16,
+    height:      u64,
+    version:     u8,
+
+    pub fn encode(self: MsgHello, allocator: std.mem.Allocator) ![]u8 {
+        var buf = try allocator.alloc(u8, 47);
+        @memcpy(buf[0..32], &self.node_id);
+        @memcpy(buf[32..36], &self.chain_magic);
+        std.mem.writeInt(u16, buf[36..38], self.listen_port, .little);
+        std.mem.writeInt(u64, buf[38..46], self.height, .little);
+        buf[46] = self.version;
+        return buf;
+    }
+
+    pub fn decode(data: []const u8) ?MsgHello {
+        if (data.len < 47) return null;
+        var id: [32]u8 = undefined;
+        @memcpy(&id, data[0..32]);
+        var magic: [4]u8 = undefined;
+        @memcpy(&magic, data[32..36]);
+        return .{
+            .node_id     = id,
+            .chain_magic = magic,
+            .listen_port = std.mem.readInt(u16, data[36..38], .little),
+            .height      = std.mem.readInt(u64, data[38..46], .little),
+            .version     = data[46],
+        };
+    }
+};
+
+pub const MsgWelcome = struct {
+    node_id:     [32]u8,
+    chain_magic: [4]u8,
+    height:      u64,
+    accepted:    u8,
+    reason:      u8,
+
+    pub const REASON_OK: u8 = 0;
+    pub const REASON_WRONG_CHAIN: u8 = 1;
+    pub const REASON_TOO_MANY_PEERS: u8 = 2;
+    pub const REASON_BANNED: u8 = 3;
+    pub const REASON_DUPLICATE_ID: u8 = 4;
+
+    pub fn encode(self: MsgWelcome, allocator: std.mem.Allocator) ![]u8 {
+        var buf = try allocator.alloc(u8, 46);
+        @memcpy(buf[0..32], &self.node_id);
+        @memcpy(buf[32..36], &self.chain_magic);
+        std.mem.writeInt(u64, buf[36..44], self.height, .little);
+        buf[44] = self.accepted;
+        buf[45] = self.reason;
+        return buf;
+    }
+
+    pub fn decode(data: []const u8) ?MsgWelcome {
+        if (data.len < 46) return null;
+        var id: [32]u8 = undefined;
+        @memcpy(&id, data[0..32]);
+        var magic: [4]u8 = undefined;
+        @memcpy(&magic, data[32..36]);
+        return .{
+            .node_id     = id,
+            .chain_magic = magic,
+            .height      = std.mem.readInt(u64, data[36..44], .little),
+            .accepted    = data[44],
+            .reason      = data[45],
+        };
+    }
+};
+
+pub const MsgStable = struct {
+    confirmed_height: u64,
+    peer_count:       u16,
+
+    pub fn encode(self: MsgStable, allocator: std.mem.Allocator) ![]u8 {
+        var buf = try allocator.alloc(u8, 10);
+        std.mem.writeInt(u64, buf[0..8], self.confirmed_height, .little);
+        std.mem.writeInt(u16, buf[8..10], self.peer_count, .little);
+        return buf;
+    }
+
+    pub fn decode(data: []const u8) ?MsgStable {
+        if (data.len < 10) return null;
+        return .{
+            .confirmed_height = std.mem.readInt(u64, data[0..8], .little),
+            .peer_count       = std.mem.readInt(u16, data[8..10], .little),
+        };
+    }
+};
+
 pub const MsgPeerList = struct {
     peers: []PeerAddr,
 
@@ -422,6 +538,69 @@ pub const PeerConnection = struct {
         defer self.allocator.free(payload);
 
         try self.send(@intFromEnum(MessageType.ping), payload);
+    }
+
+    /// "WE ARE HERE!!" — first message a dialer sends after TCP connect.
+    /// Carries node_id, chain magic, listening port, current height.
+    /// Acceptor uses this to register the peer with real identity (not
+    /// "inbound-unknown") and to reject cross-chain peers.
+    pub fn sendHello(
+        self: *PeerConnection,
+        node_id: []const u8,
+        chain_magic: [4]u8,
+        listen_port: u16,
+        height: u64,
+    ) !void {
+        var id_buf: [32]u8 = @splat(0);
+        const copy_len = @min(node_id.len, 32);
+        @memcpy(id_buf[0..copy_len], node_id[0..copy_len]);
+
+        const hello = MsgHello{
+            .node_id = id_buf,
+            .chain_magic = chain_magic,
+            .listen_port = listen_port,
+            .height = height,
+            .version = P2P_VERSION,
+        };
+        const payload = try hello.encode(self.allocator);
+        defer self.allocator.free(payload);
+        try self.send(@intFromEnum(MessageType.hello), payload);
+    }
+
+    /// "WE WANT TO WORK" / "WE DON'T" — acceptor's reply to HELLO.
+    pub fn sendWelcome(
+        self: *PeerConnection,
+        node_id: []const u8,
+        chain_magic: [4]u8,
+        height: u64,
+        accepted: bool,
+        reason: u8,
+    ) !void {
+        var id_buf: [32]u8 = @splat(0);
+        const copy_len = @min(node_id.len, 32);
+        @memcpy(id_buf[0..copy_len], node_id[0..copy_len]);
+
+        const welcome = MsgWelcome{
+            .node_id = id_buf,
+            .chain_magic = chain_magic,
+            .height = height,
+            .accepted = if (accepted) 1 else 0,
+            .reason = reason,
+        };
+        const payload = try welcome.encode(self.allocator);
+        defer self.allocator.free(payload);
+        try self.send(@intFromEnum(MessageType.welcome), payload);
+    }
+
+    /// "WE ARE STABLE" — confirmation after sync settles.
+    pub fn sendStable(self: *PeerConnection, confirmed_height: u64, peer_count: u16) !void {
+        const msg = MsgStable{
+            .confirmed_height = confirmed_height,
+            .peer_count = peer_count,
+        };
+        const payload = try msg.encode(self.allocator);
+        defer self.allocator.free(payload);
+        try self.send(@intFromEnum(MessageType.stable), payload);
     }
 
     /// Anunta un bloc nou la peer
@@ -718,6 +897,12 @@ pub const P2PNode = struct {
     local_id:    []const u8,
     local_host:  []const u8,
     local_port:  u16,
+    /// Network magic bytes ("OMNI"/"TEST"/"DEVN"/"REGT") — sent in HELLO and
+    /// validated on WELCOME so a testnet miner cannot accidentally peer with
+    /// a mainnet seed. Set via setChainMagic() after init from chain_config.
+    /// Defaults to MAINNET ("OMNI") if not explicitly set, preserving legacy
+    /// behavior for older callers that haven't been updated.
+    chain_magic: [4]u8 = .{ 0x4F, 0x4D, 0x4E, 0x49 }, // "OMNI" mainnet
     peers:       array_list.Managed(PeerConnection),
     allocator:   std.mem.Allocator,
     chain_height: u64,
@@ -784,6 +969,13 @@ pub const P2PNode = struct {
         for (&node.reconnect_queue) |*ri| ri.active = false;
         node.hardening_init = true;
         return node;
+    }
+
+    /// Set the 4-byte network magic from chain_config. Called from main.zig
+    /// after the chain is selected so HELLO/WELCOME messages embed the right
+    /// chain identifier. Without this, P2PNode defaults to mainnet magic.
+    pub fn setChainMagic(self: *P2PNode, magic: [4]u8) void {
+        self.chain_magic = magic;
     }
 
     /// Ataseaza blockchain si sync_mgr — apelat din main dupa init P2PNode
@@ -982,13 +1174,19 @@ pub const P2PNode = struct {
             return err;
         };
         const last_idx = self.peers.items.len - 1;
-        // Send ping under the lock — safe because peers[last_idx] cannot move until we unlock.
+        // 3-way handshake: send HELLO ("WE ARE HERE!!") first so the acceptor
+        // can register us with our real node_id + listening port and validate
+        // our chain. Then the legacy PING follows for height sync.
+        // Send under the lock — peers[last_idx] cannot move until we unlock.
+        self.peers.items[last_idx].sendHello(self.local_id, self.chain_magic, self.local_port, self.chain_height) catch |err| {
+            std.debug.print("[P2P] Hello failed: {}\n", .{err});
+        };
         self.peers.items[last_idx].sendPing(self.local_id, self.chain_height) catch |err| {
             std.debug.print("[P2P] Ping failed: {}\n", .{err});
         };
         self.peers_mutex.unlock();
         _ = self.outbound_count.fetchAdd(1, .release);
-        std.debug.print("[P2P] Connected to peer {s} ({s}:{d})\n", .{ node_id, host, port });
+        std.debug.print("[P2P] Connected to peer {s} ({s}:{d}) — HELLO sent\n", .{ node_id, host, port });
 
         // On successful connect, clear any reconnect entry
         self.clearReconnect(host, port);
@@ -1742,6 +1940,100 @@ pub const P2PNode = struct {
         const mt: MessageType = @enumFromInt(msg_type);
         const pid = peer.node_id[0..@min(peer.node_id.len, 16)];
         switch (mt) {
+            // ── HELLO ("WE ARE HERE!!") — first message a dialer sends after dial.
+            // Acceptor parses node_id + chain_magic + listen_port, validates, replies WELCOME.
+            .hello => {
+                const hi = MsgHello.decode(payload) orelse {
+                    std.debug.print("[P2P] HELLO decode failed from {s}\n", .{pid});
+                    return;
+                };
+                // Trim trailing NULs from peer node_id for human-readable display + storage.
+                var nid_len: usize = 0;
+                while (nid_len < hi.node_id.len and hi.node_id[nid_len] != 0) : (nid_len += 1) {}
+                const peer_real_id = hi.node_id[0..nid_len];
+
+                // Chain validation. Cross-chain peers are dropped immediately so a
+                // testnet miner can't accidentally peer with mainnet (or vice versa).
+                if (!std.mem.eql(u8, &hi.chain_magic, &node.chain_magic)) {
+                    std.debug.print(
+                        "[P2P] HELLO from {s}: WRONG CHAIN — got '{s}' want '{s}' — REJECTED\n",
+                        .{ peer_real_id, &hi.chain_magic, &node.chain_magic },
+                    );
+                    peer.sendWelcome(node.local_id, node.chain_magic, node.chain_height,
+                        false, MsgWelcome.REASON_WRONG_CHAIN) catch {};
+                    peer.connected = false;
+                    return;
+                }
+
+                // Update peer identity from the HELLO. This replaces the placeholder
+                // "inbound-unknown" with the real node_id from the dialer.
+                // Owned copy so it lives past the message buffer free.
+                if (node.allocator.dupe(u8, peer_real_id)) |owned_id| {
+                    peer.node_id = owned_id;
+                } else |_| {}
+                peer.height = hi.height;
+                peer.port = hi.listen_port;
+
+                std.debug.print(
+                    "[P2P] HELLO from '{s}' chain='{s}' listen_port={d} height={d} — WELCOME\n",
+                    .{ peer_real_id, &hi.chain_magic, hi.listen_port, hi.height },
+                );
+
+                // Reply WELCOME (accepted = true).
+                peer.sendWelcome(node.local_id, node.chain_magic, node.chain_height,
+                    true, MsgWelcome.REASON_OK) catch {};
+
+                // Update node-wide chain_height if peer is ahead.
+                if (hi.height > node.chain_height) node.chain_height = hi.height;
+                if (node.sync_mgr) |sm| {
+                    if (sm.onPeerHeight(hi.height)) |_| {
+                        if (node.blockchain) |bc| node.requestSync(bc.chain.items.len);
+                    }
+                }
+            },
+            // ── WELCOME ("WE WANT TO WORK") — acceptor's reply to dialer's HELLO.
+            .welcome => {
+                const wm = MsgWelcome.decode(payload) orelse {
+                    std.debug.print("[P2P] WELCOME decode failed from {s}\n", .{pid});
+                    return;
+                };
+                if (wm.accepted == 0) {
+                    const reason_s: []const u8 = switch (wm.reason) {
+                        MsgWelcome.REASON_WRONG_CHAIN => "wrong chain",
+                        MsgWelcome.REASON_TOO_MANY_PEERS => "too many peers",
+                        MsgWelcome.REASON_BANNED => "banned",
+                        MsgWelcome.REASON_DUPLICATE_ID => "duplicate node_id",
+                        else => "unknown",
+                    };
+                    std.debug.print("[P2P] WELCOME REJECTED by {s}: {s}\n", .{ pid, reason_s });
+                    peer.connected = false;
+                    return;
+                }
+                // Accepted — capture acceptor's identity + height.
+                var nid_len: usize = 0;
+                while (nid_len < wm.node_id.len and wm.node_id[nid_len] != 0) : (nid_len += 1) {}
+                const real_id = wm.node_id[0..nid_len];
+                if (node.allocator.dupe(u8, real_id)) |owned_id| {
+                    peer.node_id = owned_id;
+                } else |_| {}
+                peer.height = wm.height;
+                std.debug.print(
+                    "[P2P] WELCOME from '{s}' height={d} — STABLE\n",
+                    .{ real_id, wm.height },
+                );
+                if (wm.height > node.chain_height) node.chain_height = wm.height;
+                // Send back a STABLE confirmation.
+                peer.sendStable(node.chain_height, @intCast(node.peers.items.len)) catch {};
+            },
+            // ── STABLE ("WE ARE STABLE") — confirmation, just logged.
+            .stable => {
+                if (MsgStable.decode(payload)) |s| {
+                    std.debug.print(
+                        "[P2P] STABLE from {s}: height={d} peers={d}\n",
+                        .{ pid, s.confirmed_height, s.peer_count },
+                    );
+                }
+            },
             .ping => {
                 if (MsgPing.decode(payload)) |ping| {
                     peer.height = ping.height;

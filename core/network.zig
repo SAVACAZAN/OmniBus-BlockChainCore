@@ -203,6 +203,14 @@ pub const MessageType = enum {
     getmerkleproof_p2p,  // Light client requests Merkle proof for a TX hash
     merkleproof_p2p,     // Full node responds with Merkle inclusion proof
     filterload,          // Light client sends Bloom filter to full node
+    // ── Bitcoin-style 3-way handshake (WE ARE HERE / WE WANT TO WORK / WE ARE STABLE) ──
+    // Replaces the implicit ping-only handshake. Carries chain_id (network magic) so
+    // testnet peers cannot accidentally peer with mainnet, plus the dialer's listening
+    // port + node_id so the acceptor can register the peer with real identity instead
+    // of the placeholder "inbound-unknown".
+    hello,               // Dialer  → Acceptor: "WE ARE HERE!!"  {node_id, chain_magic, listen_port, height, version}
+    welcome,             // Acceptor → Dialer:  "WE WANT TO WORK"  {node_id, chain_magic, height, accepted: bool, reason}
+    stable,              // Either-way confirmation: "WE ARE STABLE"  {confirmed_height, peer_count}
 };
 
 /// P2P Message
