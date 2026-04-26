@@ -779,10 +779,12 @@ pub fn main() !void {
         // (slot_id, prev_hash, validator_set) — so peers reject blocks
         // not signed by the expected leader. No more winner-take-all.
         {
-            const now_s: i64 = std.time.timestamp();
-            const genesis_ts: i64 = @intCast(net_cfg.genesis_timestamp);
-            const slot_id = validator_mod.slotFromTimestamp(now_s, genesis_ts);
+            // Slot-id = next block height. Deterministic across peers
+            // because everyone agrees on block height and prev_hash. Wall-
+            // clock based slots had a 100-500ms drift problem on validate
+            // (mined at slot N, received at slot N+1, leader different).
             const tip = bc.chain.items[bc.chain.items.len - 1];
+            const slot_id: u64 = @intCast(bc.chain.items.len); // = next block index
             const leader = validator_mod.leaderForSlot(
                 slot_id,
                 tip.hash,

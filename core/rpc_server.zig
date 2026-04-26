@@ -1097,17 +1097,13 @@ fn handleGetValidators(ctx: *ServerCtx, id: u64) ![]u8 {
 /// computation — same answer on every node holding the same registry.
 fn handleGetSlotLeader(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const now_s: i64 = std.time.timestamp();
-    // Use chain_id to find genesis timestamp. Default mainnet.
-    const cfg = switch (ctx.chain_id) {
-        2 => chain_config.ChainConfig.testnet(),
-        3 => chain_config.ChainConfig.regtest(),
-        else => chain_config.ChainConfig.mainnet(),
-    };
-    const slot_id = validator_mod.slotFromTimestamp(now_s, cfg.genesis_timestamp);
     ctx.bc.mutex.lock();
     const tip = ctx.bc.chain.items[ctx.bc.chain.items.len - 1];
     const tip_hash = tip.hash;
+    // Slot-id for the NEXT block (height = chain.items.len). Same formula
+    // mining loop + peer validation use, so RPC reflects what the network
+    // expects.
+    const slot_id: u64 = @intCast(ctx.bc.chain.items.len);
     const ldr = validator_mod.leaderForSlot(slot_id, tip_hash, ctx.bc.validator_set.items);
     ctx.bc.mutex.unlock();
     if (ldr) |l| {

@@ -2384,10 +2384,15 @@ pub const P2PNode = struct {
                             while (real_len > 0 and (ann.miner_id[real_len - 1] == 0 or ann.miner_id[real_len - 1] == ' ')) real_len -= 1;
                             const claimed_miner = ann.miner_id[0..real_len];
 
-                            const cfg_opt = chainConfigFromMagic(node.chain_magic);
-                            if (cfg_opt) |cfg| {
+                            _ = chainConfigFromMagic; // kept for future use
+                            {
                                 const tip = bc.chain.items[bc.chain.items.len - 1];
-                                const slot_id = validator_mod.slotFromTimestamp(std.time.timestamp(), cfg.genesis_timestamp);
+                                // Slot-id derived from block height, NOT wall-
+                                // clock time. Avoids cross-peer disagreement
+                                // when validation happens 100-500ms after
+                                // production (slot would already have rolled).
+                                // Same formula on both sides → same leader.
+                                const slot_id = ann.block_height;
                                 const expected_leader = validator_mod.leaderForSlot(
                                     slot_id, tip.hash, bc.validator_set.items);
                                 if (expected_leader) |el| {
