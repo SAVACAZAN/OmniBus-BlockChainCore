@@ -441,6 +441,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return handleOmnibusExchangeFeed(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getallprices")) return handleOmnibusAllPrices(ctx, body, id);
     if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return handleOmnibusArbitrage(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getfxrate"))    return handleOmnibusFxRate(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
@@ -2169,8 +2170,17 @@ fn canonicalPair(pair: []const u8) []const u8 {
     if (std.mem.eql(u8, pair, "ADA/USDT"))  return "ADA/USD";
     if (std.mem.eql(u8, pair, "SUI/USDT"))  return "SUI/USD";
     if (std.mem.eql(u8, pair, "EGLD/USDT")) return "EGLD/USD";
-    // EUR-quoted pairs do NOT canonicalize — returned as-is so arbitrage
-    // never matches them against USD entries.
+    // ── EUR-quoted pairs → USD canonical ─────────────────────────────────
+    // The arbitrage matcher converts the bid/ask via the live USDC/EUR FX
+    // rate BEFORE comparing. Once converted, the pair is comparable to the
+    // USD-quoted entries, so the canonical label collapses too.
+    if (std.mem.eql(u8, pair, "BTC/EUR"))   return "BTC/USD";
+    if (std.mem.eql(u8, pair, "LCX/EUR"))   return "LCX/USD";
+    if (std.mem.eql(u8, pair, "ETH/EUR"))   return "ETH/USD";
+    if (std.mem.eql(u8, pair, "SOL/EUR"))   return "SOL/USD";
+    if (std.mem.eql(u8, pair, "ADA/EUR"))   return "ADA/USD";
+    if (std.mem.eql(u8, pair, "SUI/EUR"))   return "SUI/USD";
+    if (std.mem.eql(u8, pair, "EGLD/EUR"))  return "EGLD/USD";
     return pair;
 }
 
@@ -2255,6 +2265,26 @@ fn handleOmnibusAllPrices(ctx: *ServerCtx, body: []const u8, id: u64) ![]u8 {
         .{id});
 }
 
+/// omnibus_getfxrate — current EUR→USD multiplier (median of USDC/EUR mid
+/// across Coinbase, Kraken, LCX). Returned as both micro-USD per EUR and a
+/// human-readable string. Null result if no FX feed has populated yet.
+fn handleOmnibusFxRate(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (main_mod.g_ws_feed) |*feed| {
+        const rate = feed.getEurToUsdRate();
+        if (rate) |r| {
+            const whole = r / 1_000_000;
+            const frac = r % 1_000_000;
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"eurToUsdMicro\":{d},\"eurToUsd\":\"{d}.{d:0>6}\"}}}}",
+                .{ id, r, whole, frac });
+        }
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"eurToUsdMicro\":null,\"eurToUsd\":null}}}}",
+        .{id});
+}
+
 /// omnibus_getarbitrage — pre-compute cross-exchange arbitrage opportunities.
 ///
 /// For every canonical pair label (BTC/USD, LCX/USD, ETH/USD, …) we collect
@@ -2270,8 +2300,14 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
         defer alloc.free(all);
 
         const now_ms = std.time.milliTimestamp();
+        // Live EUR→USD rate, micro-USD per EUR. null if no FX feed yet.
+        const eur_to_usd_micro: ?u64 = feed.getEurToUsdRate();
 
         // Filter to non-stale fresh entries with both bid & ask populated.
+        // EUR-quoted entries get bid/ask normalized to USD via the FX rate
+        // (skipped entirely if rate unavailable). The pair label is
+        // canonicalized so e.g. BTC/EUR + the rate becomes BTC/USD which
+        // pairs against Coinbase BTC-USD / Kraken BTC/USD in the matcher.
         var fresh = try alloc.alloc(ws_exchange_feed_mod.PriceFetch, all.len);
         defer alloc.free(fresh);
         var fresh_n: usize = 0;
@@ -2285,7 +2321,19 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
             if (!p.success) continue;
             if (feedIsStale(p, now_ms, ARBITRAGE_STALE_MS)) continue;
             if (p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
-            fresh[fresh_n] = p;
+            // Skip the FX pair itself — it's a tool, not an arbitrage candidate.
+            if (std.mem.eql(u8, p.pair, "USDC/EUR") or
+                std.mem.eql(u8, p.pair, "USDC-EUR")) continue;
+
+            var entry = p;
+            // Normalize EUR-quoted entries → USD using the live FX rate.
+            if (std.mem.endsWith(u8, p.pair, "/EUR") or std.mem.endsWith(u8, p.pair, "-EUR")) {
+                const rate = eur_to_usd_micro orelse continue; // skip until FX lands
+                // bid_usd_micro = bid_eur_micro * rate / 1_000_000
+                entry.bid_micro_usd = (p.bid_micro_usd * rate) / 1_000_000;
+                entry.ask_micro_usd = (p.ask_micro_usd * rate) / 1_000_000;
+            }
+            fresh[fresh_n] = entry;
             fresh_n += 1;
         }
 

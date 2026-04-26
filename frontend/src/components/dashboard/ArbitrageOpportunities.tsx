@@ -72,22 +72,29 @@ export default function ArbitrageOpportunities() {
   const [now, setNow] = useState<number>(Date.now());
   const [backendReady, setBackendReady] = useState<boolean>(true);
   const [loaded, setLoaded] = useState<boolean>(false);
+  const [fxRate, setFxRate] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchArb = async () => {
       try {
-        const result = (await rpc.request_raw(
-          "omnibus_getarbitrage",
-        )) as ArbResponse | null;
+        // Run arb + FX in parallel — they share the same backend.
+        const [arbResult, fxResult] = await Promise.all([
+          rpc.request_raw("omnibus_getarbitrage"),
+          rpc.request_raw("omnibus_getfxrate").catch(() => null),
+        ]);
         if (cancelled) return;
+        const result = arbResult as ArbResponse | null;
         if (result && Array.isArray(result.opportunities)) {
           setOpps(result.opportunities);
           setBackendReady(true);
         } else {
           setOpps([]);
         }
+        // Pull EUR→USD rate (string with 6 decimals, or null).
+        const fx = fxResult as { eurToUsd?: string | null } | null;
+        setFxRate(fx?.eurToUsd ?? null);
         setNow(Date.now());
         setLoaded(true);
       } catch (e) {
@@ -133,6 +140,14 @@ export default function ArbitrageOpportunities() {
         <h2 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Arbitrage Opportunities (cross-exchange)
         </h2>
+        {fxRate && (
+          <span
+            className="text-[10px] font-mono text-mempool-purple bg-mempool-bg px-2 py-0.5 rounded border border-mempool-border"
+            title="Median USDC/EUR mid-price across Coinbase, Kraken, LCX. Used to convert EUR-quoted bids/asks to USD-equivalent for cross-region arbitrage."
+          >
+            EUR→USD {parseFloat(fxRate).toFixed(4)}
+          </span>
+        )}
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-xs text-mempool-text-dim font-mono">
           {sorted.length} shown

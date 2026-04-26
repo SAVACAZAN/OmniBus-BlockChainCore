@@ -73,8 +73,12 @@ pub const ImportantPair = struct {
     coinbase: []const u8,
 };
 
-/// 7 canonical pairs × 3 exchanges. Per-exchange listings as confirmed by
-/// the user (and what the live REST/WS feed actually advertises):
+/// 7 canonical pairs × 3 exchanges + 1 stablecoin pair (USDC/EUR) used as
+/// the EUR→USD FX rate so we can normalize EUR-quoted LCX entries against
+/// USD-quoted Coinbase/Kraken entries for arbitrage.
+///
+/// Per-exchange listings as confirmed by the user (and what the live
+/// REST/WS feed actually advertises):
 ///
 ///   LCX:      <SYM>/USDC and <SYM>/EUR (no direct USD pair)
 ///   Kraken:   <SYM>/USD  (and <SYM>/EUR for some)
@@ -83,8 +87,9 @@ pub const ImportantPair = struct {
 /// LCX candidates are listed in the order they should be tried; the parser
 /// keeps the first match. USDC is preferred over EUR for arbitrage (USDC ≈ USD
 /// via canonicalPair). EUR entries are still parsed and stored so the
-/// AllPricesGrid can display them, but the arbitrage matcher leaves their
-/// canonical label as-is so they don't get matched against USD entries.
+/// AllPricesGrid can display them, AND the arbitrage matcher converts
+/// EUR-quoted bids/asks via the live USDC/EUR FX rate before pairing them
+/// against USD entries.
 pub const IMPORTANT_PAIRS = [_]ImportantPair{
     .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USDC",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
     .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USDC",  "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
@@ -93,6 +98,20 @@ pub const IMPORTANT_PAIRS = [_]ImportantPair{
     .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USDC",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
     .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USDC",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
     .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USDC", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
+};
+
+/// FX reference pair used to translate EUR-quoted prices into USD-equivalent.
+/// All 3 exchanges list USDC/EUR with tight spreads (Coinbase ~1 bp,
+/// Kraken ~1 bp, LCX wider). When the arbitrage handler hits an EUR-quoted
+/// entry, it divides by the median USDC/EUR price to convert to USD:
+///
+///     usdc_eur_mid ≈ 0.854   →   1 EUR ≈ 1 / 0.854  ≈  1.171 USD
+///     bid_usd      = bid_eur / 0.854
+pub const FX_PAIR = ImportantPair{
+    .label          = "USDC/EUR",
+    .lcx_candidates = &[_][]const u8{ "USDC/EUR" },
+    .kraken         = "USDC/EUR",
+    .coinbase       = "USDC-EUR",
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -242,6 +261,53 @@ pub const ExchangeFeed = struct {
         self.mutex.lock();
         defer self.mutex.unlock();
         return self.prices.get(key);
+    }
+
+    /// Median EUR→USD rate (multiplier — multiply EUR price by this to get
+    /// USD price). Computed from USDC/EUR mid-prices on Coinbase, Kraken, LCX.
+    /// Returns null if no successful FX entry is available.
+    ///
+    /// Math: USDC/EUR mid m means 1 EUR = 1/m USDC ≈ 1/m USD (USDC ≈ USD).
+    /// So eurToUsd = 1 / m. Stored / returned as micro-USD per EUR
+    /// (integer 6-decimal): 1.171 → 1_171_000.
+    pub fn getEurToUsdRate(self: *Self) ?u64 {
+        const venues = [_][]const u8{ "Coinbase", "Kraken", "LCX" };
+        var samples: [3]u64 = undefined;
+        var n: usize = 0;
+
+        for (venues) |ex| {
+            var key_buf: [64]u8 = undefined;
+            const key = std.fmt.bufPrint(&key_buf, "{s}|USDC{s}EUR", .{
+                ex,
+                if (std.mem.eql(u8, ex, "Coinbase")) "-" else "/",
+            }) catch continue;
+            self.mutex.lock();
+            const got = self.prices.get(key);
+            self.mutex.unlock();
+            const p = got orelse continue;
+            if (!p.success or p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
+
+            // mid = (bid + ask) / 2  (still in micro-USD per 1 EUR but the
+            // base is USDC, treated as USD). 1 EUR = 1/mid USDC.
+            const mid_usdc_per_eur = (p.bid_micro_usd + p.ask_micro_usd) / 2;
+            if (mid_usdc_per_eur == 0) continue;
+            // eur_to_usd_micro = 1_000_000 * 1_000_000 / mid_usdc_per_eur
+            // (1e12 / mid keeps integer math while preserving 6 decimals).
+            samples[n] = 1_000_000_000_000 / mid_usdc_per_eur;
+            n += 1;
+        }
+        if (n == 0) return null;
+
+        // Sort + median (n ≤ 3, simple insertion).
+        for (1..n) |i| {
+            const cur = samples[i];
+            var j: usize = i;
+            while (j > 0 and samples[j - 1] > cur) : (j -= 1) {
+                samples[j] = samples[j - 1];
+            }
+            samples[j] = cur;
+        }
+        return samples[n / 2];
     }
 
     /// Snapshot all entries in the map. Caller owns the returned slice and
@@ -481,11 +547,14 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // ── Subscribe ONLY to the 7 IMPORTANT_PAIRS ────────────────────────────
+    // ── Subscribe ONLY to the 7 IMPORTANT_PAIRS + FX_PAIR ──────────────────
     // Earlier full-market mode (~700 products) crashed the small-RAM VPS.
-    // We now stay focused on the 7 pairs the arbitrage panel cares about.
-    var product_buf: [IMPORTANT_PAIRS.len][]const u8 = undefined;
+    // We stay focused on the 7 pairs the arbitrage panel cares about plus
+    // USDC-EUR which gives us the EUR→USD rate for normalizing EUR-quoted
+    // LCX entries.
+    var product_buf: [IMPORTANT_PAIRS.len + 1][]const u8 = undefined;
     for (IMPORTANT_PAIRS, 0..) |p, i| product_buf[i] = p.coinbase;
+    product_buf[IMPORTANT_PAIRS.len] = FX_PAIR.coinbase;
     try sendCoinbaseSubscribeStatic(client, feed.allocator, product_buf[0..]);
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
@@ -643,8 +712,8 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // Subscribe ONLY to the 7 IMPORTANT_PAIRS (was wildcard "*" before, but
-    // ~600 Kraken pairs flooded the VPS RAM).
+    // Subscribe to the 7 IMPORTANT_PAIRS + FX_PAIR (USDC/EUR) only — was
+    // wildcard "*" before, but ~600 Kraken pairs flooded the VPS RAM.
     var sym_list: std.ArrayList(u8) = .empty;
     defer sym_list.deinit(feed.allocator);
     try sym_list.appendSlice(feed.allocator,
@@ -655,6 +724,11 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
         try sym_list.appendSlice(feed.allocator, p.kraken);
         try sym_list.append(feed.allocator, '"');
     }
+    // FX pair last — comma separator + symbol.
+    try sym_list.append(feed.allocator, ',');
+    try sym_list.append(feed.allocator, '"');
+    try sym_list.appendSlice(feed.allocator, FX_PAIR.kraken);
+    try sym_list.append(feed.allocator, '"');
     try sym_list.appendSlice(feed.allocator, "]}}");
     try client.send(sym_list.items);
 
@@ -785,36 +859,41 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 /// pair name; its sub-object holds bestBid/bestAsk we parse with the existing
 /// helpers. Brace-balancing isolates each sub-object so neighbours don't bleed.
 /// True if `key` (LCX pair string from a snapshot frame) matches ANY of
-/// the candidate listings in IMPORTANT_PAIRS — typically USDC, USDT, EUR.
-/// Strict equality on each candidate (no substring) to avoid confusing
-/// similar-looking tickers (e.g. "BTCB/USDC" vs "BTC/USDC", "WETH/USDC"
-/// vs "ETH/USDC"). EUR-quoted entries are stored too so the dashboard
-/// can display LCX prices even when no USD-stable listing exists; the
-/// arbitrage handler is responsible for filtering on quote currency.
+/// the candidate listings in IMPORTANT_PAIRS or the FX_PAIR. Strict equality
+/// on each candidate (no substring) to avoid confusing similar-looking
+/// tickers (e.g. "BTCB/USDC" vs "BTC/USDC", "WETH/USDC" vs "ETH/USDC").
+/// EUR-quoted entries are stored too so the dashboard can display LCX
+/// prices even when no USD-stable listing exists; the arbitrage handler
+/// converts them via the FX pair.
 fn isLcxImportant(key: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         for (p.lcx_candidates) |cand| {
             if (std.mem.eql(u8, key, cand)) return true;
         }
     }
+    for (FX_PAIR.lcx_candidates) |cand| {
+        if (std.mem.eql(u8, key, cand)) return true;
+    }
     return false;
 }
 
 /// Same as isLcxImportant but for Coinbase Advanced product_id format
-/// ("BTC-USD", "ETH-USD", ...). Strict equality to skip "BTCB-USD",
-/// "WETH-USD", "JSOL-USD" and friends that share a prefix.
+/// ("BTC-USD", "ETH-USD", "USDC-EUR", ...). Strict equality to skip
+/// "BTCB-USD", "WETH-USD", "JSOL-USD" and friends that share a prefix.
 fn isCoinbaseImportant(product_id: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         if (std.mem.eql(u8, product_id, p.coinbase)) return true;
     }
+    if (std.mem.eql(u8, product_id, FX_PAIR.coinbase)) return true;
     return false;
 }
 
-/// Same for Kraken v2 symbol format ("BTC/USD", "ETH/USD", ...).
+/// Same for Kraken v2 symbol format ("BTC/USD", "ETH/USD", "USDC/EUR", ...).
 fn isKrakenImportant(symbol: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         if (std.mem.eql(u8, symbol, p.kraken)) return true;
     }
+    if (std.mem.eql(u8, symbol, FX_PAIR.kraken)) return true;
     return false;
 }
 
