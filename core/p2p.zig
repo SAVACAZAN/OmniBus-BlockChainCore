@@ -1219,9 +1219,47 @@ pub const P2PNode = struct {
         self.peers.items[last_idx].sendPing(self.local_id, self.chain_height) catch |err| {
             std.debug.print("[P2P] Ping failed: {}\n", .{err});
         };
+        const peer_ptr = &self.peers.items[last_idx];
         self.peers_mutex.unlock();
         _ = self.outbound_count.fetchAdd(1, .release);
         std.debug.print("[P2P] Connected to peer {s} ({s}:{d}) — HELLO sent\n", .{ node_id, host, port });
+
+        // CRITICAL FIX (2026-04-26): spawn a recv thread for this OUTBOUND peer
+        // so we can actually read the WELCOME, PONG, blocks, sync responses
+        // that the acceptor sends back. Without this, the dialer never learned
+        // peer.height — onPeerHeight was never triggered, requestSync was
+        // never sent, and PC mined its own chain forever (observed: PC at
+        // 954 blocs while VPS at 41k+, no REORG attempted).
+        const ArgsT = struct { node: *P2PNode, peer: *PeerConnection };
+        const pargs = self.allocator.create(ArgsT) catch {
+            std.debug.print("[P2P] outbound recv thread: alloc failed\n", .{});
+            return;
+        };
+        pargs.* = .{ .node = self, .peer = peer_ptr };
+        const t = std.Thread.spawn(.{}, struct {
+            fn run(args: *ArgsT) void {
+                defer args.node.allocator.destroy(args);
+                const peer = args.peer;
+                const pid = peer.node_id[0..@min(peer.node_id.len, 24)];
+                std.debug.print("[P2P] Outbound recv thread started for {s}\n", .{pid});
+                while (peer.connected) {
+                    const msg = peer.recv() catch |err| {
+                        if (err != error.ConnectionClosed) {
+                            std.debug.print("[P2P] Outbound recv error ({s}): {}\n", .{ pid, err });
+                        }
+                        break;
+                    };
+                    defer args.node.allocator.free(msg.payload);
+                    dispatchMessage(args.node, peer, msg.msg_type, msg.payload);
+                }
+                std.debug.print("[P2P] Outbound peer {s} disconnected\n", .{pid});
+            }
+        }.run, .{pargs}) catch |err| {
+            std.debug.print("[P2P] outbound recv thread spawn failed: {}\n", .{err});
+            self.allocator.destroy(pargs);
+            return;
+        };
+        t.detach();
 
         // On successful connect, clear any reconnect entry
         self.clearReconnect(host, port);
