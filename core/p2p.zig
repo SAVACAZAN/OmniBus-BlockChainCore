@@ -2574,9 +2574,13 @@ pub const P2PNode = struct {
                         node.chain_height = ann.block_height;
                     }
 
-                    // If we're behind, request sync
+                    // If we're behind, request sync. chain.items.len is
+                    // (last_height + 1). When peer announces block N and
+                    // we have height N-1, we still need block N → request.
+                    // Old code used `>` which missed the off-by-one case
+                    // where peer.N == our.len (we have N-1, want N).
                     if (node.blockchain) |bc| {
-                        if (ann.block_height > @as(u64, bc.chain.items.len)) {
+                        if (ann.block_height >= @as(u64, bc.chain.items.len)) {
                             node.requestSync(bc.chain.items.len);
                         }
                     }
