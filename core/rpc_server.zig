@@ -2127,13 +2127,34 @@ fn feedIsStale(
 }
 
 /// Canonicalize a pair label so cross-exchange variants line up.
-/// LCX quotes USDC / USDT (US-stable) for some assets; we treat both ≈ USD
-/// so an arbitrage scan matches them against Coinbase/Kraken BTC/USD etc.
-/// EUR is INTENTIONALLY NOT mapped — that flow needs a EUR/USD oracle to
-/// be honest. Until that lands, EUR-quoted LCX entries appear in the
-/// all-prices grid (display only) and are excluded from arbitrage.
+///
+/// Three exchanges, three notations:
+///   Coinbase: "BTC-USD"  (dash, USD)
+///   Kraken:   "BTC/USD"  (slash, USD)
+///   LCX:      "BTC/USDC" or "BTC/USDT" or "BTC/EUR"
+///
+/// We canonicalize all USD-stable variants to "BTC/USD" so the arbitrage
+/// matcher treats them as the same pair. EUR is INTENTIONALLY NOT mapped
+/// — that flow needs a EUR/USD oracle. EUR-quoted LCX entries still appear
+/// in the all-prices grid (display only) and are excluded from arbitrage.
 fn canonicalPair(pair: []const u8) []const u8 {
-    // USDC variants → USD
+    // ── Coinbase Advanced format (dash) → canonical slash form ───────────
+    if (std.mem.eql(u8, pair, "BTC-USD"))   return "BTC/USD";
+    if (std.mem.eql(u8, pair, "LCX-USD"))   return "LCX/USD";
+    if (std.mem.eql(u8, pair, "ETH-USD"))   return "ETH/USD";
+    if (std.mem.eql(u8, pair, "SOL-USD"))   return "SOL/USD";
+    if (std.mem.eql(u8, pair, "ADA-USD"))   return "ADA/USD";
+    if (std.mem.eql(u8, pair, "SUI-USD"))   return "SUI/USD";
+    if (std.mem.eql(u8, pair, "EGLD-USD"))  return "EGLD/USD";
+    // ── Kraken-style "BTC/USD" already canonical ─────────────────────────
+    if (std.mem.eql(u8, pair, "BTC/USD"))   return "BTC/USD";
+    if (std.mem.eql(u8, pair, "LCX/USD"))   return "LCX/USD";
+    if (std.mem.eql(u8, pair, "ETH/USD"))   return "ETH/USD";
+    if (std.mem.eql(u8, pair, "SOL/USD"))   return "SOL/USD";
+    if (std.mem.eql(u8, pair, "ADA/USD"))   return "ADA/USD";
+    if (std.mem.eql(u8, pair, "SUI/USD"))   return "SUI/USD";
+    if (std.mem.eql(u8, pair, "EGLD/USD"))  return "EGLD/USD";
+    // ── LCX USDC variants → USD (USDC ≈ USD for arbitrage) ───────────────
     if (std.mem.eql(u8, pair, "BTC/USDC"))  return "BTC/USD";
     if (std.mem.eql(u8, pair, "LCX/USDC"))  return "LCX/USD";
     if (std.mem.eql(u8, pair, "ETH/USDC"))  return "ETH/USD";
@@ -2141,17 +2162,15 @@ fn canonicalPair(pair: []const u8) []const u8 {
     if (std.mem.eql(u8, pair, "ADA/USDC"))  return "ADA/USD";
     if (std.mem.eql(u8, pair, "SUI/USDC"))  return "SUI/USD";
     if (std.mem.eql(u8, pair, "EGLD/USDC")) return "EGLD/USD";
-    // USDT variants → USD (same fungibility for arbitrage purposes)
+    // ── LCX USDT variants → USD ──────────────────────────────────────────
     if (std.mem.eql(u8, pair, "BTC/USDT"))  return "BTC/USD";
     if (std.mem.eql(u8, pair, "ETH/USDT"))  return "ETH/USD";
     if (std.mem.eql(u8, pair, "SOL/USDT"))  return "SOL/USD";
     if (std.mem.eql(u8, pair, "ADA/USDT"))  return "ADA/USD";
     if (std.mem.eql(u8, pair, "SUI/USDT"))  return "SUI/USD";
     if (std.mem.eql(u8, pair, "EGLD/USDT")) return "EGLD/USD";
-    // Native LCX/USD on LCX exchange (rare but possible)
-    if (std.mem.eql(u8, pair, "LCX/USD"))   return "LCX/USD";
-    // EUR-quoted pairs do NOT canonicalize to USD — return them verbatim
-    // so the arbitrage matcher won't merge them with USD entries.
+    // EUR-quoted pairs do NOT canonicalize — returned as-is so arbitrage
+    // never matches them against USD entries.
     return pair;
 }
 
