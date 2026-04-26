@@ -331,9 +331,30 @@ pub const Blockchain = struct {
     /// Solutie: getOrPut + dupe DOAR la prima insertie. Update-ul ulterior
     /// reutilizeaza key-ul deja persistent.
     pub fn creditBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        const gop = try self.balances.getOrPut(address);
-        if (!gop.found_existing) {
-            gop.key_ptr.* = try self.allocator.dupe(u8, address);
+        // SEGFAULT-FIX [scan-2026-04-26]: dupe FIRST, then getOrPut on the duped slice.
+        // The previous code did getOrPut(externally-borrowed slice) and only duped
+        // on !found_existing. Problem: getOrPut iterates HashMap buckets calling
+        // eqlString on EXISTING keys. If any of those existing keys was inserted
+        // earlier when caller's slice memory was later freed (e.g. dropped block's
+        // miner_address) → eqlString dereferences dangling pointer → SEGFAULT
+        // observed live 2026-04-26 at blockchain.zig:334.
+        // The dupe-first approach trades a tiny extra alloc on found_existing
+        // for guaranteed-valid keys throughout HashMap lifetime.
+        std.debug.print("[CREDIT] addr_len={d} amount={d} hashmap_count={d}\n",
+            .{ address.len, amount, self.balances.count() });
+        if (address.len == 0) return; // skip empty addresses (no miner)
+
+        const owned = try self.allocator.dupe(u8, address);
+        const gop = self.balances.getOrPut(owned) catch |err| {
+            self.allocator.free(owned);
+            return err;
+        };
+        if (gop.found_existing) {
+            // Key already in map — free our dupe; the existing key stays valid
+            // (it was duped at its own first insertion).
+            self.allocator.free(owned);
+        } else {
+            // First time — `owned` becomes the persistent key.
             gop.value_ptr.* = 0;
         }
         gop.value_ptr.* += amount;
@@ -347,12 +368,18 @@ pub const Blockchain = struct {
     }
 
     /// Internal — caller must already hold self.mutex.
-    /// Same getOrPut + dupe pattern as creditBalanceLocked to avoid dangling
+    /// Same dupe-first pattern as creditBalanceLocked to avoid dangling
     /// HashMap key pointers when caller passes a transient slice.
     pub fn debitBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        const gop = try self.balances.getOrPut(address);
-        if (!gop.found_existing) {
-            gop.key_ptr.* = try self.allocator.dupe(u8, address);
+        if (address.len == 0) return;
+        const owned = try self.allocator.dupe(u8, address);
+        const gop = self.balances.getOrPut(owned) catch |err| {
+            self.allocator.free(owned);
+            return err;
+        };
+        if (gop.found_existing) {
+            self.allocator.free(owned);
+        } else {
             gop.value_ptr.* = 0;
         }
         if (gop.value_ptr.* < amount) return error.InsufficientBalance;
