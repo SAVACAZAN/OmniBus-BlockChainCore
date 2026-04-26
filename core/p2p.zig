@@ -2368,7 +2368,14 @@ pub const P2PNode = struct {
                                 const expected_leader = validator_mod.leaderForSlot(
                                     slot_id, tip.hash, bc.validator_set.items);
                                 if (expected_leader) |el| {
-                                    if (claimed_miner.len > 0 and !std.mem.eql(u8, el.address, claimed_miner)) {
+                                    // miner_id is wire-truncated to 32 bytes
+                                    // (MsgBlockAnnounce limit) but addresses
+                                    // are 42 chars. Compare only the first 32
+                                    // chars — same convention as block-hash
+                                    // truncation. Still 32 hex chars = solid
+                                    // collision resistance.
+                                    const cmp_len = @min(@min(claimed_miner.len, el.address.len), @as(usize, 32));
+                                    if (cmp_len > 0 and !std.mem.eql(u8, el.address[0..cmp_len], claimed_miner[0..cmp_len])) {
                                         std.debug.print(
                                             "[SLOT] Rejecting block #{d} from peer — miner '{s}' is NOT slot {d} leader '{s}'\n",
                                             .{ ann.block_height,
@@ -2376,7 +2383,6 @@ pub const P2PNode = struct {
                                                slot_id,
                                                el.address[0..@min(12, el.address.len)] },
                                         );
-                                        // Don't update chain_height, don't requestSync.
                                         return;
                                     }
                                 }
