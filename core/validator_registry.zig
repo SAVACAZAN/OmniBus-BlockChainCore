@@ -55,9 +55,10 @@ pub const GENESIS_VALIDATORS = [_]Validator{
 /// Returns null only if validators slice is empty (impossible in
 /// production — refuse to bootstrap with 0 validators).
 ///
-/// `prev_block_hash` is the HEX-string hash of the previous block.
-/// First 8 hex chars are mixed into the seed; that's plenty of entropy
-/// for picking among <100 validators while staying cheap to compute.
+/// `prev_block_hash` is the FULL HEX-string hash of the previous block
+/// (64 chars). After the 2026-04-26 wire-format upgrade, both peers see
+/// the same 64-char hash, so this formula is now deterministic across
+/// the network. Full hash mixed for max grinding resistance.
 pub fn leaderForSlot(
     slot_id: u64,
     prev_block_hash: []const u8,
@@ -65,13 +66,12 @@ pub fn leaderForSlot(
 ) ?Validator {
     if (validators.len == 0) return null;
 
-    // Build the seed: 8 bytes of slot_id + first 16 hex chars of prev_hash.
+    // Build the seed: 8 bytes of slot_id + entire prev_hash hex (up to 64).
     var hasher = std.crypto.hash.sha2.Sha256.init(.{});
     var slot_bytes: [8]u8 = undefined;
     std.mem.writeInt(u64, &slot_bytes, slot_id, .little);
     hasher.update(&slot_bytes);
-    const prev_slice = prev_block_hash[0..@min(prev_block_hash.len, 16)];
-    hasher.update(prev_slice);
+    hasher.update(prev_block_hash);
     var digest: [32]u8 = undefined;
     hasher.final(&digest);
 

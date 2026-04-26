@@ -60,7 +60,10 @@ pub const SyncManager   = sync_mod.SyncManager;
 pub const P2P_PORT_DEFAULT: u16 = 8333;
 
 /// Versiunea protocolului P2P
-pub const P2P_VERSION: u8 = 1;
+/// Wire protocol version. V2 (2026-04-26): block hashes are 32 raw bytes
+/// (not 32 ASCII chars), miner_id is 42 chars (full OmniBus address).
+/// V1 peers reject V2 announcements cleanly via header version check.
+pub const P2P_VERSION: u8 = 2;
 
 /// Marimea maxima a unui mesaj P2P (1 MB)
 pub const P2P_MAX_MSG_BYTES: u32 = 1_048_576;
@@ -355,32 +358,40 @@ pub fn decodePeerList(data: []const u8, allocator: std.mem.Allocator) ![]MsgPeer
     return peers;
 }
 
+/// Block announcement (gossip).
+/// Wire layout (V2, 2026-04-26 upgrade): 90 bytes total.
+///   [0..8]   block_height (u64 LE)
+///   [8..40]  block_hash   (raw 32 bytes — full SHA-256 digest, NOT ASCII)
+///   [40..82] miner_id     (42 ASCII chars = full OmniBus address, NUL-padded)
+///   [82..90] reward_sat   (u64 LE)
+/// V1 was 80 bytes with 32-char ASCII trunchation (block_hash + miner_id).
+/// Bumping P2P_VERSION makes mixed-version peers reject each other cleanly.
 pub const MsgBlockAnnounce = struct {
     block_height: u64,
     block_hash:   [32]u8,
-    miner_id:     [32]u8,
+    miner_id:     [42]u8,
     reward_sat:   u64,
 
     pub fn encode(self: MsgBlockAnnounce, allocator: std.mem.Allocator) ![]u8 {
-        var buf = try allocator.alloc(u8, 80);
+        var buf = try allocator.alloc(u8, 90);
         std.mem.writeInt(u64, buf[0..8],   self.block_height, .little);
         @memcpy(buf[8..40],  &self.block_hash);
-        @memcpy(buf[40..72], &self.miner_id);
-        std.mem.writeInt(u64, buf[72..80], self.reward_sat, .little);
+        @memcpy(buf[40..82], &self.miner_id);
+        std.mem.writeInt(u64, buf[82..90], self.reward_sat, .little);
         return buf;
     }
 
     pub fn decode(data: []const u8) ?MsgBlockAnnounce {
-        if (data.len < 80) return null;
+        if (data.len < 90) return null;
         var bh: [32]u8 = undefined;
-        var mi: [32]u8 = undefined;
+        var mi: [42]u8 = undefined;
         @memcpy(&bh, data[8..40]);
-        @memcpy(&mi, data[40..72]);
+        @memcpy(&mi, data[40..82]);
         return .{
             .block_height = std.mem.readInt(u64, data[0..8],   .little),
             .block_hash   = bh,
             .miner_id     = mi,
-            .reward_sat   = std.mem.readInt(u64, data[72..80], .little),
+            .reward_sat   = std.mem.readInt(u64, data[82..90], .little),
         };
     }
 };
@@ -630,7 +641,10 @@ pub const PeerConnection = struct {
         try self.send(@intFromEnum(MessageType.stable), payload);
     }
 
-    /// Anunta un bloc nou la peer
+    /// Anunta un bloc nou la peer.
+    /// hash_hex = 64-char lowercase hex string of block hash. We decode it
+    /// to 32 raw bytes for the wire (V2). miner_id = OmniBus wallet address
+    /// (max 42 chars, NUL-padded).
     pub fn announceBlock(
         self:         *PeerConnection,
         height:       u64,
@@ -638,11 +652,20 @@ pub const PeerConnection = struct {
         miner_id:     []const u8,
         reward_sat:   u64,
     ) !void {
+        // Decode 64-char hex hash → 32 raw bytes. If the hash is shorter
+        // (genesis literal "genesis_hash_omnibus_v1"), result is zero-
+        // padded — peers will see all-zero hash and recognize a malformed
+        // header, but we don't want to fail-fast here on broken inputs.
         var bh: [32]u8 = @splat(0);
-        var mi: [32]u8 = @splat(0);
-        const hlen = @min(hash_hex.len, 32);
-        const mlen = @min(miner_id.len, 32);
-        @memcpy(bh[0..hlen], hash_hex[0..hlen]);
+        if (hash_hex.len >= 64) {
+            for (0..32) |i| {
+                const hi = std.fmt.charToDigit(hash_hex[i * 2], 16) catch break;
+                const lo = std.fmt.charToDigit(hash_hex[i * 2 + 1], 16) catch break;
+                bh[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+            }
+        }
+        var mi: [42]u8 = @splat(0);
+        const mlen = @min(miner_id.len, 42);
         @memcpy(mi[0..mlen], miner_id[0..mlen]);
 
         const ann = MsgBlockAnnounce{
@@ -1473,16 +1496,19 @@ pub const P2PNode = struct {
         self.gossip_block_count += 1;
         self.chain_height = height;
 
-        // Use MsgBlockAnnounce as gossip payload. miner_id field carries
-        // the WALLET address that mined the block (peers validate against
-        // slot leader). Falls back to local_id only if attachMinerAddress
-        // wasn't called.
+        // Use MsgBlockAnnounce as gossip payload. block_hash = 32 raw
+        // bytes (V2 wire format), miner_id = up to 42 chars wallet addr.
         const claimed = if (self.miner_address.len > 0) self.miner_address else self.local_id;
         var bh: [32]u8 = @splat(0);
-        var mi: [32]u8 = @splat(0);
-        const hlen = @min(hash_hex.len, 32);
-        const mlen = @min(claimed.len, 32);
-        @memcpy(bh[0..hlen], hash_hex[0..hlen]);
+        if (hash_hex.len >= 64) {
+            for (0..32) |i| {
+                const hi = std.fmt.charToDigit(hash_hex[i * 2], 16) catch break;
+                const lo = std.fmt.charToDigit(hash_hex[i * 2 + 1], 16) catch break;
+                bh[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+            }
+        }
+        var mi: [42]u8 = @splat(0);
+        const mlen = @min(claimed.len, 42);
         @memcpy(mi[0..mlen], claimed[0..mlen]);
 
         const ann = MsgBlockAnnounce{
@@ -2351,15 +2377,12 @@ pub const P2PNode = struct {
                     // and are anchored by checkpoints instead.)
                     if (node.blockchain) |bc| {
                         if (ann.block_height > 0 and ann.block_height == @as(u64, bc.chain.items.len)) {
-                            // Decode miner_id from the announcement (NUL-padded
-                            // 32-byte address slice). Compute expected leader.
-                            var miner_buf: [42]u8 = undefined;
-                            const mlen = @min(ann.miner_id.len, miner_buf.len);
-                            @memcpy(miner_buf[0..mlen], ann.miner_id[0..mlen]);
-                            // Trim trailing NUL/space to get the real address
-                            var real_len: usize = mlen;
-                            while (real_len > 0 and (miner_buf[real_len - 1] == 0 or miner_buf[real_len - 1] == ' ')) real_len -= 1;
-                            const claimed_miner = miner_buf[0..real_len];
+                            // miner_id is now [42]u8 (V2 wire format) — full
+                            // OmniBus address, NUL-padded if shorter. Trim
+                            // trailing NUL to get the real string.
+                            var real_len: usize = ann.miner_id.len;
+                            while (real_len > 0 and (ann.miner_id[real_len - 1] == 0 or ann.miner_id[real_len - 1] == ' ')) real_len -= 1;
+                            const claimed_miner = ann.miner_id[0..real_len];
 
                             const cfg_opt = chainConfigFromMagic(node.chain_magic);
                             if (cfg_opt) |cfg| {
@@ -2368,14 +2391,7 @@ pub const P2PNode = struct {
                                 const expected_leader = validator_mod.leaderForSlot(
                                     slot_id, tip.hash, bc.validator_set.items);
                                 if (expected_leader) |el| {
-                                    // miner_id is wire-truncated to 32 bytes
-                                    // (MsgBlockAnnounce limit) but addresses
-                                    // are 42 chars. Compare only the first 32
-                                    // chars — same convention as block-hash
-                                    // truncation. Still 32 hex chars = solid
-                                    // collision resistance.
-                                    const cmp_len = @min(@min(claimed_miner.len, el.address.len), @as(usize, 32));
-                                    if (cmp_len > 0 and !std.mem.eql(u8, el.address[0..cmp_len], claimed_miner[0..cmp_len])) {
+                                    if (claimed_miner.len > 0 and !std.mem.eql(u8, el.address, claimed_miner)) {
                                         std.debug.print(
                                             "[SLOT] Rejecting block #{d} from peer — miner '{s}' is NOT slot {d} leader '{s}'\n",
                                             .{ ann.block_height,
@@ -2772,11 +2788,17 @@ pub const P2PNode = struct {
         const idx: usize = @intCast(height);
         if (idx >= bc.chain.items.len) return false;
         const local_hex = bc.chain.items[idx].hash;
-        if (local_hex.len < 32) return false;
-        // Wire format quirk (see sync.zig:55): merkle_root is 32 ASCII chars
-        // sliced from the front of the 64-char block hash hex, NOT raw bytes.
-        // So compare directly as bytes — both sides are ASCII hex chars.
-        return std.mem.eql(u8, local_hex[0..32], peer_block_hash[0..32]);
+        if (local_hex.len < 64) return false;
+        // Wire format (post 2026-04-26): merkle_root is 32 RAW BYTES (full
+        // SHA-256 digest). We compare against local hex by decoding 64 hex
+        // chars into 32 bytes and matching all of them.
+        for (0..32) |i| {
+            const hi = std.fmt.charToDigit(local_hex[i * 2], 16) catch return false;
+            const lo = std.fmt.charToDigit(local_hex[i * 2 + 1], 16) catch return false;
+            const local_byte: u8 = (@as(u8, hi) << 4) | @as(u8, lo);
+            if (local_byte != peer_block_hash[i]) return false;
+        }
+        return true;
     }
 
     /// Aplica o lista de BlockHeader primite de la peer in blockchain-ul local.
@@ -2880,21 +2902,24 @@ pub const P2PNode = struct {
                 break;
             }
 
-            // Checkpoint enforcement on incoming blocks. The wire's
-            // merkle_root field is [32]u8 ASCII chars taken from the FIRST
-            // 32 chars of the 64-char block hash hex (legacy truncation in
-            // sync.zig:55). So we compare only the first 32 chars of the
-            // canonical checkpoint hash. Truncated comparison is still
-            // strong: 32 hex chars = 128 bits of collision resistance.
+            // Checkpoint enforcement on incoming blocks. After the wire-
+            // format upgrade (2026-04-26), merkle_root is 32 RAW BYTES.
+            // cp.hash is still 64 lowercase hex chars (human-readable in
+            // chain_config.zig). Decode cp.hash to compare.
             if (chainConfigFromMagic(node.chain_magic)) |cfg| {
                 for (cfg.checkpoints) |cp| {
                     if (cp.height == hdr.height) {
-                        const incoming: []const u8 = hdr.merkle_root[0..32];
-                        const expected: []const u8 = cp.hash[0..32];
-                        if (!std.mem.eql(u8, incoming, expected)) {
+                        var match = true;
+                        for (0..32) |bi| {
+                            const hi = std.fmt.charToDigit(cp.hash[bi * 2], 16) catch { match = false; break; };
+                            const lo = std.fmt.charToDigit(cp.hash[bi * 2 + 1], 16) catch { match = false; break; };
+                            const expected_byte: u8 = (@as(u8, hi) << 4) | @as(u8, lo);
+                            if (expected_byte != hdr.merkle_root[bi]) { match = false; break; }
+                        }
+                        if (!match) {
                             std.debug.print(
-                                "[CHECKPOINT] Incoming block at h={d} hash mismatch — got {s}, expected {s} — REJECTED\n",
-                                .{ hdr.height, incoming[0..16], expected[0..16] },
+                                "[CHECKPOINT] Incoming block at h={d} hash mismatch (expected {s}) — REJECTED\n",
+                                .{ hdr.height, cp.hash[0..16] },
                             );
                             return applied;
                         }
@@ -2905,18 +2930,15 @@ pub const P2PNode = struct {
             // Reconstituim previous_hash din prev_hash[32] ca hex string
             const prev_block = bc.chain.items[local_len - 1];
 
-            // Reconstituim hash-ul blocului. Wire format truncates the
-            // 64-char hash to 32 chars (sync.zig:55) and stores those
-            // ASCII chars verbatim in merkle_root[0..32]. To make
-            // local hash[0..32] match what the peer sends back on
-            // re-broadcast (so reorg detection doesn't trigger on
-            // every overlap), we write the merkle_root ASCII bytes
-            // back into hash_hex[0..32] verbatim, then pad the
-            // remaining 32 chars with '0'. Lossy by design — this
-            // is a wire-protocol limitation we live with until v2.
+            // Reconstituim hash-ul blocului din 32 bytes raw (full SHA-256
+            // digest). Format final: 64 lowercase hex chars. Asta-i acelasi
+            // format ca local mining produce (block.hash din mineBlockForMiner).
+            // Înainte (2026-04-26) wire-ul trunchia la 32 chars ASCII, ceea
+            // ce făcea chain-uri divergente la peer-to-peer. Acum 256 bits full.
             const hash_hex = node.allocator.alloc(u8, 64) catch break;
-            @memcpy(hash_hex[0..32], hdr.merkle_root[0..32]);
-            @memset(hash_hex[32..64], '0');
+            for (0..32) |bi| {
+                _ = std.fmt.bufPrint(hash_hex[bi * 2 .. (bi + 1) * 2], "{x:0>2}", .{hdr.merkle_root[bi]}) catch {};
+            }
 
             // Aloca miner_address — bloc primit de la peer, nu stim minerul → ""
             const miner_addr = node.allocator.dupe(u8, "") catch {
@@ -3220,7 +3242,7 @@ test "MsgBlockAnnounce encode/decode" {
     defer arena.deinit();
 
     const bh: [32]u8 = @splat(0xAA);
-    const mi: [32]u8 = @splat(0xBB);
+    const mi: [42]u8 = @splat(0xBB);
 
     const ann = MsgBlockAnnounce{
         .block_height = 999,

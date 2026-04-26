@@ -34,8 +34,38 @@ pub const MsgGetHeaders = struct {
     }
 };
 
+/// Decodifica un string hex de 64 caractere în 32 bytes raw.
+/// Returneaza array zero-uit dacă parsing-ul eșuează (genesis short-string,
+/// non-hex chars). Tolerant: lungimi mai mici sunt zero-padded la stânga.
+fn hexToBytes32(hex: []const u8) [32]u8 {
+    var out: [32]u8 = @splat(0);
+    if (hex.len < 64) return out; // probably genesis literal — keep zeros
+    for (0..32) |i| {
+        const hi = std.fmt.charToDigit(hex[i * 2], 16) catch return out;
+        const lo = std.fmt.charToDigit(hex[i * 2 + 1], 16) catch return out;
+        out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+    }
+    return out;
+}
+
+/// Codifica 32 bytes raw înapoi în string hex de 64 caractere lowercase.
+/// Caller-ul deține memoria; eliberare cu allocator.free.
+pub fn bytes32ToHex(bytes: [32]u8, allocator: std.mem.Allocator) ![]u8 {
+    const out = try allocator.alloc(u8, 64);
+    for (0..32) |i| {
+        _ = std.fmt.bufPrint(out[i * 2 .. (i + 1) * 2], "{x:0>2}", .{bytes[i]}) catch unreachable;
+    }
+    return out;
+}
+
 /// Un header compact de bloc pentru sync rapid (fara TX-uri)
-/// 88 bytes per header
+/// 88 bytes per header.
+///
+/// IMPORTANT: prev_hash si merkle_root sunt 32 BYTES RAW (decodificate
+/// dintr-un hash hex de 64 chars), NU primii 32 chars ASCII. Asta a fost
+/// bug-ul fundamental până la 2026-04-26 — wire-ul trunchia la 32 chars
+/// (=128 bits efectiv) si chain-urile divergeau peer-to-peer pentru ca
+/// zonele finale ale hash-urilor nu se transmiteau. Acum 256 bits full.
 pub const BlockHeader = struct {
     height:        u64,
     timestamp:     i64,
@@ -44,21 +74,11 @@ pub const BlockHeader = struct {
     nonce:         u64,
 
     pub fn fromBlock(b: *const Block, height: u64) BlockHeader {
-        // Construieste prev_hash din string (padded)
-        var prev: [32]u8 = @splat(0);
-        const plen = @min(b.previous_hash.len, 32);
-        @memcpy(prev[0..plen], b.previous_hash[0..plen]);
-
-        // merkle_root din hash-ul blocului (simplificat)
-        var merkle: [32]u8 = @splat(0);
-        const hlen = @min(b.hash.len, 32);
-        @memcpy(merkle[0..hlen], b.hash[0..hlen]);
-
         return .{
             .height      = height,
             .timestamp   = b.timestamp,
-            .prev_hash   = prev,
-            .merkle_root = merkle,
+            .prev_hash   = hexToBytes32(b.previous_hash),
+            .merkle_root = hexToBytes32(b.hash),
             .nonce       = b.nonce,
         };
     }
