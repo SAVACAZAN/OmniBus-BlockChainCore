@@ -76,6 +76,7 @@ const finality_mod     = @import("finality.zig");
 const governance_mod   = @import("governance.zig");
 const staking_mod      = @import("staking.zig");
 const chain_config_mod = @import("chain_config.zig");
+const validator_mod    = @import("validator_registry.zig");
 const state_trie_mod   = @import("state_trie.zig");
 const tx_receipt_mod   = @import("tx_receipt.zig");
 const guardian_mod     = @import("guardian.zig");
@@ -763,6 +764,46 @@ pub fn main() !void {
         if (p2p.is_syncing.load(.acquire)) {
             std.Thread.sleep(1 * std.time.ns_per_s);
             continue;
+        }
+
+        // ── Slot-leader gate ─────────────────────────────────────────
+        // I produce a block ONLY if the deterministic leader for the
+        // current slot is one of my registered miner addresses.
+        // Otherwise sleep until the slot rolls over.
+        // Anti-fork: every node computes the same leader from the same
+        // (slot_id, prev_hash, validator_set) — so peers reject blocks
+        // not signed by the expected leader. No more winner-take-all.
+        {
+            const now_s: i64 = std.time.timestamp();
+            const genesis_ts: i64 = @intCast(net_cfg.genesis_timestamp);
+            const slot_id = validator_mod.slotFromTimestamp(now_s, genesis_ts);
+            const tip = bc.chain.items[bc.chain.items.len - 1];
+            const leader = validator_mod.leaderForSlot(
+                slot_id,
+                tip.hash,
+                bc.validator_set.items,
+            );
+            const my_addr = wallet.address;
+            const is_my_turn = blk: {
+                if (leader) |l| {
+                    if (std.mem.eql(u8, l.address, my_addr)) break :blk true;
+                }
+                // Also check the miner pool — auto-tx wallets shouldn't
+                // produce blocks (only the founder address does) but if
+                // we ever extend pool to multiple validator wallets, this
+                // is where the broader check goes.
+                break :blk false;
+            };
+            if (!is_my_turn) {
+                if (block_count % 30 == 0 and leader != null) {
+                    std.debug.print(
+                        "[SLOT] Not my turn at slot {d} — leader is {s} (I am {s})\n",
+                        .{ slot_id, leader.?.address[0..@min(12, leader.?.address.len)], my_addr[0..@min(12, my_addr.len)] },
+                    );
+                }
+                std.Thread.sleep(500 * std.time.ns_per_ms);
+                continue;
+            }
         }
 
         // ── Ciclu 10 sub-blocuri × 0.1s → 1 Key-Block ────────────────────────

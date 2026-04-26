@@ -24,6 +24,7 @@ const orderbook_sync_mod = @import("orderbook_sync.zig");
 const evm_executor    = @import("evm_executor.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const chain_config    = @import("chain_config.zig");
+const validator_mod   = @import("validator_registry.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -458,6 +459,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getblock"))         return handleGetBlk(body, ctx, id);
     if (std.mem.eql(u8, method, "getblocks"))        return handleGetBlks(body, ctx, id);
     if (std.mem.eql(u8, method, "getminerstats"))    return handleMinerSt(ctx, id);
+    if (std.mem.eql(u8, method, "getvalidators"))    return handleGetValidators(ctx, id);
+    if (std.mem.eql(u8, method, "getslotleader"))    return handleGetSlotLeader(ctx, id);
     if (std.mem.eql(u8, method, "getminerinfo"))     return handleMinerInf(ctx, id);
     if (std.mem.eql(u8, method, "getnodelist"))      return handleNodeList(ctx, id);
     if (std.mem.eql(u8, method, "estimatefee"))       return handleEstimateFee(ctx, id);
@@ -1067,6 +1070,54 @@ fn handleSyncSt(ctx: *ServerCtx, id: u64) ![]u8 {
     const behind: u64 = if (peer_h > h) peer_h - h else 0;
     const pct: u64 = if (peer_h == 0) 100 else @min(@as(u64, 100), (h * 100) / peer_h);
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"behind\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":false,\"ibd\":{s}}}}}", .{ id, if (ibd_active) "syncing" else "synced", h, peer_h, behind, pct, if (ibd_active) "false" else "true", if (ibd_active) "true" else "false" });
+}
+
+/// List active validators from the on-chain registry. Read-only.
+fn handleGetValidators(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bc.mutex.lock();
+    const count = ctx.bc.validator_set.items.len;
+    var entries_json = std.array_list.Managed(u8).init(alloc);
+    defer entries_json.deinit();
+    for (ctx.bc.validator_set.items, 0..) |v, i| {
+        if (i > 0) try entries_json.appendSlice(",");
+        const e = try std.fmt.allocPrint(alloc,
+            "{{\"address\":\"{s}\",\"weight\":{d},\"since_height\":{d}}}",
+            .{ v.address, v.weight, v.since_height });
+        defer alloc.free(e);
+        try entries_json.appendSlice(e);
+    }
+    ctx.bc.mutex.unlock();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"validators\":[{s}]}}}}",
+        .{ id, count, entries_json.items });
+}
+
+/// Show who is the slot leader for the next block (debug + UI). Pure
+/// computation — same answer on every node holding the same registry.
+fn handleGetSlotLeader(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const now_s: i64 = std.time.timestamp();
+    // Use chain_id to find genesis timestamp. Default mainnet.
+    const cfg = switch (ctx.chain_id) {
+        2 => chain_config.ChainConfig.testnet(),
+        3 => chain_config.ChainConfig.regtest(),
+        else => chain_config.ChainConfig.mainnet(),
+    };
+    const slot_id = validator_mod.slotFromTimestamp(now_s, cfg.genesis_timestamp);
+    ctx.bc.mutex.lock();
+    const tip = ctx.bc.chain.items[ctx.bc.chain.items.len - 1];
+    const tip_hash = tip.hash;
+    const ldr = validator_mod.leaderForSlot(slot_id, tip_hash, ctx.bc.validator_set.items);
+    ctx.bc.mutex.unlock();
+    if (ldr) |l| {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"slot\":{d},\"leader\":\"{s}\",\"weight\":{d}}}}}",
+            .{ id, slot_id, l.address, l.weight });
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"slot\":{d},\"leader\":null,\"error\":\"empty validator set\"}}}}",
+        .{ id, slot_id });
 }
 
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,

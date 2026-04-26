@@ -44,6 +44,7 @@ const sync_mod       = @import("sync.zig");
 const light_client_mod = @import("light_client.zig");
 const ws_mod         = @import("ws_server.zig");
 const chain_config_mod = @import("chain_config.zig");
+const validator_mod    = @import("validator_registry.zig");
 const oracle_policy_mod = @import("oracle_policy.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const oracle_types_mod = @import("oracle_types.zig");
@@ -2319,8 +2320,46 @@ pub const P2PNode = struct {
                     if (ann.block_height > node.chain_height) {
                         node.chain_height = ann.block_height;
                     }
-                    // Daca suntem in urma → cerem blocurile lipsa
+                    // Slot-leader validation on live block announcements.
+                    // Only a block produced by the deterministic slot leader
+                    // is accepted as a chain extension hint. Anything else
+                    // is logged + dropped + peer scored down. (Sync/IBD path
+                    // is exempt — historical blocks come without miner_id
+                    // and are anchored by checkpoints instead.)
                     if (node.blockchain) |bc| {
+                        if (ann.block_height > 0 and ann.block_height == @as(u64, bc.chain.items.len)) {
+                            // Decode miner_id from the announcement (NUL-padded
+                            // 32-byte address slice). Compute expected leader.
+                            var miner_buf: [42]u8 = undefined;
+                            const mlen = @min(ann.miner_id.len, miner_buf.len);
+                            @memcpy(miner_buf[0..mlen], ann.miner_id[0..mlen]);
+                            // Trim trailing NUL/space to get the real address
+                            var real_len: usize = mlen;
+                            while (real_len > 0 and (miner_buf[real_len - 1] == 0 or miner_buf[real_len - 1] == ' ')) real_len -= 1;
+                            const claimed_miner = miner_buf[0..real_len];
+
+                            const cfg_opt = chainConfigFromMagic(node.chain_magic);
+                            if (cfg_opt) |cfg| {
+                                const tip = bc.chain.items[bc.chain.items.len - 1];
+                                const slot_id = validator_mod.slotFromTimestamp(std.time.timestamp(), cfg.genesis_timestamp);
+                                const expected_leader = validator_mod.leaderForSlot(
+                                    slot_id, tip.hash, bc.validator_set.items);
+                                if (expected_leader) |el| {
+                                    if (claimed_miner.len > 0 and !std.mem.eql(u8, el.address, claimed_miner)) {
+                                        std.debug.print(
+                                            "[SLOT] Rejecting block #{d} from peer — miner '{s}' is NOT slot {d} leader '{s}'\n",
+                                            .{ ann.block_height,
+                                               claimed_miner[0..@min(12, claimed_miner.len)],
+                                               slot_id,
+                                               el.address[0..@min(12, el.address.len)] },
+                                        );
+                                        // Don't update chain_height, don't requestSync.
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        // Daca suntem in urma → cerem blocurile lipsa
                         if (ann.block_height > @as(u64, bc.chain.items.len)) {
                             node.requestSync(bc.chain.items.len);
                         }

@@ -6,6 +6,8 @@ const script_mod = @import("script.zig");
 const multisig_mod = @import("multisig.zig");
 const utxo_mod = @import("utxo.zig");
 const oracle_types = @import("oracle_types.zig");
+const validator_mod = @import("validator_registry.zig");
+pub const Validator = validator_mod.Validator;
 // `main_mod` and `ws_exchange_feed_mod` are imported lazily so the WS feed
 // snapshot can be wired into mineBlockForMiner without forcing every test
 // translation unit to pull in the full main.zig graph. Zig resolves these
@@ -134,6 +136,13 @@ pub const Blockchain = struct {
     /// u128 because 2^32 difficulty * 2^64 max chain length comfortably
     /// fits and prevents overflow on long chains.
     cumulative_work: u128 = 0,
+    /// Active validator set — slot-leader rotation reads from this list
+    /// at every block. Initialised at genesis from
+    /// validator_registry.GENESIS_VALIDATORS (bootstrap seed of 2 entries).
+    /// Mutable thereafter via on-chain governance proposals (TODO: governance
+    /// hook). Address strings are static-lifetime (point at GENESIS_VALIDATORS
+    /// data) until governance wires up dupe-on-add.
+    validator_set: std.array_list.Managed(Validator),
     allocator: std.mem.Allocator,
     /// Balantele adreselor (in-memory, sincronizat cu database)
     balances: std.StringHashMap(u64),
@@ -200,10 +209,19 @@ pub const Blockchain = struct {
 
         try chain.append(genesis);
 
+        // Seed validator_set from the bootstrap registry. After genesis,
+        // governance proposals add/remove entries on-chain. The bootstrap
+        // is the ONLY hardcoded list — everything else is mutable state.
+        var validator_set = array_list.Managed(Validator).init(allocator);
+        for (validator_mod.GENESIS_VALIDATORS) |v| {
+            try validator_set.append(v);
+        }
+
         return Blockchain{
             .chain = chain,
             .mempool = mempool,
             .difficulty = 4,
+            .validator_set = validator_set,
             .allocator = allocator,
             .balances = std.StringHashMap(u64).init(allocator),
             .nonces = std.StringHashMap(u64).init(allocator),
@@ -264,6 +282,7 @@ pub const Blockchain = struct {
         }
         self.chain.deinit();
         self.mempool.deinit();
+        self.validator_set.deinit();
         self.balances.deinit();
         self.utxo_set.deinit();
         self.nonces.deinit();
