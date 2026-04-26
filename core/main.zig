@@ -585,35 +585,39 @@ pub fn main() !void {
     defer evm_executor_mod.shutdown();
     std.debug.print("[EVM] Engine initialized (revm)\n", .{});
 
-    // ── WebSocket + RPC — doar pe seed node (minerii nu pornesc servere) ──────
-    var ws_srv = WsServer.init(net_cfg.ws_port, allocator);
-    defer ws_srv.deinit();
-
+    // ── WebSocket + RPC — pornite pe TOATE nodurile ─────────────────────────────
+    // Minerii AU NEVOIE de RPC/WS pentru ca UI (Liberty Suite) sa poata afisa
+    // IBD progress, balance, mining stats pt nodul LOCAL — fara aceasta UI
+    // arata doar starea seed-ului, nu a minerului propriu. Pentru a evita
+    // conflict de port cand rulezi seed + miner pe aceeasi masina, miner-ul
+    // foloseste rpc_port+1 / ws_port+1.
     const is_seed = (config.mode == node_launcher.NodeMode.seed);
-    if (is_seed) {
-        ws_srv.attachBlockchain(&bc);
-        ws_srv.start() catch |err| {
-            std.debug.print("[WS] Server start failed: {} — continuam fara WS\n", .{err});
-        };
+    const ws_port  = if (is_seed) net_cfg.ws_port  else net_cfg.ws_port  + 1;
+    const rpc_port = if (is_seed) net_cfg.rpc_port else net_cfg.rpc_port + 1;
 
-        const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
-            .bc       = &bc,
-            .wallet   = &wallet,
-            .alloc    = allocator,
-            .mempool  = &mempool,
-            .p2p      = p2p,
-            .sync_mgr = &sync_mgr,
-            .metrics  = &g_metrics,
-            .channel_mgr = &g_channel_mgr,
-            .staking  = &staking,
-            .chain_id = @intFromEnum(net_cfg.chain_id),
-            .rpc_port = net_cfg.rpc_port,
-        }});
-        t.detach();
-        std.debug.print("[RPC] Server pornit pe port {d}\n\n", .{net_cfg.rpc_port});
-    } else {
-        std.debug.print("[MINER] RPC/WS disabled — only seed runs servers\n\n", .{});
-    }
+    var ws_srv = WsServer.init(ws_port, allocator);
+    defer ws_srv.deinit();
+    ws_srv.attachBlockchain(&bc);
+    ws_srv.start() catch |err| {
+        std.debug.print("[WS] Server start failed on port {d}: {} — continuam fara WS\n", .{ ws_port, err });
+    };
+    p2p.attachWsServer(&ws_srv);
+
+    const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
+        .bc       = &bc,
+        .wallet   = &wallet,
+        .alloc    = allocator,
+        .mempool  = &mempool,
+        .p2p      = p2p,
+        .sync_mgr = &sync_mgr,
+        .metrics  = &g_metrics,
+        .channel_mgr = &g_channel_mgr,
+        .staking  = &staking,
+        .chain_id = @intFromEnum(net_cfg.chain_id),
+        .rpc_port = rpc_port,
+    }});
+    t.detach();
+    std.debug.print("[RPC] Server pornit pe port {d} ({s})\n\n", .{ rpc_port, if (is_seed) "seed" else "miner" });
 
     // ── Node launcher ─────────────────────────────────────────────────────────
     var launcher = node_launcher.NodeLauncher.init(config);

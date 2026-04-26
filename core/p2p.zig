@@ -42,6 +42,7 @@ const blockchain_mod = @import("blockchain.zig");
 const block_mod      = @import("block.zig");
 const sync_mod       = @import("sync.zig");
 const light_client_mod = @import("light_client.zig");
+const ws_mod         = @import("ws_server.zig");
 const oracle_policy_mod = @import("oracle_policy.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const oracle_types_mod = @import("oracle_types.zig");
@@ -947,6 +948,9 @@ pub const P2PNode = struct {
     sync_mgr:    ?*SyncManager = null,
     /// Pointer la light client — setat via attachLightClient() for SPV mode
     light_client: ?*light_client_mod.LightClient = null,
+    /// Pointer la WS server — set via attachWsServer(). Used to push
+    /// `ibd_progress` events to UI clients in real time.
+    ws_server:    ?*ws_mod.WsServer = null,
     /// Gossip deduplication — recently seen TX hashes
     seen_tx_hashes: SeenHashes = SeenHashes.init(),
     /// Gossip deduplication — recently seen block hashes
@@ -1041,6 +1045,11 @@ pub const P2PNode = struct {
     /// Attach a light client for SPV header sync mode
     pub fn attachLightClient(self: *P2PNode, lc: *light_client_mod.LightClient) void {
         self.light_client = lc;
+    }
+
+    /// Attach WS server so IBD events can be pushed to UI clients live.
+    pub fn attachWsServer(self: *P2PNode, ws: *ws_mod.WsServer) void {
+        self.ws_server = ws;
     }
 
     /// Enable Tor proxy for all outbound P2P connections
@@ -2159,6 +2168,13 @@ pub const P2PNode = struct {
                         "[IBD] Entered sync mode: local={d} peer={d} behind={d} blocks\n",
                         .{ local_h, wm.height, wm.height - local_h },
                     );
+                    // WS broadcast deferred to RPC poll path — calling
+                    // broadcast from recv thread caused a segfault under
+                    // concurrent sub-block + recv load. UI polls
+                    // getsyncstatus every 5s, which is enough resolution
+                    // for an IBD bar that only updates every 2k blocks
+                    // anyway. Will revisit with a dedicated emitter
+                    // thread after MYTHOS audit.
                 }
 
                 // Send back a STABLE confirmation.
@@ -2301,10 +2317,11 @@ pub const P2PNode = struct {
                             .{ local_h, peer_h },
                         );
                     } else if (node.is_syncing.load(.acquire) and peer_h > 0) {
-                        // Progress log every 2000 blocks (~ each sync_response)
+                        const behind = peer_h - local_h;
+                        const pct_u64: u64 = (local_h * 100) / peer_h;
                         std.debug.print(
                             "[IBD] Sync progress: local={d} peer={d} behind={d} blocks ({d}%)\n",
-                            .{ local_h, peer_h, peer_h - local_h, (local_h * 100) / peer_h },
+                            .{ local_h, peer_h, behind, pct_u64 },
                         );
                     }
                 }

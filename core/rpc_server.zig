@@ -196,9 +196,12 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     defer alloc.destroy(ctx);
     defer stream.close();
 
-    // Reuse existing handleConn logic inline.
-    // Use stream.read() — portable across Windows/Linux/macOS instead of
-    // ws2_32.recv (Winsock-only).
+    // Read request. On Windows, std.net.Stream.read goes through
+    // windows.ReadFile which throws error.Unexpected (GetLastError 87) on
+    // certain socket states even though the read itself succeeds — this
+    // tears down the handler before we can send a response, leaving curl
+    // with "Connection was reset". Use Winsock recv() directly on Windows
+    // to bypass this; POSIX uses the portable read() path.
     var buf: [MAX_REQUEST]u8 = undefined;
 
     var total: usize = 0;
@@ -206,8 +209,21 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     var got_header = false;
     var content_len: usize = 0;
 
+    const is_windows = @import("builtin").target.os.tag == .windows;
+
     while (total < buf.len) {
-        const got = ctx.conn.stream.read(buf[total..]) catch break;
+        const got: usize = blk: {
+            if (is_windows) {
+                const ws2 = std.os.windows.ws2_32;
+                const sock: ws2.SOCKET = @ptrFromInt(@as(usize, @intCast(@intFromPtr(ctx.conn.stream.handle))));
+                const dst = buf[total..];
+                const r = ws2.recv(sock, @ptrCast(dst.ptr), @intCast(dst.len), 0);
+                if (r <= 0) break;
+                break :blk @intCast(r);
+            } else {
+                break :blk ctx.conn.stream.read(buf[total..]) catch break;
+            }
+        };
         if (got == 0) break;
         total += got;
         if (!got_header) {
@@ -989,11 +1005,26 @@ fn handlePeers(ctx: *ServerCtx, id: u64) ![]u8 {
 
 fn handleSyncSt(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+
+    // IBD truth comes from p2p.is_syncing + best_peer_height (set in
+    // p2p.zig WELCOME / sync_response handlers). This is the same flag the
+    // mining loop checks — UI must agree with it, otherwise users see
+    // "synced" while the miner is still gated.
+    const ibd_active: bool = if (ctx.p2p) |p| p.is_syncing.load(.acquire) else false;
+    const best_peer_h: u64 = if (ctx.p2p) |p| p.best_peer_height.load(.acquire) else 0;
+
     if (ctx.sync_mgr) |s| {
-        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":{s}}}}}", .{ id, @tagName(s.state.status), s.state.local_height, s.state.peer_height, @as(u64, @intFromFloat(s.state.progressPct())), if (s.isSynced()) "true" else "false", if (s.isStalled()) "true" else "false" });
+        const local_h = s.state.local_height;
+        const peer_h  = if (best_peer_h > s.state.peer_height) best_peer_h else s.state.peer_height;
+        const behind: u64 = if (peer_h > local_h) peer_h - local_h else 0;
+        const pct: u64 = if (peer_h == 0) 100 else @min(@as(u64, 100), (local_h * 100) / peer_h);
+        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"behind\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":{s},\"ibd\":{s}}}}}", .{ id, @tagName(s.state.status), local_h, peer_h, behind, pct, if (s.isSynced() and !ibd_active) "true" else "false", if (s.isStalled()) "true" else "false", if (ibd_active) "true" else "false" });
     }
     const h = ctx.bc.getBlockCount();
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"synced\",\"localHeight\":{d},\"peerHeight\":{d},\"progress\":100,\"synced\":true,\"stalled\":false}}}}", .{ id, h, h });
+    const peer_h = if (best_peer_h > h) best_peer_h else h;
+    const behind: u64 = if (peer_h > h) peer_h - h else 0;
+    const pct: u64 = if (peer_h == 0) 100 else @min(@as(u64, 100), (h * 100) / peer_h);
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"behind\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":false,\"ibd\":{s}}}}}", .{ id, if (ibd_active) "syncing" else "synced", h, peer_h, behind, pct, if (ibd_active) "false" else "true", if (ibd_active) "true" else "false" });
 }
 
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,

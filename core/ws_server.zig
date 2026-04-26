@@ -307,6 +307,29 @@ pub const WsServer = struct {
         self.broadcast(json);
     }
 
+    /// Trimite eveniment "ibd_progress" — folosit de UI ca sa afiseze
+    /// "Syncing N% (behind X blocks)" fara polling.
+    pub fn broadcastIbdProgress(
+        self:        *WsServer,
+        local_h:     u64,
+        peer_h:      u64,
+        behind:      u64,
+        progress:    u8,
+        active:      bool,
+    ) void {
+        var buf: [256]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"ibd_progress\"," ++
+            "\"local_height\":{d}," ++
+            "\"peer_height\":{d}," ++
+            "\"behind\":{d}," ++
+            "\"progress\":{d}," ++
+            "\"active\":{s}}}",
+            .{ local_h, peer_h, behind, progress, if (active) "true" else "false" },
+        ) catch return;
+        self.broadcast(json);
+    }
+
     /// Trimite eveniment "new_tx" la toti clientii
     pub fn broadcastTx(self: *WsServer, tx_id: []const u8, from: []const u8, amount_sat: u64) void {
         var buf: [256]u8 = undefined;
