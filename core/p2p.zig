@@ -2410,7 +2410,8 @@ pub const P2PNode = struct {
                             }
                         }
                         // Daca suntem in urma → cerem blocurile lipsa
-                        if (ann.block_height > @as(u64, bc.chain.items.len)) {
+                        // (>= because chain.items.len = last_height + 1)
+                        if (ann.block_height >= @as(u64, bc.chain.items.len)) {
                             node.requestSync(bc.chain.items.len);
                         }
                     }
