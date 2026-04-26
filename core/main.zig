@@ -744,7 +744,21 @@ pub fn main() !void {
         if (key_block_opt != null) {
             const miner_addr = g_miner_pool.getMinerForBlock(block_count, wallet.address);
             const mine_start_ns: u64 = @intCast(std.time.nanoTimestamp());
-            const new_block = try bc.mineBlockForMiner(miner_addr);
+            // Resilient mining: if mineBlockForMiner returns an error (most
+            // commonly OOM from balance HashMap growth on long-running nodes,
+            // see crash trace 2026-04-26 testnet/regtest at ~16500 blocks),
+            // we log + skip THIS block and continue. The node stays up,
+            // chain pauses 1s, and the next iteration tries again. Crashing
+            // the entire process for a transient OOM is what brought the
+            // testnet/regtest nodes down — never again.
+            const new_block = bc.mineBlockForMiner(miner_addr) catch |err| {
+                std.debug.print(
+                    "[MINER] mineBlockForMiner failed: {} — skipping this block, retrying next tick\n",
+                    .{err},
+                );
+                std.Thread.sleep(1 * std.time.ns_per_s);
+                continue;
+            };
             const mine_end_ns: u64 = @intCast(std.time.nanoTimestamp());
             const mine_time_ns = mine_end_ns - mine_start_ns;
 
