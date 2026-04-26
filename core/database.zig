@@ -819,7 +819,20 @@ pub const PersistentBlockchain = struct {
             pos += addr_len;
             const balance = std.mem.readInt(u64, buf[pos..][0..8], .little);
             pos += 8;
-            try bc.balances.put(addr, balance);
+            // CRITICAL FIX (2026-04-26): the old code did `bc.balances.put(addr, balance)`
+            // where `addr` is a slice into `buf` (DB read buffer). When buf is freed,
+            // HashMap holds dangling pointer keys → next getOrPut from creditBalanceLocked
+            // hits segfault inside eqlString. Dupe so the key is allocator-owned and
+            // survives buf's lifetime.
+            const owned = try bc.allocator.dupe(u8, addr);
+            const gop = bc.balances.getOrPut(owned) catch |err| {
+                bc.allocator.free(owned);
+                return err;
+            };
+            if (gop.found_existing) {
+                bc.allocator.free(owned);
+            }
+            gop.value_ptr.* = balance;
         }
         return pos;
     }
@@ -837,7 +850,14 @@ pub const PersistentBlockchain = struct {
             pos += n_addr_len;
             const nonce_val = std.mem.readInt(u64, buf[pos..][0..8], .little);
             pos += 8;
-            try bc.nonces.put(n_addr, nonce_val);
+            // FIX: dupe key — buf is freed after restore, dangling pointer otherwise.
+            const owned = try bc.allocator.dupe(u8, n_addr);
+            const gop = bc.nonces.getOrPut(owned) catch |err| {
+                bc.allocator.free(owned);
+                return err;
+            };
+            if (gop.found_existing) bc.allocator.free(owned);
+            gop.value_ptr.* = nonce_val;
         }
         return pos;
     }
@@ -855,7 +875,14 @@ pub const PersistentBlockchain = struct {
             pos += th_len;
             const th_height = std.mem.readInt(u64, buf[pos..][0..8], .little);
             pos += 8;
-            try bc.tx_block_height.put(th_hash, th_height);
+            // FIX: dupe key — buf is freed after restore.
+            const owned = try bc.allocator.dupe(u8, th_hash);
+            const gop = bc.tx_block_height.getOrPut(owned) catch |err| {
+                bc.allocator.free(owned);
+                return err;
+            };
+            if (gop.found_existing) bc.allocator.free(owned);
+            gop.value_ptr.* = th_height;
         }
         return pos;
     }
