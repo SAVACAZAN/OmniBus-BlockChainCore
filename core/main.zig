@@ -474,8 +474,20 @@ pub fn main() !void {
     std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
         .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
 
-    // Inregistreaza seed-ul ca primul miner in pool
-    g_miner_pool.register(wallet.address);
+    // ── Effective miner address ─────────────────────────────────────────
+    // Production setup: pass --miner-address to redirect block rewards to
+    // a wallet whose mnemonic stays OFFLINE (Liberty Suite, hardware
+    // wallet, paper). The local wallet derived above signs nothing at
+    // mining time and can be ephemeral. Legacy: if --miner-address is
+    // not set, we fall back to wallet.address (mnemonic-on-miner).
+    const effective_miner_addr: []const u8 = if (config.miner_address) |a| a else wallet.address;
+    if (config.miner_address != null) {
+        std.debug.print("[MINER] Reward address (from --miner-address): {s}\n", .{effective_miner_addr});
+        std.debug.print("[MINER] (mnemonic-derived wallet {s} stays unused for rewards)\n\n", .{wallet.address});
+    }
+
+    // Inregistreaza adresa minerului efectiv ca primul miner in pool
+    g_miner_pool.register(effective_miner_addr);
 
     // ── Init Mempool FIFO ─────────────────────────────────────────────────────
     var mempool = Mempool.init(allocator);
@@ -615,7 +627,7 @@ pub fn main() !void {
     // announcements carry the WALLET address as `miner_id` (which is
     // what peers validate against the slot leader). Without this, peers
     // saw `local_id` ("vps-testnet" etc.) and rejected every block.
-    p2p.attachMinerAddress(wallet.address);
+    p2p.attachMinerAddress(effective_miner_addr);
 
     // RPC bind + auth — read from env vars OMNIBUS_RPC_BIND / OMNIBUS_RPC_TOKEN.
     // Default bind = "127.0.0.1" so a fresh node is NOT exposed to the public
@@ -790,7 +802,7 @@ pub fn main() !void {
                 tip.hash,
                 bc.validator_set.items,
             );
-            const my_addr = wallet.address;
+            const my_addr = effective_miner_addr;
             const is_my_turn = blk: {
                 if (leader) |l| {
                     if (std.mem.eql(u8, l.address, my_addr)) break :blk true;
@@ -834,7 +846,7 @@ pub fn main() !void {
         // Key-Block complet → mineaza blocul principal in blockchain
         // Round-robin: reward-ul merge la fiecare miner pe rand
         if (key_block_opt != null) {
-            const miner_addr = g_miner_pool.getMinerForBlock(block_count, wallet.address);
+            const miner_addr = g_miner_pool.getMinerForBlock(block_count, effective_miner_addr);
             const mine_start_ns: u64 = @intCast(std.time.nanoTimestamp());
             // Resilient mining: if mineBlockForMiner returns an error (most
             // commonly OOM from balance HashMap growth on long-running nodes,

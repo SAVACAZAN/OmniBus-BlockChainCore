@@ -27,6 +27,13 @@ pub const NodeConfig = struct {
     mnemonic: ?[]const u8 = null,
     /// Wallet derivation index (BIP-44 index, default 0)
     wallet_index: u32 = 0,
+    /// Miner reward address — when set, mining rewards go HERE regardless
+    /// of the local wallet's derived address. Use this on miners that
+    /// shouldn't hold a mnemonic (production / public node operator) —
+    /// the wallet stays in a desktop app, the miner just produces blocks
+    /// and credits this address. NULL = legacy behavior (wallet.address
+    /// from mnemonic is used as miner_address).
+    miner_address: ?[]const u8 = null,
     /// Testnet mode: mine with 0 peers (for development/testing)
     testnet: bool = false,
     /// Regtest mode: instant single-miner like Bitcoin regtest (skip peer threshold)

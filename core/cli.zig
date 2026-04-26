@@ -71,6 +71,11 @@ pub const CLI = struct {
         var hashrate: ?u64 = null;
         var mnemonic: ?[]const u8 = null;
         var wallet_index: u32 = 0;
+        // Mining reward address — primary way to set who gets the block
+        // reward. Replaces mnemonic-on-miner (insecure: 24/7 server
+        // exposure). Mnemonic stays in the desktop wallet; miner only
+        // needs the public address.
+        var miner_address: ?[]const u8 = null;
         var testnet: bool = false;
         // Explicit chain selection. Default = mainnet. We keep `testnet` bool
         // above for backward compat (legacy callers).
@@ -145,6 +150,10 @@ pub const CLI = struct {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
                 mnemonic = args[i];
+            } else if (std.mem.eql(u8, arg, "--miner-address")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                miner_address = args[i];
             } else if (std.mem.eql(u8, arg, "--wallet-index")) {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
@@ -250,6 +259,7 @@ pub const CLI = struct {
                 .hashrate = hashrate,
                 .mnemonic = mnemonic,
                 .wallet_index = wallet_index,
+                .miner_address = miner_address,
                 .testnet = testnet,
                 .regtest = (chain_mode == .regtest),
                 .allocator = self.allocator,
