@@ -2408,6 +2408,16 @@ pub const P2PNode = struct {
     /// Reorganize the local chain to match the peer's chain starting at
     /// `divergence_height`. Truncates everything from divergence_height
     /// onward, then accepts peer blocks. Caller MUST hold bc.mutex.
+    ///
+    /// CRITICAL: after dropping blocks we MUST recalculate balances/nonces.
+    /// The balances StringHashMap holds duped address keys; the dropped
+    /// blocks may have inserted address entries whose key memory was freed
+    /// when miner_address was freed below — leaving dangling pointers in
+    /// the HashMap. A subsequent getOrPut on any address that hashes to
+    /// the same bucket would dereference the stale pointer → SEGFAULT
+    /// (observed live: blockchain.zig:334 in mineBlockForMiner after reorg).
+    /// recalculateFromHeight clears + replays state from genesis, leaving
+    /// only valid keys.
     fn truncateChainTo(bc: *Blockchain, allocator: std.mem.Allocator, keep_height: u64) void {
         const target: usize = @intCast(keep_height);
         if (target >= bc.chain.items.len) return;
@@ -2426,9 +2436,13 @@ pub const P2PNode = struct {
             }
         }
         bc.chain.items.len = target;
-        // Note: balances / nonces / tx_block_height are NOT recalculated here.
-        // For a full-correctness reorg, caller must invoke bc.recalculateFromHeight(target).
-        // We rely on the existing replayState path to re-apply balances after.
+
+        // Rebuild balances/nonces from the remaining chain so HashMap entries
+        // referring to freed address keys are gone. Without this, next mining
+        // try → segfault (real bug observed 2026-04-26).
+        bc.recalculateFromHeight(target) catch |err| {
+            std.debug.print("[REORG] recalculateFromHeight failed: {} — node state may be inconsistent, restart recommended\n", .{err});
+        };
     }
 
     /// Compare a peer-provided block hash (from header.merkle_root field which

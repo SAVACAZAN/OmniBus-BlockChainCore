@@ -1157,7 +1157,10 @@ pub const Blockchain = struct {
     }
 
     /// Recalculate balances, nonces, and tx_block_height by replaying all blocks from genesis.
-    fn recalculateFromHeight(self: *Blockchain, from_height: usize) !void {
+    /// Made `pub` so p2p.zig can call after a truncate (reorg) to keep state coherent
+    /// — without this, the balances HashMap retains entries for now-discarded blocks
+    /// whose dupe()'d address keys may have been freed → segfault on next getOrPut.
+    pub fn recalculateFromHeight(self: *Blockchain, from_height: usize) !void {
         _ = from_height;
         // Clear all balance/nonce/tx state and replay from genesis
         self.balances.clearRetainingCapacity();
