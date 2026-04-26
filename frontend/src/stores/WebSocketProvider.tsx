@@ -25,6 +25,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<number | null>(null);
   const pollTimer = useRef<number | null>(null);
+  const pingTimer = useRef<number | null>(null);
   const minerTimer = useRef<number | null>(null);
 
   // ── Initial data fetch ──────────────────────────────────────────────────
@@ -98,6 +99,18 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           clearInterval(pollTimer.current);
           pollTimer.current = null;
         }
+
+        // App-level keepalive: send a tiny text frame every 20 s. Without
+        // this the browser tends to close idle WS sockets after ~60 s.
+        // The Zig WS server tolerates short text frames (it doesn't even
+        // need to parse them) but the activity keeps Nginx + intermediate
+        // proxies from killing the connection.
+        if (pingTimer.current) clearInterval(pingTimer.current);
+        pingTimer.current = window.setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            try { ws.send("ping"); } catch {}
+          }
+        }, 20_000);
       };
 
       // Throttle: max 2 updates per second to avoid UI freeze
@@ -125,9 +138,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       ws.onclose = () => {
         dispatch({ type: "SET_WS_CONNECTED", payload: false });
         wsRef.current = null;
+        // Stop the keepalive timer
+        if (pingTimer.current) {
+          clearInterval(pingTimer.current);
+          pingTimer.current = null;
+        }
         // Start fallback polling
         startFallbackPoll();
-        // Schedule reconnect
+        // Schedule reconnect — fast (1s) so the gap is barely visible
         if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
         reconnectTimer.current = window.setTimeout(
           connectWs,

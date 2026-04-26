@@ -2275,9 +2275,15 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
         var fresh = try alloc.alloc(ws_exchange_feed_mod.PriceFetch, all.len);
         defer alloc.free(fresh);
         var fresh_n: usize = 0;
+        // Threshold widened to 5 minutes for arbitrage: Kraken doesn't push
+        // ticker updates for low-volume pairs (EGLD, SUI) when there's no
+        // trading activity, so the price can sit untouched for >60 s yet
+        // remain valid for arbitrage as long as it's still the resting bid/ask.
+        // The all-prices grid keeps the tighter 30 s 'stale' display flag.
+        const ARBITRAGE_STALE_MS: i64 = 5 * 60 * 1000; // 5 min
         for (all) |p| {
             if (!p.success) continue;
-            if (feedIsStale(p, now_ms, 30_000)) continue;
+            if (feedIsStale(p, now_ms, ARBITRAGE_STALE_MS)) continue;
             if (p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
             fresh[fresh_n] = p;
             fresh_n += 1;

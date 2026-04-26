@@ -73,16 +73,18 @@ pub const ImportantPair = struct {
     coinbase: []const u8,
 };
 
-/// 7 canonical pairs × 3 exchanges. LCX falls back through USDC → USD → EUR.
-/// EUR-priced LCX entries are still displayed but excluded from USD arbitrage.
+/// 7 canonical pairs × 3 exchanges. LCX falls back through USD → USDC → USDT → EUR.
+/// "USD" comes first because LCX has true LCX/USD listing (and possibly more);
+/// USDC/USDT are next as US-stable substitutes for arbitrage; EUR is included
+/// for display but excluded from arbitrage matching.
 pub const IMPORTANT_PAIRS = [_]ImportantPair{
-    .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USDC",  "BTC/USDT",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
-    .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USDC",  "LCX/USD",   "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
-    .{ .label = "ETH/USD",  .lcx_candidates = &[_][]const u8{ "ETH/USDC",  "ETH/USDT",  "ETH/EUR"  }, .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
-    .{ .label = "SOL/USD",  .lcx_candidates = &[_][]const u8{ "SOL/USDC",  "SOL/USDT",  "SOL/EUR"  }, .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
-    .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USDC",  "ADA/USDT",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
-    .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USDC",  "SUI/USDT",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
-    .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USDC", "EGLD/USDT", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
+    .{ .label = "BTC/USD",  .lcx_candidates = &[_][]const u8{ "BTC/USD",  "BTC/USDC",  "BTC/USDT",  "BTC/EUR"  }, .kraken = "BTC/USD",  .coinbase = "BTC-USD"  },
+    .{ .label = "LCX/USD",  .lcx_candidates = &[_][]const u8{ "LCX/USD",  "LCX/USDC",  "LCX/USDT",  "LCX/EUR"  }, .kraken = "LCX/USD",  .coinbase = "LCX-USD"  },
+    .{ .label = "ETH/USD",  .lcx_candidates = &[_][]const u8{ "ETH/USD",  "ETH/USDC",  "ETH/USDT",  "ETH/EUR"  }, .kraken = "ETH/USD",  .coinbase = "ETH-USD"  },
+    .{ .label = "SOL/USD",  .lcx_candidates = &[_][]const u8{ "SOL/USD",  "SOL/USDC",  "SOL/USDT",  "SOL/EUR"  }, .kraken = "SOL/USD",  .coinbase = "SOL-USD"  },
+    .{ .label = "ADA/USD",  .lcx_candidates = &[_][]const u8{ "ADA/USD",  "ADA/USDC",  "ADA/USDT",  "ADA/EUR"  }, .kraken = "ADA/USD",  .coinbase = "ADA-USD"  },
+    .{ .label = "SUI/USD",  .lcx_candidates = &[_][]const u8{ "SUI/USD",  "SUI/USDC",  "SUI/USDT",  "SUI/EUR"  }, .kraken = "SUI/USD",  .coinbase = "SUI-USD"  },
+    .{ .label = "EGLD/USD", .lcx_candidates = &[_][]const u8{ "EGLD/USD", "EGLD/USDC", "EGLD/USDT", "EGLD/EUR" }, .kraken = "EGLD/USD", .coinbase = "EGLD-USD" },
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
