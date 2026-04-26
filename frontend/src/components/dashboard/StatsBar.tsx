@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
+import OmniBusRpcClient from "../../api/rpc-client";
 
 interface StatCardProps {
   label: string;
@@ -23,10 +25,32 @@ function StatCard({ label, value, sub, color = "text-mempool-text" }: StatCardPr
 
 export function StatsBar() {
   const { state } = useBlockchain();
+  const [totalMined, setTotalMined] = useState<string | null>(null);
+
+  // Fetch total mined every time block count changes (cheap on server side —
+  // it's a single sum loop). This is the canonical "Total Mined Network"
+  // shown on the public explorer in place of any per-wallet balance.
+  useEffect(() => {
+    const client = new OmniBusRpcClient();
+    let cancelled = false;
+    client.request_raw("omnibus_gettotalmined", []).then((r) => {
+      if (cancelled) return;
+      if (r?.totalMinedOMNI) setTotalMined(r.totalMinedOMNI);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [state.blockCount]);
 
   const rewardPerBlock = state.networkInfo?.blockRewardSAT
     ? (state.networkInfo.blockRewardSAT / 1e9).toFixed(4)
     : "0.0083";
+
+  // Trim trailing zeros from "X.000000000" -> "X" or "X.123" (4 dp max).
+  const formatOMNI = (raw: string | null) => {
+    if (!raw) return "...";
+    const [int, frac = ""] = raw.split(".");
+    const trimmed = frac.replace(/0+$/, "").slice(0, 4);
+    return trimmed.length > 0 ? `${int}.${trimmed}` : int;
+  };
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -52,9 +76,9 @@ export function StatsBar() {
         sub="PoW leading zeros"
       />
       <StatCard
-        label="Balance"
-        value={`${state.balanceOMNI} OMNI`}
-        sub={`${state.balance.toLocaleString()} SAT`}
+        label="Total Mined"
+        value={`${formatOMNI(totalMined)} OMNI`}
+        sub="all blocks since genesis"
         color="text-mempool-green"
       />
       <StatCard

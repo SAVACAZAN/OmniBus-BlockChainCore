@@ -448,6 +448,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return handleOmnibusGetOraclePolicy(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return handleOmnibusTotalMined(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
@@ -2694,6 +2695,28 @@ fn handleOmnibusBridge(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"bridge_active\":true,\"pending_orders\":0,\"last_settlement_block\":{d},\"relay_latency_ms\":100}}}}",
         .{ id, block_count },
+    );
+}
+
+/// omnibus_gettotalmined — total OMNI minted via mining since genesis.
+/// Sums blockRewardAt(height) from height=1 to current chain tip (genesis
+/// at height 0 carries no reward). Returns SAT and OMNI strings; callers
+/// do not need to know SAT/OMNI conversion. Halving is honored automatically
+/// by blockRewardAt.
+fn handleOmnibusTotalMined(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const tip = ctx.bc.getBlockCount(); // chain length (height + 1)
+    var total_sat: u64 = 0;
+    var h: u64 = 1; // skip genesis
+    while (h < tip) : (h += 1) {
+        total_sat +%= blockchain_mod.blockRewardAt(h);
+    }
+    // Format OMNI with 9 decimals (1 OMNI = 1e9 SAT)
+    const omni_int  = total_sat / 1_000_000_000;
+    const omni_frac = total_sat % 1_000_000_000;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalMinedSAT\":{d},\"totalMinedOMNI\":\"{d}.{d:0>9}\",\"blockHeight\":{d}}}}}",
+        .{ id, total_sat, omni_int, omni_frac, if (tip == 0) 0 else tip - 1 },
     );
 }
 
