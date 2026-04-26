@@ -234,6 +234,12 @@ const RPCThreadArgs = struct {
     /// RPC port from chain config — 8332/18332/28332/38332.
     /// Without this all chains collide on hardcoded 8332.
     rpc_port: u16,
+    /// Bind address. "127.0.0.1" by default for safety, "0.0.0.0" only for
+    /// nodes intended to be public RPC endpoints.
+    rpc_bind: []const u8,
+    /// Optional bearer token. When set, non-loopback requests must include
+    /// `Authorization: Bearer <token>`.
+    rpc_token: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -246,6 +252,8 @@ fn rpcThread(args: RPCThreadArgs) void {
         .staking  = args.staking,
         .chain_id = args.chain_id,
         .port     = args.rpc_port,
+        .bind_host = args.rpc_bind,
+        .auth_token = args.rpc_token,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -603,6 +611,16 @@ pub fn main() !void {
     };
     p2p.attachWsServer(&ws_srv);
 
+    // RPC bind + auth — read from env vars OMNIBUS_RPC_BIND / OMNIBUS_RPC_TOKEN.
+    // Default bind = "127.0.0.1" so a fresh node is NOT exposed to the public
+    // internet by accident. Public nodes (VPS) must explicitly opt in via
+    // OMNIBUS_RPC_BIND=0.0.0.0 + OMNIBUS_RPC_TOKEN=<long-random-string>.
+    // ServerCtx now copies the auth token into its own static buffer so we
+    // are free to drop the env-allocated string after startHTTPEx returns.
+    const rpc_bind = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_BIND") catch
+        try allocator.dupe(u8, "127.0.0.1");
+    const rpc_token: ?[]const u8 = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_TOKEN") catch null;
+
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
         .wallet   = &wallet,
@@ -615,9 +633,16 @@ pub fn main() !void {
         .staking  = &staking,
         .chain_id = @intFromEnum(net_cfg.chain_id),
         .rpc_port = rpc_port,
+        .rpc_bind = rpc_bind,
+        .rpc_token = rpc_token,
     }});
     t.detach();
-    std.debug.print("[RPC] Server pornit pe port {d} ({s})\n\n", .{ rpc_port, if (is_seed) "seed" else "miner" });
+    std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{
+        rpc_port,
+        if (is_seed) "seed" else "miner",
+        rpc_bind,
+        if (rpc_token != null) "ON" else "off (loopback only safe)",
+    });
 
     // ── Node launcher ─────────────────────────────────────────────────────────
     var launcher = node_launcher.NodeLauncher.init(config);

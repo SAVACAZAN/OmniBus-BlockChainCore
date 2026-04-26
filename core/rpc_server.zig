@@ -96,6 +96,14 @@ const ServerCtx = struct {
     registered_miners: [MAX_REGISTERED_MINERS]RegisteredMiner = undefined,
     registered_miner_count: u16 = 0,
     reg_mutex: std.Thread.Mutex = .{},
+    /// Optional bearer token for RPC auth, copied into static storage at
+    /// init time so the buffer outlives any caller-owned slice. Null
+    /// (length=0) = no auth (legacy / dev). When set, non-loopback
+    /// requests MUST include `Authorization: Bearer <token>` or get 401.
+    /// Loopback (127.0.0.1) is always trusted so the local UI works
+    /// without config.
+    auth_token_buf: [128]u8 = undefined,
+    auth_token_len: usize = 0,
 };
 
 /// Context public expus utilizatorilor externi (alias la ServerCtx)
@@ -115,6 +123,15 @@ pub const HTTPConfig = struct {
     /// Port to bind RPC HTTP listener. Default = DEFAULT_PORT (8332 mainnet).
     /// Pass chain_config.rpc_port so testnet/regtest don't all collide on 8332.
     port: u16 = DEFAULT_PORT,
+    /// Address to bind to. Defaults to "127.0.0.1" so a fresh node is NOT
+    /// exposed to the public internet by accident. Pass "0.0.0.0" only on
+    /// nodes intended to be public RPC endpoints (typically behind nginx
+    /// with auth_token + rate limit).
+    bind_host: []const u8 = "127.0.0.1",
+    /// Bearer token for RPC auth. Null = open (loopback always allowed).
+    /// On public nodes, set this to a long random string and inject into
+    /// Authorization header via reverse proxy or trusted client.
+    auth_token: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -133,12 +150,23 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         .pouw = cfg.pouw, .oracle = cfg.oracle,
         .chain_id = cfg.chain_id,
     };
+    // Copy the auth token into ServerCtx-owned static storage so we don't
+    // hold a pointer to a caller-owned slice that might get freed/moved.
+    if (cfg.auth_token) |t| {
+        const n = @min(t.len, ctx.auth_token_buf.len);
+        @memcpy(ctx.auth_token_buf[0..n], t[0..n]);
+        ctx.auth_token_len = n;
+    }
 
-    const addr = try std.net.Address.parseIp4("0.0.0.0", cfg.port);
-    var server  = try addr.listen(.{ .reuse_address = true });
+    const final_addr = std.net.Address.parseIp4(cfg.bind_host, cfg.port) catch blk: {
+        std.debug.print("[RPC] bad bind_host '{s}' — falling back to 127.0.0.1\n", .{cfg.bind_host});
+        break :blk try std.net.Address.parseIp4("127.0.0.1", cfg.port);
+    };
+    var server  = try final_addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
-    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://0.0.0.0:{d}\n", .{cfg.port});
+    const auth_label: []const u8 = if (cfg.auth_token != null) "auth=on" else "auth=off (loopback only safe)";
+    std.debug.print("[RPC] HTTP JSON-RPC 2.0 listening on http://{s}:{d} ({s})\n", .{ cfg.bind_host, cfg.port, auth_label });
 
     // Limita thread-uri concurente (previne OOM sub heavy load).
     // Crescut la 16 pentru a deservi explorer-ul React care face 20 cereri
@@ -242,8 +270,16 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     const raw = buf[0..total];
 
     if (std.mem.startsWith(u8, raw, "OPTIONS")) {
-        const cors = "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\nAccess-Control-Max-Age: 86400\r\nConnection: close\r\n\r\n";
+        const cors = "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nAccess-Control-Max-Age: 86400\r\nConnection: close\r\n\r\n";
         _ = ctx.conn.stream.write(cors) catch {};
+        return;
+    }
+
+    // Auth check before any RPC dispatch. Loopback always allowed; remote
+    // peers must present `Authorization: Bearer <token>` matching ServerCtx
+    // auth_token (set via HTTPConfig from --rpc-token CLI / env).
+    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4(ctx.conn.address))) {
+        writeUnauthorized(ctx.conn.stream);
         return;
     }
 
@@ -307,10 +343,16 @@ fn handleConn(ctx: *ConnCtx) void {
         const cors_response = "HTTP/1.1 204 No Content\r\n" ++
             "Access-Control-Allow-Origin: *\r\n" ++
             "Access-Control-Allow-Methods: POST, OPTIONS\r\n" ++
-            "Access-Control-Allow-Headers: Content-Type\r\n" ++
+            "Access-Control-Allow-Headers: Content-Type, Authorization\r\n" ++
             "Access-Control-Max-Age: 86400\r\n" ++
             "Connection: close\r\n\r\n";
         _ = ctx.conn.stream.write(cors_response) catch {};
+        return;
+    }
+
+    // Auth check (same rules as handleConnCounted).
+    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4(ctx.conn.address))) {
+        writeUnauthorized(ctx.conn.stream);
         return;
     }
 
@@ -1780,6 +1822,54 @@ fn extractContentLength(header: []const u8) usize {
     var end: usize = 0;
     while (end < after.len and after[end] >= '0' and after[end] <= '9') end += 1;
     return std.fmt.parseInt(usize, after[0..end], 10) catch 0;
+}
+
+/// Extract peer IPv4 from connection address. Returns 0 on IPv6/unknown
+/// (which isAuthorized treats as non-loopback → token required).
+fn peerIpv4(addr: std.net.Address) u32 {
+    if (addr.any.family == std.posix.AF.INET) {
+        return addr.in.sa.addr;
+    }
+    return 0;
+}
+
+/// Auth check: returns true if request is authorized.
+/// Rules:
+///  - if `auth_token` is null on ServerCtx → always allowed (legacy / dev)
+///  - if connection is from 127.0.0.1 → always allowed (local UI)
+///  - else: require `Authorization: Bearer <token>` matching ctx.auth_token
+fn isAuthorized(ctx: *ServerCtx, header: []const u8, peer_ip: u32) bool {
+    if (ctx.auth_token_len == 0) return true; // no auth configured
+    const token: []const u8 = ctx.auth_token_buf[0..ctx.auth_token_len];
+    // 127.0.0.1 in network byte order = 0x0100007f. Zig stores in.sa.addr
+    // raw network-order. Loopback = 127.0.0.0/8, low byte (network order
+    // first byte) == 127.
+    if ((peer_ip & 0xFF) == 127) return true;
+    // Header is case-insensitive per RFC 7230, but most clients send the
+    // canonical "Authorization". We accept both common casings.
+    const prefix1 = "Authorization: Bearer ";
+    const prefix2 = "authorization: Bearer ";
+    var bearer_start: ?usize = null;
+    if (std.mem.indexOf(u8, header, prefix1)) |p| bearer_start = p + prefix1.len
+    else if (std.mem.indexOf(u8, header, prefix2)) |p| bearer_start = p + prefix2.len;
+    const start = bearer_start orelse return false;
+    // Token runs until \r or \n
+    var end: usize = start;
+    while (end < header.len and header[end] != '\r' and header[end] != '\n') end += 1;
+    const got = header[start..end];
+    return std.mem.eql(u8, got, token);
+}
+
+/// Send 401 Unauthorized and close.
+fn writeUnauthorized(stream: std.net.Stream) void {
+    const resp = "HTTP/1.1 401 Unauthorized\r\n" ++
+        "Content-Type: application/json\r\n" ++
+        "Content-Length: 67\r\n" ++
+        "Access-Control-Allow-Origin: *\r\n" ++
+        "WWW-Authenticate: Bearer\r\n" ++
+        "Connection: close\r\n\r\n" ++
+        "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32001,\"message\":\"Unauthorized\"}}";
+    _ = stream.write(resp) catch {};
 }
 
 /// Extrage valoarea unui string field din JSON.
