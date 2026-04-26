@@ -1664,6 +1664,12 @@ pub const P2PNode = struct {
         const peer_id = std.fmt.bufPrint(&id_buf, "inbound-{any}", .{conn.address})
             catch "inbound-unknown";
 
+        // Build the inbound PeerConnection. Note we keep `var peer` for the
+        // dispatch loop to use as a stable pointer, but we ALSO register it
+        // in `node.peers` so RPC `getpeers` and gossip broadcast see it.
+        // Without this append, the connection works (PING/PONG, dispatch),
+        // but the node is invisible to its own peers list — causing
+        // dialer's view to show 1 peer while the seed shows 0.
         var peer = PeerConnection{
             .stream    = conn.stream,
             .node_id   = peer_id,
@@ -1676,6 +1682,34 @@ pub const P2PNode = struct {
         };
 
         std.debug.print("[P2P] Handler pornit pentru {s}\n", .{peer_id[0..@min(peer_id.len, 24)]});
+
+        // Symmetric peer registration (matches outbound `connectToPeer` line ~980).
+        // Without this, getpeers returns [] on the seed even though connections exist.
+        // Track index so we can swap-remove on disconnect.
+        var peer_index: ?usize = null;
+        node.peers_mutex.lock();
+        if (node.peers.items.len < MAX_PEERS) {
+            node.peers.append(peer) catch |err| {
+                node.peers_mutex.unlock();
+                std.debug.print("[P2P] Failed to append inbound peer: {}\n", .{err});
+                return;
+            };
+            peer_index = node.peers.items.len - 1;
+            std.debug.print("[P2P] Inbound peer registered: {s} (peers={d})\n",
+                .{ peer_id[0..@min(peer_id.len, 24)], node.peers.items.len });
+        }
+        node.peers_mutex.unlock();
+
+        // Cleanup on exit: remove from peers list (symmetric with cleanDeadPeers).
+        defer {
+            if (peer_index) |idx| {
+                node.peers_mutex.lock();
+                if (idx < node.peers.items.len) {
+                    _ = node.peers.swapRemove(idx);
+                }
+                node.peers_mutex.unlock();
+            }
+        }
 
         // Trimite PING imediat dupa accept
         peer.sendPing(node.local_id, node.chain_height) catch {};
