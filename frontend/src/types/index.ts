@@ -23,7 +23,16 @@ export interface WsStatusEvent {
   difficulty: number;
 }
 
-export type WsEvent = WsNewBlockEvent | WsNewTxEvent | WsStatusEvent;
+export interface WsHeartbeatEvent {
+  event: "heartbeat";
+  timestamp: number;
+}
+
+export type WsEvent =
+  | WsNewBlockEvent
+  | WsNewTxEvent
+  | WsStatusEvent
+  | WsHeartbeatEvent;
 
 // ── RPC Response Shapes ─────────────────────────────────────────────────────
 

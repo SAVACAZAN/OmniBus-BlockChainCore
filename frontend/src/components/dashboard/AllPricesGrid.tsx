@@ -57,10 +57,13 @@ function canonicalExchange(name: string): Exchange | null {
 // ── Cell sub-component ────────────────────────────────────────────────────
 
 function PriceCell({ entry }: { entry: PriceEntry | undefined }) {
-  if (!entry || !entry.success) {
-    return (
-      <div className="text-mempool-text-dim font-mono text-xs">n/a</div>
-    );
+  // Defensive: any missing field → render an empty cell. Never throw or
+  // print 'n/a'. This protects the whole grid from a single bad entry
+  // breaking the React tree.
+  if (!entry || !entry.success || typeof entry.bidMicroUsd !== "number"
+      || typeof entry.askMicroUsd !== "number"
+      || (entry.bidMicroUsd === 0 && entry.askMicroUsd === 0)) {
+    return <div className="font-mono text-xs">&nbsp;</div>;
   }
 
   const dimClass = entry.stale ? "opacity-50" : "";

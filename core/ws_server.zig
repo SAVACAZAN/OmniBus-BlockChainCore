@@ -86,6 +86,28 @@ pub const WsServer = struct {
 
         const t = try std.Thread.spawn(.{}, acceptLoop, .{args});
         t.detach();
+
+        // Heartbeat thread: every 25 s, send a tiny "heartbeat" event to
+        // every connected client. Without this, idle WS connections (no
+        // mempool / block traffic for ~30-60 s) get killed by browser
+        // timers, mobile network NATs, or reverse-proxy idle limits.
+        const hb = try std.Thread.spawn(.{}, heartbeatLoop, .{self});
+        hb.detach();
+    }
+
+    /// Sends a heartbeat JSON to every connected client every 25 seconds.
+    /// Runs forever; exits silently if the server is destroyed (broadcast
+    /// just becomes a no-op).
+    fn heartbeatLoop(srv: *WsServer) void {
+        const HEARTBEAT_INTERVAL_NS: u64 = 25 * std.time.ns_per_s;
+        while (true) {
+            std.Thread.sleep(HEARTBEAT_INTERVAL_NS);
+            const ts = std.time.timestamp();
+            var buf: [128]u8 = undefined;
+            const json = std.fmt.bufPrint(&buf,
+                "{{\"event\":\"heartbeat\",\"timestamp\":{d}}}", .{ts}) catch continue;
+            srv.broadcast(json);
+        }
     }
 
     fn acceptLoop(args: anytype) void {

@@ -131,6 +131,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             case "status":
               dispatch({ type: "WS_STATUS", payload: data });
               break;
+            case "heartbeat":
+              // Server-side keepalive (25 s). No state to update — receiving
+              // it is enough to confirm the socket is alive.
+              break;
           }
         } catch {}
       };
