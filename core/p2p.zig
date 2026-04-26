@@ -1304,8 +1304,15 @@ pub const P2PNode = struct {
         self.peers_mutex.lock();
         defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
+            if (!peer.connected) continue; // skip already-dead peers
             peer.announceBlock(height, hash_hex, self.local_id, reward_sat) catch |err| {
-                std.debug.print("[P2P] Broadcast block to {s} failed: {}\n", .{ peer.node_id, err });
+                std.debug.print("[P2P] Broadcast block to {s} failed: {} — marking peer disconnected, scheduling reconnect\n",
+                    .{ peer.node_id, err });
+                // Mark dead so we don't keep spamming send() on a closed
+                // socket every block. addReconnect schedules a retry.
+                peer.connected = false;
+                peer.close();
+                self.addReconnect(peer.host, peer.port, peer.node_id[0..@min(peer.node_id.len, 32)]);
             };
         }
         if (self.peers.items.len > 0) {
@@ -1400,8 +1407,11 @@ pub const P2PNode = struct {
             for (self.peers.items) |*peer| {
                 if (!peer.connected) continue;
                 peer.send(@intFromEnum(MessageType.block_gossip), payload) catch |err| {
-                    std.debug.print("[GOSSIP] Block send to {s} failed: {}\n",
+                    std.debug.print("[GOSSIP] Block send to {s} failed: {} — marking disconnected\n",
                         .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
+                    peer.connected = false;
+                    peer.close();
+                    self.addReconnect(peer.host, peer.port, peer.node_id[0..@min(peer.node_id.len, 32)]);
                     continue;
                 };
                 sent += 1;

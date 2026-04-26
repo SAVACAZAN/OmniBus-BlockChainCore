@@ -1046,6 +1046,15 @@ pub fn main() !void {
         if (maint_count % 30 == 0) {
             launcher.maintenance();
 
+            // ── P2P maintenance: reconnect dead peers + evict expired bans ──
+            // Without this, peers that drop mid-broadcast (TCP reset) stay
+            // marked dead forever and the node mines on a private fork.
+            // Observed live 2026-04-26: PC at 49875, VPS at 49625, 250
+            // blocks of divergence because gossip kept failing with
+            // ConnectionClosed and nothing reconnected.
+            p2p.processReconnects();
+            p2p.evictExpiredBans();
+
             // ── Governance: log active proposals ────────────────────────
             if (governance.proposal_count > 0) {
                 std.debug.print("[GOVERNANCE] Active proposals: {d}\n", .{governance.proposal_count});
