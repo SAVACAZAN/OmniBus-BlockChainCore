@@ -745,6 +745,15 @@ pub fn main() !void {
         // Key-Block complet → mineaza blocul principal in blockchain
         // Round-robin: reward-ul merge la fiecare miner pe rand
         if (key_block_opt != null) {
+            // ── IBD (Initial Block Download) check ──────────────────────
+            // Like Bitcoin: if we are >IBD_GAP_TRIGGER blocks behind a peer,
+            // p2p.is_syncing is set. Skip mining entirely until we catch up,
+            // otherwise we mine on a stale tip that gets reorg'd back, which
+            // wastes work AND splits the chain (the testnet dual-chain bug).
+            if (p2p.is_syncing.load(.acquire)) {
+                std.Thread.sleep(1 * std.time.ns_per_s);
+                continue;
+            }
             const miner_addr = g_miner_pool.getMinerForBlock(block_count, wallet.address);
             const mine_start_ns: u64 = @intCast(std.time.nanoTimestamp());
             // Resilient mining: if mineBlockForMiner returns an error (most

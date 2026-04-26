@@ -74,6 +74,15 @@ pub const P2P_READ_TIMEOUT_MS: u64 = 5_000;
 pub const MAX_INBOUND: usize = 32;
 /// Max outbound connections
 pub const MAX_OUTBOUND: usize = 8;
+
+// ── IBD (Initial Block Download) constants — Bitcoin Core pattern ──────────
+/// Trigger IBD mode when peer height exceeds local by this many blocks.
+/// Below this gap, normal block-by-block gossip + mining is fine.
+pub const IBD_GAP_TRIGGER: u64 = 6;
+/// Exit IBD mode when local catches up to within this many blocks of peer.
+/// Bitcoin uses 24h-of-blocks (~144) as "in sync"; we use 6 for testnet/dev
+/// agility. After exit, mining resumes.
+pub const IBD_TOLERANCE: u64 = 6;
 /// Max total peers (inbound + outbound)
 pub const MAX_PEERS: usize = MAX_INBOUND + MAX_OUTBOUND;
 /// Max reconnect attempts before removing a peer
@@ -923,6 +932,15 @@ pub const P2PNode = struct {
     chain_height: u64,
     /// true daca un alt miner a fost detectat pe acelasi IP — nu minaza
     is_idle:     bool,
+    /// IBD (Initial Block Download) mode — Bitcoin Core pattern.
+    /// True when local chain is significantly behind a peer; mining loop
+    /// skips block production until catch-up. Toggled by:
+    ///   - .welcome handler: peer.height > local + IBD_GAP_TRIGGER → true
+    ///   - applyBlocksFromPeer: local catches up to peer within IBD_TOLERANCE → false
+    /// Atomic so mining loop reads without locks.
+    is_syncing:  std.atomic.Value(bool) = std.atomic.Value(bool).init(false),
+    /// Best peer height seen — used to compute "behind by N" for IBD progress UI.
+    best_peer_height: std.atomic.Value(u64) = std.atomic.Value(u64).init(0),
     /// Pointer la blockchain — setat via attachBlockchain() dupa init
     blockchain:  ?*Blockchain = null,
     /// Pointer la sync manager — setat via attachBlockchain()
@@ -2130,6 +2148,19 @@ pub const P2PNode = struct {
                     .{ real_id, wm.height },
                 );
                 if (wm.height > node.chain_height) node.chain_height = wm.height;
+
+                // IBD trigger: if peer is significantly ahead, enter sync mode.
+                // Mining loop will skip block production until catch-up.
+                const local_h: u64 = if (node.blockchain) |bc| bc.chain.items.len else 0;
+                if (wm.height > local_h + IBD_GAP_TRIGGER) {
+                    node.is_syncing.store(true, .release);
+                    node.best_peer_height.store(wm.height, .release);
+                    std.debug.print(
+                        "[IBD] Entered sync mode: local={d} peer={d} behind={d} blocks\n",
+                        .{ local_h, wm.height, wm.height - local_h },
+                    );
+                }
+
                 // Send back a STABLE confirmation.
                 peer.sendStable(node.chain_height, @intCast(node.peers.items.len)) catch {};
             },
@@ -2257,6 +2288,25 @@ pub const P2PNode = struct {
                     if (node.sync_mgr) |sm| sm.onBlocksReceived(applied);
                     std.debug.print("[P2P] Aplicat {d}/{d} blocuri de la {s}\n",
                         .{ applied, blocks_msg.count, pid });
+
+                    // IBD exit check: if local now within IBD_TOLERANCE of peer,
+                    // mining can resume. Print exit message once.
+                    const local_h: u64 = bc.chain.items.len;
+                    const peer_h: u64 = peer.height;
+                    if (node.is_syncing.load(.acquire) and peer_h > 0 and
+                        local_h + IBD_TOLERANCE >= peer_h) {
+                        node.is_syncing.store(false, .release);
+                        std.debug.print(
+                            "[IBD] Exited sync mode: local={d} peer={d} — mining resumed\n",
+                            .{ local_h, peer_h },
+                        );
+                    } else if (node.is_syncing.load(.acquire) and peer_h > 0) {
+                        // Progress log every 2000 blocks (~ each sync_response)
+                        std.debug.print(
+                            "[IBD] Sync progress: local={d} peer={d} behind={d} blocks ({d}%)\n",
+                            .{ local_h, peer_h, peer_h - local_h, (local_h * 100) / peer_h },
+                        );
+                    }
                 }
             },
             .peer_list => {
