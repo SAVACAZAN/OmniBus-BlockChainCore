@@ -278,7 +278,7 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     // Auth check before any RPC dispatch. Loopback always allowed; remote
     // peers must present `Authorization: Bearer <token>` matching ServerCtx
     // auth_token (set via HTTPConfig from --rpc-token CLI / env).
-    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4(ctx.conn.address))) {
+    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4Bytes(ctx.conn.address))) {
         writeUnauthorized(ctx.conn.stream);
         return;
     }
@@ -351,7 +351,7 @@ fn handleConn(ctx: *ConnCtx) void {
     }
 
     // Auth check (same rules as handleConnCounted).
-    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4(ctx.conn.address))) {
+    if (!isAuthorized(ctx.server_ctx, raw[0..hdr_end], peerIpv4Bytes(ctx.conn.address))) {
         writeUnauthorized(ctx.conn.stream);
         return;
     }
@@ -1824,29 +1824,45 @@ fn extractContentLength(header: []const u8) usize {
     return std.fmt.parseInt(usize, after[0..end], 10) catch 0;
 }
 
-/// Extract peer IPv4 from connection address. Returns 0 on IPv6/unknown
-/// (which isAuthorized treats as non-loopback → token required).
-fn peerIpv4(addr: std.net.Address) u32 {
+/// Extract peer IPv4 as 4 raw bytes in network byte order.
+/// Returns [0,0,0,0] on IPv6/unknown so isAuthorized treats them as
+/// non-loopback → token required.
+///
+/// Why bytes not u32: addr.in.sa.addr is stored network-order in a
+/// host u32 register. On little-endian (x86_64) `value & 0xFF` gives
+/// the LAST octet, not the first — Kimi BUG_13 caught this: any
+/// remote IP ending in `.127` would bypass auth. Using the raw byte
+/// slice removes endianness entirely.
+fn peerIpv4Bytes(addr: std.net.Address) [4]u8 {
     if (addr.any.family == std.posix.AF.INET) {
-        return addr.in.sa.addr;
+        return std.mem.toBytes(addr.in.sa.addr);
     }
-    return 0;
+    return .{ 0, 0, 0, 0 };
+}
+
+/// Constant-time byte comparison. Returns true iff `a` and `b` have
+/// equal length AND every byte matches. Loops over the full length
+/// regardless of where mismatches occur, so we don't leak the prefix
+/// length via timing side-channel (Kimi BUG_14).
+fn constantTimeEql(a: []const u8, b: []const u8) bool {
+    if (a.len != b.len) return false;
+    var diff: u8 = 0;
+    for (a, b) |x, y| diff |= x ^ y;
+    return diff == 0;
 }
 
 /// Auth check: returns true if request is authorized.
 /// Rules:
 ///  - if `auth_token` is null on ServerCtx → always allowed (legacy / dev)
-///  - if connection is from 127.0.0.1 → always allowed (local UI)
+///  - if connection's first octet is 127 (loopback /8) → always allowed
 ///  - else: require `Authorization: Bearer <token>` matching ctx.auth_token
-fn isAuthorized(ctx: *ServerCtx, header: []const u8, peer_ip: u32) bool {
+///    in constant time
+fn isAuthorized(ctx: *ServerCtx, header: []const u8, peer_ip: [4]u8) bool {
     if (ctx.auth_token_len == 0) return true; // no auth configured
     const token: []const u8 = ctx.auth_token_buf[0..ctx.auth_token_len];
-    // 127.0.0.1 in network byte order = 0x0100007f. Zig stores in.sa.addr
-    // raw network-order. Loopback = 127.0.0.0/8, low byte (network order
-    // first byte) == 127.
-    if ((peer_ip & 0xFF) == 127) return true;
-    // Header is case-insensitive per RFC 7230, but most clients send the
-    // canonical "Authorization". We accept both common casings.
+    // 127.0.0.0/8 = loopback. peer_ip is network-order bytes, so the
+    // FIRST octet is peer_ip[0]. Endian-safe.
+    if (peer_ip[0] == 127) return true;
     const prefix1 = "Authorization: Bearer ";
     const prefix2 = "authorization: Bearer ";
     var bearer_start: ?usize = null;
