@@ -50,33 +50,98 @@ ENV_FILE = Path.home() / ".omnibus" / "miner.env"
 
 
 class C:
-    RESET = "\x1b[0m"
-    DIM   = "\x1b[2m"
-    OK    = "\x1b[32m"
-    WARN  = "\x1b[33m"
-    ERR   = "\x1b[31m"
-    INFO  = "\x1b[36m"
-    BOLD  = "\x1b[1m"
+    RESET   = "\x1b[0m"
+    DIM     = "\x1b[2m"
+    BOLD    = "\x1b[1m"
+    # Foreground colors
+    BLACK   = "\x1b[30m"
+    RED     = "\x1b[31m"
+    GREEN   = "\x1b[32m"
+    YELLOW  = "\x1b[33m"
+    BLUE    = "\x1b[34m"
+    MAGENTA = "\x1b[35m"
+    CYAN    = "\x1b[36m"
+    WHITE   = "\x1b[37m"
+    # Bright foregrounds — pop on dark terminals
+    BR_RED     = "\x1b[91m"
+    BR_GREEN   = "\x1b[92m"
+    BR_YELLOW  = "\x1b[93m"
+    BR_BLUE    = "\x1b[94m"
+    BR_MAGENTA = "\x1b[95m"
+    BR_CYAN    = "\x1b[96m"
+    BR_WHITE   = "\x1b[97m"
+    # Aliases used elsewhere in code
+    OK    = "\x1b[92m"   # bright green
+    WARN  = "\x1b[93m"   # bright yellow
+    ERR   = "\x1b[91m"   # bright red
+    INFO  = "\x1b[96m"   # bright cyan
+
+
+# Enable ANSI colors on Windows console (cmd.exe / PowerShell pre-Win11)
+def _enable_ansi_on_windows():
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+        # STD_OUTPUT_HANDLE = -11
+        h = kernel32.GetStdHandle(-11)
+        mode = ctypes.c_ulong()
+        if kernel32.GetConsoleMode(h, ctypes.byref(mode)):
+            kernel32.SetConsoleMode(h, mode.value | 0x0004)
+    except Exception:
+        pass
+
+
+_enable_ansi_on_windows()
 
 
 def banner():
-    print(f"""{C.BOLD}{C.INFO}
-╔══════════════════════════════════════════════════════╗
-║   We-Are-Here-HodLum-WORKER.py — address-only miner  ║
-║   No mnemonic on this machine. Rewards → address.    ║
-╚══════════════════════════════════════════════════════╝{C.RESET}
+    print(f"""{C.BOLD}{C.BR_CYAN}╔══════════════════════════════════════════════════════╗{C.RESET}
+{C.BOLD}{C.BR_CYAN}║{C.BR_MAGENTA}   We-Are-Here-HodLum-WORKER.py {C.BR_YELLOW}— address-only miner  {C.BR_CYAN}║{C.RESET}
+{C.BOLD}{C.BR_CYAN}║{C.BR_GREEN}   No mnemonic on this machine. {C.BR_YELLOW}Rewards → address.    {C.BR_CYAN}║{C.RESET}
+{C.BOLD}{C.BR_CYAN}║{C.DIM}{C.BR_WHITE}   Press {C.BR_RED}{C.BOLD}Ctrl+C{C.RESET}{C.BR_CYAN}{C.BOLD}{C.DIM}{C.BR_WHITE} anytime to stop the miner cleanly.   {C.BR_CYAN}{C.BOLD}║{C.RESET}
+{C.BOLD}{C.BR_CYAN}╚══════════════════════════════════════════════════════╝{C.RESET}
 """)
 
 
 def load_address_from_env_file() -> str | None:
+    """Read miner address from the env file. Tolerant to PowerShell's
+    UTF-16-with-BOM default — `echo > file` on Windows produces
+    UTF-16-LE with a 0xFF 0xFE prefix, which breaks naive UTF-8 reads.
+    Try utf-8 first, then utf-16, then latin-1 as a last resort."""
+    print(f"{C.DIM}[DEBUG] load_address_from_env_file: ENV_FILE = {ENV_FILE}{C.RESET}")
+    print(f"{C.DIM}[DEBUG] is_file() = {ENV_FILE.is_file()}{C.RESET}")
     if not ENV_FILE.is_file():
+        print(f"{C.DIM}[DEBUG] env file does not exist, returning None{C.RESET}")
         return None
-    for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+    raw_bytes = ENV_FILE.read_bytes()
+    print(f"{C.DIM}[DEBUG] read {len(raw_bytes)} bytes; first 8: {raw_bytes[:8]!r}{C.RESET}")
+    # Strip BOMs / try a few encodings in order.
+    text: str | None = None
+    used_enc: str = ""
+    for enc in ("utf-8-sig", "utf-16", "utf-8", "latin-1"):
+        try:
+            text = raw_bytes.decode(enc)
+            used_enc = enc
+            break
+        except UnicodeDecodeError as e:
+            print(f"{C.DIM}[DEBUG] decode {enc} failed: {e}{C.RESET}")
+            continue
+    if text is None:
+        print(f"{C.ERR}[DEBUG] NO encoding worked!{C.RESET}")
+        return None
+    print(f"{C.DIM}[DEBUG] decoded with {used_enc}; text repr: {text!r}{C.RESET}")
+    for line in text.splitlines():
+        line = line.strip().lstrip("﻿")  # extra BOM safety
+        print(f"{C.DIM}[DEBUG] line: {line!r}{C.RESET}")
         if line.startswith("OMNIBUS_MINER_ADDRESS="):
             addr = line.split("=", 1)[1].strip().strip('"').strip("'")
             if addr:
+                print(f"{C.DIM}[DEBUG] found address: {addr!r}{C.RESET}")
                 return addr
+    print(f"{C.DIM}[DEBUG] no OMNIBUS_MINER_ADDRESS line found{C.RESET}")
     return None
 
 
@@ -156,15 +221,18 @@ def run_miner(args):
         "--miner-address", miner_addr,
     ]
 
-    print(f"{C.INFO}Binary:        {C.RESET}{binary}")
-    print(f"{C.INFO}Working dir:   {C.RESET}{work_dir}")
-    print(f"{C.INFO}Chain:         {C.RESET}{args.chain}  →  seed {args.seed_host}:{seed_port}")
-    print(f"{C.INFO}Node ID:       {C.RESET}{args.node_id}")
-    print(f"{C.INFO}P2P port:      {C.RESET}{args.port}")
-    print(f"{C.INFO}Reward addr:   {C.OK}{miner_addr}{C.RESET}")
-    print(f"{C.INFO}Mnemonic:      {C.DIM}none on this machine (good){C.RESET}")
-    print(f"\n{C.DIM}# {' '.join(cmd)}{C.RESET}\n")
-    print(f"{C.BOLD}─── miner output ───{C.RESET}")
+    # Config panel — different color per field for instant scanability.
+    print(f"{C.BR_CYAN}┌─ {C.BOLD}Config{C.RESET}{C.BR_CYAN} ─────────────────────────────────────────────────{C.RESET}")
+    print(f"  {C.BR_BLUE}Binary:      {C.WHITE}{binary}{C.RESET}")
+    print(f"  {C.BR_BLUE}Working dir: {C.WHITE}{work_dir}{C.RESET}")
+    print(f"  {C.BR_MAGENTA}Chain:       {C.BR_YELLOW}{args.chain}{C.RESET}  {C.DIM}→{C.RESET}  {C.CYAN}seed {args.seed_host}:{seed_port}{C.RESET}")
+    print(f"  {C.BR_MAGENTA}Node ID:     {C.BR_GREEN}{args.node_id}{C.RESET}")
+    print(f"  {C.BR_MAGENTA}P2P port:    {C.BR_YELLOW}{args.port}{C.RESET}")
+    print(f"  {C.BR_RED}Reward addr: {C.OK}{C.BOLD}>>> {miner_addr} <<<{C.RESET}")
+    print(f"  {C.BR_BLUE}Mnemonic:    {C.GREEN}{C.DIM}(none on this machine — good){C.RESET}")
+    print(f"{C.BR_CYAN}└──────────────────────────────────────────────────────────{C.RESET}")
+    print(f"\n{C.DIM}{C.WHITE}$ {' '.join(cmd)}{C.RESET}\n")
+    print(f"{C.BR_MAGENTA}{C.BOLD}─── miner output (Ctrl+C to stop) ───{C.RESET}")
 
     proc = subprocess.Popen(
         cmd,

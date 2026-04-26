@@ -783,18 +783,14 @@ pub fn main() !void {
             continue;
         }
 
-        // ── Slot-leader gate ─────────────────────────────────────────
-        // I produce a block ONLY if the deterministic leader for the
-        // current slot is one of my registered miner addresses.
-        // Otherwise sleep until the slot rolls over.
-        // Anti-fork: every node computes the same leader from the same
-        // (slot_id, prev_hash, validator_set) — so peers reject blocks
-        // not signed by the expected leader. No more winner-take-all.
+        // ── Slot-leader gate (with liveness fallback) ───────────────
+        // 1. Normal: only the slot's deterministic leader produces.
+        // 2. Liveness: if the slot leader hasn't produced in
+        //    SLOT_TIMEOUT_S, ANY active validator can take the slot
+        //    (Tendermint-style "leader skip"). Without this, a network
+        //    of 2 validators would freeze whenever one is offline.
+        const SLOT_TIMEOUT_S: i64 = 3;
         {
-            // Slot-id = next block height. Deterministic across peers
-            // because everyone agrees on block height and prev_hash. Wall-
-            // clock based slots had a 100-500ms drift problem on validate
-            // (mined at slot N, received at slot N+1, leader different).
             const tip = bc.chain.items[bc.chain.items.len - 1];
             const slot_id: u64 = @intCast(bc.chain.items.len); // = next block index
             const leader = validator_mod.leaderForSlot(
@@ -803,14 +799,31 @@ pub fn main() !void {
                 bc.validator_set.items,
             );
             const my_addr = effective_miner_addr;
+
+            // Am I a validator at all? (Required for liveness fallback.)
+            var i_am_validator = false;
+            for (bc.validator_set.items) |v| {
+                if (std.mem.eql(u8, v.address, my_addr)) { i_am_validator = true; break; }
+            }
+
+            // Has the slot timed out (leader inactive)?
+            const now_s: i64 = std.time.timestamp();
+            const tip_age_s: i64 = now_s - tip.timestamp;
+            const slot_timed_out = tip_age_s >= SLOT_TIMEOUT_S;
+
             const is_my_turn = blk: {
                 if (leader) |l| {
                     if (std.mem.eql(u8, l.address, my_addr)) break :blk true;
                 }
-                // Also check the miner pool — auto-tx wallets shouldn't
-                // produce blocks (only the founder address does) but if
-                // we ever extend pool to multiple validator wallets, this
-                // is where the broader check goes.
+                // Liveness: leader missed the slot — any validator picks up.
+                if (slot_timed_out and i_am_validator) {
+                    std.debug.print(
+                        "[SLOT-SKIP] Leader {s} silent for {d}s at slot {d}, taking the slot myself\n",
+                        .{ if (leader) |l| l.address[0..@min(12, l.address.len)] else "<none>",
+                           tip_age_s, slot_id },
+                    );
+                    break :blk true;
+                }
                 break :blk false;
             };
             if (!is_my_turn) {

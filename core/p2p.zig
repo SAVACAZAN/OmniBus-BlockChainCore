@@ -2404,14 +2404,37 @@ pub const P2PNode = struct {
                                     slot_id, tip.hash, bc.validator_set.items);
                                 if (expected_leader) |el| {
                                     if (claimed_miner.len > 0 and !std.mem.eql(u8, el.address, claimed_miner)) {
-                                        std.debug.print(
-                                            "[SLOT] Rejecting block #{d} from peer — miner '{s}' is NOT slot {d} leader '{s}'\n",
-                                            .{ ann.block_height,
-                                               claimed_miner[0..@min(12, claimed_miner.len)],
-                                               slot_id,
-                                               el.address[0..@min(12, el.address.len)] },
-                                        );
-                                        return;
+                                        // Liveness check: if the tip is older
+                                        // than SLOT_TIMEOUT_S, slot has rolled
+                                        // and ANY validator can claim — accept
+                                        // the block as a slot-skip, not a fork.
+                                        const SLOT_TIMEOUT_S: i64 = 3;
+                                        const tip_age_s: i64 = std.time.timestamp() - tip.timestamp;
+                                        const claimed_is_validator = blk: {
+                                            for (bc.validator_set.items) |v| {
+                                                if (std.mem.eql(u8, v.address, claimed_miner)) break :blk true;
+                                            }
+                                            break :blk false;
+                                        };
+                                        if (tip_age_s >= SLOT_TIMEOUT_S and claimed_is_validator) {
+                                            std.debug.print(
+                                                "[SLOT-SKIP] Accepting block #{d} from {s} (tip aged {d}s, leader missed)\n",
+                                                .{ ann.block_height,
+                                                   claimed_miner[0..@min(12, claimed_miner.len)],
+                                                   tip_age_s },
+                                            );
+                                            // fall through — accept block
+                                        } else {
+                                            std.debug.print(
+                                                "[SLOT] Rejecting block #{d} from peer — miner '{s}' is NOT slot {d} leader '{s}' (tip age {d}s)\n",
+                                                .{ ann.block_height,
+                                                   claimed_miner[0..@min(12, claimed_miner.len)],
+                                                   slot_id,
+                                                   el.address[0..@min(12, el.address.len)],
+                                                   tip_age_s },
+                                            );
+                                            return;
+                                        }
                                     }
                                 }
                             }
