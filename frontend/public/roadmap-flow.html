@@ -1,0 +1,284 @@
+<!doctype html>
+<!--
+  roadmap-flow.html — Sand-clock + Pyramid live visualisation.
+
+  Pure static HTML + inline SVG + vanilla JS, zero deps. Polls 3 RPC
+  endpoints once per second:
+    getblockcount   — height feeds the pyramid fill.
+    getclockstatus  — rdtsc + spectrum feeds the binary band under the
+                       hourglass and the per-second tick animation.
+    getstatus       — used as a generic liveness probe.
+
+  Why a separate static page (not a React tab): the React app already
+  pays a non-trivial WS + RPC + render cost per tab switch. This view
+  is meant to *measure* chain timing without contributing to it, so it
+  must add as close to zero load as possible. Static HTML with a 1s
+  polling loop is < 1KB/s outbound and trivial DOM work.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OmniBus — Pyramid &amp; Hourglass</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg2: #0f1a2e;
+      --fg: #e6edf3;
+      --dim: #768494;
+      --orange: #ff8c00;
+      --green: #00d088;
+      --gold: #d4a017;
+      --line: #1f2a3a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      color: var(--fg);
+      font: 13px/1.4 ui-monospace, "JetBrains Mono", Menlo, monospace;
+      min-height: 100vh;
+    }
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    header h1 {
+      margin: 0; font-size: 16px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    header .sub { color: var(--dim); font-size: 11px; }
+    main {
+      max-width: 1100px; margin: 0 auto; padding: 32px 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+    }
+    .card {
+      background: rgba(15,26,46,0.6);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h2 {
+      margin: 0 0 12px 0; font-size: 11px;
+      color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase;
+      font-weight: 500;
+    }
+    .stat-row { display: flex; justify-content: space-between; margin: 4px 0; }
+    .stat-row .k { color: var(--dim); }
+    .stat-row .v { color: var(--fg); }
+    .v.orange { color: var(--orange); }
+    .v.green  { color: var(--green); }
+    .v.gold   { color: var(--gold); }
+
+    .spectrum {
+      font: 10px/1.0 ui-monospace, monospace;
+      letter-spacing: 0.06em;
+      word-break: break-all;
+      color: var(--gold);
+      padding: 8px;
+      background: #050912;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .spectrum .b1 { color: var(--gold); }
+    .spectrum .b0 { color: #2c3440; }
+
+    svg { display: block; margin: 0 auto; }
+    footer {
+      max-width: 1100px; margin: 0 auto;
+      padding: 16px 24px; color: var(--dim);
+      border-top: 1px solid var(--line); font-size: 11px;
+    }
+
+    .pulse {
+      display: inline-block; width: 8px; height: 8px;
+      background: var(--green); border-radius: 50%;
+      animation: pulse 1s infinite;
+      margin-right: 6px;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OmniBus — Pyramid &amp; Hourglass</h1>
+    <span class="sub"><span class="pulse"></span><span id="rpc-state">probing…</span></span>
+  </header>
+
+  <main>
+    <!-- ── PYRAMID: chain height fills it bottom-up ─────────────────── -->
+    <div class="card">
+      <h2>Pyramid · Chain Growth</h2>
+
+      <svg viewBox="0 0 240 220" width="100%" height="220" aria-label="Pyramid">
+        <!-- background outline -->
+        <polygon points="120,10 230,210 10,210" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+        <!-- 8 stacked tiers — fill state set in JS -->
+        <g id="tiers">
+          <polygon class="tier" data-tier="0" points="120,10 134,35 106,35" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="1" points="106,35 134,35 148,60 92,60" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="2" points="92,60 148,60 162,85 78,85" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="3" points="78,85 162,85 176,110 64,110" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="4" points="64,110 176,110 190,135 50,135" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="5" points="50,135 190,135 204,160 36,160" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="6" points="36,160 204,160 218,185 22,185" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+          <polygon class="tier" data-tier="7" points="22,185 218,185 232,210 8,210"  fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.4)" stroke-width="1"/>
+        </g>
+      </svg>
+
+      <div class="stat-row"><span class="k">Block height</span><span class="v orange" id="ph-height">—</span></div>
+      <div class="stat-row"><span class="k">Tier (1 per 10000)</span><span class="v" id="ph-tier">—</span></div>
+      <div class="stat-row"><span class="k">Last block age</span><span class="v" id="ph-age">—</span></div>
+    </div>
+
+    <!-- ── HOURGLASS: time / mempool falling through ──────────────────── -->
+    <div class="card">
+      <h2>Hourglass · Time &amp; Mempool</h2>
+
+      <svg viewBox="0 0 240 220" width="100%" height="220" aria-label="Hourglass">
+        <!-- glass outline -->
+        <path d="M 40 15 L 200 15 L 200 35 L 130 105 L 130 115 L 200 185 L 200 205 L 40 205 L 40 185 L 110 115 L 110 105 L 40 35 Z"
+              fill="none" stroke="var(--line)" stroke-width="2"/>
+
+        <!-- TOP sand: shrinks as a slot progresses (60s window) -->
+        <path id="hg-top" d="M 42 17 L 198 17 L 198 33 L 128 103 L 112 103 L 42 33 Z"
+              fill="var(--gold)" opacity="0.7"/>
+
+        <!-- BOTTOM sand: grows as a slot progresses -->
+        <path id="hg-bot" d="M 130 117 L 198 187 L 198 203 L 42 203 L 42 187 L 110 117 Z"
+              fill="var(--gold)" opacity="0.5" transform-origin="120 200"/>
+
+        <!-- Falling stream -->
+        <line x1="120" y1="103" x2="120" y2="117"
+              stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2,2"/>
+      </svg>
+
+      <div class="stat-row"><span class="k">Slot phase</span><span class="v gold" id="hg-phase">—</span></div>
+      <div class="stat-row"><span class="k">Mempool size</span><span class="v" id="hg-mp">—</span></div>
+      <div class="stat-row"><span class="k">RDTSC cycles</span><span class="v" id="hg-rdtsc">—</span></div>
+
+      <div class="spectrum" id="hg-spec">…</div>
+    </div>
+  </main>
+
+  <footer>
+    Read-only view; polls RPC every 1s. Does not subscribe to WebSocket
+    or hold long-lived state — designed to add near-zero load on the
+    node. Pyramid tier = ⌊height / 10000⌋. Hourglass cycle = 60s.
+  </footer>
+
+  <script>
+    // ── RPC helpers ──────────────────────────────────────────────────
+    const RPC = location.origin.replace(/:\d+$/, "") + ":18332";
+    const FALLBACK = location.origin;
+
+    async function rpc(method, params = []) {
+      const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params });
+      // Try same-origin first (when served by the node), fall back to :18332.
+      for (const url of [FALLBACK, RPC]) {
+        try {
+          const r = await fetch(url, { method: "POST", body,
+            headers: { "Content-Type": "application/json" } });
+          if (!r.ok) continue;
+          const j = await r.json();
+          if (j.error) continue;
+          return j.result;
+        } catch (e) { /* try next */ }
+      }
+      return null;
+    }
+
+    // ── State ────────────────────────────────────────────────────────
+    let lastHeight = null;
+    let lastHeightTs = Date.now();
+    let cycleStart = Date.now();
+
+    // ── Pyramid ──────────────────────────────────────────────────────
+    function paintPyramid(height) {
+      const tier = Math.floor(height / 10000);   // 1 tier per 10k blocks
+      const within = (height % 10000) / 10000;   // 0..1 fill of current tier
+      const tiers = document.querySelectorAll("#tiers .tier");
+      // 8 tiers: bottom (#7) → top (#0). Fill bottom-up.
+      tiers.forEach((el, i) => {
+        const fromBottom = 7 - i;  // tier index counting from bottom
+        if (fromBottom < tier) {
+          el.setAttribute("fill", "rgba(255,140,0,0.85)");
+        } else if (fromBottom === tier) {
+          // partial — modulate alpha
+          const a = 0.15 + within * 0.7;
+          el.setAttribute("fill", `rgba(255,140,0,${a.toFixed(2)})`);
+        } else {
+          el.setAttribute("fill", "rgba(255,140,0,0.08)");
+        }
+      });
+      document.getElementById("ph-height").textContent = height.toLocaleString();
+      document.getElementById("ph-tier").textContent = tier + " (" + Math.floor(within*100) + "%)";
+    }
+
+    // ── Hourglass ────────────────────────────────────────────────────
+    function paintHourglass(rdtsc, spectrum, mempoolSize) {
+      const elapsed = (Date.now() - cycleStart) / 1000; // 0..60
+      const cyclePos = (elapsed % 60) / 60;             // 0..1
+      // Top shrinks: scaleY 1 → 0
+      const topY = 1 - cyclePos;
+      document.getElementById("hg-top").setAttribute(
+        "transform", `translate(0,${(1-topY)*43}) scale(1, ${topY})`);
+      // Bottom grows: scaleY 0 → 1
+      document.getElementById("hg-bot").setAttribute(
+        "transform", `scale(1, ${cyclePos})`);
+
+      document.getElementById("hg-phase").textContent =
+        `${Math.floor(elapsed % 60)}s / 60s`;
+      document.getElementById("hg-mp").textContent =
+        mempoolSize !== null ? mempoolSize : "—";
+      if (rdtsc !== null) {
+        document.getElementById("hg-rdtsc").textContent = rdtsc.toLocaleString();
+      }
+      if (spectrum) {
+        // Color each bit
+        const html = Array.from(spectrum).map(c =>
+          c === "1" ? '<span class="b1">1</span>' : '<span class="b0">0</span>'
+        ).join("");
+        document.getElementById("hg-spec").innerHTML = html;
+      }
+    }
+
+    // ── Poll loop ────────────────────────────────────────────────────
+    async function poll() {
+      const [height, clock, mp] = await Promise.all([
+        rpc("getblockcount"),
+        rpc("getclockstatus"),
+        rpc("getmempoolsize"),
+      ]);
+      const stateEl = document.getElementById("rpc-state");
+
+      if (height !== null) {
+        if (height !== lastHeight) {
+          lastHeight = height;
+          lastHeightTs = Date.now();
+        }
+        paintPyramid(height);
+        const ageS = Math.floor((Date.now() - lastHeightTs) / 1000);
+        document.getElementById("ph-age").textContent = ageS + "s";
+        stateEl.textContent = "live";
+      } else {
+        stateEl.textContent = "rpc offline";
+      }
+
+      paintHourglass(
+        clock ? clock.rdtsc : null,
+        clock ? clock.spectrum : null,
+        mp !== null && mp !== undefined ? (mp.size || mp) : null,
+      );
+    }
+
+    poll();
+    setInterval(poll, 1000);
+  </script>
+</body>
+</html>

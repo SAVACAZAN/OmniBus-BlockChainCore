@@ -1725,7 +1725,13 @@ pub fn main() !void {
             // block faster than MIN_BLOCK_GAP_MS after the previous one.
             // Prevents the post-VPS-pause "7 blocks in the same second"
             // cluster the operator sees in the explorer.
-            if (last_block_produced_ms != 0) {
+            //
+            // Adaptive: when we're already lagging behind target rate
+            // (timeout_mult < 1.0 means stabilizer wants us to catch up),
+            // don't smooth. Burst is what the chain *needs* to recover
+            // from a pause — only smooth when we're at-or-above target
+            // and the cosmetic clustering would otherwise show.
+            if (last_block_produced_ms != 0 and stabilizer_timeout_mult >= 1.0) {
                 const since_last = now_ms - last_block_produced_ms;
                 if (since_last < MIN_BLOCK_GAP_MS) {
                     const wait_ms: u64 = @intCast(MIN_BLOCK_GAP_MS - since_last);
@@ -1824,19 +1830,25 @@ pub fn main() !void {
             block_count += 1;
             last_block_produced_ms = g_clock.nowMs();
 
-            // Rebuild slot calendar against the new tip. Pre-computes the
-            // next 60 leaders so the frontend can show "next slot at X,
-            // leader = Y" and the future-block-pool can route TX to the
-            // right slot without per-TX leaderForSlot calls.
-            g_slot_calendar.rebuild(
-                validator_mod.Validator,
-                bc.validator_set.items,
-                @intCast(block_count),
-                new_block.hash,
-                last_block_produced_ms,
-                1000, // slot interval ms — matches block time
-                validator_mod.leaderForSlot,
-            );
+            // Rebuild slot calendar every 10 blocks (≈ every 10 seconds at
+            // target rate). 60 leaderForSlot SHA256 calls per rebuild was
+            // ~60-200µs of hot-path overhead per block; at 1/10 rate that
+            // drops to a 6-20µs amortised cost. Calendar entries don't go
+            // stale faster than that — leader assignments are stable as
+            // long as validator_set + tip hash haven't changed, and an
+            // out-of-date calendar self-corrects via refreshStates() and
+            // isStale() checks at consume time.
+            if (block_count % 10 == 0) {
+                g_slot_calendar.rebuild(
+                    validator_mod.Validator,
+                    bc.validator_set.items,
+                    @intCast(block_count),
+                    new_block.hash,
+                    last_block_produced_ms,
+                    1000, // slot interval ms — matches block time
+                    validator_mod.leaderForSlot,
+                );
+            }
 
             // ── Stabilizer: record block arrival + adapt timeouts ──────────
             //
