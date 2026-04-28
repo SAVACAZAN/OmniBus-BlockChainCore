@@ -237,6 +237,12 @@ pub var g_agents_active: bool = false;
 // Initialized in main() with a real allocator (needs HTTP client)
 pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 
+// ── Global AtomicClock — single source of time across the whole node ───────
+// Initialised lazily at runtime entry (initReal() reads OS clock which
+// can't run at comptime). Subsystems started after main() entry attach to
+// this via &g_clock. On baremetal we'll swap the backend to TSC.
+pub var g_clock: orchestrator_mod.AtomicClock = undefined;
+
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
@@ -719,6 +725,11 @@ fn backfillReputationFromChain(
 }
 
 pub fn main() !void {
+    // Initialise the global AtomicClock first — every subsystem started
+    // below (RPC, WS, mining) attaches to it. Done at runtime entry
+    // because initReal() reads OS time which can't run at comptime.
+    g_clock = orchestrator_mod.AtomicClock.initReal();
+
     // Single-instance lock dezactivat — permite multiple instante pe acelasi PC
     // pentru testare retea cu N mineri. In productie, reactivati acquireSingleInstanceLock().
     // acquireSingleInstanceLock();
@@ -1414,6 +1425,10 @@ pub fn main() !void {
     // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX ──
     g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
     if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
+    // Wire the shared clock BEFORE start() — every PriceFetch.timestamp_ms
+    // and circuit-breaker rate-limit timer flows through g_g_clock.nowMs(),
+    // putting feed events on the same timeline as mining and matching.
+    g_ws_feed.?.setClock(&g_clock);
     g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
 
     // ── Reputation Manager + retro backfill din chain history ──
@@ -1428,10 +1443,10 @@ pub fn main() !void {
 
     // ── Single source of time ──────────────────────────────────────────
     // All slot/sub-block/stabilizer/ws timing reads from this clock.
-    // On baremetal we'll swap the implementation to TSC-based; nothing
-    // else in the loop changes.
-    var clock = orchestrator_mod.AtomicClock.initReal();
-    var orch = orchestrator_mod.TimeOrchestrator.init(&clock);
+    // On baremetal we'll swap the backend to TSC-based; nothing else
+    // in the loop changes. Uses the global g_clock so subsystems
+    // started earlier (WS feed, RPC) share the same timeline.
+    var orch = orchestrator_mod.TimeOrchestrator.init(&g_clock);
     // Stabilizer timer wired up immediately. Slot + sub-block timers
     // remain driven by the existing logic for now (see Step 2 plan) —
     // we cut over incrementally to keep regressions contained.
@@ -1442,7 +1457,7 @@ pub fn main() !void {
     // slot-failover. This captures the wall-clock ms when we observed the
     // current tip height, refreshed each iteration if the tip changed.
     var last_tip_height: usize = bc.chain.items.len;
-    var tip_arrival_ms: i64 = clock.nowMs();
+    var tip_arrival_ms: i64 = g_clock.nowMs();
 
     // ── Burst smoothing ──────────────────────────────────────────────────
     // Minimum interval between two consecutive blocks WE produce. Without
@@ -1482,7 +1497,7 @@ pub fn main() !void {
     var rate_ring: [RATE_RING_SIZE]i64 = std.mem.zeroes([RATE_RING_SIZE]i64);
     var rate_ring_head: usize = 0;
     var rate_ring_count: usize = 0;
-    var stabilizer_last_report_ms: i64 = clock.nowMs();
+    var stabilizer_last_report_ms: i64 = g_clock.nowMs();
     // Adaptive multiplier for SLOT_TIMEOUT_MS, clamped to [0.2, 2.0]. Updated
     // once per stabilizer report based on observed-vs-target ratio.
     var stabilizer_timeout_mult: f64 = 1.0;
@@ -1569,7 +1584,7 @@ pub fn main() !void {
             // N-1 landed, not from some absolute past wall-clock.
             if (bc.chain.items.len != last_tip_height) {
                 last_tip_height = bc.chain.items.len;
-                tip_arrival_ms = clock.nowMs();
+                tip_arrival_ms = g_clock.nowMs();
             }
 
             // Am I a validator at all? (Required for liveness fallback.)
@@ -1587,7 +1602,7 @@ pub fn main() !void {
             // 300ms of wall-clock. This was the dominant cost in the 35
             // blocks/min steady state: half the slots had a missing peer
             // leader → 300ms × 0.5 ≈ 150ms wasted per block on average.
-            const now_ms: i64 = clock.nowMs();
+            const now_ms: i64 = g_clock.nowMs();
             const now_s: i64 = @divTrunc(now_ms, 1000);
             const tip_age_ms: i64 = now_ms - tip_arrival_ms;
             const peer_active_ts_ms = p2p.lastPeerActivityTs() * 1000;
@@ -1800,7 +1815,7 @@ pub fn main() !void {
             }
 
             block_count += 1;
-            last_block_produced_ms = clock.nowMs();
+            last_block_produced_ms = g_clock.nowMs();
 
             // ── Stabilizer: record block arrival + adapt timeouts ──────────
             //
@@ -1811,7 +1826,7 @@ pub fn main() !void {
             // so that a block arriving slightly after the orchestrator
             // tick still triggers the report on its own arrival path.
             {
-                const arrival_ms = clock.nowMs();
+                const arrival_ms = g_clock.nowMs();
                 rate_ring[rate_ring_head] = arrival_ms;
                 rate_ring_head = (rate_ring_head + 1) % RATE_RING_SIZE;
                 if (rate_ring_count < RATE_RING_SIZE) rate_ring_count += 1;
@@ -1851,15 +1866,29 @@ pub fn main() !void {
                     const score = orchestrator_mod.clockScore60s(
                         stabilizer_last_report_ms, arrival_ms,
                     );
+
+                    // Hardware cycle counter snapshot — direct rdtscp.
+                    // The 64-bit spectrum line lets the operator visually
+                    // see CPU clock progression. On a stable system the
+                    // high 16 bits stay constant minute-to-minute; the
+                    // low bits oscillate every cycle. Anomalies (suspended
+                    // process, frequency scaling, hypervisor migration)
+                    // show up as broken bit patterns.
+                    const cycles = orchestrator_mod.nowCycles();
+                    var spec_buf: [64]u8 = undefined;
+                    orchestrator_mod.formatSpectrum(cycles, &spec_buf);
+
                     std.debug.print(
                         "[STABILIZER] last 60s = {d} blocks ({d:.1}/min) | " ++
                         "last 60min = {d} blocks | target = {d:.0}/min | " ++
                         "ratio = {d:.2} | timeout_mult = {d:.2} | " ++
-                        "clock_score = {d}/100\n",
+                        "clock_score = {d}/100 | rdtsc = {d}\n" ++
+                        "[CLOCK-BITS] {s}\n",
                         .{
                             blocks_1m, @as(f64, @floatFromInt(blocks_1m)),
                             blocks_60m, TARGET_BLOCKS_PER_MIN,
-                            ratio, stabilizer_timeout_mult, score,
+                            ratio, stabilizer_timeout_mult, score, cycles,
+                            spec_buf,
                         },
                     );
                     stabilizer_last_report_ms = arrival_ms;

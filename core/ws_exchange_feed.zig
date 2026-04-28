@@ -28,9 +28,21 @@
 const std = @import("std");
 const ws_client = @import("ws_client.zig");
 const pair_registry_mod = @import("pair_registry.zig");
+const orchestrator_mod = @import("orchestrator.zig");
 
 const WsClient = ws_client.WsClient;
 pub const PairRegistry = pair_registry_mod.PairRegistry;
+pub const AtomicClock = orchestrator_mod.AtomicClock;
+
+/// Thread-safe time read. Falls back to OS clock when no AtomicClock
+/// has been wired in (legacy callers + module-init paths). When the
+/// node's main loop attaches a clock via `setClock()`, all subsequent
+/// reads route through it — gives uniform timestamps across mining,
+/// matching engine, and the exchange feed.
+fn nowMs(clock: ?*const AtomicClock) i64 {
+    if (clock) |c| return c.nowMs();
+    return std.time.milliTimestamp();
+}
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -191,6 +203,13 @@ pub const ExchangeFeed = struct {
     /// Caller owns the registry; we only hold a borrow.
     pair_registry: ?*const PairRegistry,
 
+    /// OPTIONAL shared AtomicClock. When set (via `setClock`), all
+    /// timestamps written into PriceFetch entries + circuit-breaker
+    /// rate limits read through it instead of std.time.milliTimestamp().
+    /// Lets the operator correlate exchange-feed events with mining
+    /// loop events on the same time axis. Caller owns the clock.
+    clock: ?*const AtomicClock,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator) Self {
@@ -207,7 +226,14 @@ pub const ExchangeFeed = struct {
             .run = std.atomic.Value(bool).init(false),
             .threads = .{ null, null, null },
             .pair_registry = null,
+            .clock = null,
         };
+    }
+
+    /// Wire in the node-wide AtomicClock. Call BEFORE start(). Safe
+    /// to omit — falls back to OS time read when unset.
+    pub fn setClock(self: *Self, clock: *const AtomicClock) void {
+        self.clock = clock;
     }
 
     /// Attach a dynamic pair registry. Call BEFORE `start()`. Caller owns the
@@ -466,7 +492,7 @@ pub const ExchangeFeed = struct {
             // Update in place — no allocation, no counter change.
             existing.bid_micro_usd = bid;
             existing.ask_micro_usd = ask;
-            existing.timestamp_ms  = std.time.milliTimestamp();
+            existing.timestamp_ms  = nowMs(self.clock);
             existing.success       = true;
             return;
         }
@@ -495,7 +521,7 @@ pub const ExchangeFeed = struct {
             .pair = owned_pair,
             .bid_micro_usd = bid,
             .ask_micro_usd = ask,
-            .timestamp_ms = std.time.milliTimestamp(),
+            .timestamp_ms = nowMs(self.clock),
             .success = true,
         };
         self.prices.put(owned_key, fetch) catch {
@@ -521,7 +547,7 @@ pub const ExchangeFeed = struct {
     /// Rate-limited circuit-breaker warning: at most one log per exchange per
     /// minute. `per_exchange` flag distinguishes the two cap types in the log.
     fn warnCircuitBreaker(self: *Self, exchange: []const u8, pair: []const u8, cap: usize, per_exchange: bool) void {
-        const now_ms = std.time.milliTimestamp();
+        const now_ms = nowMs(self.clock);
         const last = self.lastWarnPtr(exchange);
         if (now_ms - last.* < 60_000) return;
         last.* = now_ms;
@@ -885,11 +911,11 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
 
-    var last_ping_ms: i64 = std.time.milliTimestamp();
+    var last_ping_ms: i64 = nowMs(feed.clock);
 
     while (feed.run.load(.acquire)) {
         // Send app-level "ping" text frame at most every LCX_PING_INTERVAL_MS.
-        const now_ms = std.time.milliTimestamp();
+        const now_ms = nowMs(feed.clock);
         if (now_ms - last_ping_ms >= LCX_PING_INTERVAL_MS) {
             client.send("ping") catch return error.ConnectionClosed;
             last_ping_ms = now_ms;

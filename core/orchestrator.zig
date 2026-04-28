@@ -26,6 +26,73 @@
 
 const std = @import("std");
 
+// ─── Hardware Cycle Counter (RDTSC) ─────────────────────────────────────────
+
+const builtin = @import("builtin");
+
+/// Read the CPU cycle counter directly. On x86_64 this compiles down to a
+/// single `rdtscp` instruction — ~10-30 cycles latency, ~0.3ns resolution
+/// on a 3GHz core. This is the "atomic clock at the bare metal" timer
+/// HFT firms (Jump, Citadel) use for nanosecond-class measurements.
+///
+/// On non-x86_64 platforms we fall back to OS nanosecond timer.
+///
+/// NOTE: RDTSC drifts between cores on multi-CPU systems unless
+/// invariant TSC is supported (true on every Intel/AMD chip from
+/// ~2010 onwards). For our use case (single mining loop thread)
+/// this is not an issue.
+pub fn nowCycles() u64 {
+    if (comptime builtin.cpu.arch == .x86_64) {
+        // rdtscp returns:
+        //   EDX:EAX = 64-bit cycle counter
+        //   ECX     = processor ID (auxiliary, ignored)
+        // We read EDX:EAX as a single u64 by combining the two halves.
+        // RDTSCP returns EDX:EAX = 64-bit cycle counter, ECX = processor
+        // ID. We don't use the proc-id (we don't pin to a core), but the
+        // asm output binding still has to declare ECX so the register
+        // doesn't get reused mid-instruction.
+        var lo: u32 = undefined;
+        var hi: u32 = undefined;
+        var aux: u32 = undefined;
+        asm volatile ("rdtscp"
+            : [lo] "={eax}" (lo),
+              [hi] "={edx}" (hi),
+              [aux] "={ecx}" (aux),
+            :
+            : .{}
+        );
+        return (@as(u64, hi) << 32) | @as(u64, lo);
+    }
+    // Fallback for non-x86 (ARM baremetal will need cntvct_el0 inline asm).
+    return @as(u64, @intCast(std.time.nanoTimestamp()));
+}
+
+/// 64-bit cycle counter unpacked into individual bits. Each element is 0
+/// or 1 — bit 63 first (most significant), bit 0 last (least significant,
+/// fastest-toggling). Used for bit-level "spectrum analyzer" visualizations
+/// of clock jitter: stable high bits, oscillating low bits, and visible
+/// scheduler pauses as broken bit patterns.
+pub fn binarySpectrum(cycles: u64) [64]u1 {
+    var bits: [64]u1 = undefined;
+    var c = cycles;
+    var i: usize = 0;
+    while (i < 64) : (i += 1) {
+        bits[63 - i] = @intCast(c & 1);
+        c >>= 1;
+    }
+    return bits;
+}
+
+/// Format binary spectrum as a fixed-width string for log output.
+/// 64 chars '0'/'1', no spaces. Caller-provided buffer must be ≥ 64 bytes.
+pub fn formatSpectrum(cycles: u64, out: *[64]u8) void {
+    const bits = binarySpectrum(cycles);
+    var i: usize = 0;
+    while (i < 64) : (i += 1) {
+        out[i] = if (bits[i] == 1) '1' else '0';
+    }
+}
+
 // ─── AtomicClock ────────────────────────────────────────────────────────────
 
 /// Backend for the clock. `real` reads `std.time.milliTimestamp()`;
@@ -299,6 +366,39 @@ test "clockScore60s: 30s+ drift gets 0" {
     try testing.expectEqual(@as(u8, 0), clockScore60s(0, 95_000));
     try testing.expectEqual(@as(u8, 0), clockScore60s(0, 0));
     try testing.expectEqual(@as(u8, 0), clockScore60s(100, 50));
+}
+
+test "nowCycles is monotonic and non-zero" {
+    const t1 = nowCycles();
+    const t2 = nowCycles();
+    try testing.expect(t1 != 0);
+    try testing.expect(t2 >= t1); // RDTSC always counts up
+}
+
+test "binarySpectrum unpacks bits MSB-first" {
+    // 0xFF00000000000000 = bits 56..63 set, rest zero
+    const bits = binarySpectrum(0xFF00000000000000);
+    var i: usize = 0;
+    while (i < 8) : (i += 1) try testing.expectEqual(@as(u1, 1), bits[i]);
+    while (i < 64) : (i += 1) try testing.expectEqual(@as(u1, 0), bits[i]);
+}
+
+test "binarySpectrum LSB" {
+    // 0x0000000000000001 = only bit 0 set → last element of array
+    const bits = binarySpectrum(0x1);
+    try testing.expectEqual(@as(u1, 1), bits[63]);
+    var i: usize = 0;
+    while (i < 63) : (i += 1) try testing.expectEqual(@as(u1, 0), bits[i]);
+}
+
+test "formatSpectrum produces 64-char binary string" {
+    var buf: [64]u8 = undefined;
+    formatSpectrum(0xAA00000000000055, &buf);
+    // 0xAA = 10101010, 0x55 = 01010101
+    try testing.expectEqualStrings(
+        "1010101000000000000000000000000000000000000000000000000001010101",
+        &buf,
+    );
 }
 
 test "clockScore60s: monotonic in drift" {
