@@ -174,13 +174,18 @@
 
   <script>
     // ── RPC helpers ──────────────────────────────────────────────────
-    const RPC = location.origin.replace(/:\d+$/, "") + ":18332";
-    const FALLBACK = location.origin;
+    // Routes:
+    //   nginx public:    /api-testnet/  → 127.0.0.1:18332
+    //   direct dev:      http://localhost:18332/
+    //   direct prod:     https://host:18332/  (only if firewall opens it)
+    // Try the nginx proxy first (works on omnibusblockchain.cc); fall
+    // back to direct port for local dev runs (vite at :8888).
+    const PROXY = location.origin + "/api-testnet/";
+    const DIRECT = location.protocol + "//" + location.hostname + ":18332/";
 
     async function rpc(method, params = []) {
       const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params });
-      // Try same-origin first (when served by the node), fall back to :18332.
-      for (const url of [FALLBACK, RPC]) {
+      for (const url of [PROXY, DIRECT]) {
         try {
           const r = await fetch(url, { method: "POST", body,
             headers: { "Content-Type": "application/json" } });
