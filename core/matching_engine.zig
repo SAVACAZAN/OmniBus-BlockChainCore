@@ -3,7 +3,10 @@
 /// Ruleza in fiecare nod miner. Matching-ul este DETERMINIST:
 ///   - Aceleasi ordine de intrare → aceleasi rezultate pe toti minerii
 ///   - Price-time priority: pret mai bun -> primul; la acelasi pret -> FIFO (timestamp)
-///   - Self-trade prevention: nu se face match daca buyer == seller
+///   - Self-trade is ALLOWED — a trader can match their own resting order.
+///     Useful for single-wallet paper testing, and the operator collects
+///     maker+taker fees on both sides anyway. (Old behavior was to skip;
+///     changed 2026-04-28 by founder request.)
 ///
 /// Matching-ul se face la fiecare sub-block (0.1s). Rezultatele (Fill-uri)
 /// sunt incluse in block data impreuna cu Merkle root al orderbook-ului.
@@ -374,11 +377,11 @@ pub fn MatchingEngineWith(comptime max_orders: usize, comptime max_fills: usize)
                     continue;
                 }
 
-                // Self-trade prevention
-                if (buy.sameTrader(&self.asks[i])) {
-                    i += 1;
-                    continue;
-                }
+                // Self-trade is allowed: a trader can fill their own
+                // resting order if they want (useful for paper-trader
+                // single-wallet testing, and for legitimate wash-trade
+                // strategies that pay the maker+taker fees). Operator
+                // collects fees on both sides — that's the cost of doing it.
 
                 // Fill buffer plin — oprim matching-ul
                 if (self.fill_count >= max_fills) break;
@@ -428,11 +431,7 @@ pub fn MatchingEngineWith(comptime max_orders: usize, comptime max_fills: usize)
                     continue;
                 }
 
-                // Self-trade prevention
-                if (sell.sameTrader(&self.bids[i])) {
-                    i += 1;
-                    continue;
-                }
+                // Self-trade allowed — see matchBuyOrder above for rationale.
 
                 // Fill buffer plin
                 if (self.fill_count >= max_fills) break;
@@ -815,21 +814,25 @@ test "orderbook merkle root — deterministic" {
     try std.testing.expect(std.mem.eql(u8, &root1, &root2));
 }
 
-test "self-trade prevention" {
+test "self-trade is allowed (matches as normal, fees apply at settlement)" {
     var engine = TestEngine.init();
 
     // Alice pune un sell
     const sell = makeTestOrder(.sell, 50_000_000, 1_000_000_000, 1000, "alice", 0);
     try engine.placeOrder(sell);
 
-    // Alice pune un buy la acelasi pret — nu trebuie sa faca match cu sine
+    // Alice pune un buy la acelasi pret — DA, se face match cu sine (e OK,
+    // ea plateste fee maker+taker oricum la settlement).
     const buy = makeTestOrder(.buy, 50_000_000, 1_000_000_000, 2000, "alice", 0);
     try engine.placeOrder(buy);
 
-    // Ambele ordine raman in book, zero fill-uri
-    try std.testing.expectEqual(@as(u32, 1), engine.bid_count);
-    try std.testing.expectEqual(@as(u32, 1), engine.ask_count);
-    try std.testing.expectEqual(@as(u32, 0), engine.fill_count);
+    // Ambele ordine s-au consumat, 1 fill produs.
+    try std.testing.expectEqual(@as(u32, 0), engine.bid_count);
+    try std.testing.expectEqual(@as(u32, 0), engine.ask_count);
+    try std.testing.expectEqual(@as(u32, 1), engine.fill_count);
+    // Acelasi trader pe ambele parti — corect, e wash trade legitim.
+    try std.testing.expect(std.mem.eql(u8, engine.fills[0].getBuyerAddress(), "alice"));
+    try std.testing.expect(std.mem.eql(u8, engine.fills[0].getSellerAddress(), "alice"));
 }
 
 test "spread calculation" {

@@ -5477,6 +5477,47 @@ const EXCHANGE_PAIRS = [_]ExchangePair{
     .{ .id = 5, .base = "OMNI", .quote = "LCX" },
 };
 
+// ── Fee model ────────────────────────────────────────────────────────
+//
+// Two distinct fees apply on EVERY fill, charged independently from the
+// participant's exchange-internal balance:
+//
+//   1. Network fee — flat, per fill. Goes to the miner of the block
+//      that includes the fill. This is the on-chain TX cost, conceptually
+//      the same as a `sendrawtransaction` fee.
+//
+//   2. Exchange fee — proportional, maker/taker split (Kraken-style).
+//      Goes to the exchange treasury (registrar slot 1 = `bridge.omnibus`,
+//      reused as the trading-fee sink until we wire a dedicated slot).
+//      Maker (resting order being matched) pays less, taker (incoming
+//      aggressive order) pays more. Same convention as 90% of CEX/DEX.
+//
+// Self-trade is allowed (founder request 2026-04-28) so wash trades pay
+// the full maker+taker fee on both sides — that's the operator's edge.
+
+/// Network fee per fill, denominated in SAT of the BASE currency. Flat.
+/// 1000 SAT = 0.000001 OMNI on OMNI/* pairs. Tiny on testnet so it doesn't
+/// drown out the small grants. Mainnet would be tuned higher.
+const FILL_NETWORK_FEE_SAT: u64 = 1000;
+
+/// Exchange fee — basis points (1 bp = 0.01%). Charged in QUOTE currency.
+/// 10 bps = 0.10% taker, 5 bps = 0.05% maker → matches Kraken's lowest tier.
+const EXCHANGE_FEE_TAKER_BPS: u64 = 10;
+const EXCHANGE_FEE_MAKER_BPS: u64 = 5;
+const FEE_BPS_DENOMINATOR: u64 = 10_000;
+
+/// Compute the exchange fee for a fill leg.
+///   notional_micro = price (micro-USD) × amount (SAT) / 1e9
+///   fee = notional × bps / 10_000
+/// Returned value is in micro-USD (or whatever unit the quote uses).
+fn computeExchangeFeeMicro(price_micro: u64, amount_sat: u64, bps: u64) u64 {
+    // Use u128 intermediate to avoid overflow on big trades.
+    const notional: u128 =
+        (@as(u128, price_micro) * @as(u128, amount_sat)) / 1_000_000_000;
+    const fee: u128 = (notional * @as(u128, bps)) / @as(u128, FEE_BPS_DENOMINATOR);
+    return @intCast(@min(fee, @as(u128, std.math.maxInt(u64))));
+}
+
 fn exchangePairLookup(label: []const u8) ?u16 {
     // Accept "BASE/QUOTE" sau "BASE-QUOTE". Case-insensitive.
     var sep: ?usize = null;
@@ -5836,10 +5877,24 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     };
     const new_order_id = engine.next_order_id - 1;
 
-    // Move newly produced fills into rolling trade_log
+    // Move newly produced fills into rolling trade_log + accumulate fees.
+    // Maker = the trader whose order was already in the book.
+    //         Taker = the incoming order (the one we just placed).
+    // For a BUY incoming, the matched ask was the resting maker; for a
+    // SELL incoming, the matched bid was the resting maker. So the
+    // taker_id below is always our just-placed `new_order_id`.
+    var total_network_fee_sat: u64 = 0;
+    var total_taker_fee_micro: u64 = 0;
+    var total_maker_fee_micro: u64 = 0;
     var fi = fills_before;
     while (fi < engine.fill_count) : (fi += 1) {
-        tradeLogPush(ctx, engine.fills[fi], is_paper);
+        const f = engine.fills[fi];
+        tradeLogPush(ctx, f, is_paper);
+        total_network_fee_sat += FILL_NETWORK_FEE_SAT;
+        total_taker_fee_micro += computeExchangeFeeMicro(
+            f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_TAKER_BPS);
+        total_maker_fee_micro += computeExchangeFeeMicro(
+            f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_MAKER_BPS);
     }
 
     nonceSet(ctx, trader, nonce);
@@ -5864,9 +5919,24 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const remaining: u64 = if (filled_total >= amount) 0 else amount - filled_total;
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\"}}}}",
-        .{ id, new_order_id, side_canon, pair_id, price, amount, filled_total, remaining,
-           if (remaining == 0) "filled" else if (filled_total > 0) "partial" else "active" });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"mode\":\"{s}\"," ++
+            "\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d}," ++
+            "\"price\":{d},\"amount\":{d}," ++
+            "\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\"," ++
+            "\"fees\":{{" ++
+                "\"networkFeeSat\":{d}," ++
+                "\"exchangeTakerFeeMicroUsd\":{d}," ++
+                "\"exchangeMakerFeeMicroUsd\":{d}," ++
+                "\"takerBps\":{d},\"makerBps\":{d}" ++
+            "}}" ++
+        "}}}}",
+        .{ id, if (is_paper) "paper" else "real",
+           new_order_id, side_canon, pair_id,
+           price, amount, filled_total, remaining,
+           if (remaining == 0) "filled" else if (filled_total > 0) "partial" else "active",
+           total_network_fee_sat, total_taker_fee_micro, total_maker_fee_micro,
+           EXCHANGE_FEE_TAKER_BPS, EXCHANGE_FEE_MAKER_BPS });
 }
 
 /// exchange_cancelOrder — anuleaza o ordine. Required: orderId, trader,
