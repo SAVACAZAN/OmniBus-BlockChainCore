@@ -1445,13 +1445,35 @@ pub fn main() !void {
     }
 
     // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX ──
-    g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
-    if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
-    // Wire the shared clock BEFORE start() — every PriceFetch.timestamp_ms
-    // and circuit-breaker rate-limit timer flows through g_g_clock.nowMs(),
-    // putting feed events on the same timeline as mining and matching.
-    g_ws_feed.?.setClock(&g_clock);
-    g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
+    //
+    // Opt-out via env var OMNIBUS_EXTERNAL_ORACLE=1. When set, the chain
+    // process skips spawning the 3 WebSocket worker threads (Coinbase,
+    // Kraken, LCX) and the price hashmap; a separate `omnibus-oracle`
+    // process is expected to be running on localhost:28100 and the
+    // chain queries it via JSON-RPC when prices are needed.
+    //
+    // BTC pattern: chain-only daemon, oracle is a separate service.
+    // Frees ~3 threads + 1 MB resident from the chain process and
+    // removes mutex contention between mining and WS workers.
+    const external_oracle = std.process.getEnvVarOwned(
+        allocator, "OMNIBUS_EXTERNAL_ORACLE",
+    ) catch null;
+    defer if (external_oracle) |s| allocator.free(s);
+    const use_external = external_oracle != null and
+        std.mem.eql(u8, external_oracle.?, "1");
+    if (use_external) {
+        std.debug.print(
+            "[WS-FEED] external oracle enabled (OMNIBUS_EXTERNAL_ORACLE=1) " ++
+            "— in-process feed disabled. Expect omnibus-oracle on :28100\n", .{});
+    } else {
+        g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
+        if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
+        // Wire the shared clock BEFORE start() — every PriceFetch.timestamp_ms
+        // and circuit-breaker rate-limit timer flows through g_clock.nowMs(),
+        // putting feed events on the same timeline as mining and matching.
+        g_ws_feed.?.setClock(&g_clock);
+        g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
+    }
 
     // ── Reputation Manager + retro backfill din chain history ──
     g_reputation = reputation_manager_mod.ReputationManager.init(allocator);

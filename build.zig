@@ -1,8 +1,8 @@
 const std = @import("std");
 
 // liboqs paths — Windows native (compilat cu MinGW in liboqs-src/build)
-const LIBOQS_INCLUDE = "C:/Kits work/limaje de programare/liboqs-src/build/include";
-const LIBOQS_LIB     = "C:/Kits work/limaje de programare/liboqs-src/build/lib/liboqs.a";
+const LIBOQS_INCLUDE = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/include";
+const LIBOQS_LIB     = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/lib/liboqs.a";
 
 fn addOqs(step: *std.Build.Step.Compile, enable: bool) void {
     if (enable) {
@@ -102,6 +102,22 @@ pub fn build(b: *std.Build) void {
     addOqs(rpc_exe, use_oqs);
     addEvm(rpc_exe, use_evm);
     b.installArtifact(rpc_exe);
+
+    // ── omnibus-oracle ───────────────────────────────────────────────────────
+    // Standalone process — runs the WS exchange feed (Coinbase, Kraken, LCX)
+    // out-of-process from the chain so mining-loop CPU isn't shared with
+    // 3 always-on WebSocket workers + JSON parsers + price hashmap mutex.
+    // BTC pattern: chain-only daemon, oracle is a separate service.
+    const oracle_exe = b.addExecutable(.{
+        .name        = "omnibus-oracle",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/oracle_main.zig"),
+            .target           = target,
+            .optimize         = optimize,
+        }),
+    });
+    oracle_exe.linkLibC();
+    b.installArtifact(oracle_exe);
 
     // ── Benchmark executable ────────────────────────────────────────────────
     const bench_exe = b.addExecutable(.{
