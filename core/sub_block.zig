@@ -12,7 +12,11 @@ pub const Block       = blockchain_mod.Block;
 pub const SUB_BLOCKS_PER_BLOCK: u8 = 10;
 
 /// Intervalul unui sub-bloc in ms
-pub const SUB_BLOCK_INTERVAL_MS: u64 = 75; // 10×75ms=750ms + ~250ms overhead ≈ 1s block
+/// Was 75ms (=750ms sleep + ~250ms overhead = 1s block). Bumped down to
+/// 40ms (=400ms sleep + overhead = ~600-700ms block) for higher throughput.
+/// On baremetal we'll go sub-100ms entire-block; this is the VPS-friendly
+/// midpoint that keeps CPU bearable while doubling block rate.
+pub const SUB_BLOCK_INTERVAL_MS: u64 = 40;
 
 /// Sub-block — confirmare soft la 0.1s
 pub const SubBlock = struct {

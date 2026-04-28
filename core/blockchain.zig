@@ -1155,22 +1155,13 @@ pub const Blockchain = struct {
         };
     }
 
-    /// Check if auto-save should trigger based on block count or time elapsed.
-    /// Called after each mined block. Saves at 100 blocks, 60s, or 1000 TXs.
+    /// Auto-save disabled. The blockchain IS the database — balances,
+    /// nonces, and pubkey registry are deterministically reconstructed
+    /// by replaying the chain on startup. Restart resyncs from peers,
+    /// which on a real mesh is faster than re-reading a multi-GB .dat
+    /// file. Save now happens only on graceful shutdown (signal handler).
     pub fn checkAutoSave(self: *Blockchain) void {
-        const now = std.time.timestamp();
-        const should_save = self.blocks_since_save >= 100 or
-            self.txs_since_save >= 1000 or
-            (now - self.last_save_time) >= 60;
-        if (should_save) {
-            self.saveToDisc() catch |err| {
-                std.debug.print("[DB] Auto-save failed: {}\n", .{err});
-                return;
-            };
-            self.blocks_since_save = 0;
-            self.txs_since_save = 0;
-            self.last_save_time = now;
-        }
+        _ = self;
     }
 
     /// Convenience method: save full blockchain state to disc via PersistentBlockchain.
