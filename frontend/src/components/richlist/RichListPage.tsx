@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressDetail } from "./AddressDetail";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -10,6 +11,11 @@ type RichEntry = {
   balance: number;
   isValidator: boolean;
   blocksMined: number;
+  txCount: number;
+  received: number;
+  sent: number;
+  firstHeight: number;
+  lastHeight: number;
 };
 
 type RichListResp = {
@@ -39,6 +45,16 @@ export function RichListPage() {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(100);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+
+  if (selectedAddress) {
+    return (
+      <AddressDetail
+        address={selectedAddress}
+        onBack={() => setSelectedAddress(null)}
+      />
+    );
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +153,9 @@ export function RichListPage() {
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Balance</th>
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-20">Share</th>
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-24">Mined</th>
+                <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-16">TXs</th>
+                <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Received</th>
+                <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Sent</th>
                 <th className="text-center px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-20">Status</th>
               </tr>
             </thead>
@@ -150,9 +169,9 @@ export function RichListPage() {
                     <td className="px-3 py-2 text-mempool-text-dim font-mono text-xs">{e.rank}</td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
-                        onClick={() => navigator.clipboard.writeText(e.address)}
+                        onClick={() => setSelectedAddress(e.address)}
                         className="text-mempool-blue hover:underline"
-                        title="Click to copy"
+                        title="View address detail"
                       >
                         {e.address.slice(0, 12)}…{e.address.slice(-8)}
                       </button>
@@ -163,6 +182,15 @@ export function RichListPage() {
                     <td className="px-3 py-2 text-right text-xs text-mempool-text-dim">{sharePct}%</td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text">
                       {e.blocksMined.toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 text-right text-xs text-mempool-text">
+                      {(e.txCount ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-green-300">
+                      {omniFmt(e.received ?? 0)}
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-red-300">
+                      {omniFmt(e.sent ?? 0)}
                     </td>
                     <td className="px-3 py-2 text-center">
                       {e.isValidator ? (
