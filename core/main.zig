@@ -112,6 +112,11 @@ const agent_config_mod   = @import("agent_config.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const agent_manager_mod  = @import("agent_manager.zig");
 
+// Single-source-of-time module — feeds slot/sub_block/stabilizer/ws
+// timers from one AtomicClock so cross-component latencies are real
+// rather than the result of unsynchronized OS clock reads.
+const orchestrator_mod = @import("orchestrator.zig");
+
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
     _ = finality_mod; _ = governance_mod; _ = staking_mod;
@@ -1421,12 +1426,23 @@ pub fn main() !void {
     var maint_count: u32 = 0;
     var mining_started: bool = false;
 
+    // ── Single source of time ──────────────────────────────────────────
+    // All slot/sub-block/stabilizer/ws timing reads from this clock.
+    // On baremetal we'll swap the implementation to TSC-based; nothing
+    // else in the loop changes.
+    var clock = orchestrator_mod.AtomicClock.initReal();
+    var orch = orchestrator_mod.TimeOrchestrator.init(&clock);
+    // Stabilizer timer wired up immediately. Slot + sub-block timers
+    // remain driven by the existing logic for now (see Step 2 plan) —
+    // we cut over incrementally to keep regressions contained.
+    orch.configure(.stabilizer, 60_000);
+
     // Tip arrival tracker (millisecond resolution, in-memory only).
     // The on-chain `tip.timestamp` is in seconds — too coarse for sub-second
     // slot-failover. This captures the wall-clock ms when we observed the
     // current tip height, refreshed each iteration if the tip changed.
     var last_tip_height: usize = bc.chain.items.len;
-    var tip_arrival_ms: i64 = std.time.milliTimestamp();
+    var tip_arrival_ms: i64 = clock.nowMs();
 
     // ── Block-rate stabilizer ────────────────────────────────────────────
     // Target: 60 blocks/min (1 block/sec, like Solana slot time).
@@ -1446,7 +1462,7 @@ pub fn main() !void {
     var rate_ring: [RATE_RING_SIZE]i64 = std.mem.zeroes([RATE_RING_SIZE]i64);
     var rate_ring_head: usize = 0;
     var rate_ring_count: usize = 0;
-    var stabilizer_last_report_ms: i64 = std.time.milliTimestamp();
+    var stabilizer_last_report_ms: i64 = clock.nowMs();
     // Adaptive multiplier for SLOT_TIMEOUT_MS, clamped to [0.2, 2.0]. Updated
     // once per stabilizer report based on observed-vs-target ratio.
     var stabilizer_timeout_mult: f64 = 1.0;
@@ -1533,7 +1549,7 @@ pub fn main() !void {
             // N-1 landed, not from some absolute past wall-clock.
             if (bc.chain.items.len != last_tip_height) {
                 last_tip_height = bc.chain.items.len;
-                tip_arrival_ms = std.time.milliTimestamp();
+                tip_arrival_ms = clock.nowMs();
             }
 
             // Am I a validator at all? (Required for liveness fallback.)
@@ -1551,7 +1567,7 @@ pub fn main() !void {
             // 300ms of wall-clock. This was the dominant cost in the 35
             // blocks/min steady state: half the slots had a missing peer
             // leader → 300ms × 0.5 ≈ 150ms wasted per block on average.
-            const now_ms: i64 = std.time.milliTimestamp();
+            const now_ms: i64 = clock.nowMs();
             const now_s: i64 = @divTrunc(now_ms, 1000);
             const tip_age_ms: i64 = now_ms - tip_arrival_ms;
             const peer_active_ts_ms = p2p.lastPeerActivityTs() * 1000;
@@ -1739,13 +1755,22 @@ pub fn main() !void {
             block_count += 1;
 
             // ── Stabilizer: record block arrival + adapt timeouts ──────────
+            //
+            // Block-arrival timestamp + 60s reporting interval both come
+            // from the orchestrator's AtomicClock + stabilizer timer.
+            // `tick()` returns whether the 60s timer fired this iteration;
+            // we still also pass the boolean OR with a manual fallback
+            // so that a block arriving slightly after the orchestrator
+            // tick still triggers the report on its own arrival path.
             {
-                const arrival_ms = std.time.milliTimestamp();
+                const arrival_ms = clock.nowMs();
                 rate_ring[rate_ring_head] = arrival_ms;
                 rate_ring_head = (rate_ring_head + 1) % RATE_RING_SIZE;
                 if (rate_ring_count < RATE_RING_SIZE) rate_ring_count += 1;
 
-                if ((arrival_ms - stabilizer_last_report_ms) >= 60_000) {
+                const orch_fired = orch.tick().fired(.stabilizer);
+                const manual_due = (arrival_ms - stabilizer_last_report_ms) >= 60_000;
+                if (orch_fired or manual_due) {
                     // Count blocks within the last 60s and last 60min windows.
                     var blocks_1m: u32 = 0;
                     var blocks_60m: u32 = 0;
