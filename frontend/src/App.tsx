@@ -13,9 +13,11 @@ import { ReputationPage } from "./components/reputation/ReputationPage";
 import { NamesPage } from "./components/names/NamesPage";
 import { ExchangePage } from "./components/exchange/ExchangePage";
 import { ZeroDayPage } from "./components/zeroday/ZeroDayPage";
+import { ApiDocsPage } from "./components/api/ApiDocsPage";
 import { MatrixBackground } from "./components/effects/MatrixBackground";
+import { PlasmaSlotProvider } from "./components/effects/PlasmaSlotContext";
 
-export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "zeroday";
+export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "zeroday" | "api" | "roadmap";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -29,13 +31,15 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "network", label: "Network" },
   { id: "faucet", label: "Faucet" },
   { id: "zeroday", label: "0day" },
+  { id: "api", label: "API" },
+  { id: "roadmap", label: "Roadmap" },
 ];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
 
   return (
-    <WebSocketProvider>
+    <WebSocketProvider><PlasmaSlotProvider>
       <MatrixBackground opacity={0.35} />
       <div className="min-h-screen flex flex-col bg-mempool-bg/40 relative" style={{ zIndex: 1 }}>
         <Header />
@@ -74,9 +78,18 @@ export default function App() {
           {activeTab === "reputation" && <ReputationPage />}
           {activeTab === "names" && <NamesPage />}
           {activeTab === "exchange" && <ExchangePage />}
+          {activeTab === "api" && <ApiDocsPage />}
+          {activeTab === "roadmap" && (
+            <iframe
+              src="/roadmap-flow.html"
+              title="Roadmap — Pyramid &amp; Hourglass"
+              className="w-full"
+              style={{ height: "calc(100vh - 140px)", border: "none" }}
+            />
+          )}
         </main>
         <Footer />
       </div>
-    </WebSocketProvider>
+    </PlasmaSlotProvider></WebSocketProvider>
   );
 }
