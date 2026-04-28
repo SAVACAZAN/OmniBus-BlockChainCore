@@ -1177,13 +1177,17 @@ pub fn main() !void {
     var exchange_engine: ?*matching_mod.MatchingEngine = null;
     var orders_path_owned: ?[]u8 = null;
     if (!exchange_disabled) {
-        exchange_engine = allocator.create(matching_mod.MatchingEngine) catch null;
+        // Use page_allocator for the 3MB MatchingEngine — it's a single
+        // long-lived object and the gpa's small-bin path doesn't help. Goes
+        // straight to mmap() on Linux which is what we want for big blocks.
+        const page_alloc = std.heap.page_allocator;
+        exchange_engine = page_alloc.create(matching_mod.MatchingEngine) catch null;
         if (exchange_engine) |e| {
-            // Avoid `e.* = MatchingEngine.init()` because the struct is
-            // ~3MB (10K orders × 2 sides). The return-by-value materializes
-            // a temporary on the stack and segfaults on Linux thread stacks.
-            // Zero in place, then fill the small scalar fields.
-            @memset(std.mem.asBytes(e), 0);
+            // Zero the whole struct in place, then set the scalar fields.
+            // `e.* = .init()` would materialize a 3MB temporary on the stack
+            // and segfault. `@memset` is byte-wise so it can't blow the stack.
+            const bytes = std.mem.asBytes(e);
+            @memset(bytes, 0);
             e.next_order_id = 1;
             e.next_fill_id = 1;
             const chain_subdir: []const u8 = if (config.testnet) "testnet"

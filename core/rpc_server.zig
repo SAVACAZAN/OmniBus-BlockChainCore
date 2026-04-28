@@ -295,8 +295,11 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.exchange_mutex = .{};
 
     // Bulk exchange tables on the heap — keeps ServerCtx small.
+    // page_allocator (mmap on Linux) is more robust for the single
+    // ~400KB long-lived object than the gpa's small-bin path.
     if (cfg.exchange != null) {
-        const es = allocator.create(ExchangeState) catch null;
+        const page_alloc = std.heap.page_allocator;
+        const es = page_alloc.create(ExchangeState) catch null;
         if (es) |s| {
             @memset(std.mem.asBytes(s), 0);
             ctx.exstate = s;
@@ -370,7 +373,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         const thread_ctx = try allocator.create(ConnCtx);
         thread_ctx.* = .{ .conn = conn, .server_ctx = ctx, .active_counter = &active_threads };
         _ = active_threads.fetchAdd(1, .monotonic);
-        const t = std.Thread.spawn(.{ .stack_size = 4 * 1024 * 1024 }, handleConnCounted, .{thread_ctx}) catch {
+        const t = std.Thread.spawn(.{ .stack_size = 16 * 1024 * 1024 }, handleConnCounted, .{thread_ctx}) catch {
             _ = active_threads.fetchSub(1, .monotonic);
             conn.stream.close();
             allocator.destroy(thread_ctx);
