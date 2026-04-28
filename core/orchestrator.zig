@@ -93,6 +93,30 @@ pub fn formatSpectrum(cycles: u64, out: *[64]u8) void {
     }
 }
 
+/// Calibrate TSC frequency (cycles per second) by measuring how many
+/// cycles elapse over a known wall-clock interval. `sleep_ms` is the
+/// calibration window — 100ms is the sweet spot: long enough to amortise
+/// the rdtscp latency and any scheduler hiccup, short enough not to
+/// stall startup. Returns 0 on non-x86_64 (where nowCycles falls back
+/// to a nanosecond timer).
+///
+/// Typical results on a 3GHz core: ~3,000,000,000. On a hypervisor with
+/// invariant TSC clamped to nominal frequency, this matches the
+/// "sticker" speed regardless of turbo / power-saving state.
+///
+/// One-shot at startup is enough — we don't re-calibrate per slot
+/// because invariant TSC means the rate is constant for the lifetime
+/// of the process.
+pub fn calibrateTscPerSec(sleep_ms: u64) u64 {
+    if (comptime builtin.cpu.arch != .x86_64) return 0;
+    const t1 = nowCycles();
+    std.Thread.sleep(sleep_ms * std.time.ns_per_ms);
+    const t2 = nowCycles();
+    const delta = t2 - t1;
+    // Scale to per-second: cycles_per_ms × 1000.
+    return (delta * 1000) / sleep_ms;
+}
+
 // ─── AtomicClock ────────────────────────────────────────────────────────────
 
 /// Backend for the clock. `real` reads `std.time.milliTimestamp()`;
@@ -389,6 +413,14 @@ test "binarySpectrum LSB" {
     try testing.expectEqual(@as(u1, 1), bits[63]);
     var i: usize = 0;
     while (i < 63) : (i += 1) try testing.expectEqual(@as(u1, 0), bits[i]);
+}
+
+test "calibrateTscPerSec returns plausible value on x86_64" {
+    if (comptime builtin.cpu.arch != .x86_64) return;
+    const freq = calibrateTscPerSec(50); // 50ms calibration
+    // Anywhere from 500 MHz to 10 GHz is plausible for a real CPU.
+    try testing.expect(freq > 500_000_000);
+    try testing.expect(freq < 10_000_000_000);
 }
 
 test "formatSpectrum produces 64-char binary string" {

@@ -243,6 +243,13 @@ pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 // this via &g_clock. On baremetal we'll swap the backend to TSC.
 pub var g_clock: orchestrator_mod.AtomicClock = undefined;
 
+// ── Global TSC frequency (cycles per second) — measured once at startup ────
+// Populated by calibrateTscPerSec() in main(). Stays constant for the
+// process lifetime because invariant TSC is invariant. Used by the
+// stabilizer to convert raw rdtsc cycle deltas into seconds without
+// re-calibrating per slot.
+pub var g_tsc_freq: u64 = 0;
+
 // ── Global Slot Calendar — pre-computed next 60 slots (PoH-style) ─────────
 // Rebuilt after each block from the validator set + tip hash. Read-only
 // from frontend (RPC endpoint `getslotcalendar`) and from the mining
@@ -736,6 +743,14 @@ pub fn main() !void {
     // below (RPC, WS, mining) attaches to it. Done at runtime entry
     // because initReal() reads OS time which can't run at comptime.
     g_clock = orchestrator_mod.AtomicClock.initReal();
+
+    // Calibrate the CPU's invariant TSC frequency once at startup.
+    // The result is logged for the operator and made available via
+    // g_tsc_freq for the stabilizer's "GHz reading". 100ms is enough
+    // to absorb scheduler noise without delaying boot noticeably.
+    g_tsc_freq = orchestrator_mod.calibrateTscPerSec(100);
+    std.debug.print("[CLOCK] TSC calibrated: {d} Hz ({d:.3} GHz)\n",
+        .{ g_tsc_freq, @as(f64, @floatFromInt(g_tsc_freq)) / 1e9 });
 
     // Single-instance lock dezactivat — permite multiple instante pe acelasi PC
     // pentru testare retea cu N mineri. In productie, reactivati acquireSingleInstanceLock().

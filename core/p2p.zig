@@ -12,6 +12,28 @@ const tor_mod        = @import("tor_proxy.zig");
 const is_windows = builtin.os.tag == .windows;
 const ws2 = if (is_windows) std.os.windows.ws2_32 else undefined;
 
+/// Disable Nagle's algorithm on a TCP socket. Without this, the OS
+/// buffers small writes for ~40ms hoping to batch them. For block
+/// announces and peer-to-peer signalling, every send is small and
+/// time-critical — Nagle adds ~40ms per hop, which on a 1s block
+/// time is 4% of slot budget burnt before the packet leaves the box.
+///
+/// Best-effort: setsockopt errors are logged but do not fail the
+/// connection. On platforms without IPPROTO_TCP / TCP_NODELAY (rare)
+/// the call is a no-op.
+fn enableTcpNoDelay(stream: std.net.Stream) void {
+    const opt: i32 = 1;
+    // IPPROTO_TCP = 6, TCP_NODELAY = 1 — POSIX-portable values.
+    std.posix.setsockopt(
+        stream.handle,
+        6, // IPPROTO_TCP
+        1, // TCP_NODELAY
+        std.mem.asBytes(&opt),
+    ) catch |err| {
+        std.debug.print("[P2P] TCP_NODELAY setsockopt failed: {}\n", .{err});
+    };
+}
+
 fn p2pRecv(stream: std.net.Stream, buf: []u8) !usize {
     if (comptime is_windows) {
         const got = ws2.recv(stream.handle, buf.ptr, @intCast(buf.len), 0);
@@ -1327,6 +1349,9 @@ pub const P2PNode = struct {
             std.debug.print("[P2P] Connect failed to {s}:{d}: {}\n", .{ host, port, err });
             return err;
         };
+        // Disable Nagle so small block_announce / ping packets ship
+        // immediately rather than waiting up to 40ms for a coalesce.
+        enableTcpNoDelay(stream);
 
         const conn = PeerConnection{
             .stream    = stream,
@@ -2103,6 +2128,10 @@ pub const P2PNode = struct {
                 std.Thread.sleep(1 * std.time.ns_per_s);
                 continue;
             };
+            // Disable Nagle on the inbound stream so our outgoing
+            // PINGs / block announces from this side hit the wire
+            // immediately. Symmetric with the outbound connect path.
+            enableTcpNoDelay(conn.stream);
 
             // ── Hardening: check inbound limits ──────────────────────────
             if (!node.canAcceptInbound()) {
