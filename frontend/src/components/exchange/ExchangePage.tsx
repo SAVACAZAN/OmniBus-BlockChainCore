@@ -26,9 +26,11 @@ const FALLBACK_PAIRS: Pair[] = [
 ];
 
 type Tab = "trade" | "account";
+type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
 
 export function ExchangePage() {
   const [tab, setTab] = useState<Tab>("trade");
+  const [accountTab, setAccountTab] = useState<AccountTab>("balances");
   const [pairs, setPairs] = useState<Pair[]>(FALLBACK_PAIRS);
   const [pairId, setPairId] = useState<number>(0);
   const [bids, setBids] = useState<OrderbookLevel[]>([]);
@@ -137,17 +139,41 @@ export function ExchangePage() {
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "trade" ? "Trade" : "Account · Balances · Identity · KYC · API keys"}
+            {t === "trade" ? "Trade" : "Account"}
           </button>
         ))}
       </div>
 
       {tab === "account" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <BalancesPanel />
-          <ApiKeysPanel />
-          <IdentityPanel />
-          <KycPanel />
+        <div className="space-y-4">
+          {/* Account sub-tabs (Balances | Identity | KYC | API Keys) */}
+          <div className="flex flex-wrap gap-1 bg-mempool-bg-elev rounded-lg p-1">
+            {([
+              { id: "balances", label: "💰 Balances" },
+              { id: "identity", label: "👤 Identity" },
+              { id: "kyc",      label: "🛡 KYC" },
+              { id: "apikeys",  label: "🔑 API Keys" },
+            ] as const).map((it) => (
+              <button
+                key={it.id}
+                onClick={() => setAccountTab(it.id)}
+                className={`px-4 py-1.5 text-xs rounded transition-colors ${
+                  accountTab === it.id
+                    ? "bg-mempool-blue text-white font-semibold"
+                    : "text-mempool-text-dim hover:text-mempool-text hover:bg-mempool-bg/40"
+                }`}
+              >
+                {it.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-w-3xl">
+            {accountTab === "balances" && <BalancesPanel />}
+            {accountTab === "identity" && <IdentityPanel />}
+            {accountTab === "kyc"      && <KycPanel />}
+            {accountTab === "apikeys"  && <ApiKeysPanel />}
+          </div>
         </div>
       )}
 
