@@ -234,6 +234,84 @@ pub const TimeOrchestrator = struct {
     }
 };
 
+// ─── ClockScore ─────────────────────────────────────────────────────────────
+
+/// Quality score for a 60-second span: how close is the wall-clock
+/// span to the expected 60_000ms? On a baremetal box this is always
+/// 100; on a shared VPS the scheduler can pause the process for
+/// seconds at a time, dragging the score down.
+///
+/// Returns a score in [0, 100]:
+///   actual ∈ [59_000, 61_000]ms       → 100 (perfect)
+///   actual ∈ [55_000, 65_000]ms       → linear 80-99
+///   actual ∈ [50_000, 70_000]ms       → linear 50-79
+///   else                              → max(0, 50 - drift_pct)
+///
+/// Pure function — easy to port to Ada SPARK later for formal
+/// verification of the contract bounds (we already have 300+ Ada
+/// SPARK files in 1_CORE/refs/ada-spark/ that follow the same
+/// pattern).
+pub fn clockScore60s(start_ms: i64, end_ms: i64) u8 {
+    if (end_ms <= start_ms) return 0;
+    const actual_ms = end_ms - start_ms;
+    const expected_ms: i64 = 60_000;
+    const drift_ms: i64 = if (actual_ms > expected_ms)
+        actual_ms - expected_ms
+    else
+        expected_ms - actual_ms;
+
+    if (drift_ms <= 1_000) return 100;
+    if (drift_ms <= 5_000) {
+        // 1000-5000ms → score 80-99 (linear)
+        const within = drift_ms - 1_000;       // 0..4_000
+        const decrement: i64 = @divTrunc(within * 19, 4_000);
+        return @intCast(99 - decrement);
+    }
+    if (drift_ms <= 10_000) {
+        // 5000-10000ms → score 50-79 (linear)
+        const within = drift_ms - 5_000;       // 0..5_000
+        const decrement: i64 = @divTrunc(within * 29, 5_000);
+        return @intCast(79 - decrement);
+    }
+    // >10s drift — score scales down to 0 at 30s drift.
+    if (drift_ms >= 30_000) return 0;
+    const remaining = 30_000 - drift_ms;       // 0..20_000
+    return @intCast(@divTrunc(remaining * 49, 20_000));
+}
+
+test "clockScore60s: perfect 60s gets 100" {
+    try testing.expectEqual(@as(u8, 100), clockScore60s(1000, 61_000));
+    try testing.expectEqual(@as(u8, 100), clockScore60s(0, 60_500));
+    try testing.expectEqual(@as(u8, 100), clockScore60s(0, 59_500));
+}
+
+test "clockScore60s: 1-5s drift gets 80-99" {
+    const s = clockScore60s(0, 62_000); // 2s drift
+    try testing.expect(s >= 80 and s <= 99);
+}
+
+test "clockScore60s: 5-10s drift gets 50-79" {
+    const s = clockScore60s(0, 67_000); // 7s drift
+    try testing.expect(s >= 50 and s <= 79);
+}
+
+test "clockScore60s: 30s+ drift gets 0" {
+    try testing.expectEqual(@as(u8, 0), clockScore60s(0, 95_000));
+    try testing.expectEqual(@as(u8, 0), clockScore60s(0, 0));
+    try testing.expectEqual(@as(u8, 0), clockScore60s(100, 50));
+}
+
+test "clockScore60s: monotonic in drift" {
+    // More drift should never give a higher score.
+    var prev_score: u8 = 100;
+    var span: i64 = 60_000;
+    while (span <= 90_000) : (span += 1000) {
+        const s = clockScore60s(0, span);
+        try testing.expect(s <= prev_score);
+        prev_score = s;
+    }
+}
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 const testing = std.testing;

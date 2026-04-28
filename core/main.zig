@@ -1444,6 +1444,26 @@ pub fn main() !void {
     var last_tip_height: usize = bc.chain.items.len;
     var tip_arrival_ms: i64 = clock.nowMs();
 
+    // ── Burst smoothing ──────────────────────────────────────────────────
+    // Minimum interval between two consecutive blocks WE produce. Without
+    // this, a VPS scheduler pause of 9s creates a "thundering herd" of
+    // ~7 blocks back-to-back in the same wall-clock second when the
+    // process resumes — visible as a 9s gap then a clump in the block
+    // explorer. The smoothing limit doesn't reduce average throughput
+    // (recovered gaps are still recovered) but distributes blocks
+    // uniformly so the chain looks healthy in the UI.
+    //
+    // 100ms = 10 blocks/sec ceiling = 600 blocks/min ceiling, way above
+    // our 60/min target so we never hit it on healthy operation. Only
+    // post-pause bursts get clipped.
+    //
+    // (Tried 200ms first; it smoothed the bursts beautifully but bottle-
+    // necked us at ~27/min on VPS jitter — we were spending 5.4s out of
+    // every 60s in smoothing sleep. 100ms keeps the anti-burst behaviour
+    // without the throughput tax.)
+    const MIN_BLOCK_GAP_MS: i64 = 100;
+    var last_block_produced_ms: i64 = 0;
+
     // ── Block-rate stabilizer ────────────────────────────────────────────
     // Target: 60 blocks/min (1 block/sec, like Solana slot time).
     //
@@ -1678,6 +1698,18 @@ pub fn main() !void {
                 std.Thread.sleep(50 * std.time.ns_per_ms);
                 continue;
             }
+
+            // Burst smoothing: even when it's our turn, don't produce a new
+            // block faster than MIN_BLOCK_GAP_MS after the previous one.
+            // Prevents the post-VPS-pause "7 blocks in the same second"
+            // cluster the operator sees in the explorer.
+            if (last_block_produced_ms != 0) {
+                const since_last = now_ms - last_block_produced_ms;
+                if (since_last < MIN_BLOCK_GAP_MS) {
+                    const wait_ms: u64 = @intCast(MIN_BLOCK_GAP_MS - since_last);
+                    std.Thread.sleep(wait_ms * std.time.ns_per_ms);
+                }
+            }
         }
 
         // ── Ciclu 10 sub-blocuri × 0.1s → 1 Key-Block ────────────────────────
@@ -1690,12 +1722,27 @@ pub fn main() !void {
 
         var key_block_opt: ?sub_block_mod.KeyBlock = null;
 
+        // Run all 10 sub-block ticks back-to-back, no sleep between them.
+        //
+        // Previous implementation paced each tick with sleep(40ms) = 400ms
+        // of pure idle time per block. Sub-blocks were NEVER broadcast on
+        // P2P, NEVER pushed via WebSocket, NEVER exposed via RPC, NEVER
+        // surfaced in the frontend — the "soft confirmation at 100ms" idea
+        // from the comments was design intent, not actual behavior. The
+        // sleep was overhead with zero functional value.
+        //
+        // Pacing of block production now lives entirely in the slot-leader
+        // gate above (SLOT_TIMEOUT_MS / adaptive timeout / lex-min tiebreak).
+        // The 10 sub-block ticks become pure TX batching: each tick takes
+        // an even share of `pending_txs` and produces a SubBlock that
+        // contributes to the KeyBlock's aggregate merkle root.
+        //
+        // If we ever want real soft confirmation later, sub-blocks need to
+        // be broadcast + WS-pushed + indexed by RPC — that's a separate
+        // multi-component project, not just a sleep call.
         for (0..sub_block_mod.SUB_BLOCKS_PER_BLOCK) |sub_i| {
             _ = sub_i;
-            // Distribuie TX-urile uniform intre sub-blocuri
             key_block_opt = try sb_engine.tick(@constCast(pending_txs), reward_sat);
-            // Sleep 0.1s intre sub-blocuri
-            std.Thread.sleep(sub_block_mod.SUB_BLOCK_INTERVAL_MS * std.time.ns_per_ms);
         }
 
         // Key-Block complet → mineaza blocul principal in blockchain
@@ -1753,6 +1800,7 @@ pub fn main() !void {
             }
 
             block_count += 1;
+            last_block_produced_ms = clock.nowMs();
 
             // ── Stabilizer: record block arrival + adapt timeouts ──────────
             //
@@ -1793,14 +1841,25 @@ pub fn main() !void {
                     if (new_mult < 0.2) new_mult = 0.2;
                     if (new_mult > 2.0) new_mult = 2.0;
                     stabilizer_timeout_mult = new_mult;
+
+                    // Clock health score: how close was the actual wall-
+                    // clock 60s span to the expected 60_000ms? On a
+                    // shared VPS the scheduler can pause us for seconds —
+                    // that drags the score down and tells the operator
+                    // the timing layer is unreliable. On baremetal we
+                    // expect 100 always.
+                    const score = orchestrator_mod.clockScore60s(
+                        stabilizer_last_report_ms, arrival_ms,
+                    );
                     std.debug.print(
                         "[STABILIZER] last 60s = {d} blocks ({d:.1}/min) | " ++
                         "last 60min = {d} blocks | target = {d:.0}/min | " ++
-                        "ratio = {d:.2} | timeout_mult = {d:.2}\n",
+                        "ratio = {d:.2} | timeout_mult = {d:.2} | " ++
+                        "clock_score = {d}/100\n",
                         .{
                             blocks_1m, @as(f64, @floatFromInt(blocks_1m)),
                             blocks_60m, TARGET_BLOCKS_PER_MIN,
-                            ratio, stabilizer_timeout_mult,
+                            ratio, stabilizer_timeout_mult, score,
                         },
                     );
                     stabilizer_last_report_ms = arrival_ms;
