@@ -385,6 +385,156 @@ export class OmniBusRpcClient {
       return [];
     }
   }
+
+  // ── Native DEX (matching engine on-chain) ────────────────────────────
+  // Server: rpc_server.zig handlers `exchange_*`. Prices in micro-USD,
+  // amounts in SAT. All write methods need a wallet signature; see
+  // `signOrderPayload` and `signCancelPayload` in api/exchange-sign.ts.
+
+  async exchangeListPairs(): Promise<Array<{
+    id: number;
+    base: string;
+    quote: string;
+    label: string;
+  }>> {
+    try {
+      return (await this.request("exchange_listPairs")) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async exchangeGetOrderbook(params: {
+    pair?: string;
+    pairId?: number;
+    depth?: number;
+  }): Promise<{
+    pairId: number;
+    bids: Array<OrderbookLevel>;
+    asks: Array<OrderbookLevel>;
+    bestBid: number;
+    bestAsk: number;
+    spread: number;
+    orderCount: number;
+  } | null> {
+    try {
+      return await this.request("exchange_getOrderbook", [params]);
+    } catch {
+      return null;
+    }
+  }
+
+  async exchangeGetUserOrders(params: {
+    trader: string;
+    pair?: string;
+    pairId?: number;
+  }): Promise<UserOrder[]> {
+    try {
+      return (await this.request("exchange_getUserOrders", [params])) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async exchangeGetTrades(params: {
+    pair?: string;
+    pairId?: number;
+    address?: string;
+    limit?: number;
+  } = {}): Promise<TradeFill[]> {
+    try {
+      return (await this.request("exchange_getTrades", [params])) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async exchangeGetStats(): Promise<{
+    totalOrders: number;
+    bidCount: number;
+    askCount: number;
+    trades: number;
+    pairs: Array<{
+      id: number;
+      label: string;
+      bestBid: number;
+      bestAsk: number;
+      spread: number;
+      orderCount: number;
+    }>;
+  } | null> {
+    try {
+      return await this.request("exchange_getStats");
+    } catch {
+      return null;
+    }
+  }
+
+  async exchangePlaceOrder(payload: {
+    trader: string;
+    side: "buy" | "sell";
+    pair?: string;
+    pairId?: number;
+    price: number;
+    amount: number;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{
+    orderId: number;
+    side: string;
+    pairId: number;
+    price: number;
+    amount: number;
+    filled: number;
+    remaining: number;
+    status: string;
+  }> {
+    return this.request("exchange_placeOrder", [payload]);
+  }
+
+  async exchangeCancelOrder(payload: {
+    orderId: number;
+    trader: string;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ orderId: number; cancelled: boolean }> {
+    return this.request("exchange_cancelOrder", [payload]);
+  }
+}
+
+export interface OrderbookLevel {
+  orderId: number;
+  price: number;
+  amount: number;
+  remaining: number;
+  trader: string;
+  ts: number;
+}
+
+export interface UserOrder {
+  orderId: number;
+  side: string;
+  pairId: number;
+  price: number;
+  amount: number;
+  filled: number;
+  remaining: number;
+  status: string;
+  ts: number;
+}
+
+export interface TradeFill {
+  fillId: number;
+  pairId: number;
+  price: number;
+  amount: number;
+  buyer: string;
+  seller: string;
+  buyOrderId: number;
+  sellOrderId: number;
+  ts: number;
 }
 
 export default OmniBusRpcClient;

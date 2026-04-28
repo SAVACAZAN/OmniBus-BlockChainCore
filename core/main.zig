@@ -122,7 +122,7 @@ comptime {
     _ = light_client_mod; _ = light_miner_mod; _ = payment_mod;
     _ = bread_mod; _ = schnorr_mod; _ = multisig_mod; _ = bls_mod;
     _ = miner_wallet_mod; _ = benchmark_mod;
-    _ = matching_mod; _ = price_oracle_mod; _ = pouw_mod; _ = orderbook_sync_mod;
+    _ = price_oracle_mod; _ = pouw_mod; _ = orderbook_sync_mod;
     _ = oracle_fetcher_mod;
     _ = oracle_policy_mod;
     _ = pair_registry_mod;
@@ -279,6 +279,11 @@ const RPCThreadArgs = struct {
     /// Optional bearer token. When set, non-loopback requests must include
     /// `Authorization: Bearer <token>`.
     rpc_token: ?[]const u8,
+    /// Native DEX matching engine. Allocated once at startup, shared across
+    /// RPC threads. Null = exchange disabled (light nodes).
+    exchange: ?*matching_mod.MatchingEngine,
+    /// Path to `data/<chain>/orders.jsonl`. Empty = in-memory only (regtest).
+    orders_path: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -296,6 +301,8 @@ fn rpcThread(args: RPCThreadArgs) void {
         .faucet_wallet = args.faucet_wallet,
         .faucet_grant_sat = args.faucet_grant_sat,
         .dns = args.dns,
+        .exchange = args.exchange,
+        .orders_path = args.orders_path,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -1158,6 +1165,32 @@ pub fn main() !void {
         try allocator.dupe(u8, "127.0.0.1");
     const rpc_token: ?[]const u8 = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_TOKEN") catch null;
 
+    // ── Native DEX matching engine ─────────────────────────────────────────
+    // The MatchingEngine is ~3MB (10K orders × 2 sides + 1K fills). Allocate
+    // on the heap once at startup and share across RPC threads; mutex lives
+    // inside ServerCtx. orders.jsonl is per-chain so testnet/regtest don't
+    // pollute each other's books. Disabled on light nodes via env var.
+    const exchange_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_EXCHANGE_OFF") catch false;
+    var exchange_engine: ?*matching_mod.MatchingEngine = null;
+    var orders_path_owned: ?[]u8 = null;
+    if (!exchange_disabled) {
+        exchange_engine = allocator.create(matching_mod.MatchingEngine) catch null;
+        if (exchange_engine) |e| {
+            e.* = matching_mod.MatchingEngine.init();
+            const chain_subdir: []const u8 = if (config.testnet) "testnet"
+                else if (config.regtest) "regtest" else "mainnet";
+            orders_path_owned = std.fmt.allocPrint(allocator, "data/{s}/orders.jsonl", .{chain_subdir}) catch null;
+            if (orders_path_owned) |p| {
+                std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
+                std.debug.print("[EXCHANGE] DEX matching engine ON — orders.jsonl: {s}\n", .{p});
+            } else {
+                std.debug.print("[EXCHANGE] DEX matching engine ON (in-memory only)\n", .{});
+            }
+        }
+    } else {
+        std.debug.print("[EXCHANGE] disabled by OMNIBUS_EXCHANGE_OFF\n", .{});
+    }
+
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
         .wallet   = &wallet,
@@ -1175,6 +1208,8 @@ pub fn main() !void {
         .faucet_wallet = if (faucet_wallet_opt) |*fw| fw else null,
         .faucet_grant_sat = if (config.faucet_mode) config.faucet_grant_sat else 0,
         .dns = &dns,
+        .exchange = exchange_engine,
+        .orders_path = orders_path_owned,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

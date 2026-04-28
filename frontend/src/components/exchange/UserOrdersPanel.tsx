@@ -1,0 +1,152 @@
+import { useEffect, useState } from "react";
+import OmniBusRpcClient, { UserOrder } from "../../api/rpc-client";
+import { signCancelOrderPayload } from "../../api/exchange-sign";
+import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+
+const rpc = new OmniBusRpcClient();
+const SAT_PER_OMNI = 1_000_000_000;
+const MICRO_PER_USD = 1_000_000;
+
+interface Props {
+  pairId: number;
+  refreshKey?: number;
+}
+
+/**
+ * Lists active orders for the unlocked address (filtered by current pair).
+ * Each row has a Cancel button which signs `EXCHANGE_CANCEL_V1` and posts.
+ */
+export function UserOrdersPanel({ pairId, refreshKey }: Props) {
+  const [, force] = useState(0);
+  useEffect(() => subscribeWallet(() => force((n) => n + 1)), []);
+
+  const [orders, setOrders] = useState<UserOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const u = getUnlocked();
+
+  useEffect(() => {
+    if (!u) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const refresh = async () => {
+      const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId });
+      if (!cancelled) {
+        setOrders(list);
+        setLoading(false);
+      }
+    };
+    refresh();
+    const id = setInterval(refresh, 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [u?.address, pairId, refreshKey]);
+
+  const cancel = async (orderId: number) => {
+    if (!u) return;
+    setErr(null);
+    setBusyId(orderId);
+    try {
+      const nonce = nextNonce();
+      const { signature, publicKey } = signCancelOrderPayload({
+        privateKeyHex: u.privateKey,
+        orderId,
+        trader: u.address,
+        nonce,
+      });
+      await rpc.exchangeCancelOrder({
+        orderId,
+        trader: u.address,
+        nonce,
+        signature,
+        publicKey,
+      });
+      // Optimistic remove; refresh will re-sync.
+      setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+    } catch (e: any) {
+      setErr(e?.message || "Cancel failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (!u) {
+    return (
+      <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
+        <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-2">
+          My orders
+        </h3>
+        <p className="text-xs text-mempool-text-dim">Unlock wallet to see your orders.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
+      <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-2">
+        My orders
+      </h3>
+      {loading ? (
+        <p className="text-xs text-mempool-text-dim">Loading…</p>
+      ) : orders.length === 0 ? (
+        <p className="text-xs text-mempool-text-dim">No active orders for this pair.</p>
+      ) : (
+        <div className="space-y-1 max-h-72 overflow-y-auto">
+          <div className="grid grid-cols-12 gap-1 text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1 px-1">
+            <span className="col-span-2">Side</span>
+            <span className="col-span-3 text-right">Price</span>
+            <span className="col-span-3 text-right">Remaining</span>
+            <span className="col-span-2 text-right">Status</span>
+            <span className="col-span-2 text-right">Action</span>
+          </div>
+          {orders.map((o) => (
+            <div
+              key={o.orderId}
+              className="grid grid-cols-12 gap-1 text-xs font-mono py-1 px-1 rounded hover:bg-mempool-bg/40"
+            >
+              <span
+                className={`col-span-2 ${
+                  o.side.toLowerCase().includes("buy")
+                    ? "text-green-400"
+                    : "text-orange-400"
+                }`}
+              >
+                {o.side}
+              </span>
+              <span className="col-span-3 text-right text-mempool-text">
+                ${(o.price / MICRO_PER_USD).toFixed(4)}
+              </span>
+              <span className="col-span-3 text-right text-mempool-text">
+                {(o.remaining / SAT_PER_OMNI).toFixed(4)}
+              </span>
+              <span className="col-span-2 text-right text-mempool-text-dim">
+                {o.status}
+              </span>
+              <span className="col-span-2 text-right">
+                <button
+                  onClick={() => cancel(o.orderId)}
+                  disabled={busyId === o.orderId}
+                  className="px-2 py-0.5 rounded text-[10px] bg-red-500/20 hover:bg-red-500/40 disabled:opacity-40 text-red-200"
+                >
+                  {busyId === o.orderId ? "…" : "Cancel"}
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      {err && (
+        <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/30 text-[11px] text-red-300">
+          {err}
+        </div>
+      )}
+    </div>
+  );
+}

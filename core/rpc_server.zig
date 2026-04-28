@@ -26,6 +26,7 @@ const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const chain_config    = @import("chain_config.zig");
 const validator_mod   = @import("validator_registry.zig");
 const dns_mod         = @import("dns_registry.zig");
+const bech32_mod      = @import("bech32.zig");
 const agent_manager_mod = @import("agent_manager.zig");
 const reputation_mod = @import("reputation.zig");
 const reputation_manager_mod = @import("reputation_manager.zig");
@@ -119,6 +120,34 @@ const ServerCtx = struct {
     /// without config.
     auth_token_buf: [128]u8 = undefined,
     auth_token_len: usize = 0,
+
+    /// Native DEX matching engine. Shared across RPC threads — every
+    /// access MUST take `exchange_mutex`. Null when --exchange-mode is
+    /// off so we don't pay the ~3MB footprint on light nodes.
+    exchange: ?*matching_mod.MatchingEngine = null,
+    exchange_mutex: std.Thread.Mutex = .{},
+    /// Last 256 fills (rolling) for `exchange_getTrades`. Newest at
+    /// `trade_head - 1` (mod 256). `trade_count` saturates at 256.
+    trade_log: [256]matching_mod.Fill = undefined,
+    trade_head: u32 = 0,
+    trade_count: u32 = 0,
+    /// Path to `data/<chain>/orders.jsonl` for persistence. Empty =
+    /// in-memory only (regtest / unit tests).
+    orders_path_buf: [256]u8 = undefined,
+    orders_path_len: usize = 0,
+    /// Per-trader nonces (replay protection). Order signature must
+    /// commit to a strictly-monotonic nonce per address. Bounded set
+    /// — old entries get evicted when full.
+    nonces: [1024]TraderNonce = undefined,
+    nonce_count: u16 = 0,
+};
+
+/// Per-trader nonce slot. Looked up linearly — small enough to fit in
+/// L1, big enough for testnet (1024 active traders before eviction).
+const TraderNonce = struct {
+    address: [64]u8 = undefined,
+    address_len: u8 = 0,
+    last_nonce: u64 = 0,
 };
 
 /// Context public expus utilizatorilor externi (alias la ServerCtx)
@@ -155,6 +184,14 @@ pub const HTTPConfig = struct {
     /// On-chain DNS / ENS registry. When set, RPC methods `registerName`,
     /// `resolveName`, `reverseResolveName` are exposed.
     dns: ?*dns_mod.DnsRegistry = null,
+    /// Native DEX matching engine. Caller owns the allocation — server
+    /// just borrows. When null, all `exchange_*` RPC methods return
+    /// "Exchange not enabled" so callers can probe support.
+    exchange: ?*matching_mod.MatchingEngine = null,
+    /// Path to `data/<chain>/orders.jsonl`. Empty/null = in-memory only.
+    /// Same JSONL pattern as faucet ledger so a node can restart without
+    /// losing the orderbook state.
+    orders_path: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -175,7 +212,21 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         .faucet_wallet = cfg.faucet_wallet,
         .faucet_grant_sat = cfg.faucet_grant_sat,
         .dns = cfg.dns,
+        .exchange = cfg.exchange,
     };
+    // Cache the orders persistence path into ServerCtx-owned static
+    // storage (caller's slice may not outlive us) and replay any prior
+    // orders so the orderbook resumes where we left off.
+    if (cfg.orders_path) |p| {
+        const n = @min(p.len, ctx.orders_path_buf.len);
+        @memcpy(ctx.orders_path_buf[0..n], p[0..n]);
+        ctx.orders_path_len = n;
+        if (cfg.exchange != null) {
+            replayOrdersJournal(ctx) catch |err| {
+                std.debug.print("[RPC] orders.jsonl replay failed: {s}\n", .{@errorName(err)});
+            };
+        }
+    }
     // Copy the auth token into ServerCtx-owned static storage so we don't
     // hold a pointer to a caller-owned slice that might get freed/moved.
     if (cfg.auth_token) |t| {
@@ -505,6 +556,15 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
     if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
     if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
+
+    // ── Native DEX (matching engine on-chain) ───────────────────────────
+    if (std.mem.eql(u8, method, "exchange_placeOrder"))    return handleExchangePlaceOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_cancelOrder"))   return handleExchangeCancelOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getOrderbook")) return handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getUserOrders"))return handleExchangeGetUserOrders(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getTrades"))     return handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_listPairs"))     return handleExchangeListPairs(ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getStats"))      return handleExchangeGetStats(body, ctx, id);
     // generatewallet disabled — causes stack overflow on RPC thread
     // Use seed node address derivation instead
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
@@ -4939,6 +4999,691 @@ fn handleAgentReportExecution(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"decision_id\":{d},\"applied\":true,\"status\":\"{s}\"}}}}",
         .{ id, decision_id, status_str },
     );
+}
+
+// ─── Native DEX (matching-engine RPC handlers) ───────────────────────────────
+//
+// Toate cele de mai jos partajeaza `ctx.exchange` (un singur MatchingEngine
+// global pe nod). Accesul e protejat de `ctx.exchange_mutex` — nu apela
+// niciodata o functie pe engine fara lock! Persistenta foloseste pattern-ul
+// faucetAppendToDisk: append-only JSON-Lines, replay la pornire.
+// Suportul wire: orders.jsonl in `data/<chain>/`.
+
+/// Pereche tranzactionata pe DEX. `pair_id` e indexul in acest array.
+/// Ordinea e fixa (e batuta in storage si in clienti) — adaugarile se fac
+/// LA SFARSIT, niciodata in mijloc.
+const ExchangePair = struct {
+    id: u16,
+    base: []const u8,
+    quote: []const u8,
+};
+
+const EXCHANGE_PAIRS = [_]ExchangePair{
+    .{ .id = 0, .base = "OMNI", .quote = "USD" },
+    .{ .id = 1, .base = "BTC",  .quote = "USD" },
+    .{ .id = 2, .base = "LCX",  .quote = "USD" },
+    .{ .id = 3, .base = "ETH",  .quote = "USD" },
+    .{ .id = 4, .base = "OMNI", .quote = "BTC" },
+    .{ .id = 5, .base = "OMNI", .quote = "LCX" },
+};
+
+fn exchangePairLookup(label: []const u8) ?u16 {
+    // Accept "BASE/QUOTE" sau "BASE-QUOTE". Case-insensitive.
+    var sep: ?usize = null;
+    for (label, 0..) |c, i| {
+        if (c == '/' or c == '-') { sep = i; break; }
+    }
+    const s = sep orelse return null;
+    const base = label[0..s];
+    const quote = label[s + 1 ..];
+    for (EXCHANGE_PAIRS) |p| {
+        if (asciiEqIgnoreCase(p.base, base) and asciiEqIgnoreCase(p.quote, quote)) {
+            return p.id;
+        }
+    }
+    return null;
+}
+
+fn asciiEqIgnoreCase(a: []const u8, b: []const u8) bool {
+    if (a.len != b.len) return false;
+    for (a, b) |ca, cb| {
+        if (std.ascii.toLower(ca) != std.ascii.toLower(cb)) return false;
+    }
+    return true;
+}
+
+fn ordersPathSlice(ctx: *ServerCtx) ?[]const u8 {
+    if (ctx.orders_path_len == 0) return null;
+    return ctx.orders_path_buf[0..ctx.orders_path_len];
+}
+
+/// Scrie o intrare in jurnalul append-only orders.jsonl.
+/// `kind` = "place" sau "cancel". Ignoram erorile de I/O — jurnalul e
+/// best-effort; in-memory state e adevarul curent.
+fn ordersAppendJournal(
+    ctx: *ServerCtx,
+    kind: []const u8,
+    line: []const u8,
+) void {
+    const path = ordersPathSlice(ctx) orelse return;
+    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
+        std.debug.print("[EXCHANGE] cannot open {s} for append: {}\n", .{ path, err });
+        return;
+    };
+    defer f.close();
+    f.seekFromEnd(0) catch return;
+    var buf: [1024]u8 = undefined;
+    const formatted = std.fmt.bufPrint(&buf, "{{\"kind\":\"{s}\",{s}}}\n", .{ kind, line }) catch return;
+    _ = f.writeAll(formatted) catch {};
+}
+
+/// Reciteste orders.jsonl la pornire. Reapeleaza placeOrder/cancelOrder pe
+/// engine asa incat starea sa coincida cu ce era inainte de restart. Lipsa
+/// fisierului = start curat (no-op).
+fn replayOrdersJournal(ctx: *ServerCtx) !void {
+    const path = ordersPathSlice(ctx) orelse return;
+    const engine = ctx.exchange orelse return;
+
+    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return,
+        else => return err,
+    };
+    defer f.close();
+
+    const stat = try f.stat();
+    if (stat.size == 0) return;
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
+    _ = try f.readAll(buf);
+
+    var lines = std.mem.splitScalar(u8, buf, '\n');
+    var replayed: usize = 0;
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
+        const kind_key = "\"kind\":\"";
+        const k_start = std.mem.indexOf(u8, line, kind_key) orelse continue;
+        const k_from = k_start + kind_key.len;
+        const k_end = std.mem.indexOfScalarPos(u8, line, k_from, '"') orelse continue;
+        const kind = line[k_from..k_end];
+
+        if (std.mem.eql(u8, kind, "place")) {
+            const trader = extractStr(line, "trader") orelse continue;
+            const side_str = extractStr(line, "side") orelse continue;
+            const pair_id_u = extractArrayNumByKey(line, "pairId");
+            const price = extractArrayNumByKey(line, "price");
+            const amount = extractArrayNumByKey(line, "amount");
+            const ts_raw = extractArrayNumByKey(line, "ts");
+            if (price == 0 or amount == 0) continue;
+
+            var order = matching_mod.Order.empty();
+            order.side = if (asciiEqIgnoreCase(side_str, "buy")) .buy else .sell;
+            order.pair_id = @intCast(pair_id_u);
+            order.price_micro_usd = price;
+            order.amount_sat = amount;
+            order.timestamp_ms = if (ts_raw > 0) @intCast(ts_raw) else std.time.milliTimestamp();
+            const tn = @min(trader.len, order.trader_address.len);
+            @memcpy(order.trader_address[0..tn], trader[0..tn]);
+            order.trader_addr_len = @intCast(tn);
+            order.status = .active;
+            engine.placeOrder(order) catch continue;
+        } else if (std.mem.eql(u8, kind, "cancel")) {
+            const oid = extractArrayNumByKey(line, "orderId");
+            if (oid == 0) continue;
+            engine.cancelOrder(oid) catch {};
+        }
+        replayed += 1;
+    }
+    std.debug.print("[EXCHANGE] Replayed {d} order event(s) from {s}\n", .{ replayed, path });
+}
+
+/// Cauta nonce-ul ultim folosit pentru o adresa. -1 daca nu exista intrare.
+fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
+    var i: u16 = 0;
+    while (i < ctx.nonce_count) : (i += 1) {
+        const n = &ctx.nonces[i];
+        if (n.address_len == addr.len and std.mem.eql(u8, n.address[0..n.address_len], addr)) {
+            return @intCast(n.last_nonce);
+        }
+    }
+    return -1;
+}
+
+/// Inregistreaza nonce-ul curent pentru o adresa. Daca tabelul e plin,
+/// suprascrie cea mai veche intrare (FIFO simplu — testnet, nu DoS-rezistent).
+fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
+    var i: u16 = 0;
+    while (i < ctx.nonce_count) : (i += 1) {
+        const n = &ctx.nonces[i];
+        if (n.address_len == addr.len and std.mem.eql(u8, n.address[0..n.address_len], addr)) {
+            n.last_nonce = nonce;
+            return;
+        }
+    }
+    if (ctx.nonce_count >= ctx.nonces.len) {
+        // Evict slot 0 (cel mai vechi)
+        var j: u16 = 0;
+        while (j + 1 < ctx.nonces.len) : (j += 1) {
+            ctx.nonces[j] = ctx.nonces[j + 1];
+        }
+        ctx.nonce_count -= 1;
+    }
+    const slot = &ctx.nonces[ctx.nonce_count];
+    const cn = @min(addr.len, slot.address.len);
+    @memcpy(slot.address[0..cn], addr[0..cn]);
+    slot.address_len = @intCast(cn);
+    slot.last_nonce = nonce;
+    ctx.nonce_count += 1;
+}
+
+/// Inregistreaza un fill in trade_log circular (cele mai recente 256).
+fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill) void {
+    ctx.trade_log[ctx.trade_head] = fill;
+    ctx.trade_head = (ctx.trade_head + 1) % @as(u32, @intCast(ctx.trade_log.len));
+    if (ctx.trade_count < ctx.trade_log.len) ctx.trade_count += 1;
+}
+
+/// Construieste mesajul canonical pentru semnatura unui placeOrder.
+/// MUST match exactly ce semneaza clientul (frontend).
+/// Format: "EXCHANGE_ORDER_V1\n<side>\n<pairId>\n<price>\n<amount>\n<nonce>\n<trader>"
+fn buildOrderSignMessage(
+    side: []const u8,
+    pair_id: u16,
+    price: u64,
+    amount: u64,
+    nonce: u64,
+    trader: []const u8,
+    out: []u8,
+) ![]u8 {
+    return std.fmt.bufPrint(out,
+        "EXCHANGE_ORDER_V1\n{s}\n{d}\n{d}\n{d}\n{d}\n{s}",
+        .{ side, pair_id, price, amount, nonce, trader });
+}
+
+/// Construieste mesajul canonical pentru cancelOrder.
+fn buildCancelSignMessage(
+    order_id: u64,
+    nonce: u64,
+    trader: []const u8,
+    out: []u8,
+) ![]u8 {
+    return std.fmt.bufPrint(out,
+        "EXCHANGE_CANCEL_V1\n{d}\n{d}\n{s}",
+        .{ order_id, nonce, trader });
+}
+
+/// Deriva adresa nativa OmniBus (ob1q...) dintr-un compressed pubkey.
+/// = bech32(hash160(pubkey)). Caller detine memoria.
+fn deriveOBAddressFromPubkey(
+    compressed_pubkey: [33]u8,
+    allocator: std.mem.Allocator,
+) ![]u8 {
+    const h160 = wallet_mod.Wallet.pubkeyHash160(compressed_pubkey);
+    return bech32_mod.encodeOBAddress(h160, allocator);
+}
+
+/// Verifica semnatura ECDSA secp256k1 pe mesajul canonical.
+/// Returneaza true daca pubkey-ul corespunde adresei E si semnatura e valida.
+fn verifyOrderSig(
+    msg: []const u8,
+    sig_hex: []const u8,
+    pubkey_hex: []const u8,
+) bool {
+    if (sig_hex.len != 128 or pubkey_hex.len != 66) return false;
+    var sig_bytes: [64]u8 = undefined;
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(sig_hex, &sig_bytes) catch return false;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch return false;
+    return secp256k1_mod.Secp256k1Crypto.verify(pk_bytes, msg, sig_bytes);
+}
+
+/// exchange_placeOrder — plaseaza o ordine semnata pe DEX-ul nativ.
+/// Required: trader, side ("buy"|"sell"), pair, price, amount, nonce,
+///           signature, publicKey. Optional: pairId (in lieu of pair).
+/// Pretul e in micro-USD (u64), amount in SAT (u64).
+fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    const engine = ctx.exchange orelse
+        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: trader", id, alloc);
+    const side_str = extractStr(body, "side") orelse
+        return errorJson(-32602, "Missing param: side (buy|sell)", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+
+    const price = extractArrayNumByKey(body, "price");
+    const amount = extractArrayNumByKey(body, "amount");
+    const nonce = extractArrayNumByKey(body, "nonce");
+
+    if (price == 0) return errorJson(-32602, "Missing or zero: price", id, alloc);
+    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    // Determina pair_id: fie explicit "pairId":N, fie din "pair":"BASE/QUOTE"
+    var pair_id: u16 = 0;
+    const pair_id_u = extractArrayNumByKey(body, "pairId");
+    if (pair_id_u > 0) {
+        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
+    } else if (extractStr(body, "pair")) |label| {
+        pair_id = exchangePairLookup(label) orelse
+            return errorJson(-32602, "Unknown pair (try OMNI/USD, BTC/USD, LCX/USD, ETH/USD)", id, alloc);
+    } else {
+        return errorJson(-32602, "Missing param: pair or pairId", id, alloc);
+    }
+
+    const side: matching_mod.Side =
+        if (asciiEqIgnoreCase(side_str, "buy")) .buy
+        else if (asciiEqIgnoreCase(side_str, "sell")) .sell
+        else return errorJson(-32602, "side must be 'buy' or 'sell'", id, alloc);
+
+    if (trader.len > 64) return errorJson(-32602, "trader address too long", id, alloc);
+
+    // 1) Verify signature on canonical message
+    var msg_buf: [256]u8 = undefined;
+    const side_canon: []const u8 = if (side == .buy) "buy" else "sell";
+    const msg = buildOrderSignMessage(side_canon, pair_id, price, amount, nonce, trader, &msg_buf) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed (bad sig or pubkey/address mismatch)", id, alloc);
+    }
+
+    // 2) Verify pubkey -> address (so a stranger can't sign for someone else's address).
+    //    Reuse existing chain helper that derives `ob1q...` from compressed pubkey.
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, trader)) {
+        return errorJson(-32000, "Public key does not match trader address", id, alloc);
+    }
+
+    // 3) Lock + nonce check (replay protection) + balance check + place
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const last_nonce = nonceLookup(ctx, trader);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
+    }
+
+    // Balance check: pentru a posta o ordine SELL trader-ul trebuie sa aiba
+    // suficient base. Pentru BUY, suficient quote. Validarea e best-effort —
+    // matching-ul executa ulterior cu balantele on-chain.
+    const balance = ctx.bc.getAddressBalance(trader);
+    if (side == .sell and balance < amount) {
+        return errorJson(-32000, "Insufficient base balance for sell", id, alloc);
+    }
+    // BUY notional in SAT (price e micro-USD per OMNI; 1 OMNI = 1e9 SAT)
+    if (side == .buy) {
+        const notional = (amount / 1_000_000_000) * (price / 1_000_000);
+        if (notional > 0 and balance < notional) {
+            // Soft check — testnet permite, doar avertizam in log
+            std.debug.print("[EXCHANGE] WARN buy notional {d} > balance {d} for {s}\n",
+                .{ notional, balance, trader[0..@min(trader.len, 16)] });
+        }
+    }
+
+    var order = matching_mod.Order.empty();
+    order.side = side;
+    order.pair_id = pair_id;
+    order.price_micro_usd = price;
+    order.amount_sat = amount;
+    order.timestamp_ms = std.time.milliTimestamp();
+    const tn = @min(trader.len, order.trader_address.len);
+    @memcpy(order.trader_address[0..tn], trader[0..tn]);
+    order.trader_addr_len = @intCast(tn);
+    order.status = .active;
+
+    const fills_before = engine.fill_count;
+    engine.placeOrder(order) catch |err| {
+        return errorJson(-32000, switch (err) {
+            error.OrderbookFull => "Orderbook full",
+            error.FillBufferFull => "Fill buffer full",
+            error.InvalidPrice => "Invalid price",
+            error.InvalidAmount => "Invalid amount",
+            error.InvalidPair => "Invalid pair",
+            else => "Order rejected",
+        }, id, alloc);
+    };
+    const new_order_id = engine.next_order_id - 1;
+
+    // Move newly produced fills into rolling trade_log
+    var fi = fills_before;
+    while (fi < engine.fill_count) : (fi += 1) {
+        tradeLogPush(ctx, engine.fills[fi]);
+    }
+
+    nonceSet(ctx, trader, nonce);
+
+    // Persist the place event (best-effort)
+    var jbuf: [512]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"trader\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"orderId\":{d},\"ts\":{d}",
+        .{ trader, side_canon, pair_id, price, amount, new_order_id, order.timestamp_ms },
+    ) catch "";
+    if (jline.len > 0) ordersAppendJournal(ctx, "place", jline);
+
+    // Compute filled amount this order achieved (sum of new fills where this order_id appears)
+    var filled_total: u64 = 0;
+    var k = fills_before;
+    while (k < engine.fill_count) : (k += 1) {
+        const f = engine.fills[k];
+        if (f.buy_order_id == new_order_id or f.sell_order_id == new_order_id) {
+            filled_total += f.amount_sat;
+        }
+    }
+    const remaining: u64 = if (filled_total >= amount) 0 else amount - filled_total;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\"}}}}",
+        .{ id, new_order_id, side_canon, pair_id, price, amount, filled_total, remaining,
+           if (remaining == 0) "filled" else if (filled_total > 0) "partial" else "active" });
+}
+
+/// exchange_cancelOrder — anuleaza o ordine. Required: orderId, trader,
+/// nonce, signature, publicKey. Verifica pe lant ca trader == owner.
+fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const engine = ctx.exchange orelse
+        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    const order_id = extractArrayNumByKey(body, "orderId");
+    if (order_id == 0) return errorJson(-32602, "Missing param: orderId", id, alloc);
+    const trader = extractStr(body, "trader") orelse
+        return errorJson(-32602, "Missing param: trader", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    // Verify signature
+    var msg_buf: [128]u8 = undefined;
+    const msg = buildCancelSignMessage(order_id, nonce, trader, &msg_buf) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+
+    // Pubkey -> trader address must match
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, trader)) {
+        return errorJson(-32000, "Public key does not match trader address", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    // Look up order, verify ownership BEFORE cancelling
+    const order = engine.getOrder(order_id) orelse
+        return errorJson(-32000, "Order not found", id, alloc);
+    if (!std.mem.eql(u8, order.getTraderAddress(), trader)) {
+        return errorJson(-32000, "Not order owner", id, alloc);
+    }
+
+    const last_nonce = nonceLookup(ctx, trader);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
+    }
+
+    engine.cancelOrder(order_id) catch |err| {
+        return errorJson(-32000, switch (err) {
+            error.OrderNotFound => "Order not found",
+            else => "Cancel failed",
+        }, id, alloc);
+    };
+    nonceSet(ctx, trader, nonce);
+
+    var jbuf: [128]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"trader\":\"{s}\",\"orderId\":{d},\"ts\":{d}",
+        .{ trader, order_id, std.time.milliTimestamp() },
+    ) catch "";
+    if (jline.len > 0) ordersAppendJournal(ctx, "cancel", jline);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"orderId\":{d},\"cancelled\":true}}}}",
+        .{ id, order_id });
+}
+
+/// exchange_getOrderbook — top N bids/asks pentru o pereche.
+/// Params: pair sau pairId, optional depth (default 25, max 50).
+fn handleExchangeGetOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const engine = ctx.exchange orelse
+        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    var pair_id: u16 = 0;
+    const pair_id_u = extractArrayNumByKey(body, "pairId");
+    if (pair_id_u > 0) {
+        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
+    } else if (extractStr(body, "pair")) |label| {
+        pair_id = exchangePairLookup(label) orelse 0;
+    }
+
+    const depth_raw = extractArrayNumByKey(body, "depth");
+    const depth: u32 = if (depth_raw == 0) 25 else @intCast(@min(depth_raw, @as(u64, 50)));
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":{\"pairId\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{pair_id});
+    try out.appendSlice(alloc, ",\"bids\":[");
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    var emitted: u32 = 0;
+    var first = true;
+    var i: u32 = 0;
+    while (i < engine.bid_count and emitted < depth) : (i += 1) {
+        const o = engine.bids[i];
+        if (o.pair_id != pair_id) continue;
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"orderId\":{d},\"price\":{d},\"amount\":{d},\"remaining\":{d},\"trader\":\"{s}\",\"ts\":{d}}}",
+            .{ o.order_id, o.price_micro_usd, o.amount_sat, o.remainingSat(),
+               o.trader_address[0..o.trader_addr_len], o.timestamp_ms });
+        emitted += 1;
+    }
+
+    try out.appendSlice(alloc, "],\"asks\":[");
+    emitted = 0;
+    first = true;
+    i = 0;
+    while (i < engine.ask_count and emitted < depth) : (i += 1) {
+        const o = engine.asks[i];
+        if (o.pair_id != pair_id) continue;
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"orderId\":{d},\"price\":{d},\"amount\":{d},\"remaining\":{d},\"trader\":\"{s}\",\"ts\":{d}}}",
+            .{ o.order_id, o.price_micro_usd, o.amount_sat, o.remainingSat(),
+               o.trader_address[0..o.trader_addr_len], o.timestamp_ms });
+        emitted += 1;
+    }
+
+    const best_bid = engine.bestBid(pair_id) orelse 0;
+    const best_ask = engine.bestAsk(pair_id) orelse 0;
+    const spread_v = engine.spread(pair_id) orelse 0;
+
+    try std.fmt.format(out.writer(alloc),
+        "],\"bestBid\":{d},\"bestAsk\":{d},\"spread\":{d},\"orderCount\":{d}}}}}",
+        .{ best_bid, best_ask, spread_v, engine.orderCountForPair(pair_id) });
+
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_getUserOrders — toate ordinele active ale unei adrese.
+/// Params: trader. Optional: pairId / pair (filtru).
+fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const engine = ctx.exchange orelse
+        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: trader", id, alloc);
+
+    var filter_pair: ?u16 = null;
+    const pair_id_u = extractArrayNumByKey(body, "pairId");
+    if (pair_id_u > 0) {
+        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
+    } else if (extractStr(body, "pair")) |label| {
+        filter_pair = exchangePairLookup(label);
+    }
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    var first = true;
+    inline for (.{ "bids", "asks" }) |which| {
+        const count = if (comptime std.mem.eql(u8, which, "bids")) engine.bid_count else engine.ask_count;
+        var i: u32 = 0;
+        while (i < count) : (i += 1) {
+            const o = if (comptime std.mem.eql(u8, which, "bids")) engine.bids[i] else engine.asks[i];
+            if (!std.mem.eql(u8, o.getTraderAddress(), trader)) continue;
+            if (filter_pair) |fp| if (o.pair_id != fp) continue;
+            if (!first) try out.appendSlice(alloc, ",");
+            first = false;
+            try std.fmt.format(out.writer(alloc),
+                "{{\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\",\"ts\":{d}}}",
+                .{ o.order_id, o.side.name(), o.pair_id, o.price_micro_usd, o.amount_sat,
+                   o.filled_sat, o.remainingSat(),
+                   switch (o.status) { .active => "active", .partial => "partial", .filled => "filled", .cancelled => "cancelled" },
+                   o.timestamp_ms });
+        }
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_getTrades — ultimele N fills. Optional: pair/pairId, address (filtru),
+/// limit (default 50, max 256).
+fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.exchange == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    var filter_pair: ?u16 = null;
+    const pair_id_u = extractArrayNumByKey(body, "pairId");
+    if (pair_id_u > 0) {
+        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
+    } else if (extractStr(body, "pair")) |label| {
+        filter_pair = exchangePairLookup(label);
+    }
+    const filter_addr = extractStr(body, "address") orelse extractStr(body, "trader");
+    const limit_raw = extractArrayNumByKey(body, "limit");
+    const limit: u32 = if (limit_raw == 0) 50 else @intCast(@min(limit_raw, 256));
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    // Walk newest-to-oldest in circular buffer
+    var emitted: u32 = 0;
+    var first = true;
+    var c: u32 = 0;
+    while (c < ctx.trade_count and emitted < limit) : (c += 1) {
+        // Most recent index = (head - 1 - c) mod len
+        const len_u: u32 = @intCast(ctx.trade_log.len);
+        const idx = (ctx.trade_head + len_u - 1 - c) % len_u;
+        const f = ctx.trade_log[idx];
+        if (filter_pair) |fp| if (f.pair_id != fp) continue;
+        if (filter_addr) |a| {
+            const buyer = f.getBuyerAddress();
+            const seller = f.getSellerAddress();
+            if (!std.mem.eql(u8, buyer, a) and !std.mem.eql(u8, seller, a)) continue;
+        }
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"fillId\":{d},\"pairId\":{d},\"price\":{d},\"amount\":{d},\"buyer\":\"{s}\",\"seller\":\"{s}\",\"buyOrderId\":{d},\"sellOrderId\":{d},\"ts\":{d}}}",
+            .{ f.fill_id, f.pair_id, f.price_micro_usd, f.amount_sat,
+               f.buyer_address[0..f.buyer_addr_len], f.seller_address[0..f.seller_addr_len],
+               f.buy_order_id, f.sell_order_id, f.timestamp_ms });
+        emitted += 1;
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_listPairs — perechi suportate. Static (definite la compile-time).
+fn handleExchangeListPairs(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+    var first = true;
+    for (EXCHANGE_PAIRS) |p| {
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"id\":{d},\"base\":\"{s}\",\"quote\":\"{s}\",\"label\":\"{s}/{s}\"}}",
+            .{ p.id, p.base, p.quote, p.base, p.quote });
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_getStats — sumar global: total ordine, total fills, best/spread per pereche.
+fn handleExchangeGetStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    const engine = ctx.exchange orelse
+        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try std.fmt.format(out.writer(alloc),
+        ",\"result\":{{\"totalOrders\":{d},\"bidCount\":{d},\"askCount\":{d},\"trades\":{d},\"pairs\":[",
+        .{ engine.orderCount(), engine.bid_count, engine.ask_count, ctx.trade_count });
+    var first = true;
+    for (EXCHANGE_PAIRS) |p| {
+        const bb = engine.bestBid(p.id) orelse 0;
+        const ba = engine.bestAsk(p.id) orelse 0;
+        const sp = engine.spread(p.id) orelse 0;
+        const oc = engine.orderCountForPair(p.id);
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"id\":{d},\"label\":\"{s}/{s}\",\"bestBid\":{d},\"bestAsk\":{d},\"spread\":{d},\"orderCount\":{d}}}",
+            .{ p.id, p.base, p.quote, bb, ba, sp, oc });
+    }
+    try out.appendSlice(alloc, "]}}");
+    return alloc.dupe(u8, out.items);
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────
