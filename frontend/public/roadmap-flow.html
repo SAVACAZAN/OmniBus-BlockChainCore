@@ -49,8 +49,11 @@
     }
     header .sub { color: var(--dim); font-size: 11px; }
     main {
-      max-width: 1100px; margin: 0 auto; padding: 32px 24px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      max-width: 1280px; margin: 0 auto; padding: 32px 24px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    }
+    @media (max-width: 1000px) {
+      main { grid-template-columns: 1fr; }
     }
     .card {
       background: rgba(15,26,46,0.6);
@@ -86,10 +89,50 @@
 
     svg { display: block; margin: 0 auto; }
     footer {
-      max-width: 1100px; margin: 0 auto;
+      max-width: 1280px; margin: 0 auto;
       padding: 16px 24px; color: var(--dim);
       border-top: 1px solid var(--line); font-size: 11px;
     }
+
+    .legend {
+      max-width: 1280px; margin: 0 auto; padding: 0 24px 24px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    }
+    @media (max-width: 1000px) {
+      .legend { grid-template-columns: 1fr; }
+    }
+    .legend-card {
+      background: rgba(15,26,46,0.4);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .legend-card h3 {
+      margin: 0 0 10px 0; font-size: 12px;
+      color: var(--fg); font-weight: 600;
+    }
+    .legend-card ul {
+      margin: 0; padding: 0; list-style: none;
+      font-size: 11px; line-height: 1.7; color: var(--dim);
+    }
+    .legend-card li { margin: 4px 0; }
+    .legend-card b { color: var(--fg); font-weight: 600; }
+    .legend-card code {
+      background: #050912; padding: 1px 5px; border-radius: 3px;
+      color: var(--gold); font-size: 10px;
+    }
+    .dot {
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 2px; vertical-align: middle;
+      margin-right: 4px;
+    }
+    .dot-orange-full { background: rgba(255,140,0,0.85); }
+    .dot-orange-half { background: rgba(255,140,0,0.5);
+                        border: 1px solid rgba(255,140,0,0.7); }
+    .dot-orange-dim  { background: rgba(255,140,0,0.08);
+                        border: 1px solid rgba(255,140,0,0.3); }
+    .dot-gold        { background: var(--gold); }
+    .dot-gold-dim    { background: var(--gold); opacity: 0.5; }
 
     .pulse {
       display: inline-block; width: 8px; height: 8px;
@@ -145,13 +188,22 @@
         <path d="M 40 15 L 200 15 L 200 35 L 130 105 L 130 115 L 200 185 L 200 205 L 40 205 L 40 185 L 110 115 L 110 105 L 40 35 Z"
               fill="none" stroke="var(--line)" stroke-width="2"/>
 
-        <!-- TOP sand: shrinks as a slot progresses (60s window) -->
+        <!-- TOP sand: shrinks from the TOP downward (real hourglass:
+             sand drains away from the top, leaving a gap above and
+             keeping the pile sitting on the funnel until the last
+             grain). transform-origin = (120, 103) — the funnel mouth
+             where sand leaves. scale(1, k) with k: 1→0 contracts the
+             shape toward the funnel, exactly like physical sand. -->
         <path id="hg-top" d="M 42 17 L 198 17 L 198 33 L 128 103 L 112 103 L 42 33 Z"
-              fill="var(--gold)" opacity="0.7"/>
+              fill="var(--gold)" opacity="0.7"
+              transform-origin="120 103"/>
 
-        <!-- BOTTOM sand: grows as a slot progresses -->
+        <!-- BOTTOM sand: grows from the BASE upward as sand piles in.
+             transform-origin = (120, 203) — the floor of the lower
+             chamber. scale(1, k) with k: 0→1 expands upward. -->
         <path id="hg-bot" d="M 130 117 L 198 187 L 198 203 L 42 203 L 42 187 L 110 117 Z"
-              fill="var(--gold)" opacity="0.5" transform-origin="120 200"/>
+              fill="var(--gold)" opacity="0.5"
+              transform-origin="120 203"/>
 
         <!-- Falling stream -->
         <line x1="120" y1="103" x2="120" y2="117"
@@ -164,7 +216,168 @@
 
       <div class="spectrum" id="hg-spec">…</div>
     </div>
+
+    <!-- ── HOURGLASS Model 2 — wooden frame, classic shape ───────────── -->
+    <div class="card">
+      <h2>Hourglass · Wood Model</h2>
+
+      <svg viewBox="0 0 240 240" width="100%" height="220" aria-label="Wooden Hourglass">
+        <defs>
+          <!-- Wood grain gradient for the frame -->
+          <linearGradient id="wood-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#3a1e0a"/>
+            <stop offset="40%"  stop-color="#6b3416"/>
+            <stop offset="50%"  stop-color="#8b4520"/>
+            <stop offset="60%"  stop-color="#6b3416"/>
+            <stop offset="100%" stop-color="#3a1e0a"/>
+          </linearGradient>
+          <!-- Glass highlight gradient -->
+          <linearGradient id="glass-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.0)"/>
+            <stop offset="30%"  stop-color="rgba(255,255,255,0.15)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/>
+          </linearGradient>
+          <!-- Sand gradient (gold) -->
+          <linearGradient id="sand-grad-2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#e6b84d"/>
+            <stop offset="50%"  stop-color="#d4a017"/>
+            <stop offset="100%" stop-color="#a07a0e"/>
+          </linearGradient>
+        </defs>
+
+        <!-- TOP wooden cap -->
+        <rect x="32"  y="12" width="176" height="14" rx="2"
+              fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="1"/>
+        <rect x="28"  y="10" width="184" height="4"  rx="1"
+              fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="1"/>
+
+        <!-- BOTTOM wooden cap -->
+        <rect x="32"  y="214" width="176" height="14" rx="2"
+              fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="1"/>
+        <rect x="28"  y="226" width="184" height="4"  rx="1"
+              fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="1"/>
+
+        <!-- Four wooden side pillars -->
+        <rect x="32"  y="26" width="6" height="188" fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="0.5"/>
+        <rect x="202" y="26" width="6" height="188" fill="url(#wood-grad)" stroke="#1a0d04" stroke-width="0.5"/>
+        <line x1="120" y1="26" x2="120" y2="214"
+              stroke="#1a0d04" stroke-width="0.3" stroke-dasharray="2,3" opacity="0.3"/>
+
+        <!-- GLASS BULB outline (curvy hourglass shape) -->
+        <path d="M 50 30
+                 C 50 50, 80 80, 110 110
+                 C 115 113, 115 117, 110 120
+                 C 80 150, 50 180, 50 200
+                 L 50 210
+                 L 190 210
+                 L 190 200
+                 C 190 180, 160 150, 130 120
+                 C 125 117, 125 113, 130 110
+                 C 160 80, 190 50, 190 30
+                 L 190 28
+                 L 50 28 Z"
+              fill="rgba(180,210,255,0.05)" stroke="#5a7a90" stroke-width="1.2"/>
+
+        <!-- Glass shine on left side -->
+        <path d="M 60 35 C 60 55, 85 80, 100 105 L 95 110 C 80 90, 60 65, 60 35 Z"
+              fill="url(#glass-grad)"/>
+
+        <!-- TOP sand pile — drains physically: surface drops, base stays
+             fixed at the funnel mouth (y≈108). transform-origin at
+             (120, 108) anchors the bottom edge; scale(1, k) with
+             k: 1→0 pulls the top edge downward into the funnel.
+             Result: empty space grows ABOVE the remaining pile, sand
+             stays seated on the funnel until the last grain. -->
+        <g id="hg2-top-group" transform-origin="120 108" transform="scale(1, 1)">
+          <path d="M 55 30
+                   C 55 50, 82 78, 112 108
+                   L 128 108
+                   C 158 78, 185 50, 185 30
+                   L 55 30 Z"
+                fill="url(#sand-grad-2)" opacity="0.95"/>
+          <!-- Top sand surface (slight curve) -->
+          <ellipse cx="120" cy="30" rx="65" ry="3"
+                   fill="#f5d36a" opacity="0.6"/>
+        </g>
+
+        <!-- BOTTOM sand pile (grows UPWARD as time passes — anchor at
+             the floor (120, 210); scale(1, k) with k: 0→1 pushes the
+             top edge of the pile up. -->
+        <g id="hg2-bot-group" transform-origin="120 210" transform="scale(1, 0)">
+          <path d="M 55 210
+                   C 55 190, 82 162, 112 132
+                   L 128 132
+                   C 158 162, 185 190, 185 210
+                   L 55 210 Z"
+                fill="url(#sand-grad-2)" opacity="0.95"/>
+          <!-- Bottom sand pile (rounded heap) -->
+          <path d="M 70 210
+                   Q 120 175, 170 210
+                   Z"
+                fill="#c89010" opacity="0.7"/>
+        </g>
+
+        <!-- Falling sand stream -->
+        <rect id="hg2-stream" x="118" y="108" width="4" height="24"
+              fill="#d4a017" opacity="0.85"/>
+        <!-- Tiny sand grains around the stream -->
+        <circle cx="119" cy="115" r="0.8" fill="#f5d36a" opacity="0.8"/>
+        <circle cx="121" cy="122" r="0.8" fill="#f5d36a" opacity="0.7"/>
+        <circle cx="120" cy="128" r="0.8" fill="#f5d36a" opacity="0.6"/>
+      </svg>
+
+      <div class="stat-row"><span class="k">Slot phase</span><span class="v gold" id="hg2-phase">—</span></div>
+      <div class="stat-row"><span class="k">Cycles per second</span><span class="v" id="hg2-cps">—</span></div>
+      <div class="stat-row"><span class="k">Slot calendar</span><span class="v" id="hg2-cal">—</span></div>
+    </div>
   </main>
+
+  <!-- ── LEGEND ───────────────────────────────────────────────────────── -->
+  <section class="legend">
+    <div class="legend-card">
+      <h3>📐 Pyramid · How to read</h3>
+      <ul>
+        <li><span class="dot dot-orange-full"></span> <b>Filled tier</b> — chain has reached that order of magnitude</li>
+        <li><span class="dot dot-orange-half"></span> <b>Partial tier</b> — currently filling, opacity ∝ progress</li>
+        <li><span class="dot dot-orange-dim"></span> <b>Dim tier</b> — block range not yet mined</li>
+        <li><b>Top apex (1%)</b> — the infinity gap. The chain has no
+            hard cap (halving forever, dust block rewards), so the
+            crown of the pyramid stays open as a permanent reminder
+            that the chain keeps growing.</li>
+        <li><b>Logarithmic scale</b> — the 7 main tiers are not equal
+            block counts; they map log₁₀(height) so the visual stays
+            alive whether the chain is at 100 or at 100 million blocks</li>
+        <li>📊 <b>Block height</b> — total blocks finalised on chain</li>
+        <li>🎯 <b>% filled</b> — log-scaled progress against the 99% region</li>
+        <li>⏱ <b>Last block age</b> — seconds since latest block; healthy &lt; 3s</li>
+      </ul>
+    </div>
+
+    <div class="legend-card">
+      <h3>⏳ Hourglass · How to read</h3>
+      <ul>
+        <li><span class="dot dot-gold"></span> <b>Top sand</b> — time remaining in the current 60s cycle</li>
+        <li><span class="dot dot-gold-dim"></span> <b>Bottom sand</b> — time elapsed; resets each cycle</li>
+        <li><b>Slot phase</b> — Ns / 60s, the wall-clock progress through the cycle</li>
+        <li><b>Mempool size</b> — pending TXs awaiting the next block</li>
+        <li><b>RDTSC cycles</b> — direct CPU cycle counter (rdtscp instruction). On a 3GHz core: ~3 billion ticks/sec</li>
+        <li><b>Cycles per second</b> — measured rdtsc delta over the last 1s; baseline for clock health</li>
+        <li><b>Slot calendar</b> — count of pre-computed future slots awaiting fill</li>
+        <li><b>Spectrum line</b> — 64 bits of the cycle counter, MSB→LSB. Stable high bits = healthy clock; broken patterns = scheduler jitter</li>
+      </ul>
+    </div>
+
+    <div class="legend-card">
+      <h3>🔧 Why two hourglass models?</h3>
+      <ul>
+        <li><b>Glass model</b> — minimalist, scales cleanly on small screens</li>
+        <li><b>Wood model</b> — classic feel, full SVG with wood grain + glass highlights</li>
+        <li>Pick whichever you prefer; both poll the same RPC and share the same <code>cycleStart</code> reference</li>
+        <li>Page is pure static HTML + inline SVG + vanilla JS — no React, no WS subscription, no allocator pressure on the node</li>
+      </ul>
+    </div>
+  </section>
 
   <footer>
     Read-only view; polls RPC every 1s. Does not subscribe to WebSocket
@@ -204,17 +417,54 @@
     let cycleStart = Date.now();
 
     // ── Pyramid ──────────────────────────────────────────────────────
+    //
+    // Pyramid is split proportionally between "history" (block 0 → current
+    // tip) and "infinity" (everything beyond, capped at 1% of pyramid
+    // height for visual clarity). The 8 SVG tiers map onto a
+    // 99%-fillable-region; the top 1% stays dim as the "to be mined"
+    // headroom that never closes (chain has no hard cap, just halving
+    // dust forever).
+    //
+    // PYRAMID_REFERENCE_HEIGHT acts as a soft scale anchor — on testnet
+    // we're at ~60k blocks, mainnet will grow to millions. Uses a
+    // logarithmic mapping so the fill is meaningful at every order of
+    // magnitude:
+    //   height 100      → ~25% filled
+    //   height 10,000   → ~50% filled
+    //   height 1,000,000 → ~75% filled
+    //   height 100M+    → asymptotically approaches 99% (never reaches)
+    const PYRAMID_INFINITY_GAP = 0.01;  // top 1% never fills
+    const FILL_REGION = 1 - PYRAMID_INFINITY_GAP;
+    function pyramidFillRatio(height) {
+      // Logarithmic scale so the visual is alive at any chain size.
+      // log10(1)=0, log10(1e9)=9. Map 0..9 onto 0..FILL_REGION.
+      const log = Math.log10(Math.max(1, height));
+      const SCALE_MAX_LOG = 9;
+      return Math.min(FILL_REGION, (log / SCALE_MAX_LOG) * FILL_REGION);
+    }
     function paintPyramid(height) {
-      const tier = Math.floor(height / 10000);   // 1 tier per 10k blocks
-      const within = (height % 10000) / 10000;   // 0..1 fill of current tier
       const tiers = document.querySelectorAll("#tiers .tier");
-      // 8 tiers: bottom (#7) → top (#0). Fill bottom-up.
+      // 8 tiers: each represents (FILL_REGION / 8) of the total pyramid.
+      // Top tier (#0) is the "infinity" tier — always dim regardless of
+      // height. Bottom 7 fill up based on the log-scaled ratio.
+      const ratio = pyramidFillRatio(height);   // 0..0.99
+      const tierStep = FILL_REGION / 7;          // each of bottom 7 covers
       tiers.forEach((el, i) => {
-        const fromBottom = 7 - i;  // tier index counting from bottom
-        if (fromBottom < tier) {
+        // i=0 is the top (apex) — always dim "infinity"
+        if (i === 0) {
+          el.setAttribute("fill", "rgba(255,140,0,0.05)");
+          el.setAttribute("stroke", "rgba(255,140,0,0.2)");
+          return;
+        }
+        // i=1..7 from top, so fromBottom = 7-i (range 0..6)
+        const fromBottom = 7 - i;
+        const tierStart = fromBottom * tierStep;
+        const tierEnd = (fromBottom + 1) * tierStep;
+        if (ratio >= tierEnd) {
           el.setAttribute("fill", "rgba(255,140,0,0.85)");
-        } else if (fromBottom === tier) {
-          // partial — modulate alpha
+        } else if (ratio >= tierStart) {
+          // partial fill modulated by progress through this tier
+          const within = (ratio - tierStart) / tierStep;
           const a = 0.15 + within * 0.7;
           el.setAttribute("fill", `rgba(255,140,0,${a.toFixed(2)})`);
         } else {
@@ -222,28 +472,57 @@
         }
       });
       document.getElementById("ph-height").textContent = height.toLocaleString();
-      document.getElementById("ph-tier").textContent = tier + " (" + Math.floor(within*100) + "%)";
+      document.getElementById("ph-tier").textContent =
+        Math.floor(ratio * 100) + "% / " + Math.floor(FILL_REGION * 100) + "% (top 1% = ∞)";
     }
 
     // ── Hourglass ────────────────────────────────────────────────────
-    function paintHourglass(rdtsc, spectrum, mempoolSize) {
+    let lastRdtsc = null, lastRdtscMs = null;
+    function paintHourglass(rdtsc, spectrum, mempoolSize, calendarCount) {
       const elapsed = (Date.now() - cycleStart) / 1000; // 0..60
       const cyclePos = (elapsed % 60) / 60;             // 0..1
-      // Top shrinks: scaleY 1 → 0
-      const topY = 1 - cyclePos;
+      // Top sand: shrinks 1 → 0 from the funnel (transform-origin in SVG).
+      // scale(1, k) with k=1-cyclePos. Sand drains away from the top.
+      const topK = 1 - cyclePos;
       document.getElementById("hg-top").setAttribute(
-        "transform", `translate(0,${(1-topY)*43}) scale(1, ${topY})`);
-      // Bottom grows: scaleY 0 → 1
+        "transform", `scale(1, ${topK})`);
+      // Bottom sand: grows 0 → 1 from the floor.
       document.getElementById("hg-bot").setAttribute(
         "transform", `scale(1, ${cyclePos})`);
 
-      document.getElementById("hg-phase").textContent =
-        `${Math.floor(elapsed % 60)}s / 60s`;
+      // Mirror animation onto Model 2 (wooden frame).
+      const t2 = document.getElementById("hg2-top-group");
+      const b2 = document.getElementById("hg2-bot-group");
+      if (t2) t2.setAttribute("transform", `scale(1, ${topK})`);
+      if (b2) b2.setAttribute("transform", `scale(1, ${cyclePos})`);
+
+      // Mirror text stats onto Model 2 too.
+      const phase = `${Math.floor(elapsed % 60)}s / 60s`;
+      document.getElementById("hg-phase").textContent = phase;
+      const p2 = document.getElementById("hg2-phase");
+      if (p2) p2.textContent = phase;
+
       document.getElementById("hg-mp").textContent =
         mempoolSize !== null ? mempoolSize : "—";
+
       if (rdtsc !== null) {
         document.getElementById("hg-rdtsc").textContent = rdtsc.toLocaleString();
+        // Cycles-per-second derivative for Model 2.
+        const now = Date.now();
+        if (lastRdtsc !== null && lastRdtscMs !== null) {
+          const dt = (now - lastRdtscMs) / 1000;
+          if (dt > 0) {
+            const cps = (rdtsc - lastRdtsc) / dt;
+            const cps2 = document.getElementById("hg2-cps");
+            if (cps2) cps2.textContent = (cps / 1e9).toFixed(2) + " GHz";
+          }
+        }
+        lastRdtsc = rdtsc; lastRdtscMs = now;
       }
+
+      const cal2 = document.getElementById("hg2-cal");
+      if (cal2) cal2.textContent = calendarCount !== null ? `${calendarCount} slots` : "—";
+
       if (spectrum) {
         // Color each bit
         const html = Array.from(spectrum).map(c =>
@@ -255,10 +534,11 @@
 
     // ── Poll loop ────────────────────────────────────────────────────
     async function poll() {
-      const [height, clock, mp] = await Promise.all([
+      const [height, clock, mp, cal] = await Promise.all([
         rpc("getblockcount"),
         rpc("getclockstatus"),
         rpc("getmempoolsize"),
+        rpc("getslotcalendar"),
       ]);
       const stateEl = document.getElementById("rpc-state");
 
@@ -279,6 +559,7 @@
         clock ? clock.rdtsc : null,
         clock ? clock.spectrum : null,
         mp !== null && mp !== undefined ? (mp.size || mp) : null,
+        cal && cal.entries ? cal.entries.length : null,
       );
     }
 
