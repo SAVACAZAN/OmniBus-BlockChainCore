@@ -119,6 +119,52 @@ pub fn build(b: *std.Build) void {
     oracle_exe.linkLibC();
     b.installArtifact(oracle_exe);
 
+    // ── omnibus-agents ───────────────────────────────────────────────────────
+    // Stub binary — same multi-process pattern as omnibus-oracle. The chain
+    // skips its in-process AgentManager when OMNIBUS_EXTERNAL_AGENTS=1, so
+    // running this stub idle is enough to validate the plumbing. Real
+    // agent_executor migration is a follow-up session.
+    const agents_exe = b.addExecutable(.{
+        .name        = "omnibus-agents",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/agents_main.zig"),
+            .target           = target,
+            .optimize         = optimize,
+        }),
+    });
+    agents_exe.linkLibC();
+    b.installArtifact(agents_exe);
+
+    // ── omnibus-explorer ─────────────────────────────────────────────────────
+    // Stub binary for the future block-explorer / WebSocket-broadcast
+    // service. Real frontend HTTP/WS migration is a follow-up session.
+    const explorer_exe = b.addExecutable(.{
+        .name        = "omnibus-explorer",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/explorer_main.zig"),
+            .target           = target,
+            .optimize         = optimize,
+        }),
+    });
+    explorer_exe.linkLibC();
+    b.installArtifact(explorer_exe);
+
+    // ── omnibus-exchange ─────────────────────────────────────────────────────
+    // Stub binary for the future DEX matching-engine service. Sensitive
+    // component (orderbook, fees, paper/real isolation, balance updates) —
+    // intentionally deferred to a dedicated session with thorough
+    // integration testing.
+    const exchange_exe = b.addExecutable(.{
+        .name        = "omnibus-exchange",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/exchange_main.zig"),
+            .target           = target,
+            .optimize         = optimize,
+        }),
+    });
+    exchange_exe.linkLibC();
+    b.installArtifact(exchange_exe);
+
     // ── Benchmark executable ────────────────────────────────────────────────
     const bench_exe = b.addExecutable(.{
         .name        = "omnibus-bench",
