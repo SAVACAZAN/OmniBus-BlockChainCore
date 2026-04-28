@@ -41,9 +41,119 @@
       "pairs": ["BTC/USD"],
       "risk": {
         "max_trade_pct": 2,
-        "max_daily_loss_pct": 5
+        "max_daily_loss_pct": 5,
+        "min_reserve_sat": 1000000000,
+        "max_slippage_bps": 30
       },
-      "rules": []
+      "rules": [
+        {
+          "metric": "btc_drop_1h_pct",
+          "op": "gte",
+          "threshold": 8.0,
+          "action": "buy",
+          "amount_pct": 3
+        }
+      ]
+    },
+    {
+      "name": "gamma_aggressive",
+      "wallet_index": 3,
+      "strategy": "aggressive",
+      "auto_tier": true,
+      "auto_claim_faucet": true,
+      "tick_ms": 3000,
+      "pairs": ["BTC/USD", "ETH/USD", "LCX/USD"],
+      "risk": {
+        "max_trade_pct": 15,
+        "max_daily_loss_pct": 25,
+        "min_reserve_sat": 100000000,
+        "max_slippage_bps": 100
+      },
+      "rules": [
+        {
+          "metric": "btc_drop_1h_pct",
+          "op": "gte",
+          "threshold": 2.0,
+          "action": "buy",
+          "amount_pct": 25
+        },
+        {
+          "metric": "btc_change_24h_pct",
+          "op": "gte",
+          "threshold": 5.0,
+          "action": "sell",
+          "amount_pct": 20
+        },
+        {
+          "metric": "pnl_session_omni",
+          "op": "lte",
+          "threshold": -200.0,
+          "action": "halt",
+          "amount_pct": 100
+        }
+      ]
+    },
+    {
+      "name": "delta_arbitrage",
+      "wallet_index": 4,
+      "strategy": "arbitrage_only",
+      "auto_tier": true,
+      "auto_claim_faucet": true,
+      "tick_ms": 1000,
+      "pairs": ["BTC/USD", "LCX/USD"],
+      "risk": {
+        "max_trade_pct": 8,
+        "max_daily_loss_pct": 8,
+        "min_reserve_sat": 300000000,
+        "max_slippage_bps": 20
+      },
+      "rules": [
+        {
+          "metric": "spread_bps",
+          "op": "gte",
+          "threshold": 50.0,
+          "action": "provide_liquidity",
+          "amount_pct": 30
+        },
+        {
+          "metric": "spread_bps",
+          "op": "lte",
+          "threshold": 5.0,
+          "action": "halt",
+          "amount_pct": 100
+        }
+      ]
+    },
+    {
+      "name": "epsilon_holder",
+      "wallet_index": 5,
+      "strategy": "conservative",
+      "auto_tier": true,
+      "auto_claim_faucet": true,
+      "tick_ms": 30000,
+      "pairs": ["BTC/USD"],
+      "risk": {
+        "max_trade_pct": 1,
+        "max_daily_loss_pct": 3,
+        "min_reserve_sat": 2000000000,
+        "max_slippage_bps": 15
+      },
+      "rules": [
+        {
+          "metric": "capital_omni",
+          "op": "gte",
+          "threshold": 100.0,
+          "action": "stake",
+          "amount_pct": 50
+        },
+        {
+          "metric": "btc_drop_1h_pct",
+          "op": "gte",
+          "threshold": 15.0,
+          "action": "buy",
+          "amount_pct": 5
+        }
+      ]
     }
   ]
 }
