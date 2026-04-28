@@ -83,20 +83,30 @@ export class TabManager {
   }
 
   openBrowserTab(urlKey, title) {
-    const id = `browser-${Date.now()}`;
-    const url = BROWSER_URLS[urlKey] || urlKey;
-    const webview = new WebViewTab({ url, title });
-    
-    this.addTab({
-      id,
-      title,
-      icon: '🌐',
-      closeable: true,
-      render: (container) => {
-        container.style.padding = '0';
-        webview.render(container);
-      }
-    });
+    // Launch PyQt6 WebEngine browser (real browser with Google login, cookies)
+    // This opens a SEPARATE window — not an iframe
+    const siteKey = urlKey.replace('https://', '').replace('http://', '').split('.')[0];
+    const key = siteKey === 'chat' ? 'deepseek' : siteKey; // chat.deepseek.com -> deepseek
+
+    if (window.__TAURI__) {
+      // Launch browser-launcher.py via Tauri process spawn
+      const id = `browser-launch-${Date.now()}`;
+      window.__TAURI__.core.invoke('spawn_process', {
+        program: 'python',
+        args: ['-u', 'tools/MYTHOS/browser-launcher.py', key],
+        workingDir: TERMINAL_CONFIGS.claude?.workingDir || 'C:\\Kits work\\limaje de programare\\OmniBus aweb3 + OmniBus BlockChain\\OmniBus-BlockChainCore',
+        processId: id
+      }).then(() => {
+        console.log(`Browser launched: ${key}`);
+      }).catch(e => {
+        console.error(`Browser launch failed: ${e}`);
+        // Fallback: open in default browser
+        window.__TAURI__.shell.open(BROWSER_URLS[urlKey] || urlKey);
+      });
+    } else {
+      // Fallback: open in default browser
+      window.open(BROWSER_URLS[urlKey] || urlKey, '_blank');
+    }
   }
 
   activateTab(id) {

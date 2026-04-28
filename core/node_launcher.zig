@@ -34,6 +34,15 @@ pub const NodeConfig = struct {
     /// and credits this address. NULL = legacy behavior (wallet.address
     /// from mnemonic is used as miner_address).
     miner_address: ?[]const u8 = null,
+    /// Faucet mode: load a SECOND wallet from `faucet_wallet_index` and
+    /// expose `claimFaucet` RPC + auto-claim on peer handshake. Used to
+    /// bootstrap new validators with the MIN_VALIDATOR_BALANCE grant.
+    faucet_mode: bool = false,
+    /// BIP-44 derivation index for the faucet wallet (default 7 =
+    /// `faucet.omnibus`). Only consulted when `faucet_mode = true`.
+    faucet_wallet_index: u32 = 7,
+    /// Per-claim grant amount in SAT (default 0.1 OMNI = 100M sat).
+    faucet_grant_sat: u64 = 100_000_000,
     /// Testnet mode: mine with 0 peers (for development/testing)
     testnet: bool = false,
     /// Regtest mode: instant single-miner like Bitcoin regtest (skip peer threshold)

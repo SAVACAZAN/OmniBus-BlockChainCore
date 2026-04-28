@@ -6,14 +6,29 @@ import { Dashboard } from "./components/dashboard/Dashboard";
 import { BlocksPage } from "./components/blocks/BlocksPage";
 import { WalletPage } from "./components/wallet/WalletPage";
 import { NetworkPage } from "./components/network/NetworkPage";
+import { FaucetPage } from "./components/faucet/FaucetPage";
+import { RichListPage } from "./components/richlist/RichListPage";
+import { AgentsPage } from "./components/agents/AgentsPage";
+import { ReputationPage } from "./components/reputation/ReputationPage";
+import { NamesPage } from "./components/names/NamesPage";
+import { ExchangePage } from "./components/exchange/ExchangePage";
+import { ZeroDayPage } from "./components/zeroday/ZeroDayPage";
+import { MatrixBackground } from "./components/effects/MatrixBackground";
 
-export type TabId = "dashboard" | "blocks" | "wallet" | "network";
+export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "zeroday";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "blocks", label: "Blocks" },
+  { id: "richlist", label: "Rich List" },
+  { id: "reputation", label: "Reputation" },
+  { id: "names", label: ".omnibus" },
+  { id: "exchange", label: "Exchange" },
+  { id: "agents", label: "Agents" },
   { id: "wallet", label: "Wallet" },
   { id: "network", label: "Network" },
+  { id: "faucet", label: "Faucet" },
+  { id: "zeroday", label: "0day" },
 ];
 
 export default function App() {
@@ -21,11 +36,12 @@ export default function App() {
 
   return (
     <WebSocketProvider>
-      <div className="min-h-screen flex flex-col bg-mempool-bg">
+      <MatrixBackground opacity={0.35} />
+      <div className="min-h-screen flex flex-col bg-mempool-bg/40 relative" style={{ zIndex: 1 }}>
         <Header />
 
         {/* Tab Bar */}
-        <nav className="border-b border-mempool-border bg-mempool-bg/80 backdrop-blur-sm sticky top-[60px] z-40">
+        <nav className="border-b border-mempool-border bg-mempool-bg-elev backdrop-blur-sm sticky top-[60px] z-40">
           <div className="max-w-7xl mx-auto px-4 flex gap-1">
             {TABS.map((tab) => (
               <button
@@ -51,6 +67,13 @@ export default function App() {
           {activeTab === "blocks" && <BlocksPage />}
           {activeTab === "wallet" && <WalletPage />}
           {activeTab === "network" && <NetworkPage />}
+          {activeTab === "faucet" && <FaucetPage />}
+          {activeTab === "zeroday" && <ZeroDayPage />}
+          {activeTab === "richlist" && <RichListPage />}
+          {activeTab === "agents" && <AgentsPage />}
+          {activeTab === "reputation" && <ReputationPage />}
+          {activeTab === "names" && <NamesPage />}
+          {activeTab === "exchange" && <ExchangePage />}
         </main>
         <Footer />
       </div>

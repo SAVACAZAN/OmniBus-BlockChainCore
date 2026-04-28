@@ -86,7 +86,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
   // ── WebSocket connection ────────────────────────────────────────────────
   const connectWs = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    // Skip if a connection is already open OR currently negotiating handshake.
+    // Without the CONNECTING check, HMR / StrictMode double-mount opens two
+    // sockets and one gets "closed before connection established".
+    const existing = wsRef.current;
+    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
 
     try {
       const ws = new WebSocket(buildWsUrl());

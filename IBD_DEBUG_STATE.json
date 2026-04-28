@@ -1,0 +1,178 @@
+{
+  "title": "PC IBD stuck — diagnostic state",
+  "date": "2026-04-26",
+  "session_started": "morning",
+  "problem_one_liner": "PC localHeight stays at 1 (genesis only) despite VPS at height 332. P2P connection works, heartbeat works, but blocks never apply locally.",
+
+  "what_we_know_works": [
+    {
+      "item": "TCP connection PC → VPS:9001",
+      "evidence": "netstat shows ESTABLISHED 192.168.1.130:58942 → 38.143.19.97:9001",
+      "confidence": "high"
+    },
+    {
+      "item": "Heartbeat / PING-PONG",
+      "evidence": "peer.height = 332 on PC (was 22 stale before fix). VPS sees PC.height = 332 too.",
+      "confidence": "high"
+    },
+    {
+      "item": "Wire format V2 (32 raw bytes hash + 42 char miner_id)",
+      "evidence": "Code reviewed line-by-line in p2p.zig. Both sides should use same format.",
+      "confidence": "medium — assumes both binaries built from same commit"
+    },
+    {
+      "item": "RPC server runs on PC",
+      "evidence": "Port 18335 LISTENING (testnet RPC = 18332 + 1 because miner not seed)",
+      "confidence": "high"
+    },
+    {
+      "item": "Slot-skip / liveness fallback",
+      "evidence": "VPS produces blocks alone (height 332) when PC silent — works.",
+      "confidence": "high"
+    }
+  ],
+
+  "what_we_know_broken": [
+    {
+      "item": "PC chain.dat stays at genesis (299 bytes, last modified 30+ min ago)",
+      "evidence": "ls -la /c/Users/cazan/AppData/Local/lcx-liberty-suite/omnibus-node/data/testnet/ → 299 bytes 22:40",
+      "impact": "high — root symptom"
+    },
+    {
+      "item": "Miners panel in UI shows only 1 miner (dev wallet, 100%)",
+      "evidence": "User screenshot: Miners (1) ob1qw6zhsq... 372 blocks 100%",
+      "explanation": "PC chain has only genesis → savacazan never recorded as miner → dashboard reads VPS chain, sees only dev wallet",
+      "impact": "cosmetic, follows from primary bug"
+    },
+    {
+      "item": "getsyncstatus shows progress=0, requesting, behind=331",
+      "evidence": "User curl output: localHeight=1, peerHeight=332, progress=0, ibd=true",
+      "impact": "confirms IBD never makes progress"
+    }
+  ],
+
+  "what_we_dont_know": [
+    {
+      "question": "Does PC actually send sync_request over the wire?",
+      "how_to_check": "log line: [P2P] SYNC_REQUEST trimis la <peer> (from height=1, max=2000)"
+    },
+    {
+      "question": "Does VPS receive sync_request and run buildHeadersResponse?",
+      "how_to_check": "VPS log: [DEBUG-SYNC-REQ] entered handler + [P2P] SYNC_RESPONSE trimis"
+    },
+    {
+      "question": "Does PC receive sync_response with N blocks?",
+      "how_to_check": "PC log: [P2P] SYNC_RESPONSE de la <peer> (X bytes)"
+    },
+    {
+      "question": "If PC receives blocks, why doesn't applyBlocksFromPeer apply them?",
+      "how_to_check": "PC log expects one of: [REORG], [CHECKPOINT], [SYNC] Gap in blocuri, [SYNC] Bloc #X aplicat. Need to see WHICH."
+    }
+  ],
+
+  "leading_hypotheses": [
+    {
+      "id": "H1",
+      "name": "Genesis hash mismatch (testnet simulation residue)",
+      "description": "User mentioned: '1000 mineri sintetici' simulation a few days ago. The PC's testnet genesis may have been generated with a different seed/timestamp than VPS's testnet genesis. They have different chain_magic but same merkle_root requirement at height 0 — if they diverge at genesis, applyBlocksFromPeer hits REORG_DEPTH_LIMIT and returns 0 silently.",
+      "likelihood": "HIGH — explains everything: PC stays at 1, VPS stays at 332, no error visible because [REORG] / [CHECKPOINT] log goes only when blocks arrive, and blocks may not arrive if peer.height > local but headers fail decode.",
+      "test": "Compare genesis.merkle_root on PC vs VPS via getblockhash 0 RPC OR check chain.dat size — VPS testnet should also be ~299 bytes for genesis-only fresh start.",
+      "fix_if_true": "Wipe PC's chain.dat completely + restart. Genesis will regenerate from chain_config.zig (deterministic). If it still mismatches, check chain_config.zig testnet genesis hardcoded values vs what VPS uses."
+    },
+    {
+      "id": "H2",
+      "name": "Binary version mismatch (V1 vs V2 wire format)",
+      "description": "User rebuilt VPS binary recently with V2 wire format (32 raw bytes). If PC binary is older (V1, 32 ASCII chars), decode of MsgHeaders gives garbage merkle_root, prev_hash mismatch, all blocks rejected silently in 'Gap in blocuri' branch.",
+      "likelihood": "MEDIUM — depends on whether user did `zig build` on PC after VPS deploy. The fact that handshake works doesn't prove block format compatible.",
+      "test": "Check zig-out/bin/omnibus-node.exe modified time on PC. If older than commit 23487dd, rebuild.",
+      "fix_if_true": "cd 1_CORE/BlockChainCore && zig build (PC), restart HodLum worker."
+    },
+    {
+      "id": "H3",
+      "name": "requestSync never called because peer.height race",
+      "description": "Initial PING sets peer.height=22 (stale VPS height when first connected). Heartbeat updates to 332 later, but `requestSync` may have been triggered only on .block_announce / .block_gossip events with the `peer.height >= local_len` guard. If no announcement arrives because PC isn't seen as validator by VPS (slot-skip), PC never gets nudged.",
+      "likelihood": "MEDIUM — would explain stuck progress=0 (sync_mgr.state.status=requesting but no actual outbound msg). User's previous fix to heartbeat suggests this path was already touched.",
+      "test": "PC log: count occurrences of '[P2P] SYNC_REQUEST trimis'. If 0, requestSync never fired. If >0 but progress=0, request fires but response empty/rejected.",
+      "fix_if_true": "Add periodic IBD tick (every 5s) that calls requestSync if behind, regardless of incoming events."
+    },
+    {
+      "id": "H4",
+      "name": "Stale 1000-miner simulation data poisoning local chain",
+      "description": "User said: 'cateva zile in urma simulari cu 1000 mineri sintetici, acum sunt reali dar credut sa fie real'. Translation: a few days ago we ran simulations with 1000 synthetic miners; now they're real but [chain might be polluted from sim data]. The chain.dat may contain sim-era blocks that VPS rejects, and PC keeps trying to extend on a fork that VPS doesn't recognize.",
+      "likelihood": "HIGH — this matches user's intuition. If chain.dat has simulation blocks at heights 1-N, applyBlocksFromPeer sees first.height=1 < local_len AND hash mismatch → REORG path. If reorg_depth > REORG_DEPTH_LIMIT, returns 0 silently.",
+      "test": "Check chain.dat size on PC. If > genesis-only size (e.g. > 1KB), it has stale sim blocks. Also: check blockchain.dat in any other paths that may have been picked up.",
+      "fix_if_true": "Wipe PC chain.dat AND any other testnet data dirs. Restart with clean slate."
+    }
+  ],
+
+  "ranked_action_plan": [
+    {
+      "step": 1,
+      "name": "Wipe PC testnet data — fresh start from genesis",
+      "command": "rm /c/Users/cazan/AppData/Local/lcx-liberty-suite/omnibus-node/data/testnet/chain.dat",
+      "also_wipe": [
+        "$HOME/.omnibus/worker-data/data/testnet/",
+        "any C:\\Users\\cazan\\.omnibus-chain.dat",
+        "1_CORE/BlockChainCore/data/testnet/chain.dat"
+      ],
+      "why": "Eliminates H1 (genesis residue) and H4 (sim data poisoning) in one shot. Cheapest fix.",
+      "risk": "ZERO — testnet, no real value, regenerates genesis from chain_config.zig.",
+      "estimated_time": "30 seconds"
+    },
+    {
+      "step": 2,
+      "name": "Rebuild PC binary from current main",
+      "command": "cd 1_CORE/BlockChainCore && zig build",
+      "why": "Eliminates H2 (binary V1/V2 mismatch). User did changes today, needs rebuild.",
+      "risk": "LOW — just compile.",
+      "estimated_time": "1-2 min"
+    },
+    {
+      "step": 3,
+      "name": "Restart HodLum worker with new logging",
+      "command": "python We-Are-Here-HodLum-WORKER.py",
+      "why": "Worker now writes to ~/.omnibus/worker-data/miner-testnet.log — we can grep for [P2P]/[SYNC]/[REORG] AFTER 30s.",
+      "estimated_time": "wait 30s after start"
+    },
+    {
+      "step": 4,
+      "name": "Read log + report findings",
+      "command": "tail -n 100 ~/.omnibus/worker-data/miner-testnet.log | grep -E '\\[(P2P|SYNC|IBD|REORG|CHECKPOINT|DEBUG)\\]'",
+      "why": "If after wipe + rebuild it STILL stuck, log will tell us exactly which line in applyBlocksFromPeer rejects.",
+      "estimated_time": "1 min"
+    },
+    {
+      "step": 5,
+      "name": "If still stuck after wipe+rebuild: check VPS-side response",
+      "command": "ssh on VPS: journalctl -u omnibus-testnet -n 200 | grep DEBUG-SYNC-REQ",
+      "why": "Confirms if VPS even receives sync_request from PC. If no, issue is on PC outbound. If yes, response sent but PC drops.",
+      "estimated_time": "2 min"
+    }
+  ],
+
+  "files_already_modified_today": [
+    "We-Are-Here-HodLum-WORKER.py — added log_fh writing to miner-testnet.log",
+    "MinerPanel.tsx — added syncing-self synthetic row (premature, user not using Tauri)"
+  ],
+
+  "files_NOT_to_touch_yet": [
+    "core/p2p.zig — applyBlocksFromPeer is sound, don't refactor without log evidence",
+    "core/sync.zig — buildHeadersResponse is sound, encoding is consistent"
+  ],
+
+  "user_state": {
+    "language": "Romanian",
+    "frustration_level": "high — full day of debugging, going in circles",
+    "key_insight_user_provided": "1000 miners synthetic simulation a few days ago — chain may still carry that residue",
+    "what_user_wants_now": "Concrete next step, not more code reading. JSON plan to track progress."
+  },
+
+  "stop_doing": [
+    "Reading more p2p.zig / sync.zig code without log evidence",
+    "Adding more debug prints before having basic log file",
+    "Modifying Tauri MinerPanel.tsx (user runs Python worker, not Tauri)",
+    "Speculating about HMAC / Sybil / PEX issues — those are deferred"
+  ],
+
+  "next_message_to_user": "Step 1 + 2 + 3 = 3 minutes. Wipe + rebuild + restart. Then paste log."
+}

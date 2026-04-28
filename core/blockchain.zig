@@ -314,6 +314,62 @@ pub const Blockchain = struct {
         return self.balances.get(address) orelse 0;
     }
 
+    /// Rebuild the active validator set from chain history + current balances.
+    ///
+    /// Determinism: same chain + same balances → same validator_set order.
+    /// Every node executing this on the same chain produces an identical
+    /// list, so `leaderForSlot` agrees across the network without any
+    /// extra coordination message.
+    ///
+    /// Called after every block apply (mining or peer block). Cost is
+    /// O(N_blocks + N_unique_miners), tiny compared to a SHA-256 round.
+    /// Once set sizes grow we can switch to incremental updates.
+    ///
+    /// Validators below MIN_VALIDATOR_BALANCE drop out of rotation
+    /// automatically — protects against a validator who spent its stake.
+    pub fn rebuildValidatorSetFromChain(self: *Blockchain) !void {
+        var seen = std.StringHashMap(u64).init(self.allocator);
+        defer seen.deinit();
+
+        // Walk chain, find unique miner per first-seen height. Skip empty
+        // miner_address (genesis, plus pre-V3 peer-blocks that lost the
+        // address through the old wire format).
+        for (self.chain.items, 0..) |blk, height| {
+            if (blk.miner_address.len == 0) continue;
+            if (seen.contains(blk.miner_address)) continue;
+            try seen.put(blk.miner_address, height);
+        }
+
+        // Build new set, filtering by balance ≥ MIN_VALIDATOR_BALANCE.
+        var new_set = array_list.Managed(Validator).init(self.allocator);
+        errdefer new_set.deinit();
+
+        var it = seen.iterator();
+        while (it.next()) |entry| {
+            const balance = self.getAddressBalance(entry.key_ptr.*);
+            if (balance < validator_mod.MIN_VALIDATOR_BALANCE) continue;
+            try new_set.append(.{
+                .address = entry.key_ptr.*,
+                .weight = 1,
+                .since_height = entry.value_ptr.*,
+            });
+        }
+
+        // Sort by since_height ascending (then address as tiebreaker) for
+        // identical ordering on every node. Without this, HashMap iteration
+        // order would vary and `leaderForSlot` could diverge.
+        std.mem.sort(Validator, new_set.items, {}, struct {
+            fn lt(_: void, a: Validator, b: Validator) bool {
+                if (a.since_height != b.since_height) return a.since_height < b.since_height;
+                return std.mem.lessThan(u8, a.address, b.address);
+            }
+        }.lt);
+
+        // Swap atomically — drop old, install new.
+        self.validator_set.deinit();
+        self.validator_set = new_set;
+    }
+
     /// Returns the number of confirmations for a TX (null if TX not found in any block).
     /// confirmations = current_chain_height - block_height_containing_tx
     pub fn getConfirmations(self: *const Blockchain, tx_hash: []const u8) ?u64 {
@@ -468,10 +524,18 @@ pub const Blockchain = struct {
     pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {
         self.mutex.lock();
         defer self.mutex.unlock();
-        if (!try self.validateTransaction(&tx)) {
+        const valid = self.validateTransaction(&tx) catch |err| {
+            std.debug.print("[ADD-TX] validateTransaction errored: {} (from={s})\n",
+                .{ err, tx.from_address[0..@min(tx.from_address.len, 20)] });
+            return err;
+        };
+        if (!valid) {
+            std.debug.print("[ADD-TX] InvalidTransaction (from={s} amount={d})\n",
+                .{ tx.from_address[0..@min(tx.from_address.len, 20)], tx.amount });
             return error.InvalidTransaction;
         }
         try self.mempool.append(tx);
+        std.debug.print("[ADD-TX] OK appended to mempool (size now={d})\n", .{self.mempool.items.len});
     }
 
     /// Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX)
@@ -575,8 +639,15 @@ pub const Blockchain = struct {
             // 6b. Verificare semnatura ECDSA cu public key din registru
             if (self.pubkey_registry.get(tx.from_address)) |pubkey_hex| {
                 if (!tx.verifyWithHexPubkey(pubkey_hex)) {
-                    std.debug.print("[VALIDATE] FAIL: ECDSA signature verification failed for {s}\n",
-                        .{tx.from_address[0..@min(20, tx.from_address.len)]});
+                    std.debug.print(
+                        "[VALIDATE] FAIL: ECDSA signature verification failed for {s} (registered pubkey: {s}, tx_hash: {s}, sig: {s}..)\n",
+                        .{
+                            tx.from_address[0..@min(20, tx.from_address.len)],
+                            pubkey_hex[0..@min(16, pubkey_hex.len)],
+                            tx.hash[0..@min(16, tx.hash.len)],
+                            tx.signature[0..@min(16, tx.signature.len)],
+                        },
+                    );
                     return false;
                 }
             }
@@ -729,6 +800,14 @@ pub const Blockchain = struct {
         self.mutex.lock();
         defer self.mutex.unlock();
         try self.chain.append(block);
+
+        // Refresh validator set after a new block: a miner that just
+        // crossed MIN_VALIDATOR_BALANCE joins automatically; one whose
+        // balance dropped below the threshold drops out. Keeps the set
+        // consistent across all nodes (chain-derived → deterministic).
+        self.rebuildValidatorSetFromChain() catch |err| {
+            std.debug.print("[VALIDATOR-SET] rebuild after mine failed: {}\n", .{err});
+        };
 
         // Difficulty retarget la fiecare RETARGET_INTERVAL blocuri
         if (index % RETARGET_INTERVAL == 0 and index > 0) {

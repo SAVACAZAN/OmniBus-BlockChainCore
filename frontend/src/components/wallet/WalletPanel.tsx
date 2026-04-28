@@ -46,7 +46,7 @@ export function WalletPanel() {
   };
 
   return (
-    <div className="bg-mempool-card rounded-lg border border-mempool-border">
+    <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border">
       <div className="px-4 py-3 border-b border-mempool-border">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Wallet

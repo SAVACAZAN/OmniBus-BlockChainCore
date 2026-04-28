@@ -15,7 +15,12 @@ export function Dashboard() {
       {/* Stats Bar */}
       <StatsBar />
 
-      {/* Mempool Block Strip — the star feature */}
+      {/* MempoolBlockStrip with Plasma ambient on the right — no border,
+           no card chrome around the plasma; the orange core sits visually
+           just past the rightmost mined block, antennae reaching toward
+           the page edge. Plasma is positioned absolute over the row's
+           right third so the swarm and the block cards blend into one
+           continuous band. pointer-events-none keeps the cards clickable. */}
       <MempoolBlockStrip />
 
       {/* Cross-exchange arbitrage opportunities */}

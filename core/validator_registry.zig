@@ -36,20 +36,41 @@ pub const Validator = struct {
     since_height: u64 = 0,
 };
 
-/// Genesis-time validator set. 2 entries until governance adds more.
-/// Order matters — index 0 always the founder address. Hash-based
-/// rotation makes order irrelevant for fairness, but logging stays
-/// sane if first slot demonstrably picks "the founder" sometimes.
+/// Genesis-time validator set.
 ///
-/// EDIT THIS LIST when onboarding new validators (governance vote).
-/// Re-genesis required if changed before block 0.
-pub const GENESIS_VALIDATORS = [_]Validator{
-    // savacazan — founder, PC miner.
-    .{ .address = "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", .weight = 1, .since_height = 0 },
-    // VPS dev mnemonic — bootstrap seed (will be replaced by a real
-    // operator wallet once the network grows).
-    .{ .address = "ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl", .weight = 1, .since_height = 0 },
-};
+/// 2026-04-27: switched from hardcoded list to **dynamic**, chain-derived
+/// set. Validators are now whoever has produced a block AND has at least
+/// `MIN_VALIDATOR_BALANCE` in their wallet at the current chain tip.
+///
+/// Bootstrap: until the first block is produced, the set is empty and
+/// `leaderForSlot` returns null. Mining loop treats `null leader` as
+/// "free-for-all" — anyone with a `miner_address` flag may produce
+/// block #1. Once that block is committed and gossiped, the producer
+/// becomes the first validator. Slot-skip then onboards subsequent
+/// validators organically as they show up.
+///
+/// Anti-Sybil:
+///   1. Each validator must have minted at least one block (PoW work)
+///   2. Each validator must have ≥ MIN_VALIDATOR_BALANCE on-chain
+///   3. The faucet rate-limits new addresses (1 per addr ever, 24h per IP)
+///   For real value, layer staking on top once `staking.zig` is ready.
+pub const GENESIS_VALIDATORS = [_]Validator{};
+
+/// Minimum on-chain balance to count as an active validator.
+///
+/// 2026-04-27 (testnet): lowered from 100M sat (0.1 OMNI) to 1 sat
+/// because the original threshold creates a catch-22 in dual-node setups:
+///   - to be validator you need 0.1 OMNI
+///   - to earn 0.1 OMNI you need to mine ~12 blocks
+///   - to mine you need to be validator
+/// In a 2-node net the first online node hits the threshold and mines
+/// everything; the second never gets a turn and stays at 0 forever.
+///
+/// New rule: any address that has mined at least 1 block (balance ≥ 1 sat)
+/// is a validator. The "real" stake threshold returns when staking.zig
+/// activates on mainnet — until then, having minted any block is proof
+/// enough that you're an honest participant.
+pub const MIN_VALIDATOR_BALANCE: u64 = 1;
 
 /// Pick the leader for a given slot. Pure function. Deterministic.
 /// Returns null only if validators slice is empty (impossible in
@@ -143,30 +164,89 @@ pub fn validateBlockLeader(
     return std.mem.eql(u8, leader.address, block_miner_address);
 }
 
+/// Rebuild the active validator set from chain history.
+///
+/// Iterates blocks 0..tip, collects unique non-empty miner addresses, then
+/// filters by `balance ≥ MIN_VALIDATOR_BALANCE` (lookup via `getBalance`).
+/// `since_height` for each validator is the height of their first mined
+/// block. Result is sorted by `since_height` for determinism — every node
+/// running this on the same chain returns the same array, so `leaderForSlot`
+/// agrees across the network.
+///
+/// Caller owns the returned ArrayList — must call `.deinit()`.
+///
+/// `getBalanceFn` signature: takes address slice → returns balance in SAT.
+/// Pass `bc.getBalance` or equivalent. The function pointer keeps this
+/// module independent of `blockchain.zig` (would create a cycle).
+pub fn rebuildValidatorSet(
+    allocator: std.mem.Allocator,
+    chain_blocks_miners: []const []const u8, // block.miner_address per height
+    getBalanceFn: *const fn ([]const u8) u64,
+) !std.ArrayList(Validator) {
+    var seen = std.StringHashMap(u64).init(allocator); // address → first_seen_height
+    defer seen.deinit();
+
+    for (chain_blocks_miners, 0..) |miner, height| {
+        if (miner.len == 0) continue;
+        if (seen.contains(miner)) continue;
+        try seen.put(miner, height);
+    }
+
+    var out = std.ArrayList(Validator){};
+    errdefer out.deinit(allocator);
+
+    var it = seen.iterator();
+    while (it.next()) |entry| {
+        const balance = getBalanceFn(entry.key_ptr.*);
+        if (balance < MIN_VALIDATOR_BALANCE) continue;
+        try out.append(allocator, .{
+            .address = entry.key_ptr.*,
+            .weight = 1,
+            .since_height = entry.value_ptr.*,
+        });
+    }
+
+    // Sort by since_height ascending for deterministic ordering across nodes.
+    std.mem.sort(Validator, out.items, {}, struct {
+        fn lt(_: void, a: Validator, b: Validator) bool {
+            if (a.since_height != b.since_height) return a.since_height < b.since_height;
+            return std.mem.lessThan(u8, a.address, b.address);
+        }
+    }.lt);
+
+    return out;
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────
 
+test "GENESIS_VALIDATORS is empty (dynamic onboarding)" {
+    try std.testing.expectEqual(@as(usize, 0), GENESIS_VALIDATORS.len);
+}
+
 test "leaderForSlot — deterministic same input same output" {
-    const vs = GENESIS_VALIDATORS[0..];
-    const a = leaderForSlot(100, "0000aaaa", vs);
-    const b = leaderForSlot(100, "0000aaaa", vs);
+    const sample = [_]Validator{
+        .{ .address = "alpha-validator-address", .weight = 1, .since_height = 0 },
+        .{ .address = "beta-validator-address",  .weight = 1, .since_height = 0 },
+    };
+    const a = leaderForSlot(100, "0000aaaa", sample[0..]);
+    const b = leaderForSlot(100, "0000aaaa", sample[0..]);
     try std.testing.expect(a != null);
     try std.testing.expect(b != null);
     try std.testing.expectEqualStrings(a.?.address, b.?.address);
 }
 
 test "leaderForSlot — different slot picks (probably) different leader over many" {
-    // Over 100 slots with same prev_hash, both validators should appear
-    // — proves it's not stuck on one.
-    const vs = GENESIS_VALIDATORS[0..];
+    const sample = [_]Validator{
+        .{ .address = "alpha-validator-address", .weight = 1, .since_height = 0 },
+        .{ .address = "beta-validator-address",  .weight = 1, .since_height = 0 },
+    };
     var seen_a: u32 = 0;
     var seen_b: u32 = 0;
     for (0..100) |i| {
-        const ldr = leaderForSlot(i, "deadbeef", vs).?;
-        if (std.mem.eql(u8, ldr.address, vs[0].address)) seen_a += 1;
-        if (std.mem.eql(u8, ldr.address, vs[1].address)) seen_b += 1;
+        const ldr = leaderForSlot(i, "deadbeef", sample[0..]).?;
+        if (std.mem.eql(u8, ldr.address, sample[0].address)) seen_a += 1;
+        if (std.mem.eql(u8, ldr.address, sample[1].address)) seen_b += 1;
     }
-    // Both should get >= 30 of 100 with weight=1 each. Statistical, not
-    // guaranteed, but extremely unlikely to fail with SHA-256.
     try std.testing.expect(seen_a >= 30);
     try std.testing.expect(seen_b >= 30);
     try std.testing.expectEqual(@as(u32, 100), seen_a + seen_b);

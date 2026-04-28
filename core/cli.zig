@@ -36,6 +36,14 @@ pub const ParsedArgs = struct {
     /// When true, the master switch in OraclePolicy is forced false at
     /// startup (validation completely bypassed).
     price_validation_disabled: bool = false,
+    /// Path to AI agent config file (JSON). When set, main.zig loads agents
+    /// from this file at startup and ticks them on every block.
+    agent_config_path: ?[]const u8 = null,
+    /// Path to `pair_registry.json` (output of pair_discovery.py). When set,
+    /// the WebSocket exchange feed subscribes to all entries in addition to
+    /// the hardcoded IMPORTANT_PAIRS. When null, only IMPORTANT_PAIRS are
+    /// subscribed (legacy behaviour). Cron refresh recommended.
+    pair_registry_path: ?[]const u8 = null,
 };
 
 /// CLI argument parser for node startup
@@ -88,6 +96,17 @@ pub const CLI = struct {
         var price_reject_pct: ?f64 = null;
         var price_fillgap_pct: ?f64 = null;
         var price_validation_disabled: bool = false;
+        var agent_config_path: ?[]const u8 = null;
+        var pair_registry_path: ?[]const u8 = null;
+
+        // Faucet mode — when true, the node loads a *second* wallet from the
+        // mnemonic (at `faucet_wallet_index`) and exposes `claimFaucet` RPC
+        // + auto-claims on peer handshake. Used for testnet to bootstrap
+        // new validators that need 0.1 OMNI to cross MIN_VALIDATOR_BALANCE.
+        var faucet_mode: bool = false;
+        var faucet_wallet_index: u32 = 7; // default = wallet #7 (faucet.omnibus)
+        // Per-claim faucet grant in SAT (default 0.1 OMNI = 100M sat).
+        var faucet_grant_sat: u64 = 100_000_000;
 
         var i: usize = 1; // Skip program name
         while (i < args.len) : (i += 1) {
@@ -146,6 +165,35 @@ pub const CLI = struct {
                 defer w.deinit();
                 std.debug.print("{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}\n", .{ w.address, gen_mnemonic });
                 std.process.exit(0);
+            } else if (std.mem.eql(u8, arg, "--export-omni-key")) {
+                // Export raw OMNI private key (64 hex chars) + address for the
+                // wallet at --wallet-index N. Use case: derive faucet wallet
+                // private key on the user's local PC, then ship JUST the key
+                // to the VPS faucet server (mnemonic stays offline).
+                //
+                // Usage:
+                //   omnibus-node --wallet-index 7 --export-omni-key
+                // (prefix with --wallet-index BEFORE this flag, since it
+                // exits immediately on parse.)
+                const vault_reader = @import("vault_reader.zig");
+                const wallet_mod = @import("wallet.zig");
+                const gen_mnemonic = try vault_reader.readMnemonic(self.allocator);
+                var w = try wallet_mod.Wallet.fromMnemonicFull(
+                    gen_mnemonic, "", .mainnet, 0, 0, wallet_index, self.allocator,
+                );
+                defer w.deinit();
+
+                // Hex-encode private_key_bytes [32]u8 → 64 chars
+                var pk_hex: [64]u8 = undefined;
+                for (w.private_key_bytes, 0..) |b, hi| {
+                    _ = std.fmt.bufPrint(pk_hex[hi * 2 .. (hi + 1) * 2], "{x:0>2}", .{b}) catch {};
+                }
+
+                std.debug.print(
+                    "{{\"index\":{d},\"address\":\"{s}\",\"private_key_hex\":\"{s}\",\"public_key_hex\":\"{s}\"}}\n",
+                    .{ wallet_index, w.address, pk_hex, w.public_key_hex },
+                );
+                std.process.exit(0);
             } else if (std.mem.eql(u8, arg, "--mnemonic")) {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
@@ -158,6 +206,16 @@ pub const CLI = struct {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
                 wallet_index = std.fmt.parseInt(u32, args[i], 10) catch return error.InvalidWalletIndex;
+            } else if (std.mem.eql(u8, arg, "--faucet-mode")) {
+                faucet_mode = true;
+            } else if (std.mem.eql(u8, arg, "--faucet-wallet-index")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                faucet_wallet_index = std.fmt.parseInt(u32, args[i], 10) catch return error.InvalidFaucetWalletIndex;
+            } else if (std.mem.eql(u8, arg, "--faucet-grant-sat")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                faucet_grant_sat = std.fmt.parseInt(u64, args[i], 10) catch return error.InvalidFaucetGrantSat;
             } else if (std.mem.eql(u8, arg, "--chain")) {
                 i += 1;
                 if (i >= args.len) return error.MissingArgument;
@@ -217,6 +275,14 @@ pub const CLI = struct {
                 price_fillgap_pct = std.fmt.parseFloat(f64, args[i]) catch return error.InvalidPriceDeviationFillgap;
             } else if (std.mem.eql(u8, arg, "--no-price-validation")) {
                 price_validation_disabled = true;
+            } else if (std.mem.eql(u8, arg, "--agent-config")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                agent_config_path = args[i];
+            } else if (std.mem.eql(u8, arg, "--pair-registry")) {
+                i += 1;
+                if (i >= args.len) return error.MissingArgument;
+                pair_registry_path = args[i];
             } else if (std.mem.eql(u8, arg, "--help")) {
                 printUsage();
                 return error.HelpRequested;
@@ -260,6 +326,9 @@ pub const CLI = struct {
                 .mnemonic = mnemonic,
                 .wallet_index = wallet_index,
                 .miner_address = miner_address,
+                .faucet_mode = faucet_mode,
+                .faucet_wallet_index = faucet_wallet_index,
+                .faucet_grant_sat = faucet_grant_sat,
                 .testnet = testnet,
                 .regtest = (chain_mode == .regtest),
                 .allocator = self.allocator,
@@ -269,6 +338,8 @@ pub const CLI = struct {
             .price_reject_pct = price_reject_pct,
             .price_fillgap_pct = price_fillgap_pct,
             .price_validation_disabled = price_validation_disabled,
+            .agent_config_path = agent_config_path,
+            .pair_registry_path = pair_registry_path,
         };
     }
 
@@ -313,6 +384,18 @@ pub const CLI = struct {
             \\  --price-deviation-reject PCT   Reject block above this % deviation (default: 5.0)
             \\  --price-deviation-fillgap PCT  Allow gap-fill within this % of own median (default: 10.0)
             \\  --no-price-validation          Disable price validation entirely (regtest default)
+            \\
+            \\AI AGENT SYSTEM:
+            \\  --agent-config FILE  Load AI agents from a JSON config file. Each agent
+            \\                       progresses automatically through tiers (mining ->
+            \\                       staking -> liquidity -> arbitrage) as capital grows.
+            \\                       See docs/USER_JOURNEY.md for the agent lifecycle.
+            \\
+            \\EXCHANGE PAIR DISCOVERY:
+            \\  --pair-registry FILE Load pair_registry.json (output of pair_discovery.py)
+            \\                       to subscribe to all common pairs across LCX/Kraken/
+            \\                       Coinbase via WebSocket. Without this flag, only the
+            \\                       7 IMPORTANT_PAIRS are tracked. Refresh with cron @ 1h.
             \\
             \\EXAMPLES:
             \\  # Start primary seed node

@@ -98,8 +98,19 @@ const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const oracle_fetcher_mod = @import("oracle_fetcher.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
+const pair_registry_mod = @import("pair_registry.zig");
+const reputation_mod = @import("reputation.zig");
+const reputation_manager_mod = @import("reputation_manager.zig");
 const oracle_policy_mod  = @import("oracle_policy.zig");
 const evm_executor_mod   = @import("evm_executor.zig");
+// AI Agent BRAIN — trăiește în nod (decizii on-chain provable).
+// EXECUTION external (LCX/Kraken/Coinbase/Uniswap) e făcut de un client Python
+// separat în 2_SDK/omnibus-sdk/agent/ care interogheaza prin RPC ce trebuie
+// executat și raportează rezultatul înapoi.
+const agent_tier_mod     = @import("agent_tier.zig");
+const agent_config_mod   = @import("agent_config.zig");
+const agent_executor_mod = @import("agent_executor.zig");
+const agent_manager_mod  = @import("agent_manager.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
@@ -114,6 +125,10 @@ comptime {
     _ = matching_mod; _ = price_oracle_mod; _ = pouw_mod; _ = orderbook_sync_mod;
     _ = oracle_fetcher_mod;
     _ = oracle_policy_mod;
+    _ = pair_registry_mod;
+    _ = reputation_mod; _ = reputation_manager_mod;
+    _ = agent_tier_mod; _ = agent_config_mod;
+    _ = agent_executor_mod; _ = agent_manager_mod;
     _ = @import("witness_data.zig"); _ = @import("compact_transaction.zig");
     _ = @import("os_mode.zig"); _ = @import("synapse_priority.zig");
     _ = @import("omni_brain.zig"); _ = @import("oracle.zig");
@@ -205,6 +220,14 @@ pub var g_pouw_engine = pouw_mod.PoUWEngine.init();
 pub var g_price_oracle = price_oracle_mod.DistributedPriceOracle.init();
 // Note: MatchingEngine and OrderbookSyncManager are ~3MB+ each, allocated in mining loop
 
+// ── Global AI Agent Manager ─────────────────────────────────────────────────
+// Holds all AI agents loaded from `--agent-config <file>`. Each agent has its
+// own tier, strategy, and rules. Tick-uri rulate din mining loop la fiecare
+// bloc nou (vezi agentTickAll mai jos).
+pub var g_agent_manager = agent_manager_mod.AgentManager.init();
+// True = at least one agent loaded, run agentTickAll() on every block.
+pub var g_agents_active: bool = false;
+
 // ── Global Oracle Fetcher — real exchange prices from LCX, Kraken, Coinbase ──
 // Initialized in main() with a real allocator (needs HTTP client)
 pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
@@ -212,6 +235,13 @@ pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
+/// Optional pair registry loaded from `--pair-registry FILE`. Owned by main()
+/// — lives until process exit. WS feed holds a borrow.
+pub var g_pair_registry: ?pair_registry_mod.PairRegistry = null;
+
+// Reputation manager — tracks 4 paharele (LOVE/FOOD/RENT/VACATION) per address.
+// Initialized lazy in main() with allocator (HashMap needs alloc).
+pub var g_reputation: ?reputation_manager_mod.ReputationManager = null;
 
 // ── Global Oracle Policy — per-node price-deviation validation thresholds ──
 // Defaults are applied at startup based on chain (mainnet=strict, regtest=off)
@@ -224,6 +254,14 @@ pub var g_oracle_policy_mutex: std.Thread.Mutex = .{};
 const RPCThreadArgs = struct {
     bc:       *Blockchain,
     wallet:   *Wallet,
+    /// Optional faucet wallet (loaded only when --faucet-mode is set).
+    /// Forwarded to the RPC server so handler `claimFaucet` can sign
+    /// 0.1-OMNI grants without touching the miner's primary key.
+    faucet_wallet: ?*Wallet,
+    /// Per-claim grant in SAT. 0 means faucet is disabled at runtime.
+    faucet_grant_sat: u64,
+    /// On-chain DNS / ENS registry — names like "alice.omnibus" → ob1q…
+    dns:      *dns_mod.DnsRegistry,
     alloc:    std.mem.Allocator,
     mempool:  *mempool_mod.Mempool,
     p2p:      *p2p_mod.P2PNode,
@@ -255,6 +293,9 @@ fn rpcThread(args: RPCThreadArgs) void {
         .port     = args.rpc_port,
         .bind_host = args.rpc_bind,
         .auth_token = args.rpc_token,
+        .faucet_wallet = args.faucet_wallet,
+        .faucet_grant_sat = args.faucet_grant_sat,
+        .dns = args.dns,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -290,6 +331,361 @@ fn autoTxBetweenMiners(bc: *Blockchain, block_count: u32, allocator: std.mem.All
             auto_amount,
         });
     }
+}
+
+// ─── Faucet auto-refill (Faza 5) ────────────────────────────────────────────
+//
+// When the faucet wallet's balance dips below FAUCET_REFILL_THRESHOLD_SAT,
+// transfer FAUCET_REFILL_AMOUNT_SAT from the miner's primary wallet
+// (savacazan or whoever runs --faucet-mode) into the faucet wallet. This
+// keeps the faucet replenished automatically as the operator mines blocks.
+//
+// Both thresholds are deliberately conservative for testnet — operator with
+// 1 OMNI of mining rewards can sustain ~10 refills before their primary
+// wallet goes empty.
+
+/// Below this SAT count, kick a refill on the next tick.
+const FAUCET_REFILL_THRESHOLD_SAT: u64 = 500_000_000; // 0.5 OMNI
+/// Send this much to faucet on each refill (=10 claims worth at 0.1 OMNI).
+const FAUCET_REFILL_AMOUNT_SAT: u64 = 1_000_000_000; // 1 OMNI
+/// Loop tick interval — slow enough not to spam the chain, fast enough
+/// that a busy faucet stays funded.
+const FAUCET_REFILL_TICK_S: u64 = 30;
+
+const FaucetRefillArgs = struct {
+    bc: *Blockchain,
+    miner_wallet: *Wallet,
+    faucet_wallet: *Wallet,
+    grant_sat: u64,
+    alloc: std.mem.Allocator,
+};
+
+fn faucetRefillLoop(args: *FaucetRefillArgs) void {
+    defer args.alloc.destroy(args);
+    var tx_counter: u32 = 9_000_000; // unique-ish nonce range for refill TXs
+    // Exponential backoff after consecutive failures so we don't spam the
+    // mempool when something is structurally wrong (e.g. miner balance
+    // already pinned by an earlier rejected TX). Resets to base on success.
+    var backoff_multiplier: u32 = 1;
+    const MAX_BACKOFF_MULT: u32 = 32; // 30s × 32 = 16 minutes max sleep
+
+    while (true) {
+        const sleep_s = FAUCET_REFILL_TICK_S * backoff_multiplier;
+        std.Thread.sleep(sleep_s * std.time.ns_per_s);
+
+        const faucet_bal = args.bc.getAddressBalance(args.faucet_wallet.address);
+        if (faucet_bal >= FAUCET_REFILL_THRESHOLD_SAT) {
+            // Faucet is fine. Reset backoff so we react quickly when it drains.
+            backoff_multiplier = 1;
+            continue;
+        }
+
+        // Effective miner balance = on-chain balance MINUS amount already
+        // committed by pending mempool TXs. If a previous refill is still
+        // sitting in the mempool, asking for another would fail validation
+        // (insufficient available balance) and lock the loop in retry hell.
+        const miner_bal = args.bc.getAddressBalance(args.miner_wallet.address);
+        const fee_sat: u64 = mempool_mod.TX_MIN_FEE_SAT;
+
+        // Skip if miner already has a pending TX that hasn't confirmed —
+        // adding another refill while one is in flight just multiplies the
+        // failure. Waiting one more tick lets the queued one mine first.
+        const next_nonce = args.bc.getNextAvailableNonce(args.miner_wallet.address);
+        const chain_nonce = args.bc.nonces.get(args.miner_wallet.address) orelse 0;
+        if (next_nonce > chain_nonce) {
+            std.debug.print(
+                "[FAUCET-REFILL] miner has {d} pending TX(s) — waiting for them to mine\n",
+                .{next_nonce - chain_nonce},
+            );
+            backoff_multiplier = @min(backoff_multiplier * 2, MAX_BACKOFF_MULT);
+            continue;
+        }
+
+        if (miner_bal < FAUCET_REFILL_AMOUNT_SAT + fee_sat) {
+            std.debug.print(
+                "[FAUCET-REFILL] miner balance {d} too low to top up faucet (needs {d}+{d}), backing off\n",
+                .{ miner_bal, FAUCET_REFILL_AMOUNT_SAT, fee_sat },
+            );
+            backoff_multiplier = @min(backoff_multiplier * 2, MAX_BACKOFF_MULT);
+            continue;
+        }
+
+        tx_counter +%= 1;
+        var tx = args.miner_wallet.createTransactionFull(
+            args.faucet_wallet.address,
+            FAUCET_REFILL_AMOUNT_SAT,
+            tx_counter,
+            next_nonce,
+            fee_sat,
+            0,
+            "",
+            args.alloc,
+        ) catch |err| {
+            std.debug.print("[FAUCET-REFILL] sign error: {}\n", .{err});
+            backoff_multiplier = @min(backoff_multiplier * 2, MAX_BACKOFF_MULT);
+            continue;
+        };
+        if (!tx.isValid()) {
+            std.debug.print("[FAUCET-REFILL] TX failed isValid\n", .{});
+            backoff_multiplier = @min(backoff_multiplier * 2, MAX_BACKOFF_MULT);
+            continue;
+        }
+
+        args.bc.registerPubkey(args.miner_wallet.address, args.miner_wallet.addresses[0].public_key_hex) catch {};
+        args.bc.addTransaction(tx) catch |err| {
+            std.debug.print("[FAUCET-REFILL] mempool refused: {} (backoff {d}x)\n", .{ err, backoff_multiplier });
+            backoff_multiplier = @min(backoff_multiplier * 2, MAX_BACKOFF_MULT);
+            continue;
+        };
+
+        std.debug.print(
+            "[FAUCET-REFILL] queued top-up: miner -> faucet {d} SAT (faucet bal was {d}, miner bal {d})\n",
+            .{ FAUCET_REFILL_AMOUNT_SAT, faucet_bal, miner_bal },
+        );
+        // Success — reset backoff for next round.
+        backoff_multiplier = 1;
+    }
+}
+
+// ── AI Agent System: load config + tick on every block ─────────────────────
+//
+// `loadAgentConfig` is called once at startup from main() if --agent-config is
+// passed. `agentTickAll` is called from the mining loop on every new block.
+//
+// Adresa wallet pentru fiecare agent este derivata din mnemonic + wallet_index
+// (BIP-44). Pentru MVP, folosim adresa miner-ului ca placeholder — derivarea
+// reala per-agent va fi adaugata cand integram cu wallet.zig deriveByIndex.
+
+fn loadAgentConfig(
+    path: []const u8,
+    mnemonic: []const u8,
+    fallback_address: []const u8,
+    allocator: std.mem.Allocator,
+) void {
+    const bundle = agent_config_mod.loadFile(allocator, path) catch |err| {
+        std.debug.print("[AGENT] Eroare incarcare {s}: {s}\n", .{ path, @errorName(err) });
+        return;
+    };
+    if (bundle.count == 0) {
+        std.debug.print("[AGENT] Fisier {s} nu contine agenti.\n", .{path});
+        return;
+    }
+    var added: u8 = 0;
+    for (bundle.agents[0..bundle.count]) |cfg| {
+        // Derivare wallet propriu per-agent (BIP-44 cu wallet_index unic).
+        // Daca derivarea esueaza, fallback la addAgent fara wallet (compat).
+        if (g_agent_manager.addAgentFromMnemonic(cfg, mnemonic, allocator)) |slot| {
+            std.debug.print(
+                "[AGENT] Loaded {s} | wallet_index={d} | addr={s} | tier={s}\n",
+                .{ cfg.getName(), cfg.wallet_index, slot.getAddress(), @tagName(slot.executor.state.tier) },
+            );
+            added += 1;
+        } else |err| {
+            std.debug.print(
+                "[AGENT] Wallet derivation failed for {s} (idx={d}): {s} — fallback la fallback_address\n",
+                .{ cfg.getName(), cfg.wallet_index, @errorName(err) },
+            );
+            _ = g_agent_manager.addAgent(cfg, fallback_address) catch |err2| {
+                std.debug.print("[AGENT] Skip {s}: {s}\n", .{ cfg.getName(), @errorName(err2) });
+                continue;
+            };
+            added += 1;
+        }
+    }
+    if (added > 0) {
+        g_agents_active = true;
+        std.debug.print("[AGENT] {d} agent(i) incarcati din {s}.\n", .{ added, path });
+    }
+}
+
+/// Snapshot oracle din state-ul global pentru a-l hrani agentilor.
+fn buildOracleSnapshot(block_height: u64) agent_executor_mod.OracleSnapshot {
+    var snap = agent_executor_mod.OracleSnapshot{ .block_height = block_height };
+    if (g_oracle_fetcher) |*fetcher| {
+        if (fetcher.getMedianPrice()) |btc| {
+            snap.btc_usd_micro = btc;
+            snap.fresh = true;
+        }
+        if (fetcher.getMedianLcxPrice()) |lcx| {
+            snap.lcx_usd_micro = lcx;
+        }
+    }
+    return snap;
+}
+
+/// Counter pentru tx_id la TX-urile generate automat de agenți.
+/// Range mare ca să nu coliziune cu auto-TX miner (1_000_000+) și cu RPC-uri.
+var g_agent_tx_id_counter: u32 = 5_000_000;
+
+/// Submit TX automat pentru o decizie nativă. Returneaza eroare daca:
+///   - agentul n-are wallet propriu (canSign() == false)
+///   - kind nu cere TX (mine/halt/none — log-only)
+///   - createSignedTx esueaza (privkey corupt)
+///   - mempool respinge (insufficient funds, nonce conflict, etc.)
+/// MVP: doar `claim_faucet` (transfer din faucet) si stake-mock (transfer self).
+/// Stake/unstake real necesita staking_engine API extins — TODO.
+fn submitNativeTx(bc: *Blockchain, slot: *agent_manager_mod.AgentSlot, decision: agent_executor_mod.Decision) !void {
+    if (!slot.canSign()) return error.NoWallet;
+    const w = &slot.wallet.?;
+
+    // Pentru MVP, mapăm doar kind-urile care produc TX simple ON-CHAIN:
+    //   - claim_faucet: agent emite intent, dar faucet-ul real se face prin
+    //     RPC `claimFaucet` (handshake) — aici doar logăm intentul.
+    //   - stake / unstake: necesită staking RPC dedicat (TODO).
+    //   - mine / halt / none: nu produc TX.
+    // Acum implementăm doar transfer-self ca demo (agentul își trimite 1 SAT
+    // la el însuși ca să probeze că semnarea funcționează end-to-end).
+    const should_emit_tx = switch (decision.kind) {
+        .stake, .unstake => false, // TODO: staking_engine API
+        .claim_faucet => false, // RPC handshake separat
+        .mine, .halt, .none => false,
+        // Pentru transfer/buy/sell/lp pe venue native, generăm un transfer demo
+        // (până când staking_engine + LP module sunt wired). În producție, aici
+        // se construiește TX-ul real cu logica corespunzătoare kind-ului.
+        .buy, .sell, .provide_liquidity, .withdraw_liquidity => true,
+    };
+    if (!should_emit_tx) return;
+
+    const balance = bc.getAddressBalance(w.getAddress());
+    const reserve: u64 = 1_000; // 1000 SAT minim pentru fee
+    if (balance <= reserve) return error.InsufficientFunds;
+
+    const amount = @min(decision.amount_sat, balance - reserve);
+    if (amount == 0) return error.AmountZero;
+
+    const fee: u64 = 1;
+    const nonce = bc.getNextAvailableNonce(w.getAddress());
+    g_agent_tx_id_counter += 1;
+    const tx_id = g_agent_tx_id_counter;
+
+    // Transfer self ca demo. Producția: routare după kind.
+    var tx = try w.createSignedTx(w.getAddress(), amount, tx_id, nonce, fee, bc.allocator);
+    _ = &tx;
+
+    // Înregistrează pubkey-ul agentului pe chain pt validare semnătură
+    // (idempotent — daca există deja, e no-op).
+    bc.registerPubkey(w.getAddress(), &w.public_key_hex) catch {};
+
+    try bc.addTransaction(tx);
+    slot.stats.txs_submitted += 1;
+    std.debug.print(
+        "[AGENT-TX] {s} signed tx_id={d} amount={d} nonce={d}\n",
+        .{ slot.config.getName(), tx_id, amount, nonce },
+    );
+}
+
+/// Tick toti agentii. Apelat din mining loop pe fiecare bloc nou.
+///
+/// Routing dupa venue:
+///   * `omnibus_native` / `none` → executat in nod (log doar; TX submission
+///     urmeaza dupa wallet derivation per-agent).
+///   * `lcx` / `kraken` / `coinbase` / `omnibus_ex` / `uniswap` → pus in
+///     `g_agent_manager.pending` queue, ridicat de clientul extern Python/Rust
+///     prin RPC `agent_pending_decisions`.
+fn agentTickAll(bc: *Blockchain, block_height: u64) void {
+    if (!g_agents_active) return;
+    const oracle = buildOracleSnapshot(block_height);
+
+    var idx: usize = 0;
+    while (idx < agent_manager_mod.MAX_AGENTS) : (idx += 1) {
+        const slot = &g_agent_manager.slots[idx];
+        if (!slot.used) continue;
+
+        const balance = bc.getAddressBalance(slot.getAddress());
+        // TODO: track stake + LP locked per agent (necesita staking API extins).
+        slot.executor.updateBalance(balance, 0, 0, 0);
+
+        const decision = g_agent_manager.tickOne(idx, oracle, block_height) orelse continue;
+        if (decision.kind == .none) continue;
+
+        // Tier transition log (o singura data per transition).
+        if (slot.last_transition) |tr| {
+            if (tr.block_height == block_height) {
+                std.debug.print(
+                    "[AGENT] {s} tier transition {s} -> {s} @ block {d} cap={d} SAT\n",
+                    .{ slot.config.getName(), @tagName(tr.from), @tagName(tr.to), tr.block_height, tr.capital_sat },
+                );
+            }
+        }
+
+        // Routing dupa venue.
+        const native = decision.venue == .omnibus_native or decision.venue == .none;
+        if (native) {
+            std.debug.print(
+                "[AGENT-NATIVE] {s} tier={s} kind={s} amount={d} reason={s}\n",
+                .{
+                    slot.config.getName(),
+                    @tagName(slot.executor.state.tier),
+                    @tagName(decision.kind),
+                    decision.amount_sat,
+                    decision.getReason(),
+                },
+            );
+            // Submit TX automat dacă agentul are wallet propriu și kind-ul cere TX.
+            submitNativeTx(bc, slot, decision) catch |err| {
+                std.debug.print("[AGENT-NATIVE] {s} TX skip: {s}\n", .{ slot.config.getName(), @errorName(err) });
+            };
+        } else {
+            const decision_id = g_agent_manager.queueDecision(slot.config.wallet_index, block_height, decision);
+            std.debug.print(
+                "[AGENT-QUEUE] id={d} {s} venue={s} kind={s} pair={s} amount={d} reason={s}\n",
+                .{
+                    decision_id,
+                    slot.config.getName(),
+                    decision.venue.name(),
+                    @tagName(decision.kind),
+                    decision.getPair(),
+                    decision.amount_sat,
+                    decision.getReason(),
+                },
+            );
+        }
+    }
+}
+
+/// Retro backfill — scan all blocks at startup, count blocks per miner,
+/// assign FOOD + VACATION to each miner address. One-shot: doar la primul
+/// boot al binarului cu reputation system. Nu reaplică pentru blocuri viitoare
+/// (care primesc credit incremental in mining loop via creditMinedBlock).
+fn backfillReputationFromChain(
+    bc: *Blockchain,
+    rep_mgr: *reputation_manager_mod.ReputationManager,
+) void {
+    const total_blocks: u64 = @intCast(bc.chain.items.len);
+    if (total_blocks == 0) return;
+    const current_height: u64 = total_blocks - 1;
+
+    // Tally blocks-per-miner + first-block-per-miner.
+    // We use the same allocator as the chain — short-lived.
+    const alloc = bc.allocator;
+    var counts = std.StringHashMap(u64).init(alloc);
+    defer counts.deinit();
+    var first_seen = std.StringHashMap(u64).init(alloc);
+    defer first_seen.deinit();
+
+    for (bc.chain.items, 0..) |blk, idx| {
+        const miner = blk.miner_address;
+        if (miner.len == 0) continue;
+        const gop = counts.getOrPut(miner) catch continue;
+        if (!gop.found_existing) gop.value_ptr.* = 0;
+        gop.value_ptr.* += 1;
+        const fs = first_seen.getOrPut(miner) catch continue;
+        if (!fs.found_existing) fs.value_ptr.* = idx;
+    }
+
+    var miners_seen: u64 = 0;
+    var it = counts.iterator();
+    while (it.next()) |entry| {
+        const miner = entry.key_ptr.*;
+        const n_blocks = entry.value_ptr.*;
+        const first_block = first_seen.get(miner) orelse 0;
+        rep_mgr.backfill(miner, n_blocks, first_block, current_height);
+        miners_seen += 1;
+    }
+    std.debug.print(
+        "[REPUTATION] Retro backfill complete: {d} miners, {d} blocks scanned (current height {d})\n",
+        .{ miners_seen, total_blocks, current_height },
+    );
 }
 
 pub fn main() !void {
@@ -474,6 +870,57 @@ pub fn main() !void {
     std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
         .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
 
+    // ── Faucet wallet (optional) ────────────────────────────────────────
+    // SECURITY: faucet wallet is loaded from a RAW PRIVATE KEY (env var
+    // OMNIBUS_FAUCET_PRIVKEY, 64 hex chars), NOT from the miner mnemonic.
+    // Why: a faucet runs 24/7 on a public server. Using the miner mnemonic
+    // would expose ALL derived wallets (savacazan, sava.omnibus, etc.) if
+    // the server is compromised. With a single-purpose private key, an
+    // attacker who steals the file gets only the faucet's small balance
+    // (≤ a few OMNI) and cannot touch the rest of the user's wallet
+    // family. Same model Bitcoin uses for hot wallets (HSM-style isolation).
+    var faucet_wallet_opt: ?Wallet = null;
+    if (config.faucet_mode) {
+        const fpk_hex_owned = std.process.getEnvVarOwned(allocator, "OMNIBUS_FAUCET_PRIVKEY") catch null;
+        defer if (fpk_hex_owned) |s| allocator.free(s);
+        if (fpk_hex_owned) |fpk_hex| {
+            const trimmed = std.mem.trim(u8, fpk_hex, " \t\n\r");
+            if (Wallet.parsePrivateKeyHex(trimmed)) |fpk| {
+                if (Wallet.fromPrivateKey(fpk, allocator)) |fw| {
+                    faucet_wallet_opt = fw;
+                    std.debug.print("[FAUCET] Faucet wallet loaded from OMNIBUS_FAUCET_PRIVKEY (no mnemonic exposure)\n", .{});
+                    std.debug.print("[FAUCET] Faucet address: {s}\n", .{fw.address});
+                    std.debug.print("[FAUCET] Per-claim grant: {d} SAT ({d:.4} OMNI)\n\n",
+                        .{ config.faucet_grant_sat, @as(f64, @floatFromInt(config.faucet_grant_sat)) / 1e9 });
+                } else |err| {
+                    std.debug.print("[FAUCET] fromPrivateKey failed: {} — faucet disabled\n", .{err});
+                }
+            } else |err| {
+                std.debug.print("[FAUCET] OMNIBUS_FAUCET_PRIVKEY parse failed: {} (expected 64 hex chars) — faucet disabled\n", .{err});
+            }
+        } else {
+            std.debug.print("[FAUCET] --faucet-mode set but OMNIBUS_FAUCET_PRIVKEY env var missing — faucet disabled\n", .{});
+        }
+    }
+    defer if (faucet_wallet_opt) |*fw| fw.deinit();
+    _ = config.faucet_wallet_index; // retained on NodeConfig for future BIP-32 path; not used by privkey loader
+
+    // Configure on-disk persistence for faucet claim ledger. Same dir as
+    // chain.dat so testnet/regtest/mainnet ledgers stay separated. Without
+    // this call, claim counter is in-memory only and resets on every node
+    // restart — letting attackers re-claim repeatedly.
+    if (faucet_wallet_opt != null) {
+        const chain_subdir: []const u8 = if (config.testnet) "testnet" else if (config.regtest) "regtest" else "mainnet";
+        const ledger_path = std.fmt.allocPrint(allocator, "data/{s}/faucet-claims.json", .{chain_subdir}) catch null;
+        if (ledger_path) |p| {
+            // Ensure data/<chain> exists (chain.dat path mirrors this).
+            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
+            rpc_mod.faucetSetPersistPath(p);
+            std.debug.print("[FAUCET] claim ledger: {s}\n", .{p});
+            allocator.free(p);
+        }
+    }
+
     // ── Effective miner address ─────────────────────────────────────────
     // Production setup: pass --miner-address to redirect block rewards to
     // a wallet whose mnemonic stays OFFLINE (Liberty Suite, hardware
@@ -486,8 +933,41 @@ pub fn main() !void {
         std.debug.print("[MINER] (mnemonic-derived wallet {s} stays unused for rewards)\n\n", .{wallet.address});
     }
 
-    // Inregistreaza adresa minerului efectiv ca primul miner in pool
-    g_miner_pool.register(effective_miner_addr);
+    // Inregistreaza adresa minerului efectiv ca primul miner in pool.
+    //
+    // BUG FIX (2026-04-27): the legacy `register(addr)` path created a
+    // RANDOM secp256k1 keypair under the address. Then F8 (mining loop)
+    // every block called `bc.registerPubkey(maddr, random_pubkey_hex)`,
+    // which polluted `pubkey_registry` with a pubkey that DID NOT match
+    // the real wallet. When user then called `sendtransaction`, the TX
+    // got signed with the REAL private key but verified against the
+    // random pubkey → "[VALIDATE] FAIL: ECDSA signature verification".
+    //
+    // Fix: when `effective_miner_addr` matches the local wallet derived
+    // from the same mnemonic, register with the actual mnemonic so the
+    // pool's pubkey_hex matches the real key. Otherwise — when miner_addr
+    // is an external --miner-address — fall back to address-only registry
+    // and skip the mining-loop pubkey publishing so we don't poison the
+    // registry with a key that can't sign anything anyway.
+    if (std.mem.eql(u8, effective_miner_addr, wallet.address)) {
+        // Local mnemonic IS the miner — use it so pool pubkey is real.
+        _ = g_miner_pool.registerWithMnemonic(effective_miner_addr, mnemonic, allocator) catch
+            g_miner_pool.register(effective_miner_addr);
+    } else {
+        // External miner address (operator's offline wallet). Register the
+        // address only; the pool can't sign on its behalf anyway, and the
+        // F8 pubkey-publish path is now skipped for entries whose pubkey
+        // we don't actually own (see g_miner_pool.wallets[pi].is_real).
+        g_miner_pool.register(effective_miner_addr);
+    }
+
+    // ── AI Agents: load --agent-config <file> if provided ─────────────────────
+    // Pass nodul mnemonic ca să derivăm wallet propriu per-agent (BIP-44
+    // m/44'/777'/0'/0/wallet_index). Fiecare agent are adresă, balance, P&L
+    // separate. Fallback la miner address daca derivation eșuează.
+    if (parsed.agent_config_path) |agent_path| {
+        loadAgentConfig(agent_path, mnemonic, effective_miner_addr, allocator);
+    }
 
     // ── Init Mempool FIFO ─────────────────────────────────────────────────────
     var mempool = Mempool.init(allocator);
@@ -527,8 +1007,40 @@ pub fn main() !void {
     // ── Init Peer Scoring ────────────────────────────────────────────────────
     var peer_scoring = peer_scoring_mod.PeerScoringEngine.init();
 
-    // ── Init DNS Registry ────────────────────────────────────────────────────
+    // ── Init DNS Registry + persist file (per-chain) ────────────────────────
     var dns = dns_mod.DnsRegistry.init();
+    // Persist file per chain: data/<chain>/dns_registry.bin
+    var dns_persist_path_buf: [256]u8 = undefined;
+    const dns_persist_path = std.fmt.bufPrint(
+        &dns_persist_path_buf,
+        "data/{s}/dns_registry.bin",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/dns_registry.bin";
+    dns.loadFromFile(dns_persist_path) catch |err| {
+        std.debug.print("[DNS] Load from {s} failed: {s} (starting empty)\n",
+            .{ dns_persist_path, @errorName(err) });
+    };
+    if (dns.entry_count > 0) {
+        std.debug.print("[DNS] Loaded {d} names from {s}\n", .{ dns.entry_count, dns_persist_path });
+    }
+
+    // Set treasury = wallet derivat la idx 3 (ens.omnibus).
+    // Map chain_mode to wallet network (regtest -> testnet for BIP-32 purposes).
+    const wallet_network: wallet_mod.Network = switch (parsed.chain_mode) {
+        .mainnet => .mainnet,
+        .testnet => .testnet,
+        .regtest => .testnet,
+    };
+    var ens_treasury_wallet = try wallet_mod.Wallet.fromMnemonicFull(
+        mnemonic, "", wallet_network, 0, 0, 3, allocator,
+    );
+    defer ens_treasury_wallet.deinit();
+    dns.setTreasury(ens_treasury_wallet.address);
+    // Pe testnet & regtest: fee_enforcement OFF (compat cu Kimi scripts).
+    // Pe mainnet: fee_enforcement ON.
+    dns.enableFee(parsed.chain_mode == .mainnet);
+    std.debug.print("[DNS] Treasury: {s} | fee_enforcement: {}\n",
+        .{ ens_treasury_wallet.address, dns.fee_enforcement });
 
     // ── Init Guardian System ─────────────────────────────────────────────────
     var guardian = guardian_mod.GuardianEngine.init();
@@ -563,6 +1075,13 @@ pub fn main() !void {
     // ── TCP Listener inbound — accepta conexiuni de la alti mineri ────────────
     p2p.startListener() catch |err| {
         std.debug.print("[P2P] Listener failed (port ocupat?): {} — fara inbound\n", .{err});
+    };
+
+    // ── Heartbeat — PING periodic catre peers cu inaltimea curenta. Fara asta
+    // peer.height ramane stale dupa handshake si IBD se opreste cand consumam
+    // toate blocurile vazute la HELLO, chiar daca peer-ul a urcat intre timp.
+    p2p.startHeartbeat() catch |err| {
+        std.debug.print("[P2P] Heartbeat failed: {} — peer heights vor fi stale\n", .{err});
     };
 
     // ── Knock Knock — anunta reteaua + verifica duplicat pe acelasi IP ────────
@@ -653,6 +1172,9 @@ pub fn main() !void {
         .rpc_port = rpc_port,
         .rpc_bind = rpc_bind,
         .rpc_token = rpc_token,
+        .faucet_wallet = if (faucet_wallet_opt) |*fw| fw else null,
+        .faucet_grant_sat = if (config.faucet_mode) config.faucet_grant_sat else 0,
+        .dns = &dns,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{
@@ -661,6 +1183,33 @@ pub fn main() !void {
         rpc_bind,
         if (rpc_token != null) "ON" else "off (loopback only safe)",
     });
+
+    // ── Faucet auto-refill thread (Faza 5) ─────────────────────────────────
+    // When --faucet-mode is on AND the miner's primary wallet (savacazan)
+    // has been mining and accumulating rewards, periodically top up the
+    // faucet from the miner wallet so claims keep working without manual
+    // intervention. Threshold + amount tunable via config.faucet_grant_sat.
+    if (config.faucet_mode and faucet_wallet_opt != null) {
+        const refill_args = allocator.create(FaucetRefillArgs) catch null;
+        if (refill_args) |ra| {
+            ra.* = .{
+                .bc = &bc,
+                .miner_wallet = &wallet,
+                .faucet_wallet = &faucet_wallet_opt.?,
+                .grant_sat = config.faucet_grant_sat,
+                .alloc = allocator,
+            };
+            const rt = std.Thread.spawn(.{}, faucetRefillLoop, .{ra}) catch |err| blk: {
+                std.debug.print("[FAUCET-REFILL] thread spawn failed: {}\n", .{err});
+                break :blk null;
+            };
+            if (rt) |th| {
+                th.detach();
+                std.debug.print("[FAUCET-REFILL] auto-refill thread started (threshold {d} SAT, top-up {d} SAT)\n",
+                    .{ FAUCET_REFILL_THRESHOLD_SAT, FAUCET_REFILL_AMOUNT_SAT });
+            }
+        }
+    }
 
     // ── Node launcher ─────────────────────────────────────────────────────────
     var launcher = node_launcher.NodeLauncher.init(config);
@@ -722,9 +1271,29 @@ pub fn main() !void {
     g_metrics.start(); // set start_time at runtime (can't call timestamp() at comptime)
     std.debug.print("[METRICS] Performance tracking initialized\n\n", .{});
 
-    // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX (BTC+LCX) ──
+    // ── Pair registry (optional — extends WS subscriptions to all common pairs) ──
+    if (parsed.pair_registry_path) |reg_path| {
+        if (pair_registry_mod.loadFile(allocator, reg_path)) |reg| {
+            g_pair_registry = reg;
+            std.debug.print(
+                "[PAIR-REGISTRY] Loaded {s}: lcx={d}, kraken={d}, coinbase={d} (total {d})\n",
+                .{ reg_path, reg.lcx.len, reg.kraken.len, reg.coinbase.len, reg.totalRoutes() },
+            );
+        } else |err| {
+            std.debug.print("[PAIR-REGISTRY] Load failed for {s}: {s} (continuing with IMPORTANT_PAIRS only)\n",
+                .{ reg_path, @errorName(err) });
+        }
+    }
+
+    // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX ──
     g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
+    if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
     g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
+
+    // ── Reputation Manager + retro backfill din chain history ──
+    g_reputation = reputation_manager_mod.ReputationManager.init(allocator);
+    g_reputation.?.started_at_block = @intCast(bc.chain.items.len - 1);
+    backfillReputationFromChain(&bc, &g_reputation.?);
 
     // Porneste block_count de la inaltimea curenta a lantului (continua, nu de la 0)
     var block_count: u32 = @intCast(bc.chain.items.len - 1);
@@ -812,11 +1381,64 @@ pub fn main() !void {
             const slot_timed_out = tip_age_s >= SLOT_TIMEOUT_S;
 
             const is_my_turn = blk: {
+                // Bootstrap free-for-all — when no validator yet has crossed
+                // MIN_VALIDATOR_BALANCE, the chain would freeze (no slot
+                // leader to pick → mining loop sleeps forever). To break
+                // the catch-22 (need to mine to gain balance to be a
+                // validator), we let any node with `--miner-address`
+                // produce blocks while the validator set is empty.
+                //
+                // Safety: we only bootstrap when there are NO peers
+                // connected. If we have peers, we sync from them instead
+                // of producing our own (otherwise two fresh nodes with no
+                // common chain history both mine block 1 and fork forever).
+                // The yield-to-active-peer check below covers the dual-
+                // online case once at least one node has bootstrapped.
+                const peers_connected = p2p.peers.items.len;
+                if (bc.validator_set.items.len == 0 and my_addr.len > 0) {
+                    const PEER_ACTIVE_BOOT_S: i64 = 2;
+                    const peer_active_ts = p2p.lastPeerActivityTs();
+                    const peer_recently_active =
+                        peer_active_ts > 0 and (now_s - peer_active_ts) <= PEER_ACTIVE_BOOT_S;
+                    if (peers_connected > 0 and peer_recently_active) {
+                        std.debug.print(
+                            "[BOOTSTRAP] Validator set empty but peer active {d}s ago — yielding to let them seed\n",
+                            .{now_s - peer_active_ts},
+                        );
+                        break :blk false;
+                    }
+                    if (block_count % 30 == 0) {
+                        std.debug.print(
+                            "[BOOTSTRAP] No validators yet ({d} blocks, {d} peers) — producing slot {d}\n",
+                            .{ bc.chain.items.len, peers_connected, slot_id },
+                        );
+                    }
+                    break :blk true;
+                }
+
                 if (leader) |l| {
                     if (std.mem.eql(u8, l.address, my_addr)) break :blk true;
                 }
                 // Liveness: leader missed the slot — any validator picks up.
+                // Anti-fork: if a peer was active in the last PEER_ACTIVE_S
+                // seconds, the *peer* is probably the validator that just
+                // took (or is about to take) this slot — yielding to it
+                // avoids the dual-take fork. Without this, both validators
+                // see "tip is 3s old" simultaneously and both produce a
+                // block at the same height with different miners → permanent
+                // chain divergence.
                 if (slot_timed_out and i_am_validator) {
+                    const PEER_ACTIVE_S: i64 = 2;
+                    const peer_active_ts = p2p.lastPeerActivityTs();
+                    const peer_recently_active =
+                        peer_active_ts > 0 and (now_s - peer_active_ts) <= PEER_ACTIVE_S;
+                    if (peer_recently_active) {
+                        std.debug.print(
+                            "[SLOT-YIELD] Tip aged {d}s at slot {d} but peer was active {d}s ago — yielding to peer to avoid fork\n",
+                            .{ tip_age_s, slot_id, now_s - peer_active_ts },
+                        );
+                        break :blk false;
+                    }
                     std.debug.print(
                         "[SLOT-SKIP] Leader {s} silent for {d}s at slot {d}, taking the slot myself\n",
                         .{ if (leader) |l| l.address[0..@min(12, l.address.len)] else "<none>",
@@ -912,10 +1534,27 @@ pub fn main() !void {
 
             block_count += 1;
 
+            // ── Reputation: credit FOOD pentru miner-ul efectiv al acestui bloc.
+            // Pe testnet ne uitam la `miner_addr` (rotat round-robin de pool).
+            // VACATION + LOVE se acorda separat (per-day tick mai jos in loop).
+            if (g_reputation) |*rep_mgr| {
+                rep_mgr.creditMinedBlock(miner_addr, @as(u64, block_count));
+            }
+
             // Auto-save: track blocks and TXs since last save
             bc.blocks_since_save += 1;
             bc.txs_since_save += @intCast(pending_txs.len);
+            // Detectam daca checkAutoSave a flush-uit prin reset-ul contorului.
+            const before_save = bc.blocks_since_save;
             bc.checkAutoSave();
+            const did_save = bc.blocks_since_save < before_save;
+            // DNS persist piggybacks on chain auto-save (cadenta identica).
+            if (did_save) {
+                dns.saveToFile(dns_persist_path) catch |err| {
+                    std.debug.print("[DNS] Save to {s} failed: {s}\n",
+                        .{ dns_persist_path, @errorName(err) });
+                };
+            }
 
             // Record metrics
             g_metrics.recordBlock();
@@ -963,6 +1602,9 @@ pub fn main() !void {
             // ── PoUW: Calculate and log rewards for this block ──────────
             g_pouw_engine.calculateRewards(block_count);
             g_pouw_engine.resetBlock();
+
+            // ── AI Agents: tick all loaded agents on this block ─────────
+            agentTickAll(&bc, block_count);
 
             // ── Price Oracle: Reset submissions for next round ──────────
             g_price_oracle.resetRound();
@@ -1080,18 +1722,27 @@ pub fn main() !void {
             // In solo mode no peers, but ready for multi-node
             _ = &peer_scoring;
 
-            // ── F8: Update miner balance caches + register pubkeys ─────────
+            // ── F8: Update miner balance caches ────────────────────────────
+            //
+            // BUG FIX (2026-04-27): we previously also republished each
+            // pool entry's `public_key_hex` into `bc.pubkey_registry`. When
+            // the entry was created via `registerWithRandomKey` (the legacy
+            // `register(addr)` path), that pubkey was a random key unrelated
+            // to the real address — registering it would poison the registry
+            // and cause ECDSA verification to fail for any transaction
+            // actually signed with the wallet's mnemonic. The `sendtransaction`
+            // RPC handler now is the only authoritative writer; it registers
+            // the *real* pubkey from `ctx.wallet.addresses[0].public_key_hex`
+            // before validation. Pool entries with random keys are still
+            // useful for `getMinerForBlock` rotation, just not for signing.
             {
                 g_miner_pool.mutex.lock();
                 const pool_count = g_miner_pool.count;
-                // Copy addresses out to avoid holding lock during blockchain access
                 var addrs_buf: [MinerWalletPool.MAX][64]u8 = undefined;
                 var lens_buf: [MinerWalletPool.MAX]u8 = undefined;
-                var pkhex_buf: [MinerWalletPool.MAX][66]u8 = undefined;
                 for (0..pool_count) |pi| {
                     addrs_buf[pi] = g_miner_pool.wallets[pi].address;
                     lens_buf[pi] = g_miner_pool.wallets[pi].address_len;
-                    pkhex_buf[pi] = g_miner_pool.wallets[pi].public_key_hex;
                 }
                 g_miner_pool.mutex.unlock();
 
@@ -1099,8 +1750,6 @@ pub fn main() !void {
                     const maddr = addrs_buf[pi][0..lens_buf[pi]];
                     const mbal = bc.getAddressBalance(maddr);
                     g_miner_pool.updateBalance(maddr, mbal);
-                    // Register pubkey so their signed TXs can be verified
-                    bc.registerPubkey(maddr, &pkhex_buf[pi]) catch {};
                 }
             }
 
@@ -1193,7 +1842,11 @@ pub fn main() !void {
     pbc.saveBlockchain(&bc, db_path) catch |err| {
         std.debug.print("[SHUTDOWN] Save failed: {} — data may be lost!\n", .{err});
     };
-    std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses\n", .{ bc.chain.items.len, bc.balances.count() });
+    // Save DNS registry too — names registered after last auto-save would be lost otherwise.
+    dns.saveToFile(dns_persist_path) catch |err| {
+        std.debug.print("[SHUTDOWN] DNS save failed: {s}\n", .{@errorName(err)});
+    };
+    std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses, {d} names\n", .{ bc.chain.items.len, bc.balances.count(), dns.entry_count });
     std.debug.print("[SHUTDOWN] Cleaning up (P2P, WS, wallet via defer)... Goodbye!\n", .{});
     // p2p.deinit(), ws_srv.deinit(), bc.deinit(), pbc.deinit() etc. run via defer
 }

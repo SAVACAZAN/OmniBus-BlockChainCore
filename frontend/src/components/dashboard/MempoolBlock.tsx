@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { TransactionSquare } from "./TransactionSquare";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
+import { DashboardPlasma } from "../effects/DashboardPlasma";
 
 interface MempoolBlockProps {
   block?: BlockData;
@@ -135,7 +136,7 @@ export function MempoolBlock({
       tabIndex={clickable ? 0 : undefined}
       onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); } : undefined}
       className={`
-        relative flex-shrink-0 w-44 rounded-xl overflow-hidden
+        relative flex-shrink-0 w-44 rounded-xl
         transition-all duration-500 ease-out
         ${isLatest ? "animate-slideInRight" : ""}
         ${isPending ? "animate-pulseGlow" : ""}
@@ -143,15 +144,27 @@ export function MempoolBlock({
       `}
       style={{
         background: isPending
-          ? "linear-gradient(135deg, rgba(26,29,58,0.6), rgba(45,27,105,0.4))"
-          : "linear-gradient(135deg, #1a1d3e, #2d1b69)",
+          ? "linear-gradient(135deg, rgba(26,29,58,0.15), rgba(45,27,105,0.10))"
+          : "linear-gradient(135deg, rgba(26,29,62,0.18), rgba(45,27,105,0.12))",
         border: isPending
           ? "1px dashed rgba(74,144,217,0.5)"
           : "1px solid rgba(42,45,74,0.8)",
+        backdropFilter: "blur(4px)",
       }}
     >
+      {/* Plasma swarm visible only on the pending Next card. Anchored
+          to the right so the orange core sits past the right edge of the
+          card body — same composition as the MEMPOOL stat card. */}
+      {isPending && (
+        <div
+          className="absolute top-1/2 right-0 -translate-y-1/2 pointer-events-none"
+          style={{ zIndex: 0, opacity: 0.75, width: "75%", height: "100%", marginRight: "-15%" }}
+        >
+          <DashboardPlasma />
+        </div>
+      )}
       {/* TX Grid (compact when block has 0 txs — was wasting half the card) */}
-      <div className={txAreaCls}>
+      <div className={txAreaCls + " relative"} style={{ zIndex: 10 }}>
         {hasTxs && (
           <>
             <div
@@ -171,7 +184,7 @@ export function MempoolBlock({
 
       {/* Block Info — main content of the card now (was getting squashed
           under a huge empty TX grid for coinbase-only blocks). */}
-      <div className="px-3 pb-3 border-t border-mempool-border/50">
+      <div className="px-3 pb-3 border-t border-mempool-border/50 relative" style={{ zIndex: 10 }}>
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm font-mono font-bold text-mempool-text">
             {isPending ? "Next" : `#${height}`}
@@ -186,7 +199,7 @@ export function MempoolBlock({
               {hash.slice(0, 14)}...
             </p>
             <p className="text-[11px] font-mono text-mempool-green">
-              +{(reward / 1e9).toFixed(4)} OMNI
+              +{(reward / 1e9).toFixed(8)} OMNI
             </p>
             {timeStr && (
               <p className="text-[11px] text-mempool-text-dim">{timeStr}</p>

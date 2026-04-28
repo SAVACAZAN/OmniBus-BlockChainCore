@@ -50,7 +50,7 @@ export function TxSearch({ onClose, initialQuery }: TxSearchProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4"
       onClick={onClose}>
-      <div className="bg-mempool-card border border-mempool-border rounded-xl max-w-lg w-full"
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl max-w-lg w-full"
         onClick={(e) => e.stopPropagation()}>
 
         {/* Search input */}
@@ -108,7 +108,7 @@ export function TxSearch({ onClose, initialQuery }: TxSearchProps) {
                 <div>
                   <p className="text-[10px] text-mempool-text-dim uppercase">Amount</p>
                   <p className="text-xs font-mono text-mempool-green">
-                    {((result.amount || 0) / 1e9).toFixed(4)} OMNI
+                    {((result.amount || 0) / 1e9).toFixed(8)} OMNI
                   </p>
                 </div>
                 <div>

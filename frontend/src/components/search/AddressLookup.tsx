@@ -38,7 +38,7 @@ export function AddressLookup() {
   };
 
   return (
-    <div className="bg-mempool-card rounded-xl border border-mempool-border overflow-hidden">
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
       <div className="px-5 py-3 border-b border-mempool-border">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Address Lookup
@@ -107,7 +107,7 @@ export function AddressLookup() {
                   <p className={`text-xs font-mono ${
                     tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(4)}
+                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
                   </p>
                   {tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">

@@ -125,7 +125,14 @@ export class OmniBusRpcClient {
 
       return data.result;
     } catch (error) {
-      console.error(`RPC request failed (${method}):`, error);
+      // "Block not found" is expected during race conditions when UI requests
+      // a block at the chain tip that has just been mined but not yet served
+      // (or vice-versa). Don't spam console — caller's `.catch(() => null)`
+      // handles it. Only log unexpected errors.
+      const msg = error instanceof Error ? error.message : String(error);
+      if (!msg.includes("Block not found")) {
+        console.error(`RPC request failed (${method}):`, error);
+      }
       throw error;
     }
   }
@@ -231,6 +238,41 @@ export class OmniBusRpcClient {
 
   async getPoolStats(): Promise<any> {
     return this.request("getpoolstats");
+  }
+
+  /**
+   * Faucet status. Returns {enabled, address, balance, grantPerClaim, claimsServed}.
+   * `enabled=false` means the node was started without --faucet-mode or
+   * without OMNIBUS_FAUCET_PRIVKEY — UI should disable the claim button.
+   */
+  async getFaucetStatus(): Promise<{
+    enabled: boolean;
+    address: string;
+    balance: number;
+    grantPerClaim: number;
+    claimsServed: number;
+  } | null> {
+    try {
+      return await this.request("getfaucetstatus");
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Request 0.1 OMNI from the testnet faucet. Server enforces:
+   *   - 1 grant per address ever
+   *   - faucet must have ≥ grantPerClaim + fee balance
+   * Returns the txid on success; throws Error with the RPC message otherwise.
+   */
+  async claimFaucet(address: string): Promise<{
+    txid: string;
+    recipient: string;
+    amount: number;
+    fee: number;
+    status: string;
+  }> {
+    return this.request("claimfaucet", [address]);
   }
 
   async getMempoolStats(): Promise<any> {

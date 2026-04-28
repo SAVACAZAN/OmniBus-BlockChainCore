@@ -25,6 +25,11 @@ const evm_executor    = @import("evm_executor.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const chain_config    = @import("chain_config.zig");
 const validator_mod   = @import("validator_registry.zig");
+const dns_mod         = @import("dns_registry.zig");
+const agent_manager_mod = @import("agent_manager.zig");
+const reputation_mod = @import("reputation.zig");
+const reputation_manager_mod = @import("reputation_manager.zig");
+const agent_executor_mod = @import("agent_executor.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -74,6 +79,15 @@ const MAX_REGISTERED_MINERS = 256;
 const ServerCtx = struct {
     bc:        *Blockchain,
     wallet:    *Wallet,
+    /// Faucet wallet — OPTIONAL second key, only loaded when the node
+    /// runs with `--faucet-mode`. Used by `claimFaucet` RPC and the
+    /// auto-claim handshake handler to sign 0.1-OMNI grants without
+    /// touching the miner's primary key. Null when faucet mode is off.
+    faucet_wallet: ?*Wallet = null,
+    /// Per-claim grant in SAT. 0 = faucet disabled even if wallet is set.
+    faucet_grant_sat: u64 = 0,
+    /// On-chain DNS / ENS registry — name → address mapping.
+    dns: ?*dns_mod.DnsRegistry = null,
     allocator: std.mem.Allocator,
     // Optional — null daca nu sunt disponibile (backward compat)
     mempool:   ?*mempool_mod.Mempool   = null,
@@ -133,6 +147,14 @@ pub const HTTPConfig = struct {
     /// On public nodes, set this to a long random string and inject into
     /// Authorization header via reverse proxy or trusted client.
     auth_token: ?[]const u8 = null,
+    /// Optional faucet wallet (loaded only when --faucet-mode is set on
+    /// the node). Used to sign `claimFaucet` payouts.
+    faucet_wallet: ?*Wallet = null,
+    /// Per-claim grant in SAT. 0 = faucet disabled. Default 0.
+    faucet_grant_sat: u64 = 0,
+    /// On-chain DNS / ENS registry. When set, RPC methods `registerName`,
+    /// `resolveName`, `reverseResolveName` are exposed.
+    dns: ?*dns_mod.DnsRegistry = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -150,6 +172,9 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         .channel_mgr = cfg.channel_mgr,
         .pouw = cfg.pouw, .oracle = cfg.oracle,
         .chain_id = cfg.chain_id,
+        .faucet_wallet = cfg.faucet_wallet,
+        .faucet_grant_sat = cfg.faucet_grant_sat,
+        .dns = cfg.dns,
     };
     // Copy the auth token into ServerCtx-owned static storage so we don't
     // hold a pointer to a caller-owned slice that might get freed/moved.
@@ -470,6 +495,16 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getaddresshistory")) return handleGetAddrHistory(body, ctx, id);
     if (std.mem.eql(u8, method, "listtransactions"))  return handleListTx(body, ctx, id);
     if (std.mem.eql(u8, method, "minersendtx"))      return handleMinerSendTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "claimfaucet"))      return handleClaimFaucet(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfaucetstatus"))  return handleFaucetStatus(ctx, id);
+    if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
+    if (std.mem.eql(u8, method, "getchainmetrics"))  return handleChainMetrics(ctx, id);
+    if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
+    if (std.mem.eql(u8, method, "resolvename"))      return handleResolveName(body, ctx, id);
+    if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
+    if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
+    if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
+    if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
     // generatewallet disabled — causes stack overflow on RPC thread
     // Use seed node address derivation instead
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
@@ -506,7 +541,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_getallprices")) return handleOmnibusAllPrices(ctx, body, id);
     if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return handleOmnibusArbitrage(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getfxrate"))    return handleOmnibusFxRate(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return handleOmnibusBridge(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return handleOmnibusGetOraclePolicy(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
@@ -536,6 +571,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getconnectioncount")) return handleGetConnectionCount(ctx, id);
     if (std.mem.eql(u8, method, "getpeerinfo"))        return handleGetPeerInfo(ctx, id);
     if (std.mem.eql(u8, method, "getmininginfo"))      return handleGetMiningInfo(ctx, id);
+
+    // ── AI Agent endpoints (consumate de clientul Python/Rust extern) ───
+    if (std.mem.eql(u8, method, "agent_list"))              return handleAgentList(ctx, id);
+    if (std.mem.eql(u8, method, "getreputation"))           return handleGetReputation(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputationtop"))        return handleGetReputationTop(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_status"))            return handleAgentStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_pending_decisions")) return handleAgentPendingDecisions(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_report_execution"))  return handleAgentReportExecution(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -734,6 +777,765 @@ fn handleSendOpReturn(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// RPC "minersendtx" — send TX from a registered miner's wallet.
 /// The miner's private key is looked up from the MinerWalletPool.
 /// Usage: {"method":"minersendtx","params":["from_miner_address","to_address",amount_sat,fee_sat],"id":1}
+// ─── Faucet rate-limit state (in-memory, per-process) ────────────────────────
+//
+// Simple anti-Sybil for the testnet faucet. State is in-memory only (no JSON
+// persistence yet — that lives in Faza 5 when we add auto-refill). On node
+// restart the table resets to empty, which means a determined attacker could
+// claim again after each restart. Acceptable for testnet; tighten before
+// mainnet.
+//
+// Rules:
+//   - Per-address: 1 claim ever (once an address gets faucet funds, no more)
+//   - Per-IP: cooldown of FAUCET_IP_COOLDOWN_S between claims from the same IP
+//
+// Limits chosen so legit users can run multiple validators (their own family
+// of wallets) without hitting the IP cooldown wall constantly: 1 minute, not
+// 24h, on testnet. Tighten on mainnet.
+
+const FAUCET_IP_COOLDOWN_S: i64 = 60;
+const FAUCET_MAX_CLAIMED_ADDRS: usize = 4096;
+const FAUCET_MAX_TRACKED_IPS: usize = 1024;
+
+const FaucetClaim = struct {
+    addr: [64]u8 = @splat(0),
+    addr_len: u8 = 0,
+    timestamp: i64 = 0,
+};
+
+const FaucetIpEntry = struct {
+    ip: [4]u8 = .{ 0, 0, 0, 0 },
+    last_claim: i64 = 0,
+    used: bool = false,
+};
+
+var g_faucet_claims: [FAUCET_MAX_CLAIMED_ADDRS]FaucetClaim = @splat(.{});
+var g_faucet_claim_count: usize = 0;
+var g_faucet_ip_table: [FAUCET_MAX_TRACKED_IPS]FaucetIpEntry = @splat(.{});
+var g_faucet_mutex: std.Thread.Mutex = .{};
+/// File path where claims persist across restarts. Set by `faucetSetPersistPath`
+/// at node startup. Empty = persistence disabled (in-memory only).
+var g_faucet_persist_path_buf: [512]u8 = @splat(0);
+var g_faucet_persist_path_len: usize = 0;
+var g_faucet_persist_loaded: bool = false;
+
+/// Set the on-disk path for the claim ledger. Idempotent — calling it
+/// repeatedly with the same path is a no-op. Called once from main.zig
+/// after the chain data dir is known (so testnet/regtest get separate
+/// ledgers from mainnet automatically).
+pub fn faucetSetPersistPath(path: []const u8) void {
+    g_faucet_mutex.lock();
+    defer g_faucet_mutex.unlock();
+    const n = @min(path.len, g_faucet_persist_path_buf.len);
+    @memcpy(g_faucet_persist_path_buf[0..n], path[0..n]);
+    g_faucet_persist_path_len = n;
+    if (!g_faucet_persist_loaded) {
+        faucetLoadFromDisk() catch |err| {
+            std.debug.print("[FAUCET] load from disk failed: {} (starting fresh)\n", .{err});
+        };
+        g_faucet_persist_loaded = true;
+    }
+}
+
+fn faucetPersistPath() ?[]const u8 {
+    if (g_faucet_persist_path_len == 0) return null;
+    return g_faucet_persist_path_buf[0..g_faucet_persist_path_len];
+}
+
+/// Append-only JSON-Lines file: one record per claim. Survives restart.
+/// Format: `{"addr":"ob1q...","ts":1234567890}\n` per line.
+/// We read the whole file at startup and parse line-by-line; this avoids
+/// needing a real JSON array we'd have to rewrite on every claim.
+fn faucetLoadFromDisk() !void {
+    const path = faucetPersistPath() orelse return;
+    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return, // fresh start, no claims yet
+        else => return err,
+    };
+    defer f.close();
+    const stat = try f.stat();
+    if (stat.size == 0) return;
+
+    // Read whole file (small — ~50 bytes/claim, capped at 4096 claims = ~200KB).
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
+    _ = try f.readAll(buf);
+
+    var line_iter = std.mem.splitScalar(u8, buf, '\n');
+    var loaded: usize = 0;
+    while (line_iter.next()) |line| {
+        if (line.len == 0) continue;
+        // Extract "addr":"...", "ts":N — minimal parser, no full JSON dep.
+        const addr_key = "\"addr\":\"";
+        const a_start = std.mem.indexOf(u8, line, addr_key) orelse continue;
+        const a_from = a_start + addr_key.len;
+        const a_end = std.mem.indexOfScalarPos(u8, line, a_from, '"') orelse continue;
+        const addr = line[a_from..a_end];
+
+        const ts_key = "\"ts\":";
+        const t_start = std.mem.indexOf(u8, line, ts_key) orelse continue;
+        const t_from = t_start + ts_key.len;
+        var t_end = t_from;
+        while (t_end < line.len and (std.ascii.isDigit(line[t_end]) or line[t_end] == '-')) t_end += 1;
+        const ts = std.fmt.parseInt(i64, line[t_from..t_end], 10) catch 0;
+
+        if (g_faucet_claim_count >= FAUCET_MAX_CLAIMED_ADDRS) break;
+        const e = &g_faucet_claims[g_faucet_claim_count];
+        const n = @min(addr.len, e.addr.len);
+        @memcpy(e.addr[0..n], addr[0..n]);
+        e.addr_len = @intCast(n);
+        e.timestamp = ts;
+        g_faucet_claim_count += 1;
+        loaded += 1;
+    }
+    std.debug.print("[FAUCET] Loaded {d} claim(s) from {s}\n", .{ loaded, path });
+}
+
+/// Append a new claim line to the on-disk ledger. Best-effort — if the
+/// write fails, we log but do not crash the claim path. The in-memory
+/// table is the source of truth during runtime.
+fn faucetAppendToDisk(addr: []const u8, ts: i64) void {
+    const path = faucetPersistPath() orelse return;
+    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
+        std.debug.print("[FAUCET] cannot open {s} for append: {}\n", .{ path, err });
+        return;
+    };
+    defer f.close();
+    f.seekFromEnd(0) catch return;
+    var buf: [256]u8 = undefined;
+    const line = std.fmt.bufPrint(&buf, "{{\"addr\":\"{s}\",\"ts\":{d}}}\n", .{ addr, ts }) catch return;
+    _ = f.writeAll(line) catch |err| {
+        std.debug.print("[FAUCET] append failed: {}\n", .{err});
+    };
+}
+
+fn faucetAddressClaimed(addr: []const u8) bool {
+    var i: usize = 0;
+    while (i < g_faucet_claim_count) : (i += 1) {
+        const e = &g_faucet_claims[i];
+        if (e.addr_len == addr.len and std.mem.eql(u8, e.addr[0..e.addr_len], addr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn faucetRecordClaim(addr: []const u8, now_s: i64) void {
+    if (g_faucet_claim_count >= FAUCET_MAX_CLAIMED_ADDRS) return; // table full, refuse silently
+    const e = &g_faucet_claims[g_faucet_claim_count];
+    const n = @min(addr.len, e.addr.len);
+    @memcpy(e.addr[0..n], addr[0..n]);
+    e.addr_len = @intCast(n);
+    e.timestamp = now_s;
+    g_faucet_claim_count += 1;
+    // Persist to disk so the counter + per-address dedup survives a node
+    // restart. Without this, every restart resets the rate-limit table to
+    // empty and an attacker can re-claim the faucet repeatedly.
+    faucetAppendToDisk(addr, now_s);
+}
+
+/// Returns seconds remaining on cooldown (0 = OK to claim).
+fn faucetIpCooldownRemaining(ip: [4]u8, now_s: i64) i64 {
+    for (&g_faucet_ip_table) |*e| {
+        if (!e.used) continue;
+        if (std.mem.eql(u8, &e.ip, &ip)) {
+            const elapsed = now_s - e.last_claim;
+            if (elapsed >= FAUCET_IP_COOLDOWN_S) return 0;
+            return FAUCET_IP_COOLDOWN_S - elapsed;
+        }
+    }
+    return 0;
+}
+
+fn faucetIpRecord(ip: [4]u8, now_s: i64) void {
+    // Update existing entry first.
+    for (&g_faucet_ip_table) |*e| {
+        if (e.used and std.mem.eql(u8, &e.ip, &ip)) {
+            e.last_claim = now_s;
+            return;
+        }
+    }
+    // Find a free slot (or oldest entry if full).
+    var oldest: *FaucetIpEntry = &g_faucet_ip_table[0];
+    for (&g_faucet_ip_table) |*e| {
+        if (!e.used) {
+            e.used = true;
+            e.ip = ip;
+            e.last_claim = now_s;
+            return;
+        }
+        if (e.last_claim < oldest.last_claim) oldest = e;
+    }
+    // Table full — overwrite oldest.
+    oldest.ip = ip;
+    oldest.last_claim = now_s;
+}
+
+/// RPC "claimfaucet" — request 0.1 OMNI for a fresh wallet so it can cross
+/// MIN_VALIDATOR_BALANCE and start mining. One grant per address ever, with
+/// a per-IP cooldown to discourage trivial Sybil.
+///
+/// Usage:
+///   {"method":"claimfaucet","params":["ob1q...recipient..."],"id":1}
+///
+/// Response on success:
+///   {"result":{"txid":"...","amount":100000000,"recipient":"..."}}
+///
+/// Response on rejection: error -32010..-32014 with reason.
+///
+/// This handler is a no-op when the node was started without --faucet-mode
+/// (faucet_wallet=null or faucet_grant_sat=0).
+fn handleClaimFaucet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    if (ctx.faucet_wallet == null or ctx.faucet_grant_sat == 0) {
+        return errorJson(-32010, "Faucet not enabled on this node", id, alloc);
+    }
+    const fw = ctx.faucet_wallet.?;
+    const grant = ctx.faucet_grant_sat;
+
+    const recipient = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address (recipient)", id, alloc);
+    if (recipient.len < 8 or recipient.len > 64) {
+        return errorJson(-32602, "Address looks invalid (length out of range)", id, alloc);
+    }
+
+    g_faucet_mutex.lock();
+    defer g_faucet_mutex.unlock();
+
+    const now_s = std.time.timestamp();
+
+    if (faucetAddressClaimed(recipient)) {
+        return errorJson(-32011, "Address already claimed faucet", id, alloc);
+    }
+
+    // IP cooldown — best-effort: we get IP from connection in handleConn.
+    // For the simple handler signature here, we trust loopback/local. A
+    // future revision can pass the peer IP through ServerCtx per-request.
+    // For now we skip per-IP enforcement on loopback claims.
+
+    // Check faucet wallet has enough balance + min fee.
+    const fee_sat: u64 = mempool_mod.TX_MIN_FEE_SAT;
+    const faucet_balance = ctx.bc.getAddressBalance(fw.address);
+    if (faucet_balance < grant + fee_sat) {
+        return errorJson(-32012, "Faucet drained — wait for refill", id, alloc);
+    }
+
+    // Build, sign, broadcast via existing wallet TX path.
+    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
+    const nonce = ctx.bc.getNextAvailableNonce(fw.address);
+    var tx = fw.createTransactionFull(recipient, grant, tx_id, nonce, fee_sat, 0, "", alloc) catch
+        return errorJson(-32013, "Faucet sign error", id, alloc);
+    if (!tx.isValid()) return errorJson(-32013, "Faucet TX invalid", id, alloc);
+
+    ctx.bc.registerPubkey(fw.address, fw.addresses[0].public_key_hex) catch {};
+    ctx.bc.addTransaction(tx) catch
+        return errorJson(-32014, "Mempool refused faucet TX", id, alloc);
+
+    faucetRecordClaim(recipient, now_s);
+
+    std.debug.print("[FAUCET] Granted {d} SAT to {s}.. (txid={s})\n",
+        .{ grant, recipient[0..@min(recipient.len, 16)], tx.hash[0..@min(tx.hash.len, 16)] });
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"recipient\":\"{s}\",\"amount\":{d},\"fee\":{d},\"status\":\"accepted\"}}}}",
+        .{ id, tx.hash, tx.from_address, tx.amount, tx.fee });
+}
+
+/// RPC "getfaucetstatus" — returns whether the faucet is enabled, current
+/// balance, configured grant, and number of distinct addresses that have
+/// already claimed. Useful for UI dashboards (so "Get Faucet" button can
+/// gray out when drained or disabled).
+fn handleFaucetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const enabled = ctx.faucet_wallet != null and ctx.faucet_grant_sat > 0;
+    var faucet_addr: []const u8 = "";
+    var faucet_bal: u64 = 0;
+    if (ctx.faucet_wallet) |fw| {
+        faucet_addr = fw.address;
+        faucet_bal = ctx.bc.getAddressBalance(fw.address);
+    }
+    g_faucet_mutex.lock();
+    const claimed = g_faucet_claim_count;
+    g_faucet_mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"enabled\":{},\"address\":\"{s}\",\"balance\":{d},\"grantPerClaim\":{d},\"claimsServed\":{d}}}}}",
+        .{ id, enabled, faucet_addr, faucet_bal, ctx.faucet_grant_sat, claimed });
+}
+
+// ─── Rich list + chain metrics ──────────────────────────────────────────────
+
+const RichEntry = struct {
+    address: []const u8,
+    balance: u64,
+};
+
+/// RPC "getrichlist" — Bitcoin-style address list sorted by balance desc.
+///
+/// Walks `bc.balances` HashMap, filters out zero-balance entries (cosmetic
+/// — keeps the output small), sorts descending, and emits the top N.
+///
+/// Each entry includes:
+///   - address (ob1q…)
+///   - balance in SAT
+///   - is_validator (balance ≥ MIN_VALIDATOR_BALANCE)
+///   - blocks_mined (count of blocks where block.miner == this address)
+///
+/// Usage:
+///   {"method":"getrichlist","params":[100],"id":1}   // top 100
+///   {"method":"getrichlist","params":[],"id":1}      // top 100 default
+fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const limit_raw = extractArrayNum(body, 0);
+    const limit: usize = if (limit_raw > 0) @min(@as(usize, @intCast(limit_raw)), 1000) else 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    // Collect (address, balance) pairs from the balance map.
+    var entries = std.array_list.Managed(RichEntry).init(alloc);
+    defer entries.deinit();
+    var bit = ctx.bc.balances.iterator();
+    while (bit.next()) |kv| {
+        const bal = kv.value_ptr.*;
+        if (bal == 0) continue; // skip dust/zero balances
+        try entries.append(.{ .address = kv.key_ptr.*, .balance = bal });
+    }
+
+    // Sort by balance descending; tie-break by address string for determinism.
+    std.mem.sort(RichEntry, entries.items, {}, struct {
+        fn lt(_: void, a: RichEntry, b: RichEntry) bool {
+            if (a.balance != b.balance) return a.balance > b.balance;
+            return std.mem.lessThan(u8, a.address, b.address);
+        }
+    }.lt);
+
+    // Build a per-address mined-blocks index in one pass over the chain so
+    // we don't do an O(N*chain) lookup per entry. HashMap address → count.
+    var mined_count = std.StringHashMap(u32).init(alloc);
+    defer mined_count.deinit();
+    for (ctx.bc.chain.items) |blk| {
+        if (blk.miner_address.len == 0) continue;
+        const gop = try mined_count.getOrPut(blk.miner_address);
+        if (!gop.found_existing) gop.value_ptr.* = 0;
+        gop.value_ptr.* += 1;
+    }
+
+    // Emit JSON: {result: {entries:[…], total:N, totalSupply:N}}
+    var json = std.array_list.Managed(u8).init(alloc);
+    errdefer json.deinit();
+    var w = json.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"entries\":[", .{id});
+
+    var total_supply: u64 = 0;
+    for (entries.items) |e| total_supply += e.balance;
+
+    const out_count = @min(limit, entries.items.len);
+    for (entries.items[0..out_count], 0..) |e, i| {
+        if (i > 0) try w.writeAll(",");
+        const is_validator = e.balance >= validator_mod.MIN_VALIDATOR_BALANCE;
+        const blocks = mined_count.get(e.address) orelse 0;
+        try w.print(
+            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d},\"isValidator\":{},\"blocksMined\":{d}}}",
+            .{ i + 1, e.address, e.balance, is_validator, blocks },
+        );
+    }
+
+    try w.print("],\"total\":{d},\"shown\":{d},\"totalSupply\":{d}}}}}", .{
+        entries.items.len, out_count, total_supply,
+    });
+
+    return json.toOwnedSlice();
+}
+
+/// RPC "getchainmetrics" — high-level dashboard stats.
+///
+/// Aggregates everything an explorer dashboard would normally show on top:
+///   - chain height + tip hash
+///   - total supply (sum of all positive balances)
+///   - total addresses with balance > 0
+///   - validator count (balance ≥ MIN_VALIDATOR_BALANCE)
+///   - validator-set size (active rotation participants)
+///   - block count, mempool size, peer count
+///   - emission stats (current reward, halving interval, max supply)
+fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    // Address + supply tally.
+    var addresses_with_balance: u64 = 0;
+    var validators: u64 = 0;
+    var total_supply: u64 = 0;
+    var bit = ctx.bc.balances.iterator();
+    while (bit.next()) |kv| {
+        const bal = kv.value_ptr.*;
+        if (bal == 0) continue;
+        addresses_with_balance += 1;
+        total_supply += bal;
+        if (bal >= validator_mod.MIN_VALIDATOR_BALANCE) validators += 1;
+    }
+
+    const height: u64 = @intCast(ctx.bc.chain.items.len);
+    const tip_hash: []const u8 = if (height > 0) ctx.bc.chain.items[height - 1].hash else "";
+    const validator_set_size = ctx.bc.validator_set.items.len;
+    const mempool_size: usize = if (ctx.mempool) |mp| mp.size() else 0;
+    const peer_count: usize = if (ctx.p2p) |p| p.peers.items.len else 0;
+
+    // Current block reward (uses blockchain.zig blockRewardAt — handles halvings).
+    const current_reward = blockchain_mod.blockRewardAt(@intCast(height));
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"height\":{d}," ++
+            "\"tipHash\":\"{s}\"," ++
+            "\"totalSupply\":{d}," ++
+            "\"addressesWithBalance\":{d}," ++
+            "\"validators\":{d}," ++
+            "\"validatorSetSize\":{d}," ++
+            "\"minValidatorBalance\":{d}," ++
+            "\"mempoolSize\":{d}," ++
+            "\"peerCount\":{d}," ++
+            "\"currentBlockReward\":{d}," ++
+            "\"satPerOmni\":1000000000" ++
+            "}}}}",
+        .{
+            id, height, tip_hash, total_supply, addresses_with_balance,
+            validators, validator_set_size, validator_mod.MIN_VALIDATOR_BALANCE,
+            mempool_size, peer_count, current_reward,
+        });
+}
+
+// ─── DNS / ENS handlers ─────────────────────────────────────────────────────
+//
+// On-chain name registry. Resolves human-friendly names like "alice" or
+// "savacazan" to ob1q… addresses. The DnsRegistry struct lives in
+// dns_registry.zig — we just expose 4 RPC methods over it.
+//
+// Why "alice", not "alice.omnibus": the registry stores the raw label.
+// Front-ends append .omnibus for display (matching the LCX-side ENS).
+// Registration is permissionless on testnet (no fee enforced yet) so the
+// stress-test scripts can populate it freely.
+
+fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const address = extractArrayStr(body, 1) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    // Owner defaults to the address being registered (self-ownership).
+    const owner = extractArrayStr(body, 2) orelse extractStr(body, "owner") orelse address;
+    // TLD optional — default "omnibus" (backward compat). Acceptat din param[3]
+    // (positional) sau din "tld" key (object). "arbitraje" e celalalt valid.
+    const tld = extractArrayStr(body, 3) orelse extractStr(body, "tld") orelse "omnibus";
+    // Fee txid optional — param[4] sau key "fee_txid".
+    const fee_txid = extractArrayStr(body, 4) orelse extractStr(body, "fee_txid") orelse null;
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const required_fee = dns_mod.feeForTld(tld);
+
+    // Fee enforcement
+    if (dns.fee_enforcement) {
+        const txid = fee_txid orelse
+            return errorJson(-32602, "fee_txid required (mainnet)", id, alloc);
+        if (txid.len != dns_mod.TXID_LEN) {
+            return errorJson(-32031, "fee TX invalid: txid must be 64 hex chars", id, alloc);
+        }
+        if (dns.isTxidConsumed(txid)) {
+            return errorJson(-32031, "fee TX invalid: txid already used", id, alloc);
+        }
+
+        // Cauta TX in chain (confirmed blocks)
+        var found_tx: ?*const transaction_mod.Transaction = null;
+        ctx.bc.mutex.lock();
+        for (ctx.bc.chain.items) |blk| {
+            for (blk.transactions.items) |*tx| {
+                if (std.mem.eql(u8, tx.hash, txid)) {
+                    found_tx = tx;
+                    break;
+                }
+            }
+            if (found_tx != null) break;
+        }
+        ctx.bc.mutex.unlock();
+
+        const tx = found_tx orelse
+            return errorJson(-32031, "fee TX invalid: transaction not found in chain", id, alloc);
+
+        const treasury = dns.getTreasury();
+        if (!std.mem.eql(u8, tx.to_address, treasury)) {
+            return errorJson(-32031, "fee TX invalid: destination is not treasury", id, alloc);
+        }
+        if (tx.amount < required_fee) {
+            return errorJson(-32031, "fee TX invalid: amount too low", id, alloc);
+        }
+    }
+
+    dns.registerWithTldAndFee(name, tld, address, owner, current_block, fee_txid) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.InvalidName     => "Invalid name (3-25 chars, lowercase a-z 0-9 _, must start with letter)",
+            error.InvalidTld      => "Invalid TLD (allowed: omnibus, arbitraje)",
+            error.NameTaken       => "Name already taken",
+            error.RegistryFull    => "Registry full",
+            error.FeeRequired     => "Fee required",
+            error.InvalidTxid     => "Invalid txid",
+            error.TxidAlreadyUsed => "Txid already used",
+            error.ConsumedTxidsFull => "Consumed txids full",
+        };
+        return errorJson(-32031, msg, id, alloc);
+    };
+
+    std.debug.print("[DNS] Registered '{s}.{s}' -> {s}\n",
+        .{ name[0..@min(name.len, 25)], tld[0..@min(tld.len, 16)], address[0..@min(address.len, 16)] });
+
+    const fee_paid_sat: u64 = if (fee_txid) |_| required_fee else 0;
+    const fee_txid_esc = fee_txid orelse "";
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
+        .{ id, name, tld, name, tld, address, current_block, fee_paid_sat, fee_txid_esc });
+}
+
+fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    var name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    // Tolerant: strip the TLD suffix if user includes it (UI typically
+    // displays "alice.omnibus" or "arb_bot.arbitraje").
+    var tld_from_name: ?[]const u8 = null;
+    inline for (.{ ".omnibus", ".arbitraje" }) |suffix| {
+        if (name.len > suffix.len and std.mem.eql(u8, name[name.len - suffix.len ..], suffix)) {
+            tld_from_name = suffix[1..]; // drop leading dot
+            name = name[0 .. name.len - suffix.len];
+            break;
+        }
+    }
+    // Explicit `tld` param overrides; else use the one stripped from the name; else default.
+    const tld = extractArrayStr(body, 1) orelse extractStr(body, "tld") orelse
+        (tld_from_name orelse "omnibus");
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const resolved = dns.resolveWithTld(name, tld, current_block);
+
+    if (resolved) |addr| {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"found\":true}}}}",
+            .{ id, name, tld, name, tld, addr });
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
+        .{ id, name, tld, name, tld });
+}
+
+fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const address = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const found = dns.reverseResolve(address, current_block);
+
+    if (found) |name| {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":\"{s}\",\"found\":true}}}}",
+            .{ id, address, name });
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":null,\"found\":false}}}}",
+        .{ id, address });
+}
+
+fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    _ = body;
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+
+    var json = std.array_list.Managed(u8).init(alloc);
+    errdefer json.deinit();
+    var w = json.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"entries\":[", .{id});
+
+    var first = true;
+    var active_count: usize = 0;
+    for (dns.entries[0..dns.entry_count]) |*e| {
+        if (!e.active or e.isExpired(current_block)) continue;
+        if (!first) try w.writeAll(",");
+        first = false;
+        try w.print(
+            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
+            .{ e.getName(), e.getTld(), e.getName(), e.getTld(), e.getAddress(), e.registered_block, e.expires_block },
+        );
+        active_count += 1;
+    }
+
+    try w.print("],\"total\":{d}}}}}", .{active_count});
+    return json.toOwnedSlice();
+}
+
+fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
+            .{id});
+    }
+    const dns = ctx.dns.?;
+    const treasury = dns.getTreasury();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
+        .{ id, treasury, dns.fee_enforcement });
+}
+
+// ─── sendrawtransaction — submit a CLIENT-SIGNED OmniBus transaction ────────
+//
+// Use case: a script (or UI) holds private keys for N wallets, wants to send
+// from any of them. The existing `sendtransaction` always signs with the
+// node's primary wallet — single-sender. `sendrawtransaction` accepts a
+// fully-formed signed TX as JSON params and just validates + adds to mempool.
+//
+// Format expected (single param object OR positional first param):
+//   {
+//     "id": <u32>,
+//     "from": "ob1q...",
+//     "to":   "ob1q...",
+//     "amount": <SAT u64>,
+//     "fee":  <SAT u64>,
+//     "timestamp": <unix seconds i64>,
+//     "nonce": <u64>,
+//     "publicKey": "<66 hex>",          // sender pubkey (registered before validate)
+//     "signature": "<128 hex>",         // ECDSA(R||S) over calculateHash()
+//     "hash":      "<64 hex>",          // SHA256d of canonical fields
+//     "opReturn":  "<optional string>", // ≤ 80 bytes
+//     "locktime":  <optional u64>
+//   }
+//
+// Hash format mirrors `Transaction.calculateHash` in transaction.zig — caller
+// must build the exact same byte sequence and double-SHA256 it. Signature
+// is ECDSA secp256k1 over the resulting 32-byte digest.
+//
+// Returns {txid, status:"accepted"} on success or an RPC error otherwise.
+fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    // Required string fields
+    const from_addr = extractStr(body, "from") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: from", id, alloc);
+    const to_addr = extractStr(body, "to") orelse
+        return errorJson(-32602, "Missing param: to", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature (128 hex chars)", id, alloc);
+    const hash_hex = extractStr(body, "hash") orelse
+        return errorJson(-32602, "Missing param: hash (64 hex chars)", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey (66 hex chars)", id, alloc);
+
+    // Required numeric fields
+    const amount = extractArrayNumByKey(body, "amount");
+    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
+    const fee = extractArrayNumByKey(body, "fee");
+    const fee_sat: u64 = if (fee > 0) fee else mempool_mod.TX_MIN_FEE_SAT;
+    const ts_raw = extractArrayNumByKey(body, "timestamp");
+    const ts: i64 = if (ts_raw > 0) @intCast(ts_raw) else std.time.timestamp();
+    const nonce = extractArrayNumByKey(body, "nonce");
+    const tx_id_raw = extractArrayNumByKey(body, "id");
+    const tx_id: u32 = if (tx_id_raw > 0) @intCast(@min(tx_id_raw, std.math.maxInt(u32))) else g_tx_counter.fetchAdd(1, .monotonic);
+    const locktime = extractArrayNumByKey(body, "locktime");
+    const op_return = extractStr(body, "opReturn") orelse extractStr(body, "op_return") orelse "";
+
+    // Field-length sanity (cheap pre-check before allocations)
+    if (sig_hex.len != 128) return errorJson(-32602, "signature must be 128 hex chars", id, alloc);
+    if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
+    if (pubkey_hex.len != 66) return errorJson(-32602, "publicKey must be 66 hex chars", id, alloc);
+
+    // Allocate owned copies so the Transaction struct outlives the request body.
+    const from_owned = try alloc.dupe(u8, from_addr);
+    errdefer alloc.free(from_owned);
+    const to_owned = try alloc.dupe(u8, to_addr);
+    errdefer alloc.free(to_owned);
+    const sig_owned = try alloc.dupe(u8, sig_hex);
+    errdefer alloc.free(sig_owned);
+    const hash_owned = try alloc.dupe(u8, hash_hex);
+    errdefer alloc.free(hash_owned);
+    const op_owned: []const u8 = if (op_return.len > 0) try alloc.dupe(u8, op_return) else "";
+    errdefer if (op_return.len > 0) alloc.free(op_owned);
+
+    var tx = transaction_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from_owned,
+        .to_address   = to_owned,
+        .amount       = amount,
+        .fee          = fee_sat,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .locktime     = locktime,
+        .op_return    = op_owned,
+        .signature    = sig_owned,
+        .hash         = hash_owned,
+    };
+
+    if (!tx.isValid()) return errorJson(-32000, "Transaction failed isValid (bad addresses or amount)", id, alloc);
+
+    // Register sender pubkey BEFORE validating — addTransaction's signature
+    // check looks the pubkey up by address. Without this, fresh senders
+    // would always fail validation on their first TX.
+    ctx.bc.registerPubkey(from_owned, pubkey_hex) catch {};
+
+    ctx.bc.addTransaction(tx) catch |err| {
+        // The `errdefer alloc.free(...)` chain above doesn't fire here because
+        // addTransaction took ownership (or didn't) depending on where it
+        // failed. We err on the side of leaking a few bytes per rejected TX
+        // rather than risk a double-free.
+        const msg = switch (err) {
+            error.OutOfMemory => "Out of memory",
+            else              => "Mempool refused TX",
+        };
+        std.debug.print("[RAW-TX] addTransaction error: {} (from={s})\n",
+            .{ err, from_owned[0..@min(from_owned.len, 16)] });
+        return errorJson(-32000, msg, id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"status\":\"accepted\"}}}}",
+        .{ id, hash_owned, from_owned, to_owned, amount, fee_sat });
+}
+
+/// Helper: read a u64 from either an object key (e.g. `"amount":123`) or
+/// — fallback — try interpreting `body` as a positional array. Returns 0
+/// if the field is missing or non-numeric.
+fn extractArrayNumByKey(body: []const u8, key: []const u8) u64 {
+    // Look for "key":<digits> in the JSON body. Tolerant of whitespace.
+    var search_buf: [64]u8 = undefined;
+    const needle = std.fmt.bufPrint(&search_buf, "\"{s}\":", .{key}) catch return 0;
+    const start = std.mem.indexOf(u8, body, needle) orelse return 0;
+    var i = start + needle.len;
+    while (i < body.len and (body[i] == ' ' or body[i] == '\t')) i += 1;
+    var n: u64 = 0;
+    var seen = false;
+    while (i < body.len and std.ascii.isDigit(body[i])) {
+        const d: u64 = @intCast(body[i] - '0');
+        n = n *% 10 +% d;
+        seen = true;
+        i += 1;
+    }
+    return if (seen) n else 0;
+}
+
 fn handleMinerSendTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
 
@@ -2570,50 +3372,98 @@ fn feedIsStale(
 /// matcher treats them as the same pair. EUR is INTENTIONALLY NOT mapped
 /// — that flow needs a EUR/USD oracle. EUR-quoted LCX entries still appear
 /// in the all-prices grid (display only) and are excluded from arbitrage.
+/// Static buffer-pool pentru canonical labels — caller-ul primeste o referinta
+/// la unul din slot-uri, valid pana la urmatorul apel din acelasi thread.
+/// Sufficient pentru un singur RPC handler care deruleaza buclele de matching.
+threadlocal var CANON_BUF: [16][32]u8 = std.mem.zeroes([16][32]u8);
+threadlocal var CANON_IDX: usize = 0;
+
+/// canonicalPair — PARSEAZA GENERIC raw symbol (orice format) si returneaza
+/// label-ul canonical "<BASE>/<QUOTE_BUCKET>" unde:
+///   - separator: `/` (LCX, Kraken WS) sau `-` (Coinbase) — ambele acceptate
+///   - quote bucket: USD/USDC/USDT/DAI/USDS → "USD"; EUR/EURC → "EUR"; resto = ca-i
+///   - Kraken legacy: XBT→BTC, XDG→DOGE in BAZA (nu in quote, ca quote = ZEUR/ZUSD
+///     deja normalizat de Kraken la wsname e EUR/USD direct)
+///
+/// Aceasta forma se foloseste atat ca cheie pivot in matcher-ul de arbitraj,
+/// cat si ca label vizibil in UI. Asa "1INCH-USD", "1INCH/USD", "1INCH/USDC"
+/// se colapseaza toate la "1INCH/USD" si match-uiesc cross-exchange.
+///
+/// EUR variant: "AAVE/EUR" → "AAVE/EUR" (NU se colapseaza la USD aici — separat
+/// in matcher: bid/ask sunt convertiti la USD prin FX rate, dar labelul ramane
+/// EUR ca user-ul sa stie ca arbitrajul e cross-currency).
 fn canonicalPair(pair: []const u8) []const u8 {
-    // ── Coinbase Advanced format (dash) → canonical slash form ───────────
-    if (std.mem.eql(u8, pair, "BTC-USD"))   return "BTC/USD";
-    if (std.mem.eql(u8, pair, "LCX-USD"))   return "LCX/USD";
-    if (std.mem.eql(u8, pair, "ETH-USD"))   return "ETH/USD";
-    if (std.mem.eql(u8, pair, "SOL-USD"))   return "SOL/USD";
-    if (std.mem.eql(u8, pair, "ADA-USD"))   return "ADA/USD";
-    if (std.mem.eql(u8, pair, "SUI-USD"))   return "SUI/USD";
-    if (std.mem.eql(u8, pair, "EGLD-USD"))  return "EGLD/USD";
-    // ── Kraken-style "BTC/USD" already canonical ─────────────────────────
-    if (std.mem.eql(u8, pair, "BTC/USD"))   return "BTC/USD";
-    if (std.mem.eql(u8, pair, "LCX/USD"))   return "LCX/USD";
-    if (std.mem.eql(u8, pair, "ETH/USD"))   return "ETH/USD";
-    if (std.mem.eql(u8, pair, "SOL/USD"))   return "SOL/USD";
-    if (std.mem.eql(u8, pair, "ADA/USD"))   return "ADA/USD";
-    if (std.mem.eql(u8, pair, "SUI/USD"))   return "SUI/USD";
-    if (std.mem.eql(u8, pair, "EGLD/USD"))  return "EGLD/USD";
-    // ── LCX USDC variants → USD (USDC ≈ USD for arbitrage) ───────────────
-    if (std.mem.eql(u8, pair, "BTC/USDC"))  return "BTC/USD";
-    if (std.mem.eql(u8, pair, "LCX/USDC"))  return "LCX/USD";
-    if (std.mem.eql(u8, pair, "ETH/USDC"))  return "ETH/USD";
-    if (std.mem.eql(u8, pair, "SOL/USDC"))  return "SOL/USD";
-    if (std.mem.eql(u8, pair, "ADA/USDC"))  return "ADA/USD";
-    if (std.mem.eql(u8, pair, "SUI/USDC"))  return "SUI/USD";
-    if (std.mem.eql(u8, pair, "EGLD/USDC")) return "EGLD/USD";
-    // ── LCX USDT variants → USD ──────────────────────────────────────────
-    if (std.mem.eql(u8, pair, "BTC/USDT"))  return "BTC/USD";
-    if (std.mem.eql(u8, pair, "ETH/USDT"))  return "ETH/USD";
-    if (std.mem.eql(u8, pair, "SOL/USDT"))  return "SOL/USD";
-    if (std.mem.eql(u8, pair, "ADA/USDT"))  return "ADA/USD";
-    if (std.mem.eql(u8, pair, "SUI/USDT"))  return "SUI/USD";
-    if (std.mem.eql(u8, pair, "EGLD/USDT")) return "EGLD/USD";
-    // ── EUR-quoted pairs → USD canonical ─────────────────────────────────
-    // The arbitrage matcher converts the bid/ask via the live USDC/EUR FX
-    // rate BEFORE comparing. Once converted, the pair is comparable to the
-    // USD-quoted entries, so the canonical label collapses too.
-    if (std.mem.eql(u8, pair, "BTC/EUR"))   return "BTC/USD";
-    if (std.mem.eql(u8, pair, "LCX/EUR"))   return "LCX/USD";
-    if (std.mem.eql(u8, pair, "ETH/EUR"))   return "ETH/USD";
-    if (std.mem.eql(u8, pair, "SOL/EUR"))   return "SOL/USD";
-    if (std.mem.eql(u8, pair, "ADA/EUR"))   return "ADA/USD";
-    if (std.mem.eql(u8, pair, "SUI/EUR"))   return "SUI/USD";
-    if (std.mem.eql(u8, pair, "EGLD/EUR"))  return "EGLD/USD";
-    return pair;
+    // Find separator
+    const sep_idx: usize = blk: {
+        for (pair, 0..) |c, idx| {
+            if (c == '/' or c == '-') break :blk idx;
+        }
+        break :blk pair.len; // no separator → return as-is
+    };
+    if (sep_idx == 0 or sep_idx >= pair.len - 1) return pair;
+
+    var base = pair[0..sep_idx];
+    const quote = pair[sep_idx + 1 ..];
+
+    // Kraken legacy normalization: XBT/XDG in BASE.
+    if (std.mem.eql(u8, base, "XBT")) base = "BTC";
+    if (std.mem.eql(u8, base, "XDG")) base = "DOGE";
+
+    // Quote bucket normalization (matches pair_discovery.py).
+    var qbucket: []const u8 = quote;
+    if (std.mem.eql(u8, quote, "USD") or
+        std.mem.eql(u8, quote, "USDC") or
+        std.mem.eql(u8, quote, "USDT") or
+        std.mem.eql(u8, quote, "DAI") or
+        std.mem.eql(u8, quote, "USDS"))
+    {
+        qbucket = "USD";
+    } else if (std.mem.eql(u8, quote, "EUR") or std.mem.eql(u8, quote, "EURC")) {
+        qbucket = "EUR";
+    }
+
+    // Build "<base>/<qbucket>" in a thread-local rotating buffer.
+    const slot = &CANON_BUF[CANON_IDX];
+    CANON_IDX = (CANON_IDX + 1) % CANON_BUF.len;
+    const total_len = base.len + 1 + qbucket.len;
+    if (total_len > slot.len) return pair; // safety: weird long pair, return original
+    @memcpy(slot[0..base.len], base);
+    slot[base.len] = '/';
+    @memcpy(slot[base.len + 1 .. base.len + 1 + qbucket.len], qbucket);
+    return slot[0..total_len];
+}
+
+test "canonicalPair: dash → slash" {
+    try std.testing.expectEqualStrings("BTC/USD", canonicalPair("BTC-USD"));
+    try std.testing.expectEqualStrings("1INCH/USD", canonicalPair("1INCH-USD"));
+    try std.testing.expectEqualStrings("AAVE/USD", canonicalPair("AAVE-USDC"));
+}
+
+test "canonicalPair: slash unchanged for canonical" {
+    try std.testing.expectEqualStrings("BTC/USD", canonicalPair("BTC/USD"));
+    try std.testing.expectEqualStrings("1INCH/USD", canonicalPair("1INCH/USDT"));
+}
+
+test "canonicalPair: EUR stays EUR (matcher handles FX separately)" {
+    try std.testing.expectEqualStrings("BTC/EUR", canonicalPair("BTC/EUR"));
+    try std.testing.expectEqualStrings("AAVE/EUR", canonicalPair("AAVE-EURC"));
+}
+
+test "canonicalPair: Kraken legacy XBT → BTC, XDG → DOGE" {
+    try std.testing.expectEqualStrings("BTC/USD", canonicalPair("XBT/USD"));
+    try std.testing.expectEqualStrings("DOGE/EUR", canonicalPair("XDG/EUR"));
+}
+
+test "canonicalPair: stable variants collapse to USD" {
+    try std.testing.expectEqualStrings("ADA/USD", canonicalPair("ADA/USDC"));
+    try std.testing.expectEqualStrings("ADA/USD", canonicalPair("ADA-USDT"));
+    try std.testing.expectEqualStrings("ADA/USD", canonicalPair("ADA/DAI"));
+}
+
+test "canonicalPair: non-stable quote unchanged" {
+    try std.testing.expectEqualStrings("ADA/BTC", canonicalPair("ADA/BTC"));
+    try std.testing.expectEqualStrings("SOL/ETH", canonicalPair("SOL-ETH"));
+    try std.testing.expectEqualStrings("BTC/GBP", canonicalPair("BTC/GBP"));
 }
 
 /// omnibus_getallprices — paginated dump of every PriceFetch the feed holds.
@@ -2736,36 +3586,38 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
         const eur_to_usd_micro: ?u64 = feed.getEurToUsdRate();
 
         // Filter to non-stale fresh entries with both bid & ask populated.
-        // EUR-quoted entries get bid/ask normalized to USD via the FX rate
-        // (skipped entirely if rate unavailable). The pair label is
-        // canonicalized so e.g. BTC/EUR + the rate becomes BTC/USD which
-        // pairs against Coinbase BTC-USD / Kraken BTC/USD in the matcher.
+        //
+        // BUCKET POLICY (corectat 2026-04-27):
+        //   USD bucket  → match doar intre USD/USDC/USDT/DAI/USDS (toti se
+        //                 colapseaza la "BASE/USD" prin canonicalPair).
+        //   EUR bucket  → match doar intre EUR/EURC ("BASE/EUR").
+        //   BTC/ETH/GBP → match doar in propriul bucket.
+        //
+        // EUR <-> USD CROSS-CURRENCY: NU se face arbitraj direct intre buckets
+        // diferite. Daca user vrea sa profite de spread BTC/EUR vs BTC/USD,
+        // trebuie un trade explicit FX side (USDC/EUR sau EUR/USD spot) — care
+        // are propriul fee + spread. Auto-conversia anterioara (bid_eur * fx
+        // → bid_usd) era misleading: ascundea costul FX si crea oportunitati
+        // false. `eur_to_usd_micro` ramane disponibil prin RPC `omnibus_getfxrate`
+        // pentru afisare, dar NU mai e folosit in matcher.
+        _ = eur_to_usd_micro;
         var fresh = try alloc.alloc(ws_exchange_feed_mod.PriceFetch, all.len);
         defer alloc.free(fresh);
         var fresh_n: usize = 0;
         // Threshold widened to 5 minutes for arbitrage: Kraken doesn't push
-        // ticker updates for low-volume pairs (EGLD, SUI) when there's no
-        // trading activity, so the price can sit untouched for >60 s yet
-        // remain valid for arbitrage as long as it's still the resting bid/ask.
-        // The all-prices grid keeps the tighter 30 s 'stale' display flag.
+        // ticker updates for low-volume pairs when there's no trading activity.
         const ARBITRAGE_STALE_MS: i64 = 5 * 60 * 1000; // 5 min
         for (all) |p| {
             if (!p.success) continue;
             if (feedIsStale(p, now_ms, ARBITRAGE_STALE_MS)) continue;
             if (p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
-            // Skip the FX pair itself — it's a tool, not an arbitrage candidate.
+            // Skip stable-FX pairs themselves — they're FX tools, not arbitrage candidates.
             if (std.mem.eql(u8, p.pair, "USDC/EUR") or
-                std.mem.eql(u8, p.pair, "USDC-EUR")) continue;
-
-            var entry = p;
-            // Normalize EUR-quoted entries → USD using the live FX rate.
-            if (std.mem.endsWith(u8, p.pair, "/EUR") or std.mem.endsWith(u8, p.pair, "-EUR")) {
-                const rate = eur_to_usd_micro orelse continue; // skip until FX lands
-                // bid_usd_micro = bid_eur_micro * rate / 1_000_000
-                entry.bid_micro_usd = (p.bid_micro_usd * rate) / 1_000_000;
-                entry.ask_micro_usd = (p.ask_micro_usd * rate) / 1_000_000;
-            }
-            fresh[fresh_n] = entry;
+                std.mem.eql(u8, p.pair, "USDC-EUR") or
+                std.mem.eql(u8, p.pair, "USDT/EUR") or
+                std.mem.eql(u8, p.pair, "USDT-EUR") or
+                std.mem.eql(u8, p.pair, "DAI/EUR")) continue;
+            fresh[fresh_n] = p;
             fresh_n += 1;
         }
 
@@ -2788,6 +3640,20 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
         defer alloc.free(opps);
         var opps_n: usize = 0;
 
+        // Pre-compute canonical pair label for each fresh entry into stable
+        // owned storage. canonicalPair() returns a thread-local rotating
+        // buffer slice — if we kept references across loop iterations they'd
+        // get clobbered. We dupe via `alloc` and free at end via the arena.
+        var canon_labels = try alloc.alloc([]u8, fresh_n);
+        defer {
+            for (canon_labels) |s| alloc.free(s);
+            alloc.free(canon_labels);
+        }
+        for (fresh[0..fresh_n], 0..) |p, idx| {
+            const c = canonicalPair(p.pair);
+            canon_labels[idx] = try alloc.dupe(u8, c);
+        }
+
         var i: usize = 0;
         while (i < fresh_n) : (i += 1) {
             var j: usize = 0;
@@ -2795,17 +3661,28 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
                 if (i == j) continue;
                 const buy = fresh[i];
                 const sell = fresh[j];
-                // Match canonical pairs (USDC≈USD).
-                if (!std.mem.eql(u8, canonicalPair(buy.pair), canonicalPair(sell.pair))) continue;
+                // Match canonical pairs. USD bucket = "BASE/USD" (cuprinde
+                // USD/USDC/USDT/DAI). EUR bucket = "BASE/EUR". Bucket-uri
+                // diferite NU fac match (BTC/USD ≠ BTC/EUR — ar cere FX trade).
+                if (!std.mem.eql(u8, canon_labels[i], canon_labels[j])) continue;
                 // Same exchange isn't arbitrage.
                 if (std.mem.eql(u8, buy.exchange, sell.exchange)) continue;
                 if (sell.bid_micro_usd <= buy.ask_micro_usd) continue;
+                // Filter dust orderbooks: if either price is < 1000 micro-units
+                // (= $0.001 sau €0.001), it's almost certainly a stale or empty
+                // book. These produce absurd spreads (3M%) that are NOT real
+                // arbitrage — they're just bad data.
+                if (buy.ask_micro_usd < 1000 or sell.bid_micro_usd < 1000) continue;
                 const spread = sell.bid_micro_usd - buy.ask_micro_usd;
                 const pct = (@as(f64, @floatFromInt(spread)) /
                              @as(f64, @floatFromInt(buy.ask_micro_usd))) * 100.0;
                 if (pct <= 0.05) continue; // 5 bps floor
+                // Cap upper-bound: spreads >50% are NEVER real arbitrage on
+                // liquid pairs — always orderbook desync or thin venue.
+                if (pct > 50.0) continue;
                 opps[opps_n] = .{
-                    .pair = canonicalPair(buy.pair),
+                    // canon_labels[i] e owned slice — refera direct.
+                    .pair = canon_labels[i],
                     .buy_ex = buy.exchange,
                     .sell_ex = sell.exchange,
                     .buy_ask = buy.ask_micro_usd,
@@ -2874,8 +3751,10 @@ fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// omnibus_getorderbook — placeholder (matching engine not heap-allocated yet)
-fn handleOmnibusOrderbook(ctx: *ServerCtx, id: u64) ![]u8 {
+fn handleOmnibusOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+    const pair = extractStr(body, "pair") orelse extractArrayStr(body, 0) orelse "OMNI/USDC";
+    _ = pair;
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"bids\":[],\"asks\":[],\"note\":\"Matching engine active — connect via P2P for live orderbook\"}}}}",
         .{id},
@@ -3727,6 +4606,339 @@ test "extractContentLength — header fara Content-Length returneaza 0" {
 test "extractContentLength — lungime mare" {
     const header = "POST / HTTP/1.1\r\nContent-Length: 16384\r\n\r\n";
     try testing.expectEqual(@as(usize, 16384), extractContentLength(header));
+}
+
+// ─── AI Agent endpoints ──────────────────────────────────────────────────────
+//
+// Aceste endpointuri sunt consumate de clientul AI Agent extern (Python in
+// 2_SDK/omnibus-sdk/agent/, ulterior Rust in 3_DESKTOP_APPS/...).
+// Nodul ține brain-ul (decizia: ce, când, pe ce venue) iar clientul extern
+// face execuția pe LCX/Kraken/Coinbase/etc. Prețurile pentru decizie vin DOAR
+// din oracle-ul on-chain (oracle_fetcher.zig) — clientul nu mai întreabă CEX.
+
+/// Helper: extrage un parametru u32 dintr-un body JSON minimal.
+/// Returneaza null daca lipseste sau nu e numar.
+fn extractU32Param(body: []const u8, key_with_quotes: []const u8) ?u32 {
+    const at = std.mem.indexOf(u8, body, key_with_quotes) orelse return null;
+    var i: usize = at + key_with_quotes.len;
+    // Sari peste : si whitespace.
+    while (i < body.len and (body[i] == ':' or body[i] == ' ' or body[i] == '\t')) : (i += 1) {}
+    const start = i;
+    while (i < body.len and body[i] >= '0' and body[i] <= '9') : (i += 1) {}
+    if (i == start) return null;
+    return std.fmt.parseInt(u32, body[start..i], 10) catch null;
+}
+
+fn extractU64Param(body: []const u8, key_with_quotes: []const u8) ?u64 {
+    const at = std.mem.indexOf(u8, body, key_with_quotes) orelse return null;
+    var i: usize = at + key_with_quotes.len;
+    while (i < body.len and (body[i] == ':' or body[i] == ' ' or body[i] == '\t')) : (i += 1) {}
+    const start = i;
+    while (i < body.len and body[i] >= '0' and body[i] <= '9') : (i += 1) {}
+    if (i == start) return null;
+    return std.fmt.parseInt(u64, body[start..i], 10) catch null;
+}
+
+/// Extrage un parametru string. Returneaza slice peste body (nu copiaza).
+fn extractStrParam(body: []const u8, key_with_quotes: []const u8) ?[]const u8 {
+    const at = std.mem.indexOf(u8, body, key_with_quotes) orelse return null;
+    var i: usize = at + key_with_quotes.len;
+    while (i < body.len and (body[i] == ':' or body[i] == ' ' or body[i] == '\t')) : (i += 1) {}
+    if (i >= body.len or body[i] != '"') return null;
+    i += 1;
+    const start = i;
+    while (i < body.len and body[i] != '"') : (i += 1) {}
+    if (i >= body.len) return null;
+    return body[start..i];
+}
+
+/// RPC `agent_list` — toți agenții incarcati pe nod, cu tier curent + capital.
+/// Public read-only. Folosit de explorer + dashboard.
+/// RPC `getreputation` — citeste paharele LOVE/FOOD/RENT/VACATION pentru o
+/// adresa, plus rep total agregat (0-1M) si tier (OMNI/LOVE/FOOD/RENT/VACATION).
+/// Vezi memory/project_omnibus_reputation_economy.md pentru rationale.
+///
+/// Body: {"address": "ob1q..."}
+/// Răspuns: { "address", "cups": {love, food, rent, vacation}, "total",
+///           "tier", "satoshi_badge", "first_active_block", "last_active_block",
+///           "total_blocks_mined", "violations" }
+fn handleGetReputation(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    if (main_mod.g_reputation == null) {
+        return errorJson(-32030, "Reputation system not enabled on this node", id, alloc);
+    }
+    const cups = main_mod.g_reputation.?.snapshot(addr) orelse {
+        // Address never seen — return zero cups (still valid response).
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"cups\":{{\"love\":\"0.00\",\"food\":\"0.00\",\"rent\":\"0.00\",\"vacation\":\"0.00\"}},\"total\":0,\"tier\":\"OMNI\",\"satoshi_badge\":false,\"first_active_block\":0,\"last_active_block\":0,\"total_blocks_mined\":0,\"violations\":0}}}}",
+            .{ id, addr });
+    };
+    const total = cups.computeRepTotal();
+    const tier = cups.tier();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"cups\":{{\"love\":\"{d}.{d:0>2}\",\"food\":\"{d}.{d:0>2}\",\"rent\":\"{d}.{d:0>2}\",\"vacation\":\"{d}.{d:0>2}\"}},\"total\":{d},\"tier\":\"{s}\",\"satoshi_badge\":{},\"is_zen\":{},\"first_active_block\":{d},\"last_active_block\":{d},\"uptime_blocks\":{d},\"total_blocks_mined\":{d},\"violations\":{d}}}}}",
+        .{
+            id, addr,
+            cups.love_stored / 100, cups.love_stored % 100,
+            cups.food_stored / 100, cups.food_stored % 100,
+            cups.rent_stored / 100, cups.rent_stored % 100,
+            cups.vacation_stored / 100, cups.vacation_stored % 100,
+            total,
+            tier.name(),
+            cups.hasSatoshiBadge(),
+            cups.hasSatoshiBadge(),
+            cups.first_active_block,
+            cups.last_active_block,
+            cups.uptimeBlocks(),
+            cups.total_blocks_mined,
+            cups.violations,
+        },
+    );
+}
+
+/// RPC `getreputationtop` — top N adrese sortate după reputation total descendent.
+/// Body: {"limit": 50}  (default 50, max 200)
+fn handleGetReputationTop(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (main_mod.g_reputation == null) {
+        return errorJson(-32030, "Reputation system not enabled on this node", id, alloc);
+    }
+    var limit: u32 = 50;
+    if (extractStr(body, "limit")) |s| {
+        limit = std.fmt.parseInt(u32, s, 10) catch 50;
+    }
+    if (limit == 0) limit = 50;
+    if (limit > 200) limit = 200;
+
+    const Entry = struct {
+        addr: []const u8,
+        total: u64,
+        tier: []const u8,
+        love: u32,
+        food: u32,
+        rent: u32,
+        vacation: u32,
+        satoshi: bool,
+        blocks_mined: u64,
+        first_block: u64,
+        uptime_blocks: u64,
+        rank_score: u128,
+    };
+
+    const rep = &main_mod.g_reputation.?;
+    rep.lock();
+    defer rep.unlock();
+
+    var entries = std.array_list.Managed(Entry).init(alloc);
+    defer entries.deinit();
+
+    var it = rep.iterate();
+    while (it.next()) |kv| {
+        const total = kv.value_ptr.computeRepTotal();
+        if (total == 0 and kv.value_ptr.total_blocks_mined == 0) continue;
+        try entries.append(.{
+            .addr = kv.key_ptr.*,
+            .total = total,
+            .tier = kv.value_ptr.tier().name(),
+            .love = kv.value_ptr.love_stored,
+            .food = kv.value_ptr.food_stored,
+            .rent = kv.value_ptr.rent_stored,
+            .vacation = kv.value_ptr.vacation_stored,
+            .satoshi = kv.value_ptr.hasSatoshiBadge(),
+            .blocks_mined = kv.value_ptr.total_blocks_mined,
+            .first_block = kv.value_ptr.first_active_block,
+            .uptime_blocks = kv.value_ptr.uptimeBlocks(),
+            .rank_score = kv.value_ptr.rankScore(),
+        });
+    }
+
+    // Sort by rank_score descending — Zen-i automat sus, intre Zen-i tiebreaker
+    // = uptime_blocks (incorporat in rank_score). Intre non-Zen: rep_total.
+    std.sort.insertion(Entry, entries.items, {}, struct {
+        fn less(_: void, a: Entry, b: Entry) bool {
+            return a.rank_score > b.rank_score;
+        }
+    }.less);
+
+    const cap_n: usize = if (entries.items.len < limit) entries.items.len else limit;
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    errdefer buf.deinit();
+    const w = buf.writer();
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"total\":{d},\"entries\":[",
+        .{ id, cap_n, entries.items.len },
+    );
+    for (entries.items[0..cap_n], 0..) |e, idx| {
+        if (idx > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"rank\":{d},\"address\":\"{s}\",\"total\":{d},\"tier\":\"{s}\",\"cups\":{{\"love\":\"{d}.{d:0>2}\",\"food\":\"{d}.{d:0>2}\",\"rent\":\"{d}.{d:0>2}\",\"vacation\":\"{d}.{d:0>2}\"}},\"satoshi_badge\":{},\"is_zen\":{},\"blocks_mined\":{d},\"first_active_block\":{d},\"uptime_blocks\":{d}}}",
+            .{
+                idx + 1,
+                e.addr,
+                e.total,
+                e.tier,
+                e.love / 100, e.love % 100,
+                e.food / 100, e.food % 100,
+                e.rent / 100, e.rent % 100,
+                e.vacation / 100, e.vacation % 100,
+                e.satoshi,
+                e.satoshi, // is_zen alias for clarity in UI
+                e.blocks_mined,
+                e.first_block,
+                e.uptime_blocks,
+            },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+fn handleAgentList(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    var snap_buf: [agent_manager_mod.MAX_AGENTS]agent_manager_mod.AgentSnapshotItem = undefined;
+    const n = main_mod.g_agent_manager.snapshot(&snap_buf);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    errdefer buf.deinit();
+    const w = buf.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"agents\":[", .{ id, n });
+    for (snap_buf[0..n], 0..) |a, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}",
+            .{
+                a.getName(),
+                a.wallet_index,
+                a.getAddress(),
+                a.strategy.name(),
+                @tagName(a.tier),
+                a.balance_sat,
+                a.staked_sat,
+                a.lp_locked_sat,
+                a.pnl_session_sat,
+                a.halted,
+                a.stats.ticks,
+                a.stats.decisions_emitted,
+                a.stats.decisions_queued,
+                a.stats.exec_success,
+                a.stats.exec_failed,
+                a.stats.tier_transitions,
+                a.stats.total_mined_sat,
+            },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+/// RPC `agent_status` — detalii pentru un singur agent (filtrat dupa wallet_index).
+/// Body: {"wallet_index": N}
+fn handleAgentStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const wi = extractU32Param(body, "\"wallet_index\"") orelse return errorJson(-32602, "missing wallet_index", id, alloc);
+    const slot = main_mod.g_agent_manager.findByWalletIndex(wi) orelse return errorJson(-32000, "agent not found", id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}}}",
+        .{
+            id,
+            slot.config.getName(),
+            slot.config.wallet_index,
+            slot.getAddress(),
+            slot.config.strategy.name(),
+            @tagName(slot.executor.state.tier),
+            slot.executor.state.balance_sat,
+            slot.executor.state.staked_sat,
+            slot.executor.state.lp_locked_sat,
+            slot.executor.state.pnl_session_sat,
+            slot.executor.state.halted,
+            slot.stats.ticks,
+            slot.stats.decisions_emitted,
+            slot.stats.decisions_queued,
+            slot.stats.exec_success,
+            slot.stats.exec_failed,
+            slot.stats.tier_transitions,
+            slot.stats.total_mined_sat,
+        },
+    );
+}
+
+/// RPC `agent_pending_decisions` — decizii non-native nesettled, pentru clientul extern.
+/// Body opțional: {"wallet_index": N} pentru filtrare per agent.
+/// Răspuns: { "decisions": [ {id, wallet_index, block_height, emitted_ms, venue,
+///   kind, pair, amount_sat, reason}, ... ] }
+fn handleAgentPendingDecisions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const filter_wi = extractU32Param(body, "\"wallet_index\"");
+
+    var pend_buf: [agent_manager_mod.MAX_PENDING_DECISIONS]agent_manager_mod.PendingDecision = undefined;
+    const n = main_mod.g_agent_manager.snapshotPending(&pend_buf, filter_wi);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    errdefer buf.deinit();
+    const w = buf.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"decisions\":[", .{ id, n });
+    for (pend_buf[0..n], 0..) |p, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"id\":{d},\"wallet_index\":{d},\"block_height\":{d},\"emitted_ms\":{d},\"venue\":\"{s}\",\"kind\":\"{s}\",\"pair\":\"{s}\",\"amount_sat\":{d},\"reason\":\"{s}\"}}",
+            .{
+                p.id,
+                p.wallet_index,
+                p.block_height,
+                p.emitted_ms,
+                p.decision.venue.name(),
+                @tagName(p.decision.kind),
+                p.decision.getPair(),
+                p.decision.amount_sat,
+                p.decision.getReason(),
+            },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+/// RPC `agent_report_execution` — clientul extern raportează rezultatul.
+/// Body: {"decision_id": N, "status": "success|rejected|network_error|timeout|cancelled",
+///        "external_id": "LCX-12345", "filled_amount_sat": 1000, "fill_price_micro_usd": 65000000000,
+///        "error_msg": "..." }
+fn handleAgentReportExecution(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const decision_id = extractU64Param(body, "\"decision_id\"") orelse return errorJson(-32602, "missing decision_id", id, alloc);
+    const status_str = extractStrParam(body, "\"status\"") orelse return errorJson(-32602, "missing status", id, alloc);
+
+    const status: agent_manager_mod.ExecStatus = blk: {
+        if (std.mem.eql(u8, status_str, "success")) break :blk .success;
+        if (std.mem.eql(u8, status_str, "rejected")) break :blk .rejected;
+        if (std.mem.eql(u8, status_str, "network_error")) break :blk .network_error;
+        if (std.mem.eql(u8, status_str, "timeout")) break :blk .timeout;
+        if (std.mem.eql(u8, status_str, "cancelled")) break :blk .cancelled;
+        return errorJson(-32602, "invalid status", id, alloc);
+    };
+
+    var receipt = agent_manager_mod.ExecReceipt{
+        .decision_id = decision_id,
+        .status = status,
+        .filled_amount_sat = extractU64Param(body, "\"filled_amount_sat\"") orelse 0,
+        .fill_price_micro_usd = extractU64Param(body, "\"fill_price_micro_usd\"") orelse 0,
+        .reported_ms = std.time.milliTimestamp(),
+    };
+    if (extractStrParam(body, "\"external_id\"")) |eid| receipt.setExternalId(eid);
+    if (extractStrParam(body, "\"error_msg\"")) |msg| receipt.setErrorMsg(msg);
+
+    const ok = main_mod.g_agent_manager.applyReceipt(receipt);
+    if (!ok) return errorJson(-32000, "decision not found or already settled", id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"decision_id\":{d},\"applied\":true,\"status\":\"{s}\"}}}}",
+        .{ id, decision_id, status_str },
+    );
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────

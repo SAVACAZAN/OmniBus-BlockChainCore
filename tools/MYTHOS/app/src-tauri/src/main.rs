@@ -4,7 +4,7 @@
 mod commands;
 mod state;
 
-use commands::{agents, exploits, filesystem, mythos, process};
+use commands::{agents, browser, exploits, filesystem, mythos, process};
 
 fn main() {
     tauri::Builder::default()
@@ -37,6 +37,15 @@ fn main() {
             exploits::list_exploit_blocks,
             exploits::get_block_content,
             exploits::search_blocks,
+            // Browser
+            browser::open_browser_tab,
+            browser::open_oauth_popup,
+            browser::close_browser_tab,
+            browser::reload_browser_tab,
+            browser::create_inline_browser,
+            browser::show_browser,
+            browser::hide_browser,
+            browser::get_browser_url,
         ])
         .run(tauri::generate_context!())
         .expect("error running MYTHOS LAB");

@@ -5,7 +5,7 @@ export const AWEB3_ROOT = SANDBOX + '\\OmniBus - aweb3';
 export const MYTHOS_DIR = BC_ROOT + '\\tools\\MYTHOS';
 export const MYTHOS_DATA = MYTHOS_DIR + '\\data';
 export const IMPORTED_DIR = MYTHOS_DIR + '\\imported';
-export const AGENTS_DIRS = [BC_ROOT + '\\agents', MYTHOS_DIR + '\\agents'];
+export const AGENTS_DIRS = [AWEB3_ROOT + '\\.claude\\agents', BC_ROOT + '\\.claude\\agents'];
 export const BLOCKS_DIR = MYTHOS_DIR + '\\blocks';
 
 // Terminal configs

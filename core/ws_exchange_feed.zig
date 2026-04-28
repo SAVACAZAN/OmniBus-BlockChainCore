@@ -27,8 +27,10 @@
 /// once per minute per exchange.
 const std = @import("std");
 const ws_client = @import("ws_client.zig");
+const pair_registry_mod = @import("pair_registry.zig");
 
 const WsClient = ws_client.WsClient;
+pub const PairRegistry = pair_registry_mod.PairRegistry;
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -182,6 +184,13 @@ pub const ExchangeFeed = struct {
 
     threads: [3]?std.Thread,
 
+    /// OPTIONAL dynamic pair registry. When set (via `setPairRegistry`),
+    /// the 3 workers subscribe to the union of IMPORTANT_PAIRS + every entry
+    /// in the registry, and the parsers accept any symbol present there.
+    /// When null, only IMPORTANT_PAIRS are subscribed (legacy behaviour).
+    /// Caller owns the registry; we only hold a borrow.
+    pair_registry: ?*const PairRegistry,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator) Self {
@@ -197,7 +206,14 @@ pub const ExchangeFeed = struct {
             .last_cb_warn_lcx_ms = 0,
             .run = std.atomic.Value(bool).init(false),
             .threads = .{ null, null, null },
+            .pair_registry = null,
         };
+    }
+
+    /// Attach a dynamic pair registry. Call BEFORE `start()`. Caller owns the
+    /// registry (we only borrow it; do not deinit while feed is running).
+    pub fn setPairRegistry(self: *Self, reg: *const PairRegistry) void {
+        self.pair_registry = reg;
     }
 
     /// Tear down the map: free every duped key, free every duped pair string,
@@ -566,15 +582,25 @@ fn runCoinbaseSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // ── Subscribe ONLY to the 7 IMPORTANT_PAIRS + FX_PAIR ──────────────────
-    // Earlier full-market mode (~700 products) crashed the small-RAM VPS.
-    // We stay focused on the 7 pairs the arbitrage panel cares about plus
-    // USDC-EUR which gives us the EUR→USD rate for normalizing EUR-quoted
-    // LCX entries.
-    var product_buf: [IMPORTANT_PAIRS.len + 1][]const u8 = undefined;
-    for (IMPORTANT_PAIRS, 0..) |p, i| product_buf[i] = p.coinbase;
-    product_buf[IMPORTANT_PAIRS.len] = FX_PAIR.coinbase;
-    try sendCoinbaseSubscribeStatic(client, feed.allocator, product_buf[0..]);
+    // Subscribe to IMPORTANT_PAIRS + FX_PAIR (always), plus all entries from
+    // pair_registry.coinbase when it's attached. The chunked subscribe path
+    // splits into 100-product frames so even ~500 products go through.
+    var products: std.ArrayList([]const u8) = .empty;
+    defer products.deinit(feed.allocator);
+    for (IMPORTANT_PAIRS) |p| try products.append(feed.allocator, p.coinbase);
+    try products.append(feed.allocator, FX_PAIR.coinbase);
+    if (feed.pair_registry) |reg| {
+        for (reg.coinbase) |entry| {
+            // Skip duplicates — IMPORTANT_PAIRS may already have BTC-USD etc.
+            var dup = false;
+            for (products.items) |existing| {
+                if (std.mem.eql(u8, existing, entry.raw_symbol)) { dup = true; break; }
+            }
+            if (!dup) try products.append(feed.allocator, entry.raw_symbol);
+        }
+    }
+    try sendCoinbaseSubscribe(client, feed.allocator, products.items);
+    std.debug.print("[WS-FEED] Coinbase subscribed: {d} products\n", .{products.items.len});
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -599,11 +625,6 @@ fn sendCoinbaseSubscribe(client: *WsClient, alloc: std.mem.Allocator, products: 
         const end = @min(i + COINBASE_SUBSCRIBE_CHUNK, products.len);
         try sendOneCoinbaseChunk(client, alloc, products[i..end]);
     }
-}
-
-/// Same as sendCoinbaseSubscribe but for a static [_][]const u8 array.
-fn sendCoinbaseSubscribeStatic(client: *WsClient, alloc: std.mem.Allocator, products: []const []const u8) !void {
-    try sendCoinbaseSubscribe(client, alloc, products);
 }
 
 fn sendOneCoinbaseChunk(client: *WsClient, alloc: std.mem.Allocator, products: []const []const u8) !void {
@@ -684,11 +705,10 @@ fn parseCoinbaseTicker(feed: *ExchangeFeed, body: []const u8) void {
         }
         const product_id = body[id_start..id_end];
 
-        // Strict whitelist — only the 7 important pairs reach the price map.
-        // Server should already only send these (we subscribed to them only),
-        // but defensive in case of stray "subscriptions" ack frames or future
-        // additions to the IMPORTANT_PAIRS list.
-        if (!isCoinbaseImportant(product_id)) {
+        // Whitelist — IMPORTANT_PAIRS (always) ∪ pair_registry (when attached).
+        // Server should already only send pairs we subscribed to, but
+        // defensive in case of stray ack frames.
+        if (!isCoinbaseImportant(feed, product_id)) {
             pos = id_end + 1;
             continue;
         }
@@ -731,25 +751,41 @@ fn runKrakenSession(feed: *ExchangeFeed) !void {
     );
     defer client.close();
 
-    // Subscribe to the 7 IMPORTANT_PAIRS + FX_PAIR (USDC/EUR) only — was
-    // wildcard "*" before, but ~600 Kraken pairs flooded the VPS RAM.
+    // Subscribe to IMPORTANT_PAIRS + FX_PAIR (always), plus all entries from
+    // pair_registry.kraken when attached. Build the full symbol list first,
+    // dedupe, then emit ONE subscribe frame (Kraken accepts large symbol
+    // arrays in a single call).
+    var symbols: std.ArrayList([]const u8) = .empty;
+    defer symbols.deinit(feed.allocator);
+    for (IMPORTANT_PAIRS) |p| try symbols.append(feed.allocator, p.kraken);
+    try symbols.append(feed.allocator, FX_PAIR.kraken);
+    if (feed.pair_registry) |reg| {
+        for (reg.kraken) |entry| {
+            // Kraken WS v2 expects "BASE/QUOTE" wsname format. The registry
+            // has stored the legacy altname (e.g. "XXBTZUSD"). The discovery
+            // script DOES emit altname though, so we trust the registry but
+            // skip duplicates.
+            var dup = false;
+            for (symbols.items) |existing| {
+                if (std.mem.eql(u8, existing, entry.raw_symbol)) { dup = true; break; }
+            }
+            if (!dup) try symbols.append(feed.allocator, entry.raw_symbol);
+        }
+    }
+
     var sym_list: std.ArrayList(u8) = .empty;
     defer sym_list.deinit(feed.allocator);
     try sym_list.appendSlice(feed.allocator,
         "{\"method\":\"subscribe\",\"params\":{\"channel\":\"ticker\",\"symbol\":[");
-    for (IMPORTANT_PAIRS, 0..) |p, i| {
+    for (symbols.items, 0..) |sym, i| {
         if (i > 0) try sym_list.append(feed.allocator, ',');
         try sym_list.append(feed.allocator, '"');
-        try sym_list.appendSlice(feed.allocator, p.kraken);
+        try sym_list.appendSlice(feed.allocator, sym);
         try sym_list.append(feed.allocator, '"');
     }
-    // FX pair last — comma separator + symbol.
-    try sym_list.append(feed.allocator, ',');
-    try sym_list.append(feed.allocator, '"');
-    try sym_list.appendSlice(feed.allocator, FX_PAIR.kraken);
-    try sym_list.append(feed.allocator, '"');
     try sym_list.appendSlice(feed.allocator, "]}}");
     try client.send(sym_list.items);
+    std.debug.print("[WS-FEED] Kraken subscribed: {d} symbols\n", .{symbols.items.len});
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -787,10 +823,8 @@ fn parseKrakenMessage(feed: *ExchangeFeed, body: []const u8) void {
         }
         const symbol = body[s_start..s_end];
 
-        // Strict whitelist — same defensive filter as Coinbase parser.
-        // Avoids accidentally accepting BTCB/USD, WETH/USD etc. if Kraken
-        // ever expands what they push under the same connection.
-        if (!isKrakenImportant(symbol)) {
+        // Whitelist — IMPORTANT_PAIRS (always) ∪ pair_registry (when attached).
+        if (!isKrakenImportant(feed, symbol)) {
             pos = s_end + 1;
             continue;
         }
@@ -837,10 +871,16 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 
     // Public ticker subscribe is brand-less; one snapshot frame contains
     // ALL pairs as a JSON object: {"data":{"BTC/USDC":{...},"LCX/USDC":{...}}}
+    // No subscribe-time filtering possible — we filter incoming frames.
     const subscribe =
         \\{"Topic":"subscribe","Type":"ticker"}
     ;
     try client.send(subscribe);
+    if (feed.pair_registry) |reg| {
+        std.debug.print("[WS-FEED] LCX subscribed (brand-less); accepting {d} registry pairs + IMPORTANT_PAIRS\n", .{reg.lcx.len});
+    } else {
+        std.debug.print("[WS-FEED] LCX subscribed (brand-less); accepting IMPORTANT_PAIRS only\n", .{});
+    }
 
     const buf = try feed.allocator.alloc(u8, RECV_BUF_SIZE);
     defer feed.allocator.free(buf);
@@ -884,7 +924,7 @@ fn runLcxSession(feed: *ExchangeFeed) !void {
 /// EUR-quoted entries are stored too so the dashboard can display LCX
 /// prices even when no USD-stable listing exists; the arbitrage handler
 /// converts them via the FX pair.
-fn isLcxImportant(key: []const u8) bool {
+fn isLcxImportant(feed: *const ExchangeFeed, key: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         for (p.lcx_candidates) |cand| {
             if (std.mem.eql(u8, key, cand)) return true;
@@ -893,26 +933,35 @@ fn isLcxImportant(key: []const u8) bool {
     for (FX_PAIR.lcx_candidates) |cand| {
         if (std.mem.eql(u8, key, cand)) return true;
     }
+    if (feed.pair_registry) |reg| {
+        if (reg.lcxContains(key)) return true;
+    }
     return false;
 }
 
 /// Same as isLcxImportant but for Coinbase Advanced product_id format
 /// ("BTC-USD", "ETH-USD", "USDC-EUR", ...). Strict equality to skip
 /// "BTCB-USD", "WETH-USD", "JSOL-USD" and friends that share a prefix.
-fn isCoinbaseImportant(product_id: []const u8) bool {
+fn isCoinbaseImportant(feed: *const ExchangeFeed, product_id: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         if (std.mem.eql(u8, product_id, p.coinbase)) return true;
     }
     if (std.mem.eql(u8, product_id, FX_PAIR.coinbase)) return true;
+    if (feed.pair_registry) |reg| {
+        if (reg.coinbaseContains(product_id)) return true;
+    }
     return false;
 }
 
 /// Same for Kraken v2 symbol format ("BTC/USD", "ETH/USD", "USDC/EUR", ...).
-fn isKrakenImportant(symbol: []const u8) bool {
+fn isKrakenImportant(feed: *const ExchangeFeed, symbol: []const u8) bool {
     inline for (IMPORTANT_PAIRS) |p| {
         if (std.mem.eql(u8, symbol, p.kraken)) return true;
     }
     if (std.mem.eql(u8, symbol, FX_PAIR.kraken)) return true;
+    if (feed.pair_registry) |reg| {
+        if (reg.krakenContains(symbol)) return true;
+    }
     return false;
 }
 
@@ -983,11 +1032,10 @@ fn parseLcxMessage(feed: *ExchangeFeed, body: []const u8) void {
                     else if (sc == '}') { depth -= 1; if (depth == 0) { q += 1; break; } }
                 }
             }
-            // Filter: keep ONLY the 7 IMPORTANT_PAIRS (LCX symbol field).
-            // LCX subscribe always streams ALL pairs (one snapshot frame
-            // contains 50+ markets). Storing them all crashed the small
-            // VPS, so we discard non-important keys here.
-            if (!isLcxImportant(key)) {
+            // Filter: keep IMPORTANT_PAIRS ∪ pair_registry (when attached).
+            // LCX subscribe streams ALL pairs in one snapshot frame; we drop
+            // anything we don't care about to avoid OOM on small VPS.
+            if (!isLcxImportant(feed, key)) {
                 i = q - 1;
                 continue;
             }

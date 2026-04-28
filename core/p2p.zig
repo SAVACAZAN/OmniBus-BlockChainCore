@@ -60,10 +60,16 @@ pub const SyncManager   = sync_mod.SyncManager;
 pub const P2P_PORT_DEFAULT: u16 = 8333;
 
 /// Versiunea protocolului P2P
-/// Wire protocol version. V2 (2026-04-26): block hashes are 32 raw bytes
-/// (not 32 ASCII chars), miner_id is 42 chars (full OmniBus address).
-/// V1 peers reject V2 announcements cleanly via header version check.
-pub const P2P_VERSION: u8 = 2;
+/// Wire protocol version.
+/// V3 (2026-04-26 PM): BlockHeader is 130 bytes (was 88 in V2). The extra
+///   42 bytes carry miner_id, so blocks received via sync_response /
+///   block_gossip retain the miner address instead of being credited to "".
+///   Without this, dashboards showed only 1 miner per chain.
+/// V2 (2026-04-26 AM): block hashes are 32 raw bytes (not 32 ASCII chars),
+///   block_announce miner_id is 42 chars.
+/// Bumping P2P_VERSION makes mixed-version peers reject each other cleanly
+/// via the handshake check in `parseFrame` (returns ProtocolMismatch).
+pub const P2P_VERSION: u8 = 3;
 
 /// Marimea maxima a unui mesaj P2P (1 MB)
 pub const P2P_MAX_MSG_BYTES: u32 = 1_048_576;
@@ -513,6 +519,11 @@ pub const PeerConnection = struct {
     rate_limit: RateLimitState = RateLimitState.init(),
     /// IP bytes for subnet tracking (IPv4)
     ip_bytes:   [4]u8 = .{ 0, 0, 0, 0 },
+    /// Unix timestamp (seconds) of the last message received from this peer.
+    /// Used by the slot-skip anti-fork check: if a peer was active in the
+    /// last few seconds, it is probably about to (or just did) take its
+    /// slot, so we should NOT also take it. Initialized to 0 (never seen).
+    last_msg_ts: i64 = 0,
 
     /// Trimite un mesaj binar catre peer
     pub fn send(self: *PeerConnection, msg_type: u8, payload: []const u8) !void {
@@ -1379,6 +1390,7 @@ pub const P2PNode = struct {
                         break;
                     };
                     defer args.node.allocator.free(msg.payload);
+                    peer.last_msg_ts = std.time.timestamp();
                     dispatchMessage(args.node, peer, msg.msg_type, msg.payload);
                 }
                 std.debug.print("[P2P] Outbound peer {s} disconnected\n", .{pid});
@@ -2041,6 +2053,45 @@ pub const P2PNode = struct {
         t.detach();
     }
 
+    // Background heartbeat that pings every connected peer every 10s with our
+    // current chain_height. Without this, peer.height was set ONCE at HELLO/
+    // WELCOME and never refreshed. Live observed: VPS at height 229, our PC
+    // saw peer.height=22 (the value at handshake hours earlier) — IBD pulled
+    // 22 blocks then froze, looking like a sync stall when the peer was just
+    // never re-asked. Symmetric fix: each PING also gets a PONG carrying the
+    // peer's current chain_height (handler at .ping branch already does this
+    // — see commit-after-71eba20 fix).
+    const HEARTBEAT_INTERVAL_S: u64 = 10;
+
+    pub fn startHeartbeat(self: *P2PNode) !void {
+        const t = try std.Thread.spawn(.{}, heartbeatLoop, .{self});
+        t.detach();
+        std.debug.print("[P2P] Heartbeat pornit — PING la fiecare {d}s\n", .{HEARTBEAT_INTERVAL_S});
+    }
+
+    fn heartbeatLoop(node: *P2PNode) void {
+        while (true) {
+            std.Thread.sleep(HEARTBEAT_INTERVAL_S * std.time.ns_per_s);
+            const my_height = node.chain_height;
+            var sent: usize = 0;
+            node.peers_mutex.lock();
+            for (node.peers.items) |*peer| {
+                if (!peer.connected) continue;
+                peer.sendPing(node.local_id, my_height) catch |err| {
+                    std.debug.print("[HEARTBEAT] sendPing to {s} failed: {}\n",
+                        .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
+                    continue;
+                };
+                sent += 1;
+            }
+            node.peers_mutex.unlock();
+            if (sent > 0) {
+                std.debug.print("[HEARTBEAT] PING sent to {d} peers (my height={d})\n",
+                    .{ sent, my_height });
+            }
+        }
+    }
+
     fn acceptLoop(args: anytype) void {
         var server = args.server;
         const node  = args.node;
@@ -2166,6 +2217,9 @@ pub const P2PNode = struct {
                 break;
             };
             defer node.allocator.free(msg.payload);
+
+            // Track liveness — used by slot-skip anti-fork check in main.zig.
+            active_peer.last_msg_ts = std.time.timestamp();
 
             dispatchMessage(node, active_peer, msg.msg_type, msg.payload);
         }
@@ -2443,6 +2497,45 @@ pub const P2PNode = struct {
                         // (>= because chain.items.len = last_height + 1)
                         if (ann.block_height >= @as(u64, bc.chain.items.len)) {
                             node.requestSync(bc.chain.items.len);
+                        } else {
+                            // FORK DETECTION (heaviest-chain reorg).
+                            // Peer announces a block at a height we already
+                            // have. If their hash differs from ours at that
+                            // height, the chains have diverged. Request
+                            // headers from FORK_LOOKBACK blocks before peer's
+                            // tip so applyBlocksFromPeer's existing reorg
+                            // logic can compare cumulative work and adopt
+                            // the heavier chain.
+                            //
+                            // Without this, dual-validator nets get stuck
+                            // permanently forked when slot-skip fires
+                            // simultaneously on both nodes (same height,
+                            // different miners). Each node keeps mining its
+                            // own branch and never converges.
+                            const FORK_LOOKBACK: u64 = 16;
+                            const my_blk = &bc.chain.items[@intCast(ann.block_height)];
+                            // ann.block_hash is 32 raw bytes. my_blk.hash is
+                            // 64 hex chars. Compare by decoding ann to hex.
+                            var ann_hex: [64]u8 = undefined;
+                            for (0..32) |bi| {
+                                _ = std.fmt.bufPrint(ann_hex[bi * 2 .. (bi + 1) * 2],
+                                    "{x:0>2}", .{ann.block_hash[bi]}) catch {};
+                            }
+                            const same_hash = my_blk.hash.len >= 64 and
+                                std.mem.eql(u8, my_blk.hash[0..64], &ann_hex);
+                            if (!same_hash) {
+                                const fork_from = if (ann.block_height > FORK_LOOKBACK)
+                                    ann.block_height - FORK_LOOKBACK
+                                else
+                                    0;
+                                std.debug.print(
+                                    "[FORK] Peer announces #{d} hash={s}.. but ours is {s}.. — requesting headers from height {d}\n",
+                                    .{ ann.block_height, ann_hex[0..12],
+                                       my_blk.hash[0..@min(12, my_blk.hash.len)],
+                                       fork_from },
+                                );
+                                node.requestSyncForced(fork_from);
+                            }
                         }
                     }
                 }
@@ -2508,6 +2601,21 @@ pub const P2PNode = struct {
                     if (node.sync_mgr) |sm| sm.onBlocksReceived(applied);
                     std.debug.print("[P2P] Aplicat {d}/{d} blocuri de la {s}\n",
                         .{ applied, blocks_msg.count, pid });
+
+                    // BUG FIX (2026-04-27): peer.height was stuck at the
+                    // value seen during initial HELLO/WELCOME (often 0 or
+                    // a small number) because nothing in the sync_response
+                    // path updated it. After receiving N headers ending
+                    // at height H, we KNOW peer is at least at H, so bump
+                    // peer.height. Without this, IBD-exit fires too early
+                    // (`local + tolerance >= stale_peer_height` is trivially
+                    // true), `requestSync` skips the peer (`peer.height
+                    // <= from_height` guard), and mining loop thinks it
+                    // is up-to-date and forks off the network.
+                    if (blocks_msg.count > 0) {
+                        const last_hdr_h = blocks_msg.headers[blocks_msg.count - 1].height;
+                        if (last_hdr_h > peer.height) peer.height = last_hdr_h;
+                    }
 
                     // IBD exit check: if local now within IBD_TOLERANCE of peer,
                     // mining can resume. Print exit message once.
@@ -2985,11 +3093,24 @@ pub const P2PNode = struct {
                 _ = std.fmt.bufPrint(hash_hex[bi * 2 .. (bi + 1) * 2], "{x:0>2}", .{hdr.merkle_root[bi]}) catch {};
             }
 
-            // Aloca miner_address — bloc primit de la peer, nu stim minerul → ""
-            const miner_addr = node.allocator.dupe(u8, "") catch {
+            // V3 (2026-04-26): miner_id vine prin wire-ul BlockHeader (130B).
+            // Anterior se aloca string gol, ceea ce facea ca dashboard-ul sa
+            // afiseze doar 1 miner (cel local) chiar daca lantul real avea
+            // mai multi. Acum copiem adresa minerului asa cum a fost transmisa
+            // de peer.
+            const peer_miner = hdr.minerIdSlice();
+            const miner_addr = node.allocator.dupe(u8, peer_miner) catch {
                 node.allocator.free(hash_hex);
                 break;
             };
+            // Reward calculat la fel ca pentru mining local (blockRewardAt
+            // pe height-ul blocului). Fara asta, balantele minerilor remote
+            // raman 0 si dashboard-ul afiseaza balance=0 pt VPS dev wallet
+            // (chiar daca VPS-ul a minat blocurile).
+            const peer_reward: u64 = if (peer_miner.len > 0)
+                blockchain_mod.blockRewardAt(hdr.height)
+            else
+                0;
 
             var new_block = Block{
                 .index         = @intCast(hdr.height),
@@ -2999,7 +3120,7 @@ pub const P2PNode = struct {
                 .nonce         = hdr.nonce,
                 .hash          = hash_hex,
                 .miner_address = miner_addr,
-                .reward_sat    = 0,
+                .reward_sat    = peer_reward,
                 .miner_heap    = true, // hash_hex si miner_addr alocate pe heap
             };
 
@@ -3057,8 +3178,30 @@ pub const P2PNode = struct {
                 break;
             };
 
+            // Credit reward to peer miner. Without this, balance for miners
+            // who produce blocks remotely (and we receive via sync/gossip)
+            // stays at 0. Local-mined blocks credit through mineBlockForMiner;
+            // peer-blocks must credit here.
+            if (peer_miner.len > 0 and peer_reward > 0) {
+                bc.creditBalance(miner_addr, peer_reward) catch |err| {
+                    std.debug.print("[SYNC] creditBalance failed for {s}: {}\n",
+                        .{ miner_addr[0..@min(miner_addr.len, 12)], err });
+                };
+            }
+
             applied += 1;
-            std.debug.print("[SYNC] Bloc #{d} aplicat (nonce={d})\n", .{ hdr.height, hdr.nonce });
+            std.debug.print("[SYNC] Bloc #{d} aplicat (miner={s} reward={d} nonce={d})\n",
+                .{ hdr.height, miner_addr[0..@min(miner_addr.len, 12)], peer_reward, hdr.nonce });
+        }
+
+        // Refresh validator set after applying peer blocks. New miners that
+        // crossed MIN_VALIDATOR_BALANCE through receiving rewards become
+        // validators; those who dropped below leave the set. Same rebuild
+        // call as in mineBlockForMiner — deterministic across all nodes.
+        if (applied > 0) {
+            bc.rebuildValidatorSetFromChain() catch |err| {
+                std.debug.print("[VALIDATOR-SET] rebuild after peer apply failed: {}\n", .{err});
+            };
         }
 
         return applied;
@@ -3080,13 +3223,36 @@ pub const P2PNode = struct {
         return error.PeerNotFound;
     }
 
-    /// Trimite sync_request la primul peer conectat mai sus decat noi
-    /// Payload: [from_height: u64 LE]
+    /// Returneaza cea mai recenta valoare last_msg_ts pe peer-ii conectati,
+    /// sau 0 daca nu avem peer-i activi. Folosit de slot-skip in main.zig
+    /// pentru a evita fork-ul cand ambii validatori cred ca celalalt e silent.
+    pub fn lastPeerActivityTs(self: *P2PNode) i64 {
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
+        var max_ts: i64 = 0;
+        for (self.peers.items) |*peer| {
+            if (!peer.connected) continue;
+            if (peer.last_msg_ts > max_ts) max_ts = peer.last_msg_ts;
+        }
+        return max_ts;
+    }
+
+    /// Trimite sync_request la primul peer conectat mai sus decat noi.
+    /// Wrapper care nu forteaza request pe peer cu height <= from_height
+    /// (cazul normal de catch-up).
     pub fn requestSync(self: *P2PNode, from_height: u64) void {
-        // FIX (commit after c14c566): wire format MUST match MsgGetHeaders
-        // (10 bytes: u64 from_height + u16 max_count). Old code sent only
-        // 8 bytes (height alone), so VPS dispatch rejected with
-        //   [DEBUG-SYNC-REQ] payload too short (8<10), abort
+        self.requestSyncEx(from_height, false);
+    }
+
+    /// Forteaza sync request indiferent de peer.height — folosit pentru
+    /// fork detection unde peer poate fi la o inaltime mai mica dar pe o
+    /// alta ramura, si avem nevoie de header-ele lui pentru comparatia
+    /// heaviest-chain.
+    pub fn requestSyncForced(self: *P2PNode, from_height: u64) void {
+        self.requestSyncEx(from_height, true);
+    }
+
+    fn requestSyncEx(self: *P2PNode, from_height: u64, force_on_lower_peer: bool) void {
         const req = sync_mod.MsgGetHeaders{
             .from_height = from_height,
             .max_count   = sync_mod.SyncManager.MAX_HEADERS_PER_REQ,
@@ -3097,13 +3263,14 @@ pub const P2PNode = struct {
         defer self.peers_mutex.unlock();
         for (self.peers.items) |*peer| {
             if (!peer.connected) continue;
-            if (peer.height <= from_height) continue; // peer nu are mai mult decat noi
+            if (!force_on_lower_peer and peer.height <= from_height) continue;
             peer.send(@intFromEnum(MessageType.sync_request), &payload) catch |err| {
                 std.debug.print("[P2P] Sync request la {s} failed: {}\n",
                     .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
             };
-            std.debug.print("[P2P] SYNC_REQUEST trimis la {s} (from height={d}, max={d})\n",
-                .{ peer.node_id[0..@min(peer.node_id.len, 16)], from_height, sync_mod.SyncManager.MAX_HEADERS_PER_REQ });
+            std.debug.print("[P2P] SYNC_REQUEST trimis la {s} (from height={d}, max={d}, forced={})\n",
+                .{ peer.node_id[0..@min(peer.node_id.len, 16)], from_height,
+                   sync_mod.SyncManager.MAX_HEADERS_PER_REQ, force_on_lower_peer });
             return; // trimitem la primul peer disponibil
         }
     }

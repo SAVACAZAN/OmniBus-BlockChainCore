@@ -1,0 +1,49 @@
+{
+  "agents": [
+    {
+      "name": "alpha",
+      "wallet_index": 1,
+      "strategy": "balanced",
+      "auto_tier": true,
+      "auto_claim_faucet": true,
+      "tick_ms": 5000,
+      "pairs": ["BTC/USD", "ETH/USD"],
+      "risk": {
+        "max_trade_pct": 5,
+        "max_daily_loss_pct": 10,
+        "min_reserve_sat": 500000000,
+        "max_slippage_bps": 50
+      },
+      "rules": [
+        {
+          "metric": "btc_drop_1h_pct",
+          "op": "gte",
+          "threshold": 5.0,
+          "action": "buy",
+          "amount_pct": 10
+        },
+        {
+          "metric": "pnl_session_omni",
+          "op": "lte",
+          "threshold": -50.0,
+          "action": "halt",
+          "amount_pct": 100
+        }
+      ]
+    },
+    {
+      "name": "beta_conservative",
+      "wallet_index": 2,
+      "strategy": "conservative",
+      "auto_tier": true,
+      "auto_claim_faucet": true,
+      "tick_ms": 10000,
+      "pairs": ["BTC/USD"],
+      "risk": {
+        "max_trade_pct": 2,
+        "max_daily_loss_pct": 5
+      },
+      "rules": []
+    }
+  ]
+}

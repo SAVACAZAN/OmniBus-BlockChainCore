@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+import { PlasmaLogo } from "../effects/PlasmaLogo";
+import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
+import { ElectricOrganism } from "../effects/ElectricOrganism";
+import { MatrixRain } from "../effects/MatrixRain";
 
 declare global {
   interface Window { __openTx?: (txid: string) => void }
@@ -31,22 +35,22 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-mempool-bg/95 backdrop-blur-sm border-b border-mempool-border">
+      <header className="sticky top-0 z-50 bg-mempool-bg-elev backdrop-blur-sm border-b border-mempool-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logo — Bitcoin-style amber coin with stylized O */}
+          {/* Logo — plasma orb (replaces static SVG) */}
           <div className="flex items-center gap-3">
-            <img
-              src="/omnibus-logo.svg"
-              alt="OmniBus"
-              className="w-9 h-9 rounded-full shadow-md drop-shadow"
-              draggable={false}
-            />
+            <PlasmaLogo size={120} className="drop-shadow -my-8" />
+            <ElectricOrganism size={130} className="drop-shadow -my-8" />
             <div>
               <h1 className="text-lg font-bold leading-tight tracking-tight bg-gradient-to-b from-amber-300 to-orange-500 bg-clip-text text-transparent">
                 OmniBus
               </h1>
               <p className="text-xs text-mempool-text-dim">BlockChain Explorer</p>
             </div>
+            <MatrixRain width={60} height={120} className="drop-shadow -my-8 rounded" />
+            <PlasmaLogo size={80} className="drop-shadow -my-8" />
+            <PlasmaLogo size={40} className="drop-shadow -my-8" />
+            <PlasmaLogoOrange size={120} className="drop-shadow -my-8" />
           </div>
 
           {/* Search + Block Height */}

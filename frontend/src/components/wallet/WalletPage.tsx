@@ -5,12 +5,20 @@ import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
+// Each PQ domain corresponds to a reputation cup (vezi
+// memory/project_omnibus_reputation_economy.md). Emoji + tier label apar in UI
+// langa cripto-algoritm asa user-ul vede LIMPEDE ce reprezinta fiecare adresa.
+//   ob1q   = OMNI / primary  (no cup, base wallet)
+//   ob_k1_ = LOVE   ❤️       (uptime / continuitate)
+//   ob_f5_ = FOOD   🥖       (work util — mining + oracle + agents)
+//   ob_d5_ = RENT   🏠       (capital angajat — stake + LP + hold)
+//   ob_s3_ = VACATION 🏖️    (longevitate — zile pe retea)
 const PQ_DOMAINS = [
-  { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue" },
-  { prefix: "ob_k1_", algo: "ML-DSA-87", bits: 256, color: "text-mempool-purple" },
-  { prefix: "ob_f5_", algo: "Falcon-512", bits: 192, color: "text-mempool-green" },
-  { prefix: "ob_d5_", algo: "Dilithium-5", bits: 256, color: "text-mempool-orange" },
-  { prefix: "ob_s3_", algo: "SLH-DSA-256s", bits: 256, color: "text-mempool-text" },
+  { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue",   emoji: "🔑", tier: "OMNI" },
+  { prefix: "ob_k1_", algo: "ML-DSA-87",     bits: 256, color: "text-mempool-purple", emoji: "❤️",  tier: "LOVE" },
+  { prefix: "ob_f5_", algo: "Falcon-512",    bits: 192, color: "text-mempool-green",  emoji: "🥖", tier: "FOOD" },
+  { prefix: "ob_d5_", algo: "Dilithium-5",   bits: 256, color: "text-mempool-orange", emoji: "🏠", tier: "RENT" },
+  { prefix: "ob_s3_", algo: "SLH-DSA-256s",  bits: 256, color: "text-mempool-text",   emoji: "🏖️", tier: "VACATION" },
 ];
 
 interface WalletState {
@@ -159,7 +167,7 @@ export function WalletPage() {
   if (!wallet.loggedIn) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12">
-        <div className="bg-mempool-card rounded-xl border border-mempool-border p-6">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-6">
           {/* Lock icon */}
           <div className="text-center mb-6">
             <div className="w-16 h-16 mx-auto rounded-full bg-mempool-bg flex items-center justify-center mb-3">
@@ -257,7 +265,7 @@ export function WalletPage() {
       {/* Two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Send Transaction */}
-        <div className="bg-mempool-card rounded-xl border border-mempool-border p-5 space-y-4">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-4">
           <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
             Send OMNI
           </h3>
@@ -344,7 +352,7 @@ export function WalletPage() {
         </div>
 
         {/* Addresses */}
-        <div className="bg-mempool-card rounded-xl border border-mempool-border p-5 space-y-4">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-4">
           <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
             Addresses (5 PQ Domains)
           </h3>
@@ -355,7 +363,10 @@ export function WalletPage() {
             onClick={() => copyAddr(wallet.address)}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-mempool-text-dim uppercase">Primary (ML-DSA-87 + KEM)</span>
+              <span className="text-[10px] text-mempool-text-dim uppercase flex items-center gap-1">
+                <span>🔑</span>
+                <span>Primary — OMNI (ML-DSA-87 + KEM)</span>
+              </span>
               <span className="text-[10px] text-mempool-green">
                 {copied === wallet.address ? "Copied!" : "Click to copy"}
               </span>
@@ -365,17 +376,23 @@ export function WalletPage() {
             </p>
           </div>
 
-          {/* PQ domain addresses */}
-          {PQ_DOMAINS.map((pq) => {
+          {/* PQ domain addresses — fiecare = 1 pahar reputation soulbound */}
+          {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => {
             const addr = pq.prefix + wallet.address.slice(wallet.address.indexOf("_", 3) + 1);
             return (
               <div
                 key={pq.prefix}
                 className="bg-mempool-bg rounded-lg p-2.5 cursor-pointer hover:bg-mempool-bg-light transition-colors"
                 onClick={() => copyAddr(addr)}
+                title={`${pq.tier} cup — ${pq.algo} (${pq.bits}-bit). Click to copy ${pq.prefix} address.`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-mono ${pq.color}`}>{pq.prefix}...</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-xs font-mono ${pq.color} flex items-center gap-2`}>
+                    <span className="text-base leading-none">{pq.emoji}</span>
+                    <span className="font-semibold">{pq.tier}</span>
+                    <span className="text-mempool-text-dim/70">·</span>
+                    <span>{pq.prefix}...</span>
+                  </span>
                   <span className="text-[10px] text-mempool-text-dim">
                     {pq.algo} ({pq.bits}b)
                   </span>
@@ -383,6 +400,23 @@ export function WalletPage() {
               </div>
             );
           })}
+
+          {/* Reputation legend — explica ce reprezinta paharele */}
+          <div className="pt-2 border-t border-mempool-border/40 mt-2">
+            <p className="text-[10px] text-mempool-text-dim leading-relaxed">
+              <span className="font-semibold text-mempool-text">Reputation cups</span> (soulbound,
+              0–100 each):{" "}
+              <span title="Uptime + continuitate">❤️ LOVE</span>{" "}
+              <span className="opacity-60">·</span>{" "}
+              <span title="Work util — mining, oracle, agents">🥖 FOOD</span>{" "}
+              <span className="opacity-60">·</span>{" "}
+              <span title="Capital angajat — stake / LP / hold">🏠 RENT</span>{" "}
+              <span className="opacity-60">·</span>{" "}
+              <span title="Longevitate pe retea">🏖️ VACATION</span>{" "}
+              <span className="opacity-60">·</span>{" "}
+              <span className="text-mempool-orange/90">100/100/100/100 = Satoshi badge</span>
+            </p>
+          </div>
 
           {/* Mnemonic reveal */}
           <div className="pt-2 border-t border-mempool-border/50">
@@ -407,7 +441,7 @@ export function WalletPage() {
       </div>
 
       {/* Transaction History */}
-      <div className="bg-mempool-card rounded-xl border border-mempool-border overflow-hidden">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-5 py-3 border-b border-mempool-border">
           <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
             Transaction History
@@ -454,7 +488,7 @@ export function WalletPage() {
                   <p className={`text-xs font-mono ${
                     tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(4)}
+                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
                   </p>
                   {tx.fee != null && tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">

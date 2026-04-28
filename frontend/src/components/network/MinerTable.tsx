@@ -5,7 +5,7 @@ export function MinerTable() {
 
   if (state.miners.length === 0) {
     return (
-      <div className="bg-mempool-card rounded-lg border border-mempool-border p-6 text-center text-sm text-mempool-text-dim">
+      <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border p-6 text-center text-sm text-mempool-text-dim backdrop-blur-sm">
         No miners registered yet.
       </div>
     );
@@ -14,7 +14,7 @@ export function MinerTable() {
   const totalBlocks = state.miners.reduce((s, m) => s + (m.blocksMined || 0), 0);
 
   return (
-    <div className="bg-mempool-card rounded-lg border border-mempool-border overflow-hidden">
+    <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border overflow-hidden backdrop-blur-sm">
       <div className="px-4 py-3 border-b border-mempool-border">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Miners ({state.miners.length})

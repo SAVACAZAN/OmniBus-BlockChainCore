@@ -1,0 +1,10 @@
+{
+  "scanned_at": "2026-04-26T22:04:36Z",
+  "chain": "omnibus-regtest",
+  "host": "Linux 6.6.87.2-microsoft-standard-WSL2 / x86_64",
+  "error": {
+    "code": "rpc_timeout",
+    "message": "RPC did not respond within 30s"
+  },
+  "tests": null
+}

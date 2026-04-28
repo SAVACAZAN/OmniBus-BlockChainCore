@@ -11,7 +11,7 @@ export function NetworkPage() {
       <h2 className="text-lg font-bold text-mempool-text">Network Overview</h2>
 
       {/* Connection status */}
-      <div className="bg-mempool-card rounded-xl border border-mempool-border p-5">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-[10px] text-mempool-text-dim uppercase">WebSocket</p>
@@ -43,7 +43,7 @@ export function NetworkPage() {
       <AddressLookup />
 
       {/* Peers */}
-      <div className="bg-mempool-card rounded-xl border border-mempool-border overflow-hidden">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-5 py-3 border-b border-mempool-border">
           <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
             Peers ({state.peers.length})

@@ -58,116 +58,143 @@ pub fn bytes32ToHex(bytes: [32]u8, allocator: std.mem.Allocator) ![]u8 {
     return out;
 }
 
-/// Un header compact de bloc pentru sync rapid (fara TX-uri)
-/// 88 bytes per header.
+/// Un header compact de bloc pentru sync rapid (fara TX-uri).
 ///
-/// IMPORTANT: prev_hash si merkle_root sunt 32 BYTES RAW (decodificate
-/// dintr-un hash hex de 64 chars), NU primii 32 chars ASCII. Asta a fost
-/// bug-ul fundamental până la 2026-04-26 — wire-ul trunchia la 32 chars
-/// (=128 bits efectiv) si chain-urile divergeau peer-to-peer pentru ca
-/// zonele finale ale hash-urilor nu se transmiteau. Acum 256 bits full.
+/// V3 (2026-04-26): 130 bytes per header. Anterior (V2) era 88 bytes
+/// fara miner_id, ceea ce facea ca blocurile primite prin sync sa apara
+/// cu miner="" pe nodul receiver — dashboard-ul afisa doar 1 miner
+/// (cel local) chiar daca lantul avea mai multi.
+///
+/// prev_hash si merkle_root sunt 32 BYTES RAW (decodificate dintr-un
+/// hash hex de 64 chars). miner_id e adresa OmniBus a minerului ca
+/// 42 ASCII bytes (ex. "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0"),
+/// zero-padded daca adresa e mai scurta sau goala.
 pub const BlockHeader = struct {
     height:        u64,
     timestamp:     i64,
     prev_hash:     [32]u8,
     merkle_root:   [32]u8,
     nonce:         u64,
+    miner_id:      [42]u8,
+
+    pub const WIRE_SIZE: usize = 130;
 
     pub fn fromBlock(b: *const Block, height: u64) BlockHeader {
+        var mid: [42]u8 = @splat(0);
+        const n = @min(b.miner_address.len, 42);
+        @memcpy(mid[0..n], b.miner_address[0..n]);
         return .{
             .height      = height,
             .timestamp   = b.timestamp,
             .prev_hash   = hexToBytes32(b.previous_hash),
             .merkle_root = hexToBytes32(b.hash),
             .nonce       = b.nonce,
+            .miner_id    = mid,
         };
     }
 
-    pub fn encode(self: BlockHeader, buf: *[88]u8) void {
+    pub fn encode(self: BlockHeader, buf: *[130]u8) void {
         std.mem.writeInt(u64, buf[0..8],   self.height,    .little);
         std.mem.writeInt(i64, buf[8..16],  self.timestamp, .little);
         @memcpy(buf[16..48],  &self.prev_hash);
         @memcpy(buf[48..80],  &self.merkle_root);
         std.mem.writeInt(u64, buf[80..88], self.nonce,     .little);
+        @memcpy(buf[88..130], &self.miner_id);
     }
 
     pub fn decode(buf: []const u8) ?BlockHeader {
-        if (buf.len < 88) return null;
+        if (buf.len < 130) return null;
         var prev:   [32]u8 = undefined;
         var merkle: [32]u8 = undefined;
+        var mid:    [42]u8 = undefined;
         @memcpy(&prev,   buf[16..48]);
         @memcpy(&merkle, buf[48..80]);
+        @memcpy(&mid,    buf[88..130]);
         return .{
             .height      = std.mem.readInt(u64, buf[0..8],   .little),
             .timestamp   = std.mem.readInt(i64, buf[8..16],  .little),
             .prev_hash   = prev,
             .merkle_root = merkle,
             .nonce       = std.mem.readInt(u64, buf[80..88], .little),
+            .miner_id    = mid,
         };
+    }
+
+    /// Returneaza un slice catre adresa minerului fara zero-padding-ul
+    /// final. Util pentru afisare si comparatii. Slice-ul e valid
+    /// cat timp BlockHeader-ul exista.
+    pub fn minerIdSlice(self: *const BlockHeader) []const u8 {
+        var n: usize = self.miner_id.len;
+        while (n > 0 and self.miner_id[n - 1] == 0) n -= 1;
+        return self.miner_id[0..n];
     }
 };
 
-/// Raspuns la GetHeaders: lista de headere compacte
+/// Raspuns la GetHeaders: lista de headere compacte (V3: 130B/header)
 pub const MsgHeaders = struct {
     count:   u16,
     headers: []BlockHeader,
 
-    /// Encode: [count:2][header0:88][header1:88]...
+    /// Encode: [count:2][header0:130][header1:130]...
     pub fn encode(self: MsgHeaders, allocator: std.mem.Allocator) ![]u8 {
-        const size = 2 + @as(usize, self.count) * 88;
+        const HSZ = BlockHeader.WIRE_SIZE;
+        const size = 2 + @as(usize, self.count) * HSZ;
         var buf = try allocator.alloc(u8, size);
         std.mem.writeInt(u16, buf[0..2], self.count, .little);
         for (self.headers[0..self.count], 0..) |h, i| {
-            var hbuf: [88]u8 = undefined;
+            var hbuf: [130]u8 = undefined;
             h.encode(&hbuf);
-            @memcpy(buf[2 + i * 88 .. 2 + (i + 1) * 88], &hbuf);
+            @memcpy(buf[2 + i * HSZ .. 2 + (i + 1) * HSZ], &hbuf);
         }
         return buf;
     }
 
     pub fn decode(buf: []const u8, allocator: std.mem.Allocator) !MsgHeaders {
+        const HSZ = BlockHeader.WIRE_SIZE;
         if (buf.len < 2) return error.TooShort;
         const count = std.mem.readInt(u16, buf[0..2], .little);
-        if (buf.len < 2 + @as(usize, count) * 88) return error.TooShort;
+        if (buf.len < 2 + @as(usize, count) * HSZ) return error.TooShort;
 
         const headers = try allocator.alloc(BlockHeader, count);
         for (0..count) |i| {
-            const start = 2 + i * 88;
-            headers[i] = BlockHeader.decode(buf[start .. start + 88]) orelse
+            const start = 2 + i * HSZ;
+            headers[i] = BlockHeader.decode(buf[start .. start + HSZ]) orelse
                 return error.InvalidHeader;
         }
         return .{ .count = count, .headers = headers };
     }
 };
 
-/// Raspuns cu blocuri complete: [count:2][header0:88][header1:88]...
+/// Raspuns cu blocuri complete: [count:2][header0:130][header1:130]...
 /// Acelasi format ca MsgHeaders dar semnifica blocuri descarcate complet
 pub const MsgBlocks = struct {
     count:   u16,
     headers: []BlockHeader,
 
-    /// Encode: [count:2][header0:88][header1:88]...
+    /// Encode: [count:2][header0:130][header1:130]...
     pub fn encode(self: MsgBlocks, allocator: std.mem.Allocator) ![]u8 {
-        const size = 2 + @as(usize, self.count) * 88;
+        const HSZ = BlockHeader.WIRE_SIZE;
+        const size = 2 + @as(usize, self.count) * HSZ;
         var buf = try allocator.alloc(u8, size);
         std.mem.writeInt(u16, buf[0..2], self.count, .little);
         for (self.headers[0..self.count], 0..) |h, i| {
-            var hbuf: [88]u8 = undefined;
+            var hbuf: [130]u8 = undefined;
             h.encode(&hbuf);
-            @memcpy(buf[2 + i * 88 .. 2 + (i + 1) * 88], &hbuf);
+            @memcpy(buf[2 + i * HSZ .. 2 + (i + 1) * HSZ], &hbuf);
         }
         return buf;
     }
 
     pub fn decode(buf: []const u8, allocator: std.mem.Allocator) !MsgBlocks {
+        const HSZ = BlockHeader.WIRE_SIZE;
         if (buf.len < 2) return error.TooShort;
         const count = std.mem.readInt(u16, buf[0..2], .little);
-        if (buf.len < 2 + @as(usize, count) * 88) return error.TooShort;
+        if (buf.len < 2 + @as(usize, count) * HSZ) return error.TooShort;
 
         const headers = try allocator.alloc(BlockHeader, count);
         for (0..count) |i| {
-            const start = 2 + i * 88;
-            headers[i] = BlockHeader.decode(buf[start .. start + 88]) orelse
+            const start = 2 + i * HSZ;
+            headers[i] = BlockHeader.decode(buf[start .. start + HSZ]) orelse
                 return error.InvalidHeader;
         }
         return .{ .count = count, .headers = headers };
@@ -507,9 +534,13 @@ test "MsgGetBlocks encode/decode" {
     try testing.expectEqual(req.max_count,   dec.max_count);
 }
 
-test "BlockHeader encode/decode round-trip" {
+test "BlockHeader encode/decode round-trip (V3 with miner_id)" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
+
+    var mid: [42]u8 = @splat(0);
+    const addr = "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0";
+    @memcpy(mid[0..addr.len], addr);
 
     const h = BlockHeader{
         .height      = 42,
@@ -517,8 +548,9 @@ test "BlockHeader encode/decode round-trip" {
         .prev_hash   = @splat(0xAA),
         .merkle_root = @splat(0xBB),
         .nonce       = 99999,
+        .miner_id    = mid,
     };
-    var buf: [88]u8 = undefined;
+    var buf: [130]u8 = undefined;
     h.encode(&buf);
     const d = BlockHeader.decode(&buf).?;
     try testing.expectEqual(h.height,    d.height);
@@ -526,24 +558,83 @@ test "BlockHeader encode/decode round-trip" {
     try testing.expectEqual(h.nonce,     d.nonce);
     try testing.expectEqualSlices(u8, &h.prev_hash,   &d.prev_hash);
     try testing.expectEqualSlices(u8, &h.merkle_root, &d.merkle_root);
+    try testing.expectEqualSlices(u8, &h.miner_id,    &d.miner_id);
+    try testing.expectEqualSlices(u8, addr, d.minerIdSlice());
 }
 
-test "MsgHeaders encode/decode cu 3 headere" {
+test "BlockHeader minerIdSlice trims trailing zeros" {
+    var mid: [42]u8 = @splat(0);
+    const addr = "ob1qshort";
+    @memcpy(mid[0..addr.len], addr);
+    const h = BlockHeader{
+        .height = 0, .timestamp = 0,
+        .prev_hash = @splat(0), .merkle_root = @splat(0),
+        .nonce = 0, .miner_id = mid,
+    };
+    try testing.expectEqualSlices(u8, addr, h.minerIdSlice());
+}
+
+test "BlockHeader empty miner_id (peer block before V3 upgrade)" {
+    const h = BlockHeader{
+        .height = 0, .timestamp = 0,
+        .prev_hash = @splat(0), .merkle_root = @splat(0),
+        .nonce = 0, .miner_id = @splat(0),
+    };
+    try testing.expectEqual(@as(usize, 0), h.minerIdSlice().len);
+}
+
+test "MsgHeaders encode/decode cu 3 headere V3" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
 
+    var mid_a: [42]u8 = @splat(0); @memcpy(mid_a[0..3], "aaa");
+    var mid_b: [42]u8 = @splat(0); @memcpy(mid_b[0..3], "bbb");
+    var mid_c: [42]u8 = @splat(0); @memcpy(mid_c[0..3], "ccc");
+
     const hdrs = [_]BlockHeader{
-        .{ .height = 0, .timestamp = 100, .prev_hash = @splat(0), .merkle_root = @splat(1), .nonce = 0 },
-        .{ .height = 1, .timestamp = 101, .prev_hash = @splat(1), .merkle_root = @splat(2), .nonce = 1 },
-        .{ .height = 2, .timestamp = 102, .prev_hash = @splat(2), .merkle_root = @splat(3), .nonce = 2 },
+        .{ .height = 0, .timestamp = 100, .prev_hash = @splat(0), .merkle_root = @splat(1), .nonce = 0, .miner_id = mid_a },
+        .{ .height = 1, .timestamp = 101, .prev_hash = @splat(1), .merkle_root = @splat(2), .nonce = 1, .miner_id = mid_b },
+        .{ .height = 2, .timestamp = 102, .prev_hash = @splat(2), .merkle_root = @splat(3), .nonce = 2, .miner_id = mid_c },
     };
     const msg = MsgHeaders{ .count = 3, .headers = @constCast(&hdrs) };
     const enc = try msg.encode(arena.allocator());
-    const dec = try MsgHeaders.decode(enc, arena.allocator());
+    try testing.expectEqual(@as(usize, 2 + 3 * 130), enc.len);
 
+    const dec = try MsgHeaders.decode(enc, arena.allocator());
     try testing.expectEqual(@as(u16, 3), dec.count);
     try testing.expectEqual(@as(u64, 1), dec.headers[1].height);
     try testing.expectEqual(@as(i64, 102), dec.headers[2].timestamp);
+    try testing.expectEqualSlices(u8, "aaa", dec.headers[0].minerIdSlice());
+    try testing.expectEqualSlices(u8, "bbb", dec.headers[1].minerIdSlice());
+    try testing.expectEqualSlices(u8, "ccc", dec.headers[2].minerIdSlice());
+}
+
+test "BlockHeader fromBlock copies miner_address into miner_id" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const addr = try a.dupe(u8, "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0");
+    const hash = try a.dupe(u8, "00000000000000000000000000000000000000000000000000000000deadbeef");
+    const prev = try a.dupe(u8, "0000000000000000000000000000000000000000000000000000000000000000");
+    var blk = block_mod.Block{
+        .index         = 5,
+        .timestamp     = 1234,
+        .transactions  = std.array_list.Managed(block_mod.Transaction).init(a),
+        .previous_hash = prev,
+        .nonce         = 7,
+        .hash          = hash,
+        .miner_address = addr,
+        .reward_sat    = 0,
+        .miner_heap    = false,
+    };
+    defer blk.transactions.deinit();
+
+    const hdr = BlockHeader.fromBlock(&blk, 5);
+    try testing.expectEqualSlices(u8, addr, hdr.minerIdSlice());
+    try testing.expectEqual(@as(u64, 5),    hdr.height);
+    try testing.expectEqual(@as(u64, 7),    hdr.nonce);
+    try testing.expectEqual(@as(i64, 1234), hdr.timestamp);
 }
 
 test "SyncState — isBehind si progressPct" {
@@ -642,7 +733,7 @@ test "SyncManager — sync complet flow: peerHeight → onBlocksReceived → syn
 
     // 2. Primim headers → trebuie GetBlocks
     var dummy_headers = [_]BlockHeader{
-        .{ .height = 1, .timestamp = 1000, .prev_hash = @splat(0), .merkle_root = @splat(1), .nonce = 0 },
+        .{ .height = 1, .timestamp = 1000, .prev_hash = @splat(0), .merkle_root = @splat(1), .nonce = 0, .miner_id = @splat(0) },
     };
     const msg_h = MsgHeaders{ .count = 1, .headers = &dummy_headers };
     const get_blocks = sm.onHeadersReceived(msg_h);

@@ -8,7 +8,7 @@ const crypto_mod      = @import("crypto.zig");
 
 const BIP32Wallet = bip32_mod.BIP32Wallet;
 const PQDomainDerivation = bip32_mod.PQDomainDerivation;
-const Network = bip32_mod.Network;
+pub const Network = bip32_mod.Network;
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Ripemd160 = ripemd160_mod.Ripemd160;
 
@@ -111,6 +111,125 @@ pub const Wallet = struct {
     /// Creeaza wallet din mnemonic (BIP-39) si passphrase — full BTC-parity metadata
     pub fn fromMnemonic(mnemonic: []const u8, passphrase: []const u8, allocator: std.mem.Allocator) !Wallet {
         return fromMnemonicFull(mnemonic, passphrase, .mainnet, 0, 0, 0, allocator);
+    }
+
+    /// Construct a SIGNING-ONLY wallet from raw secp256k1 private key bytes.
+    ///
+    /// Use case: faucet daemon, refill source, automated services that
+    /// must sign transactions on a public server WITHOUT exposing the
+    /// mnemonic that controls the rest of the wallet family.
+    ///
+    /// The recovered Wallet has:
+    ///   - real `address` derived from the pubkey (matches wallet UI)
+    ///   - real `private_key_bytes` so `createTransactionFull` works
+    ///   - real `public_key_hex` for signature verification
+    ///   - placeholder values for BIP-32 / xpub / xprv / 5 PQ domains
+    ///     (those are not used in the TX signing path)
+    ///
+    /// This is intentionally a thin wallet. If you need PQ signing or
+    /// HD derivation, construct via `fromMnemonicFull` instead.
+    pub fn fromPrivateKey(privkey: [32]u8, allocator: std.mem.Allocator) !Wallet {
+        const pubkey  = try Secp256k1Crypto.privateKeyToPublicKey(privkey);
+        const h160    = pubkeyHash160(pubkey);
+
+        // Build "ob1q…" Bech32 address (witness v0, P2WPKH) using the
+        // same helper the rest of the wallet code uses.
+        const bech32 = @import("bech32.zig");
+        const addr_owned = try bech32.encodeOBAddress(h160, allocator);
+
+        // Public key hex (66 chars compressed).
+        const pk_hex = try allocator.alloc(u8, 66);
+        for (pubkey, 0..) |b, i| {
+            _ = std.fmt.bufPrint(pk_hex[i * 2 .. (i + 1) * 2], "{x:0>2}", .{b}) catch {};
+        }
+
+        // Hash160 hex (40 chars).
+        const h160_hex = try allocator.alloc(u8, 40);
+        for (h160, 0..) |b, i| {
+            _ = std.fmt.bufPrint(h160_hex[i * 2 .. (i + 1) * 2], "{x:0>2}", .{b}) catch {};
+        }
+
+        // Script pubkey: "0014" + h160 (44 chars total).
+        const sp_hex = try allocator.alloc(u8, 44);
+        @memcpy(sp_hex[0..4], "0014");
+        @memcpy(sp_hex[4..44], h160_hex);
+
+        // Placeholders for BIP-32 fields we don't have (no master seed
+        // available from a raw private key). Allocated so deinit() can
+        // free uniformly without special-casing.
+        const empty = try allocator.dupe(u8, "");
+
+        // First PQ address slot mirrors the OMNI native address; the
+        // other 4 stay empty since this constructor doesn't have access
+        // to PQ key material. Signing path only ever reads addresses[0].
+        var addresses: [5]Address = undefined;
+        addresses[0] = .{
+            .domain = "omnibus.omni",
+            .algorithm = "secp256k1 (signing-only wallet)",
+            .omni_address = try allocator.dupe(u8, addr_owned),
+            .public_key_hex = try allocator.dupe(u8, pk_hex),
+            .coin_type = 777,
+            .security_level = 256,
+            .hash160_hex = try allocator.dupe(u8, h160_hex),
+            .script_pubkey_hex = try allocator.dupe(u8, sp_hex),
+            .witness_version = 0,
+            .private_key_wif = try allocator.dupe(u8, ""),
+            .derivation_path = try allocator.dupe(u8, "m/raw"),
+            .xpub = try allocator.dupe(u8, ""),
+            .xprv = try allocator.dupe(u8, ""),
+        };
+        for (1..5) |i| {
+            addresses[i] = .{
+                .domain = "",
+                .algorithm = "",
+                .omni_address = try allocator.dupe(u8, ""),
+                .public_key_hex = try allocator.dupe(u8, ""),
+                .coin_type = 0,
+                .security_level = 0,
+                .hash160_hex = try allocator.dupe(u8, ""),
+                .script_pubkey_hex = try allocator.dupe(u8, ""),
+                .witness_version = 0,
+                .private_key_wif = try allocator.dupe(u8, ""),
+                .derivation_path = try allocator.dupe(u8, ""),
+                .xpub = try allocator.dupe(u8, ""),
+                .xprv = try allocator.dupe(u8, ""),
+            };
+        }
+
+        return Wallet{
+            .address = addr_owned,
+            .public_key_bytes = pubkey,
+            .private_key_bytes = privkey,
+            .addresses = addresses,
+            .allocator = allocator,
+            .master_fingerprint = .{ 0, 0, 0, 0 },
+            .master_fingerprint_hex = try allocator.dupe(u8, "00000000"),
+            .network = .mainnet,
+            .derivation_path = try allocator.dupe(u8, "m/raw"),
+            .script_pubkey_hex = sp_hex,
+            .public_key_hex = pk_hex,
+            .private_key_wif = empty,
+            .hash160_hex = h160_hex,
+            .xpub = try allocator.dupe(u8, ""),
+            .xprv = try allocator.dupe(u8, ""),
+            .parent_fingerprint_hex = try allocator.dupe(u8, "00000000"),
+            .balance = 0,
+            .tx_count = 0,
+            .created_at = std.time.timestamp(),
+        };
+    }
+
+    /// Parse a 64-char hex string into a [32]u8 secp256k1 private key.
+    pub fn parsePrivateKeyHex(hex: []const u8) ![32]u8 {
+        if (hex.len != 64) return error.InvalidPrivateKeyLength;
+        var out: [32]u8 = undefined;
+        var i: usize = 0;
+        while (i < 32) : (i += 1) {
+            const hi = try std.fmt.charToDigit(hex[i * 2], 16);
+            const lo = try std.fmt.charToDigit(hex[i * 2 + 1], 16);
+            out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+        }
+        return out;
     }
 
     /// Full constructor cu toate parametrele

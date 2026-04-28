@@ -180,6 +180,12 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "price-oracle","core/price_oracle.zig",   target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "pouw",       "core/consensus_pouw.zig",  target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "oracle-fetcher", "core/oracle_fetcher.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "agent-tier",     "core/agent_tier.zig",     target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "agent-config",   "core/agent_config.zig",   target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "agent-executor", "core/agent_executor.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "agent-manager",  "core/agent_manager.zig",  target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "agent-wallet",   "core/agent_wallet.zig",   target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "pair-registry",  "core/pair_registry.zig",  target, optimize).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");

@@ -81,7 +81,7 @@ export class Terminal {
 
     if (this.processId) {
       try {
-        await processManager.sendInput(this.processId, text + '\n');
+        await processManager.sendInput(this.processId, text);
       } catch (e) {
         this.appendLine(`[ERROR] send_input: ${e}`);
       }

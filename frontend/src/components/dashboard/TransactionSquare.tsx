@@ -26,7 +26,7 @@ export function TransactionSquare({ amount, index, isPending }: TransactionSquar
         opacity: isPending ? 0.7 : 1,
         animation: `fillIn 0.3s ease-out ${delay}ms both`,
       }}
-      title={`${(amount / 1e9).toFixed(4)} OMNI`}
+      title={`${(amount / 1e9).toFixed(8)} OMNI`}
     />
   );
 }

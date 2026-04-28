@@ -212,7 +212,7 @@ export default function ExchangePrices() {
   const prices = feed?.prices ?? [];
 
   return (
-    <section className="bg-mempool-card rounded-lg p-4 border border-mempool-border">
+    <section className="bg-mempool-bg-elev rounded-lg p-4 border border-mempool-border">
       <div className="flex items-center gap-2 mb-3">
         <h2 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Exchange Feed

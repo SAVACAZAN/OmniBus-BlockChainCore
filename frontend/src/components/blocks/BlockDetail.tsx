@@ -135,7 +135,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-mempool-card border border-mempool-border rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
@@ -166,7 +166,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Reward</p>
               <p className="text-xs font-mono text-mempool-green">
-                {((full.rewardSAT || 0) / 1e9).toFixed(4)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
+                {((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
               </p>
             </div>
             <div>
@@ -302,7 +302,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                 <div className="w-2 h-2 rounded-full bg-mempool-green flex-shrink-0" />
                 <span className="text-xs font-mono text-mempool-green font-bold">Block Reward</span>
                 <span className="text-mempool-green ml-auto font-mono text-xs">
-                  +{((full.rewardSAT || 0) / 1e9).toFixed(4)} OMNI
+                  +{((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI
                 </span>
               </div>
               {full.miner && (
@@ -338,7 +338,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                       <span className="font-mono">{tx.to?.slice(0, 20)}</span>
                     </span>
                     <span className="text-mempool-orange">
-                      {((tx.amount || 0) / 1e9).toFixed(4)} OMNI
+                      {((tx.amount || 0) / 1e9).toFixed(8)} OMNI
                     </span>
                     {tx.fee > 0 && (
                       <span className="text-mempool-text-dim">

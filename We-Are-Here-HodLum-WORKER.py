@@ -232,25 +232,55 @@ def run_miner(args):
     print(f"  {C.BR_BLUE}Mnemonic:    {C.GREEN}{C.DIM}(none on this machine — good){C.RESET}")
     print(f"{C.BR_CYAN}└──────────────────────────────────────────────────────────{C.RESET}")
     print(f"\n{C.DIM}{C.WHITE}$ {' '.join(cmd)}{C.RESET}\n")
-    print(f"{C.BR_MAGENTA}{C.BOLD}─── miner output (Ctrl+C to stop) ───{C.RESET}")
+    import threading, time
+    log_path = work_dir / f"miner-{args.chain}.log"
+    print(f"  {C.BR_BLUE}Log file:    {C.WHITE}{log_path}{C.RESET}")
+    print(f"{C.BR_MAGENTA}{C.BOLD}─── miner output (Ctrl+C to stop) ───{C.RESET}\n")
+
+    log_fh = open(log_path, "ab", buffering=0)
+    log_fh.write(f"\n=== miner started pid=PENDING chain={args.chain} ===\n".encode())
 
     proc = subprocess.Popen(
         cmd,
         cwd=str(work_dir),
-        stdout=subprocess.PIPE,
+        stdout=log_fh,
         stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
     )
+
+    stop_event = threading.Event()
+
+    def tail_log():
+        try:
+            with open(log_path, "rb") as f:
+                f.seek(0, 2)
+                while not stop_event.is_set():
+                    chunk = f.readline()
+                    if not chunk:
+                        time.sleep(0.1)
+                        continue
+                    try:
+                        text = chunk.decode("utf-8", errors="replace")
+                    except Exception:
+                        text = repr(chunk) + "\n"
+                    sys.stdout.write(colorize_log_line(text))
+                    sys.stdout.flush()
+        except Exception as e:
+            sys.stdout.write(f"{C.ERR}[tail] {e}{C.RESET}\n")
+
+    tail_thread = threading.Thread(target=tail_log, daemon=True)
+    tail_thread.start()
 
     def on_sigint(_sig, _frame):
         print(f"\n{C.WARN}[CTRL-C]{C.RESET} stopping miner (PID {proc.pid})...")
+        stop_event.set()
         try:
             proc.terminate()
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             print(f"{C.ERR}timeout, killing{C.RESET}")
             proc.kill()
+        try: log_fh.close()
+        except: pass
         sys.exit(0)
 
     signal.signal(signal.SIGINT, on_sigint)
@@ -258,13 +288,14 @@ def run_miner(args):
         signal.signal(signal.SIGBREAK, on_sigint)
 
     try:
-        for line in proc.stdout:
-            sys.stdout.write(colorize_log_line(line))
-            sys.stdout.flush()
+        rc = proc.wait()
     except KeyboardInterrupt:
         on_sigint(None, None)
     finally:
-        rc = proc.wait()
+        stop_event.set()
+        try: log_fh.close()
+        except: pass
+        rc = proc.poll() if proc.poll() is not None else 0
         print(f"\n{C.DIM}miner exited with code {rc}{C.RESET}")
         sys.exit(rc)
 

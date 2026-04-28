@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { DashboardPlasma } from "../effects/DashboardPlasma";
 
 interface StatCardProps {
   label: string;
@@ -9,16 +10,26 @@ interface StatCardProps {
   color?: string;
 }
 
-function StatCard({ label, value, sub, color = "text-mempool-text" }: StatCardProps) {
+function StatCard({ label, value, sub, color = "text-mempool-text", withPlasma }: StatCardProps & { withPlasma?: boolean }) {
   return (
-    <div className="bg-mempool-card rounded-lg p-4 border border-mempool-border">
-      <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">
-        {label}
-      </p>
-      <p className={`text-xl font-mono font-bold ${color}`}>
-        {typeof value === "number" ? value.toLocaleString() : value}
-      </p>
-      {sub && <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>}
+    <div className="relative bg-mempool-bg-elev rounded-lg p-4 border border-mempool-border backdrop-blur-sm" style={{ overflow: "visible" }}>
+      {withPlasma && (
+        <div
+          className="absolute top-1/2 right-0 -translate-y-1/2 pointer-events-none"
+          style={{ zIndex: 0, opacity: 0.7, width: "65%", height: "100%", marginRight: "-10%" }}
+        >
+          <DashboardPlasma />
+        </div>
+      )}
+      <div className="relative" style={{ zIndex: 10 }}>
+        <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">
+          {label}
+        </p>
+        <p className={`text-xl font-mono font-bold ${color}`}>
+          {typeof value === "number" ? value.toLocaleString() : value}
+        </p>
+        {sub && <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>}
+      </div>
     </div>
   );
 }
@@ -41,8 +52,8 @@ export function StatsBar() {
   }, [state.blockCount]);
 
   const rewardPerBlock = state.networkInfo?.blockRewardSAT
-    ? (state.networkInfo.blockRewardSAT / 1e9).toFixed(4)
-    : "0.0083";
+    ? (state.networkInfo.blockRewardSAT / 1e9).toFixed(8)
+    : "0.00833333";
 
   // Trim trailing zeros from "X.000000000" -> "X" or "X.123" (4 dp max).
   const formatOMNI = (raw: string | null) => {
@@ -69,6 +80,7 @@ export function StatsBar() {
             : "pending TXs"
         }
         color={state.mempoolSize > 0 ? "text-mempool-orange" : "text-mempool-text"}
+        withPlasma
       />
       <StatCard
         label="Difficulty"

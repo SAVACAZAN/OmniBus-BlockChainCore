@@ -99,7 +99,7 @@ export function RecentTransactions() {
   const uniqueItems = [...new Map(items.map((it) => [it.id, it])).values()];
 
   return (
-    <div className="bg-mempool-card rounded-lg border border-mempool-border">
+    <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border backdrop-blur-sm">
       <div className="px-4 py-3 border-b border-mempool-border">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Recent Activity
@@ -171,7 +171,7 @@ export function RecentTransactions() {
               {/* Amount + Fee */}
               <div className="text-right flex-shrink-0">
                 <span className="text-xs font-mono text-mempool-text">
-                  {(item.amount / 1e9).toFixed(4)}
+                  {(item.amount / 1e9).toFixed(8)}
                 </span>
                 {item.fee > 0 && (
                   <p className="text-[9px] text-mempool-text-dim font-mono">

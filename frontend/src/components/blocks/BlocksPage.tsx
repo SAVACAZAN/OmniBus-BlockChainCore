@@ -42,7 +42,18 @@ export function BlocksPage() {
   const loadBlocks = async () => {
     setLoading(true);
     try {
-      const height = state.blockCount;
+      // Re-fetch the live tip from getblockcount instead of trusting the
+      // cached state.blockCount (which might be off by one relative to the
+      // node's actual chain length, depending on whether nodeHeight counts
+      // the genesis or not). This avoids "Block not found" on block tip.
+      let height = state.blockCount;
+      try {
+        const live: any = await rpc.getBlockCount();
+        const liveCount = typeof live === "object" && live ? live.blockCount : live;
+        if (typeof liveCount === "number" && liveCount > 0) height = liveCount;
+      } catch { /* fall back to cached */ }
+      // Convention: if `height` = chain.items.len, valid block indices are 0..height-1.
+      // Top of latest page = height - 1.
       const start = Math.max(0, height - 1 - page * PAGE_SIZE);
       const end = Math.max(0, start - PAGE_SIZE);
       // Batch by 4 to avoid overloading the RPC backend (MAX_CONCURRENT=4
@@ -76,7 +87,7 @@ export function BlocksPage() {
           <button
             onClick={() => setPage(Math.min(page + 1, maxPage))}
             disabled={page >= maxPage}
-            className="px-3 py-1 text-xs bg-mempool-card border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
+            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
           >
             Older
           </button>
@@ -84,14 +95,14 @@ export function BlocksPage() {
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page <= 0}
-            className="px-3 py-1 text-xs bg-mempool-card border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
+            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
           >
             Newer
           </button>
         </div>
       </div>
 
-      <div className="bg-mempool-card rounded-xl border border-mempool-border overflow-hidden">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-mempool-text-dim border-b border-mempool-border text-left">
@@ -124,7 +135,7 @@ export function BlocksPage() {
                     {b.txCount + 1}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
-                    {((b.rewardSAT || 0) / 1e9).toFixed(4)}
+                    {((b.rewardSAT || 0) / 1e9).toFixed(8)}
                   </td>
                   <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap">
                     {b.timestamp ? new Date(b.timestamp * 1000).toLocaleTimeString() : "—"}
