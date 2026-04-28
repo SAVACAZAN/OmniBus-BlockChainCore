@@ -27,6 +27,9 @@ const chain_config    = @import("chain_config.zig");
 const validator_mod   = @import("validator_registry.zig");
 const dns_mod         = @import("dns_registry.zig");
 const bech32_mod      = @import("bech32.zig");
+const identity_mod    = @import("identity.zig");
+const kyc_mod         = @import("kyc.zig");
+const registrar_mod   = @import("registrar_addresses.zig");
 const agent_manager_mod = @import("agent_manager.zig");
 const reputation_mod = @import("reputation.zig");
 const reputation_manager_mod = @import("reputation_manager.zig");
@@ -130,6 +133,22 @@ const ServerCtx = struct {
     /// Out-of-line so ServerCtx stays small enough to live on the stack-
     /// allocated thread frames glibc/Linux gives us.
     exstate: ?*ExchangeState = null,
+    /// Public on-chain identity store (nickname / ENS pref / visibility).
+    /// Heap-allocated, replayed from `data/<chain>/identities.jsonl` at
+    /// startup. Same lifecycle as the exchange state.
+    identity_store: ?*identity_mod.IdentityStore = null,
+    /// KYC attestation store. PII never lives here — this is a list of
+    /// `{address, level, issuer, sig}` entries that prove a level was
+    /// granted off-chain by a trusted issuer (slot 4).
+    kyc_store: ?*kyc_mod.KycStore = null,
+    /// Address of the KYC issuer (registrar slot 4 = kyc.omnibus). Only
+    /// signatures from this address are accepted by `kyc_attest`. Empty
+    /// string = KYC issuance disabled on this node.
+    kyc_issuer_addr_buf: [64]u8 = undefined,
+    kyc_issuer_addr_len: u8 = 0,
+    /// Mutex for identity / KYC operations. They both touch in-memory
+    /// stores; same lock keeps them serializable without a finer split.
+    identity_mutex: std.Thread.Mutex = .{},
     /// Path to `data/<chain>/orders.jsonl` for persistence. Empty =
     /// in-memory only (regtest / unit tests).
     orders_path_buf: [256]u8 = undefined,
@@ -211,7 +230,31 @@ const ExchangeState = struct {
     /// Internal exchange balances.
     balances: [256]ExchangeBalance = undefined,
     balance_count: u16 = 0,
+    /// Used real-deposit txids (anti-replay so the same TX cannot be
+    /// claimed twice). Each slot is a 64-char hex hash.
+    real_deposit_txids: [512][64]u8 = undefined,
+    real_deposit_count: u16 = 0,
+    /// Demo-money quota — per-address, FIFO. Keeps us from someone
+    /// minting infinite demo OMNI. Resets only when the slot is evicted.
+    demo_quotas: [256]DemoQuota = undefined,
+    demo_quota_count: u16 = 0,
 };
+
+/// Per-address demo deposit quota. Resets on a 24h rolling window.
+const DemoQuota = struct {
+    address: [64]u8 = undefined,
+    address_len: u8 = 0,
+    /// Total demo OMNI granted in the current window (in SAT).
+    granted_sat: u64 = 0,
+    /// Window start (ms). When (now - window_start) > 24h, granted resets.
+    window_start_ms: i64 = 0,
+};
+
+/// Cap demo issuance per address per 24h. Generous on testnet — the goal
+/// is letting users iterate on bot/UI strategies, not be a real onramp.
+const DEMO_MAX_PER_REQUEST_SAT: u64 = 10 * 1_000_000_000; // 10 OMNI
+const DEMO_MAX_PER_24H_SAT: u64 = 100 * 1_000_000_000;     // 100 OMNI / day
+const DEMO_WINDOW_MS: i64 = 24 * 60 * 60 * 1000;
 
 /// Context public expus utilizatorilor externi (alias la ServerCtx)
 pub const RPCContext = ServerCtx;
@@ -258,6 +301,15 @@ pub const HTTPConfig = struct {
     /// Path to `data/<chain>/exchange-users.jsonl`. Stores api keys +
     /// internal exchange balances. Empty/null = in-memory only.
     users_path: ?[]const u8 = null,
+    /// Path to `data/<chain>/identities.jsonl`. Stores public nickname
+    /// / ENS-pref / visibility. Empty/null = in-memory only.
+    identities_path: ?[]const u8 = null,
+    /// Path to `data/<chain>/kyc-attestations.jsonl`. Empty/null = in-memory only.
+    kyc_path: ?[]const u8 = null,
+    /// Address of the KYC issuer (registrar slot 4). When set, this
+    /// address's signatures are honored by `kyc_attest`. Empty = the
+    /// node won't accept any KYC issuance (read-only KYC view).
+    kyc_issuer_address: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -325,6 +377,42 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         replayUsersJournal(ctx) catch |err| {
             std.debug.print("[RPC] exchange-users.jsonl replay failed: {s}\n", .{@errorName(err)});
         };
+    }
+
+    // ── Identity store (public nickname / ENS-pref / visibility) ─────────
+    {
+        const page_alloc = std.heap.page_allocator;
+        const ids = page_alloc.create(identity_mod.IdentityStore) catch null;
+        if (ids) |s| {
+            s.* = identity_mod.IdentityStore.init();
+            if (cfg.identities_path) |p| s.setJournalPath(p);
+            s.replay() catch |err| {
+                std.debug.print("[IDENTITY] replay failed: {s}\n", .{@errorName(err)});
+            };
+            ctx.identity_store = s;
+        }
+    }
+
+    // ── KYC store (signed attestations, no PII) ─────────────────────────
+    {
+        const page_alloc = std.heap.page_allocator;
+        const ks = page_alloc.create(kyc_mod.KycStore) catch null;
+        if (ks) |s| {
+            s.* = kyc_mod.KycStore.init();
+            if (cfg.kyc_path) |p| s.setJournalPath(p);
+            s.replay() catch |err| {
+                std.debug.print("[KYC] replay failed: {s}\n", .{@errorName(err)});
+            };
+            ctx.kyc_store = s;
+        }
+    }
+    if (cfg.kyc_issuer_address) |addr| {
+        const n = @min(addr.len, ctx.kyc_issuer_addr_buf.len);
+        @memcpy(ctx.kyc_issuer_addr_buf[0..n], addr[0..n]);
+        ctx.kyc_issuer_addr_len = @intCast(n);
+        std.debug.print("[KYC] issuer address: {s}\n", .{addr});
+    } else {
+        std.debug.print("[KYC] no issuer address configured (read-only KYC mode)\n", .{});
     }
     // Copy the auth token into ServerCtx-owned static storage so we don't
     // hold a pointer to a caller-owned slice that might get freed/moved.
@@ -460,6 +548,12 @@ fn handleConnCounted(ctx: *ConnCtx) void {
     }
 
     const body = raw[hdr_end + 4 .. total];
+
+    // Try REST dispatch first (Kraken-compatible /exchange/0/* routes)
+    if (dispatchRest(ctx.server_ctx.allocator, ctx.conn.stream, raw[0..hdr_end], body, ctx.server_ctx)) {
+        return;
+    }
+
     const response = dispatch(body, ctx.server_ctx) catch {
         const fallback = ctx.server_ctx.allocator.dupe(u8, "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32603,\"message\":\"Internal error\"}}") catch return;
         defer ctx.server_ctx.allocator.free(fallback);
@@ -551,6 +645,206 @@ fn handleConn(ctx: *ConnCtx) void {
     defer ctx.server_ctx.allocator.free(http);
 
     _ = ctx.conn.stream.write(http) catch {};
+}
+
+// ─── REST → JSON-RPC bridge (Kraken-compatible) ──────────────────────────────
+
+fn extractHttpPath(header: []const u8, method_buf: *[]const u8) ?[]const u8 {
+    // header first line: "GET /exchange/0/public/Time HTTP/1.1\r\n"
+    const eol = std.mem.indexOf(u8, header, "\r\n") orelse return null;
+    const line = header[0..eol];
+    const s1 = std.mem.indexOf(u8, line, " ") orelse return null;
+    method_buf.* = line[0..s1];
+    const rest = line[s1 + 1 ..];
+    const s2 = std.mem.indexOf(u8, rest, " ") orelse return null;
+    return rest[0..s2];
+}
+
+fn getQueryParam(path: []const u8, key: []const u8) ?[]const u8 {
+    const q = std.mem.indexOf(u8, path, "?") orelse return null;
+    const qs = path[q + 1 ..];
+    var it = std.mem.splitScalar(u8, qs, '&');
+    while (it.next()) |pair| {
+        const eq = std.mem.indexOf(u8, pair, "=") orelse continue;
+        if (std.mem.eql(u8, pair[0..eq], key)) {
+            return pair[eq + 1 ..];
+        }
+    }
+    return null;
+}
+
+fn buildRpcBody(alloc: std.mem.Allocator, method: []const u8, params: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"{s}\",\"params\":{s}}}",
+        .{ method, params });
+}
+
+fn writeJsonResponse(stream: std.net.Stream, body: []const u8) void {
+    var hdr: [256]u8 = undefined;
+    const h = std.fmt.bufPrint(&hdr,
+        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {d}\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
+        .{body.len}) catch return;
+    _ = stream.write(h) catch {};
+    _ = stream.write(body) catch {};
+}
+
+fn writeErrorResponse(stream: std.net.Stream, code: i64, msg: []const u8) void {
+    var buf: [512]u8 = undefined;
+    const b = std.fmt.bufPrint(&buf,
+        "{{\"error\":[\"E{d}\"],\"result\":{{}},\"message\":\"{s}\"}}",
+        .{ code, msg }) catch return;
+    writeJsonResponse(stream, b);
+}
+
+fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []const u8, _body: []const u8, ctx: *ServerCtx) bool {
+    _ = _body;
+    var http_method: []const u8 = "";
+    const path = extractHttpPath(header, &http_method) orelse return false;
+
+    // Only handle /exchange/0/* routes (or stripped /public/ /private/ from nginx)
+    const rest = if (std.mem.startsWith(u8, path, "/exchange/0/"))
+        path[12..]
+    else if (std.mem.startsWith(u8, path, "/public/") or std.mem.startsWith(u8, path, "/private/"))
+        path[1..]
+    else
+        return false;
+
+    // ── Public endpoints ────────────────────────────────────────────────
+    if (std.mem.startsWith(u8, rest, "public/")) {
+        const ep = rest[7..];
+        if (std.mem.eql(u8, ep, "Time")) {
+            const rpc_body = buildRpcBody(alloc, "getstatus", "[]") catch return true;
+            defer alloc.free(rpc_body);
+            const res = dispatch(rpc_body, ctx) catch |err| {
+                writeErrorResponse(stream, 500, @errorName(err));
+                return true;
+            };
+            defer alloc.free(res);
+            // Extract result and rewrap as Kraken format
+            const result_start = std.mem.indexOf(u8, res, "\"result\":") orelse 0;
+            if (result_start > 0) {
+                const rs = res[result_start + 9 ..];
+                const r2 = std.fmt.allocPrint(alloc, "{{\"error\":[],\"result\":{s}}}", .{rs}) catch return true;
+                defer alloc.free(r2);
+                writeJsonResponse(stream, r2);
+            } else {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
+            }
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "SystemStatus")) {
+            writeJsonResponse(stream, "{\"error\":[],\"result\":{\"status\":\"online\",\"timestamp\":\"" ++ "2026-04-28T00:00:00Z\"}}");
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "Assets")) {
+            writeJsonResponse(stream,
+                "{\"error\":[],\"result\":{\"OMNI\":{\"aclass\":\"currency\",\"altname\":\"OmniBus\",\"decimals\":8,\"display_decimals\":5},\"BTC\":{\"aclass\":\"currency\",\"altname\":\"Bitcoin\",\"decimals\":8,\"display_decimals\":5},\"ETH\":{\"aclass\":\"currency\",\"altname\":\"Ethereum\",\"decimals\":8,\"display_decimals\":5},\"USD\":{\"aclass\":\"currency\",\"altname\":\"US Dollar\",\"decimals\":4,\"display_decimals\":2},\"LCX\":{\"aclass\":\"currency\",\"altname\":\"LCX Token\",\"decimals\":8,\"display_decimals\":5}}}}");
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "AssetPairs")) {
+            writeJsonResponse(stream,
+                "{\"error\":[],\"result\":{\"OMNIUSD\":{\"altname\":\"OMNI/USD\",\"wsname\":\"OMNI/USD\",\"aclass_base\":\"currency\",\"base\":\"OMNI\",\"aclass_quote\":\"currency\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":5,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"},\"BTCUSD\":{\"altname\":\"BTC/USD\",\"wsname\":\"BTC/USD\",\"base\":\"BTC\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":1,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.0001\"},\"LCXUSD\":{\"altname\":\"LCX/USD\",\"wsname\":\"LCX/USD\",\"base\":\"LCX\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":4,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"1.0\"},\"ETHUSD\":{\"altname\":\"ETH/USD\",\"wsname\":\"ETH/USD\",\"base\":\"ETH\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":2,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.001\"},\"OMNIBTC\":{\"altname\":\"OMNI/BTC\",\"wsname\":\"OMNI/BTC\",\"base\":\"OMNI\",\"quote\":\"BTC\",\"lot\":\"unit\",\"pair_decimals\":8,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"},\"OMNILCX\":{\"altname\":\"OMNI/LCX\",\"wsname\":\"OMNI/LCX\",\"base\":\"OMNI\",\"quote\":\"LCX\",\"lot\":\"unit\",\"pair_decimals\":5,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"}}}}");
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "Ticker")) {
+            const pair = getQueryParam(path, "pair") orelse "OMNIUSD";
+            const rpc_body = buildRpcBody(alloc, "exchange_getStats",
+                std.fmt.allocPrint(alloc, "{{\"pair\":\"{s}\"}}", .{pair}) catch "{}") catch return true;
+            defer alloc.free(rpc_body);
+            const res = dispatch(rpc_body, ctx) catch |err| {
+                writeErrorResponse(stream, 500, @errorName(err));
+                return true;
+            };
+            defer alloc.free(res);
+            writeJsonResponse(stream, res);
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "Depth")) {
+            const pair = getQueryParam(path, "pair") orelse "OMNI/USD";
+            const count_s = getQueryParam(path, "count") orelse "100";
+            const rpc_body = std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"exchange_getOrderbook\",\"params\":[\"{s}\",{s}]}}",
+                .{ pair, count_s }) catch return true;
+            defer alloc.free(rpc_body);
+            const res = dispatch(rpc_body, ctx) catch |err| {
+                writeErrorResponse(stream, 500, @errorName(err));
+                return true;
+            };
+            defer alloc.free(res);
+            writeJsonResponse(stream, res);
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "Trades") or std.mem.eql(u8, ep, "OHLC") or std.mem.eql(u8, ep, "Spread")) {
+            writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
+            return true;
+        }
+    }
+
+    // ── Private endpoints ───────────────────────────────────────────────
+    if (std.mem.startsWith(u8, rest, "private/")) {
+        const ep = rest[8..];
+        // Map Kraken-style private endpoints to existing exchange_* RPCs
+        var rpc_method: []const u8 = "";
+        const rpc_params: []const u8 = "{}";
+
+        if (std.mem.eql(u8, ep, "Balance")) { rpc_method = "exchange_getBalances"; }
+        else if (std.mem.eql(u8, ep, "TradeBalance")) { rpc_method = "exchange_getBalances"; }
+        else if (std.mem.eql(u8, ep, "OpenOrders")) { rpc_method = "exchange_getUserOrders"; }
+        else if (std.mem.eql(u8, ep, "ClosedOrders")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"closed\":{}}}"); return true; }
+        else if (std.mem.eql(u8, ep, "QueryOrders")) { rpc_method = "exchange_getUserOrders"; }
+        else if (std.mem.eql(u8, ep, "TradesHistory")) { rpc_method = "exchange_getTrades"; }
+        else if (std.mem.eql(u8, ep, "QueryTrades")) { rpc_method = "exchange_getTrades"; }
+        else if (std.mem.eql(u8, ep, "OpenPositions")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{}}"); return true; }
+        else if (std.mem.eql(u8, ep, "Ledgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
+        else if (std.mem.eql(u8, ep, "QueryLedgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
+        else if (std.mem.eql(u8, ep, "TradeVolume")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currency\":\"USD\",\"volume\":\"0.0000\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "AddOrder")) { rpc_method = "exchange_placeOrder"; }
+        else if (std.mem.eql(u8, ep, "CancelOrder")) { rpc_method = "exchange_cancelOrder"; }
+        else if (std.mem.eql(u8, ep, "CancelAll")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"count\":0}}"); return true; }
+        else if (std.mem.eql(u8, ep, "CancelAllOrdersAfter")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currentTime\":\"0\",\"triggerTime\":\"0\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "EditOrder")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"descr\":{\"order\":\"edited\"}}}"); return true; }
+        else if (std.mem.eql(u8, ep, "DepositMethods")) { rpc_method = "exchange_deposit"; }
+        else if (std.mem.eql(u8, ep, "DepositAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"address\":\"ob1q...\",\"expiretm\":0,\"newtag\":null}]}"); return true; }
+        else if (std.mem.eql(u8, ep, "StatusOfDeposits")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "WithdrawMethods")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"method\":\"OMNI\",\"limit\":false,\"fee\":\"0.0005\"}]}"); return true; }
+        else if (std.mem.eql(u8, ep, "WithdrawAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "Withdraw")) { rpc_method = "exchange_withdraw"; }
+        else if (std.mem.eql(u8, ep, "StatusOfWithdrawals")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "WithdrawCancel")) { writeJsonResponse(stream, "{\"error\":[],\"result\":true}"); return true; }
+        else if (std.mem.eql(u8, ep, "WalletTransfer")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"T1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "Stake")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"S1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "Unstake")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"U1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "GetStakingAssets")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"asset\":\"OMNI\",\"staking\":true,\"rewards\":{\"reward\":\"0.05\",\"type\":\"percentage\"}}]}"); return true; }
+        else if (std.mem.eql(u8, ep, "GetPendingStaking")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "ListStakingTransactions")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "Earn/Allocate")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"allocation_id\":\"E1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "Earn/Deallocate")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"allocation_id\":\"E1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "Earn/Strategies")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"id\":\"OMNI_YIELD\",\"asset\":\"OMNI\",\"apy\":\"5.0\"}]}"); return true; }
+        else if (std.mem.eql(u8, ep, "Earn/Allocations")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "AddExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"id\":\"EXP1\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "ExportStatus")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
+        else if (std.mem.eql(u8, ep, "RetrieveExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{}}"); return true; }
+        else if (std.mem.eql(u8, ep, "DeleteExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":true}"); return true; }
+        else if (std.mem.eql(u8, ep, "GetWebSocketsToken")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"token\":\"ws_token_placeholder\",\"expires\":3600}}"); return true; }
+        else {
+            writeErrorResponse(stream, 404, "Unknown endpoint");
+            return true;
+        }
+
+        if (rpc_method.len > 0) {
+            const rpc_body = buildRpcBody(alloc, rpc_method, rpc_params) catch return true;
+            defer alloc.free(rpc_body);
+            const res = dispatch(rpc_body, ctx) catch |err| {
+                writeErrorResponse(stream, 500, @errorName(err));
+                return true;
+            };
+            defer alloc.free(res);
+            writeJsonResponse(stream, res);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // ─── JSON-RPC dispatcher ──────────────────────────────────────────────────────
@@ -672,6 +966,19 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_deposit"))       return handleExchangeDeposit(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_withdraw"))      return handleExchangeWithdraw(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getBalances"))   return handleExchangeGetBalances(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+
+    // ── Identity (public nickname + ENS-pref + visibility) ─────────────
+    if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
+    if (std.mem.eql(u8, method, "identity_get"))    return handleIdentityGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "identity_search")) return handleIdentitySearch(body, ctx, id);
+
+    // ── KYC (signed attestations, no PII on chain) ─────────────────────
+    if (std.mem.eql(u8, method, "kyc_getStatus"))   return handleKycGetStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "kyc_attest"))      return handleKycAttest(body, ctx, id);
+    if (std.mem.eql(u8, method, "kyc_listIssuers")) return handleKycListIssuers(ctx, id);
     // generatewallet disabled — causes stack overflow on RPC thread
     // Use seed node address derivation instead
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
@@ -5372,16 +5679,25 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
     if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
 
-    // Determina pair_id: fie explicit "pairId":N, fie din "pair":"BASE/QUOTE"
+    // Determina pair_id: prefer "pair" label (string) când e prezent —
+    // pairId=0 (OMNI/USD) e perfect valid și nu trebuie tratat ca "missing",
+    // dar `extractArrayNumByKey` nu distinge missing de zero. Așa că prima
+    // dată căutăm string-ul `pair`, apoi numărul.
     var pair_id: u16 = 0;
-    const pair_id_u = extractArrayNumByKey(body, "pairId");
-    if (pair_id_u > 0) {
-        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    } else if (extractStr(body, "pair")) |label| {
+    if (extractStr(body, "pair")) |label| {
         pair_id = exchangePairLookup(label) orelse
             return errorJson(-32602, "Unknown pair (try OMNI/USD, BTC/USD, LCX/USD, ETH/USD)", id, alloc);
     } else {
-        return errorJson(-32602, "Missing param: pair or pairId", id, alloc);
+        const pair_id_u = extractArrayNumByKey(body, "pairId");
+        // pairId 0..MAX_PAIRS-1 valid. Nu putem verifica "missing" cu
+        // sentinel 0 (e indistinct de pairId 0 = OMNI/USD), deci dacă nici
+        // "pair" nici "pairId" key nu există, trebuie să detectăm asta
+        // explicit prin substring match.
+        const has_pair_id_key = std.mem.indexOf(u8, body, "\"pairId\"") != null;
+        if (!has_pair_id_key) {
+            return errorJson(-32602, "Missing param: pair or pairId", id, alloc);
+        }
+        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
     }
 
     const side: matching_mod.Side =
@@ -6441,6 +6757,480 @@ fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     try out.appendSlice(alloc, "]}");
     return alloc.dupe(u8, out.items);
+}
+
+// ── Demo / Real deposit + escrow ─────────────────────────────────────
+
+/// exchange_getEscrowAddress — return the on-chain address users send
+/// real deposits to. On testnet this is the local node's wallet (so the
+/// node can later detect the incoming TX and credit the user). On mainnet
+/// this would be the dedicated `exchange.omnibus` registrar wallet (slot
+/// #1 from the 10-wallet treasury list). Public; no auth required.
+fn handleExchangeGetEscrowAddress(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const escrow = ctx.wallet.address;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"note\":\"Send OMNI to this address, then call exchange_depositReal with the txid\"}}}}",
+        .{ id, escrow });
+}
+
+fn demoQuotaLookup(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
+    var i: u16 = 0;
+    while (i < es.demo_quota_count) : (i += 1) {
+        const q = &es.demo_quotas[i];
+        if (q.address_len == addr.len and std.mem.eql(u8, q.address[0..q.address_len], addr)) {
+            return q;
+        }
+    }
+    return null;
+}
+
+fn demoQuotaGetOrCreate(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
+    if (demoQuotaLookup(es, addr)) |q| return q;
+    if (es.demo_quota_count >= es.demo_quotas.len) {
+        // FIFO evict — table is small (256), eviction means heaviest user
+        // loses oldest record, fine on testnet.
+        var j: u16 = 0;
+        while (j + 1 < es.demo_quotas.len) : (j += 1) {
+            es.demo_quotas[j] = es.demo_quotas[j + 1];
+        }
+        es.demo_quota_count -= 1;
+    }
+    const slot = &es.demo_quotas[es.demo_quota_count];
+    slot.* = .{};
+    const n = @min(addr.len, slot.address.len);
+    @memcpy(slot.address[0..n], addr[0..n]);
+    slot.address_len = @intCast(n);
+    slot.granted_sat = 0;
+    slot.window_start_ms = std.time.milliTimestamp();
+    es.demo_quota_count += 1;
+    return slot;
+}
+
+/// exchange_depositDemo — credit testnet/sandbox demo OMNI to internal
+/// exchange balance. Per-address rate-limited (max 10 OMNI per request,
+/// max 100 OMNI / 24h rolling window). Marks the credited balance row
+/// with token "OMNI_DEMO" so demo and real money are visibly separate
+/// and never mixed when settling trades. No on-chain TX needed.
+fn handleExchangeDepositDemo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.exstate == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const amount = extractArrayNumByKey(body, "amount");
+    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
+    if (amount > DEMO_MAX_PER_REQUEST_SAT) {
+        return errorJson(-32000, "Demo deposit too large (max 10 OMNI per request)", id, alloc);
+    }
+    if (owner.len > 64 or owner.len < 4) return errorJson(-32602, "Bad owner address", id, alloc);
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const es = ctx.exstate.?;
+    const now_ms = std.time.milliTimestamp();
+    const q = demoQuotaGetOrCreate(es, owner) orelse
+        return errorJson(-32000, "Demo quota table full", id, alloc);
+
+    // Reset the rolling window if it's been 24h since first grant.
+    if (now_ms - q.window_start_ms > DEMO_WINDOW_MS) {
+        q.granted_sat = 0;
+        q.window_start_ms = now_ms;
+    }
+    if (q.granted_sat + amount > DEMO_MAX_PER_24H_SAT) {
+        const remaining = if (q.granted_sat >= DEMO_MAX_PER_24H_SAT) 0
+            else DEMO_MAX_PER_24H_SAT - q.granted_sat;
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32000,\"message\":\"Daily demo limit reached. {d} SAT remaining in this 24h window.\"}}}}",
+            .{ id, remaining });
+    }
+
+    if (!balanceCredit(ctx, owner, "OMNI_DEMO", amount)) {
+        return errorJson(-32000, "Balance table full", id, alloc);
+    }
+    q.granted_sat += amount;
+
+    var jbuf: [256]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"owner\":\"{s}\",\"token\":\"OMNI_DEMO\",\"amount\":{d},\"ts\":{d}",
+        .{ owner, amount, now_ms }) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
+
+    const b = balanceLookup(ctx, owner, "OMNI_DEMO").?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"OMNI_DEMO\",\"amount\":{d},\"available\":{d},\"locked\":{d},\"granted24h\":{d},\"max24h\":{d},\"kind\":\"demo\"}}}}",
+        .{ id, owner, amount, b.available_sat, b.locked_sat, q.granted_sat, DEMO_MAX_PER_24H_SAT });
+}
+
+fn realDepositTxidUsed(es: *ExchangeState, txid: []const u8) bool {
+    if (txid.len != 64) return false;
+    var i: u16 = 0;
+    while (i < es.real_deposit_count) : (i += 1) {
+        if (std.mem.eql(u8, &es.real_deposit_txids[i], txid)) return true;
+    }
+    return false;
+}
+
+fn realDepositTxidRecord(es: *ExchangeState, txid: []const u8) bool {
+    if (txid.len != 64) return false;
+    if (es.real_deposit_count >= es.real_deposit_txids.len) {
+        // Shift FIFO out
+        var j: u16 = 0;
+        while (j + 1 < es.real_deposit_txids.len) : (j += 1) {
+            es.real_deposit_txids[j] = es.real_deposit_txids[j + 1];
+        }
+        es.real_deposit_count -= 1;
+    }
+    const slot = &es.real_deposit_txids[es.real_deposit_count];
+    @memcpy(slot[0..64], txid[0..64]);
+    es.real_deposit_count += 1;
+    return true;
+}
+
+/// exchange_depositReal — credit a deposit ONLY after verifying that an
+/// on-chain TX really transferred OMNI from the user to the escrow
+/// address. Idempotent (each txid usable exactly once). The credited
+/// row uses token "OMNI" (real money) so trades against demo balances
+/// can be kept separate.
+fn handleExchangeDepositReal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.exstate == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const txid = extractStr(body, "txid") orelse extractStr(body, "txHash") orelse
+        return errorJson(-32602, "Missing param: txid", id, alloc);
+    if (txid.len != 64) return errorJson(-32602, "txid must be 64 hex chars", id, alloc);
+
+    const escrow = ctx.wallet.address;
+
+    // Look the TX up on-chain. Mirrors handleGetTx logic — same indexes.
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    var found_tx: ?transaction_mod.Transaction = null;
+    var confirmations: u64 = 0;
+    if (ctx.bc.tx_block_height.get(txid)) |bh| {
+        if (bh < ctx.bc.chain.items.len) {
+            const blk = ctx.bc.chain.items[bh];
+            for (blk.transactions.items) |tx| {
+                if (std.mem.eql(u8, tx.hash, txid)) {
+                    found_tx = tx;
+                    const tip: u64 = @intCast(ctx.bc.chain.items.len);
+                    confirmations = if (tip > bh) tip - bh else 0;
+                    break;
+                }
+            }
+        }
+    }
+    if (found_tx == null) {
+        // Linear scan fallback — older TXs not in index.
+        outer: for (ctx.bc.chain.items) |blk| {
+            for (blk.transactions.items) |tx| {
+                if (std.mem.eql(u8, tx.hash, txid)) {
+                    found_tx = tx;
+                    const tip: u64 = @intCast(ctx.bc.chain.items.len);
+                    const bh: u64 = @intCast(blk.index);
+                    confirmations = if (tip > bh) tip - bh else 0;
+                    break :outer;
+                }
+            }
+        }
+    }
+    const tx = found_tx orelse return errorJson(-32000, "Transaction not found in chain (still pending? wait for confirmation)", id, alloc);
+
+    if (!std.mem.eql(u8, tx.from_address, owner)) {
+        return errorJson(-32000, "TX sender does not match owner address", id, alloc);
+    }
+    if (!std.mem.eql(u8, tx.to_address, escrow)) {
+        return errorJson(-32000, "TX recipient is not the exchange escrow address", id, alloc);
+    }
+    if (confirmations < 1) {
+        return errorJson(-32000, "TX not yet confirmed (need >= 1 block)", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const es = ctx.exstate.?;
+    if (realDepositTxidUsed(es, txid)) {
+        return errorJson(-32000, "This txid has already been credited", id, alloc);
+    }
+
+    if (!balanceCredit(ctx, owner, "OMNI", tx.amount)) {
+        return errorJson(-32000, "Balance table full", id, alloc);
+    }
+    _ = realDepositTxidRecord(es, txid);
+
+    var jbuf: [320]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"owner\":\"{s}\",\"token\":\"OMNI\",\"amount\":{d},\"txid\":\"{s}\",\"ts\":{d}",
+        .{ owner, tx.amount, txid, std.time.milliTimestamp() }) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
+
+    const b = balanceLookup(ctx, owner, "OMNI").?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"OMNI\",\"amount\":{d},\"available\":{d},\"locked\":{d},\"txid\":\"{s}\",\"confirmations\":{d},\"kind\":\"real\"}}}}",
+        .{ id, owner, tx.amount, b.available_sat, b.locked_sat, txid, confirmations });
+}
+
+// ── Identity (public name / ENS pref / visibility) ────────────────────
+//
+// `identity_set` — caller proves ownership of `address` by signing
+//                  `IDENTITY_V1\n<address>\n<nickname>\n<ens>\n<visibility>\n<nonce>`
+//                  with the address's secp256k1 key. Server verifies sig
+//                  derives -> bech32 against `address`, applies + appends
+//                  to identities.jsonl. Same anti-replay nonce table as
+//                  the exchange uses.
+//
+// `identity_get` — public; returns null for `private` identities.
+// `identity_search` — public; lists `public` identities whose nickname
+//                     starts with the prefix.
+
+fn buildIdentitySignMessage(
+    out: []u8,
+    address: []const u8,
+    nickname: []const u8,
+    ens: []const u8,
+    visibility: []const u8,
+    nonce: u64,
+) ![]u8 {
+    return std.fmt.bufPrint(out,
+        "IDENTITY_V1\n{s}\n{s}\n{s}\n{s}\n{d}",
+        .{ address, nickname, ens, visibility, nonce });
+}
+
+fn handleIdentitySet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const store = ctx.identity_store orelse
+        return errorJson(-32601, "Identity store not initialized", id, alloc);
+
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const nickname = extractStr(body, "nickname") orelse "";
+    const ens = extractStr(body, "ens") orelse extractStr(body, "ensPrimary") orelse "";
+    const visibility_str = extractStr(body, "visibility") orelse "public";
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    if (nickname.len > identity_mod.NICKNAME_MAX) {
+        return errorJson(-32602, "nickname too long (max 32)", id, alloc);
+    }
+    if (ens.len > identity_mod.ENS_MAX) {
+        return errorJson(-32602, "ens too long (max 64)", id, alloc);
+    }
+
+    // Build canonical message and verify signature.
+    var msg_buf: [256]u8 = undefined;
+    const msg = buildIdentitySignMessage(&msg_buf, address, nickname, ens, visibility_str, nonce) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived);
+    if (!std.mem.eql(u8, derived, address)) {
+        return errorJson(-32000, "Public key does not match address", id, alloc);
+    }
+
+    ctx.identity_mutex.lock();
+    defer ctx.identity_mutex.unlock();
+
+    // Reuse exchange nonce table — they live in the same context. New
+    // nonce must be strictly greater than last seen for this address.
+    const last_nonce = nonceLookup(ctx, address);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used", id, alloc);
+    }
+    nonceSet(ctx, address, nonce);
+
+    const visibility = identity_mod.Visibility.fromStr(visibility_str);
+    store.upsert(address, nickname, ens, visibility, std.time.milliTimestamp(), true) catch |err| {
+        return errorJson(-32000, switch (err) {
+            error.NicknameNotPrintable => "Nickname must be printable ASCII (no quotes/control/unicode)",
+            error.NicknameTooLong => "Nickname too long",
+            error.EnsTooLong => "ENS too long",
+            error.StoreFull => "Identity store full",
+            error.BadAddress => "Bad address",
+        }, id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":true}}}}",
+        .{ id, address, nickname, ens, visibility.toStr() });
+}
+
+fn handleIdentityGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const store = ctx.identity_store orelse
+        return errorJson(-32601, "Identity store not initialized", id, alloc);
+    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    ctx.identity_mutex.lock();
+    defer ctx.identity_mutex.unlock();
+
+    // `respect_visibility=true` so private addresses return null.
+    const it = store.lookup(address, true) orelse {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}",
+            .{id});
+    };
+
+    // For ens_only visibility, blank the nickname so the UI doesn't even
+    // see it. Address is already public on chain anyway.
+    const nick: []const u8 = if (it.visibility == .ens_only) "" else it.getNickname();
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":{d}}}}}",
+        .{ id, it.getAddress(), nick, it.getEns(), it.visibility.toStr(), it.updated_ms });
+}
+
+fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const store = ctx.identity_store orelse
+        return errorJson(-32601, "Identity store not initialized", id, alloc);
+    const prefix = extractStr(body, "prefix") orelse extractArrayStr(body, 0) orelse "";
+    const limit_raw = extractArrayNumByKey(body, "limit");
+    const limit: u32 = if (limit_raw == 0) 25 else @intCast(@min(limit_raw, @as(u64, 100)));
+
+    ctx.identity_mutex.lock();
+    defer ctx.identity_mutex.unlock();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+    var first = true;
+    var emitted: u32 = 0;
+    var i: u16 = 0;
+    while (i < store.count and emitted < limit) : (i += 1) {
+        const it = &store.items[i];
+        if (it.visibility == .private) continue;
+        const nick = it.getNickname();
+        if (prefix.len > 0) {
+            const nlower = nick;
+            if (nlower.len < prefix.len) continue;
+            if (!std.ascii.startsWithIgnoreCase(nlower, prefix)) continue;
+        }
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        const visible_nick: []const u8 = if (it.visibility == .ens_only) "" else nick;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\"}}",
+            .{ it.getAddress(), visible_nick, it.getEns(), it.visibility.toStr() });
+        emitted += 1;
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+// ── KYC (signed attestations) ─────────────────────────────────────────
+
+fn handleKycGetStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const store = ctx.kyc_store orelse
+        return errorJson(-32601, "KYC store not initialized", id, alloc);
+    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    ctx.identity_mutex.lock();
+    defer ctx.identity_mutex.unlock();
+
+    const now_ms = std.time.milliTimestamp();
+    const att = store.highest(address, now_ms) orelse {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":0,\"label\":\"none\"}}}}",
+            .{ id, address });
+    };
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":{d},\"label\":\"{s}\",\"issuer\":\"{s}\",\"issued\":{d},\"expires\":{d}}}}}",
+        .{ id, address, att.level.toU8(), att.level.label(),
+           att.getIssuer(), att.issued_ms, att.expires_ms });
+}
+
+/// kyc_attest — only callable by the configured KYC issuer (registrar
+/// slot 4). The issuer signs the canonical message and submits it; we
+/// verify the signature derives to the configured issuer address.
+fn handleKycAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const store = ctx.kyc_store orelse
+        return errorJson(-32601, "KYC store not initialized", id, alloc);
+    if (ctx.kyc_issuer_addr_len == 0) {
+        return errorJson(-32601, "KYC issuance disabled on this node", id, alloc);
+    }
+    const expected_issuer = ctx.kyc_issuer_addr_buf[0..ctx.kyc_issuer_addr_len];
+
+    const target = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address (subject)", id, alloc);
+    const level_raw = extractArrayNumByKey(body, "level");
+    const level = kyc_mod.Level.fromU8(@intCast(@min(level_raw, @as(u64, 3))));
+    const issued_raw = extractArrayNumByKey(body, "issued");
+    const issued: i64 = if (issued_raw > 0) @intCast(issued_raw) else std.time.milliTimestamp();
+    // Default expiry: +1 year if caller didn't pass one.
+    const expires_raw = extractArrayNumByKey(body, "expires");
+    const default_expiry: i64 = issued + 365 * 24 * 60 * 60 * 1000;
+    const expires: i64 = if (expires_raw > 0) @intCast(expires_raw) else default_expiry;
+
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey (issuer)", id, alloc);
+
+    var msg_buf: [256]u8 = undefined;
+    const msg = kyc_mod.buildAttestMessage(&msg_buf, target, level, expected_issuer, issued, expires) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+
+    // Verify pubkey -> address derivation matches the configured issuer.
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived);
+    if (!std.mem.eql(u8, derived, expected_issuer)) {
+        return errorJson(-32000, "Caller is not the registered KYC issuer", id, alloc);
+    }
+
+    ctx.identity_mutex.lock();
+    defer ctx.identity_mutex.unlock();
+
+    store.append(target, level, expected_issuer, issued, expires, sig_hex, true) catch |err| {
+        return errorJson(-32000, switch (err) {
+            error.StoreFull => "KYC store full",
+            error.BadAddress => "Bad subject address",
+            error.BadIssuer => "Bad issuer address",
+            error.BadSignature => "Bad signature",
+        }, id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":{d},\"label\":\"{s}\",\"issuer\":\"{s}\",\"issued\":{d},\"expires\":{d}}}}}",
+        .{ id, target, level.toU8(), level.label(), expected_issuer, issued, expires });
+}
+
+fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.kyc_issuer_addr_len == 0) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}", .{id});
+    }
+    const issuer = ctx.kyc_issuer_addr_buf[0..ctx.kyc_issuer_addr_len];
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[{{\"address\":\"{s}\",\"role\":\"kyc.omnibus\",\"slot\":4}}]}}",
+        .{ id, issuer });
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────

@@ -128,6 +128,45 @@ export function signWithdrawPayload(args: {
 }
 
 /**
+ * Sign an `identity_set` payload. Canonical (must match
+ * buildIdentitySignMessage in rpc_server.zig):
+ *   "IDENTITY_V1\n<address>\n<nickname>\n<ens>\n<visibility>\n<nonce>"
+ */
+export function signIdentitySetPayload(args: {
+  privateKeyHex: string;
+  address: string;
+  nickname: string;
+  ens: string;
+  visibility: "public" | "private" | "ens_only";
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg =
+    `IDENTITY_V1\n${args.address}\n${args.nickname}\n${args.ens}\n` +
+    `${args.visibility}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+/**
+ * Sign a KYC attestation. Only the configured issuer (registrar slot 4)
+ * can produce a signature the chain accepts. Canonical (must match
+ * `kyc.zig:buildAttestMessage`):
+ *   "KYC_ATTEST_V1\n<subject>\n<level>\n<issuer>\n<issued>\n<expires>"
+ */
+export function signKycAttestation(args: {
+  issuerPrivateKeyHex: string;
+  subjectAddress: string;
+  level: 1 | 2 | 3;
+  issuerAddress: string;
+  issuedMs: number;
+  expiresMs: number;
+}): { signature: string; publicKey: string } {
+  const msg =
+    `KYC_ATTEST_V1\n${args.subjectAddress}\n${args.level}\n${args.issuerAddress}\n` +
+    `${args.issuedMs}\n${args.expiresMs}`;
+  return signMessage(args.issuerPrivateKeyHex, msg);
+}
+
+/**
  * ECDSA secp256k1 signer — the chain verify path uses
  * `EcdsaSecp256k1Sha256oSha256` which prehashes with SHA256d. We pre-hash
  * here too and pass `prehash:false` so noble does not double-hash.

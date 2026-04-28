@@ -586,6 +586,81 @@ export class OmniBusRpcClient {
       return [];
     }
   }
+
+  // ── Identity (public nickname / ENS pref / visibility) ──────────────
+  async identitySet(payload: {
+    address: string;
+    nickname: string;
+    ens: string;
+    visibility: "public" | "private" | "ens_only";
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ address: string; nickname: string; ens: string; visibility: string; updated: boolean }> {
+    return this.request("identity_set", [payload]);
+  }
+
+  async identityGet(address: string): Promise<{
+    address: string;
+    nickname: string;
+    ens: string;
+    visibility: "public" | "private" | "ens_only";
+    updated: number;
+  } | null> {
+    try {
+      return await this.request("identity_get", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async identitySearch(prefix: string, limit = 25): Promise<Array<{
+    address: string;
+    nickname: string;
+    ens: string;
+    visibility: string;
+  }>> {
+    try {
+      return (await this.request("identity_search", [{ prefix, limit }])) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  // ── KYC (signed attestations, no PII on chain) ─────────────────────
+  async kycGetStatus(address: string): Promise<{
+    address: string;
+    level: 0 | 1 | 2 | 3;
+    label: string;
+    issuer?: string;
+    issued?: number;
+    expires?: number;
+  }> {
+    try {
+      return await this.request("kyc_getStatus", [{ address }]);
+    } catch {
+      return { address, level: 0, label: "none" };
+    }
+  }
+
+  async kycListIssuers(): Promise<Array<{ address: string; role: string; slot: number }>> {
+    try {
+      return (await this.request("kyc_listIssuers")) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async kycAttest(payload: {
+    address: string;
+    level: 1 | 2 | 3;
+    issued: number;
+    expires: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ address: string; level: number; label: string; issuer: string; issued: number; expires: number }> {
+    return this.request("kyc_attest", [payload]);
+  }
 }
 
 export interface ApiKeyInfo {

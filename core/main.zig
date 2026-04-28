@@ -286,6 +286,14 @@ const RPCThreadArgs = struct {
     orders_path: ?[]const u8,
     /// Path to `data/<chain>/exchange-users.jsonl`. Stores apikeys + balances.
     users_path: ?[]const u8,
+    /// Path to `data/<chain>/identities.jsonl`. Stores public nickname /
+    /// ENS-pref / visibility per address.
+    identities_path: ?[]const u8,
+    /// Path to `data/<chain>/kyc-attestations.jsonl`. Signed level proofs.
+    kyc_path: ?[]const u8,
+    /// Address of the KYC issuer (registrar slot 4 = `kyc.omnibus`).
+    /// Null = node accepts no KYC issuance (read-only KYC).
+    kyc_issuer_address: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -306,6 +314,9 @@ fn rpcThread(args: RPCThreadArgs) void {
         .exchange = args.exchange,
         .orders_path = args.orders_path,
         .users_path = args.users_path,
+        .identities_path = args.identities_path,
+        .kyc_path = args.kyc_path,
+        .kyc_issuer_address = args.kyc_issuer_address,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -1208,6 +1219,8 @@ pub fn main() !void {
     // present (even when matching engine is off) because login + balance
     // queries are useful by themselves.
     var users_path_owned: ?[]u8 = null;
+    var identities_path_owned: ?[]u8 = null;
+    var kyc_path_owned: ?[]u8 = null;
     {
         const chain_subdir: []const u8 = if (config.testnet) "testnet"
             else if (config.regtest) "regtest" else "mainnet";
@@ -1215,6 +1228,26 @@ pub fn main() !void {
         if (users_path_owned) |p| {
             std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
             std.debug.print("[EXCHANGE] users journal: {s}\n", .{p});
+        }
+        identities_path_owned = std.fmt.allocPrint(allocator, "data/{s}/identities.jsonl", .{chain_subdir}) catch null;
+        kyc_path_owned = std.fmt.allocPrint(allocator, "data/{s}/kyc-attestations.jsonl", .{chain_subdir}) catch null;
+        if (identities_path_owned) |p| std.debug.print("[IDENTITY] journal: {s}\n", .{p});
+        if (kyc_path_owned) |p| std.debug.print("[KYC] journal: {s}\n", .{p});
+    }
+
+    // KYC issuer address: the wallet at registrar slot 4 (`kyc.omnibus`).
+    // We re-derive from the same mnemonic the local wallet was built from.
+    // On testnet that's enough; mainnet would also cross-check against the
+    // hardcoded constant in `registrar_addresses.zig:REGISTRAR_ADDRESSES`.
+    const bip32_wallet_mod = @import("bip32_wallet.zig");
+    var kyc_issuer_owned: ?[]u8 = null;
+    {
+        var bip32 = bip32_wallet_mod.BIP32Wallet.initFromMnemonic(mnemonic, allocator) catch null;
+        if (bip32) |*w| {
+            kyc_issuer_owned = w.deriveAddressForDomain(777, 4, "ob", allocator) catch null;
+            if (kyc_issuer_owned) |addr| {
+                std.debug.print("[KYC] issuer (slot 4 / kyc.omnibus): {s}\n", .{addr});
+            }
         }
     }
 
@@ -1238,6 +1271,9 @@ pub fn main() !void {
         .exchange = exchange_engine,
         .orders_path = orders_path_owned,
         .users_path = users_path_owned,
+        .identities_path = identities_path_owned,
+        .kyc_path = kyc_path_owned,
+        .kyc_issuer_address = kyc_issuer_owned,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

@@ -8,6 +8,8 @@ import { PlaceOrderForm } from "./PlaceOrderForm";
 import { UserOrdersPanel } from "./UserOrdersPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { BalancesPanel } from "./BalancesPanel";
+import { IdentityPanel } from "./IdentityPanel";
+import { KycPanel } from "./KycPanel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -135,7 +137,7 @@ export function ExchangePage() {
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "trade" ? "Trade" : "Account · Balances · API keys"}
+            {t === "trade" ? "Trade" : "Account · Balances · Identity · KYC · API keys"}
           </button>
         ))}
       </div>
@@ -144,6 +146,8 @@ export function ExchangePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <BalancesPanel />
           <ApiKeysPanel />
+          <IdentityPanel />
+          <KycPanel />
         </div>
       )}
 
