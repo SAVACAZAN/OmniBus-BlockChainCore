@@ -1028,7 +1028,23 @@ pub fn main() !void {
     // Pass nodul mnemonic ca să derivăm wallet propriu per-agent (BIP-44
     // m/44'/777'/0'/0/wallet_index). Fiecare agent are adresă, balance, P&L
     // separate. Fallback la miner address daca derivation eșuează.
-    if (parsed.agent_config_path) |agent_path| {
+    //
+    // Opt-out via env var OMNIBUS_EXTERNAL_AGENTS=1. When set, the chain
+    // process does NOT load agents into its own AgentManager — a separate
+    // omnibus-agents process is expected to be running, watching the chain
+    // via RPC and submitting TXs through sendrawtransaction. This frees
+    // the mining loop from running agentTickAll on every block.
+    const external_agents = std.process.getEnvVarOwned(
+        allocator, "OMNIBUS_EXTERNAL_AGENTS",
+    ) catch null;
+    defer if (external_agents) |s| allocator.free(s);
+    const agents_use_external = external_agents != null and
+        std.mem.eql(u8, external_agents.?, "1");
+    if (agents_use_external) {
+        std.debug.print(
+            "[AGENT] external agents enabled (OMNIBUS_EXTERNAL_AGENTS=1) " ++
+            "— in-process agent manager disabled. Expect omnibus-agents on :28200\n", .{});
+    } else if (parsed.agent_config_path) |agent_path| {
         loadAgentConfig(agent_path, mnemonic, effective_miner_addr, allocator);
     }
 
@@ -1422,8 +1438,21 @@ pub fn main() !void {
     std.debug.print("[ORACLE] Distributed price oracle initialized\n", .{});
 
     // ── Oracle Fetcher: real prices from LCX, Kraken, Coinbase ────────────────
+    //
+    // Spawns a dedicated worker thread that owns all blocking HTTPS work
+    // (6 sequential GETs to LCX, Kraken, Coinbase × BTC, LCX). The mining
+    // loop only reads the latest snapshot under a tiny mutex — never
+    // blocks on the network. This removed the periodic 8–9 s block-time
+    // spikes the operator observed (every 10th block sat in fetchAll()
+    // for the worst-case sum of 6 HTTPS timeouts).
     g_oracle_fetcher = oracle_fetcher_mod.OracleFetcher.init(allocator);
-    std.debug.print("[ORACLE-FETCHER] Real price fetcher initialized (LCX + Kraken + Coinbase)\n", .{});
+    if (g_oracle_fetcher) |*f| {
+        f.startWorker() catch |err| {
+            std.debug.print("[ORACLE-FETCHER] worker spawn failed: {} — fetcher disabled\n",
+                .{err});
+        };
+    }
+    std.debug.print("[ORACLE-FETCHER] Real price fetcher initialized + worker thread started\n", .{});
 
     // ── Performance Metrics init ───────────────────────────────────────────────
     g_metrics = benchmark_mod.Metrics.init();
@@ -2054,15 +2083,24 @@ pub fn main() !void {
             // ── Price Oracle: Reset submissions for next round ──────────
             g_price_oracle.resetRound();
 
-            // ── Oracle Fetcher: fetch real prices every 10 blocks (~10s) ─────
+            // ── Oracle Fetcher: log latest snapshot every 10 blocks ─────────
+            //
+            // The actual fetching happens on a dedicated worker thread (see
+            // OracleFetcher.startWorker in main()). Here we only read the
+            // latest snapshot under the mutex — constant-time, never blocks
+            // mining. Previously this branch called fetcher.fetchAll()
+            // directly, which did 6 sequential blocking HTTPS calls and
+            // could pause the mining thread for 8–9 seconds when any
+            // exchange was slow. That was the cause of the periodic
+            // 9000ms block-latency spikes the operator observed in
+            // testnet logs (1 slow block at every 10th, like clockwork).
             if (block_count % 10 == 0) {
                 if (g_oracle_fetcher) |*fetcher| {
-                    fetcher.fetchAll();
-                    // Count per-asset for accurate "X/3" labels.
+                    const snap = fetcher.snapshot();
                     var btc_ok: u8 = 0;
                     var lcx_ok: u8 = 0;
-                    for (fetcher.prices[0..3]) |p| { if (p.success) btc_ok += 1; }
-                    for (fetcher.prices[3..6]) |p| { if (p.success) lcx_ok += 1; }
+                    for (snap[0..3]) |p| { if (p.success) btc_ok += 1; }
+                    for (snap[3..6]) |p| { if (p.success) lcx_ok += 1; }
                     if (fetcher.getMedianPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
                             .{ median / 1_000_000, (median % 1_000_000) / 10_000, btc_ok });

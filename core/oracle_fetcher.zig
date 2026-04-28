@@ -32,6 +32,13 @@ pub const OracleFetcher = struct {
     prices: [6]PriceFetch,
     price_count: u8,
 
+    /// Background-thread state. Mining loop never calls fetchAll directly
+    /// any more — it just reads `prices` under `mutex`. The worker thread
+    /// owns all blocking HTTPS work.
+    mutex: std.Thread.Mutex = .{},
+    run: std.atomic.Value(bool) = std.atomic.Value(bool).init(false),
+    worker: ?std.Thread = null,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator) Self {
@@ -48,11 +55,62 @@ pub const OracleFetcher = struct {
                 .{ .exchange = "Coinbase", .pair = "LCX/USD", .bid_micro_usd = 0, .ask_micro_usd = 0, .timestamp_ms = 0, .success = false },
             },
             .price_count = 0,
+            .mutex = .{},
+            .run = std.atomic.Value(bool).init(false),
+            .worker = null,
         };
     }
 
-    /// Fetch prices from all 3 exchanges, both BTC and LCX. Best-effort: never returns error.
-    pub fn fetchAll(self: *Self) void {
+    /// Spawn the background worker. Caller must keep `self` alive
+    /// (g_oracle_fetcher is a process-lifetime global, so this is safe).
+    /// Idempotent — second call is a no-op.
+    ///
+    /// CRITICAL: This was the root cause of the periodic 8–9 s block-time
+    /// spikes the operator observed. The mining loop used to call
+    /// fetchAll() directly every 10 blocks; fetchAll() does 6 sequential
+    /// blocking HTTPS calls (LCX + Kraken + Coinbase × BTC + LCX). When
+    /// any one of them was slow (~1.5 s timeout × 6 = 9 s worst case),
+    /// the entire mining thread stalled for that long. Pattern in the
+    /// log: 9 fast blocks (200–400 ms) then 1 block at ~9000 ms,
+    /// repeating every 10 blocks. By moving the work to a dedicated
+    /// thread that ticks every fetch_interval_ms (default 10 s), the
+    /// mining loop now only does a 1 µs mutex-guarded read of the
+    /// snapshot — block latency stays uniform.
+    pub fn startWorker(self: *Self) !void {
+        if (self.run.load(.acquire)) return;
+        self.run.store(true, .release);
+        self.worker = try std.Thread.spawn(.{}, workerLoop, .{self});
+    }
+
+    pub fn stopWorker(self: *Self) void {
+        self.run.store(false, .release);
+        if (self.worker) |t| {
+            t.join();
+            self.worker = null;
+        }
+    }
+
+    fn workerLoop(self: *Self) void {
+        // Run an immediate fetch on startup so the first read isn't all
+        // zeros, then loop on the configured interval. We sleep in 100 ms
+        // chunks so stopWorker() reacts within ~100 ms on shutdown.
+        self.fetchAllInternal();
+        while (self.run.load(.acquire)) {
+            const interval = self.fetch_interval_ms;
+            var slept_ms: i64 = 0;
+            while (slept_ms < interval and self.run.load(.acquire)) : (slept_ms += 100) {
+                std.Thread.sleep(100 * std.time.ns_per_ms);
+            }
+            if (!self.run.load(.acquire)) break;
+            self.fetchAllInternal();
+        }
+    }
+
+    /// Worker-thread entry point. Same body as the old fetchAll() but
+    /// holds the mutex while writing each slot so the mining loop can
+    /// take a consistent snapshot. The HTTPS calls themselves run
+    /// outside the lock; we only lock for the per-slot store.
+    fn fetchAllInternal(self: *Self) void {
         // BTC pair (slots 0-2)
         self.fetchLcxPair(0, "BTC/USDC", "BTC/USD");
         self.fetchKrakenPair(1, "XBTUSD",  "BTC/USD");
@@ -62,13 +120,45 @@ pub const OracleFetcher = struct {
         self.fetchKrakenPair(4, "LCXUSD",  "LCX/USD");
         self.fetchCoinbasePair(5, "LCX-USD", "LCX/USD");
 
+        self.mutex.lock();
+        defer self.mutex.unlock();
         self.last_fetch_ms = std.time.milliTimestamp();
-
-        // Count successful fetches
         self.price_count = 0;
         for (self.prices) |p| {
             if (p.success) self.price_count += 1;
         }
+    }
+
+    /// Take a consistent snapshot of all 6 price slots. Constant-time,
+    /// holds the mutex for ~1 µs. Safe to call from the mining loop on
+    /// every block.
+    pub fn snapshot(self: *Self) [6]PriceFetch {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        return self.prices;
+    }
+
+    /// DEPRECATED — kept only for tests / one-off CLI scripts that still
+    /// want a synchronous fetch. The mining loop must NOT call this any
+    /// more (it blocks for ~1–9 s). Use startWorker() once at startup
+    /// and call snapshot() on every block instead.
+    pub fn fetchAll(self: *Self) void {
+        self.fetchAllInternal();
+    }
+
+    /// Locked write of a single price slot. fetch* helpers route through
+    /// this so the worker thread doesn't tear writes that the mining
+    /// loop is reading via snapshot().
+    fn storeSlot(self: *Self, slot: usize, p: PriceFetch) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        self.prices[slot] = p;
+    }
+
+    fn markSlotFailed(self: *Self, slot: usize) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        self.prices[slot].success = false;
     }
 
     /// Fetch from LCX public ticker API: bestBid / bestAsk in JSON.
@@ -77,11 +167,11 @@ pub const OracleFetcher = struct {
         var url_buf: [128]u8 = undefined;
         const url = std.fmt.bufPrint(&url_buf,
             "https://exchange-api.lcx.com/api/ticker?pair={s}", .{lcx_pair}) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         const body = httpGet(self.allocator, url) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         defer self.allocator.free(body);
@@ -92,16 +182,16 @@ pub const OracleFetcher = struct {
         if (bid != null or ask != null) {
             const bid_val = bid orelse (ask orelse 0);
             const ask_val = ask orelse (bid orelse 0);
-            self.prices[slot] = .{
+            self.storeSlot(slot, .{
                 .exchange      = "LCX",
                 .pair          = label_pair,
                 .bid_micro_usd = bid_val,
                 .ask_micro_usd = ask_val,
                 .timestamp_ms  = std.time.milliTimestamp(),
                 .success       = true,
-            };
+            });
         } else {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
         }
     }
 
@@ -113,11 +203,11 @@ pub const OracleFetcher = struct {
         var url_buf: [128]u8 = undefined;
         const url = std.fmt.bufPrint(&url_buf,
             "https://api.kraken.com/0/public/Ticker?pair={s}", .{kraken_pair}) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         const body = httpGet(self.allocator, url) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         defer self.allocator.free(body);
@@ -128,16 +218,16 @@ pub const OracleFetcher = struct {
         if (bid != null or ask != null) {
             const bid_val = bid orelse (ask orelse 0);
             const ask_val = ask orelse (bid orelse 0);
-            self.prices[slot] = .{
+            self.storeSlot(slot, .{
                 .exchange      = "Kraken",
                 .pair          = label_pair,
                 .bid_micro_usd = bid_val,
                 .ask_micro_usd = ask_val,
                 .timestamp_ms  = std.time.milliTimestamp(),
                 .success       = true,
-            };
+            });
         } else {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
         }
     }
 
@@ -148,11 +238,11 @@ pub const OracleFetcher = struct {
         var url_buf: [128]u8 = undefined;
         const url = std.fmt.bufPrint(&url_buf,
             "https://api.exchange.coinbase.com/products/{s}/ticker", .{cb_pair}) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         const body = httpGet(self.allocator, url) catch {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
             return;
         };
         defer self.allocator.free(body);
@@ -163,32 +253,40 @@ pub const OracleFetcher = struct {
         if (bid != null or ask != null) {
             const bid_val = bid orelse (ask orelse 0);
             const ask_val = ask orelse (bid orelse 0);
-            self.prices[slot] = .{
+            self.storeSlot(slot, .{
                 .exchange      = "Coinbase",
                 .pair          = label_pair,
                 .bid_micro_usd = bid_val,
                 .ask_micro_usd = ask_val,
                 .timestamp_ms  = std.time.milliTimestamp(),
                 .success       = true,
-            };
+            });
         } else {
-            self.prices[slot].success = false;
+            self.markSlotFailed(slot);
         }
     }
 
     /// Get median BTC price across the 3 BTC slots (0..3).
     /// Returns null if no exchange returned a valid price.
-    pub fn getMedianPrice(self: *const Self) ?u64 {
+    /// Takes mutex briefly to read a coherent snapshot vs. the worker
+    /// thread's writes.
+    pub fn getMedianPrice(self: *Self) ?u64 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
         return medianFor(self.prices[0..3]);
     }
 
     /// Get median LCX price across the 3 LCX slots (3..6).
-    pub fn getMedianLcxPrice(self: *const Self) ?u64 {
+    pub fn getMedianLcxPrice(self: *Self) ?u64 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
         return medianFor(self.prices[3..6]);
     }
 
     /// Get best BTC bid (highest) across exchanges
-    pub fn getBestBid(self: *const Self) ?u64 {
+    pub fn getBestBid(self: *Self) ?u64 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
         return bestBidFor(self.prices[0..3]);
     }
 
