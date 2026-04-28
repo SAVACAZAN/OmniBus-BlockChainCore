@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient, { UserOrder } from "../../api/rpc-client";
 import { signCancelOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+import { useTraderMode } from "./TraderModeToggle";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -19,6 +20,7 @@ interface Props {
 export function UserOrdersPanel({ pairId, refreshKey }: Props) {
   const [, force] = useState(0);
   useEffect(() => subscribeWallet(() => force((n) => n + 1)), []);
+  const [traderMode] = useTraderMode();
 
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,7 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
     }
     let cancelled = false;
     const refresh = async () => {
-      const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId });
+      const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId, mode: traderMode });
       if (!cancelled) {
         setOrders(list);
         setLoading(false);
@@ -47,7 +49,7 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
       cancelled = true;
       clearInterval(id);
     };
-  }, [u?.address, pairId, refreshKey]);
+  }, [u?.address, pairId, refreshKey, traderMode]);
 
   const cancel = async (orderId: number) => {
     if (!u) return;
@@ -67,6 +69,7 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
         nonce,
         signature,
         publicKey,
+        mode: traderMode,
       });
       // Optimistic remove; refresh will re-sync.
       setOrders((prev) => prev.filter((o) => o.orderId !== orderId));

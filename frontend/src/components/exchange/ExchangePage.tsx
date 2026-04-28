@@ -10,7 +10,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { BalancesPanel } from "./BalancesPanel";
 import { IdentityPanel } from "./IdentityPanel";
 import { KycPanel } from "./KycPanel";
-import { TraderModeToggle } from "./TraderModeToggle";
+import { TraderModeToggle, useTraderMode } from "./TraderModeToggle";
 
 const rpc = new OmniBusRpcClient();
 
@@ -32,6 +32,7 @@ type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
 export function ExchangePage() {
   const [tab, setTab] = useState<Tab>("trade");
   const [accountTab, setAccountTab] = useState<AccountTab>("balances");
+  const [traderMode] = useTraderMode();
   const [pairs, setPairs] = useState<Pair[]>(FALLBACK_PAIRS);
   const [pairId, setPairId] = useState<number>(0);
   const [bids, setBids] = useState<OrderbookLevel[]>([]);
@@ -52,14 +53,14 @@ export function ExchangePage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Poll orderbook + trades.
+  // Poll orderbook + trades. Mode-aware — switches engine on toggle.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
       try {
         const [ob, tr] = await Promise.all([
-          rpc.exchangeGetOrderbook({ pairId, depth: 25 }),
-          rpc.exchangeGetTrades({ pairId, limit: 50 }),
+          rpc.exchangeGetOrderbook({ pairId, depth: 25, mode: traderMode }),
+          rpc.exchangeGetTrades({ pairId, limit: 50, mode: traderMode }),
         ]);
         if (cancelled) return;
         if (ob) {
@@ -86,7 +87,7 @@ export function ExchangePage() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [pairId, refreshNonce]);
+  }, [pairId, refreshNonce, traderMode]);
 
   const activePair = useMemo(
     () => pairs.find((p) => p.id === pairId) ?? pairs[0],

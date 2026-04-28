@@ -220,9 +220,16 @@ const ExchangeBalance = struct {
 /// VPS without segfaulting on the systemd thread stack.
 const ExchangeState = struct {
     /// 256 rolling fills for `exchange_getTrades`.
+    /// Real-trader fill log (rolling, last 256 fills on real engine).
     trade_log: [256]matching_mod.Fill = undefined,
     trade_head: u32 = 0,
     trade_count: u32 = 0,
+    /// Paper-trader fill log — same shape, isolated. When the user is in
+    /// paper mode the UI reads from here, never seeing real fills (and
+    /// vice-versa). Same way mainnet/testnet are isolated chains.
+    trade_log_paper: [256]matching_mod.Fill = undefined,
+    trade_head_paper: u32 = 0,
+    trade_count_paper: u32 = 0,
     /// Order-replay nonces (per trader, FIFO).
     nonces: [1024]TraderNonce = undefined,
     nonce_count: u16 = 0,
@@ -5621,10 +5628,32 @@ fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
 }
 
 /// Inregistreaza un fill in trade_log circular (cele mai recente 256).
-fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill) void {
-    ctx.exstate.?.trade_log[ctx.exstate.?.trade_head] = fill;
-    ctx.exstate.?.trade_head = (ctx.exstate.?.trade_head + 1) % @as(u32, @intCast(ctx.exstate.?.trade_log.len));
-    if (ctx.exstate.?.trade_count < ctx.exstate.?.trade_log.len) ctx.exstate.?.trade_count += 1;
+/// `is_paper` selects which log gets the fill. Paper and real are kept
+/// isolated so a paper trade never appears in the real feed and vice-versa.
+fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill, is_paper: bool) void {
+    const es = ctx.exstate orelse return;
+    if (is_paper) {
+        es.trade_log_paper[es.trade_head_paper] = fill;
+        es.trade_head_paper = (es.trade_head_paper + 1) % @as(u32, @intCast(es.trade_log_paper.len));
+        if (es.trade_count_paper < es.trade_log_paper.len) es.trade_count_paper += 1;
+    } else {
+        es.trade_log[es.trade_head] = fill;
+        es.trade_head = (es.trade_head + 1) % @as(u32, @intCast(es.trade_log.len));
+        if (es.trade_count < es.trade_log.len) es.trade_count += 1;
+    }
+}
+
+/// True dacă body-ul cere mod paper. Cautam `"mode":"paper"` literal —
+/// orice altceva (default, "real", missing) → real engine. Ca și pe REST
+/// (`/exchange/0/*` vs `/paper/0/*`) modul e doar un selector de routing.
+fn isPaperMode(body: []const u8) bool {
+    return std.mem.indexOf(u8, body, "\"mode\":\"paper\"") != null;
+}
+
+/// Picks the engine matching the requested mode. Returns null + sets a
+/// flag for the caller if the requested engine isn't allocated.
+fn pickEngine(ctx: *ServerCtx, paper: bool) ?*matching_mod.MatchingEngine {
+    return if (paper) ctx.exchange_paper else ctx.exchange;
 }
 
 /// Construieste mesajul canonical pentru semnatura unui placeOrder.
@@ -5687,9 +5716,9 @@ fn verifyOrderSig(
 /// Pretul e in micro-USD (u64), amount in SAT (u64).
 fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-
-    const engine = ctx.exchange orelse
-        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    const engine = pickEngine(ctx, is_paper) orelse
+        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
     const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: trader", id, alloc);
@@ -5810,7 +5839,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // Move newly produced fills into rolling trade_log
     var fi = fills_before;
     while (fi < engine.fill_count) : (fi += 1) {
-        tradeLogPush(ctx, engine.fills[fi]);
+        tradeLogPush(ctx, engine.fills[fi], is_paper);
     }
 
     nonceSet(ctx, trader, nonce);
@@ -5844,8 +5873,9 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// nonce, signature, publicKey. Verifica pe lant ca trader == owner.
 fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const engine = ctx.exchange orelse
-        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    const engine = pickEngine(ctx, is_paper) orelse
+        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
     const order_id = extractArrayNumByKey(body, "orderId");
     if (order_id == 0) return errorJson(-32602, "Missing param: orderId", id, alloc);
@@ -5916,8 +5946,9 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Params: pair sau pairId, optional depth (default 25, max 50).
 fn handleExchangeGetOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const engine = ctx.exchange orelse
-        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    const engine = pickEngine(ctx, is_paper) orelse
+        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
     var pair_id: u16 = 0;
     const pair_id_u = extractArrayNumByKey(body, "pairId");
@@ -5987,8 +6018,9 @@ fn handleExchangeGetOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 
 /// Params: trader. Optional: pairId / pair (filtru).
 fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const engine = ctx.exchange orelse
-        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    const engine = pickEngine(ctx, is_paper) orelse
+        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
     const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: trader", id, alloc);
 
@@ -6035,7 +6067,8 @@ fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
 /// limit (default 50, max 256).
 fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    if (ctx.exchange == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    if (pickEngine(ctx, is_paper) == null) return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
     var filter_pair: ?u16 = null;
     const pair_id_u = extractArrayNumByKey(body, "pairId");
@@ -6057,15 +6090,18 @@ fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.exchange_mutex.lock();
     defer ctx.exchange_mutex.unlock();
 
-    // Walk newest-to-oldest in circular buffer
+    // Walk newest-to-oldest in circular buffer (per-mode log).
+    const es = ctx.exstate.?;
+    const log_count = if (is_paper) es.trade_count_paper else es.trade_count;
+    const log_head = if (is_paper) es.trade_head_paper else es.trade_head;
     var emitted: u32 = 0;
     var first = true;
     var c: u32 = 0;
-    while (c < ctx.exstate.?.trade_count and emitted < limit) : (c += 1) {
+    while (c < log_count and emitted < limit) : (c += 1) {
         // Most recent index = (head - 1 - c) mod len
-        const len_u: u32 = @intCast(ctx.exstate.?.trade_log.len);
-        const idx = (ctx.exstate.?.trade_head + len_u - 1 - c) % len_u;
-        const f = ctx.exstate.?.trade_log[idx];
+        const len_u: u32 = 256;
+        const idx = (log_head + len_u - 1 - c) % len_u;
+        const f = if (is_paper) es.trade_log_paper[idx] else es.trade_log[idx];
         if (filter_pair) |fp| if (f.pair_id != fp) continue;
         if (filter_addr) |a| {
             const buyer = f.getBuyerAddress();
@@ -6107,21 +6143,23 @@ fn handleExchangeListPairs(ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// exchange_getStats — sumar global: total ordine, total fills, best/spread per pereche.
 fn handleExchangeGetStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
     const alloc = ctx.allocator;
-    const engine = ctx.exchange orelse
-        return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
+    const is_paper = isPaperMode(body);
+    const engine = pickEngine(ctx, is_paper) orelse
+        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
     ctx.exchange_mutex.lock();
     defer ctx.exchange_mutex.unlock();
+
+    const trade_count = if (is_paper) ctx.exstate.?.trade_count_paper else ctx.exstate.?.trade_count;
 
     var out = std.ArrayList(u8){};
     defer out.deinit(alloc);
     try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
     try std.fmt.format(out.writer(alloc), "{d}", .{id});
     try std.fmt.format(out.writer(alloc),
-        ",\"result\":{{\"totalOrders\":{d},\"bidCount\":{d},\"askCount\":{d},\"trades\":{d},\"pairs\":[",
-        .{ engine.orderCount(), engine.bid_count, engine.ask_count, ctx.exstate.?.trade_count });
+        ",\"result\":{{\"mode\":\"{s}\",\"totalOrders\":{d},\"bidCount\":{d},\"askCount\":{d},\"trades\":{d},\"pairs\":[",
+        .{ if (is_paper) "paper" else "real", engine.orderCount(), engine.bid_count, engine.ask_count, trade_count });
     var first = true;
     for (EXCHANGE_PAIRS) |p| {
         const bb = engine.bestBid(p.id) orelse 0;

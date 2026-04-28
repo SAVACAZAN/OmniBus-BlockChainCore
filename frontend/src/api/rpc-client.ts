@@ -408,6 +408,7 @@ export class OmniBusRpcClient {
     pair?: string;
     pairId?: number;
     depth?: number;
+    mode?: "real" | "paper";
   }): Promise<{
     pairId: number;
     bids: Array<OrderbookLevel>;
@@ -428,6 +429,7 @@ export class OmniBusRpcClient {
     trader: string;
     pair?: string;
     pairId?: number;
+    mode?: "real" | "paper";
   }): Promise<UserOrder[]> {
     try {
       return (await this.request("exchange_getUserOrders", [params])) || [];
@@ -441,6 +443,7 @@ export class OmniBusRpcClient {
     pairId?: number;
     address?: string;
     limit?: number;
+    mode?: "real" | "paper";
   } = {}): Promise<TradeFill[]> {
     try {
       return (await this.request("exchange_getTrades", [params])) || [];
@@ -449,7 +452,8 @@ export class OmniBusRpcClient {
     }
   }
 
-  async exchangeGetStats(): Promise<{
+  async exchangeGetStats(mode?: "real" | "paper"): Promise<{
+    mode?: string;
     totalOrders: number;
     bidCount: number;
     askCount: number;
@@ -464,7 +468,7 @@ export class OmniBusRpcClient {
     }>;
   } | null> {
     try {
-      return await this.request("exchange_getStats");
+      return await this.request("exchange_getStats", [{ mode }]);
     } catch {
       return null;
     }
@@ -480,6 +484,7 @@ export class OmniBusRpcClient {
     nonce: number;
     signature: string;
     publicKey: string;
+    mode?: "real" | "paper";
   }): Promise<{
     orderId: number;
     side: string;
@@ -499,6 +504,7 @@ export class OmniBusRpcClient {
     nonce: number;
     signature: string;
     publicKey: string;
+    mode?: "real" | "paper";
   }): Promise<{ orderId: number; cancelled: boolean }> {
     return this.request("exchange_cancelOrder", [payload]);
   }

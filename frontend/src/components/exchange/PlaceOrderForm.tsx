@@ -75,6 +75,7 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
         nonce,
         signature,
         publicKey,
+        mode: traderMode,
       });
       setMsg(
         `${res.status.toUpperCase()} — order #${res.orderId}, filled ${
