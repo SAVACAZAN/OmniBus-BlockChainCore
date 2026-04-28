@@ -282,6 +282,9 @@ const RPCThreadArgs = struct {
     /// Native DEX matching engine. Allocated once at startup, shared across
     /// RPC threads. Null = exchange disabled (light nodes).
     exchange: ?*matching_mod.MatchingEngine,
+    /// Paper-trading matching engine (separate from real-money). Same lock,
+    /// different state. Null when paper trader is disabled.
+    exchange_paper: ?*matching_mod.MatchingEngine,
     /// Path to `data/<chain>/orders.jsonl`. Empty = in-memory only (regtest).
     orders_path: ?[]const u8,
     /// Path to `data/<chain>/exchange-users.jsonl`. Stores apikeys + balances.
@@ -312,6 +315,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .faucet_grant_sat = args.faucet_grant_sat,
         .dns = args.dns,
         .exchange = args.exchange,
+        .exchange_paper = args.exchange_paper,
         .orders_path = args.orders_path,
         .users_path = args.users_path,
         .identities_path = args.identities_path,
@@ -1215,6 +1219,23 @@ pub fn main() !void {
         std.debug.print("[EXCHANGE] disabled by OMNIBUS_EXCHANGE_OFF\n", .{});
     }
 
+    // Paper-trading matching engine — same shape as real, isolated state.
+    // Lets users practice strategies with OMNI_DEMO without touching real
+    // funds. Disabled with OMNIBUS_PAPER_OFF (rare — most nodes want it).
+    const paper_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_PAPER_OFF") catch false;
+    var exchange_paper_engine: ?*matching_mod.MatchingEngine = null;
+    if (!exchange_disabled and !paper_disabled) {
+        const page_alloc = std.heap.page_allocator;
+        exchange_paper_engine = page_alloc.create(matching_mod.MatchingEngine) catch null;
+        if (exchange_paper_engine) |e| {
+            const bytes = std.mem.asBytes(e);
+            @memset(bytes, 0);
+            e.next_order_id = 1;
+            e.next_fill_id = 1;
+            std.debug.print("[EXCHANGE] paper-trading engine ON\n", .{});
+        }
+    }
+
     // Exchange-users journal (api keys + internal balances). Always
     // present (even when matching engine is off) because login + balance
     // queries are useful by themselves.
@@ -1269,6 +1290,7 @@ pub fn main() !void {
         .faucet_grant_sat = if (config.faucet_mode) config.faucet_grant_sat else 0,
         .dns = &dns,
         .exchange = exchange_engine,
+        .exchange_paper = exchange_paper_engine,
         .orders_path = orders_path_owned,
         .users_path = users_path_owned,
         .identities_path = identities_path_owned,

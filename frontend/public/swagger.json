@@ -1,0 +1,753 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OmniBus Exchange API",
+    "description": "Kraken-compatible Spot REST API for the OmniBus native DEX. No futures.",
+    "version": "0.1.0",
+    "contact": { "name": "OmniBus", "url": "https://omnibusblockchain.cc" }
+  },
+  "servers": [
+    { "url": "https://omnibusblockchain.cc:8443", "description": "Production" }
+  ],
+  "tags": [
+    { "name": "Public", "description": "Market data — no auth required" },
+    { "name": "Private Account", "description": "Account & history — API-Key + signed nonce" },
+    { "name": "Private Trading", "description": "Order placement & cancellation" },
+    { "name": "Private Funding", "description": "Deposits, withdrawals, transfers" },
+    { "name": "Private Staking", "description": "Staking operations" },
+    { "name": "Private Earn", "description": "Earn / yield strategies" },
+    { "name": "Private Export", "description": "Report exports" }
+  ],
+  "paths": {
+    "/exchange/0/public/Time": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Get server time",
+        "operationId": "publicTime",
+        "responses": {
+          "200": {
+            "description": "Unix time + RFC 1123",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/KrakenResponse" },
+                "example": { "error": [], "result": { "unixtime": 1716707589, "rfc1123": "Sun, 26 May 24 07:13:09 +0000" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exchange/0/public/SystemStatus": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "System status",
+        "operationId": "publicSystemStatus",
+        "responses": {
+          "200": {
+            "description": "online / maintenance / cancel_only",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/KrakenResponse" },
+                "example": { "error": [], "result": { "status": "online", "timestamp": "2024-05-26T07:13:09Z" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exchange/0/public/Assets": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Get asset info",
+        "operationId": "publicAssets",
+        "parameters": [
+          { "name": "asset", "in": "query", "schema": { "type": "string" }, "description": "Comma-separated asset codes (e.g. OMNI,BTC,USD)" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset metadata",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } }
+          }
+        }
+      }
+    },
+    "/exchange/0/public/AssetPairs": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Tradable asset pairs",
+        "operationId": "publicAssetPairs",
+        "parameters": [
+          { "name": "pair", "in": "query", "schema": { "type": "string" }, "description": "Filter by pair(s)" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pair definitions + fees",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } }
+          }
+        }
+      }
+    },
+    "/exchange/0/public/Ticker": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Ticker info",
+        "operationId": "publicTicker",
+        "parameters": [
+          { "name": "pair", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Pair symbol (e.g. OMNI/USD)" }
+        ],
+        "responses": {
+          "200": {
+            "description": "ask, bid, close, volume, vwap, high, low",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } }
+          }
+        }
+      }
+    },
+    "/exchange/0/public/OHLC": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "OHLC data",
+        "operationId": "publicOHLC",
+        "parameters": [
+          { "name": "pair", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "interval", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Minutes: 1|5|15|30|60|240|1440|10080|21600" },
+          { "name": "since", "in": "query", "schema": { "type": "integer" }, "description": "Return since given ID" }
+        ],
+        "responses": {
+          "200": { "description": "Candlestick data", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/public/Depth": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Order book",
+        "operationId": "publicDepth",
+        "parameters": [
+          { "name": "pair", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "count", "in": "query", "schema": { "type": "integer", "default": 100 }, "description": "Max depth levels (1-500)" }
+        ],
+        "responses": {
+          "200": { "description": "Bids and asks arrays", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/public/Trades": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Recent trades",
+        "operationId": "publicTrades",
+        "parameters": [
+          { "name": "pair", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "since", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Recent trade list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/public/Spread": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Recent spreads",
+        "operationId": "publicSpread",
+        "parameters": [
+          { "name": "pair", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "since", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Bid/ask spread history", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+
+    "/exchange/0/private/Balance": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Account balance",
+        "operationId": "privateBalance",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Asset balances", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/TradeBalance": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Trade balance",
+        "operationId": "privateTradeBalance",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string", "default": "ZUSD" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Equity, margin, free margin, etc.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/OpenOrders": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Open orders",
+        "operationId": "privateOpenOrders",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "trades": { "type": "boolean" }, "userref": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Open order map", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/ClosedOrders": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Closed orders",
+        "operationId": "privateClosedOrders",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "trades": { "type": "boolean" }, "start": { "type": "integer" }, "end": { "type": "integer" }, "ofs": { "type": "integer" }, "closetime": { "type": "string", "enum": ["open", "close", "both"] } } } } }
+        },
+        "responses": {
+          "200": { "description": "Closed order map", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/QueryOrders": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Query orders info",
+        "operationId": "privateQueryOrders",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "txid": { "type": "string" }, "trades": { "type": "boolean" }, "userref": { "type": "integer" } }, "required": ["txid"] } } }
+        },
+        "responses": {
+          "200": { "description": "Order details", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/TradesHistory": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Trades history",
+        "operationId": "privateTradesHistory",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "type": { "type": "string", "enum": ["all", "any position", "closed position", "closing position", "no position"] }, "trades": { "type": "boolean" }, "start": { "type": "integer" }, "end": { "type": "integer" }, "ofs": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Trade list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/QueryTrades": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Query trades info",
+        "operationId": "privateQueryTrades",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "txid": { "type": "string" }, "trades": { "type": "boolean" } }, "required": ["txid"] } } }
+        },
+        "responses": {
+          "200": { "description": "Trade details", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/OpenPositions": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Open positions",
+        "operationId": "privateOpenPositions",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "txid": { "type": "string" }, "docalcs": { "type": "boolean" }, "consolidation": { "type": "string" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Position map", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Ledgers": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Get ledgers",
+        "operationId": "privateLedgers",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "type": { "type": "string", "enum": ["all", "deposit", "withdrawal", "trade", "margin", "rollover", "spend", "receive", "settled", "staking", "dividend", "transfer", "adjustment", "ticket"] }, "start": { "type": "integer" }, "end": { "type": "integer" }, "ofs": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Ledger entries", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/QueryLedgers": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Query ledgers",
+        "operationId": "privateQueryLedgers",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "id": { "type": "string" }, "trades": { "type": "boolean" } }, "required": ["id"] } } }
+        },
+        "responses": {
+          "200": { "description": "Ledger details", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/TradeVolume": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Trade volume",
+        "operationId": "privateTradeVolume",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "pair": { "type": "string" }, "fee-info": { "type": "boolean" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Volume + fee tier info", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/AddOrder": {
+      "post": {
+        "tags": ["Private Trading"],
+        "summary": "Add order",
+        "operationId": "privateAddOrder",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pair": { "type": "string", "example": "OMNI/USD" },
+                  "type": { "type": "string", "enum": ["buy", "sell"] },
+                  "ordertype": { "type": "string", "enum": ["market", "limit", "stop-loss", "take-profit", "stop-loss-limit", "take-profit-limit", "trailing-stop", "trailing-stop-limit"] },
+                  "price": { "type": "string" },
+                  "price2": { "type": "string" },
+                  "volume": { "type": "string" },
+                  "leverage": { "type": "string" },
+                  "oflags": { "type": "string" },
+                  "starttm": { "type": "string" },
+                  "expiretm": { "type": "string" },
+                  "userref": { "type": "integer" },
+                  "validate": { "type": "boolean" }
+                },
+                "required": ["pair", "type", "ordertype", "volume"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Order placed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/CancelOrder": {
+      "post": {
+        "tags": ["Private Trading"],
+        "summary": "Cancel order",
+        "operationId": "privateCancelOrder",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "txid": { "type": "string" } }, "required": ["txid"] } } }
+        },
+        "responses": {
+          "200": { "description": "Cancel result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/CancelAll": {
+      "post": {
+        "tags": ["Private Trading"],
+        "summary": "Cancel all orders",
+        "operationId": "privateCancelAll",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Count cancelled", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/CancelAllOrdersAfter": {
+      "post": {
+        "tags": ["Private Trading"],
+        "summary": "Cancel all after timeout",
+        "operationId": "privateCancelAllAfter",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "timeout": { "type": "integer", "description": "Seconds" } }, "required": ["timeout"] } } }
+        },
+        "responses": {
+          "200": { "description": "Deadline timestamp", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/EditOrder": {
+      "post": {
+        "tags": ["Private Trading"],
+        "summary": "Edit order",
+        "operationId": "privateEditOrder",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "txid": { "type": "string" }, "pair": { "type": "string" }, "price": { "type": "string" }, "price2": { "type": "string" }, "volume": { "type": "string" }, "oflags": { "type": "string" }, "newuserref": { "type": "integer" } }, "required": ["txid", "pair"] } } }
+        },
+        "responses": {
+          "200": { "description": "Edit result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/DepositMethods": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Deposit methods",
+        "operationId": "privateDepositMethods",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" } }, "required": ["asset"] } } }
+        },
+        "responses": {
+          "200": { "description": "Available deposit methods", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/DepositAddresses": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Deposit addresses",
+        "operationId": "privateDepositAddresses",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "method": { "type": "string" }, "new": { "type": "boolean" } }, "required": ["asset", "method"] } } }
+        },
+        "responses": {
+          "200": { "description": "Address list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/StatusOfDeposits": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Status of recent deposits",
+        "operationId": "privateStatusOfDeposits",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "method": { "type": "string" }, "start": { "type": "integer" }, "end": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Deposit status list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/WithdrawMethods": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Withdrawal methods",
+        "operationId": "privateWithdrawMethods",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" } }, "required": ["asset"] } } }
+        },
+        "responses": {
+          "200": { "description": "Available withdrawal methods", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/WithdrawAddresses": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Withdrawal addresses",
+        "operationId": "privateWithdrawAddresses",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "method": { "type": "string" }, "verified": { "type": "boolean" } }, "required": ["asset"] } } }
+        },
+        "responses": {
+          "200": { "description": "Address list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Withdraw": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Withdraw funds",
+        "operationId": "privateWithdraw",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "key": { "type": "string" }, "amount": { "type": "string" } }, "required": ["asset", "key", "amount"] } } }
+        },
+        "responses": {
+          "200": { "description": "Withdrawal refid", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/StatusOfWithdrawals": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Status of recent withdrawals",
+        "operationId": "privateStatusOfWithdrawals",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "method": { "type": "string" }, "start": { "type": "integer" }, "end": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Withdrawal status list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/WithdrawCancel": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Cancel withdrawal",
+        "operationId": "privateWithdrawCancel",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "refid": { "type": "string" } }, "required": ["asset", "refid"] } } }
+        },
+        "responses": {
+          "200": { "description": "Cancel result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/WalletTransfer": {
+      "post": {
+        "tags": ["Private Funding"],
+        "summary": "Wallet transfer",
+        "operationId": "privateWalletTransfer",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "amount": { "type": "string" } }, "required": ["asset", "from", "to", "amount"] } } }
+        },
+        "responses": {
+          "200": { "description": "Transfer refid", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Stake": {
+      "post": {
+        "tags": ["Private Staking"],
+        "summary": "Stake asset",
+        "operationId": "privateStake",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "amount": { "type": "string" }, "method": { "type": "string" } }, "required": ["asset", "amount", "method"] } } }
+        },
+        "responses": {
+          "200": { "description": "Stake refid", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Unstake": {
+      "post": {
+        "tags": ["Private Staking"],
+        "summary": "Unstake asset",
+        "operationId": "privateUnstake",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "amount": { "type": "string" }, "method": { "type": "string" } }, "required": ["asset", "amount", "method"] } } }
+        },
+        "responses": {
+          "200": { "description": "Unstake refid", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/GetStakingAssets": {
+      "post": {
+        "tags": ["Private Staking"],
+        "summary": "Get staking assets",
+        "operationId": "privateGetStakingAssets",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Staking asset list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/GetPendingStaking": {
+      "post": {
+        "tags": ["Private Staking"],
+        "summary": "Get pending staking transactions",
+        "operationId": "privateGetPendingStaking",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Pending staking list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/ListStakingTransactions": {
+      "post": {
+        "tags": ["Private Staking"],
+        "summary": "List staking transactions",
+        "operationId": "privateListStakingTransactions",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "asset": { "type": "string" }, "start": { "type": "integer" }, "end": { "type": "integer" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Staking tx list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Earn/Allocate": {
+      "post": {
+        "tags": ["Private Earn"],
+        "summary": "Allocate to earn strategy",
+        "operationId": "privateEarnAllocate",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "strategy_id": { "type": "string" }, "amount": { "type": "string" } }, "required": ["strategy_id", "amount"] } } }
+        },
+        "responses": {
+          "200": { "description": "Allocation result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Earn/Deallocate": {
+      "post": {
+        "tags": ["Private Earn"],
+        "summary": "Deallocate from earn strategy",
+        "operationId": "privateEarnDeallocate",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "strategy_id": { "type": "string" }, "amount": { "type": "string" } }, "required": ["strategy_id", "amount"] } } }
+        },
+        "responses": {
+          "200": { "description": "Deallocation result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Earn/Strategies": {
+      "post": {
+        "tags": ["Private Earn"],
+        "summary": "List earn strategies",
+        "operationId": "privateEarnStrategies",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Strategy list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/Earn/Allocations": {
+      "post": {
+        "tags": ["Private Earn"],
+        "summary": "List earn allocations",
+        "operationId": "privateEarnAllocations",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "Allocation list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/AddExport": {
+      "post": {
+        "tags": ["Private Export"],
+        "summary": "Add export report",
+        "operationId": "privateAddExport",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "report": { "type": "string", "enum": ["trades", "ledgers"] }, "description": { "type": "string" }, "format": { "type": "string", "enum": ["CSV", "TSV"] } }, "required": ["report", "description", "format"] } } }
+        },
+        "responses": {
+          "200": { "description": "Export ID", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/ExportStatus": {
+      "post": {
+        "tags": ["Private Export"],
+        "summary": "Export status",
+        "operationId": "privateExportStatus",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "report": { "type": "string" } }, "required": ["report"] } } }
+        },
+        "responses": {
+          "200": { "description": "Export status list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/RetrieveExport": {
+      "post": {
+        "tags": ["Private Export"],
+        "summary": "Retrieve export",
+        "operationId": "privateRetrieveExport",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"] } } }
+        },
+        "responses": {
+          "200": { "description": "Binary export data", "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/DeleteExport": {
+      "post": {
+        "tags": ["Private Export"],
+        "summary": "Delete export",
+        "operationId": "privateDeleteExport",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "properties": { "id": { "type": "string" }, "type": { "type": "string", "enum": ["delete", "cancel"] } }, "required": ["id", "type"] } } }
+        },
+        "responses": {
+          "200": { "description": "Delete result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    },
+    "/exchange/0/private/GetWebSocketsToken": {
+      "post": {
+        "tags": ["Private Account"],
+        "summary": "Get WebSocket auth token",
+        "operationId": "privateGetWebSocketsToken",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object" } } }
+        },
+        "responses": {
+          "200": { "description": "WS token", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/KrakenResponse" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "API-Key",
+        "description": "OmniBus exchange API key. Pass API-Key + API-Sign headers for private endpoints."
+      }
+    },
+    "schemas": {
+      "KrakenResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "array", "items": { "type": "string" } },
+          "result": {}
+        },
+        "required": ["error", "result"]
+      }
+    }
+  }
+}

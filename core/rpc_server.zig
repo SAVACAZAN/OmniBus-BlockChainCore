@@ -124,11 +124,16 @@ const ServerCtx = struct {
     auth_token_buf: [128]u8 = undefined,
     auth_token_len: usize = 0,
 
-    /// Native DEX matching engine. Shared across RPC threads — every
-    /// access MUST take `exchange_mutex`. Null when --exchange-mode is
-    /// off so we don't pay the ~3MB footprint on light nodes.
+    /// Native DEX matching engine — REAL trader mode. Orders here move
+    /// real-money internal balances (token "OMNI"). Shared across RPC
+    /// threads — every access MUST take `exchange_mutex`.
     exchange: ?*matching_mod.MatchingEngine = null,
     exchange_mutex: std.Thread.Mutex = .{},
+    /// Parallel matching engine — PAPER trader (demo) mode. Identical
+    /// type and structure as `exchange`, but the only token it accepts
+    /// is `OMNI_DEMO`. Lets users practice strategies without burning
+    /// real OMNI. Same lock to keep the global wire-deterministic ordering.
+    exchange_paper: ?*matching_mod.MatchingEngine = null,
     /// Heap-allocated bulk tables (trade_log, nonces, api_keys, balances).
     /// Out-of-line so ServerCtx stays small enough to live on the stack-
     /// allocated thread frames glibc/Linux gives us.
@@ -294,6 +299,9 @@ pub const HTTPConfig = struct {
     /// just borrows. When null, all `exchange_*` RPC methods return
     /// "Exchange not enabled" so callers can probe support.
     exchange: ?*matching_mod.MatchingEngine = null,
+    /// Paper-trading matching engine (demo). Same lifecycle as `exchange`.
+    /// When null, REST routes `/paper/0/*` return "Paper trader disabled".
+    exchange_paper: ?*matching_mod.MatchingEngine = null,
     /// Path to `data/<chain>/orders.jsonl`. Empty/null = in-memory only.
     /// Same JSONL pattern as faucet ledger so a node can restart without
     /// losing the orderbook state.
@@ -343,6 +351,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.faucet_grant_sat = cfg.faucet_grant_sat;
     ctx.dns = cfg.dns;
     ctx.exchange = cfg.exchange;
+    ctx.exchange_paper = cfg.exchange_paper;
     ctx.reg_mutex = .{};
     ctx.exchange_mutex = .{};
 
@@ -701,13 +710,28 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
     var http_method: []const u8 = "";
     const path = extractHttpPath(header, &http_method) orelse return false;
 
-    // Only handle /exchange/0/* routes (or stripped /public/ /private/ from nginx)
+    // Trader mode: real (default) routes under `/exchange/0/*`, paper
+    // (demo) routes under `/paper/0/*`. Both share the same endpoint
+    // names + request shapes — only the underlying matching engine and
+    // balance token differ. This means a Kraken-compatible client can
+    // switch from paper to real by changing exactly one URL prefix.
+    const is_paper = std.mem.startsWith(u8, path, "/paper/0/");
+
+    // Only handle /exchange/0/*, /paper/0/* or stripped /public//private/ from nginx.
     const rest = if (std.mem.startsWith(u8, path, "/exchange/0/"))
         path[12..]
+    else if (is_paper)
+        path[9..]
     else if (std.mem.startsWith(u8, path, "/public/") or std.mem.startsWith(u8, path, "/private/"))
         path[1..]
     else
         return false;
+
+    // Reject paper requests when the paper engine is disabled.
+    if (is_paper and ctx.exchange_paper == null) {
+        writeJsonResponse(stream, "{\"error\":[\"PaperTraderDisabled\"],\"result\":{}}");
+        return true;
+    }
 
     // ── Public endpoints ────────────────────────────────────────────────
     if (std.mem.startsWith(u8, rest, "public/")) {
@@ -733,7 +757,12 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
             return true;
         }
         if (std.mem.eql(u8, ep, "SystemStatus")) {
-            writeJsonResponse(stream, "{\"error\":[],\"result\":{\"status\":\"online\",\"timestamp\":\"" ++ "2026-04-28T00:00:00Z\"}}");
+            const mode_label: []const u8 = if (is_paper) "paper" else "real";
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"status\":\"online\",\"mode\":\"{s}\",\"settlement_token\":\"{s}\"}}}}",
+                .{ mode_label, if (is_paper) "OMNI_DEMO" else "OMNI" }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
             return true;
         }
         if (std.mem.eql(u8, ep, "Assets")) {

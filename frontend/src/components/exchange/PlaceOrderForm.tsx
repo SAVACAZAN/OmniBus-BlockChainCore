@@ -3,6 +3,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 import { useEffect } from "react";
+import { useTraderMode } from "./TraderModeToggle";
 
 const rpc = new OmniBusRpcClient();
 
@@ -23,6 +24,7 @@ const MICRO_PER_USD = 1_000_000;
 export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
   const [, force] = useState(0);
   useEffect(() => subscribeWallet(() => force((n) => n + 1)), []);
+  const [traderMode] = useTraderMode();
 
   const [side, setSide] = useState<"buy" | "sell">("buy");
   const [priceStr, setPriceStr] = useState("");
@@ -102,6 +104,15 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
         <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
           Place order — {pairLabel}
         </h3>
+        <span
+          className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+            traderMode === "real"
+              ? "bg-mempool-green/20 text-mempool-green"
+              : "bg-yellow-500/20 text-yellow-300"
+          }`}
+        >
+          {traderMode === "real" ? "💰 Real" : "🎮 Paper"}
+        </span>
       </div>
 
       {/* Side toggle */}
@@ -155,7 +166,9 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
       <div className="flex justify-between text-[11px] text-mempool-text-dim mb-3">
         <span>Notional</span>
         <span className="font-mono text-mempool-text">
-          ${notional.toLocaleString("en-US", { maximumFractionDigits: 2 })}
+          ${notional > 0 && notional < 0.01
+            ? notional.toFixed(6)
+            : notional.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
         </span>
       </div>
 

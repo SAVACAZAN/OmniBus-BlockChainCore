@@ -10,6 +10,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { BalancesPanel } from "./BalancesPanel";
 import { IdentityPanel } from "./IdentityPanel";
 import { KycPanel } from "./KycPanel";
+import { TraderModeToggle } from "./TraderModeToggle";
 
 const rpc = new OmniBusRpcClient();
 
@@ -179,6 +180,9 @@ export function ExchangePage() {
 
       {tab === "trade" && (
       <>
+      {/* Real/Paper trader mode toggle — top of Trade so users always see */}
+      <TraderModeToggle />
+
       {/* Pair selector */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
