@@ -243,6 +243,13 @@ pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
 // this via &g_clock. On baremetal we'll swap the backend to TSC.
 pub var g_clock: orchestrator_mod.AtomicClock = undefined;
 
+// ── Global Slot Calendar — pre-computed next 60 slots (PoH-style) ─────────
+// Rebuilt after each block from the validator set + tip hash. Read-only
+// from frontend (RPC endpoint `getslotcalendar`) and from the mining
+// loop (which uses `nextFutureSlot()` for "what's next" hints).
+pub var g_slot_calendar: orchestrator_mod.SlotCalendar =
+    orchestrator_mod.SlotCalendar.empty();
+
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
@@ -1817,6 +1824,20 @@ pub fn main() !void {
             block_count += 1;
             last_block_produced_ms = g_clock.nowMs();
 
+            // Rebuild slot calendar against the new tip. Pre-computes the
+            // next 60 leaders so the frontend can show "next slot at X,
+            // leader = Y" and the future-block-pool can route TX to the
+            // right slot without per-TX leaderForSlot calls.
+            g_slot_calendar.rebuild(
+                validator_mod.Validator,
+                bc.validator_set.items,
+                @intCast(block_count),
+                new_block.hash,
+                last_block_produced_ms,
+                1000, // slot interval ms — matches block time
+                validator_mod.leaderForSlot,
+            );
+
             // ── Stabilizer: record block arrival + adapt timeouts ──────────
             //
             // Block-arrival timestamp + 60s reporting interval both come
@@ -1891,6 +1912,20 @@ pub fn main() !void {
                             spec_buf,
                         },
                     );
+
+                    // Slot-calendar status snapshot — refresh entry states
+                    // and log the next future leader so the operator can
+                    // see who'll mine the upcoming slot before it lands.
+                    g_slot_calendar.refreshStates(arrival_ms, block_count);
+                    if (g_slot_calendar.nextFutureSlot()) |next| {
+                        const leader = next.leaderSlice();
+                        const leader_short = leader[0..@min(12, leader.len)];
+                        const ms_until = next.expected_arrival_ms - arrival_ms;
+                        std.debug.print(
+                            "[CALENDAR] next slot {d} in {d}ms | leader = {s}\n",
+                            .{ next.slot_id, ms_until, leader_short },
+                        );
+                    }
                     stabilizer_last_report_ms = arrival_ms;
                 }
             }

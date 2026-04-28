@@ -412,9 +412,266 @@ test "clockScore60s: monotonic in drift" {
     }
 }
 
+// ─── SlotCalendar ───────────────────────────────────────────────────────────
+
+/// Status of a future slot's pre-computed entry.
+pub const SlotState = enum(u8) {
+    /// Slot is in the future, leader assigned but no block yet.
+    future = 0,
+    /// Slot's expected_arrival has passed, waiting for block to land.
+    in_flight = 1,
+    /// Block has been observed for this slot.
+    finalized = 2,
+    /// Slot's expected_arrival has passed by > 2× slot interval — leader
+    /// missed it and someone else (or no-one) took over.
+    missed = 3,
+};
+
+/// One pre-computed future slot. The leader address is held as a fixed
+/// 64-byte buffer so the entry is allocator-free (slot calendar is
+/// hot-path; no malloc per entry).
+pub const SlotEntry = struct {
+    slot_id: u64,
+    /// 0 = no leader assigned (validator set was empty when computed).
+    leader_addr_len: u8,
+    leader_addr: [64]u8,
+    /// Wall-clock ms when this slot is *expected* to land (clock.nowMs()
+    /// at the time of computation + N × slot_interval_ms).
+    expected_arrival_ms: i64,
+    /// Hash of the most-recent finalized block at calendar-build time.
+    /// Used to detect calendar staleness — if tip hash changed, the
+    /// leader assignments are no longer valid (leaderForSlot mixes the
+    /// prev_hash into its seed).
+    base_tip_hash_first8: [8]u8,
+    state: SlotState,
+
+    pub fn leaderSlice(self: *const SlotEntry) []const u8 {
+        return self.leader_addr[0..self.leader_addr_len];
+    }
+};
+
+/// Read-only ring buffer of the next N slots. Filled by `rebuild()`,
+/// consumed by frontends + RPC + future-block-pool routing logic.
+///
+/// Capacity 60 = 60 slots × 1s = 1 minute look-ahead. Bigger than that
+/// is risky — reorg + governance changes invalidate the calendar, and
+/// a 1-minute window is enough for trading-flow scheduling without
+/// being wasteful.
+pub const SLOT_CALENDAR_CAP: usize = 60;
+
+pub const SlotCalendar = struct {
+    entries: [SLOT_CALENDAR_CAP]SlotEntry,
+    /// Number of currently-valid entries (0..CAP). Bumps to CAP after
+    /// the first rebuild and stays there.
+    count: usize,
+    /// Slot interval used when this calendar was built. If the chain's
+    /// configured slot interval changes, we throw the calendar away.
+    slot_interval_ms: i64,
+    /// Tip hash hex (64 chars) at last rebuild — first 8 bytes only
+    /// stored for cheap staleness compare. If the live tip's first 8
+    /// bytes differ from this, the calendar is stale.
+    last_built_tip_first8: [8]u8,
+    /// Slot id of the first entry — useful for "next leader is …" queries.
+    head_slot_id: u64,
+
+    pub fn empty() SlotCalendar {
+        return .{
+            .entries = undefined,
+            .count = 0,
+            .slot_interval_ms = 1000,
+            .last_built_tip_first8 = std.mem.zeroes([8]u8),
+            .head_slot_id = 0,
+        };
+    }
+
+    /// Rebuild the calendar from a snapshot of the validator set + tip.
+    /// Pure deterministic given inputs — same args produce same output
+    /// on every node. Caller passes a `leaderFn` to avoid coupling
+    /// orchestrator.zig to validator_registry.zig.
+    pub fn rebuild(
+        self: *SlotCalendar,
+        comptime ValidatorT: type,
+        validators: []const ValidatorT,
+        tip_slot_id: u64,
+        tip_hash_hex: []const u8,
+        now_ms: i64,
+        slot_interval_ms: i64,
+        leaderFn: fn (slot_id: u64, prev_hash: []const u8, vs: []const ValidatorT) ?ValidatorT,
+    ) void {
+        self.slot_interval_ms = slot_interval_ms;
+        self.head_slot_id = tip_slot_id + 1;
+        if (tip_hash_hex.len >= 8) {
+            @memcpy(&self.last_built_tip_first8, tip_hash_hex[0..8]);
+        } else {
+            self.last_built_tip_first8 = std.mem.zeroes([8]u8);
+        }
+
+        var i: usize = 0;
+        while (i < SLOT_CALENDAR_CAP) : (i += 1) {
+            const future_slot_id = tip_slot_id + 1 + i;
+            const arrival_ms = now_ms + @as(i64, @intCast(i + 1)) * slot_interval_ms;
+
+            var entry: SlotEntry = .{
+                .slot_id = future_slot_id,
+                .leader_addr_len = 0,
+                .leader_addr = std.mem.zeroes([64]u8),
+                .expected_arrival_ms = arrival_ms,
+                .base_tip_hash_first8 = self.last_built_tip_first8,
+                .state = .future,
+            };
+
+            const maybe_leader = leaderFn(future_slot_id, tip_hash_hex, validators);
+            if (maybe_leader) |l| {
+                const addr = l.address;
+                const copy_len = @min(addr.len, 64);
+                @memcpy(entry.leader_addr[0..copy_len], addr[0..copy_len]);
+                entry.leader_addr_len = @intCast(copy_len);
+            }
+            self.entries[i] = entry;
+        }
+        self.count = SLOT_CALENDAR_CAP;
+    }
+
+    /// Walk the calendar and update entry states based on `now_ms` and
+    /// `current_chain_height`. Cheap O(N) sweep — call from the mining
+    /// loop after each block.
+    pub fn refreshStates(
+        self: *SlotCalendar,
+        now_ms: i64,
+        current_chain_height: u64,
+    ) void {
+        var i: usize = 0;
+        while (i < self.count) : (i += 1) {
+            var e = &self.entries[i];
+            const slot_id = e.slot_id;
+            if (current_chain_height >= slot_id) {
+                e.state = .finalized;
+                continue;
+            }
+            const overdue_ms = now_ms - e.expected_arrival_ms;
+            if (overdue_ms >= self.slot_interval_ms * 2) {
+                e.state = .missed;
+            } else if (overdue_ms >= 0) {
+                e.state = .in_flight;
+            } else {
+                e.state = .future;
+            }
+        }
+    }
+
+    /// Returns the next entry whose state is .future, or null if none.
+    pub fn nextFutureSlot(self: *const SlotCalendar) ?*const SlotEntry {
+        var i: usize = 0;
+        while (i < self.count) : (i += 1) {
+            if (self.entries[i].state == .future) return &self.entries[i];
+        }
+        return null;
+    }
+
+    /// True if the live tip's first 8 hex chars no longer match what
+    /// we built against — calendar stale, schedule a rebuild.
+    pub fn isStale(self: *const SlotCalendar, live_tip_hex: []const u8) bool {
+        if (live_tip_hex.len < 8) return true;
+        return !std.mem.eql(u8, &self.last_built_tip_first8, live_tip_hex[0..8]);
+    }
+};
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 const testing = std.testing;
+
+const FakeValidator = struct {
+    address: []const u8,
+    weight: u32 = 1,
+};
+
+fn fakeLeaderRoundRobin(
+    slot_id: u64,
+    prev_hash: []const u8,
+    vs: []const FakeValidator,
+) ?FakeValidator {
+    _ = prev_hash;
+    if (vs.len == 0) return null;
+    return vs[@intCast(slot_id % vs.len)];
+}
+
+test "SlotCalendar empty starts at count 0" {
+    var cal = SlotCalendar.empty();
+    try testing.expectEqual(@as(usize, 0), cal.count);
+    try testing.expectEqual(@as(?*const SlotEntry, null), cal.nextFutureSlot());
+}
+
+test "SlotCalendar rebuild fills 60 entries with correct slot ids and arrivals" {
+    var cal = SlotCalendar.empty();
+    const vs = [_]FakeValidator{
+        .{ .address = "alice" },
+        .{ .address = "bob" },
+    };
+    const tip_hash = "deadbeefcafebabe1234567890abcdef" ++
+                     "deadbeefcafebabe1234567890abcdef";
+    cal.rebuild(FakeValidator, &vs, 100, tip_hash, 5_000_000, 1000,
+                fakeLeaderRoundRobin);
+
+    try testing.expectEqual(@as(usize, 60), cal.count);
+    try testing.expectEqual(@as(u64, 101), cal.entries[0].slot_id);
+    try testing.expectEqual(@as(u64, 160), cal.entries[59].slot_id);
+    try testing.expectEqual(@as(i64, 5_001_000), cal.entries[0].expected_arrival_ms);
+    try testing.expectEqual(@as(i64, 5_060_000), cal.entries[59].expected_arrival_ms);
+    // Round-robin: slot 101 → bob (101%2=1), slot 102 → alice (102%2=0).
+    try testing.expectEqualStrings("bob", cal.entries[0].leaderSlice());
+    try testing.expectEqualStrings("alice", cal.entries[1].leaderSlice());
+}
+
+test "SlotCalendar rebuild handles empty validator set (no leader assigned)" {
+    var cal = SlotCalendar.empty();
+    const vs = [_]FakeValidator{};
+    const tip_hash = "deadbeefcafebabe" ** 4;
+    cal.rebuild(FakeValidator, &vs, 0, tip_hash, 0, 1000, fakeLeaderRoundRobin);
+    try testing.expectEqual(@as(usize, 60), cal.count);
+    try testing.expectEqual(@as(u8, 0), cal.entries[0].leader_addr_len);
+}
+
+test "SlotCalendar refreshStates marks finalized + missed + in_flight" {
+    var cal = SlotCalendar.empty();
+    const vs = [_]FakeValidator{ .{ .address = "x" } };
+    const tip_hash = "0011223344556677" ** 4;
+    cal.rebuild(FakeValidator, &vs, 100, tip_hash, 1_000_000, 1000,
+                fakeLeaderRoundRobin);
+
+    // Chain advanced to height 105 (5 blocks) and 7.5s have passed.
+    // Slot ids: entries[0]=101 ... entries[4]=105, entries[5]=106, ...
+    // Expected arrivals: entries[i] at 1_000_000 + (i+1)*1000.
+    //   entries[5] expected at 1_006_000 — at now=1_007_500 overdue 1.5s → in_flight
+    //   entries[6] expected at 1_007_000 — overdue 0.5s → in_flight
+    //   entries[7] expected at 1_008_000 — not yet → future
+    cal.refreshStates(1_007_500, 105);
+
+    // First 5 entries finalized (chain_height >= slot_id).
+    var i: usize = 0;
+    while (i < 5) : (i += 1)
+        try testing.expectEqual(SlotState.finalized, cal.entries[i].state);
+
+    try testing.expectEqual(SlotState.in_flight, cal.entries[5].state);
+    try testing.expectEqual(SlotState.in_flight, cal.entries[6].state);
+    try testing.expectEqual(SlotState.future, cal.entries[7].state);
+
+    // Entry 8+ still in the future.
+    try testing.expectEqual(SlotState.future, cal.entries[8].state);
+
+    // Now advance further to test missed: 4s past arrival of entry[5].
+    cal.refreshStates(1_010_000, 105);
+    try testing.expectEqual(SlotState.missed, cal.entries[5].state);
+}
+
+test "SlotCalendar isStale detects tip change" {
+    var cal = SlotCalendar.empty();
+    const vs = [_]FakeValidator{ .{ .address = "x" } };
+    const tip = "11223344" ++ "55667788" ** 7;
+    cal.rebuild(FakeValidator, &vs, 1, tip, 0, 1000, fakeLeaderRoundRobin);
+    try testing.expect(!cal.isStale(tip));
+    const new_tip = "99aabbcc" ++ "55667788" ** 7;
+    try testing.expect(cal.isStale(new_tip));
+}
 
 test "AtomicClock fake backend advances on demand" {
     var clk = AtomicClock.initFake(1000);

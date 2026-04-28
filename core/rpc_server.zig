@@ -25,6 +25,7 @@ const evm_executor    = @import("evm_executor.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const chain_config    = @import("chain_config.zig");
 const validator_mod   = @import("validator_registry.zig");
+const orchestrator_mod = @import("orchestrator.zig");
 const dns_mod         = @import("dns_registry.zig");
 const bech32_mod      = @import("bech32.zig");
 const identity_mod    = @import("identity.zig");
@@ -1183,6 +1184,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getminerstats"))    return handleMinerSt(ctx, id);
     if (std.mem.eql(u8, method, "getvalidators"))    return handleGetValidators(ctx, id);
     if (std.mem.eql(u8, method, "getslotleader"))    return handleGetSlotLeader(ctx, id);
+    if (std.mem.eql(u8, method, "getclockstatus"))   return handleGetClockStatus(ctx, id);
+    if (std.mem.eql(u8, method, "getslotcalendar")) return handleGetSlotCalendar(ctx, id);
+    if (std.mem.eql(u8, method, "getfuturepool"))    return handleGetFuturePool(ctx, id);
     if (std.mem.eql(u8, method, "getminerinfo"))     return handleMinerInf(ctx, id);
     if (std.mem.eql(u8, method, "getnodelist"))      return handleNodeList(ctx, id);
     if (std.mem.eql(u8, method, "estimatefee"))       return handleEstimateFee(ctx, id);
@@ -2643,6 +2647,91 @@ fn handleGetSlotLeader(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"slot\":{d},\"leader\":null,\"error\":\"empty validator set\"}}}}",
         .{ id, slot_id });
+}
+
+/// `getclockstatus` — exposes the AtomicClock's current state for UI:
+///   - now_ms                 — wall-clock from g_clock.nowMs()
+///   - rdtsc                  — hardware cycle counter (rdtscp on x86_64)
+///   - spectrum               — 64-char binary string of rdtsc bits, MSB first
+/// The spectrum lets a frontend chart show the bit pattern over time —
+/// stable high bits = healthy CPU clock, broken patterns = scheduler jitter.
+fn handleGetClockStatus(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const now_ms = main_mod.g_clock.nowMs();
+    const cycles = orchestrator_mod.nowCycles();
+    var spec_buf: [64]u8 = undefined;
+    orchestrator_mod.formatSpectrum(cycles, &spec_buf);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"now_ms\":{d},\"rdtsc\":{d},\"spectrum\":\"{s}\"}}}}",
+        .{ id, now_ms, cycles, spec_buf },
+    );
+}
+
+/// `getslotcalendar` — exposes the next 60 pre-computed slots for UI.
+/// Each entry: { slot_id, leader, expected_arrival_ms, state }.
+/// state values: "future" | "in_flight" | "finalized" | "missed".
+fn handleGetSlotCalendar(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    var out = std.array_list.Managed(u8).init(alloc);
+    defer out.deinit();
+    const w = out.writer();
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"head_slot\":{d},\"slot_interval_ms\":{d},\"entries\":[",
+        .{
+            id,
+            main_mod.g_slot_calendar.head_slot_id,
+            main_mod.g_slot_calendar.slot_interval_ms,
+        },
+    );
+
+    var i: usize = 0;
+    while (i < main_mod.g_slot_calendar.count) : (i += 1) {
+        if (i > 0) try w.writeAll(",");
+        const e = &main_mod.g_slot_calendar.entries[i];
+        const leader = e.leaderSlice();
+        const state_str: []const u8 = switch (e.state) {
+            .future => "future",
+            .in_flight => "in_flight",
+            .finalized => "finalized",
+            .missed => "missed",
+        };
+        try w.print(
+            "{{\"slot_id\":{d},\"leader\":\"{s}\",\"expected_arrival_ms\":{d},\"state\":\"{s}\"}}",
+            .{ e.slot_id, leader, e.expected_arrival_ms, state_str },
+        );
+    }
+    try w.writeAll("]}}");
+    return out.toOwnedSlice();
+}
+
+/// `getfuturepool` — count + range of TXs that are time-locked beyond
+/// the current chain tip (`locktime > height`). These are the future-
+/// block-pool entries: they will become mineable when the chain
+/// catches up to their target slot. Useful for the frontend to show
+/// a "scheduled trades" panel.
+fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bc.mutex.lock();
+    const height = ctx.bc.getBlockCount();
+    ctx.bc.mutex.unlock();
+    if (ctx.mempool) |mp| {
+        const stats = mp.futurePoolStats(height);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"current_height\":{d},\"locked_count\":{d}," ++
+            "\"earliest_target\":{d},\"latest_target\":{d}}}}}",
+            .{ id, height, stats.locked_count,
+               stats.earliest_target, stats.latest_target },
+        );
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"current_height\":{d},\"locked_count\":0," ++
+        "\"earliest_target\":0,\"latest_target\":0}}}}",
+        .{ id, height },
+    );
 }
 
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,

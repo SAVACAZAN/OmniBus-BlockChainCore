@@ -379,6 +379,32 @@ pub const Mempool = struct {
         return self.entries.items.len;
     }
 
+    /// Future-block pool stats: number of TXs whose locktime > `current_height`
+    /// (i.e. waiting for a future slot to land before they can be mined). The
+    /// `earliest_target` is the lowest locktime among locked TXs, or 0 if
+    /// none. The `latest_target` is the highest locktime, or 0 if none.
+    pub fn futurePoolStats(self: *const Mempool, current_height: u64) struct {
+        locked_count: usize,
+        earliest_target: u64,
+        latest_target: u64,
+    } {
+        var locked: usize = 0;
+        var earliest: u64 = 0;
+        var latest: u64 = 0;
+        for (self.entries.items) |entry| {
+            if (entry.tx.locktime > current_height) {
+                locked += 1;
+                if (earliest == 0 or entry.tx.locktime < earliest) earliest = entry.tx.locktime;
+                if (entry.tx.locktime > latest) latest = entry.tx.locktime;
+            }
+        }
+        return .{
+            .locked_count = locked,
+            .earliest_target = earliest,
+            .latest_target = latest,
+        };
+    }
+
     /// Bytes totali ocupati
     pub fn bytes(self: *const Mempool) usize {
         return self.total_bytes;
