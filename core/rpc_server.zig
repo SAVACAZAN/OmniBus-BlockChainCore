@@ -689,10 +689,97 @@ fn getQueryParam(path: []const u8, key: []const u8) ?[]const u8 {
     return null;
 }
 
+/// Normalize a Kraken-mashed pair (`OMNIUSD`, `OMNIUSDC`, `BTCUSDC`)
+/// into the slash form `OMNI/USDC` that `exchangePairLookup` expects.
+/// If the input already has a `/`, returns it as-is. Returns
+/// `{ pair, alloced }` so the caller knows whether to free.
+fn normalizePair(alloc: std.mem.Allocator, raw: []const u8) struct {
+    pair: []const u8,
+    alloced: bool,
+} {
+    if (std.mem.indexOfScalar(u8, raw, '/') != null) {
+        return .{ .pair = raw, .alloced = false };
+    }
+    // Try USDC first (longer suffix, takes priority).
+    if (std.mem.endsWith(u8, raw, "USDC") and raw.len > 4) {
+        const buf = std.fmt.allocPrint(alloc, "{s}/USDC", .{raw[0 .. raw.len - 4]}) catch
+            return .{ .pair = raw, .alloced = false };
+        return .{ .pair = buf, .alloced = true };
+    }
+    // Legacy "USD" → route to USDC pair (we settle in stablecoin).
+    if (std.mem.endsWith(u8, raw, "USD") and raw.len > 3) {
+        const buf = std.fmt.allocPrint(alloc, "{s}/USDC", .{raw[0 .. raw.len - 3]}) catch
+            return .{ .pair = raw, .alloced = false };
+        return .{ .pair = buf, .alloced = true };
+    }
+    return .{ .pair = raw, .alloced = false };
+}
+
+/// Look up a field in a Kraken-style form-encoded POST body.
+/// Body format: `key1=value1&key2=value2`. Caller does NOT get the value
+/// URL-decoded — for our purposes (ob1q… addresses, integer prices, pair
+/// labels with a `/`) the values fit ASCII safely. If we ever accept
+/// names with spaces or %20, swap this for a real urldecode.
+fn formGetField(body: []const u8, key: []const u8) ?[]const u8 {
+    if (body.len == 0) return null;
+    var it = std.mem.splitScalar(u8, body, '&');
+    while (it.next()) |pair| {
+        const eq = std.mem.indexOf(u8, pair, "=") orelse continue;
+        if (std.mem.eql(u8, pair[0..eq], key)) {
+            return pair[eq + 1 ..];
+        }
+    }
+    return null;
+}
+
 fn buildRpcBody(alloc: std.mem.Allocator, method: []const u8, params: []const u8) ![]const u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"{s}\",\"params\":{s}}}",
         .{ method, params });
+}
+
+/// Take a raw JSON-RPC 2.0 response and rewrap it in Kraken's REST format.
+/// Kraken expects every REST response to be `{"error":[...],"result":...}`,
+/// where `error` is an empty array on success or `["EService:..."]` on
+/// failure. Internally we run on JSON-RPC, so this helper bridges both.
+fn writeKrakenFromRpc(alloc: std.mem.Allocator, stream: std.net.Stream, rpc_response: []const u8) void {
+    // Look for "error":{...} (RPC error object) — translate to Kraken error array.
+    if (std.mem.indexOf(u8, rpc_response, "\"error\":{")) |err_start| {
+        const msg_key = "\"message\":\"";
+        const msg_idx = std.mem.indexOfPos(u8, rpc_response, err_start, msg_key) orelse {
+            writeJsonResponse(stream, "{\"error\":[\"EGeneral:Unknown\"],\"result\":{}}");
+            return;
+        };
+        const msg_from = msg_idx + msg_key.len;
+        const msg_end = std.mem.indexOfScalarPos(u8, rpc_response, msg_from, '"') orelse rpc_response.len;
+        const msg = rpc_response[msg_from..msg_end];
+        const wrapped = std.fmt.allocPrint(alloc,
+            "{{\"error\":[\"EGeneral:{s}\"],\"result\":{{}}}}", .{msg}) catch {
+                writeJsonResponse(stream, "{\"error\":[\"EGeneral:Unknown\"],\"result\":{}}");
+                return;
+            };
+        defer alloc.free(wrapped);
+        writeJsonResponse(stream, wrapped);
+        return;
+    }
+    // Look for "result":<value> and forward it as Kraken's `result`.
+    const r_key = "\"result\":";
+    const r_start = std.mem.indexOf(u8, rpc_response, r_key) orelse {
+        writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
+        return;
+    };
+    const r_from = r_start + r_key.len;
+    // The remainder of the JSON-RPC response is either `"result":<value>}` or
+    // `"result":<value>,"id":N}`. Find the matching close before the trailing
+    // `}` or `,"id"`. Simplest: trim a closing `}`.
+    var slice = rpc_response[r_from..];
+    if (slice.len > 0 and slice[slice.len - 1] == '}') slice = slice[0 .. slice.len - 1];
+    // Trim trailing `,"id":N` if present.
+    if (std.mem.lastIndexOf(u8, slice, ",\"id\":")) |id_idx| slice = slice[0..id_idx];
+    const wrapped = std.fmt.allocPrint(alloc,
+        "{{\"error\":[],\"result\":{s}}}", .{slice}) catch return;
+    defer alloc.free(wrapped);
+    writeJsonResponse(stream, wrapped);
 }
 
 fn writeJsonResponse(stream: std.net.Stream, body: []const u8) void {
@@ -713,7 +800,7 @@ fn writeErrorResponse(stream: std.net.Stream, code: i64, msg: []const u8) void {
 }
 
 fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []const u8, _body: []const u8, ctx: *ServerCtx) bool {
-    _ = _body;
+    const post_body = _body;
     var http_method: []const u8 = "";
     const path = extractHttpPath(header, &http_method) orelse return false;
 
@@ -742,7 +829,11 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
 
     // ── Public endpoints ────────────────────────────────────────────────
     if (std.mem.startsWith(u8, rest, "public/")) {
-        const ep = rest[7..];
+        const ep_raw = rest[7..];
+        // Strip query string before comparing endpoint name. Without
+        // this, `Ticker?pair=foo` doesn't match `Ticker` and falls
+        // through to the JSON-RPC dispatcher with the wrong body.
+        const ep = if (std.mem.indexOfScalar(u8, ep_raw, '?')) |q| ep_raw[0..q] else ep_raw;
         if (std.mem.eql(u8, ep, "Time")) {
             const rpc_body = buildRpcBody(alloc, "getstatus", "[]") catch return true;
             defer alloc.free(rpc_body);
@@ -773,44 +864,109 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
             return true;
         }
         if (std.mem.eql(u8, ep, "Assets")) {
+            // Reflect the assets actually used in EXCHANGE_PAIRS.
             writeJsonResponse(stream,
-                "{\"error\":[],\"result\":{\"OMNI\":{\"aclass\":\"currency\",\"altname\":\"OmniBus\",\"decimals\":8,\"display_decimals\":5},\"BTC\":{\"aclass\":\"currency\",\"altname\":\"Bitcoin\",\"decimals\":8,\"display_decimals\":5},\"ETH\":{\"aclass\":\"currency\",\"altname\":\"Ethereum\",\"decimals\":8,\"display_decimals\":5},\"USD\":{\"aclass\":\"currency\",\"altname\":\"US Dollar\",\"decimals\":4,\"display_decimals\":2},\"LCX\":{\"aclass\":\"currency\",\"altname\":\"LCX Token\",\"decimals\":8,\"display_decimals\":5}}}}");
+                "{\"error\":[],\"result\":{" ++
+                "\"OMNI\":{\"aclass\":\"currency\",\"altname\":\"OmniBus\",\"decimals\":8,\"display_decimals\":5}," ++
+                "\"BTC\":{\"aclass\":\"currency\",\"altname\":\"Bitcoin\",\"decimals\":8,\"display_decimals\":5}," ++
+                "\"ETH\":{\"aclass\":\"currency\",\"altname\":\"Ethereum\",\"decimals\":8,\"display_decimals\":5}," ++
+                "\"LCX\":{\"aclass\":\"currency\",\"altname\":\"LCX Token\",\"decimals\":8,\"display_decimals\":5}," ++
+                "\"USDC\":{\"aclass\":\"currency\",\"altname\":\"USD Coin\",\"decimals\":6,\"display_decimals\":2}," ++
+                "\"OMNI_DEMO\":{\"aclass\":\"currency\",\"altname\":\"OmniBus Demo (paper trader)\",\"decimals\":8,\"display_decimals\":5}" ++
+                "}}");
             return true;
         }
         if (std.mem.eql(u8, ep, "AssetPairs")) {
+            // Generate from EXCHANGE_PAIRS so adding a pair in one place
+            // (ID array) also publishes it via REST. Avoids the bug where
+            // we changed quote to USDC but AssetPairs still lied "USD".
+            var out_buf = std.ArrayList(u8){};
+            defer out_buf.deinit(alloc);
+            out_buf.appendSlice(alloc, "{\"error\":[],\"result\":{") catch return true;
+            for (EXCHANGE_PAIRS, 0..) |p, idx| {
+                if (idx > 0) out_buf.appendSlice(alloc, ",") catch return true;
+                std.fmt.format(out_buf.writer(alloc),
+                    "\"{s}{s}\":{{" ++
+                    "\"altname\":\"{s}/{s}\",\"wsname\":\"{s}/{s}\"," ++
+                    "\"aclass_base\":\"currency\",\"base\":\"{s}\"," ++
+                    "\"aclass_quote\":\"currency\",\"quote\":\"{s}\"," ++
+                    "\"lot\":\"unit\",\"pair_decimals\":5,\"lot_decimals\":8," ++
+                    "\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[]," ++
+                    "\"fees\":[[0,0.10]],\"fees_maker\":[[0,0.05]]," ++
+                    "\"fee_volume_currency\":\"USDC\",\"margin_call\":80," ++
+                    "\"margin_stop\":40,\"ordermin\":\"0.0001\",\"pair_id\":{d}" ++
+                    "}}",
+                    .{ p.base, p.quote, p.base, p.quote, p.base, p.quote, p.base, p.quote, p.id }) catch return true;
+            }
+            out_buf.appendSlice(alloc, "}}") catch return true;
+            writeJsonResponse(stream, out_buf.items);
+            return true;
+        }
+        if (false) {  // dead branch — original hardcoded AssetPairs disabled
             writeJsonResponse(stream,
                 "{\"error\":[],\"result\":{\"OMNIUSD\":{\"altname\":\"OMNI/USD\",\"wsname\":\"OMNI/USD\",\"aclass_base\":\"currency\",\"base\":\"OMNI\",\"aclass_quote\":\"currency\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":5,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"},\"BTCUSD\":{\"altname\":\"BTC/USD\",\"wsname\":\"BTC/USD\",\"base\":\"BTC\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":1,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.0001\"},\"LCXUSD\":{\"altname\":\"LCX/USD\",\"wsname\":\"LCX/USD\",\"base\":\"LCX\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":4,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"1.0\"},\"ETHUSD\":{\"altname\":\"ETH/USD\",\"wsname\":\"ETH/USD\",\"base\":\"ETH\",\"quote\":\"USD\",\"lot\":\"unit\",\"pair_decimals\":2,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.001\"},\"OMNIBTC\":{\"altname\":\"OMNI/BTC\",\"wsname\":\"OMNI/BTC\",\"base\":\"OMNI\",\"quote\":\"BTC\",\"lot\":\"unit\",\"pair_decimals\":8,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"},\"OMNILCX\":{\"altname\":\"OMNI/LCX\",\"wsname\":\"OMNI/LCX\",\"base\":\"OMNI\",\"quote\":\"LCX\",\"lot\":\"unit\",\"pair_decimals\":5,\"lot_decimals\":8,\"lot_multiplier\":1,\"leverage_buy\":[],\"leverage_sell\":[],\"fees\":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.20],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.10]],\"fees_maker\":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.10],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0.00]],\"fee_volume_currency\":\"ZUSD\",\"margin_call\":80,\"margin_stop\":40,\"ordermin\":\"0.01\"}}}}");
             return true;
         }
         if (std.mem.eql(u8, ep, "Ticker")) {
-            const pair = getQueryParam(path, "pair") orelse "OMNIUSD";
-            const rpc_body = buildRpcBody(alloc, "exchange_getStats",
-                std.fmt.allocPrint(alloc, "{{\"pair\":\"{s}\"}}", .{pair}) catch "{}") catch return true;
+            // exchange_getStats accepts {mode}; we still pass the pair so a
+            // future per-pair stats endpoint can use it. Body MUST be an
+            // array of one params object — JSON-RPC 2.0 strict.
+            const mode_param: []const u8 = if (is_paper) "{\"mode\":\"paper\"}" else "{}";
+            const params_str = std.fmt.allocPrint(alloc, "[{s}]", .{mode_param}) catch return true;
+            defer alloc.free(params_str);
+            const rpc_body = buildRpcBody(alloc, "exchange_getStats", params_str) catch return true;
             defer alloc.free(rpc_body);
             const res = dispatch(rpc_body, ctx) catch |err| {
                 writeErrorResponse(stream, 500, @errorName(err));
                 return true;
             };
             defer alloc.free(res);
-            writeJsonResponse(stream, res);
+            writeKrakenFromRpc(alloc, stream, res);
             return true;
         }
         if (std.mem.eql(u8, ep, "Depth")) {
-            const pair = getQueryParam(path, "pair") orelse "OMNI/USD";
+            const raw_pair = getQueryParam(path, "pair") orelse "OMNIUSDC";
             const count_s = getQueryParam(path, "count") orelse "100";
-            const rpc_body = std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"exchange_getOrderbook\",\"params\":[\"{s}\",{s}]}}",
-                .{ pair, count_s }) catch return true;
+            const mode_suffix: []const u8 = if (is_paper) ",\"mode\":\"paper\"" else "";
+            const norm = normalizePair(alloc, raw_pair);
+            defer if (norm.alloced) alloc.free(norm.pair);
+            const params_str = std.fmt.allocPrint(alloc,
+                "[{{\"pair\":\"{s}\",\"depth\":{s}{s}}}]",
+                .{ norm.pair, count_s, mode_suffix }) catch return true;
+            defer alloc.free(params_str);
+            const rpc_body = buildRpcBody(alloc, "exchange_getOrderbook", params_str) catch return true;
             defer alloc.free(rpc_body);
             const res = dispatch(rpc_body, ctx) catch |err| {
                 writeErrorResponse(stream, 500, @errorName(err));
                 return true;
             };
             defer alloc.free(res);
-            writeJsonResponse(stream, res);
+            writeKrakenFromRpc(alloc, stream, res);
             return true;
         }
-        if (std.mem.eql(u8, ep, "Trades") or std.mem.eql(u8, ep, "OHLC") or std.mem.eql(u8, ep, "Spread")) {
+        if (std.mem.eql(u8, ep, "Trades")) {
+            // Public Trades — last fills on this pair. Same data
+            // exchange_getTrades returns; mode picks engine.
+            const raw_pair = getQueryParam(path, "pair") orelse "OMNI/USDC";
+            const mode_param: []const u8 = if (is_paper) ",\"mode\":\"paper\"" else "";
+            const norm = normalizePair(alloc, raw_pair);
+            defer if (norm.alloced) alloc.free(norm.pair);
+            const params_str = std.fmt.allocPrint(alloc,
+                "[{{\"pair\":\"{s}\",\"limit\":50{s}}}]", .{ norm.pair, mode_param }) catch return true;
+            defer alloc.free(params_str);
+            const rpc_body = buildRpcBody(alloc, "exchange_getTrades", params_str) catch return true;
+            defer alloc.free(rpc_body);
+            const res = dispatch(rpc_body, ctx) catch |err| {
+                writeErrorResponse(stream, 500, @errorName(err));
+                return true;
+            };
+            defer alloc.free(res);
+            writeKrakenFromRpc(alloc, stream, res);
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "OHLC") or std.mem.eql(u8, ep, "Spread")) {
+            // OHLC + Spread are NOT yet implemented as real RPC — return
+            // an empty Kraken-shaped result so clients don't break.
             writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
             return true;
         }
@@ -818,33 +974,94 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
 
     // ── Private endpoints ───────────────────────────────────────────────
     if (std.mem.startsWith(u8, rest, "private/")) {
-        const ep = rest[8..];
-        // Map Kraken-style private endpoints to existing exchange_* RPCs
+        const ep_raw = rest[8..];
+        const ep = if (std.mem.indexOfScalar(u8, ep_raw, '?')) |q| ep_raw[0..q] else ep_raw;
+        // Map Kraken-style private endpoints to existing exchange_* RPCs.
+        // Some need form-encoded body params translated to our JSON shape.
+        // We pass the raw body to the helpers so they can reach for
+        // `owner=ob1q...` / `pair=OMNI/USD` / `volume=1.5` etc.
         var rpc_method: []const u8 = "";
-        const rpc_params: []const u8 = "{}";
+        var rpc_params: []const u8 = "{}";
+        var owned_params: ?[]u8 = null;
+        defer if (owned_params) |p| alloc.free(p);
+        const owner = formGetField(post_body, "owner") orelse formGetField(post_body, "address");
+        const mode_suffix: []const u8 = if (is_paper) ",\"mode\":\"paper\"" else "";
 
-        if (std.mem.eql(u8, ep, "Balance")) { rpc_method = "exchange_getBalances"; }
-        else if (std.mem.eql(u8, ep, "TradeBalance")) { rpc_method = "exchange_getBalances"; }
-        else if (std.mem.eql(u8, ep, "OpenOrders")) { rpc_method = "exchange_getUserOrders"; }
+        if (std.mem.eql(u8, ep, "Balance")) {
+            rpc_method = "exchange_getBalances";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"owner\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
+        else if (std.mem.eql(u8, ep, "TradeBalance")) {
+            rpc_method = "exchange_getBalances";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"owner\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
+        else if (std.mem.eql(u8, ep, "OpenOrders")) {
+            rpc_method = "exchange_getUserOrders";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"trader\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
         else if (std.mem.eql(u8, ep, "ClosedOrders")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"closed\":{}}}"); return true; }
-        else if (std.mem.eql(u8, ep, "QueryOrders")) { rpc_method = "exchange_getUserOrders"; }
-        else if (std.mem.eql(u8, ep, "TradesHistory")) { rpc_method = "exchange_getTrades"; }
-        else if (std.mem.eql(u8, ep, "QueryTrades")) { rpc_method = "exchange_getTrades"; }
+        else if (std.mem.eql(u8, ep, "QueryOrders")) {
+            // Same back-end as OpenOrders (we don't separate open/query yet).
+            rpc_method = "exchange_getUserOrders";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"trader\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
+        else if (std.mem.eql(u8, ep, "TradesHistory")) {
+            // Trades for a specific trader. `address` filter on our side.
+            rpc_method = "exchange_getTrades";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"address\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            } else {
+                owned_params = std.fmt.allocPrint(alloc, "[{{{s}}}]", .{ if (mode_suffix.len > 0) mode_suffix[1..] else "" }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
+        else if (std.mem.eql(u8, ep, "QueryTrades")) {
+            rpc_method = "exchange_getTrades";
+            if (owner) |a| {
+                owned_params = std.fmt.allocPrint(alloc, "[{{\"address\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            } else {
+                owned_params = std.fmt.allocPrint(alloc, "[{{{s}}}]", .{ if (mode_suffix.len > 0) mode_suffix[1..] else "" }) catch null;
+                if (owned_params) |p| rpc_params = p;
+            }
+        }
         else if (std.mem.eql(u8, ep, "OpenPositions")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{}}"); return true; }
         else if (std.mem.eql(u8, ep, "Ledgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
         else if (std.mem.eql(u8, ep, "QueryLedgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
         else if (std.mem.eql(u8, ep, "TradeVolume")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currency\":\"USD\",\"volume\":\"0.0000\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "AddOrder")) { rpc_method = "exchange_placeOrder"; }
-        else if (std.mem.eql(u8, ep, "CancelOrder")) { rpc_method = "exchange_cancelOrder"; }
+        else if (std.mem.eql(u8, ep, "AddOrder") or std.mem.eql(u8, ep, "CancelOrder") or std.mem.eql(u8, ep, "Withdraw")) {
+            // These mutate state and require an ECDSA-signed payload. The
+            // REST surface doesn't transport our signature scheme yet —
+            // tell the client to use JSON-RPC `exchange_placeOrder` (or
+            // wait for the upcoming Kraken-style HMAC-SHA512 auth).
+            const ep_msg = std.fmt.allocPrint(alloc,
+                "{{\"error\":[\"EAPI:NotImplemented:Use exchange_{s} via JSON-RPC; HMAC auth WIP\"],\"result\":{{}}}}",
+                .{ep}) catch return true;
+            defer alloc.free(ep_msg);
+            writeJsonResponse(stream, ep_msg);
+            return true;
+        }
         else if (std.mem.eql(u8, ep, "CancelAll")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"count\":0}}"); return true; }
         else if (std.mem.eql(u8, ep, "CancelAllOrdersAfter")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currentTime\":\"0\",\"triggerTime\":\"0\"}}"); return true; }
         else if (std.mem.eql(u8, ep, "EditOrder")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"descr\":{\"order\":\"edited\"}}}"); return true; }
-        else if (std.mem.eql(u8, ep, "DepositMethods")) { rpc_method = "exchange_deposit"; }
+        else if (std.mem.eql(u8, ep, "DepositMethods")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"method\":\"OMNI on-chain\",\"limit\":false,\"fee\":\"0.00000000\",\"address-setup-fee\":\"0.00000000\",\"gen-address\":true}]}"); return true; }
         else if (std.mem.eql(u8, ep, "DepositAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"address\":\"ob1q...\",\"expiretm\":0,\"newtag\":null}]}"); return true; }
         else if (std.mem.eql(u8, ep, "StatusOfDeposits")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
         else if (std.mem.eql(u8, ep, "WithdrawMethods")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"method\":\"OMNI\",\"limit\":false,\"fee\":\"0.0005\"}]}"); return true; }
         else if (std.mem.eql(u8, ep, "WithdrawAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "Withdraw")) { rpc_method = "exchange_withdraw"; }
         else if (std.mem.eql(u8, ep, "StatusOfWithdrawals")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
         else if (std.mem.eql(u8, ep, "WithdrawCancel")) { writeJsonResponse(stream, "{\"error\":[],\"result\":true}"); return true; }
         else if (std.mem.eql(u8, ep, "WalletTransfer")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"T1\"}}"); return true; }
@@ -875,7 +1092,7 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
                 return true;
             };
             defer alloc.free(res);
-            writeJsonResponse(stream, res);
+            writeKrakenFromRpc(alloc, stream, res);
             return true;
         }
     }
@@ -5468,13 +5685,20 @@ const ExchangePair = struct {
     quote: []const u8,
 };
 
+// Trading pairs — append-only by ID. Quote is USDC (not USD) because we
+// settle in stablecoin internally; "USD" was a confusing label.
+// IMPORTANT (founder rule, memory project_omnibus_dex_native): never
+// reorder existing IDs — clients in the wild remember `pair_id` by index.
+// New pairs go at the end; renames of an existing slot's quote MUST be
+// done at testnet (we are) before any external integration.
 const EXCHANGE_PAIRS = [_]ExchangePair{
-    .{ .id = 0, .base = "OMNI", .quote = "USD" },
-    .{ .id = 1, .base = "BTC",  .quote = "USD" },
-    .{ .id = 2, .base = "LCX",  .quote = "USD" },
-    .{ .id = 3, .base = "ETH",  .quote = "USD" },
-    .{ .id = 4, .base = "OMNI", .quote = "BTC" },
-    .{ .id = 5, .base = "OMNI", .quote = "LCX" },
+    .{ .id = 0, .base = "OMNI", .quote = "USDC" },
+    .{ .id = 1, .base = "BTC",  .quote = "USDC" },
+    .{ .id = 2, .base = "LCX",  .quote = "USDC" },
+    .{ .id = 3, .base = "ETH",  .quote = "USDC" },
+    .{ .id = 4, .base = "OMNI", .quote = "BTC"  },
+    .{ .id = 5, .base = "OMNI", .quote = "LCX"  },
+    .{ .id = 6, .base = "OMNI", .quote = "ETH"  },
 };
 
 // ── Fee model ────────────────────────────────────────────────────────
