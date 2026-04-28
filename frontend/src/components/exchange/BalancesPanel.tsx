@@ -25,6 +25,7 @@ export function BalancesPanel() {
   const u = getUnlocked();
 
   const [balances, setBalances] = useState<ExchangeBalance[]>([]);
+  const [chainBalance, setChainBalance] = useState<number>(0);
   const [token, setToken] = useState<string>("OMNI");
   const [amountStr, setAmountStr] = useState("");
   const [busy, setBusy] = useState<"deposit" | "withdraw" | null>(null);
@@ -34,12 +35,22 @@ export function BalancesPanel() {
   useEffect(() => {
     if (!u) {
       setBalances([]);
+      setChainBalance(0);
       return;
     }
     let cancelled = false;
     const refresh = async () => {
-      const list = await rpc.exchangeGetBalances(u.address);
-      if (!cancelled) setBalances(list);
+      const [list, chainBal] = await Promise.all([
+        rpc.exchangeGetBalances(u.address),
+        // On-chain wallet balance (same RPC the Wallet tab uses).
+        // We surface it here so the user sees their mining rewards
+        // alongside the internal exchange pool balance.
+        rpc.request_raw("getbalance", [u.address]).then((r: any) => r?.balance ?? 0).catch(() => 0),
+      ]);
+      if (!cancelled) {
+        setBalances(list);
+        setChainBalance(chainBal);
+      }
     };
     refresh();
     const id = setInterval(refresh, 5000);
@@ -112,11 +123,34 @@ export function BalancesPanel() {
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
       <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-        Exchange balances
+        Balances
       </h3>
 
+      {/* On-chain (real OMNI in your wallet) — shown above the internal
+          exchange balances so the user sees mining rewards immediately. */}
+      <div className="rounded border border-mempool-blue/30 bg-mempool-blue/5 px-3 py-2 flex items-center justify-between">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-mempool-blue/80">
+            On-chain wallet (mining rewards live here)
+          </div>
+          <div className="text-[10px] text-mempool-text-dim font-mono truncate max-w-[36ch]" title={u.address}>
+            {u.address}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="font-mono text-sm text-mempool-blue">
+            {(chainBalance / SAT_PER_OMNI).toFixed(4)} OMNI
+          </div>
+          <div className="text-[10px] text-mempool-text-dim">deposit to trade →</div>
+        </div>
+      </div>
+
+      <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mt-2">
+        Internal exchange balance (locked in orders + available)
+      </div>
+
       {balances.length === 0 ? (
-        <p className="text-xs text-mempool-text-dim">No balances yet — deposit OMNI below to start trading.</p>
+        <p className="text-xs text-mempool-text-dim">No internal balance yet — deposit OMNI below to start trading.</p>
       ) : (
         <div className="space-y-1">
           <div className="grid grid-cols-3 gap-1 text-[10px] uppercase tracking-wider text-mempool-text-dim px-1">
