@@ -1166,9 +1166,24 @@ pub const Blockchain = struct {
 
     /// Convenience method: save full blockchain state to disc via PersistentBlockchain.
     /// No-op if persistent_db has not been attached (e.g. in unit tests).
+    ///
+    /// Thread-safety: takes self.mutex for the duration of the write. The
+    /// background save thread (g_state_save_thread in main.zig) calls this
+    /// every 60 s; the mining loop holds the mutex briefly to apply each
+    /// block's TXs, so the saver and the miner serialise cleanly. A slow
+    /// disk write blocks new blocks from being added during the save —
+    /// that's fine, our save is ~hundreds of ms and we're targeting
+    /// 1 s/block so there's plenty of slack.
     pub fn saveToDisc(self: *Blockchain) !void {
         const pdb = self.persistent_db orelse return;
+        self.mutex.lock();
+        defer self.mutex.unlock();
         try pdb.saveBlockchain(self, self.db_path);
+        // Update bookkeeping fields so a graceful-shutdown save sees fresh
+        // numbers and the operator's log shows what was persisted.
+        self.last_save_time = std.time.timestamp();
+        self.blocks_since_save = 0;
+        self.txs_since_save = 0;
         std.debug.print("[DB] Auto-saved: {d} blocks, {d} addresses\n", .{ self.chain.items.len, self.balances.count() });
     }
 

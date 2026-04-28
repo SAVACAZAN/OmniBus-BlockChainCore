@@ -1801,7 +1801,55 @@ fn handleFaucetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
 const RichEntry = struct {
     address: []const u8,
     balance: u64,
+    tx_count: u32 = 0,
+    received: u64 = 0,
+    sent: u64 = 0,
+    first_height: u64 = 0,
+    last_height: u64 = 0,
+    first_seen_set: bool = false,
 };
+
+/// Infer the kind of a transaction from its on-chain shape.
+///
+/// OmniBus does NOT store an explicit `kind` field on transactions (the
+/// chain is binary-compatible with v1). The type is derived at query
+/// time from the from/to addresses and op_return content. Add new
+/// detectors here as new transaction shapes get introduced — order
+/// matters: the FIRST matching rule wins.
+///
+/// Currently detected:
+///   - "coinbase"    : empty from_address (block reward)
+///   - "faucet"      : sender is the testnet faucet registrar slot
+///   - "registrar"   : sender is one of the other 9 registrar slots
+///   - "exchange"    : op_return prefixed with "exchange:" or "fill:"
+///                     (matching engine emits these for on-chain fills)
+///   - "stake"       : op_return prefixed with "stake:" or "unstake:"
+///   - "demo_grant"  : op_return prefixed with "demo:"
+///   - "transfer"    : default (regular P2PKH/SegWit transfer)
+fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
+    if (tx.from_address.len == 0) return "coinbase";
+
+    // Registrar wallets — fixed-forever treasury slots
+    for (registrar_mod.REGISTRAR_ADDRESSES) |slot| {
+        if (slot.address.len == 0) continue;
+        if (std.mem.eql(u8, slot.address, tx.from_address)) {
+            // Slot 7 = faucet: distinguish from generic registrar
+            if (slot.index == 7) return "faucet";
+            return "registrar";
+        }
+    }
+
+    // op_return-tagged operations (extensible: add new prefixes here)
+    if (tx.op_return.len > 0) {
+        if (std.mem.startsWith(u8, tx.op_return, "exchange:")) return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "fill:")) return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "stake:")) return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "unstake:")) return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "demo:")) return "demo_grant";
+    }
+
+    return "transfer";
+}
 
 /// RPC "getrichlist" — Bitcoin-style address list sorted by balance desc.
 ///
@@ -1843,15 +1891,57 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         }
     }.lt);
 
-    // Build a per-address mined-blocks index in one pass over the chain so
-    // we don't do an O(N*chain) lookup per entry. HashMap address → count.
+    // Build per-address indexes in ONE pass over the chain. We collect:
+    //   - mined_count: blocks mined by miner_address
+    //   - tx_stats:    {count, received, sent, first_height, last_height}
+    // This keeps the richlist O(chain + addresses) instead of O(chain × addresses).
     var mined_count = std.StringHashMap(u32).init(alloc);
     defer mined_count.deinit();
-    for (ctx.bc.chain.items) |blk| {
-        if (blk.miner_address.len == 0) continue;
-        const gop = try mined_count.getOrPut(blk.miner_address);
-        if (!gop.found_existing) gop.value_ptr.* = 0;
-        gop.value_ptr.* += 1;
+
+    const TxStats = struct {
+        count: u32 = 0,
+        received: u64 = 0,
+        sent: u64 = 0,
+        first_height: u64 = 0,
+        last_height: u64 = 0,
+        first_seen: bool = false,
+    };
+    var tx_stats = std.StringHashMap(TxStats).init(alloc);
+    defer tx_stats.deinit();
+
+    for (ctx.bc.chain.items, 0..) |blk, height| {
+        if (blk.miner_address.len > 0) {
+            const gop = try mined_count.getOrPut(blk.miner_address);
+            if (!gop.found_existing) gop.value_ptr.* = 0;
+            gop.value_ptr.* += 1;
+        }
+        for (blk.transactions.items) |tx| {
+            const h: u64 = @intCast(height);
+            // Sender side (skip coinbase — empty from)
+            if (tx.from_address.len > 0) {
+                const gop = try tx_stats.getOrPut(tx.from_address);
+                if (!gop.found_existing) gop.value_ptr.* = .{};
+                gop.value_ptr.count += 1;
+                gop.value_ptr.sent += tx.amount;
+                if (!gop.value_ptr.first_seen) {
+                    gop.value_ptr.first_height = h;
+                    gop.value_ptr.first_seen = true;
+                }
+                gop.value_ptr.last_height = h;
+            }
+            // Receiver side
+            if (tx.to_address.len > 0) {
+                const gop = try tx_stats.getOrPut(tx.to_address);
+                if (!gop.found_existing) gop.value_ptr.* = .{};
+                gop.value_ptr.count += 1;
+                gop.value_ptr.received += tx.amount;
+                if (!gop.value_ptr.first_seen) {
+                    gop.value_ptr.first_height = h;
+                    gop.value_ptr.first_seen = true;
+                }
+                gop.value_ptr.last_height = h;
+            }
+        }
     }
 
     // Emit JSON: {result: {entries:[…], total:N, totalSupply:N}}
@@ -1869,9 +1959,12 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (i > 0) try w.writeAll(",");
         const is_validator = e.balance >= validator_mod.MIN_VALIDATOR_BALANCE;
         const blocks = mined_count.get(e.address) orelse 0;
+        const stats = tx_stats.get(e.address) orelse TxStats{};
         try w.print(
-            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d},\"isValidator\":{},\"blocksMined\":{d}}}",
-            .{ i + 1, e.address, e.balance, is_validator, blocks },
+            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d},\"isValidator\":{},\"blocksMined\":{d}," ++
+            "\"txCount\":{d},\"received\":{d},\"sent\":{d},\"firstHeight\":{d},\"lastHeight\":{d}}}",
+            .{ i + 1, e.address, e.balance, is_validator, blocks,
+               stats.count, stats.received, stats.sent, stats.first_height, stats.last_height },
         );
     }
 
@@ -2321,6 +2414,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     var entries: []u8 = try alloc.dupe(u8, "");
     var count: usize = 0;
+    var total_received: u64 = 0;
+    var total_sent: u64 = 0;
     const current_height: u64 = @intCast(ctx.bc.chain.items.len);
 
     // 1. Pending TXs from mempool (0 confirmations)
@@ -2329,10 +2424,12 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const is_to = std.mem.eql(u8, tx.to_address, addr);
         if (!is_from and !is_to) continue;
         const dir: []const u8 = if (is_from) "sent" else "received";
+        if (is_from) total_sent += tx.amount else total_received += tx.amount;
+        const kind = inferTxKind(tx);
         const sep: []const u8 = if (count == 0) "" else ",";
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"status\":\"pending\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"pending\"}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -2348,10 +2445,12 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
                 const is_from = std.mem.eql(u8, tx.from_address, addr);
                 const dir: []const u8 = if (is_from) "sent" else "received";
+                if (is_from) total_sent += tx.amount else total_received += tx.amount;
+                const kind = inferTxKind(tx);
                 const sep: []const u8 = if (count == 0) "" else ",";
                 const e = try std.fmt.allocPrint(alloc,
-                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"status\":\"confirmed\"}}",
-                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir });
+                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"confirmed\"}}",
+                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind });
                 const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                 alloc.free(entries); alloc.free(e); entries = m; count += 1;
                 break;
@@ -2361,8 +2460,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     defer alloc.free(entries);
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d}}}}}",
-        .{ id, addr, entries, count });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d},\"totalReceived\":{d},\"totalSent\":{d}}}}}",
+        .{ id, addr, entries, count, total_received, total_sent });
 }
 
 /// RPC "listtransactions" — returns last N transactions for the node's own wallet.
