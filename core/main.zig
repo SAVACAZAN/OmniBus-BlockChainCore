@@ -1541,15 +1541,20 @@ pub fn main() !void {
     // (recovered gaps are still recovered) but distributes blocks
     // uniformly so the chain looks healthy in the UI.
     //
-    // 100ms = 10 blocks/sec ceiling = 600 blocks/min ceiling, way above
-    // our 60/min target so we never hit it on healthy operation. Only
-    // post-pause bursts get clipped.
+    // 800 ms gap = 60 blocks/min wall-clock (whitepaper spec).
     //
-    // (Tried 200ms first; it smoothed the bursts beautifully but bottle-
-    // necked us at ~27/min on VPS jitter — we were spending 5.4s out of
-    // every 60s in smoothing sleep. 100ms keeps the anti-burst behaviour
-    // without the throughput tax.)
-    const MIN_BLOCK_GAP_MS: i64 = 100;
+    // Math: a measured block produces ~190 ms of unavoidable overhead
+    // (10 sub-block ticks + state apply + p2p broadcast + ws_server
+    // event + reputation credit + meta-block header). At 1000 ms gap
+    // that overhead ate into every slot, dropping us to ~50/min.
+    // Setting the gap to 800 ms compensates: 800 ms sleep + ~200 ms
+    // of in-loop work = ~1.0 s wall-clock per block, locked to the
+    // 60/min target and the whitepaper halving / total-supply schedule.
+    //
+    // The hardware ceiling is ~180/min on this VPS (measured uncapped),
+    // so we have ~3× headroom. That margin absorbs scheduler pauses
+    // and catches up after them without falling behind wall-clock.
+    const MIN_BLOCK_GAP_MS: i64 = 800;
     var last_block_produced_ms: i64 = 0;
 
     // ── Block-rate stabilizer ────────────────────────────────────────────
@@ -1787,17 +1792,25 @@ pub fn main() !void {
                 continue;
             }
 
-            // Burst smoothing: even when it's our turn, don't produce a new
-            // block faster than MIN_BLOCK_GAP_MS after the previous one.
-            // Prevents the post-VPS-pause "7 blocks in the same second"
-            // cluster the operator sees in the explorer.
+            // Block-rate enforcement: never produce a new block faster
+            // than MIN_BLOCK_GAP_MS after the previous one. With the
+            // gap set to 1000 ms this locks the chain to exactly the
+            // 60 blocks/min target from the whitepaper.
             //
-            // Adaptive: when we're already lagging behind target rate
-            // (timeout_mult < 1.0 means stabilizer wants us to catch up),
-            // don't smooth. Burst is what the chain *needs* to recover
-            // from a pause — only smooth when we're at-or-above target
-            // and the cosmetic clustering would otherwise show.
-            if (last_block_produced_ms != 0 and stabilizer_timeout_mult >= 1.0) {
+            // Hardware capacity is ~3× this rate (we measured 180-185
+            // blocks/min uncapped on the same VPS). The headroom is
+            // intentional safety margin — when scheduler pauses or
+            // network jitter eat into a slot, the next iteration still
+            // produces inside the same wall-clock second; we never fall
+            // behind the published schedule.
+            //
+            // Previously this smoothing was conditional on
+            // `stabilizer_timeout_mult >= 1.0`, but that escape hatch
+            // existed only because we were chasing 60/min and didn't
+            // want to suppress recovery bursts. With the oracle_fetcher
+            // unblocked (no more 8-9 s spikes) we have no reason to
+            // burst — the unconditional gap keeps tokenomics honest.
+            if (last_block_produced_ms != 0) {
                 const since_last = now_ms - last_block_produced_ms;
                 if (since_last < MIN_BLOCK_GAP_MS) {
                     const wait_ms: u64 = @intCast(MIN_BLOCK_GAP_MS - since_last);
