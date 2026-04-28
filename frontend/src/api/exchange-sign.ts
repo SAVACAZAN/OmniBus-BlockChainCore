@@ -6,10 +6,39 @@
  * Keep formats in sync — change here AND in rpc_server.zig.
  */
 
-import { sign, getPublicKey } from "@noble/secp256k1";
+import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
+import { hmac } from "@noble/hashes/hmac";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { bech32 } from "@scure/base";
+
+const { sign, getPublicKey } = secp;
+
+// noble/secp256k1 v2 needs an HMAC implementation registered for the
+// RFC6979 deterministic-k path. We wire the noble HMAC-SHA256 once at
+// module load. Without this `sign()` throws "hashes.hmacSha256Sync not set".
+const sAny: any = secp;
+if (sAny?.etc && !sAny.etc.hmacSha256Sync) {
+  sAny.etc.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]) =>
+    hmac(sha256, key, concatBytes(...messages));
+}
+if (sAny?.utils && !sAny.utils.hmacSha256Sync) {
+  // older API surface
+  sAny.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]) =>
+    hmac(sha256, key, concatBytes(...messages));
+}
+
+function concatBytes(...arrays: Uint8Array[]): Uint8Array {
+  let total = 0;
+  for (const a of arrays) total += a.length;
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const a of arrays) {
+    out.set(a, off);
+    off += a.length;
+  }
+  return out;
+}
 
 /**
  * Sign a placeOrder payload. Canonical message must match
@@ -42,6 +71,59 @@ export function signCancelOrderPayload(args: {
   nonce: number;
 }): { signature: string; publicKey: string } {
   const msg = `EXCHANGE_CANCEL_V1\n${args.orderId}\n${args.nonce}\n${args.trader}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+/**
+ * Sign the login challenge string returned by `exchange_getAuthNonce`.
+ * Canonical (built server-side too): "OmniBus Exchange Login: <nonceHex>"
+ */
+export function signLoginChallenge(args: {
+  privateKeyHex: string;
+  nonceHex: string;
+}): { signature: string; publicKey: string } {
+  return signMessage(args.privateKeyHex, `OmniBus Exchange Login: ${args.nonceHex}`);
+}
+
+export function signCreateApiKeyPayload(args: {
+  privateKeyHex: string;
+  name: string;
+  owner: string;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg = `EXCHANGE_APIKEY_V1\n${args.name}\n${args.owner}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+export function signRevokeApiKeyPayload(args: {
+  privateKeyHex: string;
+  keyId: string;
+  owner: string;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg = `EXCHANGE_APIKEY_REVOKE_V1\n${args.keyId}\n${args.owner}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+export function signDepositPayload(args: {
+  privateKeyHex: string;
+  owner: string;
+  token: string;
+  amount: number;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg = `EXCHANGE_DEPOSIT_V1\n${args.owner}\n${args.token}\n${args.amount}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+export function signWithdrawPayload(args: {
+  privateKeyHex: string;
+  owner: string;
+  token: string;
+  amount: number;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg = `EXCHANGE_WITHDRAW_V1\n${args.owner}\n${args.token}\n${args.amount}\n${args.nonce}`;
   return signMessage(args.privateKeyHex, msg);
 }
 

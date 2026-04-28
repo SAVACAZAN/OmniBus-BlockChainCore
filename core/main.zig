@@ -284,6 +284,8 @@ const RPCThreadArgs = struct {
     exchange: ?*matching_mod.MatchingEngine,
     /// Path to `data/<chain>/orders.jsonl`. Empty = in-memory only (regtest).
     orders_path: ?[]const u8,
+    /// Path to `data/<chain>/exchange-users.jsonl`. Stores apikeys + balances.
+    users_path: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -303,6 +305,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .dns = args.dns,
         .exchange = args.exchange,
         .orders_path = args.orders_path,
+        .users_path = args.users_path,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -1176,7 +1179,13 @@ pub fn main() !void {
     if (!exchange_disabled) {
         exchange_engine = allocator.create(matching_mod.MatchingEngine) catch null;
         if (exchange_engine) |e| {
-            e.* = matching_mod.MatchingEngine.init();
+            // Avoid `e.* = MatchingEngine.init()` because the struct is
+            // ~3MB (10K orders × 2 sides). The return-by-value materializes
+            // a temporary on the stack and segfaults on Linux thread stacks.
+            // Zero in place, then fill the small scalar fields.
+            @memset(std.mem.asBytes(e), 0);
+            e.next_order_id = 1;
+            e.next_fill_id = 1;
             const chain_subdir: []const u8 = if (config.testnet) "testnet"
                 else if (config.regtest) "regtest" else "mainnet";
             orders_path_owned = std.fmt.allocPrint(allocator, "data/{s}/orders.jsonl", .{chain_subdir}) catch null;
@@ -1189,6 +1198,20 @@ pub fn main() !void {
         }
     } else {
         std.debug.print("[EXCHANGE] disabled by OMNIBUS_EXCHANGE_OFF\n", .{});
+    }
+
+    // Exchange-users journal (api keys + internal balances). Always
+    // present (even when matching engine is off) because login + balance
+    // queries are useful by themselves.
+    var users_path_owned: ?[]u8 = null;
+    {
+        const chain_subdir: []const u8 = if (config.testnet) "testnet"
+            else if (config.regtest) "regtest" else "mainnet";
+        users_path_owned = std.fmt.allocPrint(allocator, "data/{s}/exchange-users.jsonl", .{chain_subdir}) catch null;
+        if (users_path_owned) |p| {
+            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
+            std.debug.print("[EXCHANGE] users journal: {s}\n", .{p});
+        }
     }
 
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
@@ -1210,6 +1233,7 @@ pub fn main() !void {
         .dns = &dns,
         .exchange = exchange_engine,
         .orders_path = orders_path_owned,
+        .users_path = users_path_owned,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

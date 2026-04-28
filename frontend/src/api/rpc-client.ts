@@ -502,6 +502,105 @@ export class OmniBusRpcClient {
   }): Promise<{ orderId: number; cancelled: boolean }> {
     return this.request("exchange_cancelOrder", [payload]);
   }
+
+  // ── Login flow (signed nonce) ─────────────────────────────────────
+  async exchangeGetAuthNonce(address: string): Promise<{
+    nonce: string;
+    message: string;
+    ttlMs: number;
+  }> {
+    return this.request("exchange_getAuthNonce", [{ address }]);
+  }
+
+  async exchangeLogin(payload: {
+    address: string;
+    nonce: string;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ address: string; loggedIn: boolean; sessionTtlMs: number }> {
+    return this.request("exchange_login", [payload]);
+  }
+
+  // ── API keys ──────────────────────────────────────────────────────
+  async exchangeCreateApiKey(payload: {
+    owner: string;
+    name: string;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{
+    keyId: string;
+    secret: string;
+    name: string;
+    warning: string;
+    createdMs: number;
+  }> {
+    return this.request("exchange_createApiKey", [payload]);
+  }
+
+  async exchangeListApiKeys(owner: string): Promise<ApiKeyInfo[]> {
+    try {
+      return (await this.request("exchange_listApiKeys", [{ owner }])) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async exchangeRevokeApiKey(payload: {
+    owner: string;
+    keyId: string;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ keyId: string; revoked: boolean }> {
+    return this.request("exchange_revokeApiKey", [payload]);
+  }
+
+  // ── Deposit / Withdraw / Balances ─────────────────────────────────
+  async exchangeDeposit(payload: {
+    owner: string;
+    token: string;
+    amount: number;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<ExchangeBalance> {
+    return this.request("exchange_deposit", [payload]);
+  }
+
+  async exchangeWithdraw(payload: {
+    owner: string;
+    token: string;
+    amount: number;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<ExchangeBalance> {
+    return this.request("exchange_withdraw", [payload]);
+  }
+
+  async exchangeGetBalances(owner: string): Promise<ExchangeBalance[]> {
+    try {
+      return (await this.request("exchange_getBalances", [{ owner }])) || [];
+    } catch {
+      return [];
+    }
+  }
+}
+
+export interface ApiKeyInfo {
+  keyId: string;
+  name: string;
+  createdMs: number;
+  lastUsedMs: number;
+  revoked: boolean;
+}
+
+export interface ExchangeBalance {
+  token: string;
+  available: number;
+  locked: number;
+  owner?: string;
 }
 
 export interface OrderbookLevel {

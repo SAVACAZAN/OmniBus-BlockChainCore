@@ -6,6 +6,8 @@ import OmniBusRpcClient, {
 import { AuthPanel } from "./AuthPanel";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { UserOrdersPanel } from "./UserOrdersPanel";
+import { ApiKeysPanel } from "./ApiKeysPanel";
+import { BalancesPanel } from "./BalancesPanel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -21,7 +23,10 @@ const FALLBACK_PAIRS: Pair[] = [
   { id: 3, base: "ETH", quote: "USD", label: "ETH/USD" },
 ];
 
+type Tab = "trade" | "account";
+
 export function ExchangePage() {
+  const [tab, setTab] = useState<Tab>("trade");
   const [pairs, setPairs] = useState<Pair[]>(FALLBACK_PAIRS);
   const [pairId, setPairId] = useState<number>(0);
   const [bids, setBids] = useState<OrderbookLevel[]>([]);
@@ -118,6 +123,32 @@ export function ExchangePage() {
         </div>
       )}
 
+      {/* Top-level tabs */}
+      <div className="flex gap-1 border-b border-mempool-border">
+        {(["trade", "account"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
+              tab === t
+                ? "border-b-2 border-mempool-blue text-mempool-text font-semibold"
+                : "text-mempool-text-dim hover:text-mempool-text"
+            }`}
+          >
+            {t === "trade" ? "Trade" : "Account · Balances · API keys"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "account" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <BalancesPanel />
+          <ApiKeysPanel />
+        </div>
+      )}
+
+      {tab === "trade" && (
+      <>
       {/* Pair selector */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
@@ -254,6 +285,8 @@ export function ExchangePage() {
       <div className="text-[11px] text-mempool-text-dim">
         Poll: 3s · Prices in USD (oracle medianed) · Amounts in OMNI (1 OMNI = 10⁹ SAT)
       </div>
+      </>
+      )}
     </div>
   );
 }

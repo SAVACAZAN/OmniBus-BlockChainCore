@@ -126,20 +126,19 @@ const ServerCtx = struct {
     /// off so we don't pay the ~3MB footprint on light nodes.
     exchange: ?*matching_mod.MatchingEngine = null,
     exchange_mutex: std.Thread.Mutex = .{},
-    /// Last 256 fills (rolling) for `exchange_getTrades`. Newest at
-    /// `trade_head - 1` (mod 256). `trade_count` saturates at 256.
-    trade_log: [256]matching_mod.Fill = undefined,
-    trade_head: u32 = 0,
-    trade_count: u32 = 0,
+    /// Heap-allocated bulk tables (trade_log, nonces, api_keys, balances).
+    /// Out-of-line so ServerCtx stays small enough to live on the stack-
+    /// allocated thread frames glibc/Linux gives us.
+    exstate: ?*ExchangeState = null,
     /// Path to `data/<chain>/orders.jsonl` for persistence. Empty =
     /// in-memory only (regtest / unit tests).
     orders_path_buf: [256]u8 = undefined,
     orders_path_len: usize = 0,
-    /// Per-trader nonces (replay protection). Order signature must
-    /// commit to a strictly-monotonic nonce per address. Bounded set
-    /// — old entries get evicted when full.
-    nonces: [1024]TraderNonce = undefined,
-    nonce_count: u16 = 0,
+    /// Path to data/<chain>/exchange-users.jsonl. Append-only journal
+    /// of register/api-key/deposit/withdraw events. Replayed on startup
+    /// so users + balances + keys survive restart.
+    users_path_buf: [256]u8 = undefined,
+    users_path_len: usize = 0,
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -148,6 +147,70 @@ const TraderNonce = struct {
     address: [64]u8 = undefined,
     address_len: u8 = 0,
     last_nonce: u64 = 0,
+};
+
+/// Auth nonce stored after `exchange_getAuthNonce`. The user signs
+/// "OmniBus Exchange Login: <nonce>" and submits to `exchange_login`.
+/// Single-use; expires after AUTH_NONCE_TTL_MS so a leaked one is useless.
+const AuthNonce = struct {
+    address: [64]u8 = undefined,
+    address_len: u8 = 0,
+    nonce_hex: [64]u8 = undefined, // 32 random bytes hex-encoded
+    nonce_hex_len: u8 = 0,
+    created_ms: i64 = 0,
+};
+const AUTH_NONCE_TTL_MS: i64 = 5 * 60 * 1000;
+
+/// Exchange API key. Plaintext secret is given to the user ONCE at
+/// creation time and never stored — only `secret_hash` (SHA256) lives on
+/// disk so we can verify future requests.
+const ExchangeApiKey = struct {
+    key_id: [32]u8 = undefined,    // "obx_<24 hex>" → 28 chars
+    key_id_len: u8 = 0,
+    secret_hash: [64]u8 = undefined, // SHA256 hex (64 chars)
+    secret_hash_len: u8 = 0,
+    name: [32]u8 = undefined,
+    name_len: u8 = 0,
+    owner: [64]u8 = undefined,
+    owner_len: u8 = 0,
+    created_ms: i64 = 0,
+    last_used_ms: i64 = 0,
+    revoked: bool = false,
+};
+
+/// Internal exchange balance. Off-chain credit — `deposit` moves on-chain
+/// OMNI into this internal pool (testnet: faked, mainnet would lock real
+/// funds in an escrow address). `locked_sat` is reserved for open orders.
+const ExchangeBalance = struct {
+    owner: [64]u8 = undefined,
+    owner_len: u8 = 0,
+    token: [16]u8 = undefined,
+    token_len: u8 = 0,
+    available_sat: u64 = 0,
+    locked_sat: u64 = 0,
+};
+
+/// All the bulky exchange tables. Lives on the heap (allocated once at
+/// startup) so ServerCtx stays small and fits comfortably on small stacks.
+/// Keeping them out-of-line is what allows the node to boot on a 1 GB
+/// VPS without segfaulting on the systemd thread stack.
+const ExchangeState = struct {
+    /// 256 rolling fills for `exchange_getTrades`.
+    trade_log: [256]matching_mod.Fill = undefined,
+    trade_head: u32 = 0,
+    trade_count: u32 = 0,
+    /// Order-replay nonces (per trader, FIFO).
+    nonces: [1024]TraderNonce = undefined,
+    nonce_count: u16 = 0,
+    /// Login nonces (single-use, 5 min TTL).
+    auth_nonces: [64]AuthNonce = undefined,
+    auth_nonce_count: u16 = 0,
+    /// API keys.
+    api_keys: [128]ExchangeApiKey = undefined,
+    api_key_count: u16 = 0,
+    /// Internal exchange balances.
+    balances: [256]ExchangeBalance = undefined,
+    balance_count: u16 = 0,
 };
 
 /// Context public expus utilizatorilor externi (alias la ServerCtx)
@@ -192,6 +255,9 @@ pub const HTTPConfig = struct {
     /// Same JSONL pattern as faucet ledger so a node can restart without
     /// losing the orderbook state.
     orders_path: ?[]const u8 = null,
+    /// Path to `data/<chain>/exchange-users.jsonl`. Stores api keys +
+    /// internal exchange balances. Empty/null = in-memory only.
+    users_path: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -202,18 +268,40 @@ pub fn startHTTP(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocator)
 /// Versiunea extinsa cu module optionale (mempool, p2p, sync)
 pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocator, cfg: HTTPConfig) !void {
     const ctx = try allocator.create(ServerCtx);
-    ctx.* = .{
-        .bc = bc, .wallet = wallet, .allocator = allocator,
-        .mempool = cfg.mempool, .p2p = cfg.p2p, .sync_mgr = cfg.sync_mgr,
-        .metrics = cfg.metrics, .staking = cfg.staking,
-        .channel_mgr = cfg.channel_mgr,
-        .pouw = cfg.pouw, .oracle = cfg.oracle,
-        .chain_id = cfg.chain_id,
-        .faucet_wallet = cfg.faucet_wallet,
-        .faucet_grant_sat = cfg.faucet_grant_sat,
-        .dns = cfg.dns,
-        .exchange = cfg.exchange,
-    };
+    // Avoid `ctx.* = .{ ... }` because the struct has multi-MB inline
+    // arrays (api_keys, balances, nonces, trade_log) — the anonymous-
+    // struct initializer materializes a temporary on the stack first
+    // and then copies. On Linux miner threads (1 MB stack) that segfaults
+    // before main even gets to start the RPC server. Zero the struct in
+    // place, then set individual fields.
+    @memset(std.mem.asBytes(ctx), 0);
+    ctx.bc = bc;
+    ctx.wallet = wallet;
+    ctx.allocator = allocator;
+    ctx.mempool = cfg.mempool;
+    ctx.p2p = cfg.p2p;
+    ctx.sync_mgr = cfg.sync_mgr;
+    ctx.metrics = cfg.metrics;
+    ctx.staking = cfg.staking;
+    ctx.channel_mgr = cfg.channel_mgr;
+    ctx.pouw = cfg.pouw;
+    ctx.oracle = cfg.oracle;
+    ctx.chain_id = cfg.chain_id;
+    ctx.faucet_wallet = cfg.faucet_wallet;
+    ctx.faucet_grant_sat = cfg.faucet_grant_sat;
+    ctx.dns = cfg.dns;
+    ctx.exchange = cfg.exchange;
+    ctx.reg_mutex = .{};
+    ctx.exchange_mutex = .{};
+
+    // Bulk exchange tables on the heap — keeps ServerCtx small.
+    if (cfg.exchange != null) {
+        const es = allocator.create(ExchangeState) catch null;
+        if (es) |s| {
+            @memset(std.mem.asBytes(s), 0);
+            ctx.exstate = s;
+        }
+    }
     // Cache the orders persistence path into ServerCtx-owned static
     // storage (caller's slice may not outlive us) and replay any prior
     // orders so the orderbook resumes where we left off.
@@ -226,6 +314,14 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
                 std.debug.print("[RPC] orders.jsonl replay failed: {s}\n", .{@errorName(err)});
             };
         }
+    }
+    if (cfg.users_path) |p| {
+        const n = @min(p.len, ctx.users_path_buf.len);
+        @memcpy(ctx.users_path_buf[0..n], p[0..n]);
+        ctx.users_path_len = n;
+        replayUsersJournal(ctx) catch |err| {
+            std.debug.print("[RPC] exchange-users.jsonl replay failed: {s}\n", .{@errorName(err)});
+        };
     }
     // Copy the auth token into ServerCtx-owned static storage so we don't
     // hold a pointer to a caller-owned slice that might get freed/moved.
@@ -565,6 +661,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_getTrades"))     return handleExchangeGetTrades(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_listPairs"))     return handleExchangeListPairs(ctx, id);
     if (std.mem.eql(u8, method, "exchange_getStats"))      return handleExchangeGetStats(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getAuthNonce"))  return handleExchangeGetAuthNonce(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_login"))         return handleExchangeLogin(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_createApiKey"))  return handleExchangeCreateApiKey(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_listApiKeys"))   return handleExchangeListApiKeys(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_revokeApiKey")) return handleExchangeRevokeApiKey(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_deposit"))       return handleExchangeDeposit(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_withdraw"))      return handleExchangeWithdraw(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getBalances"))   return handleExchangeGetBalances(body, ctx, id);
     // generatewallet disabled — causes stack overflow on RPC thread
     // Use seed node address derivation instead
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
@@ -5141,8 +5245,8 @@ fn replayOrdersJournal(ctx: *ServerCtx) !void {
 /// Cauta nonce-ul ultim folosit pentru o adresa. -1 daca nu exista intrare.
 fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
     var i: u16 = 0;
-    while (i < ctx.nonce_count) : (i += 1) {
-        const n = &ctx.nonces[i];
+    while (i < ctx.exstate.?.nonce_count) : (i += 1) {
+        const n = &ctx.exstate.?.nonces[i];
         if (n.address_len == addr.len and std.mem.eql(u8, n.address[0..n.address_len], addr)) {
             return @intCast(n.last_nonce);
         }
@@ -5154,34 +5258,34 @@ fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
 /// suprascrie cea mai veche intrare (FIFO simplu — testnet, nu DoS-rezistent).
 fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
     var i: u16 = 0;
-    while (i < ctx.nonce_count) : (i += 1) {
-        const n = &ctx.nonces[i];
+    while (i < ctx.exstate.?.nonce_count) : (i += 1) {
+        const n = &ctx.exstate.?.nonces[i];
         if (n.address_len == addr.len and std.mem.eql(u8, n.address[0..n.address_len], addr)) {
             n.last_nonce = nonce;
             return;
         }
     }
-    if (ctx.nonce_count >= ctx.nonces.len) {
+    if (ctx.exstate.?.nonce_count >= ctx.exstate.?.nonces.len) {
         // Evict slot 0 (cel mai vechi)
         var j: u16 = 0;
-        while (j + 1 < ctx.nonces.len) : (j += 1) {
-            ctx.nonces[j] = ctx.nonces[j + 1];
+        while (j + 1 < ctx.exstate.?.nonces.len) : (j += 1) {
+            ctx.exstate.?.nonces[j] = ctx.exstate.?.nonces[j + 1];
         }
-        ctx.nonce_count -= 1;
+        ctx.exstate.?.nonce_count -= 1;
     }
-    const slot = &ctx.nonces[ctx.nonce_count];
+    const slot = &ctx.exstate.?.nonces[ctx.exstate.?.nonce_count];
     const cn = @min(addr.len, slot.address.len);
     @memcpy(slot.address[0..cn], addr[0..cn]);
     slot.address_len = @intCast(cn);
     slot.last_nonce = nonce;
-    ctx.nonce_count += 1;
+    ctx.exstate.?.nonce_count += 1;
 }
 
 /// Inregistreaza un fill in trade_log circular (cele mai recente 256).
 fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill) void {
-    ctx.trade_log[ctx.trade_head] = fill;
-    ctx.trade_head = (ctx.trade_head + 1) % @as(u32, @intCast(ctx.trade_log.len));
-    if (ctx.trade_count < ctx.trade_log.len) ctx.trade_count += 1;
+    ctx.exstate.?.trade_log[ctx.exstate.?.trade_head] = fill;
+    ctx.exstate.?.trade_head = (ctx.exstate.?.trade_head + 1) % @as(u32, @intCast(ctx.exstate.?.trade_log.len));
+    if (ctx.exstate.?.trade_count < ctx.exstate.?.trade_log.len) ctx.exstate.?.trade_count += 1;
 }
 
 /// Construieste mesajul canonical pentru semnatura unui placeOrder.
@@ -5609,11 +5713,11 @@ fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var emitted: u32 = 0;
     var first = true;
     var c: u32 = 0;
-    while (c < ctx.trade_count and emitted < limit) : (c += 1) {
+    while (c < ctx.exstate.?.trade_count and emitted < limit) : (c += 1) {
         // Most recent index = (head - 1 - c) mod len
-        const len_u: u32 = @intCast(ctx.trade_log.len);
-        const idx = (ctx.trade_head + len_u - 1 - c) % len_u;
-        const f = ctx.trade_log[idx];
+        const len_u: u32 = @intCast(ctx.exstate.?.trade_log.len);
+        const idx = (ctx.exstate.?.trade_head + len_u - 1 - c) % len_u;
+        const f = ctx.exstate.?.trade_log[idx];
         if (filter_pair) |fp| if (f.pair_id != fp) continue;
         if (filter_addr) |a| {
             const buyer = f.getBuyerAddress();
@@ -5669,7 +5773,7 @@ fn handleExchangeGetStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try std.fmt.format(out.writer(alloc), "{d}", .{id});
     try std.fmt.format(out.writer(alloc),
         ",\"result\":{{\"totalOrders\":{d},\"bidCount\":{d},\"askCount\":{d},\"trades\":{d},\"pairs\":[",
-        .{ engine.orderCount(), engine.bid_count, engine.ask_count, ctx.trade_count });
+        .{ engine.orderCount(), engine.bid_count, engine.ask_count, ctx.exstate.?.trade_count });
     var first = true;
     for (EXCHANGE_PAIRS) |p| {
         const bb = engine.bestBid(p.id) orelse 0;
@@ -5683,6 +5787,656 @@ fn handleExchangeGetStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .{ p.id, p.base, p.quote, bb, ba, sp, oc });
     }
     try out.appendSlice(alloc, "]}}");
+    return alloc.dupe(u8, out.items);
+}
+
+// ─── DEX users / API keys / exchange balances ─────────────────────────────
+//
+// In-memory tables persisted as append-only JSONL in
+// data/<chain>/exchange-users.jsonl. On startup we replay the journal so
+// all `register`, `apikey`, `revoke`, `deposit`, `withdraw` events reapply
+// in order — same idempotent pattern as faucet + orders.
+
+fn usersPathSlice(ctx: *ServerCtx) ?[]const u8 {
+    if (ctx.users_path_len == 0) return null;
+    return ctx.users_path_buf[0..ctx.users_path_len];
+}
+
+fn usersAppendJournal(ctx: *ServerCtx, kind: []const u8, line: []const u8) void {
+    const path = usersPathSlice(ctx) orelse return;
+    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
+        std.debug.print("[EXCHANGE] cannot open {s} for append: {}\n", .{ path, err });
+        return;
+    };
+    defer f.close();
+    f.seekFromEnd(0) catch return;
+    var buf: [768]u8 = undefined;
+    const formatted = std.fmt.bufPrint(&buf, "{{\"kind\":\"{s}\",{s}}}\n", .{ kind, line }) catch return;
+    _ = f.writeAll(formatted) catch {};
+}
+
+/// Replays exchange-users.jsonl. Recognized kinds: apikey, revoke,
+/// deposit, withdraw. Bad lines are silently skipped — the in-memory
+/// state stays correct as long as well-formed entries replay cleanly.
+fn replayUsersJournal(ctx: *ServerCtx) !void {
+    const path = usersPathSlice(ctx) orelse return;
+    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return,
+        else => return err,
+    };
+    defer f.close();
+    const stat = try f.stat();
+    if (stat.size == 0) return;
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
+    _ = try f.readAll(buf);
+
+    var lines = std.mem.splitScalar(u8, buf, '\n');
+    var replayed: usize = 0;
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
+        const kind_key = "\"kind\":\"";
+        const k_start = std.mem.indexOf(u8, line, kind_key) orelse continue;
+        const k_from = k_start + kind_key.len;
+        const k_end = std.mem.indexOfScalarPos(u8, line, k_from, '"') orelse continue;
+        const kind = line[k_from..k_end];
+
+        if (std.mem.eql(u8, kind, "apikey")) {
+            const key_id = extractStr(line, "keyId") orelse continue;
+            const sec_hash = extractStr(line, "secretHash") orelse continue;
+            const owner = extractStr(line, "owner") orelse continue;
+            const name = extractStr(line, "name") orelse "";
+            const ts = extractArrayNumByKey(line, "ts");
+            apiKeyInsert(ctx, key_id, sec_hash, name, owner, @intCast(ts));
+        } else if (std.mem.eql(u8, kind, "revoke")) {
+            const key_id = extractStr(line, "keyId") orelse continue;
+            apiKeyRevoke(ctx, key_id);
+        } else if (std.mem.eql(u8, kind, "deposit") or std.mem.eql(u8, kind, "withdraw")) {
+            const owner = extractStr(line, "owner") orelse continue;
+            const token = extractStr(line, "token") orelse continue;
+            const amount = extractArrayNumByKey(line, "amount");
+            if (amount == 0) continue;
+            if (std.mem.eql(u8, kind, "deposit")) {
+                _ = balanceCredit(ctx, owner, token, amount);
+            } else {
+                _ = balanceDebit(ctx, owner, token, amount);
+            }
+        }
+        replayed += 1;
+    }
+    std.debug.print("[EXCHANGE] Replayed {d} user event(s) from {s}\n", .{ replayed, path });
+}
+
+// ── API key table ops ────────────────────────────────────────────────
+
+fn apiKeyInsert(
+    ctx: *ServerCtx,
+    key_id: []const u8,
+    secret_hash: []const u8,
+    name: []const u8,
+    owner: []const u8,
+    ts: i64,
+) void {
+    if (ctx.exstate.?.api_key_count >= ctx.exstate.?.api_keys.len) return;
+    const slot = &ctx.exstate.?.api_keys[ctx.exstate.?.api_key_count];
+    slot.* = .{};
+    const k1 = @min(key_id.len, slot.key_id.len);
+    @memcpy(slot.key_id[0..k1], key_id[0..k1]);
+    slot.key_id_len = @intCast(k1);
+    const k2 = @min(secret_hash.len, slot.secret_hash.len);
+    @memcpy(slot.secret_hash[0..k2], secret_hash[0..k2]);
+    slot.secret_hash_len = @intCast(k2);
+    const k3 = @min(name.len, slot.name.len);
+    @memcpy(slot.name[0..k3], name[0..k3]);
+    slot.name_len = @intCast(k3);
+    const k4 = @min(owner.len, slot.owner.len);
+    @memcpy(slot.owner[0..k4], owner[0..k4]);
+    slot.owner_len = @intCast(k4);
+    slot.created_ms = ts;
+    slot.revoked = false;
+    ctx.exstate.?.api_key_count += 1;
+}
+
+fn apiKeyRevoke(ctx: *ServerCtx, key_id: []const u8) void {
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.api_key_count) : (i += 1) {
+        const k = &ctx.exstate.?.api_keys[i];
+        if (k.key_id_len == key_id.len and std.mem.eql(u8, k.key_id[0..k.key_id_len], key_id)) {
+            k.revoked = true;
+            return;
+        }
+    }
+}
+
+fn apiKeyLookup(ctx: *ServerCtx, key_id: []const u8) ?*ExchangeApiKey {
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.api_key_count) : (i += 1) {
+        const k = &ctx.exstate.?.api_keys[i];
+        if (k.revoked) continue;
+        if (k.key_id_len == key_id.len and std.mem.eql(u8, k.key_id[0..k.key_id_len], key_id)) {
+            return k;
+        }
+    }
+    return null;
+}
+
+// SHA256 hex of a string. Used to verify api-key secrets without storing
+// them in the clear. NOTE: not constant-time — for testnet only.
+fn sha256Hex(input: []const u8, out: *[64]u8) void {
+    var hash: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(input, &hash, .{});
+    const hex_chars = "0123456789abcdef";
+    var i: usize = 0;
+    while (i < 32) : (i += 1) {
+        out[i * 2] = hex_chars[hash[i] >> 4];
+        out[i * 2 + 1] = hex_chars[hash[i] & 0xF];
+    }
+}
+
+// ── Balance table ops ──────────────────────────────────────────────────
+
+fn balanceLookup(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.balance_count) : (i += 1) {
+        const b = &ctx.exstate.?.balances[i];
+        if (b.owner_len == owner.len and b.token_len == token.len
+            and std.mem.eql(u8, b.owner[0..b.owner_len], owner)
+            and std.mem.eql(u8, b.token[0..b.token_len], token))
+        {
+            return b;
+        }
+    }
+    return null;
+}
+
+fn balanceGetOrCreate(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
+    if (balanceLookup(ctx, owner, token)) |b| return b;
+    if (ctx.exstate.?.balance_count >= ctx.exstate.?.balances.len) return null;
+    const slot = &ctx.exstate.?.balances[ctx.exstate.?.balance_count];
+    slot.* = .{};
+    const k1 = @min(owner.len, slot.owner.len);
+    @memcpy(slot.owner[0..k1], owner[0..k1]);
+    slot.owner_len = @intCast(k1);
+    const k2 = @min(token.len, slot.token.len);
+    @memcpy(slot.token[0..k2], token[0..k2]);
+    slot.token_len = @intCast(k2);
+    ctx.exstate.?.balance_count += 1;
+    return slot;
+}
+
+fn balanceCredit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
+    const b = balanceGetOrCreate(ctx, owner, token) orelse return false;
+    b.available_sat +%= amount;
+    return true;
+}
+
+fn balanceDebit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
+    const b = balanceLookup(ctx, owner, token) orelse return false;
+    if (b.available_sat < amount) return false;
+    b.available_sat -= amount;
+    return true;
+}
+
+// ── Auth nonce / login ────────────────────────────────────────────────
+
+fn authNoncePurge(ctx: *ServerCtx, now_ms: i64) void {
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.auth_nonce_count) {
+        const n = &ctx.exstate.?.auth_nonces[i];
+        if (now_ms - n.created_ms > AUTH_NONCE_TTL_MS) {
+            // shift remaining left (preserves order, fine for 256 entries)
+            var j: u16 = i;
+            while (j + 1 < ctx.exstate.?.auth_nonce_count) : (j += 1) {
+                ctx.exstate.?.auth_nonces[j] = ctx.exstate.?.auth_nonces[j + 1];
+            }
+            ctx.exstate.?.auth_nonce_count -= 1;
+        } else {
+            i += 1;
+        }
+    }
+}
+
+fn authNoncePut(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8, now_ms: i64) void {
+    if (ctx.exstate.?.auth_nonce_count >= ctx.exstate.?.auth_nonces.len) {
+        // FIFO evict
+        var j: u16 = 0;
+        while (j + 1 < ctx.exstate.?.auth_nonces.len) : (j += 1) {
+            ctx.exstate.?.auth_nonces[j] = ctx.exstate.?.auth_nonces[j + 1];
+        }
+        ctx.exstate.?.auth_nonce_count -= 1;
+    }
+    const slot = &ctx.exstate.?.auth_nonces[ctx.exstate.?.auth_nonce_count];
+    slot.* = .{};
+    const k1 = @min(address.len, slot.address.len);
+    @memcpy(slot.address[0..k1], address[0..k1]);
+    slot.address_len = @intCast(k1);
+    const k2 = @min(nonce_hex.len, slot.nonce_hex.len);
+    @memcpy(slot.nonce_hex[0..k2], nonce_hex[0..k2]);
+    slot.nonce_hex_len = @intCast(k2);
+    slot.created_ms = now_ms;
+    ctx.exstate.?.auth_nonce_count += 1;
+}
+
+fn authNonceConsume(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8) bool {
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.auth_nonce_count) : (i += 1) {
+        const n = &ctx.exstate.?.auth_nonces[i];
+        if (n.address_len == address.len
+            and std.mem.eql(u8, n.address[0..n.address_len], address)
+            and n.nonce_hex_len == nonce_hex.len
+            and std.mem.eql(u8, n.nonce_hex[0..n.nonce_hex_len], nonce_hex))
+        {
+            // single-use — remove
+            var j: u16 = i;
+            while (j + 1 < ctx.exstate.?.auth_nonce_count) : (j += 1) {
+                ctx.exstate.?.auth_nonces[j] = ctx.exstate.?.auth_nonces[j + 1];
+            }
+            ctx.exstate.?.auth_nonce_count -= 1;
+            return true;
+        }
+    }
+    return false;
+}
+
+// ─── HANDLERS ─────────────────────────────────────────────────────────
+
+/// exchange_getAuthNonce — generates a 32-byte random nonce (hex) bound
+/// to the caller's address. The user signs "OmniBus Exchange Login: <nonce>"
+/// and submits via `exchange_login` to prove key ownership.
+fn handleExchangeGetAuthNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    if (address.len > 64) return errorJson(-32602, "address too long", id, alloc);
+
+    var nonce_bytes: [32]u8 = undefined;
+    std.crypto.random.bytes(&nonce_bytes);
+    var nonce_hex: [64]u8 = undefined;
+    const hex_chars = "0123456789abcdef";
+    var i: usize = 0;
+    while (i < 32) : (i += 1) {
+        nonce_hex[i * 2] = hex_chars[nonce_bytes[i] >> 4];
+        nonce_hex[i * 2 + 1] = hex_chars[nonce_bytes[i] & 0xF];
+    }
+
+    const now_ms = std.time.milliTimestamp();
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+    authNoncePurge(ctx, now_ms);
+    authNoncePut(ctx, address, &nonce_hex, now_ms);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"nonce\":\"{s}\",\"message\":\"OmniBus Exchange Login: {s}\",\"ttlMs\":{d}}}}}",
+        .{ id, nonce_hex, nonce_hex, AUTH_NONCE_TTL_MS });
+}
+
+/// exchange_login — verify nonce signature, mark the address as a known
+/// exchange user (just allocates a default OMNI balance row if missing).
+/// Returns the address + a list of currently active api keys (without
+/// revealing secrets). Stateless — no JWT; future calls re-prove
+/// ownership either via signature or via api-key+secret headers.
+fn handleExchangeLogin(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const nonce_hex = extractStr(body, "nonce") orelse
+        return errorJson(-32602, "Missing param: nonce", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+
+    var msg_buf: [128]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Exchange Login: {s}", .{nonce_hex}) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, address)) {
+        return errorJson(-32000, "Public key does not match address", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    if (!authNonceConsume(ctx, address, nonce_hex)) {
+        return errorJson(-32000, "Nonce expired or unknown — request a fresh one", id, alloc);
+    }
+
+    // Allocate a default OMNI balance row so the user appears in
+    // exchange_get_balances even before depositing.
+    _ = balanceGetOrCreate(ctx, address, "OMNI");
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"loggedIn\":true,\"sessionTtlMs\":{d}}}}}",
+        .{ id, address, AUTH_NONCE_TTL_MS });
+}
+
+/// exchange_createApiKey — generate a fresh (key_id, secret) pair owned
+/// by the caller. The secret is returned ONCE (plaintext) and stored as
+/// SHA256 hash. Caller must prove address ownership via signature on
+/// the canonical message "EXCHANGE_APIKEY_V1\n<name>\n<address>\n<nonce>".
+fn handleExchangeCreateApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const name = extractStr(body, "name") orelse "default";
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    if (name.len > 32) return errorJson(-32602, "name too long (max 32)", id, alloc);
+
+    var msg_buf: [256]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf, "EXCHANGE_APIKEY_V1\n{s}\n{s}\n{d}", .{ name, owner, nonce }) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, owner)) {
+        return errorJson(-32000, "Public key does not match owner address", id, alloc);
+    }
+
+    // Generate key + secret
+    var key_random: [12]u8 = undefined;
+    var secret_random: [32]u8 = undefined;
+    std.crypto.random.bytes(&key_random);
+    std.crypto.random.bytes(&secret_random);
+    const hex_chars = "0123456789abcdef";
+    var key_id: [28]u8 = undefined; // "obx_" + 24 hex chars
+    @memcpy(key_id[0..4], "obx_");
+    var i: usize = 0;
+    while (i < 12) : (i += 1) {
+        key_id[4 + i * 2] = hex_chars[key_random[i] >> 4];
+        key_id[4 + i * 2 + 1] = hex_chars[key_random[i] & 0xF];
+    }
+    var secret_str: [68]u8 = undefined; // "obs_" + 64 hex chars
+    @memcpy(secret_str[0..4], "obs_");
+    i = 0;
+    while (i < 32) : (i += 1) {
+        secret_str[4 + i * 2] = hex_chars[secret_random[i] >> 4];
+        secret_str[4 + i * 2 + 1] = hex_chars[secret_random[i] & 0xF];
+    }
+
+    var sec_hash: [64]u8 = undefined;
+    sha256Hex(&secret_str, &sec_hash);
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const last_nonce = nonceLookup(ctx, owner);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
+    }
+
+    const now_ms = std.time.milliTimestamp();
+    apiKeyInsert(ctx, &key_id, &sec_hash, name, owner, now_ms);
+    nonceSet(ctx, owner, nonce);
+
+    var jbuf: [512]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"keyId\":\"{s}\",\"secretHash\":\"{s}\",\"name\":\"{s}\",\"owner\":\"{s}\",\"ts\":{d}",
+        .{ key_id, sec_hash, name, owner, now_ms },
+    ) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "apikey", jline);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"secret\":\"{s}\",\"name\":\"{s}\",\"warning\":\"Save the secret — it is only shown once\",\"createdMs\":{d}}}}}",
+        .{ id, key_id, secret_str, name, now_ms });
+}
+
+/// exchange_listApiKeys — list keys owned by an address. Secrets are
+/// never returned (only the SHA256 hash for transparency).
+fn handleExchangeListApiKeys(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+    var first = true;
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.api_key_count) : (i += 1) {
+        const k = &ctx.exstate.?.api_keys[i];
+        if (k.owner_len != owner.len) continue;
+        if (!std.mem.eql(u8, k.owner[0..k.owner_len], owner)) continue;
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"keyId\":\"{s}\",\"name\":\"{s}\",\"createdMs\":{d},\"lastUsedMs\":{d},\"revoked\":{s}}}",
+            .{ k.key_id[0..k.key_id_len], k.name[0..k.name_len], k.created_ms, k.last_used_ms,
+               if (k.revoked) "true" else "false" });
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_revokeApiKey — owner revokes one of their keys.
+/// Verified by signature on "EXCHANGE_APIKEY_REVOKE_V1\n<keyId>\n<owner>\n<nonce>".
+fn handleExchangeRevokeApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const key_id = extractStr(body, "keyId") orelse
+        return errorJson(-32602, "Missing param: keyId", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    var msg_buf: [256]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf, "EXCHANGE_APIKEY_REVOKE_V1\n{s}\n{s}\n{d}", .{ key_id, owner, nonce }) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, owner)) {
+        return errorJson(-32000, "Public key does not match owner", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const k = apiKeyLookup(ctx, key_id) orelse
+        return errorJson(-32000, "Key not found or already revoked", id, alloc);
+    if (k.owner_len != owner.len or !std.mem.eql(u8, k.owner[0..k.owner_len], owner)) {
+        return errorJson(-32000, "Not owner of this key", id, alloc);
+    }
+    const last_nonce = nonceLookup(ctx, owner);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used", id, alloc);
+    }
+    apiKeyRevoke(ctx, key_id);
+    nonceSet(ctx, owner, nonce);
+
+    var jbuf: [128]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf, "\"keyId\":\"{s}\",\"ts\":{d}", .{ key_id, std.time.milliTimestamp() }) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "revoke", jline);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"revoked\":true}}}}",
+        .{ id, key_id });
+}
+
+/// exchange_deposit — credit internal exchange balance. On testnet this
+/// just credits the balance with no on-chain transfer (faked). On mainnet
+/// the user would transfer real OMNI to an exchange escrow address first;
+/// this handler would only credit after seeing the on-chain TX.
+fn handleExchangeDeposit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const token = extractStr(body, "token") orelse "OMNI";
+    const amount = extractArrayNumByKey(body, "amount");
+    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    var msg_buf: [256]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf,
+        "EXCHANGE_DEPOSIT_V1\n{s}\n{s}\n{d}\n{d}",
+        .{ owner, token, amount, nonce }) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, owner)) {
+        return errorJson(-32000, "Public key does not match owner", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const last_nonce = nonceLookup(ctx, owner);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used", id, alloc);
+    }
+
+    if (!balanceCredit(ctx, owner, token, amount)) {
+        return errorJson(-32000, "Balance table full", id, alloc);
+    }
+    nonceSet(ctx, owner, nonce);
+
+    var jbuf: [256]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
+        .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
+
+    const b = balanceLookup(ctx, owner, token).?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}}}",
+        .{ id, owner, token, b.available_sat, b.locked_sat });
+}
+
+/// exchange_withdraw — debit internal balance. Symmetric to deposit;
+/// on mainnet the chain would also credit the user's on-chain wallet
+/// here (atomic transfer). Testnet: just debits the internal pool.
+fn handleExchangeWithdraw(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const token = extractStr(body, "token") orelse "OMNI";
+    const amount = extractArrayNumByKey(body, "amount");
+    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature", id, alloc);
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
+
+    var msg_buf: [256]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf,
+        "EXCHANGE_WITHDRAW_V1\n{s}\n{s}\n{d}\n{d}",
+        .{ owner, token, amount, nonce }) catch
+        return errorJson(-32603, "Failed to build sign message", id, alloc);
+    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
+        return errorJson(-32000, "Signature verify failed", id, alloc);
+    }
+    var pk_bytes: [33]u8 = undefined;
+    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
+        return errorJson(-32000, "Bad pubkey hex", id, alloc);
+    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
+        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
+    defer alloc.free(derived_addr);
+    if (!std.mem.eql(u8, derived_addr, owner)) {
+        return errorJson(-32000, "Public key does not match owner", id, alloc);
+    }
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    const last_nonce = nonceLookup(ctx, owner);
+    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
+        return errorJson(-32000, "Nonce already used", id, alloc);
+    }
+
+    if (!balanceDebit(ctx, owner, token, amount)) {
+        return errorJson(-32000, "Insufficient balance", id, alloc);
+    }
+    nonceSet(ctx, owner, nonce);
+
+    var jbuf: [256]u8 = undefined;
+    const jline = std.fmt.bufPrint(&jbuf,
+        "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
+        .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
+    if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
+
+    const b = balanceLookup(ctx, owner, token).?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}}}",
+        .{ id, owner, token, b.available_sat, b.locked_sat });
+}
+
+/// exchange_getBalances — read-only listing of all balance rows for an owner.
+fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+    var first = true;
+    var i: u16 = 0;
+    while (i < ctx.exstate.?.balance_count) : (i += 1) {
+        const b = &ctx.exstate.?.balances[i];
+        if (b.owner_len != owner.len) continue;
+        if (!std.mem.eql(u8, b.owner[0..b.owner_len], owner)) continue;
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}",
+            .{ b.token[0..b.token_len], b.available_sat, b.locked_sat });
+    }
+    try out.appendSlice(alloc, "]}");
     return alloc.dupe(u8, out.items);
 }
 
