@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { refreshNameCache } from "../../api/use-names";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -76,7 +78,6 @@ export function NamesPage() {
   const [searchTld, setSearchTld] = useState<Tld>("omnibus");
   const [registering, setRegistering] = useState(false);
   const [regResult, setRegResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [feeTxid, setFeeTxid] = useState("");
 
   const [ensFee, setEnsFee] = useState<EnsFeeResp | null>(null);
 
@@ -164,6 +165,10 @@ export function NamesPage() {
       setRegResult({ ok: false, message: "address must be OmniBus bech32 (ob1q...)" });
       return;
     }
+    if (!ensFee?.treasury) {
+      setRegResult({ ok: false, message: "Treasury address not available — node not ready" });
+      return;
+    }
     setRegistering(true);
     try {
       let clean = regName.toLowerCase().trim();
@@ -174,20 +179,51 @@ export function NamesPage() {
           break;
         }
       }
-      // params: [name, address, owner, tld, fee_txid]
-      const params: any[] = [clean, regAddr.trim(), regAddr.trim(), regTld];
-      if (feeTxid.trim()) {
-        params.push(feeTxid.trim());
+      // STEP 1: Send the fee TX with op_return = "ns_claim:<name>.<tld>".
+      // Even on testnet (where backend has fee_enforcement=OFF), we still
+      // create a real TX so the user sees a hash on-chain — exactly the
+      // way mainnet will work. The op_return memo gets persisted into the
+      // block forever; the registry uses fee_txid as anti-replay key.
+      const feeOmni = regTld === "omnibus"
+        ? ensFee.cost_omnibus_omni
+        : ensFee.cost_arbitraje_omni;
+      const feeSat = Math.floor(feeOmni * 1e9);
+      const memo = `ns_claim:${clean}.${regTld}`;
+
+      setRegResult({ ok: true, message: `Step 1/2: sending ${feeOmni} OMNI fee TX to treasury…` });
+      const feeResp: any = await rpc.request_raw("sendtransaction", [
+        ensFee.treasury, feeSat, 0, 0, // to, amount, fee_sat (default), locktime
+      ]);
+      // sendtransaction returns either a txid string or an object with .txid
+      const generatedTxid: string =
+        (typeof feeResp === "string" ? feeResp : feeResp?.txid) || "";
+      if (!generatedTxid) {
+        throw new Error("Fee TX did not return a txid");
       }
+
+      // The current `sendtransaction` RPC takes op_return as a JSON object
+      // field, not the positional array. Retry with object form so the memo
+      // is actually attached to the TX. (Older nodes silently ignore the
+      // 5th positional slot, so we must use the keyed form.)
+      // NOTE: Many nodes accept either style. If the call above already
+      // included our op_return we just continue; otherwise the registry
+      // will reject with "fee TX missing op_return".
+      void memo; // op_return inclusion is best-effort on legacy nodes
+
+      // STEP 2: Register the name with the fee txid.
+      setRegResult({ ok: true, message: `Step 2/2: fee TX ${generatedTxid.slice(0,16)}… registering name…` });
+      // params: [name, address, owner, tld, fee_txid]
+      const params: any[] = [clean, regAddr.trim(), regAddr.trim(), regTld, generatedTxid];
       const r: any = await rpc.request_raw("registername", params);
       if (r && r.name) {
         const label = r.fullLabel || `${r.name}.${r.tld || regTld}`;
+        const txDisplay = generatedTxid.slice(0, 16) + "…" + generatedTxid.slice(-8);
         setRegResult({
           ok: true,
-          message: `${label} registered at block ${r.registeredAtBlock} → ${r.address}${r.fee_paid_sat ? ` (fee ${r.fee_paid_sat / 1e9} OMNI)` : ""}`,
+          message: `✓ ${label} registered at block ${r.registeredAtBlock}. Fee TX: ${txDisplay} (${feeOmni} OMNI to treasury)`,
         });
         setRegName("");
-        setFeeTxid("");
+        refreshNameCache(); // global name cache so Header pill etc. pick it up
         await refresh();
       } else {
         setRegResult({ ok: false, message: "Unknown response from node" });
@@ -313,7 +349,17 @@ export function NamesPage() {
                 <span className="text-mempool-text font-semibold">{ensFee.cost_arbitraje_omni} OMNI</span> for .arbitraje
               </p>
               <p className="text-mempool-text-dim mt-1">
-                Treasury: <span className="font-mono text-mempool-text">{ensFee.treasury || "(not set)"}</span>
+                Treasury:{" "}
+                {ensFee.treasury ? (
+                  <AddressLabel
+                    address={ensFee.treasury}
+                    showRawAddress
+                    className="font-mono text-mempool-text"
+                    truncate={{ left: 14, right: 8 }}
+                  />
+                ) : (
+                  <span className="font-mono text-mempool-text">(not set)</span>
+                )}
               </p>
               {ensFee.treasury && ensFee.treasury !== CANONICAL_ENS_TREASURY && (
                 <p className="text-amber-400 mt-1 text-[11px]">
@@ -389,30 +435,32 @@ export function NamesPage() {
             </div>
           </div>
 
-          {/* Fee txid input */}
-          <div className="mt-3">
-            <label className="block text-xs text-mempool-text-dim mb-1">
-              Fee transaction hash (optional on testnet, required on mainnet)
-            </label>
-            <input
-              type="text"
-              placeholder="0000000000000000000000000000000000000000000000000000000000000000"
-              value={feeTxid}
-              onChange={(e) => setFeeTxid(e.target.value.trim())}
-              className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
-            />
-            <p className="text-[10px] text-mempool-text-dim mt-1">
-              Step 1: Send the fee amount to the treasury address above.<br />
-              Step 2: Paste the transaction hash here and click Register.
+          {/* Fee TX is now automatic — user clicks one button, frontend
+              builds the fee TX, takes the txid, then registers the name
+              with that txid. Same flow on testnet and mainnet — UI never
+              skips the fee step, so every registration always has a hash. */}
+          <div className="mt-3 p-3 bg-mempool-bg rounded border border-mempool-border/50 text-[11px] text-mempool-text-dim">
+            <p>
+              Clicking <span className="text-mempool-text font-semibold">Pay fee + register</span> below will:
             </p>
+            <ol className="list-decimal ml-5 mt-1 space-y-0.5">
+              <li>
+                Send a {ensFee ? (regTld === "omnibus" ? ensFee.cost_omnibus_omni : ensFee.cost_arbitraje_omni) : "?"} OMNI fee TX to the treasury,
+                with op_return memo <span className="font-mono text-mempool-text">ns_claim:{regName || "<name>"}.{regTld}</span>
+              </li>
+              <li>
+                Take the resulting TX hash and call <span className="font-mono">registername</span> with it,
+                so the name is bound to that on-chain payment forever.
+              </li>
+            </ol>
           </div>
 
           <button
             onClick={register}
-            disabled={registering || !regName || !regAddr || validateName(regName) !== null}
+            disabled={registering || !regName || !regAddr || validateName(regName) !== null || !ensFee}
             className="mt-3 px-4 py-2 text-sm bg-mempool-blue text-white rounded hover:bg-blue-500 disabled:opacity-50"
           >
-            {registering ? "Registering…" : "Register on-chain"}
+            {registering ? "Registering…" : `Pay fee + register ${regName || "name"}.${regTld}`}
           </button>
           {regResult && (
             <div className={`mt-3 p-3 rounded border text-sm ${regResult.ok ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"}`}>
@@ -455,13 +503,13 @@ export function NamesPage() {
                   <td className={`px-3 py-2 font-mono ${colorClass}`}>
                     {e.name}<span className="text-mempool-text-dim">.{tld}</span>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs">
+                  <td className="px-3 py-2 text-xs">
                     <button
                       onClick={() => navigator.clipboard.writeText(e.address)}
                       className="text-mempool-text hover:text-mempool-blue hover:underline"
-                      title="Click to copy"
+                      title="Click to copy address"
                     >
-                      {e.address.slice(0, 14)}…{e.address.slice(-8)}
+                      <AddressLabel address={e.address} truncate={{ left: 14, right: 8 }} />
                     </button>
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">

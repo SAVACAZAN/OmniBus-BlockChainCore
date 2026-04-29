@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
+import { useNameForAddress } from "../../api/use-names";
 
 // Inline SVG icons (lucide-react isn't installed in this frontend; matches the
 // inline-SVG style used everywhere else in Header.tsx).
@@ -65,21 +66,22 @@ type Mode = "vault" | "mnemonic" | "privkey";
 
 export function WalletConnectButton() {
   const wallet = useWallet();
+  const primaryName = useNameForAddress(wallet?.address);
   const [showModal, setShowModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Connected: pill with truncated address + disconnect dropdown.
+  // Connected: pill with name (if registered) or truncated address.
   if (wallet) {
     return (
       <div className="relative">
         <button
           onClick={() => setShowDropdown((v) => !v)}
           className="flex items-center gap-2 bg-mempool-blue/15 border border-mempool-blue/40 rounded-lg px-3 py-1.5 hover:bg-mempool-blue/25 transition-colors"
-          title={wallet.address}
+          title={primaryName ? `${primaryName} → ${wallet.address}` : wallet.address}
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs font-mono text-mempool-blue">
-            {wallet.address.slice(0, 8)}…{wallet.address.slice(-6)}
+          <span className={`text-xs text-mempool-blue ${primaryName ? "font-semibold" : "font-mono"}`}>
+            {primaryName ?? `${wallet.address.slice(0, 8)}…${wallet.address.slice(-6)}`}
           </span>
         </button>
         {showDropdown && (

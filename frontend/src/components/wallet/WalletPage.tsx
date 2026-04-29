@@ -3,6 +3,13 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { lockWallet } from "../../api/wallet-keystore";
+import {
+  useNamesOwnedBy,
+  useNameForAddress,
+  getPrimaryName,
+  setPrimaryName,
+  MAX_NAMES_PER_WALLET,
+} from "../../api/use-names";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -369,6 +376,9 @@ export function WalletPage() {
         </div>
       </div>
 
+      {/* My .omnibus names — pick which one represents me globally */}
+      <MyNamesPanel address={unlocked.address} />
+
       {/* Transaction History */}
       <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-5 py-3 border-b border-mempool-border">
@@ -430,6 +440,101 @@ export function WalletPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── MyNamesPanel ────────────────────────────────────────────────────────────
+//
+// All `<label>.omnibus` / `<label>.arbitraje` names that resolve back to this
+// wallet, capped at MAX_NAMES_PER_WALLET. The user picks which one is
+// "primary" — that's what shows up in the Header pill, in NamesPage tables,
+// in faucet/exchange status, etc. Selection is per-browser (localStorage).
+function MyNamesPanel({ address }: { address: string }) {
+  const names = useNamesOwnedBy(address);
+  const currentPrimary = useNameForAddress(address);
+  const [savedPrimary, setSavedPrimary] = useState(() => getPrimaryName(address));
+
+  useEffect(() => {
+    setSavedPrimary(getPrimaryName(address));
+  }, [address]);
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+          My .omnibus names
+        </h3>
+        <span className="text-[10px] text-mempool-text-dim">
+          {names.length} / {MAX_NAMES_PER_WALLET}
+        </span>
+      </div>
+
+      {names.length === 0 ? (
+        <p className="text-xs text-mempool-text-dim">
+          No names registered. Go to <span className="text-mempool-blue">.omnibus</span> tab to
+          claim one — your name then shows up everywhere instead of the
+          ob1q… address.
+        </p>
+      ) : (
+        <>
+          <p className="text-[11px] text-mempool-text-dim">
+            Pick which name represents you across the explorer (header pill,
+            faucet, exchange, reputation). The choice is local to this
+            browser — change it any time.
+          </p>
+          <div className="space-y-1.5">
+            {names.map((entry) => {
+              const isPrimary = (savedPrimary ?? currentPrimary) === entry.fullLabel;
+              return (
+                <label
+                  key={entry.fullLabel}
+                  className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-colors ${
+                    isPrimary
+                      ? "bg-mempool-blue/15 border-mempool-blue/50"
+                      : "bg-mempool-bg border-mempool-border hover:border-mempool-blue/30"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="primary-name"
+                    checked={isPrimary}
+                    onChange={() => {
+                      setPrimaryName(address, entry.fullLabel);
+                      setSavedPrimary(entry.fullLabel);
+                    }}
+                    className="accent-mempool-blue"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-mempool-text">
+                      {entry.fullLabel}
+                    </div>
+                    <div className="text-[10px] text-mempool-text-dim font-mono">
+                      registered block #{entry.registeredAtBlock} · expires #{entry.expiresAtBlock}
+                    </div>
+                  </div>
+                  {isPrimary && (
+                    <span className="text-[10px] uppercase tracking-wider text-mempool-blue font-bold">
+                      Primary
+                    </span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+          {savedPrimary && (
+            <button
+              onClick={() => {
+                setPrimaryName(address, null);
+                setSavedPrimary(null);
+              }}
+              className="text-[10px] text-mempool-text-dim hover:text-mempool-orange"
+            >
+              Clear primary (auto-pick first)
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }
