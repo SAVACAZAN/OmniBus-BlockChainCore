@@ -10,6 +10,14 @@ const rpc = new OmniBusRpcClient();
 
 const VALID_RE = /^[a-z][a-z0-9_]{2,24}$/;
 
+// Canonical ens.omnibus treasury — slot index 3 in core/registrar_addresses.zig.
+// Older nodes (pre b1e6b54) used to derive this from the node mnemonic at
+// BIP-44 path 3 instead of reading the hardcoded slot. If the running node
+// reports a different treasury than this constant, it is on the legacy
+// derivation and the user is asked to wait for backend redeploy before
+// sending any fee.
+const CANONICAL_ENS_TREASURY = "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa";
+
 const TLDS = ["omnibus", "arbitraje"] as const;
 type Tld = typeof TLDS[number];
 
@@ -55,13 +63,15 @@ export function NamesPage() {
   // Register form
   const wallet = useWallet();
   const [regName, setRegName] = useState("");
+  // regAddr is fully derived from the connected wallet — the input is
+  // read-only in the UI and any registration always points the name at the
+  // user's own address. Keep this as a useState so the rest of the page
+  // (validation, register call, success message) doesn't need to know about
+  // the hook directly.
   const [regAddr, setRegAddr] = useState("");
-  // Auto-fill the resolve-to-address from the connected wallet so the user
-  // doesn't have to paste it. They can still edit if they want the name to
-  // resolve to a different address.
   useEffect(() => {
-    if (wallet && !regAddr) setRegAddr(wallet.address);
-  }, [wallet, regAddr]);
+    setRegAddr(wallet ? wallet.address : "");
+  }, [wallet]);
   const [regTld, setRegTld] = useState<Tld>("omnibus");
   const [searchTld, setSearchTld] = useState<Tld>("omnibus");
   const [registering, setRegistering] = useState(false);
@@ -303,8 +313,18 @@ export function NamesPage() {
                 <span className="text-mempool-text font-semibold">{ensFee.cost_arbitraje_omni} OMNI</span> for .arbitraje
               </p>
               <p className="text-mempool-text-dim mt-1">
-                Treasury: <span className="font-mono text-mempool-text">{ensFee.treasury}</span>
+                Treasury: <span className="font-mono text-mempool-text">{ensFee.treasury || "(not set)"}</span>
               </p>
+              {ensFee.treasury && ensFee.treasury !== CANONICAL_ENS_TREASURY && (
+                <p className="text-amber-400 mt-1 text-[11px]">
+                  ⚠️ This node is reporting a non-canonical treasury. The
+                  canonical ens.omnibus address (registrar slot index 3) is{" "}
+                  <span className="font-mono">{CANONICAL_ENS_TREASURY}</span>.
+                  Do NOT send a fee to the address above until the node is
+                  updated — your fee would land on a derived address instead
+                  of the protocol slot.
+                </p>
+              )}
               {ensFee.enforcement && (
                 <p className="text-amber-400 mt-1">Fee enforcement is ON — you must include a fee txid.</p>
               )}
@@ -349,13 +369,22 @@ export function NamesPage() {
               )}
             </div>
             <div>
-              <label className="block text-xs text-mempool-text-dim mb-1">Resolve to address</label>
+              <label className="block text-xs text-mempool-text-dim mb-1">
+                Resolve to address
+                {wallet && (
+                  <span className="ml-2 text-[10px] text-mempool-green normal-case">
+                    — locked to your connected wallet
+                  </span>
+                )}
+              </label>
               <input
                 type="text"
-                placeholder="ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0"
-                value={regAddr}
-                onChange={(e) => setRegAddr(e.target.value.trim())}
-                className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
+                placeholder={wallet ? "" : "Connect a wallet from the header to register a name"}
+                value={wallet ? wallet.address : ""}
+                readOnly
+                disabled={!wallet}
+                title={wallet ? "Read-only — names always register against your connected wallet" : "Connect a wallet from the header"}
+                className="w-full bg-mempool-bg/50 border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text-dim placeholder:text-mempool-text-dim cursor-not-allowed select-all"
               />
             </div>
           </div>

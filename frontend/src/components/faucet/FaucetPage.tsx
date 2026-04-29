@@ -30,10 +30,11 @@ export function FaucetPage() {
   const [result, setResult] = useState<ClaimResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-fill recipient with connected wallet — user can still override.
+  // Recipient is fully derived from the connected wallet. The input is
+  // read-only — faucet always claims to the user's own address.
   useEffect(() => {
-    if (wallet && !recipient) setRecipient(wallet.address);
-  }, [wallet, recipient]);
+    setRecipient(wallet ? wallet.address : "");
+  }, [wallet]);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,18 +131,25 @@ export function FaucetPage() {
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
         <label className="block text-xs uppercase tracking-wider text-mempool-text-dim mb-2">
           Your OmniBus address
+          {wallet && (
+            <span className="ml-2 text-[10px] text-mempool-green normal-case tracking-normal">
+              — locked to your connected wallet
+            </span>
+          )}
         </label>
         <input
           type="text"
           value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          placeholder="ob1q..."
-          className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue"
+          readOnly
+          disabled={!wallet}
+          placeholder={wallet ? "" : "Connect a wallet from the header to claim"}
+          title={wallet ? "Read-only — faucet always claims to your connected wallet" : "Connect a wallet from the header"}
+          className="w-full bg-mempool-bg/50 border border-mempool-border rounded px-3 py-2 text-mempool-text-dim font-mono text-sm mb-3 cursor-not-allowed select-all"
           spellCheck={false}
         />
         <button
           onClick={claim}
-          disabled={claiming || !status?.enabled || (status?.balance ?? 0) < (status?.grantPerClaim ?? 0)}
+          disabled={claiming || !wallet || !status?.enabled || (status?.balance ?? 0) < (status?.grantPerClaim ?? 0)}
           className="px-4 py-2 bg-mempool-blue hover:bg-blue-600 disabled:bg-mempool-bg disabled:text-mempool-text-dim disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
         >
           {claiming ? "Sending…" : "Get 0.1 OMNI"}

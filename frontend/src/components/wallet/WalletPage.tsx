@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { useWallet } from "../../api/use-wallet";
+import { lockWallet } from "../../api/wallet-keystore";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -21,115 +23,78 @@ const PQ_DOMAINS = [
   { prefix: "ob_s3_", algo: "SLH-DSA-256s",  bits: 256, color: "text-mempool-text",   emoji: "🏖️", tier: "VACATION" },
 ];
 
-interface WalletState {
-  loggedIn: boolean;
-  mnemonic: string;
-  address: string;
-  balance: number;
-  balanceOMNI: string;
-  transactions: any[];
-}
+// Wallet state used to live here as a local useState. Now everything comes
+// from the global wallet-keystore singleton via useWallet() — connecting from
+// the Header button instantly lights up this page (and every other tab).
+// Side benefit: no more mnemonic stored as plain string in component state.
 
 export function WalletPage() {
   const { state: chainState } = useBlockchain();
-  const [wallet, setWallet] = useState<WalletState>({
-    loggedIn: false,
-    mnemonic: "",
-    address: "",
-    balance: 0,
-    balanceOMNI: "0.0000",
-    transactions: [],
-  });
-  const [mnemonicInput, setMnemonicInput] = useState("");
-  const [mnemonicError, setMnemonicError] = useState("");
+  const unlocked = useWallet(); // null when locked, { address, privateKey, publicKey, walletIndex } when unlocked
+  const [balance, setBalance] = useState({ sat: 0, omni: "0.0000" });
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [sendTo, setSendTo] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [sendFee, setSendFee] = useState("");
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [showMnemonic, setShowMnemonic] = useState(false);
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [walletNonce, setWalletNonce] = useState<number | null>(null);
 
-  // Auto-refresh balance + fetch fee estimate + nonce when logged in
+  // Auto-refresh balance + fetch fee estimate + nonce when wallet is unlocked.
   useEffect(() => {
-    if (!wallet.loggedIn) return;
+    if (!unlocked) {
+      // Reset derived state when the user disconnects.
+      setBalance({ sat: 0, omni: "0.0000" });
+      setTransactions([]);
+      setFeeEstimate(null);
+      setWalletNonce(null);
+      setSendResult(null);
+      return;
+    }
     const refresh = async () => {
       try {
         const bal: any = await rpc.getBalance();
-        // Use listtransactions for richer TX data (with confirmations, fees)
-        let txs: any[] = [];
-        try {
-          const listResult = await rpc.listTransactions(50);
-          txs = listResult?.transactions || [];
-        } catch {
-          try {
-            const fallback = await rpc.request_raw("gettransactions");
-            txs = fallback?.transactions || [];
-          } catch {}
-        }
-        setWallet((w) => ({
-          ...w,
-          balance: bal?.balance || 0,
-          balanceOMNI: bal?.balanceOMNI || "0.0000",
-          address: bal?.address || w.address,
-          transactions: txs,
-        }));
+        setBalance({
+          sat: bal?.balance || 0,
+          omni: bal?.balanceOMNI || "0.0000",
+        });
       } catch {}
 
-      // Fetch fee estimate
+      try {
+        const listResult = await rpc.listTransactions(50);
+        setTransactions(listResult?.transactions || []);
+      } catch {
+        try {
+          const fallback = await rpc.request_raw("gettransactions");
+          setTransactions(fallback?.transactions || []);
+        } catch {}
+      }
+
       try {
         const fee = await rpc.estimateFee();
         if (fee) setFeeEstimate(fee);
       } catch {}
 
-      // Fetch nonce
-      if (wallet.address) {
-        try {
-          const nonceResult = await rpc.getNonce(wallet.address);
-          if (nonceResult && typeof nonceResult.nonce === "number") {
-            setWalletNonce(nonceResult.nonce);
-          } else if (typeof nonceResult === "number") {
-            setWalletNonce(nonceResult);
-          }
-        } catch {}
-      }
+      try {
+        const nonceResult = await rpc.getNonce(unlocked.address);
+        if (nonceResult && typeof nonceResult.nonce === "number") {
+          setWalletNonce(nonceResult.nonce);
+        } else if (typeof nonceResult === "number") {
+          setWalletNonce(nonceResult);
+        }
+      } catch {}
     };
     refresh();
     const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
-  }, [wallet.loggedIn, wallet.address]);
-
-  const handleLogin = async () => {
-    const words = mnemonicInput.trim().split(/\s+/);
-    if (words.length < 12) {
-      setMnemonicError("Mnemonic must have at least 12 words (BIP-39)");
-      return;
-    }
-    setMnemonicError("");
-
-    try {
-      const bal: any = await rpc.getBalance();
-      setWallet({
-        loggedIn: true,
-        mnemonic: mnemonicInput.trim(),
-        address: bal?.address || "ob1q...",
-        balance: bal?.balance || 0,
-        balanceOMNI: bal?.balanceOMNI || "0.0000",
-        transactions: [],
-      });
-    } catch (err: any) {
-      setMnemonicError("Cannot connect to node. Is omnibus-node running?");
-    }
-  };
+  }, [unlocked]);
 
   const handleLogout = () => {
-    setWallet({ loggedIn: false, mnemonic: "", address: "", balance: 0, balanceOMNI: "0.0000", transactions: [] });
-    setMnemonicInput("");
-    setSendResult(null);
-    setFeeEstimate(null);
-    setWalletNonce(null);
+    // Disconnect the global session — every subscriber (this page, Exchange,
+    // Names, Faucet, Reputation, Header pill) re-renders to its locked state.
+    lockWallet();
   };
 
   const handleSend = async () => {
@@ -139,7 +104,7 @@ export function WalletPage() {
     try {
       const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
-      if (amountSat > wallet.balance) throw new Error("Insufficient balance");
+      if (amountSat > balance.sat) throw new Error("Insufficient balance");
       const result: any = await rpc.sendTransaction(sendTo, amountSat);
       const txid = typeof result === "object" ? result?.txid : result;
       setSendResult({ ok: true, msg: `TX signed & sent: ${(txid || "").toString().slice(0, 24)}...` });
@@ -163,57 +128,31 @@ export function WalletPage() {
     ? parseInt(sendFee, 10)
     : feeEstimate?.medianFee ?? 1;
 
-  // ── LOGIN SCREEN ──────────────────────────────────────────────────────
-  if (!wallet.loggedIn) {
+  // ── LOCKED SCREEN ─────────────────────────────────────────────────────
+  // Login lives in the global Header button now (WalletConnectButton). Once
+  // the user unlocks there, this whole page lights up — same singleton.
+  if (!unlocked) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12">
-        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-6">
-          {/* Lock icon */}
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto rounded-full bg-mempool-bg flex items-center justify-center mb-3">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-mempool-blue">
-                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-mempool-text">Import Wallet</h2>
-            <p className="text-sm text-mempool-text-dim mt-1">
-              Enter your BIP-39 mnemonic to access your wallet
-            </p>
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-6 text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-mempool-bg flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-mempool-blue">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </div>
-
-          {/* Mnemonic input */}
-          <div className="space-y-3">
-            <label className="text-xs text-mempool-text-dim uppercase tracking-wider font-medium">
-              Mnemonic Phrase (12/24 words)
-            </label>
-            <textarea
-              value={mnemonicInput}
-              onChange={(e) => setMnemonicInput(e.target.value)}
-              placeholder="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
-              rows={3}
-              className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-4 py-3 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue resize-none"
-              spellCheck={false}
-              autoComplete="off"
-            />
-            {mnemonicError && (
-              <p className="text-xs text-mempool-red">{mnemonicError}</p>
-            )}
-
-            <button
-              onClick={handleLogin}
-              disabled={!mnemonicInput.trim()}
-              className="w-full bg-mempool-blue hover:bg-mempool-blue/80 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 transition-colors"
-            >
-              Unlock Wallet
-            </button>
-
-            <p className="text-[10px] text-mempool-text-dim text-center mt-2">
-              Your mnemonic stays in this browser tab. It is never sent to the network.
-              <br />
-              Post-Quantum secured with 5 address domains (ML-DSA, Falcon, Dilithium, SLH-DSA).
-            </p>
-          </div>
+          <h2 className="text-xl font-bold text-mempool-text">Wallet locked</h2>
+          <p className="text-sm text-mempool-text-dim">
+            Click the <span className="text-mempool-blue font-semibold">Connect Wallet</span>{" "}
+            button in the top-right header to unlock with your mnemonic, private
+            key, or saved PIN. One unlock covers every tab — Exchange, Names,
+            Faucet, Reputation and this page all share the same session.
+          </p>
+          <p className="text-[10px] text-mempool-text-dim">
+            Keys never leave this browser. Signing is done client-side (secp256k1
+            ECDSA). Post-Quantum secured with 5 address domains (ML-DSA, Falcon,
+            Dilithium, SLH-DSA).
+          </p>
         </div>
 
         {/* Node status */}
@@ -248,9 +187,9 @@ export function WalletPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">Total Balance</p>
-            <p className="text-4xl font-mono font-bold text-mempool-green">{wallet.balanceOMNI}</p>
+            <p className="text-4xl font-mono font-bold text-mempool-green">{balance.omni}</p>
             <p className="text-sm text-mempool-text-dim mt-1">
-              OMNI = {wallet.balance.toLocaleString()} SAT
+              OMNI = {balance.sat.toLocaleString()} SAT
             </p>
           </div>
           {walletNonce !== null && (
@@ -360,7 +299,7 @@ export function WalletPage() {
           {/* Primary address */}
           <div
             className="bg-mempool-bg rounded-lg p-3 cursor-pointer hover:bg-mempool-bg-light transition-colors"
-            onClick={() => copyAddr(wallet.address)}
+            onClick={() => copyAddr(unlocked.address)}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-mempool-text-dim uppercase flex items-center gap-1">
@@ -368,17 +307,17 @@ export function WalletPage() {
                 <span>Primary — OMNI (ML-DSA-87 + KEM)</span>
               </span>
               <span className="text-[10px] text-mempool-green">
-                {copied === wallet.address ? "Copied!" : "Click to copy"}
+                {copied === unlocked.address ? "Copied!" : "Click to copy"}
               </span>
             </div>
             <p className="text-xs font-mono text-mempool-blue mt-1 break-all">
-              {wallet.address}
+              {unlocked.address}
             </p>
           </div>
 
           {/* PQ domain addresses — fiecare = 1 pahar reputation soulbound */}
           {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => {
-            const addr = pq.prefix + wallet.address.slice(wallet.address.indexOf("_", 3) + 1);
+            const addr = pq.prefix + unlocked.address.slice(unlocked.address.indexOf("_", 3) + 1);
             return (
               <div
                 key={pq.prefix}
@@ -418,24 +357,14 @@ export function WalletPage() {
             </p>
           </div>
 
-          {/* Mnemonic reveal */}
+          {/* Public key — useful for verifying signatures off-chain */}
           <div className="pt-2 border-t border-mempool-border/50">
-            <button
-              onClick={() => setShowMnemonic(!showMnemonic)}
-              className="text-[10px] text-mempool-text-dim hover:text-mempool-orange transition-colors"
-            >
-              {showMnemonic ? "Hide" : "Show"} Mnemonic
-            </button>
-            {showMnemonic && (
-              <div className="mt-2 bg-mempool-bg rounded-lg p-3 animate-fadeIn">
-                <p className="text-[10px] text-mempool-orange mb-1 uppercase font-bold">
-                  Keep this secret!
-                </p>
-                <p className="text-xs font-mono text-mempool-text break-all leading-relaxed">
-                  {wallet.mnemonic}
-                </p>
-              </div>
-            )}
+            <p className="text-[10px] text-mempool-text-dim uppercase mb-1">
+              Public key (compressed, 33 bytes)
+            </p>
+            <p className="text-[10px] font-mono text-mempool-text-dim break-all">
+              {unlocked.publicKey}
+            </p>
           </div>
         </div>
       </div>
@@ -448,12 +377,12 @@ export function WalletPage() {
           </h3>
         </div>
         <div className="divide-y divide-mempool-border/30 max-h-96 overflow-y-auto">
-          {wallet.transactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="px-5 py-8 text-center text-sm text-mempool-text-dim">
               No transactions yet. Mine blocks or receive OMNI to see history.
             </div>
           ) : (
-            wallet.transactions.map((tx: any, i: number) => (
+            transactions.map((tx: any, i: number) => (
               <div key={tx.txid || i} className="px-5 py-3 flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   tx.direction === "received" ? "bg-mempool-green" : "bg-mempool-orange"
