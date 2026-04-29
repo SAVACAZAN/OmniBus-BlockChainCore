@@ -63,8 +63,8 @@ pub const REGISTRAR_ADDRESSES = [_]RegistrarSlot{
     .{ .index = 5, .address = "ob1quax5e9hyyzmft2m2lzn735asswsw9gh4gtgess", .role = "blockchain", .reserved_name = "blockchain.omnibus" },
     .{ .index = 6, .address = "ob1qcdep7azzrr8t3x8tgn9wp6p69fc884g8g80v09", .role = "tornetwork", .reserved_name = "tornetwork.omnibus" },
     .{ .index = 7, .address = "ob1qvetjtq3swujv0jqsmw0gq84fymtfuaz5p5cjdv", .role = "faucet",     .reserved_name = "faucet.omnibus" },
-    .{ .index = 8, .address = "",                                            .role = "cazan",      .reserved_name = "cazan.omnibus" },
-    .{ .index = 9, .address = "",                                            .role = "database",   .reserved_name = "database.omnibus" },
+    .{ .index = 8, .address = "ob1qdpknh5kapc22fv6s7jv0ntj7kwepqf3hcq4jrj", .role = "cazan",      .reserved_name = "cazan.omnibus" },
+    .{ .index = 9, .address = "ob1qw8sltuapku7g5c4fmkzplhns0sde9rc6cunu57", .role = "database",   .reserved_name = "database.omnibus" },
 };
 
 /// Look up a slot's canonical address. Returns null if the slot is
@@ -119,7 +119,16 @@ test "isReservedName matches known names" {
     try std.testing.expect(!isReservedName(""));
 }
 
-test "addressOf returns null for empty slots" {
+test "addressOf returns hardcoded canonical addresses" {
+    // All 10 slots are populated as of 2026-04-29 (sourced from aweb3
+    // wallet UI). Each acts as a native smart contract — has an address,
+    // no key. Chain enforces rules per slot.
     try std.testing.expect(addressOf(.savacazan) != null);
-    try std.testing.expect(addressOf(.kyc) == null); // not yet derived/pasted
+    try std.testing.expect(addressOf(.ens) != null);
+    try std.testing.expect(addressOf(.faucet) != null);
+    try std.testing.expect(addressOf(.exchange) != null);
+    try std.testing.expectEqualStrings(
+        "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa",
+        addressOf(.ens).?,
+    );
 }

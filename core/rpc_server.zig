@@ -18,7 +18,6 @@ const hex_utils       = @import("hex_utils.zig");
 const staking_mod     = @import("staking.zig");
 const payment_mod     = @import("payment_channel.zig");
 const matching_mod     = @import("matching_engine.zig");
-const treasury_agent_mod = @import("treasury_agent.zig");
 const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
@@ -1382,9 +1381,6 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
-    if (std.mem.eql(u8, method, "treasury_getConfig"))     return handleTreasuryGetConfig(ctx, id);
-    if (std.mem.eql(u8, method, "treasury_setConfig"))     return handleTreasurySetConfig(body, ctx, id);
-    if (std.mem.eql(u8, method, "treasury_getStatus"))     return handleTreasuryGetStatus(ctx, id);
 
     // ── Identity (public nickname + ENS-pref + visibility) ─────────────
     if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
@@ -7703,126 +7699,6 @@ fn handleExchangeGetEscrowAddress(ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, escrow });
 }
 
-// ─── Treasury Agent RPCs ────────────────────────────────────────────────
-//
-// `treasury_getConfig` — read-only, anyone can query.
-// `treasury_setConfig` — write, requires founder signature (savacazan slot 0).
-// `treasury_getStatus` — read-only debug view of live orders + last regrid.
-//
-// All three operate on `main_mod.g_treasury_agent`, which is null when the
-// node was started with exchange disabled. In that case we return -32601.
-
-fn handleTreasuryGetConfig(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const ta = if (main_mod.g_treasury_agent) |*t| t else
-        return errorJson(-32601, "Treasury agent not active on this node", id, alloc);
-    const c = ta.config;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"enabled\":{},\"grid_alloc_pct\":{d},\"levels_per_side\":{d}," ++
-        "\"min_regrid_blocks\":{d},\"drift_threshold_pct\":{d}," ++
-        "\"balance_delta_pct\":{d},\"vol_window\":{d}," ++
-        "\"level_weights\":[{d},{d},{d},{d},{d}]}}}}",
-        .{
-            id, c.enabled, c.grid_alloc_pct, c.levels_per_side,
-            c.min_regrid_blocks, c.drift_threshold_pct,
-            c.balance_delta_pct, c.vol_window,
-            c.level_weights[0], c.level_weights[1], c.level_weights[2],
-            c.level_weights[3], c.level_weights[4],
-        });
-}
-
-fn handleTreasurySetConfig(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const ta = if (main_mod.g_treasury_agent) |*t| t else
-        return errorJson(-32601, "Treasury agent not active on this node", id, alloc);
-
-    // Founder gate: only savacazan (registrar slot 0) may flip these knobs.
-    // The address is hardcoded in registrar_addresses.zig and re-derived at
-    // boot from the running mnemonic, so a wrong-mnemonic node can't even
-    // start — the gate is meaningful even though we just compare strings.
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-
-    // Canonical message: TREASURY_SET_V1\n<nonce>\n<key1>=<val1>\n<key2>=<val2>\n…
-    // For now we accept the simpler shape: signer must derive to the
-    // savacazan address. Enforcement = pubkey -> hash160 -> bech32 == slot 0.
-    var pk_bytes: [33]u8 = undefined;
-    if (pubkey_hex.len != 66) return errorJson(-32401, "Bad publicKey length", id, alloc);
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32401, "Bad publicKey hex", id, alloc);
-    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32500, "Address derivation failed", id, alloc);
-    defer alloc.free(derived_addr);
-
-    const founder_addr = registrar_mod.addressOf(.savacazan) orelse
-        return errorJson(-32500, "Founder slot not initialised", id, alloc);
-    if (!std.mem.eql(u8, derived_addr, founder_addr)) {
-        return errorJson(-32401, "Only founder may change treasury config", id, alloc);
-    }
-
-    // Verify signature over canonical message.
-    var msg_buf: [128]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "TREASURY_SET_V1\n{d}", .{nonce}) catch
-        return errorJson(-32500, "Message build failed", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32401, "Invalid signature", id, alloc);
-    }
-
-    // Apply each provided field. Missing-or-zero fields are left untouched
-    // (zero is never a meaningful config value here — caller would never
-    // request grid_alloc_pct=0 because that disables the grid; use
-    // `enabled=false` instead).
-    const ga = extractArrayNumByKey(body, "grid_alloc_pct");
-    if (ga > 0 and ga <= 100) ta.config.grid_alloc_pct = @intCast(ga);
-
-    const mrb = extractArrayNumByKey(body, "min_regrid_blocks");
-    if (mrb > 0) ta.config.min_regrid_blocks = mrb;
-
-    const dt = extractArrayNumByKey(body, "drift_threshold_pct");
-    if (dt > 0 and dt <= 100) ta.config.drift_threshold_pct = @intCast(dt);
-
-    const bd = extractArrayNumByKey(body, "balance_delta_pct");
-    if (bd > 0 and bd <= 100) ta.config.balance_delta_pct = @intCast(bd);
-
-    if (extractStr(body, "enabled")) |v| {
-        ta.config.enabled = std.mem.eql(u8, v, "true") or std.mem.eql(u8, v, "1");
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"updated\":true,\"enabled\":{}," ++
-        "\"grid_alloc_pct\":{d},\"min_regrid_blocks\":{d}}}}}",
-        .{ id, ta.config.enabled, ta.config.grid_alloc_pct, ta.config.min_regrid_blocks });
-}
-
-fn handleTreasuryGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const ta = if (main_mod.g_treasury_agent) |*t| t else
-        return errorJson(-32601, "Treasury agent not active on this node", id, alloc);
-
-    var live_count: u32 = 0;
-    for (&ta.live_orders) |mo| {
-        if (mo.order_id != 0) live_count += 1;
-    }
-    const balance = ta.bc.getAddressBalance(ta.treasury_address);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"treasury_address\":\"{s}\",\"balance_sat\":{d}," ++
-        "\"live_orders\":{d}," ++
-        "\"last_grid_mid_micro_usd\":{d},\"last_grid_balance_sat\":{d}," ++
-        "\"last_regrid_block\":{d}," ++
-        "\"vol_samples\":{d},\"vol_mean\":{d},\"vol_sigma\":{d}}}}}",
-        .{
-            id, ta.treasury_address, balance, live_count,
-            ta.last_grid_mid_micro_usd, ta.last_grid_balance_sat,
-            ta.last_regrid_block,
-            ta.vol.count, ta.vol.mean(), ta.vol.sigma(),
-        });
-}
 
 fn demoQuotaLookup(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
     var i: u16 = 0;
