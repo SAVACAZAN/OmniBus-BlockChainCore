@@ -3,7 +3,6 @@ import OmniBusRpcClient, {
   OrderbookLevel,
   TradeFill,
 } from "../../api/rpc-client";
-import { AuthPanel } from "./AuthPanel";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { UserOrdersPanel } from "./UserOrdersPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
@@ -109,17 +108,14 @@ export function ExchangePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-mempool-text">OmniBus Exchange</h1>
-          <p className="text-mempool-text-dim text-xs mt-1">
-            On-chain matching engine. Orders are signed client-side with your
-            wallet's secp256k1 key — never leaves the browser.
-          </p>
-        </div>
-        <div className="md:max-w-sm w-full">
-          <AuthPanel />
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-mempool-text">OmniBus Exchange</h1>
+        <p className="text-mempool-text-dim text-xs mt-1">
+          On-chain matching engine. Orders are signed client-side with your
+          wallet's secp256k1 key — never leaves the browser. Connect once via
+          the wallet button in the header — Names / Faucet / Reputation /
+          Exchange all share the same session.
+        </p>
       </div>
 
       {methodMissing && (

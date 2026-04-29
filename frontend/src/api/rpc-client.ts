@@ -127,10 +127,15 @@ export class OmniBusRpcClient {
     } catch (error) {
       // "Block not found" is expected during race conditions when UI requests
       // a block at the chain tip that has just been mined but not yet served
-      // (or vice-versa). Don't spam console — caller's `.catch(() => null)`
-      // handles it. Only log unexpected errors.
+      // (or vice-versa). "Method not found" is expected when the UI is newer
+      // than the node (e.g. treasury_* RPCs landed in a later chain build —
+      // the older deployed node legitimately doesn't expose them yet, the
+      // caller already gates the panel on this). Don't spam console for these.
       const msg = error instanceof Error ? error.message : String(error);
-      if (!msg.includes("Block not found")) {
+      const muted = msg.includes("Block not found")
+        || msg.includes("Method not found")
+        || msg.includes("not enabled");
+      if (!muted) {
         console.error(`RPC request failed (${method}):`, error);
       }
       throw error;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -21,12 +22,18 @@ type ClaimResult = {
 };
 
 export function FaucetPage() {
+  const wallet = useWallet();
   const [status, setStatus] = useState<FaucetStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [recipient, setRecipient] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [result, setResult] = useState<ClaimResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-fill recipient with connected wallet — user can still override.
+  useEffect(() => {
+    if (wallet && !recipient) setRecipient(wallet.address);
+  }, [wallet, recipient]);
 
   useEffect(() => {
     let cancelled = false;

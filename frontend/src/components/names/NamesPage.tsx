@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
@@ -52,8 +53,15 @@ export function NamesPage() {
   const [searching, setSearching] = useState(false);
 
   // Register form
+  const wallet = useWallet();
   const [regName, setRegName] = useState("");
   const [regAddr, setRegAddr] = useState("");
+  // Auto-fill the resolve-to-address from the connected wallet so the user
+  // doesn't have to paste it. They can still edit if they want the name to
+  // resolve to a different address.
+  useEffect(() => {
+    if (wallet && !regAddr) setRegAddr(wallet.address);
+  }, [wallet, regAddr]);
   const [regTld, setRegTld] = useState<Tld>("omnibus");
   const [searchTld, setSearchTld] = useState<Tld>("omnibus");
   const [registering, setRegistering] = useState(false);

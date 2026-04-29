@@ -6,6 +6,7 @@ import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
 import { ElectricOrganism } from "../effects/ElectricOrganism";
 import { MatrixRain } from "../effects/MatrixRain";
+import { WalletConnectButton } from "./WalletConnectButton";
 
 declare global {
   interface Window { __openTx?: (txid: string) => void }
@@ -39,7 +40,7 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo — plasma orb (replaces static SVG) */}
           <div className="flex items-center gap-3">
-            <PlasmaLogo size={120} className="drop-shadow -my-8" />
+            <PlasmaLogo size={120} className="drop-shadow -my-8" slotIndex={7} />
             <ElectricOrganism size={130} className="drop-shadow -my-8" />
             <div>
               <h1 className="text-lg font-bold leading-tight tracking-tight bg-gradient-to-b from-amber-300 to-orange-500 bg-clip-text text-transparent">
@@ -48,9 +49,9 @@ export function Header() {
               <p className="text-xs text-mempool-text-dim">BlockChain Explorer</p>
             </div>
             <MatrixRain width={60} height={120} className="drop-shadow -my-8 rounded" />
-            <PlasmaLogo size={80} className="drop-shadow -my-8" />
-            <PlasmaLogo size={40} className="drop-shadow -my-8" />
-            <PlasmaLogoOrange size={120} className="drop-shadow -my-8" />
+            <PlasmaLogo size={80} className="drop-shadow -my-8" slotIndex={9} />
+            <PlasmaLogo size={40} className="drop-shadow -my-8" slotIndex={10} />
+            <PlasmaLogoOrange size={120} className="drop-shadow -my-8" slotIndex={11} />
           </div>
 
           {/* Search + Block Height */}
@@ -134,6 +135,11 @@ export function Header() {
             >
               {state.isMining ? "Mining" : "Syncing"}
             </div>
+
+            {/* Global wallet connect — visible on every tab. One login →
+                Names / Faucet / Reputation / Exchange all see the same wallet
+                via the wallet-keystore singleton. */}
+            <WalletConnectButton />
           </div>
         </div>
       </header>

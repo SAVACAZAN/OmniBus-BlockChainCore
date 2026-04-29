@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
@@ -45,6 +46,7 @@ const TIER_COLOR: Record<string, string> = {
 };
 
 export function ReputationPage() {
+  const wallet = useWallet();
   const [top, setTop] = useState<TopResp | null>(null);
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState<ReputationEntry | null>(null);
@@ -52,6 +54,12 @@ export function ReputationPage() {
   const [error, setError] = useState<string | null>(null);
   const [methodMissing, setMethodMissing] = useState(false);
   const [limit, setLimit] = useState(50);
+
+  // Auto-fill the address search with the connected wallet so users see their
+  // own reputation immediately on page open.
+  useEffect(() => {
+    if (wallet && !search) setSearch(wallet.address);
+  }, [wallet, search]);
 
   useEffect(() => {
     let cancelled = false;
