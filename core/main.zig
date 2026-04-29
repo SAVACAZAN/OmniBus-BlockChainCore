@@ -977,6 +977,19 @@ pub fn main() !void {
     bc.db_path = db_path;
     bc.last_save_time = std.time.timestamp();
 
+    // PHASE C.3 — rebuild UTXO set from full chain replay at startup.
+    // The legacy persistence layer saves bc.balances + nonces but NOT
+    // bc.utxo_set, so a restart loaded balances from disk and started
+    // with an empty UTXO set. The audit then surfaces a divergence
+    // for every address that had non-trivial pre-restart history.
+    // recalculateFromHeight wipes balances + replays every block from
+    // genesis, which now also rebuilds the UTXO set (Phase B updated
+    // recalculateFromHeight to do that). After this call, the audit
+    // and stray-write counters start clean.
+    bc.recalculateFromHeight(0) catch |err| {
+        std.debug.print("[DB] UTXO rebuild after restore failed: {}\n", .{err});
+    };
+
     // Start the background state-save thread. This is the band-aid fix
     // for the post-b363095 data-loss bug: balances that weren't on-chain
     // TXs (faucet grants, in particular) didn't survive restart because
@@ -2093,6 +2106,21 @@ pub fn main() !void {
                         std.debug.print(
                             "[ALERT] Balance divergence detected: {d}/{d} addresses diverged from UTXO set\n",
                             .{ audit.divergences, audit.addresses_checked },
+                        );
+                    }
+                    // ── PHASE-C.3: stray-write detector ────────────────────────
+                    // Every legitimate balance mutation comes through
+                    // applyBlock / mineBlockForMiner / recalculateFromHeight
+                    // / p2p sync — all of those set bc.in_apply_block=true
+                    // for the duration of the work. Anything outside that
+                    // window is a phantom write that won't survive replay.
+                    // Counter is process-lifetime; non-zero means we have
+                    // a regression to find before C.4 deletes bc.balances
+                    // entirely.
+                    if (bc.stray_balance_writes > 0) {
+                        std.debug.print(
+                            "[ALERT] Stray balance writes since startup: {d} — phantom credits/debits, find the callsite\n",
+                            .{bc.stray_balance_writes},
                         );
                     }
 

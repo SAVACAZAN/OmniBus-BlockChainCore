@@ -3212,6 +3212,12 @@ pub const P2PNode = struct {
             // stays at 0. Local-mined blocks credit through mineBlockForMiner;
             // peer-blocks must credit here.
             if (peer_miner.len > 0 and peer_reward > 0) {
+                // PHASE C.3 — applying a peer-mined block is a legitimate
+                // chain-sync write. Open the audit window so the credit
+                // call doesn't trip the [STRAY-CREDIT] detector.
+                bc.in_apply_block = true;
+                defer bc.in_apply_block = false;
+
                 bc.creditBalance(miner_addr, peer_reward) catch |err| {
                     std.debug.print("[SYNC] creditBalance failed for {s}: {}\n",
                         .{ miner_addr[0..@min(miner_addr.len, 12)], err });

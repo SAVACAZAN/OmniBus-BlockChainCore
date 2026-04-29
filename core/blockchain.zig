@@ -172,6 +172,28 @@ pub const Blockchain = struct {
     /// Mutex — protejează chain/mempool/balances de data race (RPC + mining pe thread-uri diferite)
     mutex: std.Thread.Mutex = .{},
 
+    /// PHASE C.3 — bc.balances write-only contract enforcement.
+    ///
+    /// `in_apply_block` is set to true while `applyBlock` is running; it
+    /// signals that any balance mutation about to happen has a
+    /// corresponding TX on chain (or coinbase reward). Mutations from
+    /// outside that window are phantom credits/debits that get lost on
+    /// restart — exactly the bug that wiped 51 testnet faucet balances
+    /// last week.
+    ///
+    /// `stray_balance_writes` counts those phantom writes since process
+    /// start. The mining-loop stabilizer reports this count once a
+    /// minute and emits a loud [ALERT] when it grows.
+    ///
+    /// `mineBlockForMiner` and `recalculateFromHeight` also flip the
+    /// flag while they replay TXs — same contract: if you're walking
+    /// the chain, your writes are accounted for.
+    ///
+    /// Phase C.4 (chainstate KV refactor) deletes bc.balances entirely;
+    /// until then this flag is the trip-wire.
+    in_apply_block: bool = false,
+    stray_balance_writes: u32 = 0,
+
     /// Auto-save: blocks mined since last save (triggers at 100)
     blocks_since_save: u32 = 0,
     /// Auto-save: unix timestamp of last save (triggers after 60s)
@@ -467,6 +489,25 @@ pub const Blockchain = struct {
     /// Solutie: getOrPut + dupe DOAR la prima insertie. Update-ul ulterior
     /// reutilizeaza key-ul deja persistent.
     pub fn creditBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
+        // PHASE C.3 — write-only contract enforcement.
+        //
+        // Every legitimate balance write happens inside applyBlock,
+        // mineBlockForMiner, or recalculateFromHeight (chain replay).
+        // All three flip `in_apply_block = true` for the duration of
+        // their work. Any write outside that window is a phantom
+        // mutation that vanishes on the next restart — the same class
+        // of bug that wiped 51 testnet faucet recipients on 2026-04-28.
+        // Count them, log them with a stack hint, surface via the
+        // stabilizer ALERT once a minute. Do NOT panic — that would
+        // kill the node on a real production run; the goal is to
+        // *catch* phantoms in CI/staging long before mainnet.
+        if (!self.in_apply_block) {
+            self.stray_balance_writes += 1;
+            std.debug.print(
+                "[STRAY-CREDIT] addr={s} amount={d} count={d} — must come from applyBlock/mineBlock/recalc\n",
+                .{ address[0..@min(20, address.len)], amount, self.stray_balance_writes },
+            );
+        }
         // SEGFAULT-FIX [scan-2026-04-26]: dupe FIRST, then getOrPut on the duped slice.
         // The previous code did getOrPut(externally-borrowed slice) and only duped
         // on !found_existing. Problem: getOrPut iterates HashMap buckets calling
@@ -507,6 +548,14 @@ pub const Blockchain = struct {
     /// Same dupe-first pattern as creditBalanceLocked to avoid dangling
     /// HashMap key pointers when caller passes a transient slice.
     pub fn debitBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
+        // PHASE C.3 — same phantom-write detector as creditBalanceLocked.
+        if (!self.in_apply_block) {
+            self.stray_balance_writes += 1;
+            std.debug.print(
+                "[STRAY-DEBIT] addr={s} amount={d} count={d} — must come from applyBlock/mineBlock/recalc\n",
+                .{ address[0..@min(20, address.len)], amount, self.stray_balance_writes },
+            );
+        }
         if (address.len == 0) return;
         const owned = try self.allocator.dupe(u8, address);
         const gop = self.balances.getOrPut(owned) catch |err| {
@@ -779,6 +828,13 @@ pub const Blockchain = struct {
 
     /// Mine block + acorda reward minerului + proceseaza TX-urile din mempool
     pub fn mineBlockForMiner(self: *Blockchain, miner_address: []const u8) !Block {
+        // PHASE C.3 — open the legitimate-write window for the duration
+        // of the mine. The credit/debit calls below funnel through
+        // creditBalance (mutex + creditBalanceLocked), and the audit
+        // counter inside *Locked checks self.in_apply_block.
+        self.in_apply_block = true;
+        defer self.in_apply_block = false;
+
         // NU lock aici — PoW dureaza secunde, ar bloca tot RPC-ul
         // Lock doar pe secțiunile critice (read chain, write chain, update balances)
         if (self.chain.items.len == 0) {
@@ -1361,6 +1417,10 @@ pub const Blockchain = struct {
     /// Apply a validated block to the chain: process TXs, credit miner, append.
     /// Caller must hold mutex.
     fn applyBlock(self: *Blockchain, block: Block) !void {
+        // PHASE C.3 — open the legitimate-write window.
+        self.in_apply_block = true;
+        defer self.in_apply_block = false;
+
         var total_fees: u64 = 0;
         for (block.transactions.items) |tx| {
             const total_needed = tx.amount + tx.fee;
@@ -1493,6 +1553,10 @@ pub const Blockchain = struct {
     /// — without this, the balances HashMap retains entries for now-discarded blocks
     /// whose dupe()'d address keys may have been freed → segfault on next getOrPut.
     pub fn recalculateFromHeight(self: *Blockchain, from_height: usize) !void {
+        // PHASE C.3 — full chain replay is a legitimate write window.
+        self.in_apply_block = true;
+        defer self.in_apply_block = false;
+
         _ = from_height;
         // Clear all balance/nonce/tx state and replay from genesis
         self.balances.clearRetainingCapacity();
