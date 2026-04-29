@@ -1452,7 +1452,7 @@ pub fn main() !void {
     std.debug.print("[REGISTRAR] Native slots (chain-enforced):\n", .{});
     for (registrar_mod.REGISTRAR_ADDRESSES) |slot| {
         if (slot.address.len == 0) continue;
-        std.debug.print("[REGISTRAR]   #{d} {s:<12} {s}\n",
+        std.debug.print("[REGISTRAR]   #{d} {s} -> {s}\n",
             .{ slot.index, slot.role, slot.address });
     }
 
