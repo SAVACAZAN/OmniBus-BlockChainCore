@@ -93,6 +93,7 @@ const schnorr_mod      = @import("schnorr.zig");
 const multisig_mod     = @import("multisig.zig");
 const bls_mod          = @import("bls_signatures.zig");
 const matching_mod     = @import("matching_engine.zig");
+const treasury_agent_mod = @import("treasury_agent.zig");
 const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
@@ -237,6 +238,11 @@ pub var g_agents_active: bool = false;
 // ── Global Oracle Fetcher — real exchange prices from LCX, Kraken, Coinbase ──
 // Initialized in main() with a real allocator (needs HTTP client)
 pub var g_oracle_fetcher: ?oracle_fetcher_mod.OracleFetcher = null;
+
+/// NS treasury market-maker. Set in main() after `exchange_engine` is up.
+/// Null when exchange is disabled or wallet derivation fails. RPC handlers
+/// in rpc_server.zig read this for `treasury_getConfig` / `treasury_setConfig`.
+pub var g_treasury_agent: ?treasury_agent_mod.TreasuryAgent = null;
 
 // ── Global AtomicClock — single source of time across the whole node ───────
 // Initialised lazily at runtime entry (initReal() reads OS clock which
@@ -1242,7 +1248,14 @@ pub fn main() !void {
         std.debug.print("[DNS] Loaded {d} names from {s}\n", .{ dns.entry_count, dns_persist_path });
     }
 
-    // Set treasury = wallet derivat la idx 3 (ens.omnibus).
+    // Set treasury = wallet derivat la idx 5 (ens.omnibus, registrar slot 5).
+    // CORRECTION 2026-04-29: previous code used idx 3 by accident; the
+    // registrar table at registrar_addresses.zig:59 hardcodes slot 5 as
+    // ens.omnibus = ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa. The slot
+    // 3 derivation produced ob1qtu2r... which appears nowhere in the
+    // registrar table. The slot enum values themselves are stable across
+    // chain wipes (memory: project_omnibus_registrar_addresses).
+    //
     // Map chain_mode to wallet network (regtest -> testnet for BIP-32 purposes).
     const wallet_network: wallet_mod.Network = switch (parsed.chain_mode) {
         .mainnet => .mainnet,
@@ -1250,7 +1263,7 @@ pub fn main() !void {
         .regtest => .testnet,
     };
     var ens_treasury_wallet = try wallet_mod.Wallet.fromMnemonicFull(
-        mnemonic, "", wallet_network, 0, 0, 3, allocator,
+        mnemonic, "", wallet_network, 0, 0, 5, allocator,
     );
     defer ens_treasury_wallet.deinit();
     dns.setTreasury(ens_treasury_wallet.address);
@@ -1259,6 +1272,12 @@ pub fn main() !void {
     dns.enableFee(parsed.chain_mode == .mainnet);
     std.debug.print("[DNS] Treasury: {s} | fee_enforcement: {}\n",
         .{ ens_treasury_wallet.address, dns.fee_enforcement });
+
+    // Attach the registry to the blockchain so applyBlock can run pay-to-claim:
+    // every TX with op_return `ns_claim:<name>.<tld>` paying ens.omnibus the
+    // right fee gets the name auto-registered to its sender. See
+    // dns_registry.claimByPayment + blockchain.applyBlock for the full flow.
+    bc.dns_registry = &dns;
 
     // ── Init Guardian System ─────────────────────────────────────────────────
     var guardian = guardian_mod.GuardianEngine.init();
@@ -1426,6 +1445,73 @@ pub fn main() !void {
             e.next_order_id = 1;
             e.next_fill_id = 1;
             std.debug.print("[EXCHANGE] paper-trading engine ON\n", .{});
+        }
+    }
+
+    // ── Treasury Agent (autonomous market-maker) ───────────────────────────
+    // Watches the NS treasury balance (ens.omnibus, registrar slot 5) and
+    // auto-places adaptive grid orders on OMNI/USDC. The treasury can never
+    // be drained externally — every payout must clear through the orderbook
+    // against an actual buyer. See treasury_agent.zig for the full design.
+    //
+    // ENV overrides (read at boot, can also be changed live via
+    // `treasury_setConfig` RPC):
+    //   OMNIBUS_TREASURY_OFF=1            disable agent entirely
+    //   OMNIBUS_TREASURY_ALLOC_PCT=70     % of balance committed to grid
+    //   OMNIBUS_TREASURY_REGRID_BLOCKS=10 cooldown between regrids
+    //   OMNIBUS_TREASURY_DRIFT_PCT=50     drift trigger (% of sigma)
+    //   OMNIBUS_TREASURY_DELTA_PCT=10     balance-change trigger
+    const treasury_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_TREASURY_OFF") catch false;
+    if (!treasury_disabled and exchange_engine != null) {
+        const eng = exchange_engine.?;
+        // Derive a private copy of the slot-5 wallet that lives as long as
+        // the agent (the earlier `ens_treasury_wallet` is borrowed for
+        // `dns.setTreasury` and may be deinit'd before the loop exits).
+        const agent_wallet = wallet_mod.Wallet.fromMnemonicFull(
+            mnemonic, "", wallet_network, 0, 0, 3, allocator,
+        ) catch |err| blk: {
+            std.debug.print("[TREASURY-AGENT] wallet derivation failed: {}; agent disabled\n", .{err});
+            break :blk null;
+        };
+        if (agent_wallet) |w| {
+            // Build initial config from defaults + env overrides.
+            var cfg = treasury_agent_mod.Config{};
+            if (std.process.getEnvVarOwned(allocator, "OMNIBUS_TREASURY_ALLOC_PCT")) |v| {
+                defer allocator.free(v);
+                if (std.fmt.parseInt(u8, v, 10)) |n| {
+                    if (n > 0 and n <= 100) cfg.grid_alloc_pct = n;
+                } else |_| {}
+            } else |_| {}
+            if (std.process.getEnvVarOwned(allocator, "OMNIBUS_TREASURY_REGRID_BLOCKS")) |v| {
+                defer allocator.free(v);
+                if (std.fmt.parseInt(u64, v, 10)) |n| {
+                    if (n > 0) cfg.min_regrid_blocks = n;
+                } else |_| {}
+            } else |_| {}
+            if (std.process.getEnvVarOwned(allocator, "OMNIBUS_TREASURY_DRIFT_PCT")) |v| {
+                defer allocator.free(v);
+                if (std.fmt.parseInt(u8, v, 10)) |n| {
+                    if (n > 0 and n <= 100) cfg.drift_threshold_pct = n;
+                } else |_| {}
+            } else |_| {}
+            if (std.process.getEnvVarOwned(allocator, "OMNIBUS_TREASURY_DELTA_PCT")) |v| {
+                defer allocator.free(v);
+                if (std.fmt.parseInt(u8, v, 10)) |n| {
+                    if (n > 0 and n <= 100) cfg.balance_delta_pct = n;
+                } else |_| {}
+            } else |_| {}
+
+            g_treasury_agent = treasury_agent_mod.TreasuryAgent.init(
+                &bc, eng, w, cfg,
+            );
+            std.debug.print(
+                "[TREASURY-AGENT] active on OMNI/USDC, treasury={s}\n" ++
+                "[TREASURY-AGENT] config: alloc={d}%% regrid={d}b drift={d}%% delta={d}%%\n",
+                .{
+                    w.address, cfg.grid_alloc_pct, cfg.min_regrid_blocks,
+                    cfg.drift_threshold_pct, cfg.balance_delta_pct,
+                },
+            );
         }
     }
 
@@ -2286,6 +2372,10 @@ pub fn main() !void {
 
             // ── AI Agents: tick all loaded agents on this block ─────────
             agentTickAll(&bc, block_count);
+
+            // ── Treasury Agent: re-grid market-maker if needed ──────────
+            // Cooldown + drift + balance-delta gates inside `tick()`.
+            if (g_treasury_agent) |*ta| ta.tick(block_count);
 
             // ── Price Oracle: Reset submissions for next round ──────────
             g_price_oracle.resetRound();

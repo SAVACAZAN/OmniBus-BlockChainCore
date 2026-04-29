@@ -438,6 +438,8 @@ export function NamesPage() {
         ) : null}
       </div>
 
+      <TreasuryStatusCard />
+
       <div className="mt-6 text-xs text-mempool-text-dim space-y-1">
         <p>
           <span className="font-semibold text-mempool-text">Refresh:</span> auto every 8s.
@@ -447,6 +449,136 @@ export function NamesPage() {
           omnibus, admin, root (cannot be registered)
         </p>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Treasury status card — autonomous market-maker stats. Reads via the
+// `treasury_getStatus` and `treasury_getConfig` RPCs added in the NS
+// hardening sprint. The treasury (registrar slot 5 = ens.omnibus) is the
+// pay-to-claim recipient — every successful name claim drips OMNI here,
+// and the agent automatically converts it to grid orders on OMNI/USDC.
+// ─────────────────────────────────────────────────────────────────────────
+
+type TreasuryStatus = {
+  treasury_address: string;
+  balance_sat: number;
+  live_orders: number;
+  last_grid_mid_micro_usd: number;
+  last_grid_balance_sat: number;
+  last_regrid_block: number;
+  vol_samples: number;
+  vol_mean: number;
+  vol_sigma: number;
+};
+
+type TreasuryConfig = {
+  enabled: boolean;
+  grid_alloc_pct: number;
+  levels_per_side: number;
+  min_regrid_blocks: number;
+  drift_threshold_pct: number;
+  balance_delta_pct: number;
+  vol_window: number;
+};
+
+function TreasuryStatusCard() {
+  const [status, setStatus] = useState<TreasuryStatus | null>(null);
+  const [cfg, setCfg] = useState<TreasuryConfig | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const [s, c] = await Promise.all([
+          rpc.request_raw("treasury_getStatus", []) as Promise<TreasuryStatus>,
+          rpc.request_raw("treasury_getConfig", []) as Promise<TreasuryConfig>,
+        ]);
+        if (!cancelled) {
+          setStatus(s);
+          setCfg(c);
+          setUnavailable(false);
+        }
+      } catch (e: any) {
+        const msg = e?.message || "";
+        if (msg.includes("not active") || msg.includes("not found")) {
+          if (!cancelled) setUnavailable(true);
+        }
+      }
+    };
+    tick();
+    const id = setInterval(tick, 8000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  if (unavailable) {
+    return (
+      <div className="mt-6 rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 text-xs text-mempool-text-dim">
+        Treasury agent not active on this node — set `OMNIBUS_TREASURY_OFF=` to empty
+        and restart with the exchange enabled to see live MM stats.
+      </div>
+    );
+  }
+  if (!status || !cfg) return null;
+
+  const balanceOmni = (status.balance_sat / 1_000_000_000).toFixed(4);
+  const midUsd = status.last_grid_mid_micro_usd > 0
+    ? (status.last_grid_mid_micro_usd / 1_000_000).toFixed(4)
+    : "—";
+  const sigmaUsd = status.vol_sigma > 0
+    ? (status.vol_sigma / 1_000_000).toFixed(4)
+    : "—";
+
+  return (
+    <div className="mt-6 rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+      <div className="px-4 py-3 border-b border-mempool-border flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-mempool-text">
+          NS Treasury — autonomous market maker
+        </h3>
+        <span className={`text-[10px] px-2 py-0.5 rounded uppercase tracking-wider ${
+          cfg.enabled ? "bg-green-500/20 text-green-300" : "bg-gray-700/40 text-gray-400"
+        }`}>
+          {cfg.enabled ? "active" : "paused"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
+        <Metric label="Treasury balance" value={`${balanceOmni} OMNI`} />
+        <Metric label="Live orders" value={status.live_orders.toString()} />
+        <Metric label="Last grid mid" value={`$${midUsd}`} />
+        <Metric label="Volatility σ" value={`$${sigmaUsd}`} />
+        <Metric label="Last regrid" value={`block ${status.last_regrid_block.toLocaleString()}`} />
+        <Metric label="Allocation" value={`${cfg.grid_alloc_pct}%`} />
+        <Metric label="Cooldown" value={`${cfg.min_regrid_blocks} blocks`} />
+        <Metric label="Vol samples" value={`${status.vol_samples}/${cfg.vol_window}`} />
+      </div>
+
+      <div className="px-4 py-3 border-t border-mempool-border bg-mempool-bg/40">
+        <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">
+          Pay-to-claim
+        </div>
+        <p className="text-xs text-mempool-text-dim">
+          Send ≥ 5 OMNI to{" "}
+          <code className="text-mempool-blue font-mono">{status.treasury_address}</code>{" "}
+          with op_return memo{" "}
+          <code className="text-mempool-blue font-mono">ns_claim:&lt;name&gt;.omnibus</code>{" "}
+          to register a name. The treasury agent immediately recycles the OMNI
+          into OMNI/USDC grid orders — funds never leave the ecosystem.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">
+        {label}
+      </div>
+      <div className="text-sm font-mono text-mempool-text">{value}</div>
     </div>
   );
 }

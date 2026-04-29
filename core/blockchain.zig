@@ -14,6 +14,8 @@ pub const Validator = validator_mod.Validator;
 // imports lazily — they only matter when the corresponding fields are touched.
 const main_mod = @import("main.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
+const dns_mod = @import("dns_registry.zig");
+const registrar_mod = @import("registrar_addresses.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -204,6 +206,11 @@ pub const Blockchain = struct {
     persistent_db: ?*@import("database.zig").PersistentBlockchain = null,
     /// DB file path for auto-save
     db_path: []const u8 = "omnibus-chain.dat",
+    /// DNS registry — set by main after init. Null in tests / nodes that
+    /// run without NS support. When non-null, applyBlock auto-processes
+    /// pay-to-claim TXs (op_return prefix `ns_claim:`) and registers names
+    /// to the sender's address. See dns_registry.claimByPayment.
+    dns_registry: ?*dns_mod.DnsRegistry = null,
     /// Per-block oracle price snapshot (6 slots: BTC×3 exchanges + LCX×3).
     /// Captured at mining time from g_ws_feed. In-memory only (not persisted
     /// to disk in DB v2, so a restart loses old prices but new blocks get fresh ones).
@@ -1503,6 +1510,49 @@ pub const Blockchain = struct {
         if (block.miner_address.len > 0 and (block.reward_sat > 0 or fees_to_miner > 0)) {
             self.creditBalanceLocked(block.miner_address, block.reward_sat + fees_to_miner) catch {};
             self.utxo_set.addUTXO(block.hash, 0, block.miner_address, block.reward_sat + fees_to_miner, @intCast(block.index), "", true) catch {};
+        }
+
+        // ── Pay-to-claim NS scan ────────────────────────────────────────────
+        //
+        // Any TX in the block that pays >= feeForName to the NS treasury
+        // (registrar slot 5 = ens.omnibus) AND carries an op_return memo
+        // matching `ns_claim:<name>.<tld>` triggers an automatic registry
+        // entry naming `<name>.<tld>` to `tx.from_address`. The TX itself
+        // is the proof — no separate signed RPC call needed. Fee already
+        // moved to treasury as part of the regular UTXO accounting above.
+        //
+        // Skipped when:
+        //   - dns_registry pointer not attached (test paths, light nodes)
+        //   - ens.omnibus slot has no canonical address yet (mainnet pre-fill)
+        //   - registry full / name reserved / owner capped — claimByPayment
+        //     reports the error, we log and continue (other TXs still apply).
+        if (self.dns_registry) |dns| {
+            if (registrar_mod.addressOf(.ens)) |ns_treasury| {
+                for (block.transactions.items) |tx| {
+                    if (tx.op_return.len == 0) continue;
+                    const claim = dns_mod.parseClaimMemo(tx.op_return) orelse continue;
+                    if (!std.mem.eql(u8, tx.to_address, ns_treasury)) continue;
+                    const required_fee = dns_mod.feeForName(claim.name, claim.tld);
+                    if (tx.amount < required_fee) {
+                        std.debug.print(
+                            "[NS-CLAIM] underpaid: {s}.{s} need {d} got {d}\n",
+                            .{ claim.name, claim.tld, required_fee, tx.amount },
+                        );
+                        continue;
+                    }
+                    dns.claimByPayment(claim.name, claim.tld, tx.from_address, @intCast(block.index)) catch |err| {
+                        std.debug.print(
+                            "[NS-CLAIM] reject {s}.{s} from {s}: {}\n",
+                            .{ claim.name, claim.tld, tx.from_address, err },
+                        );
+                        continue;
+                    };
+                    std.debug.print(
+                        "[NS-CLAIM] {s}.{s} -> {s} (paid {d} sat at block {d})\n",
+                        .{ claim.name, claim.tld, tx.from_address, tx.amount, block.index },
+                    );
+                }
+            }
         }
 
         try self.chain.append(block);
