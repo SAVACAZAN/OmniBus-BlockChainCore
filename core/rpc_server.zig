@@ -7286,6 +7286,17 @@ fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: owner", id, alloc);
 
+    // Paper / real isolation: paper-mode requests see only `_DEMO`-suffixed
+    // tokens (OMNI_DEMO etc.); real-mode requests see only real tokens
+    // (OMNI / BTC / ETH / LCX / USDC). Without this split, the UI's
+    // Account → Balances tab showed paper credits stacked on top of real
+    // ones because both engines write into the same balance pool keyed
+    // by token name. The matching engines themselves are already
+    // isolated; this just teaches the read path how to mirror the same
+    // boundary the place/cancel/orderbook endpoints already enforce
+    // via mode:"paper".
+    const is_paper = isPaperMode(body);
+
     ctx.exchange_mutex.lock();
     defer ctx.exchange_mutex.unlock();
 
@@ -7300,11 +7311,20 @@ fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const b = &ctx.exstate.?.balances[i];
         if (b.owner_len != owner.len) continue;
         if (!std.mem.eql(u8, b.owner[0..b.owner_len], owner)) continue;
+
+        // Token-suffix filter: paper tokens carry `_DEMO`. The mode flag
+        // selects which side we surface; default (no mode) = real for
+        // backward compat with old clients.
+        const token = b.token[0..b.token_len];
+        const has_demo_suffix = std.mem.endsWith(u8, token, "_DEMO");
+        if (is_paper and !has_demo_suffix) continue;
+        if (!is_paper and has_demo_suffix) continue;
+
         if (!first) try out.appendSlice(alloc, ",");
         first = false;
         try std.fmt.format(out.writer(alloc),
             "{{\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}",
-            .{ b.token[0..b.token_len], b.available_sat, b.locked_sat });
+            .{ token, b.available_sat, b.locked_sat });
     }
     try out.appendSlice(alloc, "]}");
     return alloc.dupe(u8, out.items);
