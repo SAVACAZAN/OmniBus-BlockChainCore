@@ -1438,23 +1438,11 @@ pub fn main() !void {
         }
     }
 
-    // ── Registrar slots (native "smart contracts") ─────────────────────────
-    // The 10 slots in registrar_addresses.zig each hold an on-chain address
-    // and NO private key. Rules are enforced by the chain itself:
-    //   - ens.omnibus: pay-to-claim (TX with ns_claim:<name>.omnibus memo)
-    //   - faucet.omnibus: drip on /faucet RPC call
-    //   - exchange.omnibus: market-maker rules (planned)
-    //   - others: reserved for future protocol-owned features
-    //
-    // Off-chain agents that want to make markets on these slots run in
-    // user space (aweb3 Tauri, custom scripts) and use the public RPC +
-    // their own signing key. The chain itself never signs.
-    std.debug.print("[REGISTRAR] Native slots (chain-enforced):\n", .{});
-    for (registrar_mod.REGISTRAR_ADDRESSES) |slot| {
-        if (slot.address.len == 0) continue;
-        std.debug.print("[REGISTRAR]   #{d} {s} -> {s}\n",
-            .{ slot.index, slot.role, slot.address });
-    }
+    // Registrar slots are hardcoded in registrar_addresses.zig — no run-time
+    // loop here (Linux + Zig 0.15 segfault on the const-array iteration; see
+    // chain wipe history 2026-04-29). Operator can `cat core/registrar_addresses.zig`
+    // for the canonical map. Each slot is a native smart contract: on-chain
+    // address, no private key, chain enforces the rules.
 
     // Exchange-users journal (api keys + internal balances). Always
     // present (even when matching engine is off) because login + balance
