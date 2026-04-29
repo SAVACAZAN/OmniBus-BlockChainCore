@@ -8389,6 +8389,265 @@ fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, issuer });
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+//  PQ Isolated Wallets v2 — 5-scheme RPC handlers
+//
+//  Schemes:
+//    0 = omni_ecdsa     (secp256k1 ECDSA, prefix ob1q)
+//    1 = love_dilithium (ML-DSA-87, prefix ob_k1_)
+//    2 = food_falcon    (Falcon-512, prefix ob_f5_)
+//    3 = rent_slh_dsa   (SLH-DSA-256s, prefix ob_d5_)
+//    4 = vacation_kem   (ML-KEM-768, prefix ob_s3_) — encapsulation only,
+//                       nu suporta semnaturi (verifySignature returneaza false)
+// ═════════════════════════════════════════════════════════════════════════════
+
+/// pq_listSchemes — read-only. Returneaza cele 5 scheme suportate cu
+/// codurile lor numerice si prefixele de adresa pentru wallet UI / SDK
+/// auto-discovery. Nu modifica state.
+fn handlePqListSchemes(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
+            "{{\"scheme\":\"omni_ecdsa\",\"code\":0,\"address_prefix\":\"ob1q\"}}," ++
+            "{{\"scheme\":\"love_dilithium\",\"code\":1,\"address_prefix\":\"ob_k1_\"}}," ++
+            "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\"}}," ++
+            "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\"}}," ++
+            "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\"}}" ++
+        "]}}",
+        .{id});
+}
+
+/// pq_balance — balance + scheme deduse din prefixul adresei. Read-only.
+/// Reuse `bc.getAddressBalance` (acelasi balanta ca pentru orice adresa).
+fn handlePqBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const scheme_opt = isolated_wallet_mod.Scheme.fromAddress(addr);
+    if (scheme_opt == null) {
+        return errorJson(-32602, "Address prefix does not match any PQ scheme (ob1q/ob_k1_/ob_f5_/ob_d5_/ob_s3_)", id, alloc);
+    }
+    const scheme = scheme_opt.?;
+    const balance = ctx.bc.getAddressBalance(addr);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"address\":\"{s}\"," ++
+            "\"scheme\":\"{s}\"," ++
+            "\"code\":{d}," ++
+            "\"address_prefix\":\"{s}\"," ++
+            "\"balance\":{d}" ++
+        "}}}}",
+        .{ id, addr, @tagName(scheme), @intFromEnum(scheme), scheme.prefix(), balance });
+}
+
+/// pq_send — construieste si submite o tranzactie semnata cu o scheme PQ.
+/// Required: scheme (0..4 sau nume), from, to, amount, signature, public_key.
+/// Optional: op_return, fee, nonce.
+///
+/// Semnatura PQ este verificata aici (chain-side) inainte de a o adauga in
+/// mempool. Format mesaj canonic: hash-ul standard al TX (calculateHash).
+fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    // 1. Parametri obligatorii
+    const from = extractStr(body, "from") orelse extractStr(body, "from_address") orelse
+        return errorJson(-32602, "Missing param: from", id, alloc);
+    const to = extractStr(body, "to") orelse extractStr(body, "to_address") orelse
+        return errorJson(-32602, "Missing param: to", id, alloc);
+    const sig_hex = extractStr(body, "signature") orelse
+        return errorJson(-32602, "Missing param: signature (hex pentru omni, raw bytes hex pentru PQ)", id, alloc);
+    const pubkey_hex = extractStr(body, "public_key") orelse extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
+        return errorJson(-32602, "Missing param: public_key", id, alloc);
+
+    const amount = extractArrayNumByKey(body, "amount");
+    if (amount == 0) {
+        // Permitem amount=0 pentru op_return-only TXs, dar trebuie OP_RETURN nenul
+        // (validat ulterior in tx.isValid)
+    }
+    const op_return = extractStr(body, "op_return") orelse extractStr(body, "opReturn") orelse "";
+    const fee_raw = extractArrayNumByKey(body, "fee");
+    const fee_sat: u64 = if (fee_raw > 0) fee_raw else mempool_mod.TX_MIN_FEE_SAT;
+
+    // 2. Determina scheme — accepta nume sau cod numeric
+    const scheme_str_opt = extractStr(body, "scheme");
+    const scheme_num = extractArrayNumByKey(body, "scheme");
+    const scheme: isolated_wallet_mod.Scheme = blk: {
+        if (scheme_str_opt) |s| {
+            if (std.mem.eql(u8, s, "omni_ecdsa") or std.mem.eql(u8, s, "omni")) break :blk .omni_ecdsa;
+            if (std.mem.eql(u8, s, "love_dilithium") or std.mem.eql(u8, s, "love")) break :blk .love_dilithium;
+            if (std.mem.eql(u8, s, "food_falcon") or std.mem.eql(u8, s, "food")) break :blk .food_falcon;
+            if (std.mem.eql(u8, s, "rent_slh_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_slh_dsa;
+            if (std.mem.eql(u8, s, "vacation_kem") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_kem;
+            return errorJson(-32602, "Unknown scheme name (omni_ecdsa/love_dilithium/food_falcon/rent_slh_dsa/vacation_kem)", id, alloc);
+        }
+        if (scheme_num <= 4) break :blk @enumFromInt(@as(u8, @intCast(scheme_num)));
+        return errorJson(-32602, "scheme must be 0..4 or a name string", id, alloc);
+    };
+
+    // 3. VACATION (KEM) nu poate semna
+    if (scheme == .vacation_kem) {
+        return errorJson(-32602, "vacation_kem cannot sign transactions (KEM is encapsulation-only)", id, alloc);
+    }
+
+    // 4. Verifica prefix adresa from corespunde scheme-ului
+    const expected_prefix = scheme.prefix();
+    if (!std.mem.startsWith(u8, from, expected_prefix)) {
+        return errorJson(-32602, "from address prefix does not match scheme", id, alloc);
+    }
+
+    // 5. Construim TX — folosim sentinel hash/signature, calculam hash, apoi inlocuim signature.
+    //    Hash-ul TX nu depinde de signature/public_key (vezi calculateHash).
+    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
+    const nonce_param = extractArrayNumByKey(body, "nonce");
+    const nonce = if (nonce_param > 0) nonce_param else ctx.bc.getNextAvailableNonce(from);
+
+    const from_owned = try alloc.dupe(u8, from);
+    errdefer alloc.free(from_owned);
+    const to_owned = try alloc.dupe(u8, to);
+    errdefer alloc.free(to_owned);
+    const op_owned: []const u8 = if (op_return.len > 0) try alloc.dupe(u8, op_return) else "";
+    errdefer if (op_owned.len > 0) alloc.free(op_owned);
+    const sig_owned = try alloc.dupe(u8, sig_hex);
+    errdefer alloc.free(sig_owned);
+    const pk_owned = try alloc.dupe(u8, pubkey_hex);
+    errdefer alloc.free(pk_owned);
+
+    var tx = transaction_mod.Transaction{
+        .id           = tx_id,
+        .scheme       = @as(transaction_mod.Scheme, @enumFromInt(@intFromEnum(scheme))),
+        .from_address = from_owned,
+        .to_address   = to_owned,
+        .amount       = amount,
+        .fee          = fee_sat,
+        .timestamp    = std.time.timestamp(),
+        .nonce        = nonce,
+        .op_return    = op_owned,
+        .signature    = sig_owned,
+        .hash         = "",
+        .public_key   = pk_owned,
+    };
+
+    // 6. Calculeaza hash-ul TX si stocheaza-l in formă hex (verificat in validateTransaction)
+    const tx_hash_bytes = tx.calculateHash();
+    const tx_hash_hex = try alloc.alloc(u8, tx_hash_bytes.len * 2);
+    {
+        const hex_chars = "0123456789abcdef";
+        for (tx_hash_bytes, 0..) |b, hi| {
+            tx_hash_hex[hi * 2] = hex_chars[b >> 4];
+            tx_hash_hex[hi * 2 + 1] = hex_chars[b & 0xF];
+        }
+    }
+    tx.hash = tx_hash_hex;
+
+    // 7. Verifica semnatura PQ inainte de submit. Mesajul = bytes raw ai tx_hash.
+    //    Pentru OMNI, signature-ul este 128 chars hex si pubkey 66 chars hex.
+    //    Pentru PQ, signature/pubkey sunt hex de lungime variabila (per scheme).
+    const sig_ok = blk_verify: {
+        if (scheme == .omni_ecdsa) {
+            // Path OMNI: secp256k1 ECDSA pe hash-ul TX
+            break :blk_verify isolated_wallet_mod.verifyOmniSignature(&tx_hash_bytes, sig_hex, pubkey_hex);
+        }
+        // Path PQ: decode hex bytes, dispatch via verifySignature
+        const sig_bytes = alloc.alloc(u8, sig_hex.len / 2) catch return errorJson(-32603, "OOM decoding signature", id, alloc);
+        defer alloc.free(sig_bytes);
+        _ = hex_utils.hexToBytes(sig_hex, sig_bytes) catch break :blk_verify false;
+
+        const pk_bytes = alloc.alloc(u8, pubkey_hex.len / 2) catch return errorJson(-32603, "OOM decoding public_key", id, alloc);
+        defer alloc.free(pk_bytes);
+        _ = hex_utils.hexToBytes(pubkey_hex, pk_bytes) catch break :blk_verify false;
+
+        break :blk_verify isolated_wallet_mod.verifySignature(scheme, &tx_hash_bytes, sig_bytes, pk_bytes);
+    };
+    if (!sig_ok) {
+        return errorJson(-32000, "PQ signature verification failed", id, alloc);
+    }
+
+    // 8. Inregistreaza pubkey si submite TX in mempool
+    if (scheme == .omni_ecdsa and pubkey_hex.len == 66) {
+        ctx.bc.registerPubkey(from, pubkey_hex) catch {};
+    }
+    ctx.bc.addTransaction(tx) catch |err| {
+        return errorJson(-32000, switch (err) {
+            error.InvalidTransaction => "Transaction validation failed",
+            else => "Mempool error",
+        }, id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"txid\":\"{s}\"," ++
+            "\"scheme\":\"{s}\"," ++
+            "\"code\":{d}," ++
+            "\"from\":\"{s}\"," ++
+            "\"to\":\"{s}\"," ++
+            "\"amount\":{d}," ++
+            "\"fee\":{d}," ++
+            "\"nonce\":{d}," ++
+            "\"status\":\"accepted\"" ++
+        "}}}}",
+        .{ id, tx.hash, @tagName(scheme), @intFromEnum(scheme), tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce });
+}
+
+/// pq_attestation — scaneaza chain-ul pentru tranzactii cu OP_RETURN
+/// `pq_attest:<domain>:<pq_address>` trimise de la `omni_address`.
+/// Returneaza ultima inregistrare gasita + numarul de confirmari.
+fn handlePqAttestation(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const omni_addr = extractStr(body, "omni_address") orelse extractStr(body, "from") orelse
+        return errorJson(-32602, "Missing param: omni_address", id, alloc);
+    const domain = extractStr(body, "domain") orelse
+        return errorJson(-32602, "Missing param: domain (love/food/rent/vacation)", id, alloc);
+
+    var prefix_buf: [64]u8 = undefined;
+    const prefix = std.fmt.bufPrint(&prefix_buf, "pq_attest:{s}:", .{domain}) catch
+        return errorJson(-32603, "Domain too long", id, alloc);
+
+    // Scaneaza chain-ul invers (cele mai recente blocuri primele)
+    var latest_tx_hash: []const u8 = "";
+    var latest_pq_addr: []const u8 = "";
+    var latest_block_height: u64 = 0;
+    var latest_timestamp: i64 = 0;
+    var found = false;
+
+    var i: usize = ctx.bc.chain.items.len;
+    while (i > 0) {
+        i -= 1;
+        const block = &ctx.bc.chain.items[i];
+        for (block.transactions.items) |*tx| {
+            if (!std.mem.eql(u8, tx.from_address, omni_addr)) continue;
+            if (!std.mem.startsWith(u8, tx.op_return, prefix)) continue;
+            // Match — extract pq_address (totul dupa prefix)
+            latest_tx_hash = tx.hash;
+            latest_pq_addr = tx.op_return[prefix.len..];
+            latest_block_height = @intCast(i);
+            latest_timestamp = tx.timestamp;
+            found = true;
+            break;
+        }
+        if (found) break;
+    }
+
+    if (!found) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+    }
+
+    const confirmations = ctx.bc.getConfirmations(latest_tx_hash) orelse 0;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"omni_address\":\"{s}\"," ++
+            "\"domain\":\"{s}\"," ++
+            "\"pq_address\":\"{s}\"," ++
+            "\"txid\":\"{s}\"," ++
+            "\"block_height\":{d}," ++
+            "\"timestamp\":{d}," ++
+            "\"confirmations\":{d}" ++
+        "}}}}",
+        .{ id, omni_addr, domain, latest_pq_addr, latest_tx_hash, latest_block_height, latest_timestamp, confirmations });
+}
+
 // ── errorJson ────────────────────────────────────────────────────────────────
 
 test "errorJson — contine code si message" {
