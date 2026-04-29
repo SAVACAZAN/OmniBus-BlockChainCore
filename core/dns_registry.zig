@@ -307,7 +307,7 @@ pub const DnsRegistry = struct {
         return false;
     }
 
-    fn consumeTxid(self: *DnsRegistry, txid: []const u8) !void {
+    pub fn consumeTxid(self: *DnsRegistry, txid: []const u8) !void {
         if (txid.len != TXID_LEN) return error.InvalidTxid;
         if (self.consumed_count >= MAX_CONSUMED_TXIDS) return error.ConsumedTxidsFull;
         @memcpy(self.consumed_txids[self.consumed_count][0..], txid[0..TXID_LEN]);

@@ -778,7 +778,20 @@ pub const Blockchain = struct {
         // 6. Verificare semnatura ECDSA secp256k1 cu public key inregistrat
         //    (signature = 128 hex chars = 64 bytes R||S, hash = 64 hex chars)
         //    Skip for multisig addresses (they use M-of-N verification instead)
+        //    Skip for PQ schemes (love/food/rent/vacation) — verificate de RPC handler
+        //    inainte de submit; signature size este variabila per scheme.
+        const is_pq_scheme = tx.scheme != .omni_ecdsa;
+        if (is_pq_scheme and tx.hash.len == 64) {
+            // PQ TX: verifica integritatea hash-ului doar (semnatura PQ a fost
+            // verificata de handler la submit). Daca hash-ul nu corespunde
+            // bytes-urilor TX, respinge.
+            const expected_hash = tx.calculateHash();
+            var stored_hash: [32]u8 = undefined;
+            hex_utils.hexToBytes(tx.hash, &stored_hash) catch return false;
+            if (!std.mem.eql(u8, &stored_hash, &expected_hash)) return false;
+        }
         if (!std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX) and
+            !is_pq_scheme and
             tx.signature.len == 128 and tx.hash.len == 64)
         {
             // 6a. Integritate hash — hash-ul stocat trebuie sa corespunda continutului TX
@@ -804,8 +817,11 @@ pub const Blockchain = struct {
             }
             // Daca pubkey nu e inregistrat, acceptam TX (backward compat cu coinbase/genesis)
             // Urmatoarea TX de la aceasta adresa va fi verificata dupa registerPubkey()
-        } else if (!std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX) and tx.signature.len > 0) {
-            // Semnătură incompletă — respinge (skip for multisig which uses different sig format)
+        } else if (!std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX) and
+                   !is_pq_scheme and
+                   tx.signature.len > 0) {
+            // Semnătură incompletă — respinge (skip for multisig which uses different sig format,
+            // and for PQ schemes which validate at RPC layer with a separate verifier)
             return false;
         }
 

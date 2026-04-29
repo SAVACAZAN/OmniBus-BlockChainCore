@@ -35,6 +35,7 @@ const agent_manager_mod = @import("agent_manager.zig");
 const reputation_mod = @import("reputation.zig");
 const reputation_manager_mod = @import("reputation_manager.zig");
 const agent_executor_mod = @import("agent_executor.zig");
+const isolated_wallet_mod = @import("isolated_wallet.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -1356,6 +1357,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
     if (std.mem.eql(u8, method, "getchainmetrics"))  return handleChainMetrics(ctx, id);
     if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
+    if (std.mem.eql(u8, method, "transfername"))     return handleTransferName(body, ctx, id);
+    if (std.mem.eql(u8, method, "updatename"))       return handleUpdateName(body, ctx, id);
+    if (std.mem.eql(u8, method, "renewname"))        return handleRenewName(body, ctx, id);
     if (std.mem.eql(u8, method, "resolvename"))      return handleResolveName(body, ctx, id);
     if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
@@ -1381,6 +1385,12 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+
+    // ── PQ Isolated Wallets v2 — 5-scheme post-quantum support ─────────
+    if (std.mem.eql(u8, method, "pq_listSchemes"))   return handlePqListSchemes(ctx, id);
+    if (std.mem.eql(u8, method, "pq_balance"))       return handlePqBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "pq_send"))          return handlePqSend(body, ctx, id);
+    if (std.mem.eql(u8, method, "pq_attestation"))   return handlePqAttestation(body, ctx, id);
 
     // ── Identity (public nickname + ENS-pref + visibility) ─────────────
     if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
@@ -2416,6 +2426,226 @@ fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
         .{ id, treasury, dns.fee_enforcement });
+}
+
+// ─── Phase 1: transfername ──────────────────────────────────────────────────
+fn handleTransferName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const new_owner = extractStr(body, "new_owner") orelse extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing param: new_owner", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    const sig_hex = extractStr(body, "signature") orelse "";
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
+
+    const entry = dns.lookupEntry(name, tld) orelse
+        return errorJson(-32400, "Name not found", id, alloc);
+    const owner = entry.getOwner();
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+
+    // Signature check
+    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
+    if (dns.signed_required and !is_hmac_bypass) {
+        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
+            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
+        }
+        var msg_buf: [512]u8 = undefined;
+        const msg = buildDnsTransferSignMessage(name, tld, new_owner, nonce, &msg_buf) catch
+            return errorJson(-32603, "Failed to build sign message", id, alloc);
+        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
+            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
+        }
+    }
+
+    // Nonce replay protection
+    if (nonce <= entry.last_nonce) {
+        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
+    }
+
+    const old_address = entry.getAddress();
+    dns.transfer(name, tld, owner, old_address, new_owner, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner => "Not owner",
+            error.OwnerCapExceeded => "Per-owner name cap exceeded for new_owner",
+        };
+        return errorJson(-32031, msg, id, alloc);
+    };
+    entry.last_nonce = nonce;
+
+    var audit_buf: [1024]u8 = undefined;
+    const audit_fields = std.fmt.bufPrint(&audit_buf,
+        "\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\"",
+        .{ name, tld, owner, new_owner, nonce, pubkey_hex, sig_hex }) catch "";
+    if (audit_fields.len > 0) dnsAuditAppend(ctx, "transfer", audit_fields);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
+        .{ id, name, tld, owner, new_owner, current_block });
+}
+
+// ─── Phase 1: updatename ────────────────────────────────────────────────────
+fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const new_address = extractStr(body, "new_address") orelse extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing param: new_address", id, alloc);
+    const nonce = extractArrayNumByKey(body, "nonce");
+    const sig_hex = extractStr(body, "signature") orelse "";
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
+
+    const entry = dns.lookupEntry(name, tld) orelse
+        return errorJson(-32400, "Name not found", id, alloc);
+    const owner = entry.getOwner();
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const old_address = entry.getAddress();
+
+    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
+    if (dns.signed_required and !is_hmac_bypass) {
+        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
+            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
+        }
+        var msg_buf: [512]u8 = undefined;
+        const msg = buildDnsUpdateSignMessage(name, tld, new_address, nonce, &msg_buf) catch
+            return errorJson(-32603, "Failed to build sign message", id, alloc);
+        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
+            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
+        }
+    }
+
+    if (nonce <= entry.last_nonce) {
+        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
+    }
+
+    dns.updateAddress(name, tld, owner, new_address, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner => "Not owner",
+        };
+        return errorJson(-32031, msg, id, alloc);
+    };
+    entry.last_nonce = nonce;
+
+    var audit_buf: [1024]u8 = undefined;
+    const audit_fields = std.fmt.bufPrint(&audit_buf,
+        "\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\"",
+        .{ name, tld, old_address, new_address, nonce, pubkey_hex, sig_hex }) catch "";
+    if (audit_fields.len > 0) dnsAuditAppend(ctx, "update", audit_fields);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
+        .{ id, name, tld, old_address, new_address, current_block });
+}
+
+// ─── Phase 1: renewname ─────────────────────────────────────────────────────
+fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const nonce = extractArrayNumByKey(body, "nonce");
+    const sig_hex = extractStr(body, "signature") orelse "";
+    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
+    const fee_txid = extractStr(body, "fee_txid") orelse null;
+
+    const entry = dns.lookupEntry(name, tld) orelse
+        return errorJson(-32400, "Name not found", id, alloc);
+    const owner = entry.getOwner();
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const old_expires = entry.expires_block;
+
+    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
+    if (dns.signed_required and !is_hmac_bypass) {
+        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
+            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
+        }
+        var msg_buf: [512]u8 = undefined;
+        const msg = buildDnsRenewSignMessage(name, tld, nonce, &msg_buf) catch
+            return errorJson(-32603, "Failed to build sign message", id, alloc);
+        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
+            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
+        }
+    }
+
+    if (nonce <= entry.last_nonce) {
+        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
+    }
+
+    // Fee enforcement for renewal (same pattern as register)
+    const required_fee = dns_mod.feeForName(name, tld);
+    if (dns.fee_enforcement) {
+        const txid = fee_txid orelse
+            return errorJson(-32602, "fee_txid required (mainnet)", id, alloc);
+        if (txid.len != dns_mod.TXID_LEN) {
+            return errorJson(-32031, "fee TX invalid: txid must be 64 hex chars", id, alloc);
+        }
+        if (dns.isTxidConsumed(txid)) {
+            return errorJson(-32031, "fee TX invalid: txid already used", id, alloc);
+        }
+        var found_tx: ?*const transaction_mod.Transaction = null;
+        ctx.bc.mutex.lock();
+        for (ctx.bc.chain.items) |blk| {
+            for (blk.transactions.items) |*tx| {
+                if (std.mem.eql(u8, tx.hash, txid)) {
+                    found_tx = tx;
+                    break;
+                }
+            }
+            if (found_tx != null) break;
+        }
+        ctx.bc.mutex.unlock();
+        const tx = found_tx orelse
+            return errorJson(-32031, "fee TX invalid: transaction not found in chain", id, alloc);
+        const treasury = dns.getTreasury();
+        if (!std.mem.eql(u8, tx.to_address, treasury)) {
+            return errorJson(-32031, "fee TX invalid: destination is not treasury", id, alloc);
+        }
+        if (tx.amount < required_fee) {
+            return errorJson(-32031, "fee TX invalid: amount too low", id, alloc);
+        }
+        dns.consumeTxid(txid) catch |err| {
+            const msg: []const u8 = switch (err) {
+                error.InvalidTxid => "Invalid txid",
+                error.ConsumedTxidsFull => "Consumed txids full",
+            };
+            return errorJson(-32031, msg, id, alloc);
+        };
+    }
+
+    dns.renew(name, tld, owner, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner => "Not owner",
+        };
+        return errorJson(-32031, msg, id, alloc);
+    };
+    entry.last_nonce = nonce;
+
+    const fee_paid_sat: u64 = if (fee_txid) |_| required_fee else 0;
+    const fee_txid_esc = fee_txid orelse "";
+
+    var audit_buf: [1024]u8 = undefined;
+    const audit_fields = std.fmt.bufPrint(&audit_buf,
+        "\"name\":\"{s}\",\"tld\":\"{s}\",\"new_expires_block\":{d},\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\",\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"",
+        .{ name, tld, entry.expires_block, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
+    if (audit_fields.len > 0) dnsAuditAppend(ctx, "renew", audit_fields);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
+        .{ id, name, tld, old_expires, entry.expires_block, fee_paid_sat });
 }
 
 // ─── sendrawtransaction — submit a CLIENT-SIGNED OmniBus transaction ────────

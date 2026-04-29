@@ -84,10 +84,13 @@ pub const MlDsa87 = struct {
     secret_key: [SECRET_KEY_SIZE]u8,
 
     pub fn generateKeyPair() !MlDsa87 {
-        var kp: MlDsa87 = undefined;
-        // Genereaza seed aleator
         var seed: [32]u8 = undefined;
         std.crypto.random.bytes(&seed);
+        return generateKeyPairFromSeed(seed);
+    }
+
+    pub fn generateKeyPairFromSeed(seed: [32]u8) MlDsa87 {
+        var kp: MlDsa87 = undefined;
         // Expandeaza seed-ul in perechea de chei
         var pk_buf: [PUBLIC_KEY_SIZE + SECRET_KEY_SIZE]u8 = undefined;
         expandSeed(&seed, &pk_buf);
@@ -158,9 +161,13 @@ pub const Falcon512 = struct {
     secret_key: [SECRET_KEY_SIZE]u8,
 
     pub fn generateKeyPair() !Falcon512 {
-        var kp: Falcon512 = undefined;
         var seed: [48]u8 = undefined;
         std.crypto.random.bytes(&seed);
+        return generateKeyPairFromSeed(seed);
+    }
+
+    pub fn generateKeyPairFromSeed(seed: [48]u8) Falcon512 {
+        var kp: Falcon512 = undefined;
         // h = g * f^-1 mod phi mod q  — simulat prin expandare
         shake256(kp.public_key[0..PUBLIC_KEY_SIZE], &seed);
         // sk = (f, g, F, G) — derivate din seed
@@ -240,14 +247,17 @@ pub const SlhDsa256s = struct {
     secret_key: [SECRET_KEY_SIZE]u8,
 
     pub fn generateKeyPair() !SlhDsa256s {
-        var kp: SlhDsa256s = undefined;
-        // Genereaza SK.seed, SK.prf, PK.seed (fiecare 32B)
         var sk_seed: [32]u8 = undefined;
         var sk_prf: [32]u8 = undefined;
         var pk_seed: [32]u8 = undefined;
         std.crypto.random.bytes(&sk_seed);
         std.crypto.random.bytes(&sk_prf);
         std.crypto.random.bytes(&pk_seed);
+        return generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+    }
+
+    pub fn generateKeyPairFromSeed(sk_seed: [32]u8, sk_prf: [32]u8, pk_seed: [32]u8) SlhDsa256s {
+        var kp: SlhDsa256s = undefined;
         // PK.root = top of Merkle tree = H(sk_seed || pk_seed)
         var root_input: [64]u8 = undefined;
         @memcpy(root_input[0..32], &sk_seed);
@@ -332,10 +342,13 @@ pub const MlKem768 = struct {
     secret_key: [SECRET_KEY_SIZE]u8,
 
     pub fn generateKeyPair() !MlKem768 {
-        var kp: MlKem768 = undefined;
-        // d = seed aleator (32B)
         var d: [32]u8 = undefined;
         std.crypto.random.bytes(&d);
+        return generateKeyPairFromSeed(d);
+    }
+
+    pub fn generateKeyPairFromSeed(d: [32]u8) MlKem768 {
+        var kp: MlKem768 = undefined;
         // (rho, sigma) = H(d || 3)   [3 = dimensiunea k]
         var rho_sigma_input: [33]u8 = undefined;
         @memcpy(rho_sigma_input[0..32], &d);
@@ -369,9 +382,9 @@ pub const MlKem768 = struct {
         var h_pk: [32]u8 = undefined;
         shake256(&h_pk, &kp.public_key);
         @memcpy(kp.secret_key[2336..2368], &h_pk);
-        // z = random (32B) pentru implicit rejection
+        // z = derivat determinist din d (pentru implicit rejection)
         var z: [32]u8 = undefined;
-        std.crypto.random.bytes(&z);
+        shake256(&z, &d);
         @memcpy(kp.secret_key[2368..2400], &z);
         return kp;
     }

@@ -3,6 +3,7 @@ const secp256k1_mod = @import("secp256k1.zig");
 const crypto_mod = @import("crypto.zig");
 const hex_utils = @import("hex_utils.zig");
 const bech32_mod = @import("bech32.zig");
+const pq_crypto = @import("pq_crypto.zig");
 
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Crypto = crypto_mod.Crypto;
@@ -33,8 +34,37 @@ pub const TxOutput = struct {
     address: []const u8,
 };
 
+pub const Scheme = enum(u8) {
+    omni_ecdsa = 0,
+    love_dilithium = 1,
+    food_falcon = 2,
+    rent_slh_dsa = 3,
+    vacation_kem = 4,
+
+    pub fn prefix(self: Scheme) []const u8 {
+        return switch (self) {
+            .omni_ecdsa => "ob1q",
+            .love_dilithium => "ob_k1_",
+            .food_falcon => "ob_f5_",
+            .rent_slh_dsa => "ob_d5_",
+            .vacation_kem => "ob_s3_",
+        };
+    }
+
+    pub fn fromAddress(addr: []const u8) ?Scheme {
+        if (std.mem.startsWith(u8, addr, "ob1q")) return .omni_ecdsa;
+        if (std.mem.startsWith(u8, addr, "ob_k1_")) return .love_dilithium;
+        if (std.mem.startsWith(u8, addr, "ob_f5_")) return .food_falcon;
+        if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_slh_dsa;
+        if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_kem;
+        return null;
+    }
+};
+
 pub const Transaction = struct {
     id: u32,
+    /// PQ Isolated Wallets v2 — scheme tag. 0 = ECDSA legacy, 1-4 = PQ.
+    scheme: Scheme = .omni_ecdsa,
     from_address: []const u8,
     to_address: []const u8,
     amount: u64,       // in SAT (1 OMNI = 1_000_000_000 SAT)
@@ -66,6 +96,8 @@ pub const Transaction = struct {
     signature: []const u8,
     /// Hash SHA256d al tranzactiei (64 hex chars)
     hash: []const u8,
+    /// PQ Isolated Wallets v2 — public key needed for PQ verify (ECDSA recovers pubkey from sig).
+    public_key: []const u8 = "",
     /// PHASE-C wire format v2 — explicit inputs (UTXOs spent by this TX).
     /// When empty (v1 TX), the chain falls back to implicit coin-selection
     /// via bc.utxo_set.selectUTXOs. When non-empty, validateTransaction
@@ -134,6 +166,18 @@ pub const Transaction = struct {
         var nonce_buf: [24]u8 = undefined;
         const nonce_str = std.fmt.bufPrint(&nonce_buf, "{d}", .{self.nonce}) catch "0";
         hasher.update(nonce_str);
+        // scheme (PQ Isolated Wallets v2 — prevents scheme swap attacks)
+        if (@intFromEnum(self.scheme) != 0) {
+            hasher.update(":SC:");
+            var sc_buf: [4]u8 = undefined;
+            const sc_str = std.fmt.bufPrint(&sc_buf, "{d}", .{@intFromEnum(self.scheme)}) catch "0";
+            hasher.update(sc_str);
+        }
+        // public_key for PQ schemes (prevents pubkey substitution)
+        if (self.public_key.len > 0) {
+            hasher.update(":PK:");
+            hasher.update(self.public_key);
+        }
         // fee (part of signed data — prevents fee tampering)
         if (self.fee > 0) {
             hasher.update(":");
@@ -294,6 +338,56 @@ pub const Transaction = struct {
         var pubkey_bytes: [33]u8 = undefined;
         hex_utils.hexToBytes(pubkey_hex, &pubkey_bytes) catch return false;
         return self.verify(pubkey_bytes);
+    }
+
+    /// PQ Isolated Wallets v2 — verificare per scheme.
+    /// Pentru ECDSA: foloseste pubkey_hex din registru (66 hex chars).
+    /// Pentru PQ: foloseste self.public_key (bytes raw, nu hex).
+    pub fn verifySignature(self: *const Transaction, pubkey_hex: ?[]const u8) bool {
+        // Verifica hash intai (common path)
+        if (self.hash.len != 64) return false;
+        var hash_bytes: [32]u8 = undefined;
+        hex_utils.hexToBytes(self.hash, &hash_bytes) catch return false;
+        const expected_hash = self.calculateHash();
+        if (!std.mem.eql(u8, &hash_bytes, &expected_hash)) return false;
+
+        return switch (self.scheme) {
+            .omni_ecdsa => {
+                const pk = pubkey_hex orelse return false;
+                if (pk.len != 66) return false;
+                var pk_bytes: [33]u8 = undefined;
+                hex_utils.hexToBytes(pk, &pk_bytes) catch return false;
+                if (self.signature.len != 128) return false;
+                var sig_bytes: [64]u8 = undefined;
+                hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                return Secp256k1Crypto.verify(pk_bytes, &hash_bytes, sig_bytes);
+            },
+            .love_dilithium => {
+                const pk = self.public_key;
+                if (pk.len == 0) return false;
+                var kp: pq_crypto.MlDsa87 = undefined;
+                if (pk.len != pq_crypto.MlDsa87.PUBLIC_KEY_SIZE) return false;
+                @memcpy(&kp.public_key, pk[0..pq_crypto.MlDsa87.PUBLIC_KEY_SIZE]);
+                return kp.verify(&hash_bytes, self.signature);
+            },
+            .food_falcon => {
+                const pk = self.public_key;
+                if (pk.len == 0) return false;
+                var kp: pq_crypto.Falcon512 = undefined;
+                if (pk.len != pq_crypto.Falcon512.PUBLIC_KEY_SIZE) return false;
+                @memcpy(&kp.public_key, pk[0..pq_crypto.Falcon512.PUBLIC_KEY_SIZE]);
+                return kp.verify(&hash_bytes, self.signature);
+            },
+            .rent_slh_dsa => {
+                const pk = self.public_key;
+                if (pk.len == 0) return false;
+                var kp: pq_crypto.SlhDsa256s = undefined;
+                if (pk.len != pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE) return false;
+                @memcpy(&kp.public_key, pk[0..pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE]);
+                return kp.verify(&hash_bytes, self.signature);
+            },
+            .vacation_kem => false, // KEM nu semneaza
+        };
     }
 };
 
