@@ -12,23 +12,27 @@
 /// the "1000 years" promise and the `.omnibus` reservation logic.
 const std = @import("std");
 
-/// Index into REGISTRAR_ADDRESSES. Use these symbolic names anywhere a
-/// slot is referenced — never hardcode a u8.
+/// Index into REGISTRAR_ADDRESSES. Numbers are BIP-44 path indices
+/// (`m/44'/777'/0'/0/<idx>`) and they MUST match what the aweb3 wallet
+/// derivation shows in the OmniWallets UI — that UI is the operational
+/// source of truth for which address is which role.
+///
+/// Reconciliation 2026-04-29: we previously had bridge=1, kyc=4, ens=5
+/// here, but the live wallet derivation produces ens at index 3 and
+/// faucet at index 7. The other slots are now relabelled to match what
+/// the UI labels them (admin, exchange, sava, blockchain, tornetwork,
+/// cazan, database).
 pub const Slot = enum(u8) {
-    savacazan = 0,        // Founder mining wallet (also the dev/seed
-                          // node's signing key). Public.
-    bridge = 1,           // Cross-chain bridge treasury (placeholder).
-                          // Was tentatively "exchange" but bridge takes
-                          // priority — exchange uses chain-state tx flow,
-                          // bridge needs an on-chain account.
-    // 2..3 reserved for future treasury slots
-    kyc = 4,              // KYC issuer — signs `kyc_attestations` table.
-                          // The only slot allowed to call `kyc_attest`.
-    ens = 5,              // ENS / .omnibus name registrar fees.
-    // 6 reserved
-    faucet = 7,           // Testnet faucet — already wired via
-                          // OMNIBUS_FAUCET_PRIVKEY env var.
-    // 8..9 reserved (exchange treasury / agent license / community DAO)
+    savacazan   = 0, // Founder mining wallet (also dev/seed signing key).
+    admin       = 1, // Operator / admin actions.
+    exchange    = 2, // Exchange treasury (fees, market-making).
+    ens         = 3, // ENS / .omnibus name registrar — pay-to-claim sink.
+    sava        = 4, // Sava ops (legacy alias).
+    blockchain  = 5, // Chain ops / system reserve.
+    tornetwork  = 6, // TorNetworkExchange bridge.
+    faucet      = 7, // Testnet faucet — wired via OMNIBUS_FAUCET_PRIVKEY.
+    cazan       = 8, // Cazan ops (legacy alias).
+    database    = 9, // Database / state ops.
 };
 
 /// One slot. Hardcoded canonical address + role label.
@@ -52,15 +56,15 @@ pub const RegistrarSlot = struct {
 /// as `treasury` so `registername` for these strings is rejected).
 pub const REGISTRAR_ADDRESSES = [_]RegistrarSlot{
     .{ .index = 0, .address = "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", .role = "savacazan",  .reserved_name = "savacazan.omnibus" },
-    .{ .index = 1, .address = "",                                            .role = "bridge",     .reserved_name = "bridge.omnibus" },
-    .{ .index = 2, .address = "",                                            .role = "reserved-2", .reserved_name = "" },
-    .{ .index = 3, .address = "",                                            .role = "reserved-3", .reserved_name = "" },
-    .{ .index = 4, .address = "",                                            .role = "kyc",        .reserved_name = "kyc.omnibus" },
-    .{ .index = 5, .address = "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa", .role = "ens",        .reserved_name = "ens.omnibus" },
-    .{ .index = 6, .address = "",                                            .role = "reserved-6", .reserved_name = "" },
+    .{ .index = 1, .address = "ob1q8wm5est4fft7mrj937sg9uyaz2nskgttf3ku5u", .role = "admin",      .reserved_name = "admin.omnibus" },
+    .{ .index = 2, .address = "ob1qpjt7gngkj79663a298schx6dkjxqf37hwfggw2", .role = "exchange",   .reserved_name = "exchange.omnibus" },
+    .{ .index = 3, .address = "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa", .role = "ens",        .reserved_name = "ens.omnibus" },
+    .{ .index = 4, .address = "ob1q5stczt5xxxphedadlqej09f5hww22qhvrj2nln", .role = "sava",       .reserved_name = "sava.omnibus" },
+    .{ .index = 5, .address = "ob1quax5e9hyyzmft2m2lzn735asswsw9gh4gtgess", .role = "blockchain", .reserved_name = "blockchain.omnibus" },
+    .{ .index = 6, .address = "ob1qcdep7azzrr8t3x8tgn9wp6p69fc884g8g80v09", .role = "tornetwork", .reserved_name = "tornetwork.omnibus" },
     .{ .index = 7, .address = "ob1qvetjtq3swujv0jqsmw0gq84fymtfuaz5p5cjdv", .role = "faucet",     .reserved_name = "faucet.omnibus" },
-    .{ .index = 8, .address = "",                                            .role = "reserved-8", .reserved_name = "" },
-    .{ .index = 9, .address = "",                                            .role = "reserved-9", .reserved_name = "" },
+    .{ .index = 8, .address = "",                                            .role = "cazan",      .reserved_name = "cazan.omnibus" },
+    .{ .index = 9, .address = "",                                            .role = "database",   .reserved_name = "database.omnibus" },
 };
 
 /// Look up a slot's canonical address. Returns null if the slot is

@@ -1248,13 +1248,19 @@ pub fn main() !void {
         std.debug.print("[DNS] Loaded {d} names from {s}\n", .{ dns.entry_count, dns_persist_path });
     }
 
-    // Set treasury = wallet derivat la idx 5 (ens.omnibus, registrar slot 5).
-    // CORRECTION 2026-04-29: previous code used idx 3 by accident; the
-    // registrar table at registrar_addresses.zig:59 hardcodes slot 5 as
-    // ens.omnibus = ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa. The slot
-    // 3 derivation produced ob1qtu2r... which appears nowhere in the
-    // registrar table. The slot enum values themselves are stable across
-    // chain wipes (memory: project_omnibus_registrar_addresses).
+    // Set treasury = wallet derivat la idx 3 (BIP-44 path m/44'/777'/0'/0/3).
+    //
+    // RECONCILIATION 2026-04-29: I briefly switched this to idx 5 thinking
+    // the `index = 5` field in registrar_addresses.zig:59 was a BIP-44
+    // path index. It is NOT — `index` there is a slot ID (the role enum:
+    // savacazan=0, ens=5, faucet=7). The actual derivation index is 3
+    // for ens.omnibus, confirmed by the aweb3 wallet UI which shows
+    // wallet #3 = ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa, the same
+    // address registrar_addresses lists for the ens slot.
+    //
+    // The registrar table will need a separate `path_index` field if we
+    // ever want fully self-describing slot lookups; for now slot ID and
+    // path index disagree (slot 5 = ens lives at path index 3).
     //
     // Map chain_mode to wallet network (regtest -> testnet for BIP-32 purposes).
     const wallet_network: wallet_mod.Network = switch (parsed.chain_mode) {
@@ -1263,7 +1269,7 @@ pub fn main() !void {
         .regtest => .testnet,
     };
     var ens_treasury_wallet = try wallet_mod.Wallet.fromMnemonicFull(
-        mnemonic, "", wallet_network, 0, 0, 5, allocator,
+        mnemonic, "", wallet_network, 0, 0, 3, allocator,
     );
     defer ens_treasury_wallet.deinit();
     dns.setTreasury(ens_treasury_wallet.address);
@@ -1464,9 +1470,10 @@ pub fn main() !void {
     const treasury_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_TREASURY_OFF") catch false;
     if (!treasury_disabled and exchange_engine != null) {
         const eng = exchange_engine.?;
-        // Derive a private copy of the slot-5 wallet that lives as long as
-        // the agent (the earlier `ens_treasury_wallet` is borrowed for
-        // `dns.setTreasury` and may be deinit'd before the loop exits).
+        // Derive a private copy of the ens.omnibus wallet (path index 3,
+        // the same one `dns.setTreasury` got above). The earlier
+        // `ens_treasury_wallet` is borrowed for setTreasury and may be
+        // deinit'd before the loop exits, so we re-derive here.
         const agent_wallet = wallet_mod.Wallet.fromMnemonicFull(
             mnemonic, "", wallet_network, 0, 0, 3, allocator,
         ) catch |err| blk: {
