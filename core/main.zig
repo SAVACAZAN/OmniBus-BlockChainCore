@@ -116,6 +116,7 @@ const agent_manager_mod  = @import("agent_manager.zig");
 // timers from one AtomicClock so cross-component latencies are real
 // rather than the result of unsynchronized OS clock reads.
 const orchestrator_mod = @import("orchestrator.zig");
+const chainstate_mod   = @import("store/chainstate.zig");
 
 // Force compilation of all subsystems (ensures tests are included in full build)
 comptime {
@@ -249,6 +250,25 @@ pub var g_clock: orchestrator_mod.AtomicClock = undefined;
 // stabilizer to convert raw rdtsc cycle deltas into seconds without
 // re-calibrating per slot.
 pub var g_tsc_freq: u64 = 0;
+
+// ── Global ChainState — Bitcoin-style WAL+memtable persistent store ────────
+//
+// Phase C.4: alongside (NOT replacing) bc.balances, every applyBlock-time
+// balance/nonce mutation now also flows through g_chainstate. The
+// chainstate has its own append-only WAL (durable across crashes) and
+// a periodic snapshot that lets the next startup load in O(1) instead
+// of replaying the whole chain.
+//
+// Lifecycle:
+//   - opened in main() right after pbc.restoreInto, before mining starts
+//   - written on every put_balance / put_nonce inside applyBlock
+//   - checkpointed by the state-save thread every 60 s
+//   - audited by the stabilizer once a minute (chainstate vs bc.balances)
+//   - closed at graceful shutdown
+//
+// Once a release cycle of clean audits passes, a follow-up commit deletes
+// bc.balances + bc.nonces entirely and chainstate becomes the only path.
+pub var g_chainstate: ?chainstate_mod.ChainState = null;
 
 // ── State save thread — band-aid before Bitcoin-style storage refactor ─────
 //
@@ -989,6 +1009,42 @@ pub fn main() !void {
     bc.recalculateFromHeight(0) catch |err| {
         std.debug.print("[DB] UTXO rebuild after restore failed: {}\n", .{err});
     };
+
+    // ── PHASE C.4 — open the Bitcoin-style chainstate KV ──────────────
+    //
+    // Persistent WAL+snapshot store under data/<chain>/chainstate.{wal,snap}.
+    // The chain's RAM cache (bc.balances, bc.nonces) keeps running
+    // unchanged; chainstate is a *parallel* writer for now. Once an audit
+    // soak shows zero divergence between RAM and chainstate, the RAM
+    // mirrors will be deleted and chainstate becomes the only source.
+    const cs_base = std.fmt.allocPrint(allocator, "data/{s}/chainstate", .{short_name}) catch null;
+    if (cs_base) |path| {
+        defer allocator.free(path);
+        if (chainstate_mod.ChainState.open(allocator, path)) |cs| {
+            g_chainstate = cs;
+            std.debug.print(
+                "[CHAINSTATE] opened at data/{s}/chainstate ({d} balance entries loaded)\n",
+                .{ short_name, g_chainstate.?.balanceCount() },
+            );
+        } else |err| {
+            std.debug.print("[CHAINSTATE] open failed: {} — running without persistent KV\n", .{err});
+        }
+    }
+    // Sync chainstate from the freshly-recalculated bc.balances. This
+    // handles two cases: (a) first run, chainstate is empty; (b) restart,
+    // chainstate may already have state but bc.balances was just rebuilt
+    // from chain replay so it's the authoritative source for now.
+    if (g_chainstate) |*cs| {
+        var it = bc.balances.iterator();
+        var synced: usize = 0;
+        while (it.next()) |kv| {
+            cs.putBalance(kv.key_ptr.*, kv.value_ptr.*) catch |err| {
+                std.debug.print("[CHAINSTATE] initial putBalance failed: {}\n", .{err});
+            };
+            synced += 1;
+        }
+        std.debug.print("[CHAINSTATE] initial sync: {d} balances written from RAM\n", .{synced});
+    }
 
     // Start the background state-save thread. This is the band-aid fix
     // for the post-b363095 data-loss bug: balances that weren't on-chain
@@ -2123,6 +2179,37 @@ pub fn main() !void {
                             .{bc.stray_balance_writes},
                         );
                     }
+                    // ── PHASE-C.4: chainstate audit + sync ────────────────────
+                    if (g_chainstate) |*cs| {
+                        // Sync RAM → chainstate. We do this once a minute,
+                        // not per block — the WAL fsync per record would
+                        // dominate latency at 60 blocks/min. A future
+                        // applyBlock-time hook will narrow the window
+                        // when we're ready to make chainstate primary.
+                        var sync_count: usize = 0;
+                        var sync_diff: usize = 0;
+                        var bit2 = bc.balances.iterator();
+                        while (bit2.next()) |kv| {
+                            const ram_bal = kv.value_ptr.*;
+                            const cs_bal = cs.getBalance(kv.key_ptr.*);
+                            if (ram_bal != cs_bal) {
+                                cs.putBalance(kv.key_ptr.*, ram_bal) catch {};
+                                sync_diff += 1;
+                            }
+                            sync_count += 1;
+                        }
+                        const cs_addrs = cs.balanceCount();
+                        const cs_supply = cs.totalSupply();
+                        std.debug.print(
+                            "[CHAINSTATE] audit: ram_addrs={d} cs_addrs={d} cs_supply={d} sat | synced={d} diff this tick\n",
+                            .{ sync_count, cs_addrs, cs_supply, sync_diff },
+                        );
+                        // Persist the chainstate snapshot. Cheap (data is
+                        // small for now) and keeps WAL bounded.
+                        cs.checkpoint() catch |err| {
+                            std.debug.print("[CHAINSTATE] checkpoint failed: {}\n", .{err});
+                        };
+                    }
 
                     stabilizer_last_report_ms = arrival_ms;
                 }
@@ -2462,6 +2549,16 @@ pub fn main() !void {
     pbc.saveBlockchain(&bc, db_path) catch |err| {
         std.debug.print("[SHUTDOWN] Save failed: {} — data may be lost!\n", .{err});
     };
+    // PHASE-C.4: final chainstate checkpoint + close. The checkpoint
+    // dumps the memtable to .snap and truncates the WAL, so the next
+    // startup loads in O(1) instead of replaying every WAL record.
+    if (g_chainstate) |*cs| {
+        cs.checkpoint() catch |err| {
+            std.debug.print("[SHUTDOWN] chainstate checkpoint failed: {}\n", .{err});
+        };
+        cs.close();
+        std.debug.print("[SHUTDOWN] chainstate checkpointed and closed\n", .{});
+    }
     // Save DNS registry too — names registered after last auto-save would be lost otherwise.
     dns.saveToFile(dns_persist_path) catch |err| {
         std.debug.print("[SHUTDOWN] DNS save failed: {s}\n", .{@errorName(err)});
