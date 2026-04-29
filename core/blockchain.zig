@@ -18,6 +18,8 @@ const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
 pub const Transaction = transaction_mod.Transaction;
+pub const Outpoint = transaction_mod.Outpoint;
+pub const TxOutput = transaction_mod.TxOutput;
 /// Re-export so existing call sites (`blockchain_mod.BlockPriceEntry`) keep
 /// working after the type was extracted into oracle_types.zig to break the
 /// block.zig ↔ blockchain.zig circular import.
@@ -644,12 +646,65 @@ pub const Blockchain = struct {
         const expected_nonce = self.getNextAvailableNonce(tx.from_address);
         if (tx.nonce != expected_nonce) { std.debug.print("[VALIDATE] FAIL: nonce {d} != expected {d} (chain={d})\n", .{tx.nonce, expected_nonce, self.getNextNonce(tx.from_address)}); return false; }
 
-        // 5. Balance check: sender trebuie sa aiba suficient (amount + fee + pending outgoing)
-        //    Scade pending outgoing din mempool pentru a preveni double-spend cu TX-uri rapide
-        const sender_balance = self.getAddressBalance(tx.from_address);
-        const pending_out = self.getPendingOutgoing(tx.from_address);
-        const available = if (sender_balance > pending_out) sender_balance - pending_out else 0;
-        if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, available, tx.amount + tx.fee}); return false; }
+        // 5. PHASE-C wire v2: explicit UTXO inputs check.
+        //    For v2 TXs, every listed input must exist in the UTXO set,
+        //    must be owned by from_address, and the input total must
+        //    cover amount + fee. No implicit balance check needed —
+        //    the inputs ARE the balance.
+        if (tx.isV2()) {
+            var input_total: u64 = 0;
+            const current_height: u64 = if (self.chain.items.len == 0) 0
+                else @as(u64, @intCast(self.chain.items.len - 1));
+            for (tx.inputs) |inp| {
+                const utxo = self.utxo_set.getUTXO(inp.tx_hash, inp.output_index) orelse {
+                    std.debug.print(
+                        "[VALIDATE v2] FAIL: input {s}:{d} not in UTXO set\n",
+                        .{ inp.tx_hash, inp.output_index },
+                    );
+                    return false;
+                };
+                if (!std.mem.eql(u8, utxo.address, tx.from_address)) {
+                    std.debug.print(
+                        "[VALIDATE v2] FAIL: input owner mismatch (expected={s}, got={s})\n",
+                        .{ tx.from_address, utxo.address },
+                    );
+                    return false;
+                }
+                if (!utxo.isMature(current_height)) {
+                    std.debug.print(
+                        "[VALIDATE v2] FAIL: input {s}:{d} immature (coinbase needs 100 confirms)\n",
+                        .{ inp.tx_hash, inp.output_index },
+                    );
+                    return false;
+                }
+                input_total += utxo.amount;
+            }
+            // Sum of explicit outputs (if any) must not exceed inputs - fee.
+            var out_total: u64 = 0;
+            for (tx.outputs) |out| out_total += out.amount;
+            if (input_total < out_total + tx.fee) {
+                std.debug.print(
+                    "[VALIDATE v2] FAIL: inputs {d} < outputs {d} + fee {d}\n",
+                    .{ input_total, out_total, tx.fee },
+                );
+                return false;
+            }
+            // Also enforce the implicit (amount, to_address) when outputs[]
+            // is empty — keeps the v1 amount field meaningful.
+            if (tx.outputs.len == 0 and input_total < tx.amount + tx.fee) {
+                std.debug.print(
+                    "[VALIDATE v2] FAIL: inputs {d} < amount {d} + fee {d}\n",
+                    .{ input_total, tx.amount, tx.fee },
+                );
+                return false;
+            }
+        } else {
+            // v1 backward-compat: classic balance + pending check.
+            const sender_balance = self.getAddressBalance(tx.from_address);
+            const pending_out = self.getPendingOutgoing(tx.from_address);
+            const available = if (sender_balance > pending_out) sender_balance - pending_out else 0;
+            if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, available, tx.amount + tx.fee}); return false; }
+        }
 
         // 5b. Multisig address check: if from_address is "ob_ms_*", it must be a registered multisig
         //     Multisig TXs skip normal ECDSA verification — they are validated via MultisigWallet.verify()
@@ -1309,34 +1364,76 @@ pub const Blockchain = struct {
         var total_fees: u64 = 0;
         for (block.transactions.items) |tx| {
             const total_needed = tx.amount + tx.fee;
-            // UTXO: spend sender's inputs
-            var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(block.index), self.allocator) catch |err| {
-                std.debug.print("[APPLY-BLOCK] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
-                continue;
-            };
-            defer selection.utxos.deinit(self.allocator);
-            for (selection.utxos.items) |utxo| {
-                _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
-                    std.debug.print("[APPLY-BLOCK] spendUTXO failed: {}\n", .{err});
+
+            // PHASE-C wire v2: explicit inputs/outputs path.
+            // When TX carries inputs[], spend exactly those — no
+            // implicit coin-selection. Total of input UTXOs must
+            // cover amount+fee (already enforced in validateTransaction).
+            // Change goes back to from_address as a single synthetic
+            // UTXO unless the TX explicitly listed it in outputs[].
+            if (tx.isV2()) {
+                var input_total: u64 = 0;
+                for (tx.inputs) |inp| {
+                    if (self.utxo_set.spendUTXO(inp.tx_hash, inp.output_index)) |spent_utxo| {
+                        input_total += spent_utxo.amount;
+                    } else |err| {
+                        std.debug.print(
+                            "[APPLY-BLOCK v2] spendUTXO failed for input {s}:{d}: {}\n",
+                            .{ inp.tx_hash, inp.output_index, err },
+                        );
+                    }
+                }
+                // Materialise explicit outputs.
+                var out_total: u64 = 0;
+                for (tx.outputs, 0..) |out, oi| {
+                    self.utxo_set.addUTXO(
+                        tx.hash, @intCast(oi), out.address, out.amount,
+                        @intCast(block.index), "", false,
+                    ) catch {};
+                    out_total += out.amount;
+                }
+                // Implicit change to sender if inputs over-pay outputs+fee.
+                // (Wallets that want explicit change must list it in outputs.)
+                if (input_total > out_total + tx.fee) {
+                    const change = input_total - out_total - tx.fee;
+                    const change_idx: u32 = @intCast(tx.outputs.len);
+                    self.utxo_set.addUTXO(
+                        tx.hash, change_idx, tx.from_address, change,
+                        @intCast(block.index), "", false,
+                    ) catch {};
+                }
+            } else {
+                // v1 backward-compat: implicit coin-selection.
+                var selection = self.utxo_set.selectUTXOs(
+                    tx.from_address, total_needed, @intCast(block.index), self.allocator,
+                ) catch |err| {
+                    std.debug.print("[APPLY-BLOCK v1] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
+                    continue;
                 };
-            }
-            // UTXO: change output back to sender
-            if (selection.total > total_needed) {
-                const change = selection.total - total_needed;
-                self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(block.index), "", false) catch {};
+                defer selection.utxos.deinit(self.allocator);
+                for (selection.utxos.items) |utxo| {
+                    _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                        std.debug.print("[APPLY-BLOCK v1] spendUTXO failed: {}\n", .{err});
+                    };
+                }
+                if (selection.total > total_needed) {
+                    const change = selection.total - total_needed;
+                    self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(block.index), "", false) catch {};
+                }
+                // v1 implicit recipient output at index 0.
+                self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(block.index), "", false) catch {};
             }
 
+            // RAM cache mirror (write-only for non-replay code; read goes
+            // through utxo_set.getBalance per Phase B).
             self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
             self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
             total_fees += tx.fee;
             const current_nonce = self.nonces.get(tx.from_address) orelse 0;
             self.nonces.put(tx.from_address, current_nonce + 1) catch {};
             self.tx_block_height.put(tx.hash, @intCast(block.index)) catch {};
-            // Index TX for both sender and receiver address history
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
-            // UTXO: create output for recipient at index 0
-            self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(block.index), "", false) catch {};
         }
 
         const fees_burned = total_fees * FEE_BURN_PCT / 100;
@@ -2865,4 +2962,155 @@ test "getMatureBalance excludes immature coinbase" {
 
     // At height 105, coinbase at height 5 IS mature (5 + 100 = 105)
     try testing.expectEqual(@as(u64, 50_000_000_000), bc.getMatureBalance("ob1qminerA"));
+}
+
+
+// ─── PHASE C / wire-format v2 tests ─────────────────────────────────────────
+
+test "v2 wire: TX spends listed inputs, leaves untouched UTXOs alone" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Seed two mature non-coinbase UTXOs to alice; spend only one.
+    try bc.utxo_set.addUTXO("seed_a1", 0, "ob1qalicev2", 600_000_000, 1, "", false);
+    try bc.utxo_set.addUTXO("seed_a2", 0, "ob1qalicev2", 400_000_000, 1, "", false);
+
+    const inputs = [_]Outpoint{
+        .{ .tx_hash = "seed_a1", .output_index = 0 },
+    };
+    const outputs = [_]TxOutput{
+        .{ .amount = 100_000_000, .address = "ob1qbobv2" },
+    };
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1qalicev2",
+        .to_address = "ob1qbobv2",
+        .amount = 100_000_000,
+        .fee = 1_000,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = "v2_tx_alice_to_bob______________________________",
+        .inputs = &inputs,
+        .outputs = &outputs,
+    };
+
+    var block = Block{
+        .index = 1,
+        .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "v2_block_01_____________________________________",
+        .miner_address = "ob1qminerv2",
+        .reward_sat = BLOCK_REWARD_SAT,
+    };
+    try block.transactions.append(tx);
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    // bob got 100M; alice change = 600M - 100M - 1000 = 499_999_000;
+    // alice still has the untouched seed_a2 (400M) → total alice = 899_999_000.
+    try testing.expectEqual(@as(u64, 100_000_000), bc.utxo_set.getBalance("ob1qbobv2"));
+    try testing.expectEqual(@as(u64, 400_000_000 + 499_999_000),
+        bc.utxo_set.getBalance("ob1qalicev2"));
+}
+
+test "v2 wire: TX with explicit outputs[] creates each as a UTXO" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    try bc.utxo_set.addUTXO("seed_b", 0, "ob1qsenderv2", 1_000_000_000, 1, "", false);
+
+    const inputs = [_]Outpoint{ .{ .tx_hash = "seed_b", .output_index = 0 } };
+    const outputs = [_]TxOutput{
+        .{ .amount = 700_000_000, .address = "ob1qrecv1v2" },
+        .{ .amount = 200_000_000, .address = "ob1qrecv2v2" },
+    };
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1qsenderv2",
+        .to_address = "ob1qrecv1v2", // legacy field, ignored when outputs[] present
+        .amount = 700_000_000,
+        .fee = 1_000,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = "v2_multi_out_tx_________________________________",
+        .inputs = &inputs,
+        .outputs = &outputs,
+    };
+
+    var block = Block{
+        .index = 1,
+        .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "v2_block_multiout_______________________________",
+        .miner_address = "ob1qminerv2",
+        .reward_sat = BLOCK_REWARD_SAT,
+    };
+    try block.transactions.append(tx);
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    try testing.expectEqual(@as(u64, 700_000_000), bc.utxo_set.getBalance("ob1qrecv1v2"));
+    try testing.expectEqual(@as(u64, 200_000_000), bc.utxo_set.getBalance("ob1qrecv2v2"));
+    // change = 1B - 900M - 1000 = 99_999_000
+    try testing.expectEqual(@as(u64, 99_999_000), bc.utxo_set.getBalance("ob1qsenderv2"));
+}
+
+test "v2 wire: validateTransaction rejects TX with input owned by other address" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Seed UTXO owned by victim
+    try bc.utxo_set.addUTXO("seed_victim", 0, "ob1qvictimv2", 1_000_000_000, 1, "", false);
+
+    // Attacker tries to spend it
+    const inputs = [_]Outpoint{ .{ .tx_hash = "seed_victim", .output_index = 0 } };
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1qattackerv2",
+        .to_address = "ob1qattackerv2",
+        .amount = 500_000_000,
+        .fee = 1_000,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = "v2_steal_attempt________________________________",
+        .inputs = &inputs,
+    };
+
+    const ok = try bc.validateTransaction(&tx);
+    try testing.expect(!ok); // must reject — input not owned by from_address
+}
+
+test "v2 wire: validateTransaction rejects TX with non-existent input" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const inputs = [_]Outpoint{
+        .{ .tx_hash = "ghost_tx_does_not_exist", .output_index = 0 },
+    };
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1qghostv2",
+        .to_address = "ob1qrecvghostv2",
+        .amount = 1_000,
+        .fee = 1_000,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = "v2_ghost_input__________________________________",
+        .inputs = &inputs,
+    };
+
+    const ok = try bc.validateTransaction(&tx);
+    try testing.expect(!ok); // must reject — input not in UTXO set
 }

@@ -7,6 +7,32 @@ const bech32_mod = @import("bech32.zig");
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Crypto = crypto_mod.Crypto;
 
+/// PHASE-C wire format v2 — explicit transaction inputs & outputs.
+///
+/// Outpoint = pointer to a previous transaction output. The pair
+/// (tx_hash, output_index) uniquely identifies a UTXO in the chain.
+/// When a transaction "spends" a UTXO, it lists that outpoint in its
+/// inputs[]. Identical layout to Bitcoin's COutPoint.
+pub const Outpoint = struct {
+    /// Hex hash (64 chars) of the transaction that created the UTXO.
+    /// Empty string is reserved for v1 backward compatibility — when
+    /// inputs[] is empty the chain falls back to the old implicit
+    /// coin-selection path through bc.utxo_set.selectUTXOs.
+    tx_hash: []const u8 = "",
+    /// Output index within that transaction (0-based vout).
+    output_index: u32 = 0,
+};
+
+/// PHASE-C wire format v2 — a single transaction output.
+/// Each TxOutput becomes a UTXO once the block applies. Mirrors
+/// Bitcoin's CTxOut: amount + locking script (here represented as
+/// the recipient address; explicit scripts are still optional via
+/// the legacy `script_pubkey` field on the parent Transaction).
+pub const TxOutput = struct {
+    amount: u64,
+    address: []const u8,
+};
+
 pub const Transaction = struct {
     id: u32,
     from_address: []const u8,
@@ -40,8 +66,29 @@ pub const Transaction = struct {
     signature: []const u8,
     /// Hash SHA256d al tranzactiei (64 hex chars)
     hash: []const u8,
+    /// PHASE-C wire format v2 — explicit inputs (UTXOs spent by this TX).
+    /// When empty (v1 TX), the chain falls back to implicit coin-selection
+    /// via bc.utxo_set.selectUTXOs. When non-empty, validateTransaction
+    /// asserts every input exists in the UTXO set and the sum of input
+    /// amounts >= amount + fee.
+    inputs: []const Outpoint = &.{},
+    /// PHASE-C wire format v2 — explicit outputs created by this TX.
+    /// When empty (v1 TX), chain creates a single implicit output to
+    /// `to_address` with `amount`, plus a change output if needed.
+    /// When non-empty, applyBlock materialises one UTXO per entry.
+    outputs: []const TxOutput = &.{},
     /// Maximum OP_RETURN data size (80 bytes, same as Bitcoin)
     pub const MAX_OP_RETURN: usize = 80;
+    /// Cap on inputs[] / outputs[] — defends against pathological TXs
+    /// that would balloon UTXO set or block size. Bitcoin uses ~2^16
+    /// in practice; we keep a tighter bound until we have soak data.
+    pub const MAX_INPUTS: usize = 256;
+    pub const MAX_OUTPUTS: usize = 256;
+
+    /// True when the TX uses explicit v2 inputs/outputs.
+    pub fn isV2(self: *const Transaction) bool {
+        return self.inputs.len > 0 or self.outputs.len > 0;
+    }
 
     /// Prefix-uri valide pentru adresele OmniBus
     const VALID_PREFIXES = [_][]const u8{
@@ -106,6 +153,31 @@ pub const Transaction = struct {
             hasher.update(":OP:");
             hasher.update(self.op_return);
         }
+        // PHASE-C wire v2 — inputs + outputs in hash domain.
+        // Only mixed in when present so legacy v1 TXs keep the exact
+        // same hash bytes they always had. Without this an attacker
+        // could swap inputs[] after signing without the signature
+        // breaking — defeats the whole point of explicit UTXO refs.
+        if (self.inputs.len > 0) {
+            hasher.update(":IN:");
+            for (self.inputs) |inp| {
+                hasher.update(inp.tx_hash);
+                var oi_buf: [16]u8 = undefined;
+                const oi_str = std.fmt.bufPrint(&oi_buf, ":{d}|", .{inp.output_index}) catch "0|";
+                hasher.update(oi_str);
+            }
+        }
+        if (self.outputs.len > 0) {
+            hasher.update(":OUT:");
+            for (self.outputs) |out| {
+                var amt_buf2: [24]u8 = undefined;
+                const amt_str2 = std.fmt.bufPrint(&amt_buf2, "{d}", .{out.amount}) catch "0";
+                hasher.update(amt_str2);
+                hasher.update(">");
+                hasher.update(out.address);
+                hasher.update("|");
+            }
+        }
 
         var hash1: [32]u8 = undefined;
         hasher.final(&hash1);
@@ -127,8 +199,17 @@ pub const Transaction = struct {
         // Validate addresses
         const from_ok = isValidAddress(self.from_address);
         const to_ok = isValidAddress(self.to_address);
+        if (!(from_ok and to_ok)) return false;
 
-        return from_ok and to_ok;
+        // PHASE-C v2 — bounds + per-output address validation.
+        if (self.inputs.len > MAX_INPUTS) return false;
+        if (self.outputs.len > MAX_OUTPUTS) return false;
+        for (self.outputs) |out| {
+            if (!isValidAddress(out.address)) return false;
+            if (out.amount == 0) return false; // no zero-amount outputs
+        }
+
+        return true;
     }
 
     /// Validate an OmniBus address — Bech32 checksum for ob1q/ob1p, prefix match for legacy
