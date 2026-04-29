@@ -309,9 +309,49 @@ pub const Blockchain = struct {
         self.orphan_blocks.deinit();
     }
 
-    /// Returneaza balanta unei adrese (0 daca nu exista)
+    /// Returneaza balanta unei adrese (0 daca nu exista).
+    /// PHASE-B: sursa de adevar este UTXO set-ul, nu RAM cache.
     pub fn getAddressBalance(self: *const Blockchain, address: []const u8) u64 {
-        return self.balances.get(address) orelse 0;
+        return self.utxo_set.getBalance(address);
+    }
+
+    /// Returneaza balanta matura (doar UTXO-uri cu >=100 confirmari).
+    /// Coinbase-urile necesita 100 blocuri inainte de a fi cheltuibile.
+    pub fn getMatureBalance(self: *const Blockchain, address: []const u8) u64 {
+        const current_height = if (self.chain.items.len == 0) 0
+                              else @as(u64, @intCast(self.chain.items.len - 1));
+        const outpoints = self.utxo_set.getUTXOsForAddress(address);
+        var total: u64 = 0;
+        for (outpoints) |op| {
+            if (self.utxo_set.utxos.get(op)) |utxo| {
+                if (utxo.isMature(current_height)) total += utxo.amount;
+            }
+        }
+        return total;
+    }
+
+    /// Audit: compara RAM cache (bc.balances) cu UTXO set.
+    /// In debug builds fail-fast pe divergente; in release doar log.
+    pub fn auditBalanceConsistency(self: *const Blockchain) struct {
+        addresses_checked: usize,
+        divergences: usize,
+    } {
+        var checked: usize = 0;
+        var diverged: usize = 0;
+        var it = self.balances.iterator();
+        while (it.next()) |kv| {
+            checked += 1;
+            const ram = kv.value_ptr.*;
+            const utxo = self.utxo_set.getBalance(kv.key_ptr.*);
+            if (ram != utxo) {
+                diverged += 1;
+                std.debug.print(
+                    "[AUDIT-DIVERGE] addr={s} ram={d} utxo={d}\n",
+                    .{ kv.key_ptr.*, ram, utxo },
+                );
+            }
+        }
+        return .{ .addresses_checked = checked, .divergences = diverged };
     }
 
     /// Rebuild the active validator set from chain history + current balances.
@@ -765,7 +805,25 @@ pub const Blockchain = struct {
 
         // Proceseaza tranzactiile: debiteaza sender (amount + fee), crediteaza receiver, incrementeaza nonce
         var total_fees: u64 = 0;
-        for (block.transactions.items, 0..) |tx, tx_idx| {
+        for (block.transactions.items) |tx| {
+            const total_needed = tx.amount + tx.fee;
+            // UTXO: spend sender's inputs
+            var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(index), self.allocator) catch |err| {
+                std.debug.print("[MINE] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
+                continue;
+            };
+            defer selection.utxos.deinit(self.allocator);
+            for (selection.utxos.items) |utxo| {
+                _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                    std.debug.print("[MINE] spendUTXO failed: {}\n", .{err});
+                };
+            }
+            // UTXO: change output back to sender
+            if (selection.total > total_needed) {
+                const change = selection.total - total_needed;
+                self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(index), "", false) catch {};
+            }
+
             self.debitBalance(tx.from_address, tx.amount + tx.fee) catch {}; // debit amount + fee
             self.creditBalance(tx.to_address, tx.amount) catch {};
             total_fees += tx.fee;
@@ -777,8 +835,8 @@ pub const Blockchain = struct {
             // Index TX for both sender and receiver address history
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
-            // UTXO: create output for recipient
-            self.utxo_set.addUTXO(tx.hash, @intCast(tx_idx), tx.to_address, tx.amount, @intCast(index), "", false) catch {};
+            // UTXO: create output for recipient at index 0
+            self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(index), "", false) catch {};
         }
 
         // Fee split: FEE_BURN_PCT% burned (deflationary, like EIP-1559), rest to miner
@@ -1250,6 +1308,24 @@ pub const Blockchain = struct {
     fn applyBlock(self: *Blockchain, block: Block) !void {
         var total_fees: u64 = 0;
         for (block.transactions.items) |tx| {
+            const total_needed = tx.amount + tx.fee;
+            // UTXO: spend sender's inputs
+            var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(block.index), self.allocator) catch |err| {
+                std.debug.print("[APPLY-BLOCK] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
+                continue;
+            };
+            defer selection.utxos.deinit(self.allocator);
+            for (selection.utxos.items) |utxo| {
+                _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                    std.debug.print("[APPLY-BLOCK] spendUTXO failed: {}\n", .{err});
+                };
+            }
+            // UTXO: change output back to sender
+            if (selection.total > total_needed) {
+                const change = selection.total - total_needed;
+                self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(block.index), "", false) catch {};
+            }
+
             self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
             self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
             total_fees += tx.fee;
@@ -1259,6 +1335,8 @@ pub const Blockchain = struct {
             // Index TX for both sender and receiver address history
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
+            // UTXO: create output for recipient at index 0
+            self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(block.index), "", false) catch {};
         }
 
         const fees_burned = total_fees * FEE_BURN_PCT / 100;
@@ -1267,6 +1345,7 @@ pub const Blockchain = struct {
 
         if (block.miner_address.len > 0 and (block.reward_sat > 0 or fees_to_miner > 0)) {
             self.creditBalanceLocked(block.miner_address, block.reward_sat + fees_to_miner) catch {};
+            self.utxo_set.addUTXO(block.hash, 0, block.miner_address, block.reward_sat + fees_to_miner, @intCast(block.index), "", true) catch {};
         }
 
         try self.chain.append(block);
@@ -1322,22 +1401,43 @@ pub const Blockchain = struct {
         self.balances.clearRetainingCapacity();
         self.nonces.clearRetainingCapacity();
         self.tx_block_height.clearRetainingCapacity();
+        // Clear and rebuild UTXO set from chain
+        self.utxo_set.deinit();
+        self.utxo_set = utxo_mod.UTXOSet.init(self.allocator);
 
         for (1..self.chain.items.len) |i| {
             const blk = &self.chain.items[i];
             var blk_total_fees: u64 = 0;
             for (blk.transactions.items) |tx| {
+                const total_needed = tx.amount + tx.fee;
+                var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(blk.index), self.allocator) catch |err| {
+                    std.debug.print("[RECALC] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
+                    continue;
+                };
+                defer selection.utxos.deinit(self.allocator);
+                for (selection.utxos.items) |utxo| {
+                    _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                        std.debug.print("[RECALC] spendUTXO failed: {}\n", .{err});
+                    };
+                }
+                if (selection.total > total_needed) {
+                    const change = selection.total - total_needed;
+                    self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(blk.index), "", false) catch {};
+                }
+
                 self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
                 self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
                 blk_total_fees += tx.fee;
                 const current_nonce = self.nonces.get(tx.from_address) orelse 0;
                 self.nonces.put(tx.from_address, current_nonce + 1) catch {};
                 self.tx_block_height.put(tx.hash, @intCast(blk.index)) catch {};
+                self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(blk.index), "", false) catch {};
             }
             const fees_burned = blk_total_fees * FEE_BURN_PCT / 100;
             const fees_to_miner = blk_total_fees - fees_burned;
             if (blk.miner_address.len > 0 and (blk.reward_sat > 0 or fees_to_miner > 0)) {
                 self.creditBalanceLocked(blk.miner_address, blk.reward_sat + fees_to_miner) catch {};
+                self.utxo_set.addUTXO(blk.hash, 0, blk.miner_address, blk.reward_sat + fees_to_miner, @intCast(blk.index), "", true) catch {};
             }
         }
     }
@@ -1522,7 +1622,9 @@ test "Blockchain.creditBalance — adauga sold" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
     try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 1_000_000_000);
-    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
+    // PHASE-B: getAddressBalance citeste din UTXO, nu din RAM cache.
+    // creditBalance scrie doar in cache; verificam cache-ul direct.
+    try testing.expectEqual(@as(u64, 1_000_000_000), bc.balances.get("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh").?);
 }
 
 test "Blockchain.creditBalance — acumuleaza multiple credite" {
@@ -1530,7 +1632,7 @@ test "Blockchain.creditBalance — acumuleaza multiple credite" {
     defer bc.deinit();
     try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 500_000_000);
     try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 500_000_000);
-    try testing.expectEqual(@as(u64, 1_000_000_000), bc.getAddressBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh"));
+    try testing.expectEqual(@as(u64, 1_000_000_000), bc.balances.get("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh").?);
 }
 
 test "Blockchain.debitBalance — scade sold" {
@@ -1538,7 +1640,7 @@ test "Blockchain.debitBalance — scade sold" {
     defer bc.deinit();
     try bc.creditBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 2_000_000_000);
     try bc.debitBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas", 500_000_000);
-    try testing.expectEqual(@as(u64, 1_500_000_000), bc.getAddressBalance("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas"));
+    try testing.expectEqual(@as(u64, 1_500_000_000), bc.balances.get("ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas").?);
 }
 
 test "Blockchain.debitBalance — sold insuficient => error" {
@@ -1588,8 +1690,8 @@ test "Blockchain.validateTransaction — nonce replay attack blocked" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    // Give sender some balance (amount + fee)
-    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000);
+    // Give sender some balance via UTXO (PHASE-B: validateTransaction reads from UTXO)
+    try bc.utxo_set.addUTXO("funding_tx_01", 0, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000, 1, "", false);
 
     // First TX with nonce 0 should be valid (fee >= TX_MIN_FEE)
     const tx1 = Transaction{
@@ -1628,7 +1730,7 @@ test "Blockchain.validateTransaction — fee too low rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000);
+    try bc.utxo_set.addUTXO("funding_tx_02", 0, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 10_000, 1, "", false);
     const tx = Transaction{
         .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 0, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
@@ -1640,8 +1742,8 @@ test "Blockchain.validateTransaction — balance must cover amount + fee" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    // Sender has exactly 100 SAT, TX needs 100 amount + 1 fee = 101
-    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100);
+    // Sender has exactly 100 SAT via UTXO, TX needs 100 amount + 1 fee = 101
+    try bc.utxo_set.addUTXO("funding_tx_03", 0, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100, 1, "", false);
     const tx = Transaction{
         .id = 1, .from_address = "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", .to_address = "ob1qrpdsg3r7mvvunw6ket46qmjzlx6fuu3ppxlfas",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0, .signature = "", .hash = "",
@@ -1659,7 +1761,7 @@ test "Blockchain.validateTransaction — nonce gap rejected (strict ordering)" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_04", 0, "ob1ql33v8q9wqvqrschu982lvrnvfupyzcvj746kqh", 100_000, 1, "", false);
 
     // Expected nonce is 0, but TX has nonce 5 — gap should be rejected
     const tx_gap = Transaction{
@@ -1766,8 +1868,8 @@ test "Blockchain.validateTransaction — rejects TX when pending outgoing exceed
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    // Credit Alice 1000 SAT
-    try bc.creditBalance("ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll", 1000);
+    // Credit Alice 1000 SAT via UTXO
+    try bc.utxo_set.addUTXO("funding_tx_pending", 0, "ob1qgg00y7hepe45r2fqcv8lw4009jyy7gc6c843ll", 1000, 1, "", false);
 
     // TX1: Alice sends 400 SAT (fee=1), nonce=0 — should succeed
     const tx1 = Transaction{
@@ -2044,7 +2146,7 @@ test "Blockchain.validateTransaction — locktime > current_height rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1qmcl7lj9e5wg6523ynqyg6xklhg67tgjspv7dg6", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_lockh", 0, "ob1qmcl7lj9e5wg6523ynqyg6xklhg67tgjspv7dg6", 100_000, 1, "", false);
 
     // Chain has 1 block (genesis), so chain.items.len = 1 = current_height
     // TX locked until block 100 → rejected (100 > 1)
@@ -2061,7 +2163,7 @@ test "Blockchain.validateTransaction — locktime <= current_height accepted" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1qje7f8p2nm66d2x5m6vvx8s0wkuyhc439c2q85r", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_lock1", 0, "ob1qje7f8p2nm66d2x5m6vvx8s0wkuyhc439c2q85r", 100_000, 1, "", false);
 
     // Chain has 1 block, so current_height = 1
     // TX locked until block 1 → accepted (1 <= 1)
@@ -2078,7 +2180,7 @@ test "Blockchain.validateTransaction — locktime 0 always accepted (immediate)"
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1qwtdsz27whtcajhqjl4e6yc9l2vpujzzt7z8dxe", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_lock0", 0, "ob1qwtdsz27whtcajhqjl4e6yc9l2vpujzzt7z8dxe", 100_000, 1, "", false);
 
     const tx = Transaction{
         .id = 1, .from_address = "ob1qwtdsz27whtcajhqjl4e6yc9l2vpujzzt7z8dxe", .to_address = "ob1qvvvn3uz7nh2v93eyx7y85rc7usumvgc3kle246",
@@ -2094,7 +2196,7 @@ test "Blockchain.validateTransaction — op_return data-only TX accepted" {
     defer bc.deinit();
 
     // OP_RETURN TX: amount=0, op_return set, fee >= 1
-    try bc.creditBalance("ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_opret", 0, "ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2", 100_000, 1, "", false);
 
     const tx = Transaction{
         .id = 1, .from_address = "ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2", .to_address = "ob1q8nfugl99a2ntr06grn9g3szeuw9f4ztdq6trl2",
@@ -2109,7 +2211,7 @@ test "Blockchain.validateTransaction — op_return > 80 bytes rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    try bc.creditBalance("ob1qtqh0uelqt8670n3j4ny0l6wpacgwe4as2f42d3", 100_000);
+    try bc.utxo_set.addUTXO("funding_tx_big", 0, "ob1qtqh0uelqt8670n3j4ny0l6wpacgwe4as2f42d3", 100_000, 1, "", false);
 
     const big_data = "X" ** 81;
     const tx = Transaction{
@@ -2477,7 +2579,7 @@ const Ripemd160 = @import("ripemd160.zig").Ripemd160;
 test "Blockchain.validateTransaction — legacy TX (no scripts) still validates" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob1qpuvwpsyt4r0p9c800qhgmnz7n4mjffs36g8r5m", 10_000);
+    try bc.utxo_set.addUTXO("funding_tx_legacy", 0, "ob1qpuvwpsyt4r0p9c800qhgmnz7n4mjffs36g8r5m", 10_000, 1, "", false);
     const tx = Transaction{
         .id = 1, .from_address = "ob1qpuvwpsyt4r0p9c800qhgmnz7n4mjffs36g8r5m", .to_address = "ob1qa85832ynnv6lmc43mm07qjxk80mswapgz0zc63",
         .amount = 100, .fee = 1, .timestamp = 1700000000, .nonce = 0,
@@ -2490,7 +2592,7 @@ test "Blockchain.validateTransaction — legacy TX (no scripts) still validates"
 test "Blockchain.validateTransaction — TX with valid P2PKH scripts validates" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob1qzkl36jh98nwlqhz2ldspp7enquuh9fvq2s5pna", 10_000);
+    try bc.utxo_set.addUTXO("funding_tx_p2pkh", 0, "ob1qzkl36jh98nwlqhz2ldspp7enquuh9fvq2s5pna", 10_000, 1, "", false);
 
     // Generate sender keypair
     const kp = try Secp256k1Crypto.generateKeyPair();
@@ -2527,7 +2629,7 @@ test "Blockchain.validateTransaction — TX with valid P2PKH scripts validates" 
 test "Blockchain.validateTransaction — TX with invalid scripts rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob1q8sfgk7l05gngpwm6u8m964j4cmz8arly600chj", 10_000);
+    try bc.utxo_set.addUTXO("funding_tx_invscript", 0, "ob1q8sfgk7l05gngpwm6u8m964j4cmz8arly600chj", 10_000, 1, "", false);
 
     const kp1 = try Secp256k1Crypto.generateKeyPair();
     const kp2 = try Secp256k1Crypto.generateKeyPair();
@@ -2558,7 +2660,7 @@ test "Blockchain.validateTransaction — TX with invalid scripts rejected" {
 test "Blockchain.validateTransaction — script_pubkey set but script_sig empty rejected" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    try bc.creditBalance("ob1qguvehlayw4x0v2ku25zw82tfkxsqcjv3l4xtns", 10_000);
+    try bc.utxo_set.addUTXO("funding_tx_nosig", 0, "ob1qguvehlayw4x0v2ku25zw82tfkxsqcjv3l4xtns", 10_000, 1, "", false);
 
     const kp = try Secp256k1Crypto.generateKeyPair();
     var sha_out: [32]u8 = undefined;
@@ -2629,3 +2731,138 @@ test "Blockchain.isBridgeLockTx — rejects vault dest without OMNIBRIDGE prefix
     try testing.expect(!Blockchain.isBridgeLockTx(&tx));
 }
 
+
+// ─── PHASE B: UTXO Source-of-Truth Tests ────────────────────────────────────
+
+test "applyBlock spends sender UTXOs and creates recipient UTXO" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Fund address A with a mature non-coinbase UTXO
+    try bc.utxo_set.addUTXO("coinbase_a", 0, "ob1qalice", 1_000_000_000, 1, "", false);
+
+    // Build a block with A -> B for 500M
+    const tx = Transaction{
+        .id = 1,
+        .from_address = "ob1qalice",
+        .to_address = "ob1qbob",
+        .amount = 500_000_000,
+        .fee = 1_000,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = "tx_ab_01_hash_________________________________",
+    };
+
+    var block = Block{
+        .index = 1,
+        .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "block_01_hash_________________________________",
+        .miner_address = "ob1qminer",
+        .reward_sat = BLOCK_REWARD_SAT,
+    };
+    try block.transactions.append(tx);
+    // NOTE: applyBlock appends a copy to chain; we must NOT deinit our copy's
+    // transactions because chain's copy shares the same underlying allocation.
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    // UTXO set should have: B's output + A's change + miner's coinbase
+    try testing.expectEqual(@as(u64, 3), bc.utxo_set.count);
+    try testing.expectEqual(@as(u64, 500_000_000), bc.utxo_set.getBalance("ob1qbob"));
+    try testing.expectEqual(@as(u64, 500_000_000 - 1_000), bc.utxo_set.getBalance("ob1qalice")); // change
+    try testing.expect(bc.utxo_set.getBalance("ob1qminer") >= BLOCK_REWARD_SAT);
+
+    // getAddressBalance reads from UTXO
+    try testing.expectEqual(@as(u64, 500_000_000), bc.getAddressBalance("ob1qbob"));
+    try testing.expectEqual(@as(u64, 500_000_000 - 1_000), bc.getAddressBalance("ob1qalice"));
+}
+
+test "auditBalanceConsistency returns 0 divergences after normal applyBlock" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Fund and transfer via applyBlock so both cache and UTXO are updated.
+    // Must seed BOTH UTXO and RAM cache before applyBlock so they start aligned.
+    try bc.utxo_set.addUTXO("fund_audit", 0, "ob1qaudit", 1_000_000_000, 1, "", false);
+    try bc.creditBalance("ob1qaudit", 1_000_000_000);
+    const tx = Transaction{
+        .id = 1, .from_address = "ob1qaudit", .to_address = "ob1qrecv",
+        .amount = 100_000_000, .fee = 1_000, .timestamp = 1700000000, .nonce = 0,
+        .signature = "", .hash = "tx_audit_01_____________________________________",
+    };
+    var block = Block{
+        .index = 1, .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1", .nonce = 0,
+        .hash = "block_audit_01__________________________________",
+        .miner_address = "ob1qminer", .reward_sat = BLOCK_REWARD_SAT,
+    };
+    try block.transactions.append(tx);
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    const result = bc.auditBalanceConsistency();
+    try testing.expectEqual(@as(usize, 0), result.divergences);
+}
+
+test "auditBalanceConsistency catches phantom RAM credit" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Create a phantom RAM credit without UTXO
+    try bc.balances.put("ob1qphantom", 999);
+
+    const result = bc.auditBalanceConsistency();
+    try testing.expectEqual(@as(usize, 1), result.divergences);
+    try testing.expectEqual(@as(usize, 1), result.addresses_checked);
+}
+
+test "getMatureBalance excludes immature coinbase" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Coinbase to A at height 5
+    try bc.utxo_set.addUTXO("coinbase_a", 0, "ob1qminerA", 50_000_000_000, 5, "", true);
+
+    // Add dummy blocks to reach height 50 (genesis at 0, need 50 more)
+    var h: u32 = 1;
+    while (h <= 50) : (h += 1) {
+        const b = Block{
+            .index = h,
+            .timestamp = 1700000000 + @as(i64, h),
+            .transactions = array_list.Managed(Transaction).init(testing.allocator),
+            .previous_hash = "dummy_prev____________________________________",
+            .nonce = 0,
+            .hash = "dummy_hash____________________________________",
+        };
+        try bc.chain.append(b);
+    }
+
+    // At height 50, coinbase at height 5 is NOT yet mature (needs 105)
+    try testing.expectEqual(@as(u64, 0), bc.getMatureBalance("ob1qminerA"));
+    try testing.expectEqual(@as(u64, 50_000_000_000), bc.getAddressBalance("ob1qminerA")); // total includes immature
+
+    // Add 55 more blocks to reach height 105
+    while (h <= 105) : (h += 1) {
+        const b = Block{
+            .index = h,
+            .timestamp = 1700000000 + @as(i64, h),
+            .transactions = array_list.Managed(Transaction).init(testing.allocator),
+            .previous_hash = "dummy_prev____________________________________",
+            .nonce = 0,
+            .hash = "dummy_hash____________________________________",
+        };
+        try bc.chain.append(b);
+    }
+
+    // At height 105, coinbase at height 5 IS mature (5 + 100 = 105)
+    try testing.expectEqual(@as(u64, 50_000_000_000), bc.getMatureBalance("ob1qminerA"));
+}

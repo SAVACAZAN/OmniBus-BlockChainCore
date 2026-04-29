@@ -2087,6 +2087,15 @@ pub fn main() !void {
                             .{ next.slot_id, ms_until, leader_short },
                         );
                     }
+                    // ── PHASE-B: audit balance consistency ─────────────────────
+                    const audit = bc.auditBalanceConsistency();
+                    if (audit.divergences > 0) {
+                        std.debug.print(
+                            "[ALERT] Balance divergence detected: {d}/{d} addresses diverged from UTXO set\n",
+                            .{ audit.divergences, audit.addresses_checked },
+                        );
+                    }
+
                     stabilizer_last_report_ms = arrival_ms;
                 }
             }

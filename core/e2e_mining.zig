@@ -121,9 +121,10 @@ test "E2E — tranzactie mineata: sender scade, receiver creste" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    // Fonduri pentru alice: 2 blocuri minate de ea
+    // Fonduri pentru alice: 2 blocuri minate de ea + UTXO matur direct
     try mineOne(&bc, ALICE_ADDR);
     try mineOne(&bc, ALICE_ADDR);
+    try bc.utxo_set.addUTXO("test_fund_alice", 0, ALICE_ADDR, 10_000_000, 1, "", false);
     const alice_funded = bc.getAddressBalance(ALICE_ADDR);
     try testing.expect(alice_funded >= 1_000_000);
 
@@ -164,9 +165,11 @@ test "E2E — doua tranzactii in acelasi bloc" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
-    // Fonduri miner → alice si bob
+    // Fonduri miner → alice si bob + UTXO-uri mature directe
     try mineOne(&bc, ALICE_ADDR);
     try mineOne(&bc, BOB_ADDR);
+    try bc.utxo_set.addUTXO("test_fund_alice2", 0, ALICE_ADDR, 10_000_000, 1, "", false);
+    try bc.utxo_set.addUTXO("test_fund_bob2", 0, BOB_ADDR, 10_000_000, 1, "", false);
 
     const tx1 = Transaction{
         .id = 1, .from_address = ALICE_ADDR, .to_address = MINER_ADDR,

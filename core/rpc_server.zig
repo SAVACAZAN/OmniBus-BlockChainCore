@@ -1853,7 +1853,7 @@ fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
 
 /// RPC "getrichlist" — Bitcoin-style address list sorted by balance desc.
 ///
-/// Walks `bc.balances` HashMap, filters out zero-balance entries (cosmetic
+/// Walks `bc.utxo_set` address index, filters out zero-balance entries (cosmetic
 /// — keeps the output small), sorts descending, and emits the top N.
 ///
 /// Each entry includes:
@@ -1873,14 +1873,15 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mutex.lock();
     defer ctx.bc.mutex.unlock();
 
-    // Collect (address, balance) pairs from the balance map.
+    // Collect (address, balance) pairs from the UTXO set (PHASE-B source of truth).
     var entries = std.array_list.Managed(RichEntry).init(alloc);
     defer entries.deinit();
-    var bit = ctx.bc.balances.iterator();
-    while (bit.next()) |kv| {
-        const bal = kv.value_ptr.*;
+    var ait = ctx.bc.utxo_set.address_index.iterator();
+    while (ait.next()) |kv| {
+        const addr = kv.key_ptr.*;
+        const bal = ctx.bc.utxo_set.getBalance(addr);
         if (bal == 0) continue; // skip dust/zero balances
-        try entries.append(.{ .address = kv.key_ptr.*, .balance = bal });
+        try entries.append(.{ .address = addr, .balance = bal });
     }
 
     // Sort by balance descending; tie-break by address string for determinism.
@@ -1991,13 +1992,14 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mutex.lock();
     defer ctx.bc.mutex.unlock();
 
-    // Address + supply tally.
+    // Address + supply tally from UTXO set (PHASE-B source of truth).
     var addresses_with_balance: u64 = 0;
     var validators: u64 = 0;
     var total_supply: u64 = 0;
-    var bit = ctx.bc.balances.iterator();
-    while (bit.next()) |kv| {
-        const bal = kv.value_ptr.*;
+    var ait = ctx.bc.utxo_set.address_index.iterator();
+    while (ait.next()) |kv| {
+        const addr = kv.key_ptr.*;
+        const bal = ctx.bc.utxo_set.getBalance(addr);
         if (bal == 0) continue;
         addresses_with_balance += 1;
         total_supply += bal;

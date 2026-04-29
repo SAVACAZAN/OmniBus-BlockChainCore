@@ -3216,6 +3216,11 @@ pub const P2PNode = struct {
                     std.debug.print("[SYNC] creditBalance failed for {s}: {}\n",
                         .{ miner_addr[0..@min(miner_addr.len, 12)], err });
                 };
+                // PHASE-B: keep UTXO set in sync for peer-mined blocks too
+                bc.utxo_set.addUTXO(new_block.hash, 0, miner_addr, peer_reward, @intCast(new_block.index), "", true) catch |err| {
+                    std.debug.print("[SYNC] addUTXO failed for peer miner {s}: {}\n",
+                        .{ miner_addr[0..@min(miner_addr.len, 12)], err });
+                };
             }
 
             applied += 1;
