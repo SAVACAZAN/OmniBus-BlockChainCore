@@ -10,6 +10,7 @@ import {
   setPrimaryName,
   MAX_NAMES_PER_WALLET,
 } from "../../api/use-names";
+import { AddressLabel } from "../common/AddressLabel";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -38,6 +39,7 @@ const PQ_DOMAINS = [
 export function WalletPage() {
   const { state: chainState } = useBlockchain();
   const unlocked = useWallet(); // null when locked, { address, privateKey, publicKey, walletIndex } when unlocked
+  const myName = useNameForAddress(unlocked?.address); // e.g. "savacazan.omnibus"
   const [balance, setBalance] = useState({ sat: 0, omni: "0.0000" });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [sendTo, setSendTo] = useState("");
@@ -180,7 +182,12 @@ export function WalletPage() {
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Header with logout */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-mempool-text">My Wallet</h2>
+        <div>
+          <h2 className="text-lg font-bold text-mempool-text">My Wallet</h2>
+          {myName && (
+            <p className="text-xs text-mempool-blue font-semibold mt-0.5">{myName}</p>
+          )}
+        </div>
         <button
           onClick={handleLogout}
           className="text-xs text-mempool-text-dim hover:text-mempool-red transition-colors px-3 py-1.5 rounded border border-mempool-border hover:border-mempool-red"
@@ -303,7 +310,7 @@ export function WalletPage() {
             Addresses (5 PQ Domains)
           </h3>
 
-          {/* Primary address */}
+          {/* Primary address — show registered name (if any) on top, raw bech32 below */}
           <div
             className="bg-mempool-bg rounded-lg p-3 cursor-pointer hover:bg-mempool-bg-light transition-colors"
             onClick={() => copyAddr(unlocked.address)}
@@ -317,7 +324,10 @@ export function WalletPage() {
                 {copied === unlocked.address ? "Copied!" : "Click to copy"}
               </span>
             </div>
-            <p className="text-xs font-mono text-mempool-blue mt-1 break-all">
+            {myName && (
+              <p className="text-base font-bold text-mempool-blue mt-1">{myName}</p>
+            )}
+            <p className={`font-mono break-all ${myName ? "text-[10px] text-mempool-text-dim mt-0.5" : "text-xs text-mempool-blue mt-1"}`}>
               {unlocked.address}
             </p>
           </div>
@@ -402,7 +412,7 @@ export function WalletPage() {
                     {tx.txid?.slice(0, 24)}...
                   </p>
                   <p className="text-[10px] text-mempool-text-dim">
-                    {tx.from?.slice(0, 16)} -&gt; {tx.to?.slice(0, 16)}
+                    {tx.from && <AddressLabel address={tx.from} truncate={{ left: 12, right: 6 }} />} → {tx.to && <AddressLabel address={tx.to} truncate={{ left: 12, right: 6 }} />}
                   </p>
                 </div>
                 {/* Confirmations */}

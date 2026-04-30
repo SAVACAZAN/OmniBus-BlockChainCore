@@ -2422,22 +2422,19 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    // Fee schedule per chain. Mainnet = the canonical 5/10 OMNI Bitcoin-style
-    // pricing the docs advertise. Testnet/regtest get a 50× smaller fee so
-    // dev workflows aren't gated by the node having to mine 60 blocks before
-    // a single name registration becomes affordable.
-    const cost_omnibus: f64 = if (ctx.chain_id == 1) 5.0 else 0.1;
-    const cost_arbitraje: f64 = if (ctx.chain_id == 1) 10.0 else 0.2;
+    // Name registration PRICE — same on every chain. This is what the user
+    // pays to claim the name (think domain-registrar pricing, not gas fee).
+    // The TX-level network fee is separate and tiny (TX_MIN_FEE_SAT).
     if (ctx.dns == null) {
         return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":{d},\"cost_arbitraje_omni\":{d}}}}}",
-            .{ id, cost_omnibus, cost_arbitraje });
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
+            .{id});
     }
     const dns = ctx.dns.?;
     const treasury = dns.getTreasury();
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":{d},\"cost_arbitraje_omni\":{d}}}}}",
-        .{ id, treasury, dns.fee_enforcement, cost_omnibus, cost_arbitraje });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
+        .{ id, treasury, dns.fee_enforcement });
 }
 
 // ─── Phase 1: transfername ──────────────────────────────────────────────────
