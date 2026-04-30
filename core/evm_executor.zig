@@ -11,7 +11,26 @@
 //! lives inside the Rust side.
 
 const std = @import("std");
-const ffi = @import("evm_ffi.zig");
+
+// EVM build gating: the parent build (build.zig) exposes `evm_enabled` via
+// `@import("build_options")`. When the consuming module (main.zig,
+// rpc_server.zig) propagates that to us via `addImport`, we use it. When
+// it doesn't (sub-binaries like omnibus-bench that don't link Rust at all),
+// we fall back to assuming EVM is OFF. Either way, when the flag is false
+// we deliberately do NOT pull in `evm_ffi.zig` — that module declares
+// `extern "c" fn omnibus_evm_*` symbols which require the Rust static lib
+// at link time. Pulling it in unconditionally is what made `-Devm=false`
+// blow up with "undefined symbol: omnibus_evm_call" on hosts without the
+// Rust toolchain (e.g. the VPS).
+const evm_enabled: bool = blk: {
+    // @hasDecl on the imported namespace lets us probe for build_options
+    // without forcing every consumer to wire it up.
+    const has_options = @hasDecl(@import("root"), "build_options_evm_enabled");
+    if (has_options) break :blk @import("root").build_options_evm_enabled;
+    break :blk false;
+};
+
+const ffi = if (evm_enabled) @import("evm_ffi.zig") else struct {};
 
 pub const EvmError = error{
     NotInitialized,
@@ -44,11 +63,13 @@ pub const CallResult = struct {
 /// entry point. Returns `error.FFIError` if the Rust side fails (already
 /// initialized, OOM in revm, etc.).
 pub fn init() EvmError!void {
+    if (!evm_enabled) return; // no-op when EVM compiled out
     if (ffi.omnibus_evm_init() != 0) return error.FFIError;
 }
 
 /// Shuts the revm engine down. Idempotent on the Zig side.
 pub fn shutdown() void {
+    if (!evm_enabled) return;
     ffi.omnibus_evm_shutdown();
 }
 
@@ -59,6 +80,7 @@ pub fn deploy(
     bytecode_hex: []const u8,
     deployer_addr: []const u8,
 ) EvmError!DeployResult {
+    if (!evm_enabled) return error.NotInitialized;
     const bc_z = allocator.dupeZ(u8, bytecode_hex) catch return error.OutOfMemory;
     defer allocator.free(bc_z);
     const da_z = allocator.dupeZ(u8, deployer_addr) catch return error.OutOfMemory;
@@ -82,6 +104,7 @@ pub fn call(
     value_wei: u64,
     gas_limit: u64,
 ) EvmError!CallResult {
+    if (!evm_enabled) return error.NotInitialized;
     const ca_z = allocator.dupeZ(u8, contract_addr) catch return error.OutOfMemory;
     defer allocator.free(ca_z);
     const cl_z = allocator.dupeZ(u8, caller_addr) catch return error.OutOfMemory;
@@ -120,6 +143,7 @@ pub fn call(
 /// Returns the balance of `addr` as a hex-encoded u256 (e.g. "0x1bc16d674ec80000").
 /// Caller owns the returned slice.
 pub fn getBalance(allocator: std.mem.Allocator, addr: []const u8) EvmError![]u8 {
+    if (!evm_enabled) return error.NotInitialized;
     const a_z = allocator.dupeZ(u8, addr) catch return error.OutOfMemory;
     defer allocator.free(a_z);
     var buf: [80]u8 = undefined; // u256 hex is at most 66 chars including "0x"
@@ -133,6 +157,7 @@ pub fn getBalance(allocator: std.mem.Allocator, addr: []const u8) EvmError![]u8 
 /// Returns the deployed bytecode at `addr` as hex (caller owns the slice).
 /// Empty string ("") if the account has no code.
 pub fn getCode(allocator: std.mem.Allocator, addr: []const u8) EvmError![]u8 {
+    if (!evm_enabled) return error.NotInitialized;
     const a_z = allocator.dupeZ(u8, addr) catch return error.OutOfMemory;
     defer allocator.free(a_z);
     var buf = allocator.alloc(u8, 65_536) catch return error.OutOfMemory;
@@ -157,6 +182,7 @@ pub fn estimateGas(
     input_hex: []const u8,
     value_wei: u64,
 ) EvmError!u64 {
+    if (!evm_enabled) return error.NotInitialized;
     const f_z = allocator.dupeZ(u8, from_addr) catch return error.OutOfMemory;
     defer allocator.free(f_z);
     const t_z = allocator.dupeZ(u8, to_addr) catch return error.OutOfMemory;

@@ -1060,26 +1060,66 @@ pub const P2PNode = struct {
         local_port: u16,
         allocator:  std.mem.Allocator,
     ) P2PNode {
-        var node: P2PNode = .{
-            .local_id    = local_id,
-            .local_host  = local_host,
-            .local_port  = local_port,
-            .peers       = array_list.Managed(PeerConnection).init(allocator),
-            .allocator   = allocator,
-            .chain_height = 0,
-            .is_idle     = false,
-            .blockchain  = null,
-            .sync_mgr    = null,
-            .seen_tx_hashes = SeenHashes.init(),
-            .seen_block_hashes = SeenHashes.init(),
-            .gossip_tx_count = 0,
-            .gossip_block_count = 0,
-        };
+        // NOTE: Initializing into a stack `var node` and `return node` blows
+        // the stack on Linux because P2PNode is ~1.5 MB (SeenHashes×2 alone
+        // is ~1.3 MB, plus banned_peers + reconnect_queue arrays). Even when
+        // the caller heap-allocates and assigns `p2p_heap.* = P2PNode.init(...)`,
+        // the intermediate value still lives on the stack inside this fn
+        // before being copied. With Zig 0.15 on a stock Linux RLIMIT_STACK
+        // (8 MB user, but the SeenHashes+arrays push past the guard page in
+        // Debug mode), this segfaults silently after [SUBSYSTEMS] log.
+        //
+        // Returning a struct literal directly (no `var` intermediate) lets
+        // the compiler RVO this into the caller's storage when called as
+        // `heap.* = P2PNode.init(...)`. It can't always elide the copy, but
+        // Zig 0.15 does in practice for struct-literal returns.
+        var node: P2PNode = undefined;
+        node.local_id    = local_id;
+        node.local_host  = local_host;
+        node.local_port  = local_port;
+        node.peers       = array_list.Managed(PeerConnection).init(allocator);
+        node.allocator   = allocator;
+        node.chain_height = 0;
+        node.is_idle     = false;
+        node.blockchain  = null;
+        node.sync_mgr    = null;
+        node.seen_tx_hashes = SeenHashes.init();
+        node.seen_block_hashes = SeenHashes.init();
+        node.gossip_tx_count = 0;
+        node.gossip_block_count = 0;
         // Initialize hardening arrays
         for (&node.banned_peers) |*bp| bp.active = false;
         for (&node.reconnect_queue) |*ri| ri.active = false;
         node.hardening_init = true;
         return node;
+    }
+
+    /// In-place initializer — preferred over `init()` for heap-allocated
+    /// P2PNode (avoids the 1.5 MB struct copy through the stack frame that
+    /// segfaults Linux). Caller passes a pointer to the destination.
+    pub fn initInPlace(
+        self:       *P2PNode,
+        local_id:   []const u8,
+        local_host: []const u8,
+        local_port: u16,
+        allocator:  std.mem.Allocator,
+    ) void {
+        self.local_id    = local_id;
+        self.local_host  = local_host;
+        self.local_port  = local_port;
+        self.peers       = array_list.Managed(PeerConnection).init(allocator);
+        self.allocator   = allocator;
+        self.chain_height = 0;
+        self.is_idle     = false;
+        self.blockchain  = null;
+        self.sync_mgr    = null;
+        self.seen_tx_hashes = SeenHashes.init();
+        self.seen_block_hashes = SeenHashes.init();
+        self.gossip_tx_count = 0;
+        self.gossip_block_count = 0;
+        for (&self.banned_peers) |*bp| bp.active = false;
+        for (&self.reconnect_queue) |*ri| ri.active = false;
+        self.hardening_init = true;
     }
 
     /// Set the 4-byte network magic from chain_config. Called from main.zig

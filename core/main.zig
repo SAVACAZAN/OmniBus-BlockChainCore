@@ -1,6 +1,11 @@
 const std     = @import("std");
 const builtin = @import("builtin");
 
+// Re-export the EVM build flag at root scope so that sub-modules
+// (evm_executor.zig) can probe it via `@hasDecl(@import("root"), …)`.
+// build.zig wires `build_options` into this exe via `addOptions()`.
+pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled;
+
 // ── Single-instance lock — un singur miner per masina ────────────────────────
 // Windows: lock file exclusiv  omnibus-miner.lock (in directorul curent)
 // Linux/macOS: flock()         /tmp/omnibus-miner.lock
@@ -1275,14 +1280,12 @@ pub fn main() !void {
     std.debug.print("[SUBSYSTEMS] StateTrie + Finality + Staking + Governance + PeerScoring + DNS + Guardian\n\n", .{});
 
     // ── Init P2P Node ─────────────────────────────────────────────────────────
-    // Heap-allocate: P2PNode is ~1.5 MB (SeenHashes×2 = ~1.3 MB, banned_peers,
-    // reconnect_queue, scoring engine). Returning by-value puts the whole thing
-    // on the stack twice (callee frame + caller copy) and segfaults Linux when
-    // RLIMIT_STACK is tight or other locals push the frame past the guard page.
+    // P2PNode is ~1.5 MB. We allocate on the heap AND populate in-place via
+    // initInPlace() — never via `heap.* = init(...)` because that intermediate
+    // value still lives on the stack inside init() and overruns the Linux
+    // guard page (silent SEGV right after [SUBSYSTEMS] log).
     const p2p_heap = try allocator.create(P2PNode);
-    p2p_heap.* = P2PNode.init(config.node_id, config.host, config.port, allocator);
-    // Tell P2P which chain we are on so HELLO/WELCOME embed the correct magic
-    // and cross-chain peers (testnet vs mainnet) get rejected at handshake.
+    p2p_heap.initInPlace(config.node_id, config.host, config.port, allocator);
     p2p_heap.setChainMagic(chain_config_mod.NetworkMagic.forChain(net_cfg.chain_id).bytes);
     defer {
         p2p_heap.deinit();

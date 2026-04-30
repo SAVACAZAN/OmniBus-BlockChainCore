@@ -74,6 +74,14 @@ pub fn build(b: *std.Build) void {
     const use_oqs  = b.option(bool, "oqs", "Link liboqs for PQ crypto (default: auto-detect)") orelse true;
     const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse true;
 
+    // build_options module — exposes the use_evm flag to Zig code so we can
+    // compile-out the EVM FFI declarations and stub the eth_* RPC handlers
+    // when EVM is disabled. Without this, evm_ffi.zig still declares
+    // `extern "c" fn omnibus_evm_*` and the linker complains about undefined
+    // symbols even with -Devm=false.
+    const build_options = b.addOptions();
+    build_options.addOption(bool, "evm_enabled", use_evm);
+
     // ── Executabile ───────────────────────────────────────────────────────────
 
     const blockchain_exe = b.addExecutable(.{
@@ -84,6 +92,7 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
+    blockchain_exe.root_module.addOptions("build_options", build_options);
     addOqs(blockchain_exe, use_oqs);
     addEvm(blockchain_exe, use_evm);
     // p2p.zig uses std.posix.recvfrom (UDP knock-knock) which requires libc
@@ -99,8 +108,10 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
+    rpc_exe.root_module.addOptions("build_options", build_options);
     addOqs(rpc_exe, use_oqs);
     addEvm(rpc_exe, use_evm);
+    rpc_exe.linkLibC();
     b.installArtifact(rpc_exe);
 
     // ── omnibus-oracle ───────────────────────────────────────────────────────
@@ -212,6 +223,7 @@ pub fn build(b: *std.Build) void {
     // New v0.2.0 modules
     test_crypto_step.dependOn(&addTest(b, "bech32",       "core/bech32.zig",       target, optimize).step);
     test_crypto_step.dependOn(&addTest(b, "encrypted-p2p","core/encrypted_p2p.zig",target, optimize).step);
+    test_crypto_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize).step);
 
     // ── Tests: blockchain core ────────────────────────────────────────────────
     const test_chain_step = b.step("test-chain", "Test blockchain + genesis + consensus");
@@ -395,4 +407,5 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "settlement",    "core/settlement_submitter.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "integration",   "core/integration_test.zig",     target, optimize).step);
     test_all_step.dependOn(&addTest(b, "oracle-fetcher","core/oracle_fetcher.zig",       target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize).step);
 }

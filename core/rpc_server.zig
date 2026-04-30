@@ -1,4 +1,10 @@
 const std = @import("std");
+
+// Re-export the EVM build flag at root scope so that sub-modules
+// (evm_executor.zig) can probe it via `@hasDecl(@import("root"), …)`.
+// build.zig wires `build_options` into this exe via `addOptions()`.
+pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled;
+
 const blockchain_mod  = @import("blockchain.zig");
 const wallet_mod      = @import("wallet.zig");
 const transaction_mod = @import("transaction.zig");
@@ -2416,16 +2422,22 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+    // Fee schedule per chain. Mainnet = the canonical 5/10 OMNI Bitcoin-style
+    // pricing the docs advertise. Testnet/regtest get a 50× smaller fee so
+    // dev workflows aren't gated by the node having to mine 60 blocks before
+    // a single name registration becomes affordable.
+    const cost_omnibus: f64 = if (ctx.chain_id == 1) 5.0 else 0.1;
+    const cost_arbitraje: f64 = if (ctx.chain_id == 1) 10.0 else 0.2;
     if (ctx.dns == null) {
         return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
-            .{id});
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":{d},\"cost_arbitraje_omni\":{d}}}}}",
+            .{ id, cost_omnibus, cost_arbitraje });
     }
     const dns = ctx.dns.?;
     const treasury = dns.getTreasury();
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
-        .{ id, treasury, dns.fee_enforcement });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":{d},\"cost_arbitraje_omni\":{d}}}}}",
+        .{ id, treasury, dns.fee_enforcement, cost_omnibus, cost_arbitraje });
 }
 
 // ─── Phase 1: transfername ──────────────────────────────────────────────────
