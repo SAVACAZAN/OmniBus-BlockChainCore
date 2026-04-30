@@ -452,6 +452,22 @@ export function WalletPage() {
         </div>
       </div>
 
+      {/* Wallet metadata — JSON snapshot, Bitcoin-wallet-export style.
+          Shows everything the UI knows about this identity in one
+          structured payload. Useful for debugging, audit trails, support
+          requests. */}
+      <WalletMetadataPanel
+        address={unlocked.address}
+        publicKey={unlocked.publicKey}
+        walletIndex={unlocked.walletIndex}
+        name={myName}
+        balance={balance}
+        nonce={walletNonce}
+        utxoCount={utxos.length}
+        reputation={reputation}
+        chainName={"testnet"}
+      />
+
       {/* My .omnibus names — pick which one represents me globally */}
       <MyNamesPanel address={unlocked.address} />
 
@@ -865,6 +881,145 @@ function PrimaryAddressCard({
             you can later combine into outgoing transactions, exactly like BTC.
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── WalletMetadataPanel ─────────────────────────────────────────────────────
+//
+// OmniBus wallet identity in Bitcoin-wallet-export shape. Same JSON layout a
+// classic BTC wallet uses (wallet_info / crypto / security / addresses[])
+// but populated with OmniBus-native fields: 5 PQ schemes, OmniBus bech32
+// prefixes (ob1q / ob_k1_ / ob_f5_ / ob_d5_ / ob_s3_), reputation snapshot,
+// canonical genesis name. Click "Copy JSON" to grab it as a single payload
+// for support tickets, backup auditing, etc. Private keys are NEVER
+// included — only public material, exactly like an "xpub-only" export.
+function WalletMetadataPanel({
+  address,
+  publicKey,
+  walletIndex,
+  name,
+  balance,
+  nonce,
+  utxoCount,
+  reputation,
+  chainName,
+}: {
+  address: string;
+  publicKey: string;
+  walletIndex: number;
+  name: string | null;
+  balance: { sat: number; omni: string };
+  nonce: number | null;
+  utxoCount: number;
+  reputation: any;
+  chainName: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const metadata = {
+    wallet_info: {
+      name: name ?? "(unnamed)",
+      version: "1.0",
+      network: chainName,
+      genesis_name: name,
+      created_via: "OmniBus BlockChain Explorer",
+    },
+    crypto: {
+      // OmniBus uses BIP-32 HD derivation just like Bitcoin. Path 84'/0'/0'/0/N
+      // is the SegWit standard; OmniBus reuses it for the OMNI/secp256k1 slot.
+      derivation_path: `m/84'/0'/0'/0/${walletIndex}`,
+      wallet_index: walletIndex,
+      public_key: publicKey,
+      // No xprv / mnemonic in this export — keys never leave the singleton.
+    },
+    security: {
+      signing: "secp256k1 ECDSA (Bitcoin-compatible)",
+      vault: "AES-GCM + PBKDF2-SHA256 (200k iters, browser-local)",
+      compressed_pubkey: true,
+    },
+    chain_state: {
+      balance_omni: balance.omni,
+      balance_sat: balance.sat,
+      nonce: nonce ?? 0,
+      utxo_count: utxoCount,
+    },
+    reputation: reputation
+      ? {
+          tier: reputation.tier,
+          total: reputation.total,
+          satoshi_badge: reputation.satoshi_badge,
+          cups: reputation.cups,
+          uptime_blocks: reputation.uptime_blocks,
+          blocks_mined: reputation.total_blocks_mined,
+        }
+      : null,
+    addresses: [
+      {
+        addr: address,
+        label: name ?? "Primary",
+        scheme: "OMNI",
+        algo: "secp256k1 ECDSA",
+        bits: 256,
+        prefix: "ob1q",
+        type: "SegWit-compatible bech32 (Bitcoin parity)",
+      },
+      // The 4 PQ slots are listed by scheme but addresses are blank until
+      // the user derives an isolated mnemonic for each (per the
+      // 5-mnemonic security model).
+      ...["LOVE", "FOOD", "RENT", "VACATION"].map((tier) => {
+        const meta = PQ_DOMAINS.find((d) => d.tier === tier)!;
+        return {
+          addr: null,
+          label: `${tier} (independent isolated wallet)`,
+          scheme: tier,
+          algo: meta.algo,
+          bits: meta.bits,
+          prefix: meta.prefix,
+          type: "PQ-signed (NIST FIPS 203/204/205)",
+        };
+      }),
+    ],
+  };
+
+  const json = JSON.stringify(metadata, null, 2);
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
+      <div className="px-5 py-3 border-b border-mempool-border flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+          Wallet metadata
+          <span className="ml-2 text-[10px] text-mempool-text-dim normal-case tracking-normal">
+            Bitcoin-export style · OmniBus-native fields
+          </span>
+        </h3>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(json);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="text-[10px] px-2 py-1 bg-mempool-bg rounded hover:bg-mempool-bg-light text-mempool-text-dim hover:text-mempool-text"
+          >
+            {copied ? "Copied!" : "Copy JSON"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[10px] text-mempool-text-dim hover:text-mempool-text"
+          >
+            {expanded ? "Collapse ▾" : "Expand ▸"}
+          </button>
+        </div>
+      </div>
+      {expanded && (
+        <pre className="p-4 text-[10px] text-mempool-text font-mono overflow-x-auto whitespace-pre max-h-96 overflow-y-auto leading-relaxed">
+          {json}
+        </pre>
       )}
     </div>
   );
