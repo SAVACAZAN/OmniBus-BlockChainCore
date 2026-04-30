@@ -11,6 +11,7 @@ import {
   MAX_NAMES_PER_WALLET,
 } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
+import { TxHashLink } from "../common/TxHashLink";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -36,6 +37,56 @@ const PQ_DOMAINS = [
 // the Header button instantly lights up this page (and every other tab).
 // Side benefit: no more mnemonic stored as plain string in component state.
 
+// Map raw chain TX into a labelled type so the history list shows
+// "NS Claim", "Mining Reward", "Exchange Deposit" instead of generic
+// in/out arrows. Detection rules — pure data, no chain change needed:
+//   * op_return = "ns_claim:..."  → NS Claim
+//   * op_return = "deposit:..."   → Exchange Deposit (matching engine)
+//   * op_return = "withdraw:..."  → Exchange Withdraw
+//   * op_return = "open_order:..."  → Order placed
+//   * op_return = "close_order:..." → Order cancelled
+//   * from = "0000…coinbase"      → Mining Reward
+//   * direction === "received"    → Received
+//   * else                         → Sent
+function classifyTx(tx: any, myAddress: string): {
+  label: string;
+  badgeClass: string;
+  isCredit: boolean;
+} {
+  const memo = (tx.op_return || "").toLowerCase();
+  const isFromMe = tx.from && tx.from === myAddress;
+
+  if (memo.startsWith("ns_claim:")) {
+    return { label: "NS Claim", badgeClass: "bg-purple-500/20 text-purple-300", isCredit: false };
+  }
+  if (memo.startsWith("deposit:")) {
+    return { label: "DEX Deposit", badgeClass: "bg-cyan-500/20 text-cyan-300", isCredit: !isFromMe };
+  }
+  if (memo.startsWith("withdraw:")) {
+    return { label: "DEX Withdraw", badgeClass: "bg-cyan-500/20 text-cyan-300", isCredit: !isFromMe };
+  }
+  if (memo.startsWith("open_order:") || memo.startsWith("place_order:")) {
+    return { label: "Open Order", badgeClass: "bg-blue-500/20 text-blue-300", isCredit: false };
+  }
+  if (memo.startsWith("close_order:") || memo.startsWith("cancel_order:")) {
+    return { label: "Cancel Order", badgeClass: "bg-blue-500/20 text-blue-300", isCredit: true };
+  }
+  if (memo.startsWith("stake:") || memo.startsWith("delegate:")) {
+    return { label: "Stake", badgeClass: "bg-amber-500/20 text-amber-300", isCredit: false };
+  }
+  if (memo.startsWith("unstake:") || memo.startsWith("undelegate:")) {
+    return { label: "Unstake", badgeClass: "bg-amber-500/20 text-amber-300", isCredit: true };
+  }
+  // Coinbase: from address is all-zeros (or special "coinbase" marker).
+  if (!tx.from || tx.from === "" || /^0+$/.test(tx.from) || tx.from === "coinbase") {
+    return { label: "Mining Reward", badgeClass: "bg-mempool-green/20 text-mempool-green", isCredit: true };
+  }
+  if (tx.direction === "received" || !isFromMe) {
+    return { label: "Received", badgeClass: "bg-mempool-green/20 text-mempool-green", isCredit: true };
+  }
+  return { label: "Sent", badgeClass: "bg-mempool-orange/20 text-mempool-orange", isCredit: false };
+}
+
 export function WalletPage() {
   const { state: chainState } = useBlockchain();
   const unlocked = useWallet(); // null when locked, { address, privateKey, publicKey, walletIndex } when unlocked
@@ -46,10 +97,22 @@ export function WalletPage() {
   const [sendAmount, setSendAmount] = useState("");
   const [sendFee, setSendFee] = useState("");
   const [sending, setSending] = useState(false);
-  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string; txid?: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [walletNonce, setWalletNonce] = useState<number | null>(null);
+  const [txFilter, setTxFilter] = useState<string>("All");
+  const [reputation, setReputation] = useState<{
+    cups: { love: string; food: string; rent: string; vacation: string };
+    total: number;
+    tier: string;
+    satoshi_badge: boolean;
+    is_zen?: boolean;
+    total_blocks_mined: number;
+    uptime_blocks: number;
+    first_active_block: number;
+  } | null>(null);
+  const [utxos, setUtxos] = useState<any[]>([]);
 
   // Auto-refresh balance + fetch fee estimate + nonce when wallet is unlocked.
   useEffect(() => {
@@ -94,6 +157,19 @@ export function WalletPage() {
           setWalletNonce(nonceResult);
         }
       } catch {}
+
+      // Reputation cups for the OMNI address (love / food / rent / vacation).
+      try {
+        const rep: any = await rpc.request_raw("getreputation", [unlocked.address]);
+        if (rep) setReputation(rep);
+      } catch {}
+
+      // UTXO list — Bitcoin-style "unspent outputs" the wallet can spend.
+      // getbalance includes utxos[] in our chain (see core/rpc_server handlers).
+      try {
+        const bal: any = await rpc.getBalance();
+        if (bal?.utxos) setUtxos(bal.utxos);
+      } catch {}
     };
     refresh();
     const id = setInterval(refresh, 5000);
@@ -116,7 +192,7 @@ export function WalletPage() {
       if (amountSat > balance.sat) throw new Error("Insufficient balance");
       const result: any = await rpc.sendTransaction(sendTo, amountSat);
       const txid = typeof result === "object" ? result?.txid : result;
-      setSendResult({ ok: true, msg: `TX signed & sent: ${(txid || "").toString().slice(0, 24)}...` });
+      setSendResult({ ok: true, msg: `TX signed & sent`, txid: (txid || "").toString() });
       setSendTo("");
       setSendAmount("");
       setSendFee("");
@@ -299,6 +375,12 @@ export function WalletPage() {
             {sendResult && (
               <p className={`text-xs ${sendResult.ok ? "text-mempool-green" : "text-mempool-red"}`}>
                 {sendResult.msg}
+                {sendResult.txid && (
+                  <>
+                    {": "}
+                    <TxHashLink txid={sendResult.txid} truncate={{ left: 12, right: 6 }} />
+                  </>
+                )}
               </p>
             )}
           </div>
@@ -310,52 +392,36 @@ export function WalletPage() {
             Addresses (5 PQ Domains)
           </h3>
 
-          {/* Primary address — show registered name (if any) on top, raw bech32 below */}
-          <div
-            className="bg-mempool-bg rounded-lg p-3 cursor-pointer hover:bg-mempool-bg-light transition-colors"
-            onClick={() => copyAddr(unlocked.address)}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-mempool-text-dim uppercase flex items-center gap-1">
-                <span>🔑</span>
-                <span>Primary — OMNI (ML-DSA-87 + KEM)</span>
-              </span>
-              <span className="text-[10px] text-mempool-green">
-                {copied === unlocked.address ? "Copied!" : "Click to copy"}
-              </span>
-            </div>
-            {myName && (
-              <p className="text-base font-bold text-mempool-blue mt-1">{myName}</p>
-            )}
-            <p className={`font-mono break-all ${myName ? "text-[10px] text-mempool-text-dim mt-0.5" : "text-xs text-mempool-blue mt-1"}`}>
-              {unlocked.address}
-            </p>
-          </div>
+          {/* Primary address — registered name on top, raw bech32 below,
+              click expand for full metadata (UTXO list, balance, nonce). */}
+          <PrimaryAddressCard
+            address={unlocked.address}
+            name={myName}
+            balance={balance}
+            utxos={utxos}
+            nonce={walletNonce}
+            copied={copied === unlocked.address}
+            onCopy={() => copyAddr(unlocked.address)}
+          />
+          {copied === unlocked.address && (
+            <span className="text-[10px] text-mempool-green pl-1">Copied!</span>
+          )}
 
-          {/* PQ domain addresses — fiecare = 1 pahar reputation soulbound */}
-          {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => {
-            const addr = pq.prefix + unlocked.address.slice(unlocked.address.indexOf("_", 3) + 1);
-            return (
-              <div
-                key={pq.prefix}
-                className="bg-mempool-bg rounded-lg p-2.5 cursor-pointer hover:bg-mempool-bg-light transition-colors"
-                onClick={() => copyAddr(addr)}
-                title={`${pq.tier} cup — ${pq.algo} (${pq.bits}-bit). Click to copy ${pq.prefix} address.`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-xs font-mono ${pq.color} flex items-center gap-2`}>
-                    <span className="text-base leading-none">{pq.emoji}</span>
-                    <span className="font-semibold">{pq.tier}</span>
-                    <span className="text-mempool-text-dim/70">·</span>
-                    <span>{pq.prefix}...</span>
-                  </span>
-                  <span className="text-[10px] text-mempool-text-dim">
-                    {pq.algo} ({pq.bits}b)
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {/* PQ domain addresses — fiecare = 1 pahar reputation soulbound.
+              Per project_omnibus_5_isolated_wallets memory: each PQ domain
+              uses an INDEPENDENT mnemonic (no cross-derivation). The actual
+              ob_k1_ / ob_f5_ / ob_d5_ / ob_s3_ addresses live in their own
+              vaults; if not unlocked, we show the slot as "not derived" so
+              the user knows to set it up via the isolated-wallets flow. */}
+          {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => (
+            <PQDomainCard
+              key={pq.prefix}
+              pq={pq}
+              repCup={reputation?.cups?.[pq.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"]}
+              repTier={reputation?.tier}
+              repTotal={reputation?.total}
+            />
+          ))}
 
           {/* Reputation legend — explica ce reprezinta paharele */}
           <div className="pt-2 border-t border-mempool-border/40 mt-2">
@@ -391,10 +457,33 @@ export function WalletPage() {
 
       {/* Transaction History */}
       <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
-        <div className="px-5 py-3 border-b border-mempool-border">
+        <div className="px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
           <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
             Transaction History
           </h3>
+          {/* Type filter pills — driven by classifyTx() result. "All" shows
+              everything, including types that may not be present yet. */}
+          <div className="flex flex-wrap gap-1">
+            {["All", "Sent", "Received", "Mining Reward", "NS Claim", "DEX Deposit", "DEX Withdraw", "Open Order", "Cancel Order", "Stake", "Unstake"].map((type) => {
+              const count = type === "All"
+                ? transactions.length
+                : transactions.filter((t) => classifyTx(t, unlocked.address).label === type).length;
+              if (type !== "All" && count === 0) return null; // hide empty filters
+              return (
+                <button
+                  key={type}
+                  onClick={() => setTxFilter(type)}
+                  className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+                    txFilter === type
+                      ? "bg-mempool-blue text-white font-semibold"
+                      : "bg-mempool-bg text-mempool-text-dim hover:text-mempool-text"
+                  }`}
+                >
+                  {type} {count > 0 && `(${count})`}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="divide-y divide-mempool-border/30 max-h-96 overflow-y-auto">
           {transactions.length === 0 ? (
@@ -402,18 +491,30 @@ export function WalletPage() {
               No transactions yet. Mine blocks or receive OMNI to see history.
             </div>
           ) : (
-            transactions.map((tx: any, i: number) => (
+            transactions
+              .filter((tx) => txFilter === "All" || classifyTx(tx, unlocked.address).label === txFilter)
+              .map((tx: any, i: number) => {
+                const cls = classifyTx(tx, unlocked.address);
+                return (
               <div key={tx.txid || i} className="px-5 py-3 flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  tx.direction === "received" ? "bg-mempool-green" : "bg-mempool-orange"
+                  cls.isCredit ? "bg-mempool-green" : "bg-mempool-orange"
                 }`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-mono text-mempool-text truncate">
-                    {tx.txid?.slice(0, 24)}...
-                  </p>
-                  <p className="text-[10px] text-mempool-text-dim">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${cls.badgeClass}`}>
+                      {cls.label}
+                    </span>
+                    {tx.txid && <TxHashLink txid={tx.txid} truncate={{ left: 14, right: 6 }} className="text-xs" />}
+                  </div>
+                  <p className="text-[10px] text-mempool-text-dim mt-0.5">
                     {tx.from && <AddressLabel address={tx.from} truncate={{ left: 12, right: 6 }} />} → {tx.to && <AddressLabel address={tx.to} truncate={{ left: 12, right: 6 }} />}
                   </p>
+                  {tx.op_return && (
+                    <p className="text-[10px] text-mempool-orange/80 mt-0.5 font-mono break-all">
+                      memo: {tx.op_return}
+                    </p>
+                  )}
                 </div>
                 {/* Confirmations */}
                 <div className="flex-shrink-0">
@@ -435,9 +536,9 @@ export function WalletPage() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className={`text-xs font-mono ${
-                    tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"
+                    cls.isCredit ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
+                    {cls.isCredit ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
                   </p>
                   {tx.fee != null && tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">
@@ -446,7 +547,8 @@ export function WalletPage() {
                   )}
                 </div>
               </div>
-            ))
+                );
+              })
           )}
         </div>
       </div>
@@ -544,6 +646,225 @@ function MyNamesPanel({ address }: { address: string }) {
             </button>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// ── PQDomainCard ────────────────────────────────────────────────────────────
+//
+// Click to expand. Shows everything we know about this PQ domain for the
+// current wallet: algorithm + bit strength, address prefix, reputation cup
+// score (if any), and a placeholder for the actual ob_k1_/ob_f5_/ob_d5_/
+// ob_s3_ address — those need the user to derive an isolated mnemonic per
+// project_omnibus_5_isolated_wallets memory. For now we surface what we
+// have; full multi-mnemonic UI is its own session.
+function PQDomainCard({
+  pq,
+  repCup,
+  repTier,
+  repTotal,
+}: {
+  pq: typeof PQ_DOMAINS[number];
+  repCup: string | undefined;
+  repTier: string | undefined;
+  repTotal: number | undefined;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const cupValue = parseFloat(repCup ?? "0");
+  const isCurrentTier = repTier === pq.tier;
+
+  return (
+    <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full p-2.5 hover:bg-mempool-bg-light transition-colors text-left"
+        title={`${pq.tier} cup — ${pq.algo} (${pq.bits}-bit)`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className={`text-xs font-mono ${pq.color} flex items-center gap-2`}>
+            <span className="text-base leading-none">{pq.emoji}</span>
+            <span className="font-semibold">{pq.tier}</span>
+            <span className="text-mempool-text-dim/70">·</span>
+            <span>{pq.prefix}…</span>
+            {isCurrentTier && (
+              <span className="ml-1 text-[9px] uppercase tracking-wider bg-mempool-blue/20 text-mempool-blue px-1.5 py-0.5 rounded">Current tier</span>
+            )}
+          </span>
+          <span className="text-[10px] text-mempool-text-dim flex items-center gap-2">
+            {repCup !== undefined && (
+              <span className="font-mono font-semibold text-mempool-text">{repCup}/100</span>
+            )}
+            <span>{expanded ? "▾" : "▸"}</span>
+          </span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-3 pt-1 space-y-2 text-[11px] border-t border-mempool-border/30">
+          <div className="grid grid-cols-2 gap-2 text-mempool-text-dim">
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Algorithm</div>
+              <div className="text-mempool-text">{pq.algo}</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Security</div>
+              <div className="text-mempool-text">{pq.bits}-bit</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Address prefix</div>
+              <div className="text-mempool-text font-mono">{pq.prefix}…</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Reputation cup</div>
+              <div className="text-mempool-text">
+                {repCup ?? "0.00"} / 100
+                {repTotal !== undefined && (
+                  <span className="text-mempool-text-dim/70"> · total {repTotal.toLocaleString()}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Cup-specific description */}
+          <div className="text-mempool-text-dim italic text-[10px]">
+            {pq.tier === "LOVE" && "Uptime + continuitate — fed by every block your node sees online."}
+            {pq.tier === "FOOD" && "Useful work — mining, oracle reports, agent tasks."}
+            {pq.tier === "RENT" && "Capital committed — staking, LP positions, long-term holding."}
+            {pq.tier === "VACATION" && "Network longevity — cumulative days active on chain."}
+          </div>
+
+          {/* Cup score bar */}
+          <div className="h-1.5 bg-mempool-bg-elev rounded overflow-hidden">
+            <div
+              className={`h-full ${pq.color.replace("text-", "bg-")}/60`}
+              style={{ width: `${Math.min(cupValue, 100)}%` }}
+            />
+          </div>
+
+          <div className="text-[9px] text-mempool-text-dim/60 pt-1 border-t border-mempool-border/30">
+            Independent isolated wallet. Per the 5-mnemonic security model, the
+            actual {pq.prefix}… address is derived from a separate seed phrase
+            (see Isolated Wallets tab in the desktop app).
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PrimaryAddressCard ──────────────────────────────────────────────────────
+//
+// Expandable Bitcoin-style address card. Click anywhere on the row to copy
+// the bech32; click the chevron / "Show details" to expand and see the full
+// metadata bundle: balance, nonce, UTXO list (Bitcoin parity — each unspent
+// output is listed with its TX hash + vout + amount, clickable to drill into
+// the source TX), associated names, last-seen block.
+function PrimaryAddressCard({
+  address,
+  name,
+  balance,
+  utxos,
+  nonce,
+  copied,
+  onCopy,
+}: {
+  address: string;
+  name: string | null;
+  balance: { sat: number; omni: string };
+  utxos: any[];
+  nonce: number | null;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  void copied;
+  return (
+    <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
+      <div className="p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-mempool-text-dim uppercase flex items-center gap-1">
+            <span>🔑</span>
+            <span>Primary — OMNI (secp256k1 ECDSA, Bitcoin-compatible)</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[10px] text-mempool-text-dim hover:text-mempool-text"
+          >
+            {expanded ? "Hide details ▾" : "Show details ▸"}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onCopy}
+          className="block text-left w-full mt-1"
+          title="Click to copy address"
+        >
+          {name && (
+            <p className="text-base font-bold text-mempool-blue">{name}</p>
+          )}
+          <p className={`font-mono break-all hover:text-mempool-orange ${name ? "text-[10px] text-mempool-text-dim" : "text-xs text-mempool-blue"}`}>
+            {address}
+          </p>
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="border-t border-mempool-border/30 p-3 space-y-3 text-[11px]">
+          {/* Balance + nonce summary */}
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Balance</div>
+              <div className="text-mempool-green font-mono font-semibold">{balance.omni}</div>
+              <div className="text-[9px] text-mempool-text-dim">{balance.sat.toLocaleString()} SAT</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Nonce</div>
+              <div className="text-mempool-blue font-mono font-semibold">{nonce ?? "—"}</div>
+              <div className="text-[9px] text-mempool-text-dim">tx counter</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">UTXOs</div>
+              <div className="text-mempool-text font-mono font-semibold">{utxos.length}</div>
+              <div className="text-[9px] text-mempool-text-dim">unspent outputs</div>
+            </div>
+          </div>
+
+          {/* UTXO list — Bitcoin parity. Each row is a spendable output. */}
+          {utxos.length > 0 && (
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60 mb-1">Unspent outputs (Bitcoin-style)</div>
+              <div className="bg-mempool-bg-elev rounded p-2 max-h-48 overflow-y-auto space-y-1">
+                {utxos.slice(0, 50).map((u: any, idx: number) => (
+                  <div key={`${u.txid}-${u.vout ?? idx}`} className="flex items-center justify-between gap-2 text-[10px] font-mono">
+                    <div className="flex-1 min-w-0">
+                      {u.txid ? (
+                        <TxHashLink txid={u.txid} truncate={{ left: 12, right: 6 }} />
+                      ) : (
+                        <span className="text-mempool-text-dim">(no txid)</span>
+                      )}
+                      <span className="text-mempool-text-dim/70"> #{u.vout ?? 0}</span>
+                    </div>
+                    <span className="text-mempool-text">{((u.amount ?? u.value ?? 0) / 1e9).toFixed(4)} OMNI</span>
+                  </div>
+                ))}
+                {utxos.length > 50 && (
+                  <div className="text-[9px] text-mempool-text-dim text-center pt-1">
+                    + {utxos.length - 50} more…
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="text-[9px] text-mempool-text-dim/70 pt-1 border-t border-mempool-border/30">
+            This is your secp256k1 ECDSA address — Bitcoin-compatible signature
+            scheme. UTXO model: every payment you receive is an unspent output
+            you can later combine into outgoing transactions, exactly like BTC.
+          </div>
+        </div>
       )}
     </div>
   );

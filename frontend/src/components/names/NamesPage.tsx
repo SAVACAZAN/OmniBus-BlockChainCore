@@ -3,6 +3,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
+import { TxHashLink } from "../common/TxHashLink";
 
 const rpc = new OmniBusRpcClient();
 
@@ -77,7 +78,7 @@ export function NamesPage() {
   const [regTld, setRegTld] = useState<Tld>("omnibus");
   const [searchTld, setSearchTld] = useState<Tld>("omnibus");
   const [registering, setRegistering] = useState(false);
-  const [regResult, setRegResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [regResult, setRegResult] = useState<{ ok: boolean; message: string; txid?: string } | null>(null);
 
   const [ensFee, setEnsFee] = useState<EnsFeeResp | null>(null);
 
@@ -217,10 +218,10 @@ export function NamesPage() {
       const r: any = await rpc.request_raw("registername", params);
       if (r && r.name) {
         const label = r.fullLabel || `${r.name}.${r.tld || regTld}`;
-        const txDisplay = generatedTxid.slice(0, 16) + "…" + generatedTxid.slice(-8);
         setRegResult({
           ok: true,
-          message: `✓ ${label} registered at block ${r.registeredAtBlock}. Fee TX: ${txDisplay} (${feeOmni} OMNI to treasury)`,
+          message: `✓ ${label} registered at block ${r.registeredAtBlock} (${feeOmni} OMNI to treasury). Fee TX:`,
+          txid: generatedTxid,
         });
         setRegName("");
         refreshNameCache(); // global name cache so Header pill etc. pick it up
@@ -465,6 +466,12 @@ export function NamesPage() {
           {regResult && (
             <div className={`mt-3 p-3 rounded border text-sm ${regResult.ok ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"}`}>
               {regResult.message}
+              {regResult.txid && (
+                <>
+                  {" "}
+                  <TxHashLink txid={regResult.txid} truncate={{ left: 14, right: 8 }} />
+                </>
+              )}
             </div>
           )}
         </div>
@@ -506,10 +513,10 @@ export function NamesPage() {
                   <td className="px-3 py-2 text-xs">
                     <button
                       onClick={() => navigator.clipboard.writeText(e.address)}
-                      className="text-mempool-text hover:text-mempool-blue hover:underline"
-                      title="Click to copy address"
+                      className="font-mono text-mempool-text hover:text-mempool-blue hover:underline"
+                      title={`Click to copy ${e.address}`}
                     >
-                      <AddressLabel address={e.address} truncate={{ left: 14, right: 8 }} />
+                      {e.address.slice(0, 14)}…{e.address.slice(-8)}
                     </button>
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">

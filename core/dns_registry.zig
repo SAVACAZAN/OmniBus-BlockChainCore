@@ -146,18 +146,24 @@ pub const RESERVED_NAMES = [_][]const u8{
     "visa", "mastercard", "paypal", "stripe",
 };
 
-/// Returns true if `name` (lowercase, no dot) is reserved.
-/// Combines the hardcoded RESERVED_NAMES list with registrar_addresses.zig
-/// genesis reservations (slot-tied .omnibus names).
-pub fn isReservedName(name: []const u8) bool {
+/// Returns true if `name.tld` is reserved.
+///
+/// Two layers:
+///   1. RESERVED_NAMES (global brand list) — applies to every TLD.
+///      "google" is unclaimable as both google.omnibus and google.arbitraje.
+///   2. Registrar slot reservations (savacazan, ens, faucet, etc.) — these
+///      are slot-tied to a SPECIFIC full label like "savacazan.omnibus".
+///      They do NOT carry over to other TLDs. So `savacazan.arbitraje` is
+///      free even though `savacazan.omnibus` is locked to slot 0.
+pub fn isReservedName(name: []const u8, tld: []const u8) bool {
+    // Layer 1: global brand list — TLD-agnostic.
     for (RESERVED_NAMES) |r| {
         if (std.mem.eql(u8, r, name)) return true;
     }
-    // Also check registrar slot reservations (they store full labels like "savacazan.omnibus").
-    // We check both the plain name and the .omnibus full label for completeness.
-    if (registrar_mod.isReservedName(name)) return true;
-    var buf: [64]u8 = undefined;
-    const full = std.fmt.bufPrint(&buf, "{s}.omnibus", .{name}) catch return false;
+    // Layer 2: registrar slot reservations are full-label specific.
+    // Check the actual `<name>.<tld>` pair, not just the bare label.
+    var buf: [80]u8 = undefined;
+    const full = std.fmt.bufPrint(&buf, "{s}.{s}", .{ name, tld }) catch return false;
     if (registrar_mod.isReservedName(full)) return true;
     return false;
 }
@@ -373,7 +379,7 @@ pub const DnsRegistry = struct {
     ) !void {
         if (!isValidName(name)) return error.InvalidName;
         if (!isValidTld(tld)) return error.InvalidTld;
-        if (isReservedName(name)) return error.NameReserved;
+        if (isReservedName(name, tld)) return error.NameReserved;
         if (self.isOwnerCapped(claimer_address, current_block)) return error.OwnerCapped;
         if (self.entry_count >= MAX_ENTRIES) return error.RegistryFull;
         if (self.resolveWithTld(name, tld, current_block) != null) return error.NameTaken;
@@ -432,7 +438,7 @@ pub const DnsRegistry = struct {
         if (!isValidName(name)) return error.InvalidName;
         if (!isValidTld(tld)) return error.InvalidTld;
         if (self.entry_count >= MAX_ENTRIES) return error.RegistryFull;
-        if (isReservedName(name)) return error.ReservedName;
+        if (isReservedName(name, tld)) return error.ReservedName;
         if (self.isOwnerCapped(owner, current_block)) return error.OwnerCapExceeded;
 
         // Name+TLD pair must be unique. "alice.omnibus" si "alice.arbitraje" pot coexista.
