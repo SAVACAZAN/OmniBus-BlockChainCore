@@ -19,6 +19,7 @@ import { HDKey } from "@scure/bip32";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
 
 const STORAGE_KEY = "omnibus.exchange.vault.v1";
+const SESSION_KEY = "omnibus.exchange.session.v1";
 const PBKDF2_ITERS = 200_000;
 
 export type Unlocked = {
@@ -26,6 +27,18 @@ export type Unlocked = {
   publicKey: string;  // 66 hex chars compressed
   address: string;    // ob1q…
   walletIndex: number; // BIP-44 index used to derive (0 by default)
+  /** BIP-39 mnemonic in plaintext. ONLY present when the user unlocked via
+   *  mnemonic this session (not when restoring from privkey or vault). Never
+   *  persisted — held in RAM only, lost on page reload unless the user
+   *  re-pastes. UI uses this for the "Backup wallet" panel. */
+  mnemonic?: string;
+  /** BIP-32 extended private key (xprv). Same lifecycle as `mnemonic` —
+   *  only present when unlocked from mnemonic. */
+  xprv?: string;
+  /** BIP-32 extended public key (xpub) at account level. Always derivable
+   *  from privkey + chain_code so we populate it whenever we can compute
+   *  it (mnemonic and privkey unlock paths). */
+  xpub?: string;
 };
 
 export type VaultMetadata = {
@@ -36,6 +49,54 @@ export type VaultMetadata = {
 
 let unlocked: Unlocked | null = null;
 const listeners = new Set<() => void>();
+
+// On module load, try to restore an unlocked session from sessionStorage.
+// sessionStorage is per-tab — switching tabs in the SPA keeps the state,
+// but closing the tab wipes it. This is what users mean by "stay connected
+// while I navigate" without committing to AES-encrypted long-term storage.
+(function restoreSession() {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.privateKey === "string" &&
+      typeof parsed?.publicKey === "string" &&
+      typeof parsed?.address === "string" &&
+      typeof parsed?.walletIndex === "number"
+    ) {
+      unlocked = {
+        privateKey: parsed.privateKey,
+        publicKey: parsed.publicKey,
+        address: parsed.address,
+        walletIndex: parsed.walletIndex,
+      };
+    }
+  } catch { /* corrupted session — ignore */ }
+})();
+
+function writeSession(u: Unlocked | null) {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    if (u) {
+      // Strip backup-only fields before persisting. mnemonic + xprv stay in
+      // RAM only; reload requires the user to re-paste the mnemonic to see
+      // them again. xpub is public — fine to persist.
+      const { mnemonic: _m, xprv: _x, ...persistable } = u;
+      void _m; void _x;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(persistable));
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  } catch { /* quota / disabled — ignore */ }
+}
+
+/// Whether we currently have a sessionStorage cached unlocked wallet.
+export function hasSession(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try { return sessionStorage.getItem(SESSION_KEY) !== null; } catch { return false; }
+}
 
 function notify() {
   for (const fn of listeners) {
@@ -56,72 +117,130 @@ export function lockWallet(): void {
     // only helps for the wrapper object, but better than nothing.
     unlocked = null;
   }
+  writeSession(null);
   notify();
 }
 
 /**
  * Derive a private key from a BIP-39 mnemonic at m/44'/777'/0'/0/<index>.
  * Throws on invalid mnemonic.
+ *
+ * `bip39Passphrase` is the OPTIONAL "25th word" (BIP-39 §8 passphrase),
+ * mixed into the seed via PBKDF2 — same mnemonic + different passphrase
+ * = completely different wallet. This is what hardware wallets call
+ * "passphrase" or "hidden wallet". Not to be confused with the local
+ * vault PIN, which only encrypts the cached privkey in localStorage.
+ * Empty string = standard derivation (no extension).
  */
-export function privKeyFromMnemonic(mnemonic: string, walletIndex = 0): string {
+export function privKeyFromMnemonic(
+  mnemonic: string,
+  walletIndex = 0,
+  bip39Passphrase = "",
+): string {
+  return derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase).privateKey;
+}
+
+/**
+ * Same derivation as `privKeyFromMnemonic` but returns the full key bundle —
+ * useful for the wallet metadata / backup panel which needs xprv (account
+ * level) and xpub alongside the leaf privkey.
+ *
+ * Account-level xprv/xpub are at `m/44'/777'/0'`. We use account level rather
+ * than the leaf so a single xpub can derive every receiving address under
+ * that account (BIP-44 standard).
+ */
+export function derivedKeysFromMnemonic(
+  mnemonic: string,
+  walletIndex = 0,
+  bip39Passphrase = "",
+): { privateKey: string; xprv: string; xpub: string } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
   }
-  const seed = mnemonicToSeedSync(trimmed);
+  const seed = mnemonicToSeedSync(trimmed, bip39Passphrase);
   const root = HDKey.fromMasterSeed(seed);
-  // OmniBus coin type = 777
-  const child = root.derive(`m/44'/777'/0'/0/${walletIndex}`);
+  // Account level — supports xpub-derived public-only watchers.
+  const account = root.derive(`m/44'/777'/0'`);
+  // Leaf for actual signing.
+  const child = account.derive(`/0/${walletIndex}`);
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
-  return bytesToHex(child.privateKey);
+  return {
+    privateKey: bytesToHex(child.privateKey),
+    xprv: account.privateExtendedKey, // base58check-encoded BIP-32 extended privkey
+    xpub: account.publicExtendedKey,  // base58check-encoded BIP-32 extended pubkey
+  };
 }
 
 /**
- * Unlock by mnemonic. The private key is derived locally and held in memory.
- * If `passphrase` is given, also persist an encrypted vault to localStorage so
- * the user can unlock with the passphrase next time (no need to re-paste the
- * 12 words).
+ * Unlock by mnemonic. Two distinct optional secrets, do NOT confuse them:
+ *
+ *   bip39Passphrase — BIP-39 §8 "25th word". Mixed into the seed before
+ *     derivation. Same 12 words + different passphrase = different wallet
+ *     and different ob1q address. Empty = legacy / no extension.
+ *
+ *   vaultPin — PIN to encrypt the derived privkey under AES-GCM and
+ *     persist it in localStorage. Only used to skip re-pasting the 12
+ *     words on next visit. Doesn't touch the wallet identity.
  */
 export async function unlockFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
-  passphrase?: string,
+  vaultPin?: string,
+  bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const privKey = privKeyFromMnemonic(mnemonic, walletIndex);
+  const { privateKey: privKey, xprv, xpub } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
-  unlocked = { privateKey: privKey, publicKey, address, walletIndex };
-  if (passphrase) {
-    await persistVault(privKey, walletIndex, address, passphrase);
+  // Hold the mnemonic + xprv ONLY in process RAM (singleton). Never written
+  // to sessionStorage / localStorage / vault — the vault payload is just the
+  // leaf privkey. So a page reload loses the mnemonic; the user re-pastes if
+  // they want to see backup material again. xpub is fine to persist (public).
+  unlocked = {
+    privateKey: privKey,
+    publicKey,
+    address,
+    walletIndex,
+    mnemonic: mnemonic.trim().toLowerCase(),
+    xprv,
+    xpub,
+  };
+  writeSession(unlocked);
+  if (vaultPin) {
+    await persistVault(privKey, walletIndex, address, vaultPin);
   }
   notify();
   return unlocked;
 }
 
 /**
- * Unlock by raw private key. Same persistence semantics as mnemonic unlock.
+ * Unlock by raw private key. `vaultPin` (optional) encrypts the privkey
+ * for localStorage persistence; same semantics as mnemonic unlock.
+ * No BIP-39 passphrase here — the privkey is already final.
  */
 export async function unlockFromPrivKey(
   privKeyHex: string,
   walletIndex = 0,
-  passphrase?: string,
+  vaultPin?: string,
 ): Promise<Unlocked> {
   let h = privKeyHex.trim();
   if (h.startsWith("0x")) h = h.slice(2);
   if (h.length !== 64) throw new Error("Private key must be 64 hex chars");
   const { publicKey, address } = deriveAddressFromPrivKey(h);
   unlocked = { privateKey: h, publicKey, address, walletIndex };
-  if (passphrase) {
-    await persistVault(h, walletIndex, address, passphrase);
+  writeSession(unlocked);
+  if (vaultPin) {
+    await persistVault(h, walletIndex, address, vaultPin);
   }
   notify();
   return unlocked;
 }
 
 /**
- * Try to unlock the persisted vault using the given passphrase. Returns
- * the unlocked wallet on success; throws on bad passphrase / corrupted data.
+ * Try to unlock the persisted vault using the given PIN. Returns
+ * the unlocked wallet on success; throws on bad PIN / corrupted data.
  */
-export async function unlockFromVault(passphrase: string): Promise<Unlocked> {
+export async function unlockFromVault(vaultPin: string): Promise<Unlocked> {
+  const passphrase = vaultPin;
   const meta = readVaultMeta();
   if (!meta) throw new Error("No saved vault on this device");
   const vault = readVaultRaw();
@@ -134,6 +253,7 @@ export async function unlockFromVault(passphrase: string): Promise<Unlocked> {
     throw new Error("Decryption succeeded but address mismatch — wrong passphrase?");
   }
   unlocked = { privateKey: privKey, publicKey, address, walletIndex: meta.walletIndex };
+  writeSession(unlocked);
   notify();
   return unlocked;
 }

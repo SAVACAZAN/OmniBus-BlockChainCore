@@ -453,13 +453,18 @@ export function WalletPage() {
       </div>
 
       {/* Wallet metadata — JSON snapshot, Bitcoin-wallet-export style.
-          Shows everything the UI knows about this identity in one
-          structured payload. Useful for debugging, audit trails, support
-          requests. */}
+          Shows everything the UI knows about this identity. Mnemonic + xprv
+          are present ONLY when the user unlocked via mnemonic this session
+          (RAM-only, never persisted). On reload they're gone — the user
+          re-pastes if they need to see them again. */}
       <WalletMetadataPanel
         address={unlocked.address}
         publicKey={unlocked.publicKey}
+        privateKey={unlocked.privateKey}
         walletIndex={unlocked.walletIndex}
+        mnemonic={unlocked.mnemonic}
+        xprv={unlocked.xprv}
+        xpub={unlocked.xpub}
         name={myName}
         balance={balance}
         nonce={walletNonce}
@@ -898,7 +903,11 @@ function PrimaryAddressCard({
 function WalletMetadataPanel({
   address,
   publicKey,
+  privateKey,
   walletIndex,
+  mnemonic,
+  xprv,
+  xpub,
   name,
   balance,
   nonce,
@@ -908,7 +917,11 @@ function WalletMetadataPanel({
 }: {
   address: string;
   publicKey: string;
+  privateKey: string;
   walletIndex: number;
+  mnemonic: string | undefined;
+  xprv: string | undefined;
+  xpub: string | undefined;
   name: string | null;
   balance: { sat: number; omni: string };
   nonce: number | null;
@@ -917,9 +930,13 @@ function WalletMetadataPanel({
   chainName: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const metadata = {
+  const REDACTED = "•••••••••• click Show secrets to reveal ••••••••••";
+
+  // Public-only metadata — safe to copy to clipboard / share with support.
+  const safeMetadata = {
     wallet_info: {
       name: name ?? "(unnamed)",
       version: "1.0",
@@ -928,12 +945,11 @@ function WalletMetadataPanel({
       created_via: "OmniBus BlockChain Explorer",
     },
     crypto: {
-      // OmniBus uses BIP-32 HD derivation just like Bitcoin. Path 84'/0'/0'/0/N
-      // is the SegWit standard; OmniBus reuses it for the OMNI/secp256k1 slot.
-      derivation_path: `m/84'/0'/0'/0/${walletIndex}`,
+      derivation_path: `m/44'/777'/0'/0/${walletIndex}`,
       wallet_index: walletIndex,
       public_key: publicKey,
-      // No xprv / mnemonic in this export — keys never leave the singleton.
+      xpub: xpub ?? "(unlock via mnemonic to expose)",
+      // mnemonic / xprv intentionally absent from the safe payload.
     },
     security: {
       signing: "secp256k1 ECDSA (Bitcoin-compatible)",
@@ -966,9 +982,6 @@ function WalletMetadataPanel({
         prefix: "ob1q",
         type: "SegWit-compatible bech32 (Bitcoin parity)",
       },
-      // The 4 PQ slots are listed by scheme but addresses are blank until
-      // the user derives an isolated mnemonic for each (per the
-      // 5-mnemonic security model).
       ...["LOVE", "FOOD", "RENT", "VACATION"].map((tier) => {
         const meta = PQ_DOMAINS.find((d) => d.tier === tier)!;
         return {
@@ -984,7 +997,25 @@ function WalletMetadataPanel({
     ],
   };
 
-  const json = JSON.stringify(metadata, null, 2);
+  // Full backup payload — only shown when the user explicitly clicks
+  // "Show secrets". Includes mnemonic + xprv + raw privkey for paper backup.
+  const backupMetadata = {
+    ...safeMetadata,
+    crypto: {
+      ...safeMetadata.crypto,
+      mnemonic: mnemonic ?? "(not available — unlocked from privkey/vault, not mnemonic)",
+      private_key_hex: privateKey,
+      xprv: xprv ?? "(not available — unlocked from privkey/vault)",
+    },
+  };
+
+  const json = JSON.stringify(showSecrets ? backupMetadata : safeMetadata, null, 2);
+
+  const copyToClipboard = (label: string, payload: string) => {
+    navigator.clipboard.writeText(payload);
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   return (
     <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
@@ -998,14 +1029,10 @@ function WalletMetadataPanel({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(json);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
+            onClick={() => copyToClipboard("json", json)}
             className="text-[10px] px-2 py-1 bg-mempool-bg rounded hover:bg-mempool-bg-light text-mempool-text-dim hover:text-mempool-text"
           >
-            {copied ? "Copied!" : "Copy JSON"}
+            {copiedField === "json" ? "Copied!" : "Copy JSON"}
           </button>
           <button
             type="button"
@@ -1016,11 +1043,121 @@ function WalletMetadataPanel({
           </button>
         </div>
       </div>
+
       {expanded && (
-        <pre className="p-4 text-[10px] text-mempool-text font-mono overflow-x-auto whitespace-pre max-h-96 overflow-y-auto leading-relaxed">
-          {json}
-        </pre>
+        <div>
+          {/* Backup secrets — explicit reveal with red warning */}
+          <div className="px-5 py-3 bg-red-500/5 border-b border-red-500/20">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <p className="text-[11px] font-semibold text-red-300">
+                  ⚠ Backup material
+                </p>
+                <p className="text-[10px] text-mempool-text-dim mt-0.5 leading-relaxed">
+                  Your mnemonic, extended private key (xprv) and raw private key
+                  give full control of this wallet. Anyone with these can drain
+                  every OMNI you own. Write the mnemonic on paper, store in 3
+                  separate physical locations, never paste into a website you
+                  don't fully control.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSecrets((v) => !v)}
+                className={`text-[10px] px-3 py-1.5 rounded font-semibold whitespace-nowrap ${
+                  showSecrets
+                    ? "bg-red-500/30 text-red-200 hover:bg-red-500/40"
+                    : "bg-mempool-bg text-mempool-text hover:bg-mempool-bg-light"
+                }`}
+              >
+                {showSecrets ? "Hide secrets" : "Show secrets"}
+              </button>
+            </div>
+
+            {showSecrets && (
+              <div className="mt-3 space-y-2">
+                <BackupRow
+                  label="Mnemonic (12/24 words)"
+                  value={mnemonic ?? "(not available — unlock via mnemonic to see)"}
+                  copyable={!!mnemonic}
+                  copyKey="mnemonic"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
+                />
+                <BackupRow
+                  label="Extended private key (xprv, account level m/44'/777'/0')"
+                  value={xprv ?? "(not available — unlock via mnemonic to see)"}
+                  copyable={!!xprv}
+                  copyKey="xprv"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
+                />
+                <BackupRow
+                  label="Raw private key (leaf, hex)"
+                  value={privateKey}
+                  copyable
+                  copyKey="privkey"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
+                />
+                <BackupRow
+                  label="Extended public key (xpub, share-safe)"
+                  value={xpub ?? "(not available — unlock via mnemonic to see)"}
+                  copyable={!!xpub}
+                  copyKey="xpub"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
+                />
+                {!mnemonic && (
+                  <p className="text-[10px] text-amber-300 mt-2">
+                    Mnemonic + xprv aren't in memory because you unlocked
+                    from a private key or saved vault. To see them, log out
+                    and unlock again with your 12/24 word phrase. Mnemonic
+                    is held in RAM only and never persisted, so a page
+                    reload also clears it.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <pre className="p-4 text-[10px] text-mempool-text font-mono overflow-x-auto whitespace-pre max-h-96 overflow-y-auto leading-relaxed">
+            {showSecrets ? json : json.replace(
+              /(mnemonic|private_key_hex|xprv)":\s*"[^"]+"/g,
+              `$1": "${REDACTED}"`,
+            )}
+          </pre>
+        </div>
       )}
+    </div>
+  );
+}
+
+function BackupRow({
+  label, value, copyable, copyKey, copiedField, onCopy,
+}: {
+  label: string;
+  value: string;
+  copyable: boolean;
+  copyKey: string;
+  copiedField: string | null;
+  onCopy: (label: string, payload: string) => void;
+}) {
+  return (
+    <div className="bg-mempool-bg rounded p-2.5">
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim">{label}</p>
+        {copyable && (
+          <button
+            type="button"
+            onClick={() => onCopy(copyKey, value)}
+            className="text-[9px] px-2 py-0.5 bg-mempool-bg-elev rounded hover:bg-mempool-bg-light text-mempool-text-dim hover:text-mempool-text"
+          >
+            {copiedField === copyKey ? "Copied!" : "Copy"}
+          </button>
+        )}
+      </div>
+      <p className="text-[10px] font-mono text-mempool-text break-all leading-relaxed">{value}</p>
     </div>
   );
 }
