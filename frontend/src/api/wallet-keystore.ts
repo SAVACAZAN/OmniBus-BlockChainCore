@@ -21,26 +21,17 @@ import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
 
-// pq-sign is loaded lazily at runtime so Vite 4 never crawls it during its
-// startup dep-scan. A static import would cause Vite to spider into pq-sign.ts
-// and then complain about the @noble/post-quantum ESM-only subpath exports.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PqSignModule = { pqKeypairFromSeed: any; pqAddressFromPublicKey: any };
-type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256s";
-// Use new Function so esbuild/Vite scanner never sees the specifier string.
-const _dynImportLocal = new Function("p", "return import(p)") as (p: string) => Promise<PqSignModule>;
-const _PQ_SIGN_PATH = atob("Li9wcS1zaWdu");
-let _pqSignModule: PqSignModule | null = null;
-async function pqSignModule(): Promise<PqSignModule> {
-  if (_pqSignModule) return _pqSignModule;
-  _pqSignModule = await _dynImportLocal(_PQ_SIGN_PATH);
-  return _pqSignModule;
-}
-async function pqKeypairFromSeed(scheme: PqScheme, seed: Uint8Array) {
-  return (await pqSignModule()).pqKeypairFromSeed(scheme, seed);
-}
+// pq-sign loads @noble/post-quantum lazily via new Function+atob inside pq-sign.ts
+// itself, so Vite 4 won't find @noble/post-quantum subpath exports when it crawls
+// this static import. Safe to import statically.
+import {
+  pqKeypairFromSeed,
+  pqAddressFromPublicKey as _pqAddressFromPublicKey,
+  type PqScheme,
+} from "./pq-sign";
+
 async function pqAddressFromPublicKeyAsync(scheme: PqScheme, publicKey: Uint8Array): Promise<string> {
-  return (await pqSignModule()).pqAddressFromPublicKey(scheme, publicKey);
+  return _pqAddressFromPublicKey(scheme, publicKey);
 }
 
 const STORAGE_KEY = "omnibus.exchange.vault.v1";
@@ -94,10 +85,11 @@ export type Unlocked = {
    *  it (mnemonic and privkey unlock paths). */
   xpub?: string;
   /** 4 PQ-OMNI slots (ML-DSA, Falcon, Dilithium, SLH-DSA). Populated when
-   *  unlock has access to the mnemonic (so we can derive the BIP-32
-   *  account chain code). On reload from session/vault these are restored
-   *  if the leaf pubkey + path are recomputable; else recomputed lazily. */
+   *  unlock has access to the mnemonic. */
   pqOmni?: PqOmniSlot[];
+  /** BIP-44 addresses at indices 0..18 (m/44'/777'/0'/0/i).
+   *  Only populated when unlocked from mnemonic. */
+  allAddresses?: { index: number; address: string; path: string }[];
 };
 
 /** PQ-OMNI scheme catalogue. The `account` index is the BIP-44 account
@@ -295,7 +287,7 @@ export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; root: HDKey } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
@@ -310,11 +302,22 @@ export function derivedKeysFromMnemonic(
   // PQ-OMNI slots derived from the same root at different accounts (5'..8').
   // Returns a Promise — PQ modules load lazily on first call.
   const pqOmni = derivePqOmniSlots(root);
+
+  // All 19 BIP-44 addresses (index 0..18) — synchronous, no PQ needed.
+  const allAddresses = Array.from({ length: 19 }, (_, i) => {
+    const path = `m/44'/777'/0'/0/${i}`;
+    const leaf = root.derive(path);
+    if (!leaf.privateKey) return null;
+    const { address } = deriveAddressFromPrivKey(bytesToHex(leaf.privateKey));
+    return { index: i, address, path };
+  }).filter(Boolean) as { index: number; address: string; path: string }[];
+
   return {
     privateKey: bytesToHex(child.privateKey),
     xprv: account.privateExtendedKey,
     xpub: account.publicExtendedKey,
     pqOmni,
+    allAddresses,
     root,
   };
 }
@@ -336,14 +339,9 @@ export async function unlockFromMnemonic(
   vaultPin?: string,
   bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise, allAddresses } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
   const pqOmni = await pqOmniPromise;
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
-  // Hold the mnemonic + xprv ONLY in process RAM (singleton). Never written
-  // to sessionStorage / localStorage / vault — the vault payload is just the
-  // leaf privkey. So a page reload loses the mnemonic; the user re-pastes if
-  // they want to see backup material again. xpub + pqOmni addresses are
-  // public and fine to persist for tab restore.
   unlocked = {
     privateKey: privKey,
     publicKey,
@@ -353,6 +351,7 @@ export async function unlockFromMnemonic(
     xprv,
     xpub,
     pqOmni,
+    allAddresses,
   };
   writeSession(unlocked);
   if (vaultPin) {

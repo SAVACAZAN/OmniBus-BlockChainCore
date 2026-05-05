@@ -438,6 +438,11 @@ export function WalletPage() {
             </div>
           )}
 
+          {/* All 19 BIP-44 addresses */}
+          {unlocked.allAddresses && unlocked.allAddresses.length > 0 && (
+            <AllAddressesPanel addresses={unlocked.allAddresses} currentIndex={unlocked.walletIndex} />
+          )}
+
           {/* Reputation legend — explica ce reprezinta paharele */}
           <div className="pt-2 border-t border-mempool-border/40 mt-2">
             <p className="text-[10px] text-mempool-text-dim leading-relaxed">
@@ -1199,6 +1204,69 @@ function BackupRow({
   );
 }
 
+// ── AllAddressesPanel ───────────────────────────────────────────────────────
+// Shows BIP-44 addresses m/44'/777'/0'/0/0 .. /0/18 in a collapsible list.
+// The active wallet index is highlighted.
+
+function AllAddressesPanel({
+  addresses,
+  currentIndex,
+}: {
+  addresses: { index: number; address: string; path: string }[];
+  currentIndex: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function copy(addr: string) {
+    navigator.clipboard.writeText(addr);
+    setCopied(addr);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  return (
+    <div className="pt-3 mt-2 border-t border-mempool-border/50">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center justify-between w-full text-left"
+      >
+        <p className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+          All BIP-44 addresses <span className="normal-case tracking-normal text-mempool-blue">— m/44'/777'/0'/0/0..18</span>
+        </p>
+        <span className="text-[10px] text-mempool-text-dim">{expanded ? "▾" : "▸"} {addresses.length} addresses</span>
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-1">
+          {addresses.map(({ index, address, path }) => (
+            <div
+              key={index}
+              className={`flex items-center gap-2 rounded px-2 py-1 text-[10px] font-mono ${
+                index === currentIndex
+                  ? "bg-mempool-blue/10 border border-mempool-blue/30"
+                  : "bg-mempool-bg"
+              }`}
+            >
+              <span className="text-mempool-text-dim/60 w-5 text-right shrink-0">{index}</span>
+              <span className="text-mempool-text flex-1 break-all">{address}</span>
+              {index === currentIndex && (
+                <span className="text-[8px] text-mempool-blue shrink-0">active</span>
+              )}
+              <button
+                type="button"
+                onClick={() => copy(address)}
+                className="text-[8px] text-mempool-text-dim hover:text-mempool-text shrink-0"
+              >
+                {copied === address ? "✓" : "copy"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── PqSendForm ──────────────────────────────────────────────────────────────
 //
 // Send OMNI from a PQ-OMNI address using a real post-quantum signature.
@@ -1241,10 +1309,7 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
       const timestamp = Math.floor(Date.now() / 1000);
       const schemeCode = Object.keys(PQ_OMNI_SCHEME_NAMES).indexOf(slot.scheme) + 9;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const _dyn = new Function("p", "return import(p)") as (p: string) => Promise<any>;
-      const pqMod = await _dyn(atob("Li4vLi4vYXBpL3BxLXNpZ24="));
-      const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = pqMod;
+      const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = await import("../../api/pq-sign");
       const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
 
       // 3. Build canonical TX hash — must match core/transaction.zig:calculateHash()
