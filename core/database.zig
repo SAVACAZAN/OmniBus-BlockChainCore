@@ -12,7 +12,15 @@ const StateCheckpoint = storage_mod.StateCheckpoint;
 
 /// File format constants
 const DB_MAGIC = [4]u8{ 'O', 'M', 'N', 'I' };
-const DB_VERSION: u32 = 2;
+/// chain.dat format version.
+///   v2 (2026-04-30) — base format with stake_state + agent_state sections.
+///   v3 (2026-05-05) — Phase 2C adds orderbook_state section after agent_state.
+///                     Backward-compat: v2 files load fine (orderbook_state
+///                     simply absent → empty in-RAM book). New saves write v3.
+const DB_VERSION: u32 = 3;
+/// Per-order on-disk record size. Power of two for cache-line alignment.
+/// See PHASE2C_ORDERBOOK_PERSISTENCE_DESIGN_2026-05-05.md §J for layout.
+const ORDERBOOK_ORDER_BYTES: usize = 128;
 const CRC = std.hash.crc.Crc32;
 
 /// Legacy (pre-v3.1) DB path — hardcoded at repo root, shared by all chains.
@@ -212,6 +220,218 @@ fn verifyCrc32(buf: []const u8, section_start: usize, section_end: usize) bool {
     const expected = computeCrc32(section_data);
     const stored = std.mem.readInt(u32, buf[section_end..][0..4], .little);
     return expected == stored;
+}
+
+// ─── PHASE 2C — orderbook_state section (v3) ───────────────────────────
+//
+// The orderbook lives in matching_engine.MatchingEngine on the heap; on
+// each save we walk its bids[] + asks[] arrays and serialise active +
+// partial orders into a fixed 128-byte record per order, indexed by
+// pair_id. On load we re-insert the orders into the freshly-allocated
+// engine. Filled / cancelled orders are NOT persisted — their finality
+// lives in block transactions.
+
+const matching_db_mod = @import("matching_engine.zig");
+
+/// Serialise one Order into 128 bytes. Returns the slice written into.
+fn encodeOrder128(order: *const matching_db_mod.Order, out: []u8) void {
+    @memset(out[0..ORDERBOOK_ORDER_BYTES], 0);
+    std.mem.writeInt(u64, out[0..8], order.order_id, .little);
+    @memcpy(out[8..72], &order.trader_address);
+    out[72] = order.trader_addr_len;
+    std.mem.writeInt(u16, out[73..75], order.pair_id, .little);
+    out[75] = @intFromEnum(order.side);
+    std.mem.writeInt(u64, out[76..84], order.price_micro_usd, .little);
+    std.mem.writeInt(u64, out[84..92], order.amount_sat, .little);
+    std.mem.writeInt(u64, out[92..100], order.filled_sat, .little);
+    std.mem.writeInt(i64, out[100..108], order.timestamp_ms, .little);
+    out[108] = @intFromEnum(order.status);
+    // bytes [109..128] reserved (zero) for future expiry / stop_price / flags
+}
+
+/// Decode 128 bytes back into an Order. No allocator needed (fixed fields).
+fn decodeOrder128(buf: []const u8) matching_db_mod.Order {
+    var o = matching_db_mod.Order.empty();
+    o.order_id = std.mem.readInt(u64, buf[0..8], .little);
+    @memcpy(&o.trader_address, buf[8..72]);
+    o.trader_addr_len = buf[72];
+    o.pair_id = std.mem.readInt(u16, buf[73..75], .little);
+    const side_byte = buf[75];
+    o.side = if (side_byte == 0) .buy else .sell;
+    o.price_micro_usd = std.mem.readInt(u64, buf[76..84], .little);
+    o.amount_sat = std.mem.readInt(u64, buf[84..92], .little);
+    o.filled_sat = std.mem.readInt(u64, buf[92..100], .little);
+    o.timestamp_ms = std.mem.readInt(i64, buf[100..108], .little);
+    const status_byte = buf[108];
+    o.status = switch (status_byte) {
+        0 => .active,
+        1 => .partial,
+        2 => .filled,
+        else => .cancelled,
+    };
+    return o;
+}
+
+/// Walk the matching engine's bids[]+asks[] and write all active+partial
+/// orders to `out`, grouped by pair_id (sorted asc) for canonical layout.
+/// If no engine attached on this node, writes pair_count=0 and returns.
+fn writeOrderbookState(out: *array_list.Managed(u8), bc: *const blockchain_mod.Blockchain) !void {
+    const eng = bc.exchange_engine orelse {
+        // No engine — emit pair_count=0, valid empty section.
+        var zero4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &zero4, 0, .little);
+        try out.appendSlice(&zero4);
+        return;
+    };
+
+    // Group orders by pair_id. We use a small fixed-cap array since pair
+    // count is bounded by the registry (currently ~7 pairs). A growable
+    // structure isn't needed at this scale.
+    const MAX_PAIRS_PERSIST: usize = 256;
+    var pair_ids: [MAX_PAIRS_PERSIST]u16 = undefined;
+    var pair_count: usize = 0;
+
+    // First pass — collect distinct pair_ids from bids + asks.
+    var bi: u32 = 0;
+    while (bi < eng.bid_count) : (bi += 1) {
+        const o = &eng.bids[bi];
+        if (o.status != .active and o.status != .partial) continue;
+        var found = false;
+        for (pair_ids[0..pair_count]) |pid| {
+            if (pid == o.pair_id) { found = true; break; }
+        }
+        if (!found and pair_count < MAX_PAIRS_PERSIST) {
+            pair_ids[pair_count] = o.pair_id;
+            pair_count += 1;
+        }
+    }
+    var ai: u32 = 0;
+    while (ai < eng.ask_count) : (ai += 1) {
+        const o = &eng.asks[ai];
+        if (o.status != .active and o.status != .partial) continue;
+        var found = false;
+        for (pair_ids[0..pair_count]) |pid| {
+            if (pid == o.pair_id) { found = true; break; }
+        }
+        if (!found and pair_count < MAX_PAIRS_PERSIST) {
+            pair_ids[pair_count] = o.pair_id;
+            pair_count += 1;
+        }
+    }
+
+    // Sort pair_ids ascending for canonical layout.
+    std.mem.sort(u16, pair_ids[0..pair_count], {}, std.sort.asc(u16));
+
+    // Header: pair_count u32 LE
+    var pc4: [4]u8 = undefined;
+    std.mem.writeInt(u32, &pc4, @intCast(pair_count), .little);
+    try out.appendSlice(&pc4);
+
+    // Per pair
+    for (pair_ids[0..pair_count]) |pid| {
+        // Count + collect indices for this pair
+        var order_count: u32 = 0;
+        var bj: u32 = 0;
+        while (bj < eng.bid_count) : (bj += 1) {
+            const o = &eng.bids[bj];
+            if (o.pair_id != pid) continue;
+            if (o.status != .active and o.status != .partial) continue;
+            order_count += 1;
+        }
+        var aj: u32 = 0;
+        while (aj < eng.ask_count) : (aj += 1) {
+            const o = &eng.asks[aj];
+            if (o.pair_id != pid) continue;
+            if (o.status != .active and o.status != .partial) continue;
+            order_count += 1;
+        }
+
+        var pid2: [2]u8 = undefined;
+        std.mem.writeInt(u16, &pid2, pid, .little);
+        try out.appendSlice(&pid2);
+        var oc4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &oc4, order_count, .little);
+        try out.appendSlice(&oc4);
+
+        // Write orders in canonical order: bids first (price desc), then
+        // asks (price asc). Within same price, by order_id asc. We use the
+        // engine arrays as-is since they're already sorted by the matching
+        // engine's invariants.
+        var bk: u32 = 0;
+        while (bk < eng.bid_count) : (bk += 1) {
+            const o = &eng.bids[bk];
+            if (o.pair_id != pid) continue;
+            if (o.status != .active and o.status != .partial) continue;
+            var rec: [ORDERBOOK_ORDER_BYTES]u8 = undefined;
+            encodeOrder128(o, &rec);
+            try out.appendSlice(&rec);
+        }
+        var ak: u32 = 0;
+        while (ak < eng.ask_count) : (ak += 1) {
+            const o = &eng.asks[ak];
+            if (o.pair_id != pid) continue;
+            if (o.status != .active and o.status != .partial) continue;
+            var rec: [ORDERBOOK_ORDER_BYTES]u8 = undefined;
+            encodeOrder128(o, &rec);
+            try out.appendSlice(&rec);
+        }
+    }
+}
+
+/// Walk the orderbook section layout WITHOUT inserting into the engine,
+/// returning the exact number of bytes the section occupies. Used by the
+/// load path to advance the file cursor past the orderbook before reading
+/// the trailing CRC32. Pure header walk — no allocation, no engine touch.
+fn orderbookSectionSize(buf: []const u8) !usize {
+    if (buf.len < 4) return 0;
+    const pair_count = std.mem.readInt(u32, buf[0..4], .little);
+    var off: usize = 4;
+    var pi: u32 = 0;
+    while (pi < pair_count) : (pi += 1) {
+        if (off + 6 > buf.len) return error.OrderbookSectionTruncated;
+        off += 2; // pair_id u16
+        const order_count = std.mem.readInt(u32, buf[off..][0..4], .little);
+        off += 4;
+        const orders_bytes = @as(usize, order_count) * ORDERBOOK_ORDER_BYTES;
+        if (off + orders_bytes > buf.len) return error.OrderbookSectionTruncated;
+        off += orders_bytes;
+    }
+    return off;
+}
+
+/// Restore active+partial orders into the matching engine. Called from
+/// load path. Returns total order count restored. Tolerates missing
+/// section (v2 file → returns 0).
+fn readOrderbookState(buf: []const u8, bc: *blockchain_mod.Blockchain) !u32 {
+    const eng = bc.exchange_engine orelse return 0;
+    if (buf.len < 4) return error.OrderbookSectionTooShort;
+    const pair_count = std.mem.readInt(u32, buf[0..4], .little);
+    var off: usize = 4;
+    var total: u32 = 0;
+    var pair_idx: u32 = 0;
+    while (pair_idx < pair_count) : (pair_idx += 1) {
+        if (off + 6 > buf.len) return error.OrderbookSectionTruncated;
+        // pair_id u16 (read but only used for forensics; orders carry it)
+        _ = std.mem.readInt(u16, buf[off..][0..2], .little);
+        off += 2;
+        const order_count = std.mem.readInt(u32, buf[off..][0..4], .little);
+        off += 4;
+        var oi: u32 = 0;
+        while (oi < order_count) : (oi += 1) {
+            if (off + ORDERBOOK_ORDER_BYTES > buf.len) return error.OrderbookSectionTruncated;
+            const order = decodeOrder128(buf[off..][0..ORDERBOOK_ORDER_BYTES]);
+            off += ORDERBOOK_ORDER_BYTES;
+            // Insert into engine. placeOrder may run matching against the
+            // partial in-RAM book, but at restore time the book is empty
+            // so the order simply rests at its limit.
+            eng.placeOrder(order) catch |err| {
+                std.debug.print("[ORDERBOOK-RESTORE] placeOrder failed: {}\n", .{err});
+                continue;
+            };
+            total += 1;
+        }
+    }
+    return total;
 }
 
 /// Persistent Blockchain: Database + Blockchain combined
@@ -528,15 +748,29 @@ pub const PersistentBlockchain = struct {
         }
         try appendCrc32(&out, section_agent_start);
 
+        // === Orderbook state section (v3 ext, 2026-05-05) ===
+        // PHASE 2C — persist active+partial orders so the orderbook survives
+        // restart. Layout: pair_count u32, then per pair (pair_id u16,
+        // order_count u32, orders [N×128 bytes]). Filled/cancelled orders
+        // are NOT persisted — their fact-of-fill lives in block transactions.
+        // Section is omitted entirely if no engine attached on this node.
+        const section_orderbook_start = out.items.len;
+        try writeOrderbookState(&out, bc);
+        try appendCrc32(&out, section_orderbook_start);
+
         // Atomic write: tmp file then rename
         const file = try std.fs.cwd().createFile(tmp_path, .{});
         try file.writeAll(out.items);
         file.close();
         try std.fs.cwd().rename(tmp_path, path);
 
-        std.debug.print("[DB] Saved v2 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms + {d} stakes + {d} agents → {s}\n",
+        const order_count_saved: u32 = if (bc.exchange_engine) |eng|
+            eng.bid_count + eng.ask_count
+        else
+            0;
+        std.debug.print("[DB] Saved v3 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms + {d} stakes + {d} agents + {d} orders → {s}\n",
             .{ save_count, bc.balances.count(), bc.nonces.count(), bc.tx_block_height.count(),
-               bc.stake_amounts.count(), bc.registered_agents.count(), path });
+               bc.stake_amounts.count(), bc.registered_agents.count(), order_count_saved, path });
     }
 
     /// Create a backup of the database file before loading (.dat → .dat.bak)
@@ -561,11 +795,10 @@ pub const PersistentBlockchain = struct {
         // Check magic bytes
         if (!std.mem.eql(u8, buf[0..4], &DB_MAGIC)) return 0;
         // V1: byte at offset 4 == 1, followed by block_count as u32
-        // V2: u32 at offset 4 == 2
-        // Distinguish: v1 has buf[4]==1 and buf[5..8] is block_count (could be anything)
-        //              v2 has le32 at offset 4 == 2, meaning buf[4]==2, buf[5]==0, buf[6]==0, buf[7]==0
+        // V2: u32 at offset 4 == 2 (full le32 = 0x00000002)
+        // V3: u32 at offset 4 == 3 (current DB_VERSION, adds orderbook_state)
         const ver_u32 = std.mem.readInt(u32, buf[4..8], .little);
-        if (ver_u32 == DB_VERSION) return DB_VERSION;
+        if (ver_u32 >= 2 and ver_u32 <= DB_VERSION) return ver_u32;
         // V1: single byte version == 1
         if (buf[4] == 1) return 1;
         return 0;
@@ -832,8 +1065,40 @@ pub const PersistentBlockchain = struct {
             }
         }
 
-        std.debug.print("[DB] Restored stake_state: {d} addresses, agent_state: {d} addresses\n",
-            .{ stake_count, agent_count });
+        // === Orderbook state section (v3 ext, optional — empty book if missing) ===
+        // PHASE 2C — restore active+partial orders into the matching engine.
+        // v2 files lack this section: detection is "no more bytes", behaviour
+        // is graceful (engine starts empty, future blocks rebuild it).
+        var order_count_loaded: u32 = 0;
+        if (pos + 4 <= read_len) {
+            const section_orderbook_start = pos;
+            // Find the end of this section by walking the layout, then verify
+            // CRC32 over the whole thing. We don't know the section length up
+            // front (variable per pair_count) so we let readOrderbookState
+            // walk and return the new offset.
+            const pre_load_pos = pos;
+            order_count_loaded = readOrderbookState(buf[pos..read_len], bc) catch |err| blk: {
+                std.debug.print("[DB] WARNING: orderbook_state restore failed: {}\n", .{err});
+                break :blk 0;
+            };
+            // We can't easily measure exact bytes consumed without re-walking,
+            // but we know the section ended where our reader stopped.
+            // For v1 of this section we skip CRC verify on orderbook (deferred
+            // to Phase 2C.1) since the section is rebuildable from blocks.
+            // Advance pos past this section to (read_len - 4) to reach the
+            // section CRC32 if present:
+            const section_consumed = orderbookSectionSize(buf[pre_load_pos..read_len]) catch 0;
+            pos += section_consumed;
+            if (pos + 4 <= read_len) {
+                if (!verifyCrc32(buf, section_orderbook_start, pos)) {
+                    std.debug.print("[DB] WARNING: orderbook_state section CRC32 mismatch in {s}\n", .{path});
+                }
+                pos += 4;
+            }
+        }
+
+        std.debug.print("[DB] Restored stake_state: {d} addresses, agent_state: {d} addresses, orderbook: {d} orders\n",
+            .{ stake_count, agent_count, order_count_loaded });
 
         logRestoreSummary(bc, loaded_blocks, addr_count, nonce_count, tx_confirm_count, path);
     }
@@ -1049,8 +1314,10 @@ pub const PersistentBlockchain = struct {
 
         if (hdr_read >= 8) {
             const ver = detectVersion(&hdr_buf);
-            if (ver == DB_VERSION) {
-                // V2: full rewrite needed for CRC consistency
+            if (ver >= 2) {
+                // V2/V3: full rewrite needed for CRC consistency.
+                // V2 files are upgraded in-place to V3 format on save (the
+                // orderbook_state section is added as the trailing section).
                 return self.saveBlockchain(bc, path);
             }
         }
@@ -1315,8 +1582,8 @@ test "persistent blockchain" {
     try testing.expectEqual(stats.total_addresses, 1);
 }
 
-test "v2 file header magic and version" {
-    // Build a v2 header + empty sections
+test "v3 file header magic and version" {
+    // Build a v3 header + empty sections
     var out = array_list.Managed(u8).init(testing.allocator);
     defer out.deinit();
 
@@ -1325,13 +1592,13 @@ test "v2 file header magic and version" {
     // Verify magic bytes
     try testing.expectEqualSlices(u8, &DB_MAGIC, out.items[0..4]);
 
-    // Verify version
+    // Verify version (current DB_VERSION = 3 with orderbook section)
     const ver = std.mem.readInt(u32, out.items[4..8], .little);
     try testing.expectEqual(DB_VERSION, ver);
 
-    // detectVersion should return 2
+    // detectVersion should return current DB_VERSION
     const detected = PersistentBlockchain.detectVersion(out.items);
-    try testing.expectEqual(@as(u32, 2), detected);
+    try testing.expectEqual(DB_VERSION, detected);
 }
 
 test "corrupt magic detected" {
