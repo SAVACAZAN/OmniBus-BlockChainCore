@@ -931,8 +931,62 @@ export default BlockExplorer;
 
 ---
 
+## Paper Trading Mode
+
+OmniBus DEX supports two parallel trading modes: **real** (production money) and **paper** (demo/simulation). Both use the same matching engine, orderbook format, and REST endpoint shapes. The only differences are the URL prefix, the settlement asset, and trade-log isolation.
+
+### Real vs Paper comparison
+
+| Aspect | Real Trading | Paper Trading |
+|--------|--------------|---------------|
+| Route prefix | `/exchange/0/*` | `/paper/0/*` |
+| Settlement asset | `OMNI` | `OMNI_DEMO` |
+| Fills isolated from other mode | N/A (production) | Yes — paper fills never appear in real feed and vice-versa |
+| Persistence | On-chain balances + trade_log (256-entry ring buffer) | In-memory `exchange_paper` engine + `trade_log_paper` (256-entry ring buffer) |
+| Fees | 0.10% taker / 0.05% maker + 1000 SAT network fee per fill | Same fee schedule, deducted from `OMNI_DEMO` balance |
+| Who pays | Real wallet | No real wallet required — demo grants are issued by agents or faucet |
+| Engine selector | `ctx.exchange` (main matching engine) | `ctx.exchange_paper` (parallel matching engine) |
+
+### Paper-specific behaviour
+
+* **`mode:"paper"` field:** Every paper response includes `"mode":"paper"` inside the `result` object. Real responses omit this field entirely.
+* **`OMNI_DEMO` asset:** The paper asset code is returned by `Assets` and used as the settlement token in `SystemStatus`.
+* **Isolated trade log:** Paper fills are pushed to `trade_log_paper` (head `trade_head_paper`, count `trade_count_paper`). Real fills go to `trade_log`. The two logs are never mixed.
+* **Disabled-engine error:** When `exchange_paper` is null on the server (paper mode not configured), all `/paper/0/*` routes return:
+  ```json
+  {"error":["PaperTraderDisabled"],"result":{}}
+  ```
+* **Self-trade allowed:** Wash trades are permitted in both modes. They pay the full maker+taker fee on both sides.
+
+### Paper endpoints
+
+Every endpoint documented under `/exchange/0/*` has an exact analogue under `/paper/0/*`:
+
+* **Public:** `GET /paper/0/public/{Time,SystemStatus,Assets,AssetPairs,Ticker,Depth,Trades,OHLC,Spread}`
+* **Private:** `POST /paper/0/private/{Balance,TradeBalance,OpenOrders,ClosedOrders,QueryOrders,TradesHistory,QueryTrades,OpenPositions,Ledgers,QueryLedgers,TradeVolume,AddOrder,CancelOrder,CancelAll,CancelAllOrdersAfter,EditOrder,DepositMethods,DepositAddresses,StatusOfDeposits,WithdrawMethods,WithdrawAddresses,Withdraw,StatusOfWithdrawals,WithdrawCancel,WalletTransfer,Stake,Unstake,GetStakingAssets,GetPendingStaking,ListStakingTransactions,Earn/Allocate,Earn/Deallocate,Earn/Strategies,Earn/Allocations,AddExport,ExportStatus,RetrieveExport,DeleteExport,GetWebSocketsToken}`
+
+Request shapes and parameter names are identical. Switching from paper to real requires changing exactly one URL prefix.
+
+### Paper balance tracking
+
+Paper balances are tracked inside the `exchange_paper` engine's internal ledger, not on the blockchain. The `owner` parameter (trader address) is still required for private endpoints because the engine uses the same address format as real trading. Demo balances can be seeded via:
+
+* `exchange_depositDemo` JSON-RPC (grants demo funds)
+* Agent-native bootstrap faucet (`claim_faucet` with paper mode)
+
+### Withdraw behaviour in paper mode
+
+`Withdraw` in paper mode does not create an on-chain transaction. It deducts the amount from the paper internal ledger and returns a synthetic `refid`. The funds never leave the demo system.
+
+### Escrow address in demo mode
+
+`exchange_getEscrowAddress` returns the same escrow address for both modes (the bridge/registrar slot). In paper mode, deposits to this address are not processed on-chain; they are credited to the paper internal ledger by the demo grant mechanism.
+
+---
+
 ## Referințe
 
 - **JSON-RPC 2.0 Spec:** https://www.jsonrpc.org/specification
 - **OmniBus Wiki:** wiki-omnibus/INDEX.md
 - **GitHub:** https://github.com/SAVACAZAN/OmniBus-BlockChainCore
+- **OpenAPI 3.1 DEX Spec:** `docs/api/omnibus-dex-openapi.yaml`

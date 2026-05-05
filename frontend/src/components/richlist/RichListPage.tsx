@@ -5,6 +5,8 @@ import { AddressDetail } from "./AddressDetail";
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
 
+type Role = "validator" | "miner" | "agent" | "user";
+
 type RichEntry = {
   rank: number;
   address: string;
@@ -16,6 +18,8 @@ type RichEntry = {
   sent: number;
   firstHeight: number;
   lastHeight: number;
+  roles?: string[]; // new field, optional for backward compat
+  stake?: number;   // staked SAT
 };
 
 type RichListResp = {
@@ -38,6 +42,24 @@ type ChainMetrics = {
   currentBlockReward: number;
   satPerOmni: number;
 };
+
+// Derive role list with backward-compat fallback when entry.roles is missing.
+function deriveRoles(e: RichEntry): Role[] {
+  if (e.roles && e.roles.length > 0) {
+    const out: Role[] = [];
+    for (const r of e.roles) {
+      if (r === "validator" || r === "miner" || r === "agent" || r === "user") {
+        if (!out.includes(r)) out.push(r);
+      }
+    }
+    if (out.length > 0) return out;
+  }
+  const fallback: Role[] = [];
+  if (e.blocksMined > 0) fallback.push("miner");
+  if (e.isValidator === true) fallback.push("validator");
+  if (fallback.length === 0) fallback.push("user");
+  return fallback;
+}
 
 export function RichListPage() {
   const [list, setList] = useState<RichListResp | null>(null);
@@ -85,13 +107,28 @@ export function RichListPage() {
 
   const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
 
+  // Per-role counts derived from current entries.
+  let validatorCount = 0;
+  let minerCount = 0;
+  let agentCount = 0;
+  let userCount = 0;
+  if (list) {
+    for (const e of list.entries) {
+      const roles = deriveRoles(e);
+      if (roles.includes("validator")) validatorCount++;
+      if (roles.includes("miner")) minerCount++;
+      if (roles.includes("agent")) agentCount++;
+      if (roles.includes("user")) userCount++;
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-mempool-text mb-2">Rich List</h1>
       <p className="text-mempool-text-dim text-sm mb-6">
-        All addresses with a positive balance, sorted descending. Validators
-        (≥ {metrics ? omniFmt(metrics.minValidatorBalance) : "0.10"} OMNI) are
-        eligible to mine via slot-leader rotation.
+        All addresses with a positive balance, sorted descending. Roles are
+        determined per address: validator (stake ≥ 100 OMNI), miner (mined ≥ 1
+        block), agent (registered via op_return), user (default).
       </p>
 
       {/* Metrics row */}
@@ -100,7 +137,10 @@ export function RichListPage() {
           <Metric label="Height" value={metrics.height.toLocaleString()} />
           <Metric label="Total supply" value={`${omniFmt(metrics.totalSupply)} OMNI`} />
           <Metric label="Addresses" value={metrics.addressesWithBalance.toLocaleString()} />
-          <Metric label="Validators" value={`${metrics.validators} / ${metrics.validatorSetSize}`} />
+          <Metric label="Validators" value={validatorCount.toLocaleString()} />
+          <Metric label="Miners" value={minerCount.toLocaleString()} />
+          <Metric label="Agents" value={agentCount.toLocaleString()} />
+          <Metric label="Users" value={userCount.toLocaleString()} />
           <Metric label="Mempool" value={metrics.mempoolSize.toString()} />
           <Metric label="Peers" value={metrics.peerCount.toString()} />
           <Metric label="Block reward" value={`${omniFmt(metrics.currentBlockReward)} OMNI`} />
@@ -156,7 +196,7 @@ export function RichListPage() {
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-16">TXs</th>
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Received</th>
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Sent</th>
-                <th className="text-center px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-20">Status</th>
+                <th className="text-center px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-40">Roles</th>
               </tr>
             </thead>
             <tbody>
@@ -164,16 +204,17 @@ export function RichListPage() {
                 const sharePct = list.totalSupply > 0
                   ? ((e.balance / list.totalSupply) * 100).toFixed(2)
                   : "0.00";
+                const roles = deriveRoles(e);
                 return (
                   <tr key={e.address} className="border-b border-mempool-border/40 hover:bg-mempool-bg/30">
                     <td className="px-3 py-2 text-mempool-text-dim font-mono text-xs">{e.rank}</td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
                         onClick={() => setSelectedAddress(e.address)}
-                        className="text-mempool-blue hover:underline"
-                        title="View address detail"
+                        className="text-mempool-blue hover:underline truncate max-w-[160px] inline-block align-middle"
+                        title={e.address}
                       >
-                        {e.address.slice(0, 12)}…{e.address.slice(-8)}
+                        {e.address.slice(0, 10)}…{e.address.slice(-6)}
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-mempool-text">
@@ -192,16 +233,8 @@ export function RichListPage() {
                     <td className="px-3 py-2 text-right font-mono text-xs text-red-300">
                       {omniFmt(e.sent ?? 0)}
                     </td>
-                    <td className="px-3 py-2 text-center">
-                      {e.isValidator ? (
-                        <span className="inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider bg-green-500/20 text-green-300 rounded">
-                          validator
-                        </span>
-                      ) : (
-                        <span className="inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider bg-gray-700/40 text-gray-400 rounded">
-                          holder
-                        </span>
-                      )}
+                    <td className="px-3 py-2">
+                      <RoleBadges roles={roles} stake={e.stake} omniFmt={omniFmt} />
                     </td>
                   </tr>
                 );
@@ -213,15 +246,48 @@ export function RichListPage() {
 
       <div className="mt-6 text-xs text-mempool-text-dim">
         <p>
-          <span className="font-semibold text-mempool-text">Validator status:</span> any address
-          holding ≥ {metrics ? omniFmt(metrics.minValidatorBalance) : "0.10"} OMNI is automatically
-          included in slot-leader rotation. No registration required — the chain derives the active
-          validator set from current balances each block.
+          <span className="font-semibold text-mempool-text">Roles:</span> are
+          determined per address: validator (stake ≥ 100 OMNI), miner (mined ≥ 1
+          block), agent (registered via op_return), user (default).
         </p>
         <p className="mt-2">
           <span className="font-semibold text-mempool-text">Refresh:</span> auto every 8s.
         </p>
       </div>
+    </div>
+  );
+}
+
+function RoleBadges({
+  roles,
+  stake,
+  omniFmt,
+}: {
+  roles: Role[];
+  stake?: number;
+  omniFmt: (sat: number) => string;
+}) {
+  const badgeBase =
+    "inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider rounded border font-mono";
+  const styles: Record<Role, string> = {
+    validator: "bg-green-900/40 text-green-300 border-green-600/40",
+    miner: "bg-orange-900/40 text-orange-300 border-orange-600/40",
+    agent: "bg-blue-900/40 text-blue-300 border-blue-600/40",
+    user: "bg-gray-800 text-gray-400 border-gray-700",
+  };
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-[2px]">
+      {roles.map((r) => {
+        const title =
+          r === "validator" && stake && stake > 0
+            ? `stake: ${omniFmt(stake)} OMNI`
+            : undefined;
+        return (
+          <span key={r} className={`${badgeBase} ${styles[r]}`} title={title}>
+            {r}
+          </span>
+        );
+      })}
     </div>
   );
 }

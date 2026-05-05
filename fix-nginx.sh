@@ -197,6 +197,16 @@ server {
         proxy_read_timeout 86400;
     }
 
+    # ===== Exchange REST API proxy to testnet node =====
+    location /exchange/0/ {
+        proxy_pass http://127.0.0.1:18332/;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
+    }
+
     # ===== Default — Vite explorer (cu HMR WebSocket) =====
     # Vite 4 face host check pe Host header; ii trimitem localhost ca sa
     # nu mai conteze ce a cerut clientul. SSL termiat tot in Nginx, deci

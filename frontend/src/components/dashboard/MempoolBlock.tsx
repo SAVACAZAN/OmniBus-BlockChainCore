@@ -3,6 +3,7 @@ import { TransactionSquare } from "./TransactionSquare";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
+import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 
 interface MempoolBlockProps {
   block?: BlockData;
@@ -46,6 +47,8 @@ export function MempoolBlock({
   isLatest = false,
   onClick,
 }: MempoolBlockProps) {
+  const plasmaActive5 = useIsPlasmaActive(5);
+  const plasmaActive6 = useIsPlasmaActive(6);
   // Fetch full block detail (with prices array) once per height. Skipped
   // for the pending-block placeholder (no height yet).
   const [prices, setPrices] = useState<BlockPriceSnapshot[] | undefined>(
@@ -155,7 +158,7 @@ export function MempoolBlock({
       {/* Plasma swarm visible only on the pending Next card. Anchored
           to the right so the orange core sits past the right edge of the
           card body — same composition as the MEMPOOL stat card. */}
-      {isPending && (
+      {((isPending && plasmaActive5) || (isLatest && !isPending && plasmaActive6)) && (
         <div
           className="absolute top-1/2 right-0 -translate-y-1/2 pointer-events-none"
           style={{ zIndex: 0, opacity: 0.75, width: "75%", height: "100%", marginRight: "-15%" }}

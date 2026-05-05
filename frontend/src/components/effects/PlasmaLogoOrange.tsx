@@ -1,14 +1,20 @@
 import { useEffect, useRef } from "react";
 
+import { useIsPlasmaActive } from "./PlasmaSlotContext";
+
 interface PlasmaLogoOrangeProps {
   size?: number;
   className?: string;
 }
 
-export function PlasmaLogoOrange({ size = 40, className = "" }: PlasmaLogoOrangeProps) {
+export function PlasmaLogoOrange({ size = 40, className = "", slotIndex }: PlasmaLogoOrangeProps & { slotIndex?: number }) {
+  // Hooks unconditionally first (Rules of Hooks).
+  const isActive = useIsPlasmaActive(slotIndex ?? -1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const visible = !(slotIndex !== undefined && !isActive);
 
   useEffect(() => {
+    if (!visible) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -80,7 +86,11 @@ export function PlasmaLogoOrange({ size = 40, className = "" }: PlasmaLogoOrange
 
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [size]);
+  }, [size, visible]);
+
+  if (!visible) {
+    return <div style={{ width: size, height: size }} className={className} />;
+  }
 
   return (
     <canvas

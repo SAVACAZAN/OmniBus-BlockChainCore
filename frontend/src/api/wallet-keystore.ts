@@ -16,11 +16,44 @@
 import { mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { HDKey } from "@scure/bip32";
+import { sha256 } from "@noble/hashes/sha2";
+import { ripemd160 } from "@noble/hashes/legacy";
+import { base58 } from "@scure/base";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
+import { pqKeypairFromSeed, pqAddressFromPublicKey, type PqScheme } from "./pq-sign";
 
 const STORAGE_KEY = "omnibus.exchange.vault.v1";
 const SESSION_KEY = "omnibus.exchange.session.v1";
 const PBKDF2_ITERS = 200_000;
+
+/**
+ * One PQ-OMNI slot — adresă derivată din același mnemonic la un account
+ * separat (m/44'/777'/5'..8'). Same OMNI semantics on chain (transferable,
+ * earns balance) but signed with a post-quantum scheme instead of secp256k1.
+ *
+ * Phase 1 ships with placeholder pubkey/secret material — actual ML-DSA /
+ * Falcon / Dilithium / SLH-DSA keys live in Phase 3 (liboqs WASM). Until
+ * then the address is computed from a deterministic seed of the BIP-32 leaf
+ * privkey at the PQ account so the UI shows a stable string the user can
+ * copy and the chain can route to. Sending FROM a PQ-OMNI address requires
+ * Phase 2/3 to be live (chain verifier + browser signer).
+ */
+export type PqOmniSlot = {
+  scheme: "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256s";
+  /** UI prefix label (ob_q1_, ob_q2_, ob_q3_, ob_q4_) — see PQ_OMNI_SCHEMES. */
+  prefix: string;
+  address: string;
+  /** Derivation path for the account. The actual PQ key is derived from this
+   *  account's chain-code + a scheme-specific KDF. */
+  derivationPath: string;
+  /** Hex-encoded PQ public key. Hashed into the address (`hash160` then
+   *  base58check, matching `core/isolated_wallet.zig:deriveLegacyAddress`).
+   *  Sent on chain as `tx.public_key` for PQ-OMNI transactions so verifiers
+   *  can recompute the same hash and check the signature. */
+  publicKey: string;
+  /** Hex-encoded PQ secret key. RAM-only, never persisted, never sent. */
+  secretKey: string;
+};
 
 export type Unlocked = {
   privateKey: string; // 64 hex chars, no 0x
@@ -39,7 +72,22 @@ export type Unlocked = {
    *  from privkey + chain_code so we populate it whenever we can compute
    *  it (mnemonic and privkey unlock paths). */
   xpub?: string;
+  /** 4 PQ-OMNI slots (ML-DSA, Falcon, Dilithium, SLH-DSA). Populated when
+   *  unlock has access to the mnemonic (so we can derive the BIP-32
+   *  account chain code). On reload from session/vault these are restored
+   *  if the leaf pubkey + path are recomputable; else recomputed lazily. */
+  pqOmni?: PqOmniSlot[];
 };
+
+/** PQ-OMNI scheme catalogue. The `account` index is the BIP-44 account
+ *  hardened path under coin type 777 — keep in sync with chain
+ *  isolated_wallet.zig if/when the chain learns these new schemes. */
+export const PQ_OMNI_SCHEMES = [
+  { scheme: "ml_dsa_87"   as const, account: 5, prefix: "ob_q1_", algo: "ML-DSA-87",     bits: 256 },
+  { scheme: "falcon_512"  as const, account: 6, prefix: "ob_q2_", algo: "Falcon-512",    bits: 192 },
+  { scheme: "dilithium_5" as const, account: 7, prefix: "ob_q3_", algo: "Dilithium-5",   bits: 256 },
+  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "ob_q4_", algo: "SLH-DSA-256s", bits: 256 },
+];
 
 export type VaultMetadata = {
   walletIndex: number;
@@ -80,12 +128,17 @@ function writeSession(u: Unlocked | null) {
   if (typeof sessionStorage === "undefined") return;
   try {
     if (u) {
-      // Strip backup-only fields before persisting. mnemonic + xprv stay in
-      // RAM only; reload requires the user to re-paste the mnemonic to see
-      // them again. xpub is public — fine to persist.
-      const { mnemonic: _m, xprv: _x, ...persistable } = u;
+      // Strip backup-only / signing-secret fields before persisting:
+      //   - mnemonic + xprv  → RAM-only, reload re-pastes
+      //   - pqOmni[i].secretKey → never persisted, regenerated from
+      //     mnemonic when the user re-unlocks
+      // xpub + pq pubkeys + addresses are public, fine to persist.
+      const { mnemonic: _m, xprv: _x, pqOmni, ...persistable } = u;
       void _m; void _x;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(persistable));
+      const safePq = pqOmni
+        ? pqOmni.map((slot) => ({ ...slot, secretKey: "" }))
+        : undefined;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...persistable, pqOmni: safePq }));
     } else {
       sessionStorage.removeItem(SESSION_KEY);
     }
@@ -149,11 +202,79 @@ export function privKeyFromMnemonic(
  * than the leaf so a single xpub can derive every receiving address under
  * that account (BIP-44 standard).
  */
+/**
+ * Hash160 (SHA256 → RIPEMD160) — Bitcoin convention, also what
+ * `core/isolated_wallet.zig:hash160FromBytes` does for PQ pubkeys.
+ */
+function hash160(input: Uint8Array): Uint8Array {
+  return ripemd160(sha256(input));
+}
+
+/**
+ * Base58Check with version byte — same primitive used by the chain to
+ * encode the legacy PQ addresses (`prefix + base58check(hash160, 0x4F)`).
+ */
+function base58CheckEncodeWithVersion(payload: Uint8Array, version: number): string {
+  const versioned = new Uint8Array(1 + payload.length);
+  versioned[0] = version & 0xff;
+  versioned.set(payload, 1);
+  // Double SHA256 checksum, take first 4 bytes
+  const checksum = sha256(sha256(versioned)).slice(0, 4);
+  const full = new Uint8Array(versioned.length + 4);
+  full.set(versioned);
+  full.set(checksum, versioned.length);
+  return base58.encode(full);
+}
+
+/**
+ * Derive the 4 PQ-OMNI slots from a BIP-32 root.
+ *
+ * Each slot produces a REAL post-quantum keypair (ML-DSA-87, Falcon-512,
+ * Dilithium-5 = ML-DSA again, SLH-DSA-256s) using the BIP-32 leaf privkey at
+ * `m/44'/777'/<account>'/0/0` as the deterministic seed. The PQ pubkey is
+ * then `hash160`'d and base58check-encoded with the matching prefix —
+ * exactly what `core/isolated_wallet.zig:deriveLegacyAddress` does
+ * chain-side, so addresses round-trip cleanly.
+ *
+ * The returned slot carries the public + secret PQ key as hex. Public is
+ * shared on-chain in `tx.public_key`; secret stays in process RAM and is
+ * stripped from `writeSession` before any sessionStorage persistence.
+ */
+function derivePqOmniSlots(root: HDKey): PqOmniSlot[] {
+  return PQ_OMNI_SCHEMES.map((s) => {
+    const path = `m/44'/777'/${s.account}'/0/0`;
+    const child = root.derive(path);
+    if (!child.privateKey) {
+      return {
+        scheme: s.scheme,
+        prefix: s.prefix,
+        address: `${s.prefix}<derivation-failed>`,
+        derivationPath: path,
+        publicKey: "",
+        secretKey: "",
+      };
+    }
+    // Use the leaf privkey (32 bytes) as the deterministic seed for the PQ
+    // keygen. pqKeypairFromSeed handles seed-length stretching per scheme.
+    const seed = child.privateKey;
+    const kp = pqKeypairFromSeed(s.scheme as PqScheme, seed);
+    const address = pqAddressFromPublicKey(s.scheme as PqScheme, kp.publicKey);
+    return {
+      scheme: s.scheme,
+      prefix: s.prefix,
+      address,
+      derivationPath: path,
+      publicKey: bytesToHex(kp.publicKey),
+      secretKey: bytesToHex(kp.secretKey),
+    };
+  });
+}
+
 export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: PqOmniSlot[]; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
@@ -165,10 +286,14 @@ export function derivedKeysFromMnemonic(
   // Leaf for actual signing.
   const child = account.derive(`/0/${walletIndex}`);
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
+  // PQ-OMNI slots derived from the same root at different accounts (5'..8').
+  const pqOmni = derivePqOmniSlots(root);
   return {
     privateKey: bytesToHex(child.privateKey),
-    xprv: account.privateExtendedKey, // base58check-encoded BIP-32 extended privkey
-    xpub: account.publicExtendedKey,  // base58check-encoded BIP-32 extended pubkey
+    xprv: account.privateExtendedKey,
+    xpub: account.publicExtendedKey,
+    pqOmni,
+    root,
   };
 }
 
@@ -189,12 +314,13 @@ export async function unlockFromMnemonic(
   vaultPin?: string,
   bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const { privateKey: privKey, xprv, xpub } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const { privateKey: privKey, xprv, xpub, pqOmni } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
   // Hold the mnemonic + xprv ONLY in process RAM (singleton). Never written
   // to sessionStorage / localStorage / vault — the vault payload is just the
   // leaf privkey. So a page reload loses the mnemonic; the user re-pastes if
-  // they want to see backup material again. xpub is fine to persist (public).
+  // they want to see backup material again. xpub + pqOmni addresses are
+  // public and fine to persist for tab restore.
   unlocked = {
     privateKey: privKey,
     publicKey,
@@ -203,6 +329,7 @@ export async function unlockFromMnemonic(
     mnemonic: mnemonic.trim().toLowerCase(),
     xprv,
     xpub,
+    pqOmni,
   };
   writeSession(unlocked);
   if (vaultPin) {

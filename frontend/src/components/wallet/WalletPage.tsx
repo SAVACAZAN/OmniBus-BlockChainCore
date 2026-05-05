@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { lockWallet } from "../../api/wallet-keystore";
+import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
+import { pqSign, buildTxHash, type PqScheme, hexToBytes, bytesToHex } from "../../api/pq-sign";
 import {
   useNamesOwnedBy,
   useNameForAddress,
@@ -407,12 +408,9 @@ export function WalletPage() {
             <span className="text-[10px] text-mempool-green pl-1">Copied!</span>
           )}
 
-          {/* PQ domain addresses — fiecare = 1 pahar reputation soulbound.
-              Per project_omnibus_5_isolated_wallets memory: each PQ domain
-              uses an INDEPENDENT mnemonic (no cross-derivation). The actual
-              ob_k1_ / ob_f5_ / ob_d5_ / ob_s3_ addresses live in their own
-              vaults; if not unlocked, we show the slot as "not derived" so
-              the user knows to set it up via the isolated-wallets flow. */}
+          {/* Soulbound reputation domains — LOVE / FOOD / RENT / VACATION.
+              These are NOT transferable wallets. They are reputation cups
+              attached to your identity (the OMNI primary). */}
           {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => (
             <PQDomainCard
               key={pq.prefix}
@@ -422,6 +420,24 @@ export function WalletPage() {
               repTotal={reputation?.total}
             />
           ))}
+
+          {/* ── PQ-OMNI Wallets ────────────────────────────────────────
+              Quantum-protected OMNI wallets. Same OMNI semantics on chain
+              (transferable, hold balance) but signed with post-quantum
+              algorithms instead of secp256k1. 4 schemes available, all
+              derived from the same mnemonic at separate BIP-44 accounts. */}
+          {unlocked.pqOmni && unlocked.pqOmni.length > 0 && (
+            <div className="pt-3 mt-2 border-t border-mempool-border/50">
+              <p className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">
+                Quantum-protected OMNI wallets <span className="text-mempool-blue normal-case tracking-normal">— transferable, separate from BTC-compatible primary</span>
+              </p>
+              <div className="space-y-2">
+                {unlocked.pqOmni.map((slot) => (
+                  <PqOmniSlotCard key={slot.scheme} slot={slot} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Reputation legend — explica ce reprezinta paharele */}
           <div className="pt-2 border-t border-mempool-border/40 mt-2">
@@ -465,6 +481,7 @@ export function WalletPage() {
         mnemonic={unlocked.mnemonic}
         xprv={unlocked.xprv}
         xpub={unlocked.xpub}
+        pqOmni={unlocked.pqOmni}
         name={myName}
         balance={balance}
         nonce={walletNonce}
@@ -908,6 +925,7 @@ function WalletMetadataPanel({
   mnemonic,
   xprv,
   xpub,
+  pqOmni,
   name,
   balance,
   nonce,
@@ -922,6 +940,7 @@ function WalletMetadataPanel({
   mnemonic: string | undefined;
   xprv: string | undefined;
   xpub: string | undefined;
+  pqOmni: PqOmniSlot[] | undefined;
   name: string | null;
   balance: { sat: number; omni: string };
   nonce: number | null;
@@ -981,17 +1000,36 @@ function WalletMetadataPanel({
         bits: 256,
         prefix: "ob1q",
         type: "SegWit-compatible bech32 (Bitcoin parity)",
+        transferable: true,
       },
       ...["LOVE", "FOOD", "RENT", "VACATION"].map((tier) => {
         const meta = PQ_DOMAINS.find((d) => d.tier === tier)!;
         return {
           addr: null,
-          label: `${tier} (independent isolated wallet)`,
+          label: `${tier} (soulbound reputation cup)`,
           scheme: tier,
           algo: meta.algo,
           bits: meta.bits,
           prefix: meta.prefix,
-          type: "PQ-signed (NIST FIPS 203/204/205)",
+          type: "Reputation domain (NOT transferable)",
+          transferable: false,
+        };
+      }),
+      // PQ-OMNI wallets — transferable, post-quantum protected, separate
+      // from BTC-compatible primary. 4 algorithms, 4 distinct accounts.
+      ...(pqOmni ?? []).map((slot) => {
+        const m = PQ_OMNI_SCHEMES.find((s) => s.scheme === slot.scheme)!;
+        return {
+          addr: slot.address,
+          label: `PQ-OMNI ${m.algo}`,
+          scheme: slot.scheme,
+          algo: m.algo,
+          bits: m.bits,
+          prefix: slot.prefix,
+          type: "Transferable OMNI wallet, post-quantum signing",
+          transferable: true,
+          derivation_path: slot.derivationPath,
+          public_key: slot.publicKey,
         };
       }),
     ],
@@ -1158,6 +1196,146 @@ function BackupRow({
         )}
       </div>
       <p className="text-[10px] font-mono text-mempool-text break-all leading-relaxed">{value}</p>
+    </div>
+  );
+}
+
+// ── PqOmniSlotCard ──────────────────────────────────────────────────────────
+//
+// One quantum-protected OMNI wallet slot (ML-DSA-87, Falcon-512, Dilithium-5,
+// or SLH-DSA-256s). Click to expand: shows full address, balance pulled from
+// chain (PQ-OMNI addresses ARE balanceable on-chain — the chain treats every
+// `ob_q*_…` exactly like an `ob1q…` for receive). Sending from a PQ-OMNI
+// requires the chain to verify a PQ signature (Phase 2 — backend) and the
+// browser to produce one (Phase 3 — WASM signer). Until those land the Send
+// button is disabled with a clear "coming soon" tooltip.
+function PqOmniSlotCard({ slot }: { slot: PqOmniSlot }) {
+  const meta = PQ_OMNI_SCHEMES.find((s) => s.scheme === slot.scheme)!;
+  const [expanded, setExpanded] = useState(false);
+  const [balanceSat, setBalanceSat] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Pull balance for this PQ-OMNI address. Chain accepts any address as
+  // a payee, so even before Phase 2 lands the receive side works — and we
+  // want the user to see incoming OMNI immediately.
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const r: any = await rpc.request_raw("getaddressbalance", [slot.address]);
+        if (!cancelled && r && typeof r.balance === "number") {
+          setBalanceSat(r.balance);
+        }
+      } catch { /* RPC may not exist on every node — silent fallback */ }
+    };
+    refresh();
+    const id = setInterval(refresh, 8000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [slot.address]);
+
+  const balanceOmni = balanceSat !== null ? (balanceSat / 1e9).toFixed(4) : "—";
+
+  return (
+    <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full p-2.5 hover:bg-mempool-bg-light transition-colors text-left"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-mono text-mempool-text flex items-center gap-2">
+            <span className="text-base leading-none">🛡</span>
+            <span className="font-semibold text-mempool-blue">PQ-OMNI</span>
+            <span className="text-mempool-text-dim/70">·</span>
+            <span className="text-mempool-text-dim">{meta.algo}</span>
+          </span>
+          <span className="text-[10px] text-mempool-text-dim flex items-center gap-2">
+            {balanceSat !== null && (
+              <span className="font-mono text-mempool-green">{balanceOmni} OMNI</span>
+            )}
+            <span>{expanded ? "▾" : "▸"}</span>
+          </span>
+        </div>
+        <p className="text-[10px] font-mono text-mempool-text-dim mt-1 break-all">
+          {slot.address}
+        </p>
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-3 pt-1 space-y-2 text-[11px] border-t border-mempool-border/30">
+          <div className="grid grid-cols-2 gap-2 text-mempool-text-dim">
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Algorithm</div>
+              <div className="text-mempool-text">{meta.algo}</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Security</div>
+              <div className="text-mempool-text">{meta.bits}-bit (post-quantum)</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">Address prefix</div>
+              <div className="text-mempool-text font-mono">{slot.prefix}</div>
+            </div>
+            <div>
+              <div className="uppercase text-[9px] text-mempool-text-dim/60">BIP-44 path</div>
+              <div className="text-mempool-text font-mono">{slot.derivationPath}</div>
+            </div>
+          </div>
+
+          {/* Full address with copy */}
+          <div className="bg-mempool-bg-elev rounded p-2">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Receive address</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(slot.address);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="text-[9px] px-2 py-0.5 bg-mempool-bg rounded hover:bg-mempool-bg-light text-mempool-text-dim hover:text-mempool-text"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <p className="text-[10px] font-mono text-mempool-text break-all">{slot.address}</p>
+          </div>
+
+          {/* Balance + send (send disabled until Phase 2/3) */}
+          <div className="bg-mempool-bg-elev rounded p-2">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-mempool-text-dim uppercase tracking-wider">Balance</span>
+              <span className="font-mono text-mempool-green font-semibold">{balanceOmni} OMNI</span>
+            </div>
+          </div>
+
+          <PqSendForm slot={slot} balanceSat={balanceSat ?? 0} />
+
+          <p className="text-[9px] text-mempool-text-dim/70">
+            Phase-3 status: signing live (@noble/post-quantum), chain
+            verifier live since the testnet deploy. Sending FROM this
+            wallet uses {meta.algo} signatures end-to-end.
+          </p>
+
+          <div className="text-[9px] text-mempool-text-dim/70 pt-1 border-t border-mempool-border/30 leading-relaxed">
+            This is a transferable OMNI wallet protected by post-quantum
+            cryptography. Same chain semantics as your <span className="text-mempool-blue">ob1q…</span> primary
+            (you can receive OMNI here today, exchanges can pay you here),
+            but sending requires a {meta.algo} signature instead of secp256k1.
+            Backup: same mnemonic as your primary OMNI — derived at{" "}
+            <span className="font-mono">{slot.derivationPath}</span>. Lose the
+            mnemonic, lose this wallet too.
+          </div>
+
+          <div className="text-[9px] text-mempool-text-dim/50 pt-1 border-t border-mempool-border/30">
+            Public key (real {meta.algo}, hash160 → base58check → prefix
+            recipe matching the chain verifier):
+          </div>
+          <div className="text-[8px] font-mono text-mempool-text-dim break-all bg-mempool-bg-elev rounded p-1.5 max-h-12 overflow-hidden">
+            {slot.publicKey ? slot.publicKey.slice(0, 96) + (slot.publicKey.length > 96 ? "…" : "") : "(not derived)"}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

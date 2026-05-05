@@ -1,14 +1,21 @@
 import { useEffect, useRef } from "react";
 
+import { useIsPlasmaActive } from "./PlasmaSlotContext";
+
 interface PlasmaLogoProps {
   size?: number;
   className?: string;
 }
 
-export function PlasmaLogo({ size = 40, className = "" }: PlasmaLogoProps) {
+export function PlasmaLogo({ size = 40, className = "", slotIndex }: PlasmaLogoProps & { slotIndex?: number }) {
+  // ALL hooks must run on every render — Rules of Hooks. Early return moved
+  // below the hooks; the canvas effect bails on its own when invisible.
+  const isActive = useIsPlasmaActive(slotIndex ?? -1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const visible = !(slotIndex !== undefined && !isActive);
 
   useEffect(() => {
+    if (!visible) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -86,7 +93,13 @@ export function PlasmaLogo({ size = 40, className = "" }: PlasmaLogoProps) {
 
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [size]);
+  }, [size, visible]);
+
+  if (!visible) {
+    // Reserve the layout slot but stay invisible — keeps header width stable
+    // while the plasma wave moves through the row.
+    return <div style={{ width: size, height: size }} className={className} />;
+  }
 
   return (
     <canvas

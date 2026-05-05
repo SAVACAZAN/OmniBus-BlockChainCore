@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
+import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 
 interface StatCardProps {
   label: string;
@@ -10,10 +11,11 @@ interface StatCardProps {
   color?: string;
 }
 
-function StatCard({ label, value, sub, color = "text-mempool-text", withPlasma }: StatCardProps & { withPlasma?: boolean }) {
+function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }: StatCardProps & { slotIndex?: number }) {
+  const isActive = useIsPlasmaActive(slotIndex ?? -1);
   return (
     <div className="relative bg-mempool-bg-elev rounded-lg p-4 border border-mempool-border backdrop-blur-sm" style={{ overflow: "visible" }}>
-      {withPlasma && (
+      {slotIndex !== undefined && isActive && (
         <div
           className="absolute top-1/2 right-0 -translate-y-1/2 pointer-events-none"
           style={{ zIndex: 0, opacity: 0.7, width: "65%", height: "100%", marginRight: "-10%" }}
@@ -70,6 +72,7 @@ export function StatsBar() {
         value={state.blockCount}
         sub="1s block time"
         color="text-mempool-blue"
+        slotIndex={0}
       />
       <StatCard
         label="Mempool"
@@ -80,21 +83,24 @@ export function StatsBar() {
             : "pending TXs"
         }
         color={state.mempoolSize > 0 ? "text-mempool-orange" : "text-mempool-text"}
-        withPlasma
+        slotIndex={1}
       />
       <StatCard
         label="Difficulty"
+        slotIndex={2}
         value={state.difficulty}
         sub="PoW leading zeros"
       />
       <StatCard
         label="Total Mined"
+        slotIndex={3}
         value={`${formatOMNI(totalMined)} OMNI`}
         sub="all blocks since genesis"
         color="text-mempool-green"
       />
       <StatCard
         label="Reward/Block"
+        slotIndex={4}
         value={`${rewardPerBlock} OMNI`}
         sub="halving every 126M blocks"
         color="text-mempool-purple"
