@@ -23,13 +23,19 @@ export type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pqModules: { mlDsa: any; falcon: any; slhDsa: any } | null = null;
 
+// Use new Function("return import(...)") so Vite 4's static scanner never
+// sees the @noble/post-quantum subpath string — it only reads source AST,
+// not runtime-constructed code. The strings are assembled from parts to
+// make it clear this is intentional, not an oversight.
+const _dynImport = new Function("p", "return import(p)") as (p: string) => Promise<any>;
+const _PQ = "@noble/post-quantum/";
+
 async function pqModules() {
   if (_pqModules) return _pqModules;
   const [ml, fa, sl] = await Promise.all([
-    // @vite-ignore — Vite 4 can't scan pure-ESM subpath exports; load at runtime
-    import(/* @vite-ignore */ "@noble/post-quantum/ml-dsa.js"),
-    import(/* @vite-ignore */ "@noble/post-quantum/falcon.js"),
-    import(/* @vite-ignore */ "@noble/post-quantum/slh-dsa.js"),
+    _dynImport(_PQ + "ml-dsa.js"),
+    _dynImport(_PQ + "falcon.js"),
+    _dynImport(_PQ + "slh-dsa.js"),
   ]);
   _pqModules = { mlDsa: ml, falcon: fa, slhDsa: sl };
   return _pqModules;
