@@ -6,35 +6,33 @@
  * without WASM. The matching chain verifier lives in
  * `core/transaction.zig:verifySignature` per scheme byte (codes 5..8).
  *
- * Vite 4 cannot statically resolve this package's subpath exports.
- * We load them lazily via base64-decoded dynamic imports so the esbuild
- * scanner never sees the module specifier strings.
+ * vite.config.ts has optimizeDeps.exclude: ["@noble/post-quantum"] so Vite
+ * serves the package as native ESM without pre-bundling — subpath exports
+ * resolve correctly in the browser dev server.
  */
 
 import { sha256, sha512 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
 import { hexToBytes, bytesToHex } from "./exchange-sign";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — subpath export, resolved by Vite ESM (not pre-bundled)
+import { ml_dsa87 } from "@noble/post-quantum/ml-dsa.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { falcon512 } from "@noble/post-quantum/falcon.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { slh_dsa_sha2_256s } from "@noble/post-quantum/slh-dsa.js";
 
 export type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256s";
 
-// Lazy-loaded module cache — populated on first call to pqKeypairFromSeed.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pqModules: { mlDsa: any; falcon: any; slhDsa: any } | null = null;
 
-const _dynImport = new Function("p", "return import(p)") as (p: string) => Promise<any>;
-const _ML_DSA_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=");
-const _FALCON_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=");
-const _SLH_DSA_PATH = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz");
-
 async function pqModules() {
   if (_pqModules) return _pqModules;
-  const [ml, fa, sl] = await Promise.all([
-    _dynImport(_ML_DSA_PATH),
-    _dynImport(_FALCON_PATH),
-    _dynImport(_SLH_DSA_PATH),
-  ]);
-  _pqModules = { mlDsa: ml, falcon: fa, slhDsa: sl };
+  _pqModules = { mlDsa: { ml_dsa87 }, falcon: { falcon512 }, slhDsa: { slh_dsa_sha2_256s } };
   return _pqModules;
 }
 
