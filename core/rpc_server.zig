@@ -1444,6 +1444,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_revokeApiKey")) return handleExchangeRevokeApiKey(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_deposit"))       return handleExchangeDeposit(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_withdraw"))      return handleExchangeWithdraw(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getBalance"))    return handleExchangeGetBalance(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getBalances"))   return handleExchangeGetBalances(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
@@ -6955,20 +6956,30 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
     }
 
-    // Balance check: pentru a posta o ordine SELL trader-ul trebuie sa aiba
-    // suficient base. Pentru BUY, suficient quote. Validarea e best-effort —
-    // matching-ul executa ulterior cu balantele on-chain.
-    const balance = ctx.bc.getAddressBalance(trader);
-    if (side == .sell and balance < amount) {
-        return errorJson(-32000, "Insufficient base balance for sell", id, alloc);
+    // Balance check: paper mode checks OMNI_DEMO internal, real mode checks blockchain.
+    // For SELL: available = balance - reserved_in_orders must be >= amount
+    // For BUY: balance >= notional (hard error, not warning)
+    const balance = if (is_paper) blk: {
+        const b = balanceLookup(ctx, trader, "OMNI_DEMO");
+        break :blk if (b) |bal| bal.available_sat else 0;
+    } else
+        ctx.bc.getAddressBalance(trader);
+
+    const reserved = if (is_paper)
+        0
+    else
+        ctx.bc.getAddressReservedInOrders(trader);
+
+    const available = if (balance < reserved) 0 else (balance - reserved);
+
+    if (side == .sell and available < amount) {
+        return errorJson(-32000, "Insufficient available balance for sell", id, alloc);
     }
     // BUY notional in SAT (price e micro-USD per OMNI; 1 OMNI = 1e9 SAT)
     if (side == .buy) {
         const notional = (amount / 1_000_000_000) * (price / 1_000_000);
         if (notional > 0 and balance < notional) {
-            // Soft check — testnet permite, doar avertizam in log
-            std.debug.print("[EXCHANGE] WARN buy notional {d} > balance {d} for {s}\n",
-                .{ notional, balance, trader[0..@min(trader.len, 16)] });
+            return errorJson(-32000, "Insufficient balance for buy notional", id, alloc);
         }
     }
 
@@ -7017,6 +7028,11 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     nonceSet(ctx, trader, nonce);
+
+    // Reserve balance for SELL orders (Phase 1B)
+    if (side == .sell and !is_paper) {
+        ctx.bc.reserveBalance(trader, amount);
+    }
 
     // Create on-chain order TX with hash
     const tx_result = createOrderTransaction(
@@ -7128,6 +7144,10 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Not order owner", id, alloc);
     }
 
+    // Save order side and amount for unreservation (Phase 1B)
+    const order_side = order.side;
+    const order_amount = order.amount_sat;
+
     const last_nonce = nonceLookup(ctx, trader);
     if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
         return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
@@ -7139,6 +7159,12 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             else => "Cancel failed",
         }, id, alloc);
     };
+
+    // Unreserve balance for cancelled SELL orders (Phase 1B)
+    if (order_side == .sell and !is_paper) {
+        ctx.bc.unreserveBalance(trader, order_amount);
+    }
+
     nonceSet(ctx, trader, nonce);
 
     var jbuf: [128]u8 = undefined;
@@ -8001,7 +8027,15 @@ fn handleExchangeWithdraw(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: owner", id, alloc);
-    const token = extractStr(body, "token") orelse "OMNI";
+    const is_paper = isPaperMode(body);
+
+    // Phase 1E: destination required for real mode (on-chain TX)
+    const destination = if (!is_paper)
+        (extractStr(body, "destination") orelse
+            return errorJson(-32602, "Missing param: destination (for real mode)", id, alloc))
+    else
+        owner;  // paper mode: withdraw to self (internal debit only)
+
     const amount = extractArrayNumByKey(body, "amount");
     if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
     const sig_hex = extractStr(body, "signature") orelse
@@ -8014,11 +8048,19 @@ fn handleExchangeWithdraw(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // PHASE 1: REST HMAC-authenticated requests bypass ECDSA.
     const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
     if (!is_hmac_bypass) {
-        var msg_buf: [256]u8 = undefined;
-        const msg = std.fmt.bufPrint(&msg_buf,
-            "EXCHANGE_WITHDRAW_V1\n{s}\n{s}\n{d}\n{d}",
-            .{ owner, token, amount, nonce }) catch
+        var msg_buf: [512]u8 = undefined;
+        const msg_result = if (is_paper)
+            std.fmt.bufPrint(&msg_buf,
+                "EXCHANGE_WITHDRAW_V1\n{s}\nOMNI_DEMO\n{d}\n{d}",
+                .{ owner, amount, nonce })
+        else
+            std.fmt.bufPrint(&msg_buf,
+                "EXCHANGE_WITHDRAW_V1\n{s}\n{s}\nOMNI\n{d}\n{d}",
+                .{ owner, destination, amount, nonce });
+
+        const msg = msg_result catch
             return errorJson(-32603, "Failed to build sign message", id, alloc);
+
         if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
             return errorJson(-32000, "Signature verify failed", id, alloc);
         }
@@ -8041,21 +8083,108 @@ fn handleExchangeWithdraw(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Nonce already used", id, alloc);
     }
 
-    if (!balanceDebit(ctx, owner, token, amount)) {
-        return errorJson(-32000, "Insufficient balance", id, alloc);
+    // Phase 1E: Real mode creates on-chain TX, paper mode debits internal table
+    if (is_paper) {
+        const token = "OMNI_DEMO";
+        if (!balanceDebit(ctx, owner, token, amount)) {
+            return errorJson(-32000, "Insufficient balance", id, alloc);
+        }
+        nonceSet(ctx, owner, nonce);
+
+        var jbuf: [256]u8 = undefined;
+        const jline = std.fmt.bufPrint(&jbuf,
+            "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
+            .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
+        if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
+
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"status\":\"completed\"}}}}",
+            .{ id, owner, owner, amount });
+    } else {
+        // Real mode: check blockchain balance and create on-chain TX
+        const balance = ctx.bc.getAddressBalance(owner);
+        if (balance < amount) {
+            return errorJson(-32000, "Insufficient blockchain balance", id, alloc);
+        }
+
+        // Create on-chain TX: owner -> destination
+        var tx = transaction_mod.Transaction{
+            .id = @intCast(@min(ctx.bc.chain.items.len, std.math.maxInt(u32))),
+            .scheme = .omni_ecdsa,
+            .from_address = try alloc.dupe(u8, owner),
+            .to_address = try alloc.dupe(u8, destination),
+            .amount = amount,
+            .fee = 0,
+            .timestamp = std.time.milliTimestamp(),
+            .nonce = nonce,
+            .op_return = "",
+            .locktime = 0,
+            .sequence = 0xFFFFFFFF,
+            .script_pubkey = "",
+            .script_sig = "",
+            .signature = try alloc.dupe(u8, sig_hex),
+            .hash = try alloc.dupe(u8, "pending"),  // will be computed during addTransaction
+            .public_key = try alloc.dupe(u8, pubkey_hex),
+        };
+
+        // Add to blockchain
+        ctx.bc.addTransaction(tx) catch |err| {
+            alloc.free(tx.from_address);
+            alloc.free(tx.to_address);
+            alloc.free(tx.signature);
+            alloc.free(tx.hash);
+            alloc.free(tx.public_key);
+            std.debug.print("[EXCHANGE] Withdraw TX creation failed: {}\n", .{err});
+            return errorJson(-32603, "Failed to create withdraw TX", id, alloc);
+        };
+        defer {
+            alloc.free(tx.from_address);
+            alloc.free(tx.to_address);
+            alloc.free(tx.signature);
+            alloc.free(tx.hash);
+            alloc.free(tx.public_key);
+        }
+
+        nonceSet(ctx, owner, nonce);
+
+        var jbuf: [512]u8 = undefined;
+        const jline = std.fmt.bufPrint(&jbuf,
+            "\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"txHash\":\"{s}\",\"ts\":{d}",
+            .{ owner, destination, amount, tx.hash[0..@min(64, tx.hash.len)], std.time.milliTimestamp() }) catch "";
+        if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
+
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"txHash\":\"{s}\",\"status\":\"pending\"}}}}",
+            .{ id, owner, destination, amount, tx.hash[0..@min(64, tx.hash.len)] });
     }
-    nonceSet(ctx, owner, nonce);
+}
 
-    var jbuf: [256]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
-        .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
+/// exchange_getBalance — returns single address balance with reservation info (Phase 1B).
+/// For real mode: balance from blockchain, reserved from orders.
+/// For paper mode: balance from OMNI_DEMO internal table.
+fn handleExchangeGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractStr(body, "address") orelse extractStr(body, "owner") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const is_paper = isPaperMode(body);
 
-    const b = balanceLookup(ctx, owner, token).?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}}}",
-        .{ id, owner, token, b.available_sat, b.locked_sat });
+    ctx.exchange_mutex.lock();
+    defer ctx.exchange_mutex.unlock();
+
+    if (is_paper) {
+        const b = balanceLookup(ctx, address, "OMNI_DEMO");
+        const balance_amt = if (b) |bal| bal.available_sat else 0;
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"reserved\":0,\"available\":{d},\"mode\":\"paper\"}}}}",
+            .{ id, address, balance_amt, balance_amt });
+    } else {
+        const balance = ctx.bc.getAddressBalance(address);
+        const reserved = ctx.bc.getAddressReservedInOrders(address);
+        const available = if (balance < reserved) 0 else (balance - reserved);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"reserved\":{d},\"available\":{d},\"mode\":\"real\"}}}}",
+            .{ id, address, balance, reserved, available });
+    }
 }
 
 /// exchange_getBalances — read-only listing of all balance rows for an owner.

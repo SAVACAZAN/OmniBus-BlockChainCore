@@ -295,7 +295,12 @@ pub var g_chainstate: ?chainstate_mod.ChainState = null;
 pub var g_state_save_run: std.atomic.Value(bool) = std.atomic.Value(bool).init(false);
 pub var g_state_save_thread: ?std.Thread = null;
 
-const STATE_SAVE_INTERVAL_SEC: i64 = 60;
+// Reduced 60s → 30s ca extra safety net pe langa per-block save (vezi
+// fix-ul din mining loop dupa applyBlock). Pana cand storage-ul devine
+// incremental (Bitcoin-style blkNNNNN.dat), saveToDisc face un rewrite
+// monolitic, dar la ~hundreds-of-ms ramane sub block time. Daca per-block
+// save esueaza tranzitoriu, thread-ul ăsta prinde state-ul in 30s.
+const STATE_SAVE_INTERVAL_SEC: i64 = 30;
 
 fn stateSaveLoop(bc: *blockchain_mod.Blockchain) void {
     // First save runs after the interval, not at startup, because the
@@ -2246,7 +2251,35 @@ pub fn main() !void {
             // Detectam daca checkAutoSave a flush-uit prin reset-ul contorului.
             const before_save = bc.blocks_since_save;
             bc.checkAutoSave();
-            const did_save = bc.blocks_since_save < before_save;
+            var did_save = bc.blocks_since_save < before_save;
+
+            // ── FIX (2026-05-03): per-block chainstate flush ──────────────────
+            //
+            // Inainte: checkAutoSave era no-op si saveToDisc ruleaza doar din
+            // thread-ul de fundal (interval 30s). Orice stake/agent register/
+            // op_return memo din ultimele 30s inainte de SEGV / restart binar /
+            // systemctl restart era pierdut — restart-ul citea chainstate
+            // vechi, iar pubkey_registry/balances populate de TX-urile recente
+            // disparuser. Validatorii pierdeau rolul, agentii dispareau, sent
+            // values pe pool addresses se reseta la 0.
+            //
+            // Acum: dupa fiecare bloc reusit forteaza un flush. Wrapped in
+            // try/catch — daca disk-ul e plin sau lent, log + continua mining
+            // (thread-ul de 30s va reincerca). NU oprim mining-ul pe save fail.
+            //
+            // TBD (Fix #2): saveBlockchain face full-file rewrite (monolitic).
+            // La 50k+ blocuri devine ~hundreds of ms per save. Plan refactor
+            // → blocks/blkNNNNN.dat append + chainstate/ KV (Bitcoin-style),
+            // tracked in arch/leveldb-storage. Pana atunci, costul e acceptabil
+            // pentru garantia ca state survives restart.
+            bc.saveToDisc() catch |err| {
+                std.debug.print(
+                    "[DB] Per-block save failed at #{d}: {} — continuing mining, 30s thread will retry\n",
+                    .{ block_count, err },
+                );
+            };
+            std.debug.print("[DB] Saved chainstate after block #{d}\n", .{block_count});
+            did_save = true;
             // DNS persist piggybacks on chain auto-save (cadenta identica).
             if (did_save) {
                 dns.saveToFile(dns_persist_path) catch |err| {

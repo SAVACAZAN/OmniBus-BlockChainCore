@@ -181,6 +181,12 @@ pub const UTXOSet = struct {
         return self.getUTXO(tx_hash, output_index) != null;
     }
 
+    /// Result of a coin-selection round.
+    /// Pulled out as a named struct so callers can declare `?Selection` and
+    /// thread the value through optional chains (e.g. fallback when
+    /// `selectUTXOs` returns `error.InsufficientFunds`).
+    pub const Selection = struct { utxos: std.ArrayList(UTXO), total: u64 };
+
     /// Select UTXOs to cover a target amount (simple greedy algorithm)
     /// Returns selected UTXOs and total selected amount
     pub fn selectUTXOs(
@@ -189,7 +195,7 @@ pub const UTXOSet = struct {
         target_amount: u64,
         current_height: u64,
         allocator: std.mem.Allocator,
-    ) !struct { utxos: std.ArrayList(UTXO), total: u64 } {
+    ) !Selection {
         var selected: std.ArrayList(UTXO) = .empty;
         var total: u64 = 0;
 

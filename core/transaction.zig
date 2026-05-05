@@ -40,6 +40,16 @@ pub const Scheme = enum(u8) {
     food_falcon = 2,
     rent_slh_dsa = 3,
     vacation_kem = 4,
+    // PQ-OMNI transferable (Phase 1 — chain verifies PQ signature only):
+    pq_omni_ml_dsa = 5,
+    pq_omni_falcon = 6,
+    pq_omni_dilithium = 7,
+    pq_omni_slh_dsa = 8,
+    // Hybrid Phase 2 — chain verifies BOTH ECDSA + PQ signatures:
+    hybrid_q1 = 9,
+    hybrid_q2 = 10,
+    hybrid_q3 = 11,
+    hybrid_q4 = 12,
 
     pub fn prefix(self: Scheme) []const u8 {
         return switch (self) {
@@ -48,15 +58,29 @@ pub const Scheme = enum(u8) {
             .food_falcon => "ob_f5_",
             .rent_slh_dsa => "ob_d5_",
             .vacation_kem => "ob_s3_",
+            // FARA underscore initial — distinct vizual de soulbound
+            .pq_omni_ml_dsa, .hybrid_q1 => "obk1_",
+            .pq_omni_falcon, .hybrid_q2 => "obf5_",
+            .pq_omni_dilithium, .hybrid_q3 => "obs3_",
+            .pq_omni_slh_dsa, .hybrid_q4 => "obd5_",
         };
     }
 
     pub fn fromAddress(addr: []const u8) ?Scheme {
+        // ATENTIE: ordine specifica pentru a evita confuzia ob_k1_ (soulbound)
+        // cu obk1_ (PQ-OMNI transferable) — soulbound primii (cu underscore initial).
         if (std.mem.startsWith(u8, addr, "ob1q")) return .omni_ecdsa;
         if (std.mem.startsWith(u8, addr, "ob_k1_")) return .love_dilithium;
         if (std.mem.startsWith(u8, addr, "ob_f5_")) return .food_falcon;
         if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_slh_dsa;
         if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_kem;
+        // PQ-OMNI / Hybrid: fara underscore initial.
+        // Returnam pq_omni_* aici; chain-ul distinge schema reala (PQ vs Hybrid)
+        // din TX.scheme propriu, nu din prefixul adresei.
+        if (std.mem.startsWith(u8, addr, "obk1_")) return .pq_omni_ml_dsa;
+        if (std.mem.startsWith(u8, addr, "obf5_")) return .pq_omni_falcon;
+        if (std.mem.startsWith(u8, addr, "obs3_")) return .pq_omni_dilithium;
+        if (std.mem.startsWith(u8, addr, "obd5_")) return .pq_omni_slh_dsa;
         return null;
     }
 };
@@ -127,11 +151,17 @@ pub const Transaction = struct {
         "ob1q",        // OMNI SegWit v0 (P2WPKH/P2WSH, Bech32)
         "ob1p",        // OMNI Taproot v1 (Bech32m)
         "ob_omni_",    // Legacy OMNI native (coin 777) — backward compat
-        "ob_k1_",      // OMNI_LOVE  (coin 778) — legacy
-        "ob_f5_",      // OMNI_FOOD  (coin 779) — legacy
-        "ob_d5_",      // OMNI_RENT  (coin 780) — legacy
-        "ob_s3_",      // OMNI_VACATION (coin 781) — legacy
+        "ob_k1_",      // OMNI_LOVE  (coin 778) — soulbound reputation
+        "ob_f5_",      // OMNI_FOOD  (coin 779) — soulbound reputation
+        "ob_d5_",      // OMNI_RENT  (coin 780) — soulbound reputation
+        "ob_s3_",      // OMNI_VACATION (coin 781) — soulbound reputation
         "ob_ms_",      // Multisig (M-of-N P2SH-style) — legacy
+        // PQ-OMNI transferable (Phase 1 PQ verify + Phase 2 hybrid ECDSA+PQ verify):
+        // FARA underscore initial — distinct vizual de soulbound de mai sus.
+        "obk1_",       // PQ-OMNI Dilithium / Hybrid Q1 (ECDSA + Dilithium)
+        "obf5_",       // PQ-OMNI Falcon    / Hybrid Q2 (ECDSA + Falcon)
+        "obd5_",       // PQ-OMNI SLH-DSA   / Hybrid Q4 (ECDSA + SLH-DSA)
+        "obs3_",       // PQ-OMNI ML-KEM    / Hybrid Q3 (ECDSA + ML-KEM PoP)
         "0x",          // ETH-compatible bridge
     };
 
@@ -343,6 +373,7 @@ pub const Transaction = struct {
     /// PQ Isolated Wallets v2 — verificare per scheme.
     /// Pentru ECDSA: foloseste pubkey_hex din registru (66 hex chars).
     /// Pentru PQ: foloseste self.public_key (bytes raw, nu hex).
+    /// FIX 2026-05-05: PQ signatures stocate ca hex trebuie decode inainte de verify
     pub fn verifySignature(self: *const Transaction, pubkey_hex: ?[]const u8) bool {
         // Verifica hash intai (common path)
         if (self.hash.len != 64) return false;
@@ -368,7 +399,10 @@ pub const Transaction = struct {
                 var kp: pq_crypto.MlDsa87 = undefined;
                 if (pk.len != pq_crypto.MlDsa87.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.MlDsa87.PUBLIC_KEY_SIZE]);
-                return kp.verify(&hash_bytes, self.signature);
+                // FIX: Decode hex signature to raw bytes for PQ verify
+                var sig_bytes: [pq_crypto.MlDsa87.SIGNATURE_MAX]u8 = undefined;
+                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .food_falcon => {
                 const pk = self.public_key;
@@ -376,7 +410,10 @@ pub const Transaction = struct {
                 var kp: pq_crypto.Falcon512 = undefined;
                 if (pk.len != pq_crypto.Falcon512.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.Falcon512.PUBLIC_KEY_SIZE]);
-                return kp.verify(&hash_bytes, self.signature);
+                // FIX: Decode hex signature to raw bytes for PQ verify
+                var sig_bytes: [pq_crypto.Falcon512.SIGNATURE_MAX]u8 = undefined;
+                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .rent_slh_dsa => {
                 const pk = self.public_key;
@@ -384,7 +421,10 @@ pub const Transaction = struct {
                 var kp: pq_crypto.SlhDsa256s = undefined;
                 if (pk.len != pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE]);
-                return kp.verify(&hash_bytes, self.signature);
+                // FIX: Decode hex signature to raw bytes for PQ verify
+                var sig_bytes: [pq_crypto.SlhDsa256s.SIGNATURE_MAX]u8 = undefined;
+                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .vacation_kem => false, // KEM nu semneaza
         };

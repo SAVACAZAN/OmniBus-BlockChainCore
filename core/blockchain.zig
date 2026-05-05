@@ -159,6 +159,15 @@ pub const Blockchain = struct {
     /// TX hash → block height: tracks which block contains each transaction
     /// Used for confirmation counting (current_height - tx_block_height)
     tx_block_height: std.StringHashMap(u64),
+    /// Cumulative stake per address (in SAT) — derived from `op_return` prefixes
+    /// "stake:<amt>" (saturating add) and "unstake:<amt>" (saturating sub).
+    /// Persisted to chain.dat v2 so VALIDATOR roles survive node restart even
+    /// though full TX data isn't serialised (see database.zig stake_state section).
+    stake_amounts: std.StringHashMap(u64),
+    /// Set of addresses that have registered as agents (`op_return` prefix
+    /// "agent:register"). Persisted to chain.dat v2 (agent_state section) so
+    /// AGENT roles survive restart.
+    registered_agents: std.StringHashMap(void),
     /// Orphan block pool: blocks whose parent we don't have yet.
     /// When a new block arrives and connects, we re-check orphans.
     orphan_blocks: array_list.Managed(Block),
@@ -224,6 +233,12 @@ pub const Blockchain = struct {
     /// Nil-init via comptime literal — populated lazily on first bridge TX.
     bridge_state: ?@import("bridge_native.zig").BridgeState = null,
 
+    /// Exchange balance reservations: per-address, reserved amounts in pending sell orders
+    /// Formula: available = getAddressBalance() - reserved_in_orders
+    /// Used to prevent double-pledging across multiple orders
+    reserved_in_orders: std.StringHashMap(u64) = undefined,
+    reserved_mutex: std.Thread.Mutex = .{},
+
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
@@ -258,11 +273,14 @@ pub const Blockchain = struct {
             .nonces = std.StringHashMap(u64).init(allocator),
             .pubkey_registry = std.StringHashMap([]const u8).init(allocator),
             .tx_block_height = std.StringHashMap(u64).init(allocator),
+            .stake_amounts = std.StringHashMap(u64).init(allocator),
+            .registered_agents = std.StringHashMap(void).init(allocator),
             .orphan_blocks = array_list.Managed(Block).init(allocator),
             .address_tx_index = std.StringHashMap(std.ArrayList([]const u8)).init(allocator),
             .utxo_set = utxo_mod.UTXOSet.init(allocator),
             .block_prices = std.AutoHashMap(u32, [6]BlockPriceEntry).init(allocator),
             .block_prices_initialized = true,
+            .reserved_in_orders = std.StringHashMap(u64).init(allocator),
         };
     }
 
@@ -319,6 +337,8 @@ pub const Blockchain = struct {
         self.nonces.deinit();
         self.pubkey_registry.deinit();
         self.tx_block_height.deinit();
+        self.stake_amounts.deinit();
+        self.registered_agents.deinit();
         // Clean up address TX index (lists of TX hash pointers — no owned memory)
         {
             var ati_it = self.address_tx_index.iterator();
@@ -941,21 +961,34 @@ pub const Blockchain = struct {
         var total_fees: u64 = 0;
         for (block.transactions.items) |tx| {
             const total_needed = tx.amount + tx.fee;
-            // UTXO: spend sender's inputs
-            var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(index), self.allocator) catch |err| {
-                std.debug.print("[MINE] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
-                continue;
-            };
-            defer selection.utxos.deinit(self.allocator);
-            for (selection.utxos.items) |utxo| {
-                _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
-                    std.debug.print("[MINE] spendUTXO failed: {}\n", .{err});
-                };
+            // UTXO: spend sender's inputs.
+            // FIX (2026-05-03): nu mai sarim TX-urile cand selectUTXOs esueaza.
+            // Pentru wire-v1 (fara inputs[]/outputs[] explicite), validateTransaction
+            // a verificat deja balance >= amount+fee inainte de mempool-add. Daca
+            // selectUTXOs nu reuseste totusi sa acopere need-ul (ex: UTXO-uri inca
+            // ne-indexate dupa restart sau tranzactii externe semnate de noi useri),
+            // facem fallback la per-address balance bookkeeping si lasam UTXO-ul
+            // recipient-ului sa fie creat pe baza credit-ului. recalculateFromHeight
+            // la urmatorul restart va reconcilia UTXO-urile complet.
+            var selection_opt: ?utxo_mod.UTXOSet.Selection = null;
+            if (self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(index), self.allocator)) |sel| {
+                selection_opt = sel;
+            } else |err| {
+                std.debug.print("[MINE] selectUTXOs failed for {s}: {} — fallback la balance check (v1)\n",
+                    .{tx.from_address[0..@min(20, tx.from_address.len)], err});
             }
-            // UTXO: change output back to sender
-            if (selection.total > total_needed) {
-                const change = selection.total - total_needed;
-                self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(index), "", false) catch {};
+            if (selection_opt) |*selection| {
+                defer selection.utxos.deinit(self.allocator);
+                for (selection.utxos.items) |utxo| {
+                    _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                        std.debug.print("[MINE] spendUTXO failed: {}\n", .{err});
+                    };
+                }
+                // UTXO: change output back to sender
+                if (selection.total > total_needed) {
+                    const change = selection.total - total_needed;
+                    self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(index), "", false) catch {};
+                }
             }
 
             self.debitBalance(tx.from_address, tx.amount + tx.fee) catch {}; // debit amount + fee
@@ -966,6 +999,8 @@ pub const Blockchain = struct {
             self.nonces.put(tx.from_address, current_nonce + 1) catch {};
             // Track TX → block height for confirmation counting
             self.tx_block_height.put(tx.hash, @intCast(index)) catch {};
+            // Update derived stake/agent state from op_return memo
+            self.applyOpReturnRoles(tx);
             // Index TX for both sender and receiver address history
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
@@ -1361,9 +1396,10 @@ pub const Blockchain = struct {
     ///
     /// Thread-safety: takes self.mutex for the duration of the write. The
     /// background save thread (g_state_save_thread in main.zig) calls this
-    /// every 60 s; the mining loop holds the mutex briefly to apply each
-    /// block's TXs, so the saver and the miner serialise cleanly. A slow
-    /// disk write blocks new blocks from being added during the save —
+    /// every 30 s as backup, plus the mining loop calls it after every block
+    /// for primary persistence; the mining loop holds the mutex briefly to
+    /// apply each block's TXs, so the saver and the miner serialise cleanly.
+    /// A slow disk write blocks new blocks from being added during the save —
     /// that's fine, our save is ~hundreds of ms and we're targeting
     /// 1 s/block so there's plenty of slack.
     pub fn saveToDisc(self: *Blockchain) !void {
@@ -1439,6 +1475,49 @@ pub const Blockchain = struct {
 
     /// Apply a validated block to the chain: process TXs, credit miner, append.
     /// Caller must hold mutex.
+    /// Update cumulative stake & agent-registration maps from a single TX's
+    /// `op_return` payload. Called from applyBlock / mineBlockForMiner /
+    /// recalculateFromHeight so the derived state stays in sync regardless
+    /// of which path produced the block. Keys are duped (HashMap-owned)
+    /// because the TX slice may be transient (mempool buffer, replay loop).
+    fn applyOpReturnRoles(self: *Blockchain, tx: Transaction) void {
+        if (tx.op_return.len == 0 or tx.from_address.len == 0) return;
+        if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
+            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
+            const gop = self.stake_amounts.getOrPut(owned) catch {
+                self.allocator.free(owned);
+                return;
+            };
+            if (gop.found_existing) {
+                self.allocator.free(owned);
+            } else {
+                gop.value_ptr.* = 0;
+            }
+            gop.value_ptr.* +|= tx.amount; // saturating add
+        } else if (std.mem.startsWith(u8, tx.op_return, "unstake:")) {
+            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
+            const gop = self.stake_amounts.getOrPut(owned) catch {
+                self.allocator.free(owned);
+                return;
+            };
+            if (gop.found_existing) {
+                self.allocator.free(owned);
+            } else {
+                gop.value_ptr.* = 0;
+            }
+            gop.value_ptr.* -|= tx.amount; // saturating sub
+        } else if (std.mem.startsWith(u8, tx.op_return, "agent:register")) {
+            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
+            const gop = self.registered_agents.getOrPut(owned) catch {
+                self.allocator.free(owned);
+                return;
+            };
+            if (gop.found_existing) {
+                self.allocator.free(owned);
+            }
+        }
+    }
+
     fn applyBlock(self: *Blockchain, block: Block) !void {
         // PHASE C.3 — open the legitimate-write window.
         self.in_apply_block = true;
@@ -1487,21 +1566,27 @@ pub const Blockchain = struct {
                 }
             } else {
                 // v1 backward-compat: implicit coin-selection.
-                var selection = self.utxo_set.selectUTXOs(
-                    tx.from_address, total_needed, @intCast(block.index), self.allocator,
-                ) catch |err| {
-                    std.debug.print("[APPLY-BLOCK v1] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
-                    continue;
-                };
-                defer selection.utxos.deinit(self.allocator);
-                for (selection.utxos.items) |utxo| {
-                    _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
-                        std.debug.print("[APPLY-BLOCK v1] spendUTXO failed: {}\n", .{err});
-                    };
+                // FIX (2026-05-03): la fel ca in mineBlockForMiner — daca selectUTXOs
+                // esueaza pentru wire-v1, NU sarim TX-ul; lasam balance/nonce/index
+                // sa fie procesate si lasam recipient UTXO-ul sa fie creat.
+                var selection_opt: ?utxo_mod.UTXOSet.Selection = null;
+                if (self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(block.index), self.allocator)) |sel| {
+                    selection_opt = sel;
+                } else |err| {
+                    std.debug.print("[APPLY-BLOCK v1] selectUTXOs failed for {s}: {} — fallback la balance check\n",
+                        .{tx.from_address[0..@min(20, tx.from_address.len)], err});
                 }
-                if (selection.total > total_needed) {
-                    const change = selection.total - total_needed;
-                    self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(block.index), "", false) catch {};
+                if (selection_opt) |*selection| {
+                    defer selection.utxos.deinit(self.allocator);
+                    for (selection.utxos.items) |utxo| {
+                        _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                            std.debug.print("[APPLY-BLOCK v1] spendUTXO failed: {}\n", .{err});
+                        };
+                    }
+                    if (selection.total > total_needed) {
+                        const change = selection.total - total_needed;
+                        self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(block.index), "", false) catch {};
+                    }
                 }
                 // v1 implicit recipient output at index 0.
                 self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(block.index), "", false) catch {};
@@ -1515,6 +1600,7 @@ pub const Blockchain = struct {
             const current_nonce = self.nonces.get(tx.from_address) orelse 0;
             self.nonces.put(tx.from_address, current_nonce + 1) catch {};
             self.tx_block_height.put(tx.hash, @intCast(block.index)) catch {};
+            self.applyOpReturnRoles(tx);
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
         }
@@ -1628,6 +1714,8 @@ pub const Blockchain = struct {
         self.balances.clearRetainingCapacity();
         self.nonces.clearRetainingCapacity();
         self.tx_block_height.clearRetainingCapacity();
+        self.stake_amounts.clearRetainingCapacity();
+        self.registered_agents.clearRetainingCapacity();
         // Clear and rebuild UTXO set from chain
         self.utxo_set.deinit();
         self.utxo_set = utxo_mod.UTXOSet.init(self.allocator);
@@ -1637,19 +1725,26 @@ pub const Blockchain = struct {
             var blk_total_fees: u64 = 0;
             for (blk.transactions.items) |tx| {
                 const total_needed = tx.amount + tx.fee;
-                var selection = self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(blk.index), self.allocator) catch |err| {
-                    std.debug.print("[RECALC] selectUTXOs failed for {s}: {}\n", .{tx.from_address, err});
-                    continue;
-                };
-                defer selection.utxos.deinit(self.allocator);
-                for (selection.utxos.items) |utxo| {
-                    _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
-                        std.debug.print("[RECALC] spendUTXO failed: {}\n", .{err});
-                    };
+                // FIX (2026-05-03): la replay nu sarim TX-urile cu selectUTXOs failed.
+                // Aceeasi logica ca in mineBlockForMiner — fallback pe balance check.
+                var selection_opt: ?utxo_mod.UTXOSet.Selection = null;
+                if (self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(blk.index), self.allocator)) |sel| {
+                    selection_opt = sel;
+                } else |err| {
+                    std.debug.print("[RECALC] selectUTXOs failed for {s}: {} — fallback la balance check\n",
+                        .{tx.from_address[0..@min(20, tx.from_address.len)], err});
                 }
-                if (selection.total > total_needed) {
-                    const change = selection.total - total_needed;
-                    self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(blk.index), "", false) catch {};
+                if (selection_opt) |*selection| {
+                    defer selection.utxos.deinit(self.allocator);
+                    for (selection.utxos.items) |utxo| {
+                        _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
+                            std.debug.print("[RECALC] spendUTXO failed: {}\n", .{err});
+                        };
+                    }
+                    if (selection.total > total_needed) {
+                        const change = selection.total - total_needed;
+                        self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(blk.index), "", false) catch {};
+                    }
                 }
 
                 self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
@@ -1658,6 +1753,7 @@ pub const Blockchain = struct {
                 const current_nonce = self.nonces.get(tx.from_address) orelse 0;
                 self.nonces.put(tx.from_address, current_nonce + 1) catch {};
                 self.tx_block_height.put(tx.hash, @intCast(blk.index)) catch {};
+                self.applyOpReturnRoles(tx);
                 self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(blk.index), "", false) catch {};
             }
             const fees_burned = blk_total_fees * FEE_BURN_PCT / 100;
@@ -1757,6 +1853,46 @@ pub const Blockchain = struct {
         @memcpy(snap.prev_hash_buf[0..pl], last.previous_hash[0..pl]);
         snap.prev_hash_len = pl;
         return snap;
+    }
+
+    /// Get reserved amount for an address (sum of all pending sell orders)
+    pub fn getAddressReservedInOrders(self: *Blockchain, address: []const u8) u64 {
+        self.reserved_mutex.lock();
+        defer self.reserved_mutex.unlock();
+
+        if (self.reserved_in_orders.get(address)) |reserved| {
+            return reserved;
+        }
+        return 0;
+    }
+
+    /// Reserve amount for a sell order (prevents double-pledging)
+    pub fn reserveBalance(self: *Blockchain, address: []const u8, amount: u64) void {
+        self.reserved_mutex.lock();
+        defer self.reserved_mutex.unlock();
+
+        const addr_copy = self.allocator.dupe(u8, address) catch return;
+
+        if (self.reserved_in_orders.getPtr(addr_copy)) |reserved_ptr| {
+            reserved_ptr.* +%= amount;
+            self.allocator.free(addr_copy);
+        } else {
+            self.reserved_in_orders.put(addr_copy, amount) catch {
+                self.allocator.free(addr_copy);
+            };
+        }
+    }
+
+    /// Unreserve amount when order is filled or cancelled
+    pub fn unreserveBalance(self: *Blockchain, address: []const u8, amount: u64) void {
+        self.reserved_mutex.lock();
+        defer self.reserved_mutex.unlock();
+
+        if (self.reserved_in_orders.getPtr(address)) |reserved_ptr| {
+            reserved_ptr.* = if (reserved_ptr.* > amount)
+                reserved_ptr.* - amount
+                else 0;
+        }
     }
 };
 

@@ -1120,6 +1120,21 @@ pub const P2PNode = struct {
         for (&self.banned_peers) |*bp| bp.active = false;
         for (&self.reconnect_queue) |*ri| ri.active = false;
         self.hardening_init = true;
+        // CRITICAL: cand alocator.create() ne da memorie uninitialized,
+        // default values din declaratia struct (`= .{}`) NU se aplica.
+        // Mutex-urile + atomicele + alte campuri cu defaults trebuie
+        // initializate explicit aici, altfel SEGV la prima utilizare.
+        self.peers_mutex = .{};
+        self.chain_magic = .{ 0, 0, 0, 0 };
+        self.miner_address = "";
+        self.consecutive_bcast_fails = std.atomic.Value(u32).init(0);
+        self.scoring_engine = scoring_mod.PeerScoringEngine.init();
+        self.banned_count = 0;
+        self.reconnect_count = 0;
+        self.inbound_count = std.atomic.Value(u32).init(0);
+        self.outbound_count = std.atomic.Value(u32).init(0);
+        self.tor_config = tor_mod.TorConfig.default();
+        self.ws_server = null;
     }
 
     /// Set the 4-byte network magic from chain_config. Called from main.zig

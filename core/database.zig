@@ -494,14 +494,49 @@ pub const PersistentBlockchain = struct {
 
         try appendCrc32(&out, section_tx_start);
 
+        // === Stake state section (v2 ext, 2026-05-04) ===
+        // Persists derived stake-per-address so VALIDATOR roles survive restart
+        // even though full TX data is not serialised.
+        const section_stake_start = out.items.len;
+        var scnt4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &scnt4, @intCast(bc.stake_amounts.count()), .little);
+        try out.appendSlice(&scnt4);
+        var sit = bc.stake_amounts.iterator();
+        while (sit.next()) |entry| {
+            const addr = entry.key_ptr.*;
+            const stake = entry.value_ptr.*;
+            if (addr.len > 255) continue;
+            try out.append(@intCast(addr.len));
+            try out.appendSlice(addr);
+            var s8: [8]u8 = undefined;
+            std.mem.writeInt(u64, &s8, stake, .little);
+            try out.appendSlice(&s8);
+        }
+        try appendCrc32(&out, section_stake_start);
+
+        // === Agent state section (v2 ext, 2026-05-04) ===
+        const section_agent_start = out.items.len;
+        var acnt4: [4]u8 = undefined;
+        std.mem.writeInt(u32, &acnt4, @intCast(bc.registered_agents.count()), .little);
+        try out.appendSlice(&acnt4);
+        var ait2 = bc.registered_agents.iterator();
+        while (ait2.next()) |entry| {
+            const addr = entry.key_ptr.*;
+            if (addr.len > 255) continue;
+            try out.append(@intCast(addr.len));
+            try out.appendSlice(addr);
+        }
+        try appendCrc32(&out, section_agent_start);
+
         // Atomic write: tmp file then rename
         const file = try std.fs.cwd().createFile(tmp_path, .{});
         try file.writeAll(out.items);
         file.close();
         try std.fs.cwd().rename(tmp_path, path);
 
-        std.debug.print("[DB] Saved v2 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms → {s}\n",
-            .{ save_count, bc.balances.count(), bc.nonces.count(), bc.tx_block_height.count(), path });
+        std.debug.print("[DB] Saved v2 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms + {d} stakes + {d} agents → {s}\n",
+            .{ save_count, bc.balances.count(), bc.nonces.count(), bc.tx_block_height.count(),
+               bc.stake_amounts.count(), bc.registered_agents.count(), path });
     }
 
     /// Create a backup of the database file before loading (.dat → .dat.bak)
@@ -767,6 +802,39 @@ pub const PersistentBlockchain = struct {
             }
         }
 
+        // === Stake state section (v2 ext, optional — empty maps if missing) ===
+        var stake_count: u32 = 0;
+        if (pos + 4 <= read_len) {
+            const section_stake_start = pos;
+            stake_count = std.mem.readInt(u32, buf[pos..][0..4], .little);
+            pos += 4;
+            pos = try restoreStakeSection(bc, buf, pos, read_len, stake_count);
+            if (pos + 4 <= read_len) {
+                if (!verifyCrc32(buf, section_stake_start, pos)) {
+                    std.debug.print("[DB] WARNING: stake_state section CRC32 mismatch in {s}\n", .{path});
+                }
+                pos += 4;
+            }
+        }
+
+        // === Agent state section (v2 ext, optional) ===
+        var agent_count: u32 = 0;
+        if (pos + 4 <= read_len) {
+            const section_agent_start = pos;
+            agent_count = std.mem.readInt(u32, buf[pos..][0..4], .little);
+            pos += 4;
+            pos = try restoreAgentSection(bc, buf, pos, read_len, agent_count);
+            if (pos + 4 <= read_len) {
+                if (!verifyCrc32(buf, section_agent_start, pos)) {
+                    std.debug.print("[DB] WARNING: agent_state section CRC32 mismatch in {s}\n", .{path});
+                }
+                pos += 4;
+            }
+        }
+
+        std.debug.print("[DB] Restored stake_state: {d} addresses, agent_state: {d} addresses\n",
+            .{ stake_count, agent_count });
+
         logRestoreSummary(bc, loaded_blocks, addr_count, nonce_count, tx_confirm_count, path);
     }
 
@@ -883,6 +951,52 @@ pub const PersistentBlockchain = struct {
             };
             if (gop.found_existing) bc.allocator.free(owned);
             gop.value_ptr.* = th_height;
+        }
+        return pos;
+    }
+
+    /// Restore cumulative stake-per-address from buffer, returns new pos.
+    /// Mirrors restoreNonceSection layout but values are stake SAT.
+    fn restoreStakeSection(bc: *blockchain_mod.Blockchain, buf: []const u8, start_pos: usize, read_len: usize, stake_count: u32) !usize {
+        var pos = start_pos;
+        var k: u32 = 0;
+        while (k < stake_count) : (k += 1) {
+            if (pos + 1 > read_len) break;
+            const a_len = buf[pos];
+            pos += 1;
+            if (pos + a_len + 8 > read_len) break;
+            const addr = buf[pos .. pos + a_len];
+            pos += a_len;
+            const stake = std.mem.readInt(u64, buf[pos..][0..8], .little);
+            pos += 8;
+            const owned = try bc.allocator.dupe(u8, addr);
+            const gop = bc.stake_amounts.getOrPut(owned) catch |err| {
+                bc.allocator.free(owned);
+                return err;
+            };
+            if (gop.found_existing) bc.allocator.free(owned);
+            gop.value_ptr.* = stake;
+        }
+        return pos;
+    }
+
+    /// Restore set of agent-registered addresses from buffer, returns new pos.
+    fn restoreAgentSection(bc: *blockchain_mod.Blockchain, buf: []const u8, start_pos: usize, read_len: usize, agent_count: u32) !usize {
+        var pos = start_pos;
+        var k: u32 = 0;
+        while (k < agent_count) : (k += 1) {
+            if (pos + 1 > read_len) break;
+            const a_len = buf[pos];
+            pos += 1;
+            if (pos + a_len > read_len) break;
+            const addr = buf[pos .. pos + a_len];
+            pos += a_len;
+            const owned = try bc.allocator.dupe(u8, addr);
+            const gop = bc.registered_agents.getOrPut(owned) catch |err| {
+                bc.allocator.free(owned);
+                return err;
+            };
+            if (gop.found_existing) bc.allocator.free(owned);
         }
         return pos;
     }
