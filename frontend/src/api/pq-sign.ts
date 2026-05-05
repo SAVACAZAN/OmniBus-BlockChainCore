@@ -19,9 +19,9 @@
  * are hashed.
  */
 
-import { ml_dsa87 } from "@noble/post-quantum/ml-dsa";
-import { falcon512 } from "@noble/post-quantum/falcon";
-import { slh_dsa_sha2_256s } from "@noble/post-quantum/slh-dsa";
+import { ml_dsa87 } from "@noble/post-quantum/ml-dsa.js";
+import { falcon512 } from "@noble/post-quantum/falcon.js";
+import { slh_dsa_sha2_256s } from "@noble/post-quantum/slh-dsa.js";
 import { sha256, sha512 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
