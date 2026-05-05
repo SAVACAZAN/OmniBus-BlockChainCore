@@ -751,6 +751,55 @@ fn normalizePair(alloc: std.mem.Allocator, raw: []const u8) struct {
     return .{ .pair = raw, .alloced = false };
 }
 
+// ─── PHASE 2E.2 helpers (Kraken-compat market data) ────────────────────
+
+/// Convert a `pair_id` (0..6) back to its label form `BASE/QUOTE`.
+/// Returned slice is a const literal — caller does not free.
+fn pairIdToLabel(pair_id: u16) []const u8 {
+    return switch (pair_id) {
+        0 => "OMNI/USDC",
+        1 => "BTC/USDC",
+        2 => "LCX/USDC",
+        3 => "ETH/USDC",
+        4 => "OMNI/BTC",
+        5 => "OMNI/LCX",
+        6 => "OMNI/ETH",
+        else => "UNKNOWN/UNKNOWN",
+    };
+}
+
+/// Convert a `pair_id` to the Kraken-style flat key (e.g. "OMNIUSDC")
+/// used as the result-object key in OHLC/Spread/Trades.
+fn pairIdToFlatKey(pair_id: u16) []const u8 {
+    return switch (pair_id) {
+        0 => "OMNIUSDC",
+        1 => "BTCUSDC",
+        2 => "LCXUSDC",
+        3 => "ETHUSDC",
+        4 => "OMNIBTC",
+        5 => "OMNILCX",
+        6 => "OMNIETH",
+        else => "UNKNOWN",
+    };
+}
+
+/// Format a `price_micro_usd` (1_000_000 = 1.00 USDC) as a fixed
+/// 8-decimal-digit string into `buf`. Buffer must be >= 24 bytes.
+fn formatMicroPrice(price_micro: u64, buf: []u8) []const u8 {
+    const whole: u64 = price_micro / 1_000_000;
+    const frac_micro: u64 = price_micro % 1_000_000;
+    return std.fmt.bufPrint(buf, "{d}.{d:0>6}00", .{ whole, frac_micro }) catch "0.00000000";
+}
+
+/// Format an `amount_sat` (1_000_000_000 SAT = 1 unit) as a fixed
+/// 8-decimal-digit string into `buf`. Buffer must be >= 24 bytes.
+fn formatSatAmount(amount_sat: u64, buf: []u8) []const u8 {
+    const whole: u64 = amount_sat / 1_000_000_000;
+    const frac_sat: u64 = amount_sat % 1_000_000_000;
+    const frac8: u64 = frac_sat / 10;
+    return std.fmt.bufPrint(buf, "{d}.{d:0>8}", .{ whole, frac8 }) catch "0.00000000";
+}
+
 /// Look up a field in a Kraken-style form-encoded POST body.
 /// Body format: `key1=value1&key2=value2`. Caller does NOT get the value
 /// URL-decoded — for our purposes (ob1q… addresses, integer prices, pair
@@ -833,6 +882,151 @@ fn writeErrorResponse(stream: std.net.Stream, code: i64, msg: []const u8) void {
         "{{\"error\":[\"E{d}\"],\"result\":{{}},\"message\":\"{s}\"}}",
         .{ code, msg }) catch return;
     writeJsonResponse(stream, b);
+}
+
+// ─── PHASE 2E.5 — Random hex helper (used by Stake/Unstake/Earn/Export) ──
+
+/// Generate `n_bytes` of crypto-random data and hex-encode into `out`
+/// (out.len must be >= 2*n_bytes). Used for refids, allocation_ids,
+/// export_ids, and 32-byte WS auth tokens.
+fn randomHex(out: []u8, n_bytes: usize) void {
+    std.debug.assert(out.len >= n_bytes * 2);
+    var buf: [64]u8 = undefined;
+    const n = @min(n_bytes, buf.len);
+    std.crypto.random.bytes(buf[0..n]);
+    const hex_chars = "0123456789abcdef";
+    var i: usize = 0;
+    while (i < n) : (i += 1) {
+        out[i * 2]     = hex_chars[buf[i] >> 4];
+        out[i * 2 + 1] = hex_chars[buf[i] & 0x0F];
+    }
+}
+
+// ─── PHASE 2E.4 — Funding helpers ──────────────────────────────────────
+
+/// Phase 2F bridge vault placeholder. Per-chain TSS-controlled deposit
+/// addresses replace this once bridge_native.zig is wired to RPC.
+pub const BRIDGE_VAULT_PLACEHOLDER: []const u8 = "BRIDGE_VAULT_PHASE_2F_PENDING";
+
+fn fundingFeeStr(asset: []const u8) []const u8 {
+    if (std.mem.eql(u8, asset, "OMNI")) return "0.00050000";
+    if (std.mem.eql(u8, asset, "BTC"))  return "0.00010000";
+    if (std.mem.eql(u8, asset, "LTC"))  return "0.00100000";
+    if (std.mem.eql(u8, asset, "BCH"))  return "0.00010000";
+    if (std.mem.eql(u8, asset, "DOGE")) return "1.00000000";
+    if (std.mem.eql(u8, asset, "DASH")) return "0.00100000";
+    if (std.mem.eql(u8, asset, "ETH"))  return "0.00200000";
+    if (std.mem.eql(u8, asset, "USDC")) return "1.00000000";
+    if (std.mem.eql(u8, asset, "USDT")) return "1.00000000";
+    if (std.mem.eql(u8, asset, "LCX"))  return "1.00000000";
+    return "0.00000000";
+}
+
+fn fundingMethodLabel(asset: []const u8) []const u8 {
+    if (std.mem.eql(u8, asset, "OMNI")) return "OMNI on-chain";
+    if (std.mem.eql(u8, asset, "BTC"))  return "Bitcoin (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "LTC"))  return "Litecoin (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "BCH"))  return "Bitcoin Cash (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "DOGE")) return "Dogecoin (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "DASH")) return "Dash (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "ETH"))  return "Ethereum (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "USDC")) return "ERC-20 USDC (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "USDT")) return "ERC-20 USDT (Phase 2F bridge)";
+    if (std.mem.eql(u8, asset, "LCX"))  return "LCX Liberty bridge";
+    return "Unsupported";
+}
+
+fn fundingAssetSupported(asset: []const u8) bool {
+    const supported = [_][]const u8{
+        "OMNI", "BTC", "LTC", "BCH", "DOGE", "DASH",
+        "ETH", "USDC", "USDT", "LCX",
+    };
+    for (supported) |s| {
+        if (std.mem.eql(u8, asset, s)) return true;
+    }
+    return false;
+}
+
+fn appendFundingMethodObject(
+    alloc: std.mem.Allocator,
+    out: *std.ArrayList(u8),
+    asset: []const u8,
+    is_withdraw: bool,
+) !void {
+    const method = fundingMethodLabel(asset);
+    const fee = fundingFeeStr(asset);
+    if (is_withdraw) {
+        const obj = try std.fmt.allocPrint(alloc,
+            "{{\"method\":\"{s}\",\"limit\":false,\"fee\":\"{s}\"}}",
+            .{ method, fee });
+        defer alloc.free(obj);
+        try out.appendSlice(alloc, obj);
+    } else {
+        const obj = try std.fmt.allocPrint(alloc,
+            "{{\"method\":\"{s}\",\"limit\":false,\"fee\":\"{s}\"," ++
+            "\"address-setup-fee\":\"0.00000000\",\"gen-address\":true}}",
+            .{ method, fee });
+        defer alloc.free(obj);
+        try out.appendSlice(alloc, obj);
+    }
+}
+
+const FundingFilterKind = enum { deposit, withdraw };
+
+fn appendFundingStatusEntries(
+    alloc: std.mem.Allocator,
+    bc: *Blockchain,
+    out: *std.ArrayList(u8),
+    max: usize,
+    op_label: []const u8,
+    owner: []const u8,
+    escrow: []const u8,
+    kind: FundingFilterKind,
+) !void {
+    var emitted: usize = 0;
+    const tip: u64 = @intCast(bc.chain.items.len);
+    var i: usize = bc.chain.items.len;
+    while (i > 0 and emitted < max) {
+        i -= 1;
+        const blk = bc.chain.items[i];
+        const block_height: u64 = @intCast(blk.index);
+        const confirmations: u64 = if (tip > block_height) tip - block_height else 0;
+        const status: []const u8 = if (confirmations >= 6) "Success" else "Pending";
+        for (blk.transactions.items) |tx| {
+            const matches = switch (kind) {
+                .deposit => std.mem.eql(u8, tx.to_address, escrow) and
+                    !std.mem.eql(u8, tx.from_address, escrow),
+                .withdraw => std.mem.eql(u8, tx.from_address, owner) and
+                    !std.mem.eql(u8, tx.to_address, escrow),
+            };
+            if (!matches) continue;
+
+            const whole = tx.amount / 1_000_000_000;
+            const frac  = tx.amount % 1_000_000_000;
+            const ts_sec: i64 = @divTrunc(tx.timestamp, 1000);
+
+            if (emitted > 0) try out.appendSlice(alloc, ",");
+            const entry = try std.fmt.allocPrint(alloc,
+                "{{\"method\":\"{s}\",\"aclass\":\"currency\",\"asset\":\"OMNI\"," ++
+                "\"refid\":\"{s}\",\"txid\":\"{s}\",\"info\":\"{s}\"," ++
+                "\"amount\":\"{d}.{d:0>9}\",\"fee\":\"0.00000000\"," ++
+                "\"time\":{d},\"status\":\"{s}\",\"status-prop\":\"{d}\"}}",
+                .{
+                    op_label,
+                    tx.hash[0..@min(64, tx.hash.len)],
+                    tx.hash[0..@min(64, tx.hash.len)],
+                    if (kind == .deposit) tx.from_address else tx.to_address,
+                    whole, frac,
+                    ts_sec,
+                    status,
+                    block_height,
+                });
+            defer alloc.free(entry);
+            try out.appendSlice(alloc, entry);
+            emitted += 1;
+            if (emitted >= max) break;
+        }
+    }
 }
 
 /// Serve auto-generated OpenAPI 3.1 JSON spec from EXCHANGE_PAIRS + endpoint table.
@@ -1063,10 +1257,202 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
             writeKrakenFromRpc(alloc, stream, res);
             return true;
         }
-        if (std.mem.eql(u8, ep, "OHLC") or std.mem.eql(u8, ep, "Spread")) {
-            // OHLC + Spread are NOT yet implemented as real RPC — return
-            // an empty Kraken-shaped result so clients don't break.
-            writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
+        if (std.mem.eql(u8, ep, "OHLC")) {
+            // PHASE 2E.2 — OHLC candles per pair, derived from bc.fills_history.
+            const raw_pair = getQueryParam(path, "pair") orelse "OMNI/USDC";
+            const interval_s = getQueryParam(path, "interval") orelse "1";
+            const since_s = getQueryParam(path, "since") orelse "0";
+
+            const norm = normalizePair(alloc, raw_pair);
+            defer if (norm.alloced) alloc.free(norm.pair);
+            const pair_id = exchangePairLookup(norm.pair) orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EQuery:Unknown asset pair\"],\"result\":{}}");
+                return true;
+            };
+
+            const interval_min: u64 = std.fmt.parseInt(u64, interval_s, 10) catch 1;
+            const valid_intervals = [_]u64{ 1, 5, 15, 30, 60, 240, 1440, 10080, 21600 };
+            var interval_ok: bool = false;
+            for (valid_intervals) |v| {
+                if (v == interval_min) { interval_ok = true; break; }
+            }
+            if (!interval_ok) {
+                writeJsonResponse(stream, "{\"error\":[\"EQuery:Invalid interval\"],\"result\":{}}");
+                return true;
+            }
+            const since_ms: i64 = std.fmt.parseInt(i64, since_s, 10) catch 0;
+            const bucket_ms: i64 = @intCast(interval_min * 60 * 1000);
+
+            const MAX_BUCKETS: usize = 720;
+            const Bucket = struct {
+                start_ms: i64,
+                open_micro: u64,
+                high_micro: u64,
+                low_micro: u64,
+                close_micro: u64,
+                volume_sat: u64,
+                vwap_num: u128,
+                vwap_den: u128,
+                count: u32,
+            };
+            var buckets: [MAX_BUCKETS]Bucket = undefined;
+            var bucket_count: usize = 0;
+            var last_id_ms: i64 = 0;
+
+            var block_it = ctx.bc.fills_history.iterator();
+            while (block_it.next()) |entry| {
+                const fills_slice = entry.value_ptr.*;
+                for (fills_slice) |fill| {
+                    if (fill.pair_id != pair_id) continue;
+                    if (fill.timestamp_ms < since_ms) continue;
+                    if (fill.timestamp_ms > last_id_ms) last_id_ms = fill.timestamp_ms;
+
+                    const bucket_start: i64 = @divFloor(fill.timestamp_ms, bucket_ms) * bucket_ms;
+
+                    var found_idx: ?usize = null;
+                    var i: usize = 0;
+                    while (i < bucket_count) : (i += 1) {
+                        if (buckets[i].start_ms == bucket_start) { found_idx = i; break; }
+                    }
+
+                    if (found_idx) |idx| {
+                        var b = &buckets[idx];
+                        if (fill.price_micro_usd > b.high_micro) b.high_micro = fill.price_micro_usd;
+                        if (fill.price_micro_usd < b.low_micro) b.low_micro = fill.price_micro_usd;
+                        b.close_micro = fill.price_micro_usd;
+                        b.volume_sat +%= fill.amount_sat;
+                        b.vwap_num += @as(u128, fill.price_micro_usd) * @as(u128, fill.amount_sat);
+                        b.vwap_den += @as(u128, fill.amount_sat);
+                        b.count += 1;
+                    } else {
+                        if (bucket_count == MAX_BUCKETS) {
+                            var k: usize = 0;
+                            while (k < MAX_BUCKETS - 1) : (k += 1) buckets[k] = buckets[k + 1];
+                            bucket_count -= 1;
+                        }
+                        buckets[bucket_count] = Bucket{
+                            .start_ms = bucket_start,
+                            .open_micro = fill.price_micro_usd,
+                            .high_micro = fill.price_micro_usd,
+                            .low_micro = fill.price_micro_usd,
+                            .close_micro = fill.price_micro_usd,
+                            .volume_sat = fill.amount_sat,
+                            .vwap_num = @as(u128, fill.price_micro_usd) * @as(u128, fill.amount_sat),
+                            .vwap_den = @as(u128, fill.amount_sat),
+                            .count = 1,
+                        };
+                        bucket_count += 1;
+                    }
+                }
+            }
+
+            const lessThan = struct {
+                fn lt(_: void, a: Bucket, b: Bucket) bool {
+                    return a.start_ms < b.start_ms;
+                }
+            }.lt;
+            std.sort.insertion(Bucket, buckets[0..bucket_count], {}, lessThan);
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            const flat_key = pairIdToFlatKey(pair_id);
+            std.fmt.format(out.writer(alloc),
+                "{{\"error\":[],\"result\":{{\"{s}\":[", .{flat_key}) catch return true;
+
+            var emit_idx: usize = 0;
+            while (emit_idx < bucket_count) : (emit_idx += 1) {
+                const b = buckets[emit_idx];
+                if (emit_idx > 0) out.appendSlice(alloc, ",") catch return true;
+                var open_buf: [24]u8 = undefined;
+                var high_buf: [24]u8 = undefined;
+                var low_buf: [24]u8 = undefined;
+                var close_buf: [24]u8 = undefined;
+                var vwap_buf: [24]u8 = undefined;
+                var vol_buf: [24]u8 = undefined;
+                const open_s = formatMicroPrice(b.open_micro, &open_buf);
+                const high_s = formatMicroPrice(b.high_micro, &high_buf);
+                const low_s = formatMicroPrice(b.low_micro, &low_buf);
+                const close_s = formatMicroPrice(b.close_micro, &close_buf);
+                const vwap_micro: u64 = if (b.vwap_den == 0) 0 else @intCast(b.vwap_num / b.vwap_den);
+                const vwap_s = formatMicroPrice(vwap_micro, &vwap_buf);
+                const vol_s = formatSatAmount(b.volume_sat, &vol_buf);
+                const time_sec: i64 = @divFloor(b.start_ms, 1000);
+                std.fmt.format(out.writer(alloc),
+                    "[{d},\"{s}\",\"{s}\",\"{s}\",\"{s}\",\"{s}\",\"{s}\",{d}]",
+                    .{ time_sec, open_s, high_s, low_s, close_s, vwap_s, vol_s, b.count }) catch return true;
+            }
+
+            const last_id_sec: i64 = @divFloor(last_id_ms, 1000);
+            std.fmt.format(out.writer(alloc),
+                "],\"last\":{d}}}}}", .{last_id_sec}) catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        if (std.mem.eql(u8, ep, "Spread")) {
+            // PHASE 2E.2 — Spread current best bid/ask snapshot for the pair.
+            const raw_pair = getQueryParam(path, "pair") orelse "OMNI/USDC";
+            const since_s = getQueryParam(path, "since") orelse "0";
+
+            const norm = normalizePair(alloc, raw_pair);
+            defer if (norm.alloced) alloc.free(norm.pair);
+            const pair_id = exchangePairLookup(norm.pair) orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EQuery:Unknown asset pair\"],\"result\":{}}");
+                return true;
+            };
+            _ = since_s;
+
+            const flat_key = pairIdToFlatKey(pair_id);
+
+            const engine_opt = ctx.bc.exchange_engine;
+            if (engine_opt == null) {
+                var empty = std.ArrayList(u8){};
+                defer empty.deinit(alloc);
+                std.fmt.format(empty.writer(alloc),
+                    "{{\"error\":[],\"result\":{{\"{s}\":[],\"last\":0}}}}", .{flat_key}) catch return true;
+                writeJsonResponse(stream, empty.items);
+                return true;
+            }
+            const engine = engine_opt.?;
+
+            var best_bid_micro: u64 = 0;
+            var have_bid: bool = false;
+            var i: usize = 0;
+            while (i < engine.bid_count) : (i += 1) {
+                const o = engine.bids[i];
+                if (o.pair_id != pair_id) continue;
+                if (o.status != .active and o.status != .partial) continue;
+                if (!have_bid or o.price_micro_usd > best_bid_micro) {
+                    best_bid_micro = o.price_micro_usd;
+                    have_bid = true;
+                }
+            }
+            var best_ask_micro: u64 = 0;
+            var have_ask: bool = false;
+            i = 0;
+            while (i < engine.ask_count) : (i += 1) {
+                const o = engine.asks[i];
+                if (o.pair_id != pair_id) continue;
+                if (o.status != .active and o.status != .partial) continue;
+                if (!have_ask or o.price_micro_usd < best_ask_micro) {
+                    best_ask_micro = o.price_micro_usd;
+                    have_ask = true;
+                }
+            }
+
+            const now_ms: i64 = std.time.milliTimestamp();
+            const time_sec: i64 = @divFloor(now_ms, 1000);
+
+            var bid_buf: [24]u8 = undefined;
+            var ask_buf: [24]u8 = undefined;
+            const bid_s: []const u8 = if (have_bid) formatMicroPrice(best_bid_micro, &bid_buf) else "0.00000000";
+            const ask_s: []const u8 = if (have_ask) formatMicroPrice(best_ask_micro, &ask_buf) else "0.00000000";
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            std.fmt.format(out.writer(alloc),
+                "{{\"error\":[],\"result\":{{\"{s}\":[[{d},\"{s}\",\"{s}\"]],\"last\":{d}}}}}",
+                .{ flat_key, time_sec, bid_s, ask_s, time_sec }) catch return true;
+            writeJsonResponse(stream, out.items);
             return true;
         }
     }
@@ -1107,7 +1493,82 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
                 if (owned_params) |p| rpc_params = p;
             }
         }
-        else if (std.mem.eql(u8, ep, "ClosedOrders")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"closed\":{}}}"); return true; }
+        else if (std.mem.eql(u8, ep, "ClosedOrders")) {
+            // PHASE 2E.1 — derive closed orders from engine state.
+            const filter_addr = formGetField(post_body, "address") orelse owner;
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":{\"closed\":{") catch return true;
+            var emitted: u32 = 0;
+            const LIMIT: u32 = 50;
+            var first = true;
+
+            if (ctx.bc.exchange_engine) |engine| {
+                ctx.exchange_mutex.lock();
+                defer ctx.exchange_mutex.unlock();
+
+                var i: u32 = 0;
+                while (i < engine.bid_count and emitted < LIMIT) : (i += 1) {
+                    const o = engine.bids[i];
+                    if (o.status != .filled and o.status != .cancelled) continue;
+                    if (filter_addr) |a| {
+                        if (!std.mem.eql(u8, o.getTraderAddress(), a)) continue;
+                    }
+                    var pair_buf: [16]u8 = undefined;
+                    const pair_lbl = pairLabelFor(o.pair_id, &pair_buf);
+                    const status_str: []const u8 = if (o.status == .filled) "closed" else "canceled";
+                    const cost_micro: u128 =
+                        (@as(u128, o.price_micro_usd) * @as(u128, o.filled_sat)) / 1_000_000_000;
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"O{d}\":{{\"refid\":null,\"userref\":0,\"status\":\"{s}\",\"reason\":null," ++
+                        "\"opentm\":{d}.0,\"closetm\":{d}.0,\"starttm\":0,\"expiretm\":0," ++
+                        "\"descr\":{{\"pair\":\"{s}\",\"type\":\"buy\",\"ordertype\":\"limit\"," ++
+                        "\"price\":\"{d}\",\"price2\":\"0\",\"leverage\":\"none\",\"order\":\"buy\",\"close\":\"\"}}," ++
+                        "\"vol\":\"{d}\",\"vol_exec\":\"{d}\",\"cost\":\"{d}\",\"fee\":\"0\"," ++
+                        "\"price\":\"{d}\",\"misc\":\"\",\"oflags\":\"fciq\"}}",
+                        .{ o.order_id, status_str,
+                           @divTrunc(o.timestamp_ms, 1000), @divTrunc(o.timestamp_ms, 1000),
+                           pair_lbl, o.price_micro_usd,
+                           o.amount_sat, o.filled_sat, @as(u64, @intCast(@min(cost_micro, @as(u128, std.math.maxInt(u64))))),
+                           o.price_micro_usd }) catch return true;
+                    emitted += 1;
+                }
+                var j: u32 = 0;
+                while (j < engine.ask_count and emitted < LIMIT) : (j += 1) {
+                    const o = engine.asks[j];
+                    if (o.status != .filled and o.status != .cancelled) continue;
+                    if (filter_addr) |a| {
+                        if (!std.mem.eql(u8, o.getTraderAddress(), a)) continue;
+                    }
+                    var pair_buf: [16]u8 = undefined;
+                    const pair_lbl = pairLabelFor(o.pair_id, &pair_buf);
+                    const status_str: []const u8 = if (o.status == .filled) "closed" else "canceled";
+                    const cost_micro: u128 =
+                        (@as(u128, o.price_micro_usd) * @as(u128, o.filled_sat)) / 1_000_000_000;
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"O{d}\":{{\"refid\":null,\"userref\":0,\"status\":\"{s}\",\"reason\":null," ++
+                        "\"opentm\":{d}.0,\"closetm\":{d}.0,\"starttm\":0,\"expiretm\":0," ++
+                        "\"descr\":{{\"pair\":\"{s}\",\"type\":\"sell\",\"ordertype\":\"limit\"," ++
+                        "\"price\":\"{d}\",\"price2\":\"0\",\"leverage\":\"none\",\"order\":\"sell\",\"close\":\"\"}}," ++
+                        "\"vol\":\"{d}\",\"vol_exec\":\"{d}\",\"cost\":\"{d}\",\"fee\":\"0\"," ++
+                        "\"price\":\"{d}\",\"misc\":\"\",\"oflags\":\"fciq\"}}",
+                        .{ o.order_id, status_str,
+                           @divTrunc(o.timestamp_ms, 1000), @divTrunc(o.timestamp_ms, 1000),
+                           pair_lbl, o.price_micro_usd,
+                           o.amount_sat, o.filled_sat, @as(u64, @intCast(@min(cost_micro, @as(u128, std.math.maxInt(u64))))),
+                           o.price_micro_usd }) catch return true;
+                    emitted += 1;
+                }
+            }
+
+            std.fmt.format(out.writer(alloc), "}},\"count\":{d}}}}}", .{emitted}) catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
         else if (std.mem.eql(u8, ep, "QueryOrders")) {
             // Same back-end as OpenOrders (we don't separate open/query yet).
             rpc_method = "exchange_getUserOrders";
@@ -1117,30 +1578,393 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
             }
         }
         else if (std.mem.eql(u8, ep, "TradesHistory")) {
-            // Trades for a specific trader. `address` filter on our side.
-            rpc_method = "exchange_getTrades";
-            if (owner) |a| {
-                owned_params = std.fmt.allocPrint(alloc, "[{{\"address\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
-                if (owned_params) |p| rpc_params = p;
-            } else {
-                owned_params = std.fmt.allocPrint(alloc, "[{{{s}}}]", .{ if (mode_suffix.len > 0) mode_suffix[1..] else "" }) catch null;
-                if (owned_params) |p| rpc_params = p;
+            // PHASE 2E.1 — derive trades from bc.fills_history newest-first.
+            const filter_addr = formGetField(post_body, "address") orelse owner;
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":{\"trades\":{") catch return true;
+            var emitted: u32 = 0;
+            const LIMIT: u32 = 50;
+            var first = true;
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            var heights = std.ArrayList(u32){};
+            defer heights.deinit(alloc);
+            var it = ctx.bc.fills_history.iterator();
+            while (it.next()) |entry| {
+                heights.append(alloc, entry.key_ptr.*) catch return true;
             }
+            std.mem.sort(u32, heights.items, {}, comptime std.sort.desc(u32));
+
+            outer: for (heights.items) |h| {
+                const slice = ctx.bc.fills_history.get(h) orelse continue;
+                var idx: usize = slice.len;
+                while (idx > 0) {
+                    idx -= 1;
+                    if (emitted >= LIMIT) break :outer;
+                    const f = &slice[idx];
+                    var side: []const u8 = "buy";
+                    if (filter_addr) |a| {
+                        if (!fillTouchesAddr(f, a)) continue;
+                        side = fillSideForTrader(f, a);
+                    }
+                    var pair_buf: [16]u8 = undefined;
+                    const pair_lbl = pairLabelFor(f.pair_id, &pair_buf);
+                    const order_id_for_caller: u64 =
+                        if (std.mem.eql(u8, side, "buy")) f.buy_order_id else f.sell_order_id;
+                    const cost_micro: u128 =
+                        (@as(u128, f.price_micro_usd) * @as(u128, f.amount_sat)) / 1_000_000_000;
+                    const fee_micro = ledgerFeeMicroFor(f.price_micro_usd, f.amount_sat);
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"T{d}\":{{\"ordertxid\":\"O{d}\",\"postxid\":\"\",\"pair\":\"{s}\"," ++
+                        "\"time\":{d}.0,\"type\":\"{s}\",\"ordertype\":\"limit\"," ++
+                        "\"price\":\"{d}\",\"cost\":\"{d}\",\"fee\":\"{d}\",\"vol\":\"{d}\"," ++
+                        "\"margin\":\"0\",\"misc\":\"\"}}",
+                        .{ f.fill_id, order_id_for_caller, pair_lbl,
+                           @divTrunc(f.timestamp_ms, 1000), side,
+                           f.price_micro_usd,
+                           @as(u64, @intCast(@min(cost_micro, @as(u128, std.math.maxInt(u64))))),
+                           fee_micro, f.amount_sat }) catch return true;
+                    emitted += 1;
+                }
+            }
+
+            std.fmt.format(out.writer(alloc), "}},\"count\":{d}}}}}", .{emitted}) catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
         }
         else if (std.mem.eql(u8, ep, "QueryTrades")) {
-            rpc_method = "exchange_getTrades";
-            if (owner) |a| {
-                owned_params = std.fmt.allocPrint(alloc, "[{{\"address\":\"{s}\"{s}}}]", .{ a, mode_suffix }) catch null;
-                if (owned_params) |p| rpc_params = p;
-            } else {
-                owned_params = std.fmt.allocPrint(alloc, "[{{{s}}}]", .{ if (mode_suffix.len > 0) mode_suffix[1..] else "" }) catch null;
-                if (owned_params) |p| rpc_params = p;
+            // PHASE 2E.1 — same shape as TradesHistory but filtered by txid CSV ("T<fill_id>,T<fill_id>,...").
+            const txid_csv = formGetField(post_body, "txid") orelse "";
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":{") catch return true;
+            var first = true;
+            const LIMIT: u32 = 50;
+            var emitted: u32 = 0;
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            var heights = std.ArrayList(u32){};
+            defer heights.deinit(alloc);
+            var it = ctx.bc.fills_history.iterator();
+            while (it.next()) |entry| {
+                heights.append(alloc, entry.key_ptr.*) catch return true;
             }
+            std.mem.sort(u32, heights.items, {}, comptime std.sort.desc(u32));
+
+            outer: for (heights.items) |h| {
+                const slice = ctx.bc.fills_history.get(h) orelse continue;
+                var idx: usize = slice.len;
+                while (idx > 0) {
+                    idx -= 1;
+                    if (emitted >= LIMIT) break :outer;
+                    const f = &slice[idx];
+
+                    var key_buf: [32]u8 = undefined;
+                    const key = std.fmt.bufPrint(&key_buf, "T{d}", .{f.fill_id}) catch continue;
+                    if (txid_csv.len > 0 and std.mem.indexOf(u8, txid_csv, key) == null) continue;
+
+                    var pair_buf: [16]u8 = undefined;
+                    const pair_lbl = pairLabelFor(f.pair_id, &pair_buf);
+                    const cost_micro: u128 =
+                        (@as(u128, f.price_micro_usd) * @as(u128, f.amount_sat)) / 1_000_000_000;
+                    const fee_micro = ledgerFeeMicroFor(f.price_micro_usd, f.amount_sat);
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"T{d}\":{{\"ordertxid\":\"O{d}\",\"postxid\":\"\",\"pair\":\"{s}\"," ++
+                        "\"time\":{d}.0,\"type\":\"buy\",\"ordertype\":\"limit\"," ++
+                        "\"price\":\"{d}\",\"cost\":\"{d}\",\"fee\":\"{d}\",\"vol\":\"{d}\"," ++
+                        "\"margin\":\"0\",\"misc\":\"\"}}",
+                        .{ f.fill_id, f.buy_order_id, pair_lbl,
+                           @divTrunc(f.timestamp_ms, 1000),
+                           f.price_micro_usd,
+                           @as(u64, @intCast(@min(cost_micro, @as(u128, std.math.maxInt(u64))))),
+                           fee_micro, f.amount_sat }) catch return true;
+                    emitted += 1;
+                }
+            }
+
+            out.appendSlice(alloc, "}}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
         }
-        else if (std.mem.eql(u8, ep, "OpenPositions")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{}}"); return true; }
-        else if (std.mem.eql(u8, ep, "Ledgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
-        else if (std.mem.eql(u8, ep, "QueryLedgers")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"ledger\":{}}}"); return true; }
-        else if (std.mem.eql(u8, ep, "TradeVolume")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currency\":\"USD\",\"volume\":\"0.0000\"}}"); return true; }
+        else if (std.mem.eql(u8, ep, "OpenPositions")) {
+            // PHASE 2E.3 — OmniBus v1 is spot-only: no margin/leverage
+            // positions to report, so an empty result map is the
+            // semantically correct Kraken response. We deliberately do
+            // NOT alias spot open orders here — clients call OpenOrders.
+            // Phase 3 will tie this to perpetual futures TXs once
+            // tx_type=.position_open ships and a positions table exists
+            // in Blockchain state.
+            writeJsonResponse(stream, "{\"error\":[],\"result\":{}}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Ledgers")) {
+            // PHASE 2E.1 — derive ledger entries from fills (trade) + chain.items (transfer).
+            const filter_addr = formGetField(post_body, "address") orelse owner;
+            const filter_asset = formGetField(post_body, "asset");
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":{\"ledger\":{") catch return true;
+            const LIMIT: u32 = 50;
+            var emitted: u32 = 0;
+            var first = true;
+            var balance_sat: i128 = 0;
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            var heights = std.ArrayList(u32){};
+            defer heights.deinit(alloc);
+            var it = ctx.bc.fills_history.iterator();
+            while (it.next()) |entry| {
+                heights.append(alloc, entry.key_ptr.*) catch return true;
+            }
+            std.mem.sort(u32, heights.items, {}, comptime std.sort.desc(u32));
+
+            fills_loop: for (heights.items) |h| {
+                const slice = ctx.bc.fills_history.get(h) orelse continue;
+                var idx: usize = slice.len;
+                while (idx > 0) {
+                    idx -= 1;
+                    if (emitted >= LIMIT) break :fills_loop;
+                    const f = &slice[idx];
+                    if (filter_addr) |a| {
+                        if (!fillTouchesAddr(f, a)) continue;
+                    } else continue;
+                    if (filter_asset) |as| {
+                        var matched = false;
+                        for (EXCHANGE_PAIRS) |p| {
+                            if (p.id == f.pair_id) {
+                                if (asciiEqIgnoreCase(p.base, as) or asciiEqIgnoreCase(p.quote, as)) matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) continue;
+                    }
+                    const side = fillSideForTrader(f, filter_addr.?);
+                    const signed_amount: i128 = if (std.mem.eql(u8, side, "buy"))
+                        @as(i128, @intCast(f.amount_sat))
+                    else
+                        -@as(i128, @intCast(f.amount_sat));
+                    balance_sat += signed_amount;
+
+                    var pair_buf: [16]u8 = undefined;
+                    const pair_lbl = pairLabelFor(f.pair_id, &pair_buf);
+                    var asset_buf: [16]u8 = undefined;
+                    var asset_lbl: []const u8 = "OMNI";
+                    for (EXCHANGE_PAIRS) |p| {
+                        if (p.id == f.pair_id) {
+                            asset_lbl = std.fmt.bufPrint(&asset_buf, "{s}", .{p.base}) catch "OMNI";
+                            break;
+                        }
+                    }
+                    const fee_micro = ledgerFeeMicroFor(f.price_micro_usd, f.amount_sat);
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"L{d}\":{{\"refid\":\"T{d}\",\"time\":{d}.0,\"type\":\"trade\"," ++
+                        "\"subtype\":\"\",\"aclass\":\"currency\",\"asset\":\"{s}\",\"amount\":\"{d}\"," ++
+                        "\"fee\":\"{d}\",\"balance\":\"{d}\",\"pair\":\"{s}\"}}",
+                        .{ f.fill_id, f.fill_id, @divTrunc(f.timestamp_ms, 1000),
+                           asset_lbl, signed_amount, fee_micro, balance_sat, pair_lbl }) catch return true;
+                    emitted += 1;
+                }
+            }
+
+            if (filter_addr) |a| {
+                if (emitted < LIMIT) {
+                    var bi: usize = ctx.bc.chain.items.len;
+                    blocks_loop: while (bi > 0) {
+                        bi -= 1;
+                        const blk = &ctx.bc.chain.items[bi];
+                        var ti: usize = blk.transactions.items.len;
+                        while (ti > 0) {
+                            ti -= 1;
+                            if (emitted >= LIMIT) break :blocks_loop;
+                            const tx = &blk.transactions.items[ti];
+                            const is_to = std.mem.eql(u8, tx.to_address, a);
+                            const is_from = std.mem.eql(u8, tx.from_address, a);
+                            if (!is_to and !is_from) continue;
+                            const amt_signed: i128 = if (is_to)
+                                @as(i128, @intCast(tx.amount))
+                            else
+                                -@as(i128, @intCast(tx.amount));
+                            balance_sat += amt_signed;
+                            const ledger_type: []const u8 = if (is_to) "deposit" else "withdrawal";
+                            const asset_lbl: []const u8 = "OMNI";
+                            if (filter_asset) |as| {
+                                if (!asciiEqIgnoreCase(asset_lbl, as)) continue;
+                            }
+                            if (!first) out.appendSlice(alloc, ",") catch return true;
+                            first = false;
+                            std.fmt.format(out.writer(alloc),
+                                "\"L{d}\":{{\"refid\":\"{s}\",\"time\":{d}.0,\"type\":\"{s}\"," ++
+                                "\"subtype\":\"\",\"aclass\":\"currency\",\"asset\":\"{s}\",\"amount\":\"{d}\"," ++
+                                "\"fee\":\"{d}\",\"balance\":\"{d}\"}}",
+                                .{ tx.id, tx.hash, tx.timestamp,
+                                   ledger_type, asset_lbl, amt_signed,
+                                   tx.fee, balance_sat }) catch return true;
+                            emitted += 1;
+                        }
+                    }
+                }
+            }
+
+            std.fmt.format(out.writer(alloc), "}},\"count\":{d}}}}}", .{emitted}) catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "QueryLedgers")) {
+            // PHASE 2E.1 — same shape as Ledgers but filtered to id CSV.
+            const id_csv = formGetField(post_body, "id") orelse "";
+            const filter_addr = formGetField(post_body, "address") orelse owner;
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":{") catch return true;
+            const LIMIT: u32 = 50;
+            var emitted: u32 = 0;
+            var first = true;
+            var balance_sat: i128 = 0;
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            var heights = std.ArrayList(u32){};
+            defer heights.deinit(alloc);
+            var it = ctx.bc.fills_history.iterator();
+            while (it.next()) |entry| {
+                heights.append(alloc, entry.key_ptr.*) catch return true;
+            }
+            std.mem.sort(u32, heights.items, {}, comptime std.sort.desc(u32));
+
+            fills_q: for (heights.items) |h| {
+                const slice = ctx.bc.fills_history.get(h) orelse continue;
+                var idx: usize = slice.len;
+                while (idx > 0) {
+                    idx -= 1;
+                    if (emitted >= LIMIT) break :fills_q;
+                    const f = &slice[idx];
+                    if (filter_addr) |a| if (!fillTouchesAddr(f, a)) continue;
+
+                    var key_buf: [32]u8 = undefined;
+                    const key = std.fmt.bufPrint(&key_buf, "L{d}", .{f.fill_id}) catch continue;
+                    if (id_csv.len > 0 and std.mem.indexOf(u8, id_csv, key) == null) continue;
+
+                    const side: []const u8 = if (filter_addr) |a| fillSideForTrader(f, a) else "buy";
+                    const signed_amount: i128 = if (std.mem.eql(u8, side, "buy"))
+                        @as(i128, @intCast(f.amount_sat))
+                    else
+                        -@as(i128, @intCast(f.amount_sat));
+                    balance_sat += signed_amount;
+                    var asset_buf: [16]u8 = undefined;
+                    var asset_lbl: []const u8 = "OMNI";
+                    for (EXCHANGE_PAIRS) |p| {
+                        if (p.id == f.pair_id) {
+                            asset_lbl = std.fmt.bufPrint(&asset_buf, "{s}", .{p.base}) catch "OMNI";
+                            break;
+                        }
+                    }
+                    const fee_micro = ledgerFeeMicroFor(f.price_micro_usd, f.amount_sat);
+                    if (!first) out.appendSlice(alloc, ",") catch return true;
+                    first = false;
+                    std.fmt.format(out.writer(alloc),
+                        "\"L{d}\":{{\"refid\":\"T{d}\",\"time\":{d}.0,\"type\":\"trade\"," ++
+                        "\"subtype\":\"\",\"aclass\":\"currency\",\"asset\":\"{s}\",\"amount\":\"{d}\"," ++
+                        "\"fee\":\"{d}\",\"balance\":\"{d}\"}}",
+                        .{ f.fill_id, f.fill_id, @divTrunc(f.timestamp_ms, 1000),
+                           asset_lbl, signed_amount, fee_micro, balance_sat }) catch return true;
+                    emitted += 1;
+                }
+            }
+
+            if (emitted < LIMIT) {
+                var bi: usize = ctx.bc.chain.items.len;
+                tx_q: while (bi > 0) {
+                    bi -= 1;
+                    const blk = &ctx.bc.chain.items[bi];
+                    var ti: usize = blk.transactions.items.len;
+                    while (ti > 0) {
+                        ti -= 1;
+                        if (emitted >= LIMIT) break :tx_q;
+                        const tx = &blk.transactions.items[ti];
+                        var key_buf: [32]u8 = undefined;
+                        const key = std.fmt.bufPrint(&key_buf, "L{d}", .{tx.id}) catch continue;
+                        if (id_csv.len > 0 and std.mem.indexOf(u8, id_csv, key) == null) continue;
+                        if (filter_addr) |a| {
+                            const is_to = std.mem.eql(u8, tx.to_address, a);
+                            const is_from = std.mem.eql(u8, tx.from_address, a);
+                            if (!is_to and !is_from) continue;
+                            const amt_signed: i128 = if (is_to)
+                                @as(i128, @intCast(tx.amount))
+                            else
+                                -@as(i128, @intCast(tx.amount));
+                            balance_sat += amt_signed;
+                            const ledger_type: []const u8 = if (is_to) "deposit" else "withdrawal";
+                            if (!first) out.appendSlice(alloc, ",") catch return true;
+                            first = false;
+                            std.fmt.format(out.writer(alloc),
+                                "\"L{d}\":{{\"refid\":\"{s}\",\"time\":{d}.0,\"type\":\"{s}\"," ++
+                                "\"subtype\":\"\",\"aclass\":\"currency\",\"asset\":\"OMNI\",\"amount\":\"{d}\"," ++
+                                "\"fee\":\"{d}\",\"balance\":\"{d}\"}}",
+                                .{ tx.id, tx.hash, tx.timestamp,
+                                   ledger_type, amt_signed, tx.fee, balance_sat }) catch return true;
+                            emitted += 1;
+                        }
+                    }
+                }
+            }
+
+            out.appendSlice(alloc, "}}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "TradeVolume")) {
+            // PHASE 2E.1 — 30-day rolling volume in micro-USD across all pairs.
+            const now_ms: i64 = std.time.milliTimestamp();
+            const cutoff_ms: i64 = now_ms - (30 * 24 * 60 * 60 * 1000);
+            var total_volume_micro: u128 = 0;
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            var it = ctx.bc.fills_history.iterator();
+            while (it.next()) |entry| {
+                const slice = entry.value_ptr.*;
+                for (slice) |f| {
+                    if (f.timestamp_ms < cutoff_ms) continue;
+                    const notional: u128 =
+                        (@as(u128, f.price_micro_usd) * @as(u128, f.amount_sat)) / 1_000_000_000;
+                    total_volume_micro += notional;
+                }
+            }
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            const vol_int: u64 = @intCast(@min(total_volume_micro / 1_000_000, @as(u128, std.math.maxInt(u64))));
+            std.fmt.format(out.writer(alloc),
+                "{{\"error\":[],\"result\":{{\"currency\":\"USD\",\"volume\":\"{d}.0000\",\"fees\":{{",
+                .{vol_int}) catch return true;
+            var first = true;
+            for (EXCHANGE_PAIRS) |p| {
+                if (!first) out.appendSlice(alloc, ",") catch return true;
+                first = false;
+                std.fmt.format(out.writer(alloc),
+                    "\"{s}/{s}\":{{\"fee\":\"0.1000\",\"minfee\":\"0.1000\",\"maxfee\":\"0.2600\"," ++
+                    "\"nextfee\":\"0.0800\",\"nextvolume\":\"50000.0000\",\"tiervolume\":\"0.0000\"}}",
+                    .{ p.base, p.quote }) catch return true;
+            }
+            out.appendSlice(alloc, "}}}}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
         else if (std.mem.eql(u8, ep, "AddOrder") or std.mem.eql(u8, ep, "CancelOrder") or std.mem.eql(u8, ep, "Withdraw")) {
             // PHASE 1: HMAC-SHA512 auth for mutating endpoints.
             const api_key_hdr = extractHttpHeader(header, "api-key") orelse {
@@ -1217,31 +2041,684 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
 
             if (owned_params) |p| rpc_params = p;
         }
-        else if (std.mem.eql(u8, ep, "CancelAll")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"count\":0}}"); return true; }
-        else if (std.mem.eql(u8, ep, "CancelAllOrdersAfter")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"currentTime\":\"0\",\"triggerTime\":\"0\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "EditOrder")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"descr\":{\"order\":\"edited\"}}}"); return true; }
-        else if (std.mem.eql(u8, ep, "DepositMethods")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"method\":\"OMNI on-chain\",\"limit\":false,\"fee\":\"0.00000000\",\"address-setup-fee\":\"0.00000000\",\"gen-address\":true}]}"); return true; }
-        else if (std.mem.eql(u8, ep, "DepositAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"address\":\"ob1q...\",\"expiretm\":0,\"newtag\":null}]}"); return true; }
-        else if (std.mem.eql(u8, ep, "StatusOfDeposits")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "WithdrawMethods")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"method\":\"OMNI\",\"limit\":false,\"fee\":\"0.0005\"}]}"); return true; }
-        else if (std.mem.eql(u8, ep, "WithdrawAddresses")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "StatusOfWithdrawals")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "WithdrawCancel")) { writeJsonResponse(stream, "{\"error\":[],\"result\":true}"); return true; }
-        else if (std.mem.eql(u8, ep, "WalletTransfer")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"T1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "Stake")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"S1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "Unstake")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"refid\":\"U1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "GetStakingAssets")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"asset\":\"OMNI\",\"staking\":true,\"rewards\":{\"reward\":\"0.05\",\"type\":\"percentage\"}}]}"); return true; }
-        else if (std.mem.eql(u8, ep, "GetPendingStaking")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "ListStakingTransactions")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "Earn/Allocate")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"allocation_id\":\"E1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "Earn/Deallocate")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"allocation_id\":\"E1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "Earn/Strategies")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[{\"id\":\"OMNI_YIELD\",\"asset\":\"OMNI\",\"apy\":\"5.0\"}]}"); return true; }
-        else if (std.mem.eql(u8, ep, "Earn/Allocations")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "AddExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"id\":\"EXP1\"}}"); return true; }
-        else if (std.mem.eql(u8, ep, "ExportStatus")) { writeJsonResponse(stream, "{\"error\":[],\"result\":[]}"); return true; }
-        else if (std.mem.eql(u8, ep, "RetrieveExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{}}"); return true; }
-        else if (std.mem.eql(u8, ep, "DeleteExport")) { writeJsonResponse(stream, "{\"error\":[],\"result\":true}"); return true; }
-        else if (std.mem.eql(u8, ep, "GetWebSocketsToken")) { writeJsonResponse(stream, "{\"error\":[],\"result\":{\"token\":\"ws_token_placeholder\",\"expires\":3600}}"); return true; }
+        else if (std.mem.eql(u8, ep, "CancelAll")) {
+            // PHASE 2E.3 — cancel every active/partial order belonging to the
+            // requesting trader. HMAC-SHA512 auth same as AddOrder/CancelOrder.
+            const api_key_hdr = extractHttpHeader(header, "api-key") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            };
+            const api_sign_hdr = extractHttpHeader(header, "api-sign") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            };
+
+            ctx.exchange_mutex.lock();
+            const api_key = apiKeyLookup(ctx, api_key_hdr);
+            ctx.exchange_mutex.unlock();
+
+            if (api_key == null) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            }
+            if (api_key.?.secret_raw_len == 0) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:KeyNotEnabledForRest\"],\"result\":{}}");
+                return true;
+            }
+
+            const full_path = if (std.mem.startsWith(u8, path, "/exchange/0/")) path else std.fmt.allocPrint(alloc, "/exchange/0/{s}", .{rest}) catch return true;
+            defer if (full_path.ptr != path.ptr) alloc.free(full_path);
+
+            if (!verifyHmacSignature(api_key.?, api_sign_hdr, full_path, post_body)) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            }
+
+            const trader_slice = api_key.?.owner[0..api_key.?.owner_len];
+            const engine = pickEngine(ctx, is_paper) orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EService:Unavailable\"],\"result\":{}}");
+                return true;
+            };
+
+            ctx.exchange_mutex.lock();
+            const cancelled_count = cancelAllForTrader(engine, trader_slice, alloc);
+            ctx.exchange_mutex.unlock();
+
+            const reply = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"count\":{d}}}}}",
+                .{cancelled_count}) catch return true;
+            defer alloc.free(reply);
+            writeJsonResponse(stream, reply);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "CancelAllOrdersAfter")) {
+            // PHASE 2E.3 — Kraken dead-man-switch. We accept the registration
+            // and echo timestamps; a real timer wheel that cancels on expiry
+            // is queued for Phase 3 (no-op effective for now).
+            const api_key_hdr = extractHttpHeader(header, "api-key") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            };
+            const api_sign_hdr = extractHttpHeader(header, "api-sign") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            };
+
+            ctx.exchange_mutex.lock();
+            const api_key = apiKeyLookup(ctx, api_key_hdr);
+            ctx.exchange_mutex.unlock();
+
+            if (api_key == null) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            }
+            if (api_key.?.secret_raw_len == 0) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:KeyNotEnabledForRest\"],\"result\":{}}");
+                return true;
+            }
+
+            const full_path = if (std.mem.startsWith(u8, path, "/exchange/0/")) path else std.fmt.allocPrint(alloc, "/exchange/0/{s}", .{rest}) catch return true;
+            defer if (full_path.ptr != path.ptr) alloc.free(full_path);
+
+            if (!verifyHmacSignature(api_key.?, api_sign_hdr, full_path, post_body)) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            }
+
+            const timeout_str = formGetField(post_body, "timeout") orelse "0";
+            const timeout_secs = std.fmt.parseInt(i64, timeout_str, 10) catch 0;
+            const now_secs = @divFloor(std.time.milliTimestamp(), 1000);
+            const trigger_secs = if (timeout_secs > 0) now_secs + timeout_secs else now_secs;
+
+            const reply = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"currentTime\":\"{d}\",\"triggerTime\":\"{d}\"}}}}",
+                .{ now_secs, trigger_secs }) catch return true;
+            defer alloc.free(reply);
+            writeJsonResponse(stream, reply);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "EditOrder")) {
+            // PHASE 2E.3 — replace existing resting order with new (price, volume).
+            // Implemented as cancel-then-place; new order gets fresh order_id +
+            // timestamp, losing FIFO priority (same as Kraken's real impl).
+            const api_key_hdr = extractHttpHeader(header, "api-key") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            };
+            const api_sign_hdr = extractHttpHeader(header, "api-sign") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            };
+
+            ctx.exchange_mutex.lock();
+            const api_key = apiKeyLookup(ctx, api_key_hdr);
+            ctx.exchange_mutex.unlock();
+
+            if (api_key == null) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidKey\"],\"result\":{}}");
+                return true;
+            }
+            if (api_key.?.secret_raw_len == 0) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:KeyNotEnabledForRest\"],\"result\":{}}");
+                return true;
+            }
+
+            const full_path = if (std.mem.startsWith(u8, path, "/exchange/0/")) path else std.fmt.allocPrint(alloc, "/exchange/0/{s}", .{rest}) catch return true;
+            defer if (full_path.ptr != path.ptr) alloc.free(full_path);
+
+            if (!verifyHmacSignature(api_key.?, api_sign_hdr, full_path, post_body)) {
+                writeJsonResponse(stream, "{\"error\":[\"EAPI:InvalidSignature\"],\"result\":{}}");
+                return true;
+            }
+
+            const trader_slice = api_key.?.owner[0..api_key.?.owner_len];
+            const txid_str = formGetField(post_body, "txid") orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EOrder:MissingTxid\"],\"result\":{}}");
+                return true;
+            };
+            const old_id = std.fmt.parseInt(u64, txid_str, 10) catch {
+                writeJsonResponse(stream, "{\"error\":[\"EOrder:BadTxid\"],\"result\":{}}");
+                return true;
+            };
+
+            const engine = pickEngine(ctx, is_paper) orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EService:Unavailable\"],\"result\":{}}");
+                return true;
+            };
+
+            ctx.exchange_mutex.lock();
+            defer ctx.exchange_mutex.unlock();
+
+            const old_order_ptr = findOrderByIdAndOwner(engine, old_id, trader_slice) orelse {
+                writeJsonResponse(stream, "{\"error\":[\"EOrder:Unknown order\"],\"result\":{}}");
+                return true;
+            };
+
+            const old_side = old_order_ptr.side;
+            const old_pair_id = old_order_ptr.pair_id;
+            const old_filled_sat = old_order_ptr.filled_sat;
+            const old_amount_sat = old_order_ptr.amount_sat;
+            const old_price = old_order_ptr.price_micro_usd;
+            var trader_buf: [64]u8 = [_]u8{0} ** 64;
+            const trader_addr_len = old_order_ptr.trader_addr_len;
+            @memcpy(trader_buf[0..trader_addr_len], old_order_ptr.trader_address[0..trader_addr_len]);
+
+            const new_price: u64 = blk: {
+                if (formGetField(post_body, "price")) |s| {
+                    break :blk std.fmt.parseInt(u64, s, 10) catch old_price;
+                }
+                break :blk old_price;
+            };
+            const new_amount: u64 = blk: {
+                if (formGetField(post_body, "volume")) |s| {
+                    break :blk std.fmt.parseInt(u64, s, 10) catch old_amount_sat;
+                }
+                break :blk old_amount_sat;
+            };
+
+            if (old_filled_sat > 0 and new_amount < old_filled_sat) {
+                writeJsonResponse(stream,
+                    "{\"error\":[\"EOrder:Volume below already-filled amount\"],\"result\":{}}");
+                return true;
+            }
+
+            engine.cancelOrder(old_id) catch |err| switch (err) {
+                error.OrderNotFound => {
+                    writeJsonResponse(stream,
+                        "{\"error\":[\"EOrder:Order vanished mid-edit\"],\"result\":{}}");
+                    return true;
+                },
+                else => {
+                    writeJsonResponse(stream,
+                        "{\"error\":[\"EOrder:Cancel failed\"],\"result\":{}}");
+                    return true;
+                },
+            };
+
+            var new_order = matching_mod.Order.empty();
+            new_order.trader_address = trader_buf;
+            new_order.trader_addr_len = trader_addr_len;
+            new_order.pair_id = old_pair_id;
+            new_order.side = old_side;
+            new_order.price_micro_usd = new_price;
+            new_order.amount_sat = new_amount;
+            new_order.timestamp_ms = std.time.milliTimestamp();
+            new_order.status = .active;
+
+            const new_id = engine.next_order_id;
+
+            engine.placeOrder(new_order) catch |err| {
+                const msg: []const u8 = switch (err) {
+                    error.OrderbookFull => "EOrder:Orderbook full",
+                    error.InvalidPrice => "EOrder:Invalid price",
+                    error.InvalidAmount => "EOrder:Invalid volume",
+                    error.InvalidPair => "EOrder:Invalid pair",
+                    else => "EOrder:Place failed",
+                };
+                const reply = std.fmt.allocPrint(alloc,
+                    "{{\"error\":[\"{s}\"],\"result\":{{}}}}", .{msg}) catch return true;
+                defer alloc.free(reply);
+                writeJsonResponse(stream, reply);
+                return true;
+            };
+
+            const reply = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{" ++
+                    "\"descr\":{{\"order\":\"edited\"}}," ++
+                    "\"txid\":\"{d}\"," ++
+                    "\"originaltxid\":\"{d}\"" ++
+                "}}}}",
+                .{ new_id, old_id }) catch return true;
+            defer alloc.free(reply);
+            writeJsonResponse(stream, reply);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "DepositMethods")) {
+            // PHASE 2E.4 — per-asset deposit methods.
+            const asset = formGetField(post_body, "asset") orelse "OMNI";
+            if (!fundingAssetSupported(asset)) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
+                return true;
+            }
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            appendFundingMethodObject(alloc, &out, asset, false) catch return true;
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "DepositAddresses")) {
+            // PHASE 2E.4 — escrow address per asset.
+            const asset = formGetField(post_body, "asset") orelse "OMNI";
+            if (!fundingAssetSupported(asset)) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
+                return true;
+            }
+            const addr_slice: []const u8 = if (std.mem.eql(u8, asset, "OMNI"))
+                ctx.wallet.address
+            else
+                BRIDGE_VAULT_PLACEHOLDER;
+            const body_json = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":[{{\"address\":\"{s}\"," ++
+                "\"expiretm\":0,\"newtag\":null}}]}}",
+                .{ addr_slice }) catch {
+                    writeJsonResponse(stream, "{\"error\":[\"EFunding:Alloc\"],\"result\":[]}");
+                    return true;
+                };
+            defer alloc.free(body_json);
+            writeJsonResponse(stream, body_json);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "StatusOfDeposits")) {
+            // PHASE 2E.4 — walk chain newest-first for TXs landing on escrow.
+            const asset = formGetField(post_body, "asset") orelse "OMNI";
+            if (!fundingAssetSupported(asset)) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
+                return true;
+            }
+            if (!std.mem.eql(u8, asset, "OMNI")) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            const owner_param = formGetField(post_body, "address") orelse ctx.wallet.address;
+            appendFundingStatusEntries(alloc, ctx.bc, &out, 50, "deposit",
+                owner_param, ctx.wallet.address, .deposit) catch return true;
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "WithdrawMethods")) {
+            // PHASE 2E.4 — per-asset withdraw methods with fees.
+            const asset = formGetField(post_body, "asset") orelse "OMNI";
+            if (!fundingAssetSupported(asset)) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
+                return true;
+            }
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            appendFundingMethodObject(alloc, &out, asset, true) catch return true;
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "WithdrawAddresses")) {
+            // PHASE 2E.4 — Phase 3 plan: on-chain saved-address book via
+            // op_return prefix `address_book:`. For now empty list (no error).
+            writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "StatusOfWithdrawals")) {
+            // PHASE 2E.4 — walk chain newest-first for outbound TXs from owner.
+            const asset = formGetField(post_body, "asset") orelse "OMNI";
+            if (!fundingAssetSupported(asset)) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
+                return true;
+            }
+            if (!std.mem.eql(u8, asset, "OMNI")) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            const owner_param = formGetField(post_body, "address") orelse ctx.wallet.address;
+
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            appendFundingStatusEntries(alloc, ctx.bc, &out, 50, "withdrawal",
+                owner_param, ctx.wallet.address, .withdraw) catch return true;
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "WithdrawCancel")) {
+            // PHASE 2E.4 — cancel pending withdraw IF still in mempool.
+            // Mined TXs are immutable.
+            const refid = formGetField(post_body, "refid") orelse formGetField(post_body, "txid") orelse "";
+            if (refid.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[\"EFunding:Missing refid\"],\"result\":false}");
+                return true;
+            }
+            if (ctx.bc.tx_block_height.contains(refid)) {
+                writeJsonResponse(stream,
+                    "{\"error\":[\"Withdraw not cancelable: already mined\"],\"result\":false}");
+                return true;
+            }
+            const mp = ctx.mempool orelse {
+                writeJsonResponse(stream,
+                    "{\"error\":[\"EFunding:Mempool unavailable\"],\"result\":false}");
+                return true;
+            };
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            var found_idx: ?usize = null;
+            for (mp.entries.items, 0..) |entry, idx| {
+                if (std.mem.eql(u8, entry.tx.hash, refid)) {
+                    found_idx = idx;
+                    break;
+                }
+            }
+            if (found_idx) |idx| {
+                const entry = mp.entries.items[idx];
+                if (entry.tx.hash.len > 0) {
+                    _ = mp.tx_hashes.remove(entry.tx.hash);
+                }
+                if (mp.pending_count.get(entry.tx.from_address)) |cur| {
+                    if (cur <= 1) {
+                        _ = mp.pending_count.remove(entry.tx.from_address);
+                    } else {
+                        mp.pending_count.put(entry.tx.from_address, cur - 1) catch {};
+                    }
+                }
+                if (mp.total_bytes >= entry.size_bytes) {
+                    mp.total_bytes -= entry.size_bytes;
+                } else {
+                    mp.total_bytes = 0;
+                }
+                _ = mp.entries.orderedRemove(idx);
+                writeJsonResponse(stream, "{\"error\":[],\"result\":true}");
+                return true;
+            }
+            writeJsonResponse(stream,
+                "{\"error\":[\"Withdraw not found in mempool (already mined or unknown)\"]," ++
+                "\"result\":false}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "WalletTransfer")) {
+            // PHASE 2E.4 — Phase 3 plan: sub-account tags via op_return prefix
+            // `subaccount:<id>` + transferSubaccount RPC. For now reject with
+            // an explanatory error (Kraken pattern when a wallet pair is unsupported).
+            writeJsonResponse(stream,
+                "{\"error\":[\"Internal wallet transfer not yet supported (Phase 3)\"]," ++
+                "\"result\":{\"refid\":\"\"}}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Stake")) {
+            // PHASE 2E.5 v1: accept request, return refid. Phase 3: build +
+            // sign + broadcast TX with op_return = "stake:<amt>" so applyBlock
+            // → applyOpReturnRoles credits bc.stake_amounts.
+            const method = formGetField(post_body, "method") orelse "OMNI.flexible";
+            var ref_buf: [16]u8 = undefined;
+            randomHex(ref_buf[0..], 8);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"refid\":\"{s}\",\"method\":\"{s}\",\"status\":\"submitted\"}}}}",
+                .{ ref_buf, method }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Unstake")) {
+            // PHASE 2E.5 v1: accept request, return refid. Phase 3: real TX.
+            const method = formGetField(post_body, "method") orelse "OMNI.flexible";
+            var ref_buf: [16]u8 = undefined;
+            randomHex(ref_buf[0..], 8);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"refid\":\"{s}\",\"method\":\"{s}\",\"status\":\"submitted\"}}}}",
+                .{ ref_buf, method }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "GetStakingAssets")) {
+            // PHASE 2E.5 — list which assets can be staked. v1: only OMNI.
+            // Phase 2F: add per-asset staking once cross-chain bridge online.
+            writeJsonResponse(stream,
+                "{\"error\":[],\"result\":[" ++
+                "{\"asset\":\"OMNI\",\"staking\":true,\"min_amount\":\"1.00000000\"," ++
+                "\"lock_periods\":[{\"days\":0,\"rewards\":{\"reward\":\"5.0\",\"type\":\"percentage\"}}]}" ++
+                "]}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "GetPendingStaking")) {
+            // PHASE 2E.5 — list pending stake/unstake operations from chain.
+            // Walk newest blocks, filter by from_address + op_return prefix.
+            const target_addr = formGetField(post_body, "address") orelse owner orelse "";
+            if (target_addr.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            var emitted: u32 = 0;
+            const LIMIT: u32 = 50;
+            const tip: u64 = @intCast(ctx.bc.chain.items.len);
+            const recent_blocks: u64 = 6; // pending = last 6 blocks
+            var bi: usize = ctx.bc.chain.items.len;
+            outer: while (bi > 0 and emitted < LIMIT) {
+                bi -= 1;
+                const block_h: u64 = @intCast(bi);
+                if (tip > block_h and (tip - block_h) > recent_blocks) break;
+                const blk = ctx.bc.chain.items[bi];
+                for (blk.transactions.items) |tx| {
+                    if (emitted >= LIMIT) break :outer;
+                    if (!std.mem.eql(u8, tx.from_address, target_addr)) continue;
+                    if (tx.op_return.len == 0) continue;
+                    const is_stake = std.mem.startsWith(u8, tx.op_return, "stake:");
+                    const is_unstake = std.mem.startsWith(u8, tx.op_return, "unstake:");
+                    if (!is_stake and !is_unstake) continue;
+                    const kind: []const u8 = if (is_stake) "bonding" else "unbonding";
+                    const sat: u64 = tx.amount;
+                    const omni_int: u64 = sat / 1_000_000_000;
+                    const omni_frac: u64 = sat % 1_000_000_000;
+                    if (emitted > 0) out.appendSlice(alloc, ",") catch return true;
+                    const line = std.fmt.allocPrint(alloc,
+                        "{{\"refid\":\"{s}\",\"time\":{d},\"type\":\"{s}\",\"asset\":\"OMNI\"," ++
+                        "\"amount\":\"{d}.{d:0>9}\",\"status\":\"Pending\"}}",
+                        .{ tx.hash, tx.timestamp, kind, omni_int, omni_frac }) catch return true;
+                    defer alloc.free(line);
+                    out.appendSlice(alloc, line) catch return true;
+                    emitted += 1;
+                }
+            }
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "ListStakingTransactions")) {
+            // PHASE 2E.5 — full stake/unstake history (no time filter).
+            const target_addr = formGetField(post_body, "address") orelse owner orelse "";
+            if (target_addr.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            var out = std.ArrayList(u8){};
+            defer out.deinit(alloc);
+            out.appendSlice(alloc, "{\"error\":[],\"result\":[") catch return true;
+            var emitted: u32 = 0;
+            const LIMIT: u32 = 100;
+            var bi: usize = ctx.bc.chain.items.len;
+            outer: while (bi > 0 and emitted < LIMIT) {
+                bi -= 1;
+                const blk = ctx.bc.chain.items[bi];
+                for (blk.transactions.items) |tx| {
+                    if (emitted >= LIMIT) break :outer;
+                    if (!std.mem.eql(u8, tx.from_address, target_addr)) continue;
+                    if (tx.op_return.len == 0) continue;
+                    const is_stake = std.mem.startsWith(u8, tx.op_return, "stake:");
+                    const is_unstake = std.mem.startsWith(u8, tx.op_return, "unstake:");
+                    if (!is_stake and !is_unstake) continue;
+                    const kind: []const u8 = if (is_stake) "bonding" else "unbonding";
+                    const sat: u64 = tx.amount;
+                    const omni_int: u64 = sat / 1_000_000_000;
+                    const omni_frac: u64 = sat % 1_000_000_000;
+                    if (emitted > 0) out.appendSlice(alloc, ",") catch return true;
+                    const line = std.fmt.allocPrint(alloc,
+                        "{{\"refid\":\"{s}\",\"time\":{d},\"type\":\"{s}\",\"asset\":\"OMNI\"," ++
+                        "\"amount\":\"{d}.{d:0>9}\",\"status\":\"Success\"}}",
+                        .{ tx.hash, tx.timestamp, kind, omni_int, omni_frac }) catch return true;
+                    defer alloc.free(line);
+                    out.appendSlice(alloc, line) catch return true;
+                    emitted += 1;
+                }
+            }
+            out.appendSlice(alloc, "]}") catch return true;
+            writeJsonResponse(stream, out.items);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Earn/Allocate")) {
+            // PHASE 2E.5 v1: accept request, return allocation_id. Phase 3:
+            // multi-strategy yield engine.
+            const strategy_id = formGetField(post_body, "strategy_id") orelse "OMNI_FLEXIBLE";
+            var alloc_buf: [16]u8 = undefined;
+            randomHex(alloc_buf[0..], 8);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"allocation_id\":\"{s}\",\"strategy_id\":\"{s}\",\"status\":\"submitted\"}}}}",
+                .{ alloc_buf, strategy_id }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Earn/Deallocate")) {
+            // PHASE 2E.5 v1: accept request, echo allocation_id.
+            const alloc_id = formGetField(post_body, "allocation_id") orelse "";
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"allocation_id\":\"{s}\",\"status\":\"submitted\"}}}}",
+                .{alloc_id}) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Earn/Strategies")) {
+            // PHASE 2E.5 — v1 starting set: 2 strategies (flexible + 30-day lock).
+            writeJsonResponse(stream,
+                "{\"error\":[],\"result\":[" ++
+                "{\"id\":\"OMNI_FLEXIBLE\",\"asset\":\"OMNI\",\"apr\":\"5.00\",\"apy\":\"5.13\"," ++
+                "\"lock_period_days\":0,\"min_amount\":\"1.00000000\"}," ++
+                "{\"id\":\"OMNI_LOCK_30D\",\"asset\":\"OMNI\",\"apr\":\"7.50\",\"apy\":\"7.78\"," ++
+                "\"lock_period_days\":30,\"min_amount\":\"10.00000000\"}" ++
+                "]}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "Earn/Allocations")) {
+            // PHASE 2E.5 — derive from bc.stake_amounts (single OMNI_FLEXIBLE allocation).
+            const target_addr = formGetField(post_body, "address") orelse owner orelse "";
+            if (target_addr.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            const stake_sat: u64 = ctx.bc.stake_amounts.get(target_addr) orelse 0;
+            if (stake_sat == 0) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            const omni_int: u64 = stake_sat / 1_000_000_000;
+            const omni_frac: u64 = stake_sat % 1_000_000_000;
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":[{{\"strategy_id\":\"OMNI_FLEXIBLE\"," ++
+                "\"allocated\":\"{d}.{d:0>9}\",\"earnings\":\"0.00000000\",\"since\":0}}]}}",
+                .{ omni_int, omni_frac }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "AddExport")) {
+            // PHASE 2E.5 v1: generate id and return queued status.
+            // Phase 3: persistent export pipeline + on-disk artifacts.
+            var id_buf: [16]u8 = undefined;
+            randomHex(id_buf[0..], 8);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"id\":\"{s}\",\"status\":\"queued\"}}}}",
+                .{id_buf}) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "ExportStatus")) {
+            // PHASE 2E.5 v1: return processed status if id provided.
+            const export_id = formGetField(post_body, "id") orelse "";
+            if (export_id.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[],\"result\":[]}");
+                return true;
+            }
+            const now_sec: i64 = @divFloor(std.time.milliTimestamp(), 1000);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":[{{\"id\":\"{s}\",\"status\":\"Processed\"," ++
+                "\"createdtm\":{d},\"format\":\"CSV\"}}]}}",
+                .{ export_id, now_sec }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "RetrieveExport")) {
+            // PHASE 2E.5 v1: synchronously generate CSV from chain state.
+            // Phase 3: pre-rendered files on disk.
+            const export_id = formGetField(post_body, "id") orelse "";
+            const target_addr = owner orelse "";
+            if (export_id.len == 0 or target_addr.len == 0) {
+                writeJsonResponse(stream, "{\"error\":[\"EQuery:Missing id or owner\"],\"result\":{}}");
+                return true;
+            }
+            ctx.bc.mutex.lock();
+            defer ctx.bc.mutex.unlock();
+
+            // Build a ledger-style CSV: walks chain TXs touching owner.
+            var csv = std.ArrayList(u8){};
+            defer csv.deinit(alloc);
+            csv.appendSlice(alloc, "ledger_id,refid,time,type,asset,amount\\n") catch return true;
+            for (ctx.bc.chain.items) |blk| {
+                for (blk.transactions.items) |tx| {
+                    const is_from = std.mem.eql(u8, tx.from_address, target_addr);
+                    const is_to = std.mem.eql(u8, tx.to_address, target_addr);
+                    if (!is_from and !is_to) continue;
+                    const ledger_type: []const u8 = blk2: {
+                        if (tx.op_return.len > 0 and std.mem.startsWith(u8, tx.op_return, "stake:")) break :blk2 "staking";
+                        if (tx.op_return.len > 0 and std.mem.startsWith(u8, tx.op_return, "unstake:")) break :blk2 "unstaking";
+                        if (is_from) break :blk2 "withdrawal";
+                        break :blk2 "deposit";
+                    };
+                    const sat: u64 = tx.amount;
+                    const oi: u64 = sat / 1_000_000_000;
+                    const of: u64 = sat % 1_000_000_000;
+                    const line = std.fmt.allocPrint(alloc,
+                        "L{s},{s},{d},{s},OMNI,{d}.{d:0>9}\\n",
+                        .{ tx.hash, tx.hash, tx.timestamp, ledger_type, oi, of }) catch continue;
+                    defer alloc.free(line);
+                    csv.appendSlice(alloc, line) catch return true;
+                }
+            }
+            // Wrap CSV as JSON-escaped string in result.
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"id\":\"{s}\",\"data\":\"{s}\"}}}}",
+                .{ export_id, csv.items }) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "DeleteExport")) {
+            // PHASE 2E.5 v1: accept delete request (no real persistence to clean).
+            writeJsonResponse(stream, "{\"error\":[],\"result\":true}");
+            return true;
+        }
+        else if (std.mem.eql(u8, ep, "GetWebSocketsToken")) {
+            // PHASE 2E.5 — generate ephemeral 32-byte hex token (15 min TTL).
+            // Phase 3 wires this into a real WS handshake validator with
+            // server-side replay tracking.
+            var tok_buf: [64]u8 = undefined;
+            randomHex(tok_buf[0..], 32);
+            const body_str = std.fmt.allocPrint(alloc,
+                "{{\"error\":[],\"result\":{{\"token\":\"{s}\",\"expires\":900}}}}",
+                .{tok_buf}) catch return true;
+            defer alloc.free(body_str);
+            writeJsonResponse(stream, body_str);
+            return true;
+        }
         else {
             writeErrorResponse(stream, 404, "Unknown endpoint");
             return true;
@@ -6506,6 +7983,41 @@ fn asciiEqIgnoreCase(a: []const u8, b: []const u8) bool {
     return true;
 }
 
+// ─── PHASE 2E.1 helpers (Kraken-compat trade history) ──────────────────
+
+/// Return "BASE/QUOTE" label for a pair_id, or "?/?" when unknown.
+/// Used by Kraken-compat trade/ledger endpoints to render pair as string.
+fn pairLabelFor(pair_id: u16, buf: *[16]u8) []const u8 {
+    for (EXCHANGE_PAIRS) |p| {
+        if (p.id == pair_id) {
+            return std.fmt.bufPrint(buf, "{s}/{s}", .{ p.base, p.quote }) catch "?/?";
+        }
+    }
+    return "?/?";
+}
+
+/// Fixed maker-fee bps in micro-USD against a notional. Mirrors the
+/// computeExchangeFeeMicro formula but exposed for Ledgers / TradesHistory
+/// per-trade fee column.
+fn ledgerFeeMicroFor(price_micro: u64, amount_sat: u64) u64 {
+    return computeExchangeFeeMicro(price_micro, amount_sat, EXCHANGE_FEE_TAKER_BPS);
+}
+
+/// Returns true if the trader address (case-sensitive) participated in
+/// this fill on either side. Used by ClosedOrders / TradesHistory filters.
+fn fillTouchesAddr(f: *const matching_mod.Fill, addr: []const u8) bool {
+    return std.mem.eql(u8, f.getBuyerAddress(), addr)
+        or std.mem.eql(u8, f.getSellerAddress(), addr);
+}
+
+/// Returns side from the trader's perspective for a fill. "buy" if trader
+/// is the buyer leg, "sell" if seller, "" when neither.
+fn fillSideForTrader(f: *const matching_mod.Fill, addr: []const u8) []const u8 {
+    if (std.mem.eql(u8, f.getBuyerAddress(), addr)) return "buy";
+    if (std.mem.eql(u8, f.getSellerAddress(), addr)) return "sell";
+    return "";
+}
+
 fn ordersPathSlice(ctx: *ServerCtx) ?[]const u8 {
     if (ctx.orders_path_len == 0) return null;
     return ctx.orders_path_buf[0..ctx.orders_path_len];
@@ -7544,6 +9056,71 @@ fn apiKeyRevoke(ctx: *ServerCtx, key_id: []const u8) void {
             return;
         }
     }
+}
+
+// ─── PHASE 2E.3 helpers (Kraken-compat order management) ───────────────
+
+/// Cancel every active/partial order belonging to `trader` on `engine`.
+/// Caller MUST hold ctx.exchange_mutex. Returns the number of orders
+/// successfully cancelled. OrderNotFound is silently ignored (benign race
+/// where a fill consumed the order between the collect-pass and cancel-pass).
+fn cancelAllForTrader(
+    engine: *matching_mod.MatchingEngine,
+    trader: []const u8,
+    alloc: std.mem.Allocator,
+) u32 {
+    // Two-pass: collect IDs first to avoid index shifts when cancelOrder
+    // removes entries. Heap-alloc since 2*MAX_ORDERS = 20k * u64 = 160KB
+    // is too large for stack.
+    var ids = std.ArrayList(u64){};
+    defer ids.deinit(alloc);
+
+    var i: u32 = 0;
+    while (i < engine.bid_count) : (i += 1) {
+        const o = &engine.bids[i];
+        if (o.status != .active and o.status != .partial) continue;
+        if (!std.mem.eql(u8, o.getTraderAddress(), trader)) continue;
+        ids.append(alloc, o.order_id) catch continue;
+    }
+    var j: u32 = 0;
+    while (j < engine.ask_count) : (j += 1) {
+        const o = &engine.asks[j];
+        if (o.status != .active and o.status != .partial) continue;
+        if (!std.mem.eql(u8, o.getTraderAddress(), trader)) continue;
+        ids.append(alloc, o.order_id) catch continue;
+    }
+
+    var cancelled: u32 = 0;
+    for (ids.items) |id| {
+        engine.cancelOrder(id) catch continue;
+        cancelled += 1;
+    }
+    return cancelled;
+}
+
+/// Look up an order by ID and verify ownership. Caller MUST hold
+/// ctx.exchange_mutex. Returns null if not found OR owner mismatch
+/// (treats both as "not yours" — caller cannot tell).
+fn findOrderByIdAndOwner(
+    engine: *matching_mod.MatchingEngine,
+    order_id: u64,
+    trader: []const u8,
+) ?*const matching_mod.Order {
+    var i: u32 = 0;
+    while (i < engine.bid_count) : (i += 1) {
+        const o = &engine.bids[i];
+        if (o.order_id != order_id) continue;
+        if (!std.mem.eql(u8, o.getTraderAddress(), trader)) return null;
+        return o;
+    }
+    var j: u32 = 0;
+    while (j < engine.ask_count) : (j += 1) {
+        const o = &engine.asks[j];
+        if (o.order_id != order_id) continue;
+        if (!std.mem.eql(u8, o.getTraderAddress(), trader)) return null;
+        return o;
+    }
+    return null;
 }
 
 fn apiKeyLookup(ctx: *ServerCtx, key_id: []const u8) ?*ExchangeApiKey {
