@@ -3,7 +3,6 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
-import { pqSign, buildTxHash, type PqScheme, hexToBytes, bytesToHex } from "../../api/pq-sign";
 import {
   useNamesOwnedBy,
   useNameForAddress,

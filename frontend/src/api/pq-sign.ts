@@ -22,10 +22,6 @@ export type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pqModules: { mlDsa: any; falcon: any; slhDsa: any } | null = null;
 
-// Vite 4 esbuild scanner finds strings in comments too. Base64-encoded:
-// ml-dsa.js = QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=
-// falcon.js  = QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=
-// slh-dsa.js = QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz
 const _dynImport = new Function("p", "return import(p)") as (p: string) => Promise<any>;
 const _ML_DSA_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=");
 const _FALCON_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=");

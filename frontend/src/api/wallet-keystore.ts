@@ -20,7 +20,28 @@ import { sha256 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
-import { pqKeypairFromSeed, pqAddressFromPublicKey, type PqScheme } from "./pq-sign";
+
+// pq-sign is loaded lazily at runtime so Vite 4 never crawls it during its
+// startup dep-scan. A static import would cause Vite to spider into pq-sign.ts
+// and then complain about the @noble/post-quantum ESM-only subpath exports.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PqSignModule = { pqKeypairFromSeed: any; pqAddressFromPublicKey: any };
+type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256s";
+// Use new Function so esbuild/Vite scanner never sees the specifier string.
+const _dynImportLocal = new Function("p", "return import(p)") as (p: string) => Promise<PqSignModule>;
+const _PQ_SIGN_PATH = atob("Li9wcS1zaWdu");
+let _pqSignModule: PqSignModule | null = null;
+async function pqSignModule(): Promise<PqSignModule> {
+  if (_pqSignModule) return _pqSignModule;
+  _pqSignModule = await _dynImportLocal(_PQ_SIGN_PATH);
+  return _pqSignModule;
+}
+async function pqKeypairFromSeed(scheme: PqScheme, seed: Uint8Array) {
+  return (await pqSignModule()).pqKeypairFromSeed(scheme, seed);
+}
+async function pqAddressFromPublicKeyAsync(scheme: PqScheme, publicKey: Uint8Array): Promise<string> {
+  return (await pqSignModule()).pqAddressFromPublicKey(scheme, publicKey);
+}
 
 const STORAGE_KEY = "omnibus.exchange.vault.v1";
 const SESSION_KEY = "omnibus.exchange.session.v1";
@@ -258,7 +279,7 @@ async function derivePqOmniSlots(root: HDKey): Promise<PqOmniSlot[]> {
     // keygen. pqKeypairFromSeed handles seed-length stretching per scheme.
     const seed = child.privateKey;
     const kp = await pqKeypairFromSeed(s.scheme as PqScheme, seed);
-    const address = pqAddressFromPublicKey(s.scheme as PqScheme, kp.publicKey);
+    const address = await pqAddressFromPublicKeyAsync(s.scheme as PqScheme, kp.publicKey);
     return {
       scheme: s.scheme,
       prefix: s.prefix,
