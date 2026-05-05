@@ -4,6 +4,7 @@ const crypto_mod = @import("crypto.zig");
 const hex_utils = @import("hex_utils.zig");
 const bech32_mod = @import("bech32.zig");
 const pq_crypto = @import("pq_crypto.zig");
+const tx_payload = @import("tx_payload.zig");
 
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const Crypto = crypto_mod.Crypto;
@@ -32,6 +33,123 @@ pub const Outpoint = struct {
 pub const TxOutput = struct {
     amount: u64,
     address: []const u8,
+};
+
+/// TX type discriminator (Phase 2A — EIP-2718-style typed envelope).
+///
+/// `.transfer` (0x00) is the default: legacy plain UTXO transfer, no payload
+/// in `data`, full backward compatibility with v1 wallets and existing tooling.
+///
+/// All other types carry a binary tagged payload in `Transaction.data` (max
+/// 4 KiB), validated deterministically by every node before applyBlock.
+///
+/// Type assignments follow group semantics:
+///   0x00       = transfer (default, legacy)
+///   0x10..0x1F = exchange / orderbook
+///   0x20..0x2F = bridge (custodial + observation)
+///   0x30..0x3F = HTLC atomic swaps
+///   0x40..0x4F = intent / solver flow
+///   0x50..0x5F = TSS vault management
+///   0x60..0x6F = governance
+///   0x70..0x7F = name service / agent / staking (currently in op_return)
+///   0xF0..0xFF = reserved for testnet experimentation
+///
+/// Adding a new type is a hard fork — strictly reject unknown types so a
+/// minority client that doesn't recognise a payload can never accept a
+/// block that deeper validators would reject.
+pub const TxType = enum(u8) {
+    /// 0x00 — Plain UTXO transfer. `data` MUST be empty. Default for all
+    /// legacy v1 transactions and current wallet output. Validates exactly
+    /// like before this change: inputs sum >= outputs + fee, signatures.
+    transfer = 0x00,
+
+    // ─── Exchange (Phase 2B integration) ──────────────────────────────
+    /// 0x10 — Place a signed limit order on the orderbook.
+    /// `data` = OrderPayload (pair_id, side, price, qty, expiry, nonce).
+    order_place = 0x10,
+    /// 0x11 — Cancel an existing active or partial order.
+    /// `data` = OrderCancelPayload (order_id).
+    order_cancel = 0x11,
+    /// 0x12 — Modify an existing order (replace price/qty atomically).
+    /// `data` = OrderModifyPayload.
+    order_modify = 0x12,
+
+    // ─── Bridge: custodial + observation (Phase 2F) ───────────────────
+    /// 0x20 — User locks OMNI in vault, requests release on dest chain.
+    bridge_lock = 0x20,
+    /// 0x21 — Validators observe deposit on external chain, report on-chain.
+    bridge_deposit_report = 0x21,
+    /// 0x22 — User requests withdraw to external chain (burns proxy/lock).
+    bridge_unlock_request = 0x22,
+    /// 0x23 — Validator submits TSS sig share for a pending unlock.
+    bridge_unlock_sign = 0x23,
+    /// 0x24 — Anyone with proof challenges a pending unlock as fraudulent.
+    bridge_fraud_challenge = 0x24,
+
+    // ─── HTLC atomic swap (Phase 2F.2) ────────────────────────────────
+    /// 0x30 — Lock OMNI under hash H for T blocks.
+    htlc_init = 0x30,
+    /// 0x31 — Reveal preimage of H, claim locked OMNI.
+    htlc_claim = 0x31,
+    /// 0x32 — After timeout, original locker reclaims funds.
+    htlc_refund = 0x32,
+
+    // ─── Intent / solver flow (Phase 2F.3) ────────────────────────────
+    /// 0x40 — User signs intent ("sell 5 ETH at market for OMNI"); broadcasts.
+    intent_post = 0x40,
+    /// 0x41 — Solver locks bond, claims the right to fill the intent.
+    intent_fill_commit = 0x41,
+    /// 0x42 — Solver proves delivery on dest chain; bond released.
+    intent_settle = 0x42,
+    /// 0x43 — Solver missed deadline; bond slashed to user.
+    intent_timeout = 0x43,
+
+    // ─── TSS vault management (Phase 2F.4) ────────────────────────────
+    /// 0x50 — Validator commits a DKG round.
+    tss_dkg_commit = 0x50,
+    /// 0x51 — DKG complete; ratify vault public key into chain state.
+    tss_dkg_finalize = 0x51,
+    /// 0x52 — Governance triggers vault key rotation.
+    tss_vault_rotate = 0x52,
+
+    // ─── Governance (Phase 2 future) ──────────────────────────────────
+    /// 0x60 — Generic governance proposal/vote.
+    governance = 0x60,
+
+    // 0x70..0x7F — name service / agent / staking — currently piggy-back
+    // on op_return prefix strings; will migrate here in a later phase.
+
+    _,
+
+    /// Returns true if `data` payload is required (i.e., not a plain transfer).
+    pub fn requiresPayload(self: TxType) bool {
+        return self != .transfer;
+    }
+
+    /// Returns true if a TX of this type touches the orderbook
+    /// (used by applyBlock to short-circuit deterministic matching).
+    pub fn touchesOrderbook(self: TxType) bool {
+        return switch (self) {
+            .order_place, .order_cancel, .order_modify => true,
+            else => false,
+        };
+    }
+
+    /// Returns true if a TX of this type involves the bridge state.
+    pub fn touchesBridge(self: TxType) bool {
+        return switch (self) {
+            .bridge_lock,
+            .bridge_deposit_report,
+            .bridge_unlock_request,
+            .bridge_unlock_sign,
+            .bridge_fraud_challenge,
+            .htlc_init, .htlc_claim, .htlc_refund,
+            .intent_post, .intent_fill_commit, .intent_settle, .intent_timeout,
+            .tss_dkg_commit, .tss_dkg_finalize, .tss_vault_rotate,
+            => true,
+            else => false,
+        };
+    }
 };
 
 pub const Scheme = enum(u8) {
@@ -133,8 +251,25 @@ pub const Transaction = struct {
     /// `to_address` with `amount`, plus a change output if needed.
     /// When non-empty, applyBlock materialises one UTXO per entry.
     outputs: []const TxOutput = &.{},
+    /// PHASE-2A typed envelope — TX type discriminator (EIP-2718-style).
+    /// `.transfer` (0x00) is the default and means: plain UTXO transfer
+    /// with empty `data`, identical semantics to legacy v1 TXs. Any other
+    /// value MUST come paired with a non-empty `data` payload validated
+    /// per type. Default preserves full back-compat: existing wallets that
+    /// don't set `tx_type` keep working unchanged.
+    tx_type: TxType = .transfer,
+    /// PHASE-2A typed payload — binary tagged data interpreted per `tx_type`.
+    /// MUST be empty when `tx_type == .transfer`. MUST be non-empty for any
+    /// other type. Wire-format is type-specific (see OrderPayload,
+    /// BridgeLockPayload, HtlcInitPayload, IntentPostPayload, etc.).
+    /// Capped at MAX_TYPED_PAYLOAD bytes to prevent block-size abuse.
+    data: []const u8 = "",
     /// Maximum OP_RETURN data size (80 bytes, same as Bitcoin)
     pub const MAX_OP_RETURN: usize = 80;
+    /// Maximum typed-payload size (4 KiB). Large enough for batch orders,
+    /// PQ signatures, M-of-N validator sig bundles. Small enough to prevent
+    /// pathological TXs from bloating block bandwidth.
+    pub const MAX_TYPED_PAYLOAD: usize = 4096;
     /// Cap on inputs[] / outputs[] — defends against pathological TXs
     /// that would balloon UTXO set or block size. Bitcoin uses ~2^16
     /// in practice; we keep a tighter bound until we have soak data.
@@ -144,6 +279,13 @@ pub const Transaction = struct {
     /// True when the TX uses explicit v2 inputs/outputs.
     pub fn isV2(self: *const Transaction) bool {
         return self.inputs.len > 0 or self.outputs.len > 0;
+    }
+
+    /// True when the TX is Phase-2A typed (carries a non-trivial tx_type
+    /// or payload). Plain transfers return false even if `data` is set
+    /// to empty (the default state).
+    pub fn isTyped(self: *const Transaction) bool {
+        return self.tx_type != .transfer or self.data.len > 0;
     }
 
     /// Prefix-uri valide pentru adresele OmniBus
@@ -252,6 +394,22 @@ pub const Transaction = struct {
                 hasher.update("|");
             }
         }
+        // PHASE-2A typed envelope — tx_type + data in hash domain.
+        // Mixed in only when non-default so legacy plain transfers
+        // (.transfer, empty data) keep the exact same hash bytes they
+        // always had. Without this an attacker could swap an order TX
+        // for a transfer TX (or vice versa) post-signature without
+        // breaking the signature — defeats the whole point of typing.
+        if (self.tx_type != .transfer) {
+            hasher.update(":TT:");
+            var tt_buf: [4]u8 = undefined;
+            const tt_str = std.fmt.bufPrint(&tt_buf, "{d}", .{@intFromEnum(self.tx_type)}) catch "0";
+            hasher.update(tt_str);
+        }
+        if (self.data.len > 0) {
+            hasher.update(":DT:");
+            hasher.update(self.data);
+        }
 
         var hash1: [32]u8 = undefined;
         hasher.final(&hash1);
@@ -264,9 +422,24 @@ pub const Transaction = struct {
         // OP_RETURN validation: max 80 bytes
         if (self.op_return.len > MAX_OP_RETURN) return false;
 
-        // Amount must be > 0 unless this is an OP_RETURN data-only TX
+        // PHASE-2A — typed envelope basic validation.
+        // Per-type deep validation lives in validateTransaction() (consensus
+        // layer); this is just structural sanity to reject obviously
+        // malformed TXs at the wire boundary.
+        if (self.data.len > MAX_TYPED_PAYLOAD) return false;
+        if (self.tx_type == .transfer and self.data.len > 0) return false;
+        if (self.tx_type != .transfer and self.data.len == 0) return false;
+        // Decode + per-type structural validation (reject malformed payloads
+        // at the TX boundary so they never enter the mempool).
+        tx_payload.validatePayload(self.tx_type, self.data) catch return false;
+
+        // Amount-zero check: legacy TXs need amount>0 unless they carry a
+        // data-only signal. Two valid signals exist:
+        //   1. Legacy: op_return present (NS register, stake, etc.)
+        //   2. Phase-2A: typed payload present (order, bridge, etc.)
         const is_op_return_tx = self.op_return.len > 0 and self.amount == 0;
-        if (self.amount == 0 and !is_op_return_tx) return false;
+        const is_typed_tx = self.tx_type != .transfer;
+        if (self.amount == 0 and !is_op_return_tx and !is_typed_tx) return false;
 
         if (self.from_address.len == 0 or self.to_address.len == 0) return false;
 
