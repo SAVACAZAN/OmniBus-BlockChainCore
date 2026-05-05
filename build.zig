@@ -1,14 +1,27 @@
 const std = @import("std");
 
-// liboqs paths — Windows native (compilat cu MinGW in liboqs-src/build)
-const LIBOQS_INCLUDE = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/include";
-const LIBOQS_LIB     = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/lib/liboqs.a";
+// liboqs paths — detectate automat per OS:
+//   Windows: C:/Kits work/... (MinGW build)
+//   Linux:   /root/liboqs-src/build (compilat nativ pe VPS)
+fn liboqsPaths() struct { include: []const u8, lib: []const u8 } {
+    return switch (@import("builtin").os.tag) {
+        .linux   => .{
+            .include = "/root/liboqs-src/build/include",
+            .lib     = "/root/liboqs-src/build/lib/liboqs.a",
+        },
+        else     => .{
+            .include = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/include",
+            .lib     = "C:/Kits work/limaje de programare/1_CORE/liboqs-src/build/lib/liboqs.a",
+        },
+    };
+}
 
 fn addOqs(step: *std.Build.Step.Compile, enable: bool) void {
     if (enable) {
-        step.addIncludePath(.{ .cwd_relative = LIBOQS_INCLUDE });
-        step.addObjectFile(.{ .cwd_relative = LIBOQS_LIB });
-        step.linkLibC();
+        const paths = liboqsPaths();
+        step.root_module.addIncludePath(.{ .cwd_relative = paths.include });
+        step.root_module.addObjectFile(.{ .cwd_relative = paths.lib });
+        step.root_module.link_libc = true;
     }
 }
 
@@ -19,38 +32,42 @@ const EVM_LIB_DIR = "evm/target/release";
 
 fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
     if (!enable) return;
-    step.addLibraryPath(.{ .cwd_relative = EVM_LIB_DIR });
-    step.linkSystemLibrary("omnibus_evm");
-    step.linkLibC();
+    // Zig 0.16: linker config moved onto root_module. linkSystemLibrary now
+    // takes an options struct (use empty .{} for defaults) and linkFramework
+    // also takes options.
+    const m = step.root_module;
+    m.addLibraryPath(.{ .cwd_relative = EVM_LIB_DIR });
+    m.linkSystemLibrary("omnibus_evm", .{});
+    m.link_libc = true;
     const tag = step.rootModuleTarget().os.tag;
     // The Rust static lib pulls in OS system deps (ring, std::sync,
     // std::time, randomness). Different platforms need different libs.
     if (tag == .windows) {
-        step.linkSystemLibrary("ntdll");
-        step.linkSystemLibrary("userenv");
-        step.linkSystemLibrary("bcrypt");
-        step.linkSystemLibrary("advapi32");
-        step.linkSystemLibrary("ws2_32");
-        step.linkSystemLibrary("kernel32");
-        step.linkSystemLibrary("user32");
+        m.linkSystemLibrary("ntdll", .{});
+        m.linkSystemLibrary("userenv", .{});
+        m.linkSystemLibrary("bcrypt", .{});
+        m.linkSystemLibrary("advapi32", .{});
+        m.linkSystemLibrary("ws2_32", .{});
+        m.linkSystemLibrary("kernel32", .{});
+        m.linkSystemLibrary("user32", .{});
         // MSVC compatibility shim: Rust staticlib (MSVC ABI) references
         // _fltused (FP usage flag) which MinGW/lld-link doesn't provide.
-        step.addCSourceFile(.{
+        m.addCSourceFile(.{
             .file  = .{ .cwd_relative = "evm/msvc_compat.c" },
             .flags = &.{},
         });
     } else if (tag == .linux) {
         // Rust glibc staticlib needs: pthread (sync), dl (dynamic loading),
         // m (math), util (random), rt (timers), gcc_s (_Unwind_* for panics).
-        step.linkSystemLibrary("pthread");
-        step.linkSystemLibrary("dl");
-        step.linkSystemLibrary("m");
-        step.linkSystemLibrary("util");
-        step.linkSystemLibrary("rt");
-        step.linkSystemLibrary("gcc_s");
+        m.linkSystemLibrary("pthread", .{});
+        m.linkSystemLibrary("dl", .{});
+        m.linkSystemLibrary("m", .{});
+        m.linkSystemLibrary("util", .{});
+        m.linkSystemLibrary("rt", .{});
+        m.linkSystemLibrary("gcc_s", .{});
     } else if (tag == .macos) {
-        step.linkFramework("Security");
-        step.linkFramework("CoreFoundation");
+        m.linkFramework("Security", .{});
+        m.linkFramework("CoreFoundation", .{});
     }
 }
 
@@ -97,7 +114,8 @@ pub fn build(b: *std.Build) void {
     addEvm(blockchain_exe, use_evm);
     // p2p.zig uses std.posix.recvfrom (UDP knock-knock) which requires libc
     // Link it unconditionally so -Doqs=false still builds
-    blockchain_exe.linkLibC();
+    // Zig 0.16: link_libc is a Module field, set via assignment.
+    blockchain_exe.root_module.link_libc = true;
     b.installArtifact(blockchain_exe);
 
     const rpc_exe = b.addExecutable(.{
@@ -111,7 +129,7 @@ pub fn build(b: *std.Build) void {
     rpc_exe.root_module.addOptions("build_options", build_options);
     addOqs(rpc_exe, use_oqs);
     addEvm(rpc_exe, use_evm);
-    rpc_exe.linkLibC();
+    rpc_exe.root_module.link_libc = true;
     b.installArtifact(rpc_exe);
 
     // ── omnibus-oracle ───────────────────────────────────────────────────────
@@ -127,7 +145,7 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
-    oracle_exe.linkLibC();
+    oracle_exe.root_module.link_libc = true;
     b.installArtifact(oracle_exe);
 
     // ── omnibus-agents ───────────────────────────────────────────────────────
@@ -143,7 +161,7 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
-    agents_exe.linkLibC();
+    agents_exe.root_module.link_libc = true;
     b.installArtifact(agents_exe);
 
     // ── omnibus-explorer ─────────────────────────────────────────────────────
@@ -157,7 +175,7 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
-    explorer_exe.linkLibC();
+    explorer_exe.root_module.link_libc = true;
     b.installArtifact(explorer_exe);
 
     // ── omnibus-exchange ─────────────────────────────────────────────────────
@@ -173,7 +191,7 @@ pub fn build(b: *std.Build) void {
             .optimize         = optimize,
         }),
     });
-    exchange_exe.linkLibC();
+    exchange_exe.root_module.link_libc = true;
     b.installArtifact(exchange_exe);
 
     // ── Benchmark executable ────────────────────────────────────────────────
