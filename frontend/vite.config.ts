@@ -77,16 +77,6 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    // Vite 4 doesn't resolve ESM subpath exports with .js suffix without
-    // explicit pre-bundling. Force esbuild to include these so the dev
-    // server can find @noble/post-quantum's submodules.
-    optimizeDeps: {
-      include: [
-        "@noble/post-quantum/ml-dsa.js",
-        "@noble/post-quantum/falcon.js",
-        "@noble/post-quantum/slh-dsa.js",
-      ],
-    },
     build: {
       outDir: "dist",
       sourcemap: false,
