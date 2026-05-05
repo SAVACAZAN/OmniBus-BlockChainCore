@@ -2941,6 +2941,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "pq_balance"))       return handlePqBalance(body, ctx, id);
     if (std.mem.eql(u8, method, "pq_send"))          return handlePqSend(body, ctx, id);
     if (std.mem.eql(u8, method, "pq_attestation"))   return handlePqAttestation(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpqidentity"))    return handleGetPqIdentity(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendpqattest"))     return handleSendPqAttest(body, ctx, id);
 
     // ── Identity (public nickname + ENS-pref + visibility) ─────────────
     if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
@@ -10902,6 +10904,117 @@ fn handlePqAttestation(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "\"confirmations\":{d}" ++
         "}}}}",
         .{ id, omni_addr, domain, latest_pq_addr, latest_tx_hash, latest_block_height, latest_timestamp, confirmations });
+}
+
+// ── getpqidentity ─────────────────────────────────────────────────────────────
+// Returns the full PQ identity for an omni address (if registered via pq_attest_v1).
+
+fn handleGetPqIdentity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const omni_addr = extractStr(body, "address") orelse extractStr(body, "omni_address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    ctx.bc.mutex.lock();
+    const identity = ctx.bc.pq_identity_map.get(omni_addr);
+    ctx.bc.mutex.unlock();
+
+    if (identity == null) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+    }
+    const idt = identity.?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"omni_address\":\"{s}\"," ++
+        "\"love\":\"{s}\"," ++
+        "\"food\":\"{s}\"," ++
+        "\"rent\":\"{s}\"," ++
+        "\"vacation\":\"{s}\"," ++
+        "\"btc\":\"{s}\"," ++
+        "\"eth\":\"{s}\"," ++
+        "\"attest_block\":{d}," ++
+        "\"attest_tx\":\"{s}\"" ++
+        "}}}}",
+        .{ id, omni_addr,
+           idt.loveSlice(), idt.foodSlice(), idt.rentSlice(), idt.vacationSlice(),
+           idt.btcSlice(), idt.ethSlice(),
+           idt.attest_block, idt.attestTxSlice() });
+}
+
+// ── sendpqattest ──────────────────────────────────────────────────────────────
+// Broadcasts a pq_attest_v1 TX from the wallet. The frontend builds + signs
+// the TX with the OMNI secp256k1 key and sends the raw op_return payload here.
+// Format: { "from": "ob1q...", "love": "ob_k1_...", "food": "ob_f5_...",
+//           "rent": "ob_d5_...", "vacation": "ob_s3_...",
+//           "btc": "bc1q..." (opt), "eth": "0x..." (opt),
+//           "signature": "hex...", "public_key": "hex...", "nonce": N }
+
+fn handleSendPqAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const from     = extractStr(body, "from")     orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const love     = extractStr(body, "love")     orelse return errorJson(-32602, "Missing: love", id, alloc);
+    const food     = extractStr(body, "food")     orelse return errorJson(-32602, "Missing: food", id, alloc);
+    const rent     = extractStr(body, "rent")     orelse return errorJson(-32602, "Missing: rent", id, alloc);
+    const vacation = extractStr(body, "vacation") orelse return errorJson(-32602, "Missing: vacation", id, alloc);
+    const sig      = extractStr(body, "signature")   orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey   = extractStr(body, "public_key")  orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce    = extractParamObjectU64(body, "nonce");
+
+    // Validate soulbound prefixes
+    if (!std.mem.startsWith(u8, love,     "ob_k1_")) return errorJson(-32602, "love must start with ob_k1_", id, alloc);
+    if (!std.mem.startsWith(u8, food,     "ob_f5_")) return errorJson(-32602, "food must start with ob_f5_", id, alloc);
+    if (!std.mem.startsWith(u8, rent,     "ob_d5_")) return errorJson(-32602, "rent must start with ob_d5_", id, alloc);
+    if (!std.mem.startsWith(u8, vacation, "ob_s3_")) return errorJson(-32602, "vacation must start with ob_s3_", id, alloc);
+
+    // First-claim check
+    ctx.bc.mutex.lock();
+    const already = ctx.bc.pq_identity_map.contains(from);
+    ctx.bc.mutex.unlock();
+    if (already) return errorJson(-32001, "Identity already registered for this address (first-claim wins)", id, alloc);
+
+    // Build op_return payload
+    const btc = extractStr(body, "btc") orelse "";
+    const eth = extractStr(body, "eth") orelse "";
+    const op_return = try std.fmt.allocPrint(alloc,
+        "pq_attest_v1:{s}:{s}:{s}:{s}:{s}:{s}", .{ love, food, rent, vacation, btc, eth });
+    defer alloc.free(op_return);
+
+    // Build and submit TX (amount=0, self-send)
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    // Compute a provisional hash string from id+from+timestamp
+    const tx_hash = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(tx_hash);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = 1000,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = tx_hash,
+    };
+    // Replace provisional hash with canonical TX hash (hex-encoded)
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"op_return\":\"{s}\"}}}}",
+        .{ id, canonical, op_return });
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────

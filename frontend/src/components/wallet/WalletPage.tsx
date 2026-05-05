@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
+import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES, buildPqAttestPayload, nextNonce } from "../../api/wallet-keystore";
 import {
   useNamesOwnedBy,
   useNameForAddress,
@@ -465,6 +465,10 @@ export function WalletPage() {
               <span className="text-mempool-orange/90">100/100/100/100 = Satoshi badge</span>
               {" · "}Chain blochează orice TX cu from = ob_k1_/ob_f5_/ob_d5_/ob_s3_
             </p>
+            {/* Register Identity button */}
+            {unlocked.soulboundAddresses && unlocked.soulboundAddresses.length === 4 && (
+              <PqAttestButton unlocked={unlocked} />
+            )}
           </div>
 
           {/* Public key — useful for verifying signatures off-chain */}
@@ -708,6 +712,70 @@ function MyNamesPanel({ address }: { address: string }) {
 // ob_s3_ address — those need the user to derive an isolated mnemonic per
 // project_omnibus_5_isolated_wallets memory. For now we surface what we
 // have; full multi-mnemonic UI is its own session.
+
+// ── PqAttestButton ───────────────────────────────────────────────────────────
+// One-click "Register Identity" — builds + signs pq_attest_v1 TX and sends
+// via sendpqattest RPC. First-claim wins on chain.
+
+function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keystore").Unlocked }) {
+  const [status, setStatus] = useState<"idle"|"sending"|"ok"|"err">("idle");
+  const [msg, setMsg] = useState("");
+
+  async function register() {
+    if (!unlocked.soulboundAddresses || !unlocked.privateKey) return;
+    const sb = unlocked.soulboundAddresses;
+    const love     = sb.find(s => s.tier === "LOVE")?.address     ?? "";
+    const food     = sb.find(s => s.tier === "FOOD")?.address     ?? "";
+    const rent     = sb.find(s => s.tier === "RENT")?.address     ?? "";
+    const vacation = sb.find(s => s.tier === "VACATION")?.address ?? "";
+    if (!love || !food || !rent || !vacation) { setMsg("Adresele soulbound lipsesc"); setStatus("err"); return; }
+
+    const mc = unlocked.multichainAddresses;
+    const btc = mc?.find(a => a.chain === "BTC_NATIVE")?.address ?? "";
+    const eth = mc?.find(a => a.chain === "ETH")?.address ?? "";
+
+    setStatus("sending");
+    try {
+      const payload = buildPqAttestPayload({
+        privateKey: unlocked.privateKey,
+        from: unlocked.address,
+        love, food, rent, vacation, btc, eth,
+        nonce: nextNonce(),
+      });
+      const res: any = await rpc.request_raw("sendpqattest", payload);
+      if (res?.status === "queued") {
+        setStatus("ok");
+        setMsg(`TX queued: ${res.txid?.slice(0, 16)}…`);
+      } else {
+        setStatus("err");
+        setMsg(res?.error?.message ?? "Eroare necunoscută");
+      }
+    } catch (e: any) {
+      setStatus("err");
+      setMsg(e?.message ?? "Eroare");
+    }
+  }
+
+  if (status === "ok") return (
+    <div className="mt-2 text-[9px] text-mempool-green font-semibold">
+      ✓ Identitate înregistrată on-chain · {msg}
+    </div>
+  );
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={register}
+        disabled={status === "sending"}
+        className="text-[9px] px-2.5 py-1 rounded bg-mempool-blue/20 border border-mempool-blue/40 text-mempool-blue hover:bg-mempool-blue/30 disabled:opacity-50 font-semibold"
+      >
+        {status === "sending" ? "Se trimite…" : "🔐 Register Identity (pq_attest)"}
+      </button>
+      {status === "err" && <span className="text-[9px] text-red-400">{msg}</span>}
+    </div>
+  );
+}
 
 const SOULBOUND_COLORS: Record<string, { text: string; dot: string; emoji: string; desc: string }> = {
   LOVE:     { text: "text-mempool-purple", dot: "bg-mempool-purple", emoji: "❤️",  desc: "Uptime · mining · continuitate" },

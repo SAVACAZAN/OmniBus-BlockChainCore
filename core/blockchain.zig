@@ -130,6 +130,39 @@ pub const MultisigConfigEntry = struct {
 /// to embed it directly without a circular import. It is re-exported above
 /// as `blockchain_mod.BlockPriceEntry` so callers don't need to change.
 
+/// Cross-chain identity record — registered via op_return "pq_attest_v1:".
+/// Stores the 4 soulbound domain addresses + optional BTC/ETH addresses.
+/// First-claim wins: once registered, cannot be overwritten.
+pub const PqIdentity = struct {
+    /// The 4 soulbound domain addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_)
+    love:     [128]u8 = [_]u8{0} ** 128,
+    love_len: u8 = 0,
+    food:     [128]u8 = [_]u8{0} ** 128,
+    food_len: u8 = 0,
+    rent:     [128]u8 = [_]u8{0} ** 128,
+    rent_len: u8 = 0,
+    vacation: [128]u8 = [_]u8{0} ** 128,
+    vacation_len: u8 = 0,
+    /// Optional cross-chain addresses (BTC native bech32, ETH 0x...)
+    btc:     [128]u8 = [_]u8{0} ** 128,
+    btc_len: u8 = 0,
+    eth:     [64]u8 = [_]u8{0} ** 64,
+    eth_len: u8 = 0,
+    /// Block height when registered (for confirmations)
+    attest_block: u64 = 0,
+    /// TX hash of the attest transaction
+    attest_tx: [64]u8 = [_]u8{0} ** 64,
+    attest_tx_len: u8 = 0,
+
+    pub fn loveSlice(self: *const PqIdentity) []const u8 { return self.love[0..self.love_len]; }
+    pub fn foodSlice(self: *const PqIdentity) []const u8 { return self.food[0..self.food_len]; }
+    pub fn rentSlice(self: *const PqIdentity) []const u8 { return self.rent[0..self.rent_len]; }
+    pub fn vacationSlice(self: *const PqIdentity) []const u8 { return self.vacation[0..self.vacation_len]; }
+    pub fn btcSlice(self: *const PqIdentity) []const u8 { return self.btc[0..self.btc_len]; }
+    pub fn ethSlice(self: *const PqIdentity) []const u8 { return self.eth[0..self.eth_len]; }
+    pub fn attestTxSlice(self: *const PqIdentity) []const u8 { return self.attest_tx[0..self.attest_tx_len]; }
+};
+
 pub const Blockchain = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
@@ -229,6 +262,11 @@ pub const Blockchain = struct {
     block_prices: std.AutoHashMap(u32, [6]BlockPriceEntry) = undefined,
     block_prices_initialized: bool = false,
 
+    /// PQ Identity attestation map: omni_address → PqIdentity.
+    /// Populated when a TX with op_return "pq_attest_v1:..." is applied.
+    /// First-claim wins — subsequent attests for the same omni_address are ignored.
+    pq_identity_map: std.StringHashMap(PqIdentity),
+
     /// Native cross-chain bridge state. Tracks locks, pending unlocks,
     /// processed nonces, daily volume cap (defense-in-depth from Ronin/
     /// Wormhole/Nomad/Kelp DAO post-mortems). Defined in bridge_native.zig.
@@ -291,6 +329,7 @@ pub const Blockchain = struct {
             .block_prices = std.AutoHashMap(u32, [6]BlockPriceEntry).init(allocator),
             .block_prices_initialized = true,
             .fills_history = std.AutoHashMap(u32, []matching_mod.Fill).init(allocator),
+            .pq_identity_map = std.StringHashMap(PqIdentity).init(allocator),
         };
     }
 
@@ -349,6 +388,7 @@ pub const Blockchain = struct {
         self.tx_block_height.deinit();
         self.stake_amounts.deinit();
         self.registered_agents.deinit();
+        self.pq_identity_map.deinit();
         // Clean up address TX index (lists of TX hash pointers — no owned memory)
         {
             var ati_it = self.address_tx_index.iterator();
@@ -1525,6 +1565,53 @@ pub const Blockchain = struct {
             if (gop.found_existing) {
                 self.allocator.free(owned);
             }
+        } else if (std.mem.startsWith(u8, tx.op_return, "pq_attest_v1:")) {
+            // Format: pq_attest_v1:<love>:<food>:<rent>:<vacation>[:<btc>][:<eth>]
+            // First-claim wins — if already registered, ignore.
+            if (self.pq_identity_map.contains(tx.from_address)) return;
+
+            const payload = tx.op_return["pq_attest_v1:".len..];
+            var identity = PqIdentity{};
+
+            // Parse colon-separated fields: love:food:rent:vacation[:btc][:eth]
+            var it = std.mem.splitScalar(u8, payload, ':');
+            var fi: usize = 0;
+            while (it.next()) |field| : (fi += 1) {
+                const copy_len_u = @min(field.len, 127);
+                const copy_len: u8 = @intCast(copy_len_u);
+                switch (fi) {
+                    0 => { @memcpy(identity.love[0..copy_len_u], field[0..copy_len_u]); identity.love_len = copy_len; },
+                    1 => { @memcpy(identity.food[0..copy_len_u], field[0..copy_len_u]); identity.food_len = copy_len; },
+                    2 => { @memcpy(identity.rent[0..copy_len_u], field[0..copy_len_u]); identity.rent_len = copy_len; },
+                    3 => { @memcpy(identity.vacation[0..copy_len_u], field[0..copy_len_u]); identity.vacation_len = copy_len; },
+                    4 => { const c = @min(field.len, 127); @memcpy(identity.btc[0..c], field[0..c]); identity.btc_len = @intCast(c); },
+                    5 => { const c = @min(field.len, 63); @memcpy(identity.eth[0..c], field[0..c]); identity.eth_len = @intCast(c); },
+                    else => break,
+                }
+            }
+
+            // Require at least 4 soulbound fields
+            if (identity.love_len == 0 or identity.food_len == 0 or
+                identity.rent_len == 0 or identity.vacation_len == 0) return;
+
+            // Validate soulbound prefixes
+            if (!std.mem.startsWith(u8, identity.loveSlice(), "ob_k1_")) return;
+            if (!std.mem.startsWith(u8, identity.foodSlice(), "ob_f5_")) return;
+            if (!std.mem.startsWith(u8, identity.rentSlice(), "ob_d5_")) return;
+            if (!std.mem.startsWith(u8, identity.vacationSlice(), "ob_s3_")) return;
+
+            // Store attest block + tx hash
+            identity.attest_block = @intCast(self.chain.items.len);
+            const tx_hash_copy = @min(tx.hash.len, identity.attest_tx.len - 1);
+            @memcpy(identity.attest_tx[0..tx_hash_copy], tx.hash[0..tx_hash_copy]);
+            identity.attest_tx_len = @intCast(tx_hash_copy);
+
+            // Store with owned key (first-claim wins)
+            const owned_key = self.allocator.dupe(u8, tx.from_address) catch return;
+            self.pq_identity_map.put(owned_key, identity) catch {
+                self.allocator.free(owned_key);
+                return;
+            };
         }
     }
 

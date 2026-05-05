@@ -20,6 +20,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
+import * as secp from "@noble/secp256k1";
 
 // pq-sign loads @noble/post-quantum lazily via new Function+atob inside pq-sign.ts
 // itself, so Vite 4 won't find @noble/post-quantum subpath exports when it crawls
@@ -694,4 +695,38 @@ export function nextNonce(): number {
   const now = Date.now();
   lastNonce = now > lastNonce ? now : lastNonce + 1;
   return lastNonce;
+}
+
+/**
+ * Build + sign a pq_attest_v1 TX payload ready to send via `sendpqattest` RPC.
+ * Signs the op_return payload with the OMNI secp256k1 key (SHA256d convention).
+ * Returns the JSON body for the RPC call.
+ */
+export function buildPqAttestPayload(args: {
+  privateKey: string;      // 64 hex, OMNI secp256k1
+  from: string;            // ob1q... OMNI address
+  love: string;            // ob_k1_...
+  food: string;            // ob_f5_...
+  rent: string;            // ob_d5_...
+  vacation: string;        // ob_s3_...
+  btc?: string;            // bc1q... optional
+  eth?: string;            // 0x... optional
+  nonce: number;
+}): {
+  from: string; love: string; food: string; rent: string; vacation: string;
+  btc: string; eth: string; nonce: number; signature: string; public_key: string;
+} {
+  const { from, love, food, rent, vacation, btc = "", eth = "", nonce, privateKey } = args;
+  const opReturn = `pq_attest_v1:${love}:${food}:${rent}:${vacation}:${btc}:${eth}`;
+  const msgBytes = new TextEncoder().encode(opReturn);
+  const h1 = sha256(msgBytes);
+  const h2 = sha256(h1);
+  const privBytes = hexToBytes(privateKey);
+  const sig = secp.sign(h2, privBytes, { lowS: true });
+  const pub = secp.getPublicKey(privBytes, true);
+  return {
+    from, love, food, rent, vacation, btc, eth, nonce,
+    signature:  bytesToHex(sig.toBytes()),
+    public_key: bytesToHex(pub),
+  };
 }
