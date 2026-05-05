@@ -296,8 +296,9 @@ export function derivedKeysFromMnemonic(
   const root = HDKey.fromMasterSeed(seed);
   // Account level — supports xpub-derived public-only watchers.
   const account = root.derive(`m/44'/777'/0'`);
-  // Leaf for actual signing.
-  const child = account.derive(`/0/${walletIndex}`);
+  // Leaf for actual signing — use full absolute path from root so
+  // @scure/bip32 never sees a relative path (which throws "Path must start with m").
+  const child = root.derive(`m/44'/777'/0'/0/${walletIndex}`);
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
   // PQ-OMNI slots derived from the same root at different accounts (5'..8').
   // Returns a Promise — PQ modules load lazily on first call.
