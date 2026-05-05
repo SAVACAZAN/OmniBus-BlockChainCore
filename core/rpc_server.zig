@@ -6707,6 +6707,23 @@ fn pickEngine(ctx: *ServerCtx, paper: bool) ?*matching_mod.MatchingEngine {
     return if (paper) ctx.exchange_paper else ctx.exchange;
 }
 
+/// Computes amount reserved by `address` across all active SELL orders in
+/// `engine.asks[]`. Single source of truth — derived from the orderbook itself,
+/// no separate state to keep in sync (auto-correct after fills, cancels,
+/// partial-fills, and journal replay).
+/// Caller must hold `ctx.exchange_mutex`.
+fn computeReservedFromOrderbook(engine: *matching_mod.MatchingEngine, address: []const u8) u64 {
+    var total: u64 = 0;
+    var i: u32 = 0;
+    while (i < engine.ask_count) : (i += 1) {
+        const o = &engine.asks[i];
+        if (o.status != .active and o.status != .partial) continue;
+        if (!std.mem.eql(u8, o.getTraderAddress(), address)) continue;
+        total +%= o.remainingSat();
+    }
+    return total;
+}
+
 /// Construieste mesajul canonical pentru semnatura unui placeOrder.
 /// MUST match exactly ce semneaza clientul (frontend).
 /// Format: "EXCHANGE_ORDER_V1\n<side>\n<pairId>\n<price>\n<amount>\n<nonce>\n<trader>"
@@ -6957,7 +6974,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     // Balance check: paper mode checks OMNI_DEMO internal, real mode checks blockchain.
-    // For SELL: available = balance - reserved_in_orders must be >= amount
+    // For SELL: available = balance - reserved (derived from active asks) must be >= amount
     // For BUY: balance >= notional (hard error, not warning)
     const balance = if (is_paper) blk: {
         const b = balanceLookup(ctx, trader, "OMNI_DEMO");
@@ -6968,7 +6985,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const reserved = if (is_paper)
         0
     else
-        ctx.bc.getAddressReservedInOrders(trader);
+        computeReservedFromOrderbook(engine, trader);
 
     const available = if (balance < reserved) 0 else (balance - reserved);
 
@@ -7029,10 +7046,8 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     nonceSet(ctx, trader, nonce);
 
-    // Reserve balance for SELL orders (Phase 1B)
-    if (side == .sell and !is_paper) {
-        ctx.bc.reserveBalance(trader, amount);
-    }
+    // Note: reservation is derived from `engine.asks[]` directly (single source
+    // of truth — see computeReservedFromOrderbook). No separate state to update.
 
     // Create on-chain order TX with hash
     const tx_result = createOrderTransaction(
@@ -7144,10 +7159,6 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Not order owner", id, alloc);
     }
 
-    // Save order side and amount for unreservation (Phase 1B)
-    const order_side = order.side;
-    const order_amount = order.amount_sat;
-
     const last_nonce = nonceLookup(ctx, trader);
     if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
         return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
@@ -7160,10 +7171,8 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         }, id, alloc);
     };
 
-    // Unreserve balance for cancelled SELL orders (Phase 1B)
-    if (order_side == .sell and !is_paper) {
-        ctx.bc.unreserveBalance(trader, order_amount);
-    }
+    // Note: cancelOrder marks the order .cancelled, so it's automatically
+    // excluded from computeReservedFromOrderbook on next balance check.
 
     nonceSet(ctx, trader, nonce);
 
@@ -8179,7 +8188,10 @@ fn handleExchangeGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .{ id, address, balance_amt, balance_amt });
     } else {
         const balance = ctx.bc.getAddressBalance(address);
-        const reserved = ctx.bc.getAddressReservedInOrders(address);
+        const reserved = if (ctx.exchange) |eng|
+            computeReservedFromOrderbook(eng, address)
+        else
+            0;
         const available = if (balance < reserved) 0 else (balance - reserved);
         return std.fmt.allocPrint(alloc,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"reserved\":{d},\"available\":{d},\"mode\":\"real\"}}}}",

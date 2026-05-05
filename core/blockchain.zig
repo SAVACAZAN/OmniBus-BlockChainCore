@@ -233,12 +233,6 @@ pub const Blockchain = struct {
     /// Nil-init via comptime literal — populated lazily on first bridge TX.
     bridge_state: ?@import("bridge_native.zig").BridgeState = null,
 
-    /// Exchange balance reservations: per-address, reserved amounts in pending sell orders
-    /// Formula: available = getAddressBalance() - reserved_in_orders
-    /// Used to prevent double-pledging across multiple orders
-    reserved_in_orders: std.StringHashMap(u64) = undefined,
-    reserved_mutex: std.Thread.Mutex = .{},
-
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
@@ -280,7 +274,6 @@ pub const Blockchain = struct {
             .utxo_set = utxo_mod.UTXOSet.init(allocator),
             .block_prices = std.AutoHashMap(u32, [6]BlockPriceEntry).init(allocator),
             .block_prices_initialized = true,
-            .reserved_in_orders = std.StringHashMap(u64).init(allocator),
         };
     }
 
@@ -1855,45 +1848,6 @@ pub const Blockchain = struct {
         return snap;
     }
 
-    /// Get reserved amount for an address (sum of all pending sell orders)
-    pub fn getAddressReservedInOrders(self: *Blockchain, address: []const u8) u64 {
-        self.reserved_mutex.lock();
-        defer self.reserved_mutex.unlock();
-
-        if (self.reserved_in_orders.get(address)) |reserved| {
-            return reserved;
-        }
-        return 0;
-    }
-
-    /// Reserve amount for a sell order (prevents double-pledging)
-    pub fn reserveBalance(self: *Blockchain, address: []const u8, amount: u64) void {
-        self.reserved_mutex.lock();
-        defer self.reserved_mutex.unlock();
-
-        const addr_copy = self.allocator.dupe(u8, address) catch return;
-
-        if (self.reserved_in_orders.getPtr(addr_copy)) |reserved_ptr| {
-            reserved_ptr.* +%= amount;
-            self.allocator.free(addr_copy);
-        } else {
-            self.reserved_in_orders.put(addr_copy, amount) catch {
-                self.allocator.free(addr_copy);
-            };
-        }
-    }
-
-    /// Unreserve amount when order is filled or cancelled
-    pub fn unreserveBalance(self: *Blockchain, address: []const u8, amount: u64) void {
-        self.reserved_mutex.lock();
-        defer self.reserved_mutex.unlock();
-
-        if (self.reserved_in_orders.getPtr(address)) |reserved_ptr| {
-            reserved_ptr.* = if (reserved_ptr.* > amount)
-                reserved_ptr.* - amount
-                else 0;
-        }
-    }
 };
 
 /// Self-contained snapshot of a block's metadata. No heap pointers / no slices
