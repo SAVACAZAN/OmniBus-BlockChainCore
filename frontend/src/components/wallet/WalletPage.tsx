@@ -413,7 +413,7 @@ export function WalletPage() {
           <div className="pt-3 border-t border-mempool-border/40">
             <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
               🛡 PQ-OMNI — Transferable, post-quantum signed
-              <span className="normal-case tracking-normal text-mempool-blue ml-1">(ob_q1_…ob_q4_, derivate din același mnemonic)</span>
+              <span className="normal-case tracking-normal text-mempool-blue ml-1">(obk1_/obf5_/obd5_/obs3_, derivate din același mnemonic)</span>
             </p>
             {unlocked.pqOmni && unlocked.pqOmni.length > 0 ? (
               <div className="space-y-2">
@@ -1363,7 +1363,7 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
       <div className="space-y-1.5">
         <input
           className="w-full text-[10px] font-mono bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text placeholder:text-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue"
-          placeholder="Destination address (ob1q… or ob_q…)"
+          placeholder="Destination address (ob1q… or obk1_/obf5_/obd5_/obs3_…)"
           value={to}
           onChange={(e) => setTo(e.target.value)}
           disabled={status === "signing" || status === "sending"}

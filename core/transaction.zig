@@ -448,6 +448,14 @@ pub const Transaction = struct {
         const to_ok = isValidAddress(self.to_address);
         if (!(from_ok and to_ok)) return false;
 
+        // Soulbound reputation addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_) acumuleaza
+        // reputatie si NU pot fi sender. Fondurile din ele sunt intotdeauna locked.
+        // Adresele transferabile (ob1q/obk1_/obf5_/obd5_/obs3_) pot fi from.
+        const SOULBOUND_PREFIXES = [_][]const u8{ "ob_k1_", "ob_f5_", "ob_d5_", "ob_s3_" };
+        for (SOULBOUND_PREFIXES) |pfx| {
+            if (std.mem.startsWith(u8, self.from_address, pfx)) return false;
+        }
+
         // PHASE-C v2 — bounds + per-output address validation.
         if (self.inputs.len > MAX_INPUTS) return false;
         if (self.outputs.len > MAX_OUTPUTS) return false;

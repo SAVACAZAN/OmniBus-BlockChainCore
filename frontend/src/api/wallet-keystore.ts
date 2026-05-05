@@ -96,10 +96,10 @@ export type Unlocked = {
  *  hardened path under coin type 777 — keep in sync with chain
  *  isolated_wallet.zig if/when the chain learns these new schemes. */
 export const PQ_OMNI_SCHEMES = [
-  { scheme: "ml_dsa_87"   as const, account: 5, prefix: "ob_q1_", algo: "ML-DSA-87",     bits: 256 },
-  { scheme: "falcon_512"  as const, account: 6, prefix: "ob_q2_", algo: "Falcon-512",    bits: 192 },
-  { scheme: "dilithium_5" as const, account: 7, prefix: "ob_q3_", algo: "Dilithium-5",   bits: 256 },
-  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "ob_q4_", algo: "SLH-DSA-256s", bits: 256 },
+  { scheme: "ml_dsa_87"    as const, account: 5, prefix: "obk1_", algo: "ML-DSA-87",     bits: 256 },
+  { scheme: "falcon_512"   as const, account: 6, prefix: "obf5_", algo: "Falcon-512",    bits: 192 },
+  { scheme: "dilithium_5"  as const, account: 7, prefix: "obd5_", algo: "Dilithium-5",   bits: 256 },
+  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "obs3_", algo: "SLH-DSA-256s",  bits: 256 },
 ];
 
 export type VaultMetadata = {

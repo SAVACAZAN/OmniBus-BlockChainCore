@@ -109,10 +109,10 @@ export async function pqVerify(scheme: PqScheme, publicKey: Uint8Array, msgHash:
  */
 export function pqAddressFromPublicKey(scheme: PqScheme, publicKey: Uint8Array): string {
   const prefix = ({
-    ml_dsa_87: "ob_q1_",
-    falcon_512: "ob_q2_",
-    dilithium_5: "ob_q3_",
-    slh_dsa_256s: "ob_q4_",
+    ml_dsa_87:    "obk1_",
+    falcon_512:   "obf5_",
+    dilithium_5:  "obd5_",
+    slh_dsa_256s: "obs3_",
   } as Record<PqScheme, string>)[scheme];
   const h160 = ripemd160(sha256(publicKey));
   const versioned = new Uint8Array(1 + h160.length);
