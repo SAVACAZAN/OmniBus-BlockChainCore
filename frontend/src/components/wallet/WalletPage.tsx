@@ -1199,6 +1199,148 @@ function BackupRow({
   );
 }
 
+// ── PqSendForm ──────────────────────────────────────────────────────────────
+//
+// Send OMNI from a PQ-OMNI address using a real post-quantum signature.
+// Flow: collect to+amount → fetch nonce → buildTxHash → pqSign → pq_send RPC.
+// The secret key is RAM-only (from PqOmniSlot.secretKey, never persisted).
+
+const PQ_OMNI_SCHEME_NAMES: Record<string, string> = {
+  ml_dsa_87:    "pq_omni_ml_dsa",
+  falcon_512:   "pq_omni_falcon",
+  dilithium_5:  "pq_omni_dilithium",
+  slh_dsa_256s: "pq_omni_slh_dsa",
+};
+
+function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number }) {
+  const [to, setTo] = useState("");
+  const [amountOmni, setAmountOmni] = useState("");
+  const [status, setStatus] = useState<"idle" | "signing" | "sending" | "ok" | "err">("idle");
+  const [txid, setTxid] = useState("");
+  const [errMsg, setErrMsg] = useState("");
+
+  const canSend = slot.secretKey.length > 0;
+
+  async function handleSend() {
+    setStatus("signing");
+    setErrMsg("");
+    setTxid("");
+    try {
+      const toAddr = to.trim();
+      if (!toAddr) throw new Error("Destination address required");
+      const amountSat = Math.round(parseFloat(amountOmni) * 1e9);
+      if (!amountSat || amountSat <= 0) throw new Error("Amount must be > 0");
+      if (amountSat > balanceSat) throw new Error("Insufficient balance");
+
+      // 1. Fetch nonce for this address
+      const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
+      const nonce: number = typeof nonceRes === "number" ? nonceRes
+        : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+
+      const txId = Math.floor(Math.random() * 0x7fffffff);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const schemeCode = Object.keys(PQ_OMNI_SCHEME_NAMES).indexOf(slot.scheme) + 9;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const _dyn = new Function("p", "return import(p)") as (p: string) => Promise<any>;
+      const pqMod = await _dyn(atob("Li4vLi4vYXBpL3BxLXNpZ24="));
+      const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = pqMod;
+      const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
+
+      // 3. Build canonical TX hash — must match core/transaction.zig:calculateHash()
+      const msgHash = buildTxHash({
+        id: txId,
+        from: slot.address,
+        to: toAddr,
+        amount: amountSat,
+        timestamp,
+        nonce,
+        schemeCode,
+        publicKeyBytes: pubKeyBytes,
+      });
+
+      // 4. Sign with PQ key
+      const secretKeyBytes: Uint8Array = hToB(slot.secretKey);
+      const sigBytes: Uint8Array = await pqSign(slot.scheme, secretKeyBytes, msgHash);
+      const sigHex: string = bToH(sigBytes);
+
+      setStatus("sending");
+
+      // 5. Submit to chain
+      const schemeName = PQ_OMNI_SCHEME_NAMES[slot.scheme];
+      const res = await rpc.pqSend({
+        from: slot.address,
+        to: toAddr,
+        amount: amountSat,
+        scheme: schemeName,
+        signature: sigHex,
+        public_key: slot.publicKey,
+        id: txId,
+        timestamp,
+        nonce,
+      });
+      setTxid(res?.txid ?? res?.hash ?? "submitted");
+      setStatus("ok");
+    } catch (e: any) {
+      setErrMsg(e?.message ?? String(e));
+      setStatus("err");
+    }
+  }
+
+  if (!canSend) {
+    return (
+      <div className="text-[9px] text-mempool-text-dim/60 bg-mempool-bg-elev rounded p-2">
+        Secret key not in memory — unlock wallet from mnemonic to enable sending.
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-mempool-bg-elev rounded p-2 space-y-2">
+      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Send from this PQ-OMNI address</div>
+      <div className="space-y-1.5">
+        <input
+          className="w-full text-[10px] font-mono bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text placeholder:text-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue"
+          placeholder="Destination address (ob1q… or ob_q…)"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          disabled={status === "signing" || status === "sending"}
+        />
+        <div className="flex gap-2 items-center">
+          <input
+            className="flex-1 text-[10px] font-mono bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text placeholder:text-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue"
+            placeholder="Amount (OMNI)"
+            type="number"
+            min="0"
+            step="0.0001"
+            value={amountOmni}
+            onChange={(e) => setAmountOmni(e.target.value)}
+            disabled={status === "signing" || status === "sending"}
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={status === "signing" || status === "sending" || !to || !amountOmni}
+            className="text-[10px] px-3 py-1 bg-mempool-blue rounded text-white font-semibold hover:bg-mempool-blue/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {status === "signing" ? "Signing…" : status === "sending" ? "Sending…" : "Send"}
+          </button>
+        </div>
+      </div>
+      {status === "ok" && (
+        <div className="text-[9px] text-mempool-green font-mono break-all">
+          TX submitted: {txid}
+        </div>
+      )}
+      {status === "err" && (
+        <div className="text-[9px] text-red-400 break-all">
+          {errMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── PqOmniSlotCard ──────────────────────────────────────────────────────────
 //
 // One quantum-protected OMNI wallet slot (ML-DSA-87, Falcon-512, Dilithium-5,

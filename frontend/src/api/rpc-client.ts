@@ -168,6 +168,23 @@ export class OmniBusRpcClient {
     return this.request("sendtransaction", [to, amount]);
   }
 
+  async pqSend(p: {
+    from: string;
+    to: string;
+    amount: number;
+    scheme: string;
+    signature: string;
+    public_key: string;
+    id: number;
+    timestamp: number;
+    nonce: number;
+    fee?: number;
+    op_return?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Promise<any> {
+    return this.request("pq_send", [p]);
+  }
+
   async getTransaction(txId: string): Promise<any> {
     return this.request("gettransaction", [txId]);
   }
