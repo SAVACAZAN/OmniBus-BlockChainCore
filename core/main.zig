@@ -2335,6 +2335,40 @@ pub fn main() !void {
                 mempool.size(),
             );
 
+            // ── WS: broadcast fills (trades) + orderbook snapshots ──────
+            {
+                // Canonical pair labels — mirrors exchange_listPairs RPC order
+                const PAIR_LABELS = [7][]const u8{
+                    "OMNI/USDC", "BTC/USDC", "LCX/USDC",
+                    "ETH/USDC",  "OMNI/BTC", "OMNI/LCX", "OMNI/ETH",
+                };
+
+                if (bc.fills_history.get(@intCast(new_block.index))) |fills| {
+                    for (fills) |fill| {
+                        const label = if (fill.pair_id < PAIR_LABELS.len)
+                            PAIR_LABELS[fill.pair_id] else "OMNI/USDC";
+                        ws_srv.broadcastTrade(
+                            fill.pair_id, label,
+                            fill.price_micro_usd, fill.amount_sat,
+                            "buy", block_count,
+                        );
+                    }
+                }
+
+                if (bc.exchange_engine) |eng| {
+                    for (PAIR_LABELS, 0..) |label, pid| {
+                        const pair_id: u16 = @intCast(pid);
+                        const bb = eng.bestBid(pair_id) orelse 0;
+                        const ba = eng.bestAsk(pair_id) orelse 0;
+                        const oc = eng.orderCountForPair(pair_id);
+                        if (bb > 0 or ba > 0 or oc > 0) {
+                            const sp = if (ba > bb) ba - bb else 0;
+                            ws_srv.broadcastOrderbook(pair_id, label, bb, ba, sp, oc, block_count);
+                        }
+                    }
+                }
+            }
+
             // ── PoUW: Calculate and log rewards for this block ──────────
             g_pouw_engine.calculateRewards(block_count);
             g_pouw_engine.resetBlock();
@@ -2366,12 +2400,14 @@ pub fn main() !void {
                     if (fetcher.getMedianPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
                             .{ median / 1_000_000, (median % 1_000_000) / 10_000, btc_ok });
+                        ws_srv.broadcastOraclePrice("BTC/USD", median, btc_ok);
                     } else {
                         std.debug.print("[ORACLE-FETCHER] BTC: no prices available\n", .{});
                     }
                     if (fetcher.getMedianLcxPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] LCX/USD median: ${d}.{d:0>4} ({d}/3 exchanges)\n",
                             .{ median / 1_000_000, (median % 1_000_000) / 100, lcx_ok });
+                        ws_srv.broadcastOraclePrice("LCX/USD", median, lcx_ok);
                     } else {
                         std.debug.print("[ORACLE-FETCHER] LCX: no prices available\n", .{});
                     }

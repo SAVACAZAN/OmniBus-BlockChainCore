@@ -1,10 +1,22 @@
 /// ws_server.zig — WebSocket server pentru frontend React (port 8334)
 /// Protocol: HTTP Upgrade → WS, RFC 6455 framing minim
-/// Push events: new_block, new_tx, status
+/// Push events: new_block, new_tx, new_trade, orderbook_update, oracle_price, status, heartbeat
+/// Subscription model: client trimite {"subscribe":"blocks"} / {"unsubscribe":"trades"}
+/// Topics: "blocks" | "txs" | "trades" | "orderbook" | "oracle" | "all" (default)
 /// Nu depinde de OpenSSL — ws:// (nu wss://) pentru localhost
 const std = @import("std");
 const builtin = @import("builtin");
 const blockchain_mod = @import("blockchain.zig");
+
+/// Bitmask topics pentru subscription per client
+pub const Topic = struct {
+    pub const blocks:   u8 = 0x01;
+    pub const txs:      u8 = 0x02;
+    pub const trades:   u8 = 0x04;
+    pub const orderbook:u8 = 0x08;
+    pub const oracle:   u8 = 0x10;
+    pub const all:      u8 = 0x1F;
+};
 
 // Pe Windows, stream.read() foloseste ReadFile care pica pe socket-uri acceptate.
 // Folosim ws2_32.recv/send direct (la fel ca rpc_server.zig).
@@ -160,6 +172,25 @@ pub const WsServer = struct {
         }
     }
 
+    /// Parses {"subscribe":"topic"} / {"unsubscribe":"topic"} from client text frames.
+    /// topic: "blocks" | "txs" | "trades" | "orderbook" | "oracle" | "all"
+    fn handleSubscribeMsg(client: *WsClient, msg: []const u8) void {
+        const is_sub   = std.mem.indexOf(u8, msg, "\"subscribe\"") != null;
+        const is_unsub = std.mem.indexOf(u8, msg, "\"unsubscribe\"") != null;
+        if (!is_sub and !is_unsub) return;
+
+        const bit: u8 = if (std.mem.indexOf(u8, msg, "\"blocks\"") != null) Topic.blocks
+                   else if (std.mem.indexOf(u8, msg, "\"txs\"") != null) Topic.txs
+                   else if (std.mem.indexOf(u8, msg, "\"trades\"") != null) Topic.trades
+                   else if (std.mem.indexOf(u8, msg, "\"orderbook\"") != null) Topic.orderbook
+                   else if (std.mem.indexOf(u8, msg, "\"oracle\"") != null) Topic.oracle
+                   else if (std.mem.indexOf(u8, msg, "\"all\"") != null) Topic.all
+                   else return;
+
+        if (is_sub)   { client.subscriptions |= bit; }
+        else          { client.subscriptions &= ~bit; }
+    }
+
     fn handleClient(args: anytype) void {
         const client = args.client;
         const srv    = args.srv;
@@ -224,6 +255,11 @@ pub const WsServer = struct {
                 const pong = [_]u8{ 0x8A, 0x00 }; // FIN + Pong, len 0
                 wsSend(client.stream, &pong) catch break;
             }
+            // Opcode 1 = Text — parse subscribe/unsubscribe
+            if (opcode == 1 and pay_len > 0 and pay_len <= 120) {
+                const msg = frame_buf[0..pay_len];
+                handleSubscribeMsg(client, msg);
+            }
         }
 
         std.debug.print("[WS] Client deconectat\n", .{});
@@ -253,24 +289,24 @@ pub const WsServer = struct {
         srv.allocator.destroy(client);
     }
 
-    /// Broadcast JSON la toti clientii conectati
-    /// Apelat din mining loop la fiecare bloc minat
-    pub fn broadcast(self: *WsServer, json: []const u8) void {
+    /// Broadcast JSON la toti clientii conectati care au topic-ul abonat.
+    /// topic = Topic.* bitmask; 0 = trimite tuturor (heartbeat, status).
+    pub fn broadcastTopic(self: *WsServer, topic: u8, json: []const u8) void {
         self.mutex.lock();
         var i: usize = 0;
         while (i < self.clients.items.len) {
             const c = self.clients.items[i];
-            if (!c.connected) {
-                i += 1;
-                continue;
+            if (c.connected and (topic == 0 or (c.subscriptions & topic) != 0)) {
+                c.sendText(json) catch { c.connected = false; };
             }
-            c.sendText(json) catch {
-                // Eroare → marcheaza ca deconectat, va fi curatat
-                c.connected = false;
-            };
             i += 1;
         }
         self.mutex.unlock();
+    }
+
+    /// Backward-compat: broadcast la toti (heartbeat / status)
+    pub fn broadcast(self: *WsServer, json: []const u8) void {
+        self.broadcastTopic(0, json);
     }
 
     /// Trimite eveniment "new_block" la toti clientii.
@@ -304,7 +340,7 @@ pub const WsServer = struct {
                 std.time.timestamp(),
             },
         ) catch return;
-        self.broadcast(json);
+        self.broadcastTopic(Topic.blocks, json);
     }
 
     /// Trimite eveniment "ibd_progress" — folosit de UI ca sa afiseze
@@ -330,26 +366,124 @@ pub const WsServer = struct {
         self.broadcast(json);
     }
 
-    /// Trimite eveniment "new_tx" la toti clientii
+    /// Trimite eveniment "new_tx" la clientii abonati la "txs"
     pub fn broadcastTx(self: *WsServer, tx_id: []const u8, from: []const u8, amount_sat: u64) void {
         var buf: [256]u8 = undefined;
         const json = std.fmt.bufPrint(&buf,
             "{{\"event\":\"new_tx\",\"txid\":\"{s}\",\"from\":\"{s}\",\"amount_sat\":{d}}}",
             .{
                 tx_id[0..@min(tx_id.len, 64)],
-                from[0..@min(from.len, 32)],
+                from[0..@min(from.len, 42)],
                 amount_sat,
             },
         ) catch return;
-        self.broadcast(json);
+        self.broadcastTopic(Topic.txs, json);
+    }
+
+    /// Trimite eveniment "new_trade" la clientii abonati la "trades"
+    /// price si quantity sunt in SAT (price = SAT per unitate base asset)
+    pub fn broadcastTrade(
+        self:      *WsServer,
+        pair_id:   u32,
+        pair_label: []const u8,
+        price_sat: u64,
+        qty_sat:   u64,
+        side:      []const u8, // "buy" | "sell"
+        height:    u64,
+    ) void {
+        var buf: [384]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"new_trade\"," ++
+            "\"pair_id\":{d}," ++
+            "\"pair\":\"{s}\"," ++
+            "\"price_sat\":{d}," ++
+            "\"qty_sat\":{d}," ++
+            "\"side\":\"{s}\"," ++
+            "\"height\":{d}," ++
+            "\"timestamp\":{d}}}",
+            .{
+                pair_id,
+                pair_label[0..@min(pair_label.len, 16)],
+                price_sat,
+                qty_sat,
+                side[0..@min(side.len, 4)],
+                height,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcastTopic(Topic.trades, json);
+    }
+
+    /// Trimite snapshot orderbook "orderbook_update" la clientii abonati la "orderbook"
+    /// best_bid / best_ask in SAT; order_count = total ordere active
+    pub fn broadcastOrderbook(
+        self:       *WsServer,
+        pair_id:    u32,
+        pair_label: []const u8,
+        best_bid:   u64,
+        best_ask:   u64,
+        spread:     u64,
+        order_count: u32,
+        height:     u64,
+    ) void {
+        var buf: [384]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"orderbook_update\"," ++
+            "\"pair_id\":{d}," ++
+            "\"pair\":\"{s}\"," ++
+            "\"best_bid\":{d}," ++
+            "\"best_ask\":{d}," ++
+            "\"spread\":{d}," ++
+            "\"order_count\":{d}," ++
+            "\"height\":{d}}}",
+            .{
+                pair_id,
+                pair_label[0..@min(pair_label.len, 16)],
+                best_bid,
+                best_ask,
+                spread,
+                order_count,
+                height,
+            },
+        ) catch return;
+        self.broadcastTopic(Topic.orderbook, json);
+    }
+
+    /// Trimite pret oracle "oracle_price" la clientii abonati la "oracle"
+    /// price_micro_usd: 1 USD = 1_000_000 (micro-USD)
+    pub fn broadcastOraclePrice(
+        self:            *WsServer,
+        pair:            []const u8, // "BTC/USD" | "LCX/USD" | etc.
+        price_micro_usd: u64,
+        sources:         u8,  // cate exchange-uri au contribuit
+    ) void {
+        var buf: [256]u8 = undefined;
+        const usd_int  = price_micro_usd / 1_000_000;
+        const usd_frac = (price_micro_usd % 1_000_000) / 100; // 4 zecimale
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"oracle_price\"," ++
+            "\"pair\":\"{s}\"," ++
+            "\"price_usd\":{d}.{d:0>4}," ++
+            "\"sources\":{d}," ++
+            "\"timestamp\":{d}}}",
+            .{
+                pair[0..@min(pair.len, 12)],
+                usd_int,
+                usd_frac,
+                sources,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcastTopic(Topic.oracle, json);
     }
 };
 
 /// Un client WebSocket conectat
 pub const WsClient = struct {
-    stream:    std.net.Stream,
-    allocator: std.mem.Allocator,
-    connected: bool,
+    stream:       std.net.Stream,
+    allocator:    std.mem.Allocator,
+    connected:    bool,
+    subscriptions: u8 = Topic.all, // default: toate topicurile
 
     /// Trimite un frame TEXT WebSocket (opcode 1)
     /// RFC 6455: [0x81][len][payload] — server nu maskeaza
