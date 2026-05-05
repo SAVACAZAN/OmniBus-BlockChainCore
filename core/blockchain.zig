@@ -1,6 +1,8 @@
 const std = @import("std");
 const block_mod = @import("block.zig");
 const transaction_mod = @import("transaction.zig");
+const tx_payload_mod = @import("tx_payload.zig");
+const matching_mod = @import("matching_engine.zig");
 const hex_utils = @import("hex_utils.zig");
 const script_mod = @import("script.zig");
 const multisig_mod = @import("multisig.zig");
@@ -232,6 +234,12 @@ pub const Blockchain = struct {
     /// Wormhole/Nomad/Kelp DAO post-mortems). Defined in bridge_native.zig.
     /// Nil-init via comptime literal — populated lazily on first bridge TX.
     bridge_state: ?@import("bridge_native.zig").BridgeState = null,
+
+    /// PHASE 2B — pointer to the live matching engine attached by main.zig
+    /// when the exchange is enabled on this node. Null on light nodes /
+    /// replay paths; applyOrderTxs short-circuits when null so the chain
+    /// stays consistent without consensus matching.
+    exchange_engine: ?*matching_mod.MatchingEngine = null,
 
     pub fn init(allocator: std.mem.Allocator) !Blockchain {
         var chain = array_list.Managed(Block).init(allocator);
@@ -1517,8 +1525,27 @@ pub const Blockchain = struct {
         defer self.in_apply_block = false;
 
         var total_fees: u64 = 0;
+
+        // ─── PHASE 2B step 1: route typed TXs that DON'T move UTXOs ─────
+        // Order place/cancel/modify and bridge management TXs are handled
+        // by per-type processors AFTER the classic UTXO transfer loop, so
+        // they share consensus state but don't accidentally hit the
+        // implicit-coin-selection UTXO path. We collect their indices here
+        // and apply them in deterministic order at the end.
         for (block.transactions.items) |tx| {
             const total_needed = tx.amount + tx.fee;
+            // Skip non-transfer typed TXs in this loop — they have no UTXO
+            // movement (the trader's collateral lock is virtual until fill).
+            // Bridge_lock IS a UTXO movement (vault payment) and falls
+            // through to the regular path; bridge_unlock_request is virtual.
+            if (tx.tx_type != .transfer and tx.tx_type != .bridge_lock) {
+                // Still increment nonce + index TX so listings show it.
+                const cur_nonce = self.nonces.get(tx.from_address) orelse 0;
+                self.nonces.put(tx.from_address, cur_nonce + 1) catch {};
+                self.tx_block_height.put(tx.hash, @intCast(block.index)) catch {};
+                self.indexAddressTx(tx.from_address, tx.hash);
+                continue;
+            }
 
             // PHASE-C wire v2: explicit inputs/outputs path.
             // When TX carries inputs[], spend exactly those — no
@@ -1597,6 +1624,15 @@ pub const Blockchain = struct {
             self.indexAddressTx(tx.from_address, tx.hash);
             self.indexAddressTx(tx.to_address, tx.hash);
         }
+
+        // ─── PHASE 2B step 2: deterministic order matching ──────────────
+        // Now that all transfers have settled, process order TXs in
+        // canonical order (sort by pair_id, price, tx_hash) so every
+        // node reaches identical fills regardless of mempool arrival
+        // order. This is what makes the orderbook consensus state.
+        self.applyOrderTxs(block) catch |err| {
+            std.debug.print("[APPLY-BLOCK] order matching failed: {}\n", .{err});
+        };
 
         const fees_burned = total_fees * FEE_BURN_PCT / 100;
         const fees_to_miner = total_fees - fees_burned;
@@ -1848,6 +1884,102 @@ pub const Blockchain = struct {
         return snap;
     }
 
+    // ─── PHASE 2B: deterministic order matching ─────────────────────────
+    //
+    // Called from applyBlock after all transfer TXs have settled.
+    // Processes order_cancel TXs first (frees collateral), then sorts
+    // order_place TXs canonically by (pair_id, price, tx_hash) and pushes
+    // them through the matching engine. Same input block → same orderbook
+    // state on every node, regardless of mempool arrival order.
+    //
+    // This routes orders to `self.exchange_engine` if attached. When the
+    // matching engine isn't yet wired (testnet bootstrap, light node, or
+    // pre-Phase-2 chain replay), we accept the TXs into history but skip
+    // the match step — the orderbook will be empty until the engine is
+    // attached, but the chain stays consistent.
+    fn applyOrderTxs(self: *Blockchain, block: Block) !void {
+        // Engine may be null on light nodes / replay paths. Accept the
+        // TXs as recorded in history but skip matching.
+        const engine_opt: ?*matching_mod.MatchingEngine = self.exchange_engine;
+
+        // ── Step 1: cancels first (frees collateral before matching) ──
+        for (block.transactions.items) |tx| {
+            if (tx.tx_type != .order_cancel) continue;
+            const payload = tx_payload_mod.OrderCancelPayload.decode(tx.data) catch |err| {
+                std.debug.print("[ORDER-CANCEL] decode {s} failed: {}\n",
+                    .{ tx.hash[0..@min(16, tx.hash.len)], err });
+                continue;
+            };
+            if (engine_opt) |eng| {
+                eng.cancelOrder(payload.order_id) catch |err| switch (err) {
+                    error.OrderNotFound => {}, // already cancelled / filled
+                    else => std.debug.print("[ORDER-CANCEL] {d}: {}\n", .{ payload.order_id, err }),
+                };
+            }
+        }
+
+        // ── Step 2: collect + canonical sort of order_place TXs ───────
+        var place_txs = std.ArrayList(usize){};
+        defer place_txs.deinit(self.allocator);
+        for (block.transactions.items, 0..) |tx, idx| {
+            if (tx.tx_type != .order_place) continue;
+            place_txs.append(self.allocator, idx) catch continue;
+        }
+        if (place_txs.items.len == 0) return; // nothing to match
+
+        // Canonical sort: pair_id ASC, price ASC, tx_hash ASC.
+        // No timestamps (clock-attackable), no mempool order
+        // (non-deterministic). Tx hash is the unfakeable post-image.
+        const SortCtx = struct {
+            txs: []const transaction_mod.Transaction,
+            fn lessThan(ctx: @This(), a_idx: usize, b_idx: usize) bool {
+                const a_tx = ctx.txs[a_idx];
+                const b_tx = ctx.txs[b_idx];
+                const ap = tx_payload_mod.OrderPlacePayload.decode(a_tx.data) catch
+                    return false;
+                const bp = tx_payload_mod.OrderPlacePayload.decode(b_tx.data) catch
+                    return false;
+                if (ap.pair_id != bp.pair_id) return ap.pair_id < bp.pair_id;
+                if (ap.price_micro_usd != bp.price_micro_usd)
+                    return ap.price_micro_usd < bp.price_micro_usd;
+                return std.mem.lessThan(u8, a_tx.hash, b_tx.hash);
+            }
+        };
+        std.mem.sort(usize, place_txs.items, SortCtx{ .txs = block.transactions.items },
+            SortCtx.lessThan);
+
+        // ── Step 3: push each order through the matching engine ───────
+        for (place_txs.items) |idx| {
+            const tx = block.transactions.items[idx];
+            const payload = tx_payload_mod.OrderPlacePayload.decode(tx.data) catch continue;
+
+            if (engine_opt) |eng| {
+                var order = matching_mod.Order.empty();
+                order.side = switch (payload.side) {
+                    .buy => .buy,
+                    .sell => .sell,
+                };
+                order.pair_id = payload.pair_id;
+                order.price_micro_usd = payload.price_micro_usd;
+                order.amount_sat = payload.amount_sat;
+                order.timestamp_ms = block.timestamp;
+                const tn = @min(tx.from_address.len, order.trader_address.len);
+                @memcpy(order.trader_address[0..tn], tx.from_address[0..tn]);
+                order.trader_addr_len = @intCast(tn);
+                order.status = .active;
+
+                eng.placeOrder(order) catch |err| {
+                    std.debug.print("[ORDER-PLACE] {s} pair={d}: {}\n",
+                        .{ tx.from_address[0..@min(16, tx.from_address.len)],
+                           payload.pair_id, err });
+                };
+                // Fills generated by placeOrder are read by RPC handlers
+                // from engine.fills[] for the trade log; balance updates
+                // for fills land in Phase 2D (trade history) when we add
+                // the on-chain settlement step.
+            }
+        }
+    }
 };
 
 /// Self-contained snapshot of a block's metadata. No heap pointers / no slices

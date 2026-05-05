@@ -1424,6 +1424,10 @@ pub fn main() !void {
             } else {
                 std.debug.print("[EXCHANGE] DEX matching engine ON (in-memory only)\n", .{});
             }
+            // PHASE 2B: attach engine to blockchain for consensus matching.
+            // applyBlock will route TxType.order_place / .order_cancel into
+            // this engine deterministically after sorting by (pair, price, hash).
+            bc.exchange_engine = e;
         }
     } else {
         std.debug.print("[EXCHANGE] disabled by OMNIBUS_EXCHANGE_OFF\n", .{});
