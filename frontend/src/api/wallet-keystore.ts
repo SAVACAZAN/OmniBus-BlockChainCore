@@ -90,6 +90,10 @@ export type Unlocked = {
   /** BIP-44 addresses at indices 0..18 (m/44'/777'/0'/0/i).
    *  Only populated when unlocked from mnemonic. */
   allAddresses?: { index: number; address: string; path: string }[];
+  /** 4 soulbound reputation domain addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_).
+   *  Derived from same mnemonic at coin types 778-781. Non-transferable — chain
+   *  rejects any TX where these are the sender. */
+  soulboundAddresses?: { tier: string; prefix: string; address: string; algo: string; bits: number }[];
 };
 
 /** PQ-OMNI scheme catalogue. The `account` index is the BIP-44 account
@@ -239,6 +243,35 @@ function base58CheckEncodeWithVersion(payload: Uint8Array, version: number): str
   return base58.encode(full);
 }
 
+const SOULBOUND_DOMAINS = [
+  { tier: "LOVE",     prefix: "ob_k1_", coinType: 778, algo: "ML-DSA-87",    bits: 256 },
+  { tier: "FOOD",     prefix: "ob_f5_", coinType: 779, algo: "Falcon-512",   bits: 192 },
+  { tier: "RENT",     prefix: "ob_d5_", coinType: 780, algo: "SLH-DSA-256s", bits: 256 },
+  { tier: "VACATION", prefix: "ob_s3_", coinType: 781, algo: "ML-KEM-768",   bits: 128 },
+];
+
+/**
+ * Derive the 4 soulbound reputation domain addresses from a BIP-32 root.
+ * Path: m/44'/<coinType>'/0'/0/0 — one address per domain.
+ * Address = prefix + base58check(hash160(pubkey), 0x4F)
+ * These addresses CANNOT be tx senders — chain enforces this.
+ */
+function deriveSoulboundAddresses(root: HDKey): { tier: string; prefix: string; address: string; algo: string; bits: number }[] {
+  return SOULBOUND_DOMAINS.map((d) => {
+    try {
+      const path = `m/44'/${d.coinType}'/0'/0/0`;
+      const child = root.derive(path);
+      if (!child.privateKey) return { ...d, address: `${d.prefix}<derive-failed>` };
+      const pubBytes = child.publicKey!;
+      const h = hash160(pubBytes);
+      const addr = d.prefix + base58CheckEncodeWithVersion(h, 0x4f);
+      return { tier: d.tier, prefix: d.prefix, address: addr, algo: d.algo, bits: d.bits };
+    } catch {
+      return { ...d, address: `${d.prefix}<derive-failed>` };
+    }
+  });
+}
+
 /**
  * Derive the 4 PQ-OMNI slots from a BIP-32 root.
  *
@@ -287,7 +320,7 @@ export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; root: HDKey } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; soulboundAddresses: { tier: string; prefix: string; address: string; algo: string; bits: number }[]; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
@@ -304,6 +337,9 @@ export function derivedKeysFromMnemonic(
   // Returns a Promise — PQ modules load lazily on first call.
   const pqOmni = derivePqOmniSlots(root);
 
+  // Soulbound reputation domain addresses — synchronous, secp256k1 derived.
+  const soulboundAddresses = deriveSoulboundAddresses(root);
+
   // All 19 BIP-44 addresses (index 0..18) — synchronous, no PQ needed.
   const allAddresses = Array.from({ length: 19 }, (_, i) => {
     const path = `m/44'/777'/0'/0/${i}`;
@@ -318,6 +354,7 @@ export function derivedKeysFromMnemonic(
     xprv: account.privateExtendedKey,
     xpub: account.publicExtendedKey,
     pqOmni,
+    soulboundAddresses,
     allAddresses,
     root,
   };
@@ -340,7 +377,7 @@ export async function unlockFromMnemonic(
   vaultPin?: string,
   bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise, allAddresses } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise, allAddresses, soulboundAddresses } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
   const pqOmni = await pqOmniPromise;
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
   unlocked = {
@@ -353,6 +390,7 @@ export async function unlockFromMnemonic(
     xpub,
     pqOmni,
     allAddresses,
+    soulboundAddresses,
   };
   writeSession(unlocked);
   if (vaultPin) {

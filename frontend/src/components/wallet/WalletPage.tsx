@@ -441,22 +441,29 @@ export function WalletPage() {
           {/* ── 4. Soulbound reputation domains — LOVE/FOOD/RENT/VACATION ── */}
           <div className="pt-3 border-t border-mempool-border/40">
             <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
-              🔒 Soulbound reputation domains — adrese separate, non-transferabile
+              🔒 Soulbound — reward-only, nu pot trimite
             </p>
             <div className="space-y-2">
-              {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => (
-                <PQDomainCard
-                  key={pq.prefix}
-                  pq={pq}
-                  repCup={reputation?.cups?.[pq.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"]}
-                  repTier={reputation?.tier}
-                  repTotal={reputation?.total}
+              {(unlocked.soulboundAddresses && unlocked.soulboundAddresses.length > 0
+                ? unlocked.soulboundAddresses
+                : PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => ({
+                    tier: pq.tier, prefix: pq.prefix, address: "", algo: pq.algo, bits: pq.bits,
+                  }))
+              ).map((sb) => (
+                <SoulboundCard
+                  key={sb.prefix}
+                  tier={sb.tier}
+                  prefix={sb.prefix}
+                  address={sb.address}
+                  algo={sb.algo}
+                  bits={sb.bits}
+                  repCup={reputation?.cups?.[sb.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"]}
                 />
               ))}
             </div>
-            <p className="text-[9px] text-mempool-text-dim/50 mt-2 leading-relaxed">
+            <p className="text-[9px] text-mempool-text-dim/50 mt-2">
               <span className="text-mempool-orange/90">100/100/100/100 = Satoshi badge</span>
-              {" · "}Adresele ob_k1_/ob_f5_/ob_d5_/ob_s3_ necesită vault cu 5 mnemonic-uri separate (desktop app).
+              {" · "}Chain blochează orice TX cu from = ob_k1_/ob_f5_/ob_d5_/ob_s3_
             </p>
           </div>
 
@@ -701,6 +708,83 @@ function MyNamesPanel({ address }: { address: string }) {
 // ob_s3_ address — those need the user to derive an isolated mnemonic per
 // project_omnibus_5_isolated_wallets memory. For now we surface what we
 // have; full multi-mnemonic UI is its own session.
+
+const SOULBOUND_COLORS: Record<string, { text: string; dot: string; emoji: string; desc: string }> = {
+  LOVE:     { text: "text-mempool-purple", dot: "bg-mempool-purple", emoji: "❤️",  desc: "Uptime · mining · continuitate" },
+  FOOD:     { text: "text-mempool-green",  dot: "bg-mempool-green",  emoji: "🥖", desc: "Muncă utilă · tranzacții · oracle" },
+  RENT:     { text: "text-mempool-orange", dot: "bg-mempool-orange", emoji: "🏠", desc: "Capital angajat · staking · holding" },
+  VACATION: { text: "text-mempool-text",   dot: "bg-gray-400",       emoji: "🏖️", desc: "Longevitate · zile active pe rețea" },
+};
+
+function SoulboundCard({
+  tier, prefix, address, algo, bits, repCup,
+}: {
+  tier: string; prefix: string; address: string; algo: string; bits: number; repCup?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const meta = SOULBOUND_COLORS[tier] ?? { text: "text-white", dot: "bg-gray-400", emoji: "🔒", desc: "" };
+  const cupVal = parseFloat(repCup ?? "0");
+  const hasAddr = address && !address.includes("<");
+
+  return (
+    <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full p-2.5 hover:bg-mempool-bg-light transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
+          <span className={`text-[10px] font-bold uppercase w-16 flex-shrink-0 ${meta.text}`}>{tier}</span>
+          <span className="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-semibold">SOULBOUND</span>
+          <span className={`font-mono text-[10px] flex-1 truncate ${meta.text}`}>
+            {hasAddr ? address : `${prefix}…`}
+          </span>
+          <span className="text-[9px] text-mempool-text-dim">{bits}-bit</span>
+          <span className="text-[9px] text-mempool-text-dim">{expanded ? "▾" : "▸"}</span>
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-mempool-border/30 bg-gray-900/40">
+          <div className="flex gap-2 text-[10px]">
+            <span className="text-mempool-text-dim w-20">Algorithm</span>
+            <span className={meta.text}>{algo} ({bits}-bit)</span>
+          </div>
+          <div className="flex gap-2 text-[10px]">
+            <span className="text-mempool-text-dim w-20">Rol</span>
+            <span className="text-mempool-text-dim">{meta.desc}</span>
+          </div>
+          {repCup !== undefined && (
+            <div className="flex gap-2 text-[10px] items-center">
+              <span className="text-mempool-text-dim w-20">Reputație</span>
+              <span className={`font-mono font-semibold ${meta.text}`}>{repCup}/100</span>
+              <div className="flex-1 h-1 bg-mempool-bg-elev rounded overflow-hidden">
+                <div className={`h-full ${meta.dot}/60`} style={{ width: `${Math.min(cupVal,100)}%` }} />
+              </div>
+            </div>
+          )}
+          {hasAddr && (
+            <div className="flex items-center gap-1 bg-mempool-bg-elev rounded px-2 py-1.5">
+              <span className={`font-mono text-[10px] flex-1 break-all ${meta.text}`}>{address}</span>
+              <button
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="text-[9px] px-1.5 py-0.5 bg-mempool-bg rounded text-mempool-text-dim hover:text-mempool-text"
+              >
+                {copied ? "✓" : "copy"}
+              </button>
+            </div>
+          )}
+          <p className="text-[9px] text-red-300/70 pt-1">
+            🔒 Chain blochează orice TX outbound din această adresă. Fondurile sunt permanente — primești rewards, nu poți trimite.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PQDomainCard({
   pq,
   repCup,
