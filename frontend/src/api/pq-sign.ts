@@ -6,10 +6,9 @@
  * without WASM. The matching chain verifier lives in
  * `core/transaction.zig:verifySignature` per scheme byte (codes 5..8).
  *
- * Vite 4 cannot statically resolve @noble/post-quantum subpath exports
- * (pure ESM, .js-suffixed exports map). We use dynamic imports with
- * @vite-ignore so the static scanner skips them; modules load lazily on
- * first call (wallet unlock) — always well before any signing happens.
+ * Vite 4 cannot statically resolve this package's subpath exports.
+ * We load them lazily via base64-decoded dynamic imports so the esbuild
+ * scanner never sees the module specifier strings.
  */
 
 import { sha256, sha512 } from "@noble/hashes/sha2";
@@ -23,12 +22,10 @@ export type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pqModules: { mlDsa: any; falcon: any; slhDsa: any } | null = null;
 
-// Vite 4 esbuild scanner folds string concatenation at parse time.
-// Use atob() to decode base64 package names so the scanner never sees
-// the resolved module specifier — atob is not evaluated at parse time.
-//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=") = "@noble/post-quantum/ml-dsa.js"
-//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=") = "@noble/post-quantum/falcon.js"
-//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz")  = "@noble/post-quantum/slh-dsa.js"
+// Vite 4 esbuild scanner finds strings in comments too. Base64-encoded:
+// ml-dsa.js = QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=
+// falcon.js  = QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=
+// slh-dsa.js = QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz
 const _dynImport = new Function("p", "return import(p)") as (p: string) => Promise<any>;
 const _ML_DSA_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=");
 const _FALCON_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=");
