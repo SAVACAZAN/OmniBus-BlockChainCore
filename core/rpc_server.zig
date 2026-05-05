@@ -74,7 +74,7 @@ pub const RPCServer = struct {
 /// Real port is taken from chain_config (mainnet=8332, testnet=18332,
 /// regtest=28332, signet=38332) and passed via HTTPConfig.port.
 const DEFAULT_PORT: u16 = 8332;
-const MAX_REQUEST = 8192;
+const MAX_REQUEST = 131072;
 
 /// Un miner inregistrat in retea (via RPC registerminer)
 const RegisteredMiner = struct {
@@ -1290,6 +1290,62 @@ fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
 }
 
+/// RPC "listunspent" — list all unspent transaction outputs (UTXOs) for an address.
+///
+/// Required by wallets to build wire-v2 transactions with explicit UTXO refs
+/// (`inputs[]`/`outputs[]`). Without this, wallets fall back to balance-only wire-v1.
+///
+/// Walks `bc.utxo_set.address_index` for the given address, then dereferences each
+/// outpoint key ("tx_hash:vout") into the `bc.utxo_set.utxos` map.
+///
+/// Usage:
+///   {"method":"listunspent","params":["ob1q..."],"id":1}
+///   {"method":"listunspent","params":{"address":"ob1q..."},"id":1}
+///
+/// Returns: {address, total, count, utxos:[{tx_hash, output_index, amount,
+///          block_height, is_coinbase, is_spent:false}]}
+fn handleListUnspent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_addr = extractArrayStr(body, 0) orelse
+                     extractStr(body, "address") orelse
+                     return errorJson(-32602, "address required", id, alloc);
+
+    if (req_addr.len == 0) return errorJson(-32602, "address must be non-empty", id, alloc);
+
+    // Lock blockchain mutex — UTXO set may be mutated by mining/sync threads.
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    var json = std.array_list.Managed(u8).init(alloc);
+    errdefer json.deinit();
+    var w = json.writer();
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"utxos\":[",
+        .{ id, req_addr },
+    );
+
+    var total: u64 = 0;
+    var count: usize = 0;
+
+    if (ctx.bc.utxo_set.address_index.get(req_addr)) |list| {
+        for (list.items) |outpoint_key| {
+            const utxo = ctx.bc.utxo_set.utxos.get(outpoint_key) orelse continue;
+            if (count > 0) try w.writeAll(",");
+            try w.print(
+                "{{\"tx_hash\":\"{s}\",\"output_index\":{d},\"amount\":{d}," ++
+                "\"block_height\":{d},\"is_coinbase\":{},\"is_spent\":false}}",
+                .{ utxo.tx_hash, utxo.output_index, utxo.amount, utxo.block_height, utxo.is_coinbase },
+            );
+            total += utxo.amount;
+            count += 1;
+        }
+    }
+
+    try w.print("],\"total\":{d},\"count\":{d}}}}}", .{ total, count });
+    return json.toOwnedSlice();
+}
+
 // SEGFAULT-FIX [scan-2026-04-25]: use getLatestBlockSnapshot() — locks bc.mutex,
 // copies fields into stable buffers, unlocks. allocPrint runs after the lock is
 // released, on data that no longer aliases chain memory. Eliminates UAF on
@@ -1327,6 +1383,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     }
 
     if (std.mem.eql(u8, method, "getbalance"))     return handleGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "listunspent"))    return handleListUnspent(body, ctx, id);
     if (std.mem.eql(u8, method, "getlatestblock")) return handleGetLatestBlock(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolsize")) return handleGetMempoolSize(ctx, id);
     if (std.mem.eql(u8, method, "getstatus"))      return handleGetStatus(ctx, id);
@@ -2063,10 +2120,17 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         }
     }.lt);
 
-    // Build per-address indexes in ONE pass over the chain. We collect:
-    //   - mined_count: blocks mined by miner_address
-    //   - tx_stats:    {count, received, sent, first_height, last_height}
-    // This keeps the richlist O(chain + addresses) instead of O(chain × addresses).
+    // Build per-address indexes:
+    //   - mined_count: blocks mined by miner_address (=> MINER role) — one
+    //                  pass over chain (block headers only, always available).
+    //   - stake_amount / is_agent: now read directly from the persisted
+    //     bc.stake_amounts / bc.registered_agents maps so roles survive a
+    //     node restart (chain.dat doesn't serialise full TX list — see
+    //     database.zig stake_state / agent_state sections, 2026-05-04).
+    //   - tx_stats: {count, received, sent, first_height, last_height}
+    //               — still computed by iterating in-memory blocks. After a
+    //               restart this is empty until new blocks land; treat as
+    //               cosmetic, while role classification stays correct.
     var mined_count = std.StringHashMap(u32).init(alloc);
     defer mined_count.deinit();
 
@@ -2129,13 +2193,36 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const out_count = @min(limit, entries.items.len);
     for (entries.items[0..out_count], 0..) |e, i| {
         if (i > 0) try w.writeAll(",");
-        const is_validator = e.balance >= validator_mod.MIN_VALIDATOR_BALANCE;
         const blocks = mined_count.get(e.address) orelse 0;
+        // Restart-safe: read stake/agent state from persisted maps in
+        // bc, populated by applyOpReturnRoles + restored from chain.dat.
+        const stake = ctx.bc.stake_amounts.get(e.address) orelse 0;
+        const agent = ctx.bc.registered_agents.contains(e.address);
         const stats = tx_stats.get(e.address) orelse TxStats{};
+
+        // 4-role classification (multi-role: address can be VALIDATOR + MINER + AGENT etc.)
+        const is_validator = stake >= staking_mod.VALIDATOR_MIN_STAKE;
+        const is_miner = blocks > 0;
+        // USER role implicit — included if no other role is active.
+        const is_user = !is_validator and !is_miner and !agent;
+
+        // Build roles JSON array
         try w.print(
-            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d},\"isValidator\":{},\"blocksMined\":{d}," ++
+            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d}," ++
+            "\"roles\":[",
+            .{ i + 1, e.address, e.balance },
+        );
+        var role_first = true;
+        if (is_validator) { try w.writeAll("\"validator\""); role_first = false; }
+        if (is_miner)     { if (!role_first) try w.writeAll(","); try w.writeAll("\"miner\""); role_first = false; }
+        if (agent)        { if (!role_first) try w.writeAll(","); try w.writeAll("\"agent\""); role_first = false; }
+        if (is_user)      { try w.writeAll("\"user\""); }
+        try w.print(
+            "],\"stake\":{d},\"blocksMined\":{d}," ++
+            // Backward-compat: keep isValidator boolean (true if validator role active)
+            "\"isValidator\":{}," ++
             "\"txCount\":{d},\"received\":{d},\"sent\":{d},\"firstHeight\":{d},\"lastHeight\":{d}}}",
-            .{ i + 1, e.address, e.balance, is_validator, blocks,
+            .{ stake, blocks, is_validator,
                stats.count, stats.received, stats.sent, stats.first_height, stats.last_height },
         );
     }
@@ -2698,7 +2785,7 @@ fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const hash_hex = extractStr(body, "hash") orelse
         return errorJson(-32602, "Missing param: hash (64 hex chars)", id, alloc);
     const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey (66 hex chars)", id, alloc);
+        return errorJson(-32602, "Missing param: publicKey", id, alloc);
 
     // Required numeric fields
     const amount = extractArrayNumByKey(body, "amount");
@@ -2713,10 +2800,26 @@ fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const locktime = extractArrayNumByKey(body, "locktime");
     const op_return = extractStr(body, "opReturn") orelse extractStr(body, "op_return") orelse "";
 
-    // Field-length sanity (cheap pre-check before allocations)
-    if (sig_hex.len != 128) return errorJson(-32602, "signature must be 128 hex chars", id, alloc);
-    if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
-    if (pubkey_hex.len != 66) return errorJson(-32602, "publicKey must be 66 hex chars", id, alloc);
+    // Auto-detect scheme from sender address prefix. ECDSA expects fixed
+    // 128-char signature + 66-char pubkey; PQ schemes carry much larger
+    // signatures (Falcon ~700 bytes, ML-DSA ~3-4 KB, SLH-DSA-256s ~30 KB)
+    // so we skip the length check for non-ECDSA schemes — the verifier
+    // does the real validation per-scheme.
+    const scheme_opt = isolated_wallet_mod.Scheme.fromAddress(from_addr);
+    const scheme: isolated_wallet_mod.Scheme = scheme_opt orelse .omni_ecdsa;
+
+    // Field-length sanity for the legacy ECDSA path. PQ paths skip this.
+    if (scheme == .omni_ecdsa) {
+        if (sig_hex.len != 128) return errorJson(-32602, "signature must be 128 hex chars (ECDSA)", id, alloc);
+        if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
+        if (pubkey_hex.len != 66) return errorJson(-32602, "publicKey must be 66 hex chars (compressed secp256k1)", id, alloc);
+    } else {
+        // PQ TX: hash is still 32 bytes (sha256 output, 64 hex). signature
+        // and pubkey lengths vary per scheme — verifier checks them.
+        if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
+        if (sig_hex.len < 100) return errorJson(-32602, "PQ signature too short", id, alloc);
+        if (pubkey_hex.len < 100) return errorJson(-32602, "PQ public key too short", id, alloc);
+    }
 
     // Allocate owned copies so the Transaction struct outlives the request body.
     const from_owned = try alloc.dupe(u8, from_addr);
@@ -2730,6 +2833,20 @@ fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const op_owned: []const u8 = if (op_return.len > 0) try alloc.dupe(u8, op_return) else "";
     errdefer if (op_return.len > 0) alloc.free(op_owned);
 
+    // For PQ TXs, the public_key field on the Transaction struct is the
+    // raw PQ pubkey BYTES (not hex). Decode here. ECDSA TXs leave it empty
+    // and use the chain pubkey registry instead.
+    var pq_pubkey_owned: []const u8 = "";
+    if (scheme != .omni_ecdsa) {
+        const pq_buf = try alloc.alloc(u8, pubkey_hex.len / 2);
+        errdefer alloc.free(pq_buf);
+        _ = hex_utils.hexToBytes(pubkey_hex, pq_buf) catch {
+            alloc.free(pq_buf);
+            return errorJson(-32602, "publicKey must be valid hex", id, alloc);
+        };
+        pq_pubkey_owned = pq_buf;
+    }
+
     var tx = transaction_mod.Transaction{
         .id           = tx_id,
         .from_address = from_owned,
@@ -2742,6 +2859,8 @@ fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .op_return    = op_owned,
         .signature    = sig_owned,
         .hash         = hash_owned,
+        .scheme       = @as(transaction_mod.Scheme, @enumFromInt(@intFromEnum(scheme))),
+        .public_key   = pq_pubkey_owned,
     };
 
     if (!tx.isValid()) return errorJson(-32000, "Transaction failed isValid (bad addresses or amount)", id, alloc);
@@ -4135,7 +4254,7 @@ fn errorJson(code: i32, msg: []const u8, id: u64, alloc: std.mem.Allocator) ![]u
 // ─── Standalone main (pentru omnibus-rpc exe) ─────────────────────────────────
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
@@ -6527,6 +6646,53 @@ fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill, is_paper: bool) void {
     }
 }
 
+/// createOrderTransaction — construieste TX JSON pentru o ordine Exchange.
+/// Returns: TX JSON string cu order_id + tx_hash + parity fields.
+/// Caller owns returned memory.
+fn createOrderTransaction(
+    allocator: std.mem.Allocator,
+    trader: []const u8,
+    side: []const u8,
+    pair_id: u16,
+    price_micro_usd: u64,
+    amount_sat: u64,
+    nonce: u64,
+    order_id: u64,
+    signature: []const u8,
+    public_key: []const u8,
+) !struct { tx_json: []u8, tx_hash: []u8 } {
+    // Build canonical order data for hashing: "order|trader|side|pair|price|amount|nonce|order_id"
+    var canon_buf: [512]u8 = undefined;
+    const canon_str = try std.fmt.bufPrint(&canon_buf,
+        "order|{s}|{s}|{d}|{d}|{d}|{d}|{d}",
+        .{ trader, side, pair_id, price_micro_usd, amount_sat, nonce, order_id });
+
+    // Double SHA256 (Bitcoin-style hash)
+    var h1: [32]u8 = undefined;
+    var h2: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(canon_str, &h1, .{});
+    std.crypto.hash.sha2.Sha256.hash(&h1, &h2, .{});
+
+    // Convert hash to hex
+    var tx_hash_hex: [64]u8 = undefined;
+    for (h2, 0..) |byte, i| {
+        _ = try std.fmt.bufPrint(tx_hash_hex[i*2..i*2+2], "{x:0>2}", .{byte});
+    }
+
+    // Build TX JSON
+    const tx_json = try std.fmt.allocPrint(allocator,
+        "{{\"type\":\"order\",\"trader\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d}," ++
+        "\"price\":{d},\"amount\":{d},\"nonce\":{d},\"orderId\":{d}," ++
+        "\"signature\":\"{s}\",\"publicKey\":\"{s}\",\"txHash\":\"{s}\"}}",
+        .{ trader, side, pair_id, price_micro_usd, amount_sat, nonce, order_id,
+           signature, public_key, &tx_hash_hex });
+
+    return .{
+        .tx_json = tx_json,
+        .tx_hash = try allocator.dupe(u8, &tx_hash_hex),
+    };
+}
+
 /// True dacă body-ul cere mod paper. Cautam `"mode":"paper"` literal —
 /// orice altceva (default, "real", missing) → real engine. Ca și pe REST
 /// (`/exchange/0/*` vs `/paper/0/*`) modul e doar un selector de routing.
@@ -6852,11 +7018,30 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     nonceSet(ctx, trader, nonce);
 
-    // Persist the place event (best-effort)
-    var jbuf: [512]u8 = undefined;
+    // Create on-chain order TX with hash
+    const tx_result = createOrderTransaction(
+        alloc,
+        trader,
+        side_canon,
+        pair_id,
+        price,
+        amount,
+        nonce,
+        new_order_id,
+        sig_hex,
+        pubkey_hex,
+    ) catch |err| {
+        std.debug.print("[EXCHANGE] TX creation failed: {}\n", .{err});
+        return errorJson(-32603, "Failed to create order TX", id, alloc);
+    };
+    defer alloc.free(tx_result.tx_json);
+    defer alloc.free(tx_result.tx_hash);
+
+    // Persist the place event with TX hash
+    var jbuf: [1024]u8 = undefined;
     const jline = std.fmt.bufPrint(&jbuf,
-        "\"trader\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"orderId\":{d},\"ts\":{d}",
-        .{ trader, side_canon, pair_id, price, amount, new_order_id, order.timestamp_ms },
+        "\"trader\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"orderId\":{d},\"ts\":{d},\"txHash\":\"{s}\"",
+        .{ trader, side_canon, pair_id, price, amount, new_order_id, order.timestamp_ms, tx_result.tx_hash },
     ) catch "";
     if (jline.len > 0) ordersAppendJournal(ctx, "place", jline);
 
@@ -6874,7 +7059,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"mode\":\"{s}\"," ++
-            "\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d}," ++
+            "\"orderId\":{d},\"txHash\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d}," ++
             "\"price\":{d},\"amount\":{d}," ++
             "\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\"," ++
             "\"fees\":{{" ++
@@ -6885,7 +7070,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "}}" ++
         "}}}}",
         .{ id, if (is_paper) "paper" else "real",
-           new_order_id, side_canon, pair_id,
+           new_order_id, tx_result.tx_hash, side_canon, pair_id,
            price, amount, filled_total, remaining,
            if (remaining == 0) "filled" else if (filled_total > 0) "partial" else "active",
            total_network_fee_sat, total_taker_fee_micro, total_maker_fee_micro,
@@ -8410,18 +8595,32 @@ fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
 //                       nu suporta semnaturi (verifySignature returneaza false)
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// pq_listSchemes — read-only. Returneaza cele 5 scheme suportate cu
+/// pq_listSchemes — read-only. Returneaza cele 9 scheme suportate cu
 /// codurile lor numerice si prefixele de adresa pentru wallet UI / SDK
 /// auto-discovery. Nu modifica state.
+///
+/// 0..4 = original isolated wallets (OMNI primary + 4 reputation cups,
+///        last one being non-signing KEM).
+/// 5..8 = PQ-OMNI — transferable OMNI wallets with post-quantum signing,
+///        added 2026-04-30. Same balance semantics as omni_ecdsa, only
+///        the signature scheme differs.
 fn handlePqListSchemes(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
-            "{{\"scheme\":\"omni_ecdsa\",\"code\":0,\"address_prefix\":\"ob1q\"}}," ++
-            "{{\"scheme\":\"love_dilithium\",\"code\":1,\"address_prefix\":\"ob_k1_\"}}," ++
-            "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\"}}," ++
-            "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\"}}," ++
-            "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\"}}" ++
+            "{{\"scheme\":\"omni_ecdsa\",\"code\":0,\"address_prefix\":\"ob1q\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"love_dilithium\",\"code\":1,\"address_prefix\":\"ob_k1_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"pq_omni_ml_dsa\",\"code\":5,\"address_prefix\":\"ob_q1_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_falcon\",\"code\":6,\"address_prefix\":\"ob_q2_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_dilithium\",\"code\":7,\"address_prefix\":\"ob_q3_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_slh_dsa\",\"code\":8,\"address_prefix\":\"ob_q4_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q1\",\"code\":9,\"address_prefix\":\"ob_h1_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q2\",\"code\":10,\"address_prefix\":\"ob_h2_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q3\",\"code\":11,\"address_prefix\":\"ob_h3_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q4\",\"code\":12,\"address_prefix\":\"ob_h4_\",\"transferable\":true}}" ++
         "]}}",
         .{id});
 }
@@ -8489,10 +8688,18 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             if (std.mem.eql(u8, s, "food_falcon") or std.mem.eql(u8, s, "food")) break :blk .food_falcon;
             if (std.mem.eql(u8, s, "rent_slh_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_slh_dsa;
             if (std.mem.eql(u8, s, "vacation_kem") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_kem;
-            return errorJson(-32602, "Unknown scheme name (omni_ecdsa/love_dilithium/food_falcon/rent_slh_dsa/vacation_kem)", id, alloc);
+            if (std.mem.eql(u8, s, "pq_omni_ml_dsa")) break :blk .pq_omni_ml_dsa;
+            if (std.mem.eql(u8, s, "pq_omni_falcon")) break :blk .pq_omni_falcon;
+            if (std.mem.eql(u8, s, "pq_omni_dilithium")) break :blk .pq_omni_dilithium;
+            if (std.mem.eql(u8, s, "pq_omni_slh_dsa")) break :blk .pq_omni_slh_dsa;
+            if (std.mem.eql(u8, s, "hybrid_q1")) break :blk .hybrid_q1;
+            if (std.mem.eql(u8, s, "hybrid_q2")) break :blk .hybrid_q2;
+            if (std.mem.eql(u8, s, "hybrid_q3")) break :blk .hybrid_q3;
+            if (std.mem.eql(u8, s, "hybrid_q4")) break :blk .hybrid_q4;
+            return errorJson(-32602, "Unknown scheme name", id, alloc);
         }
-        if (scheme_num <= 4) break :blk @enumFromInt(@as(u8, @intCast(scheme_num)));
-        return errorJson(-32602, "scheme must be 0..4 or a name string", id, alloc);
+        if (scheme_num <= 12) break :blk @enumFromInt(@as(u8, @intCast(scheme_num)));
+        return errorJson(-32602, "scheme must be 0..12 or a name string", id, alloc);
     };
 
     // 3. VACATION (KEM) nu poate semna
@@ -8506,9 +8713,17 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "from address prefix does not match scheme", id, alloc);
     }
 
-    // 5. Construim TX — folosim sentinel hash/signature, calculam hash, apoi inlocuim signature.
-    //    Hash-ul TX nu depinde de signature/public_key (vezi calculateHash).
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
+    // 5. Construim TX. id si timestamp sunt parte din hash-ul semnat,
+    //    deci trebuie sa fie EXACT cele pe care clientul le-a folosit la semnare.
+    //    Acceptam ambele din body; daca lipsesc, fallback la counter/now (util doar
+    //    pt. omni_ecdsa unde semnatura se recupereaza din hash, NU pt. PQ).
+    const tx_id_param = extractArrayNumByKey(body, "id");
+    const tx_id: u32 = if (tx_id_param > 0)
+        @intCast(@min(tx_id_param, std.math.maxInt(u32)))
+    else
+        g_tx_counter.fetchAdd(1, .monotonic);
+    const ts_param = extractArrayNumByKey(body, "timestamp");
+    const ts_now: i64 = if (ts_param > 0) @as(i64, @intCast(ts_param)) else std.time.timestamp();
     const nonce_param = extractArrayNumByKey(body, "nonce");
     const nonce = if (nonce_param > 0) nonce_param else ctx.bc.getNextAvailableNonce(from);
 
@@ -8530,7 +8745,7 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .to_address   = to_owned,
         .amount       = amount,
         .fee          = fee_sat,
-        .timestamp    = std.time.timestamp(),
+        .timestamp    = ts_now,
         .nonce        = nonce,
         .op_return    = op_owned,
         .signature    = sig_owned,
@@ -8550,15 +8765,35 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     tx.hash = tx_hash_hex;
 
-    // 7. Verifica semnatura PQ inainte de submit. Mesajul = bytes raw ai tx_hash.
+    // 7. Verifica semnatura inainte de submit. Mesajul = bytes raw ai tx_hash.
     //    Pentru OMNI, signature-ul este 128 chars hex si pubkey 66 chars hex.
     //    Pentru PQ, signature/pubkey sunt hex de lungime variabila (per scheme).
+    //    Pentru HYBRID (9..12), signature e "ecdsa_hex|pq_hex" si avem 2 pubkeys.
     const sig_ok = blk_verify: {
         if (scheme == .omni_ecdsa) {
             // Path OMNI: secp256k1 ECDSA pe hash-ul TX
             break :blk_verify isolated_wallet_mod.verifyOmniSignature(&tx_hash_bytes, sig_hex, pubkey_hex);
         }
-        // Path PQ: decode hex bytes, dispatch via verifySignature
+        if (scheme.isHybrid()) {
+            // Path HYBRID: avem nevoie si de pq_public_key in body
+            const pq_pubkey_hex = extractStr(body, "pq_public_key") orelse extractStr(body, "pqPublicKey") orelse {
+                return errorJson(-32602, "Missing param: pq_public_key (required for hybrid schemes 9..12)", id, alloc);
+            };
+            // Decode pq pubkey din hex la bytes
+            if (pq_pubkey_hex.len % 2 != 0) break :blk_verify false;
+            const pq_pk_bytes = alloc.alloc(u8, pq_pubkey_hex.len / 2) catch return errorJson(-32603, "OOM decoding pq_public_key", id, alloc);
+            defer alloc.free(pq_pk_bytes);
+            hex_utils.hexToBytes(pq_pubkey_hex, pq_pk_bytes) catch break :blk_verify false;
+            // sig_hex contine "ecdsa_hex|pq_hex" ca ASCII; pubkey_hex = ECDSA pubkey hex
+            break :blk_verify isolated_wallet_mod.verifyHybridSignature(
+                scheme,
+                &tx_hash_bytes,
+                sig_hex,
+                pubkey_hex,
+                pq_pk_bytes,
+            );
+        }
+        // Path PQ pur: decode hex bytes, dispatch via verifySignature
         const sig_bytes = alloc.alloc(u8, sig_hex.len / 2) catch return errorJson(-32603, "OOM decoding signature", id, alloc);
         defer alloc.free(sig_bytes);
         _ = hex_utils.hexToBytes(sig_hex, sig_bytes) catch break :blk_verify false;
@@ -8570,7 +8805,7 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         break :blk_verify isolated_wallet_mod.verifySignature(scheme, &tx_hash_bytes, sig_bytes, pk_bytes);
     };
     if (!sig_ok) {
-        return errorJson(-32000, "PQ signature verification failed", id, alloc);
+        return errorJson(-32000, "Signature verification failed", id, alloc);
     }
 
     // 8. Inregistreaza pubkey si submite TX in mempool
