@@ -23,19 +23,23 @@ export type PqScheme = "ml_dsa_87" | "falcon_512" | "dilithium_5" | "slh_dsa_256
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pqModules: { mlDsa: any; falcon: any; slhDsa: any } | null = null;
 
-// Use new Function("return import(...)") so Vite 4's static scanner never
-// sees the @noble/post-quantum subpath string — it only reads source AST,
-// not runtime-constructed code. The strings are assembled from parts to
-// make it clear this is intentional, not an oversight.
+// Vite 4 esbuild scanner folds string concatenation at parse time.
+// Use atob() to decode base64 package names so the scanner never sees
+// the resolved module specifier — atob is not evaluated at parse time.
+//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=") = "@noble/post-quantum/ml-dsa.js"
+//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=") = "@noble/post-quantum/falcon.js"
+//   atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz")  = "@noble/post-quantum/slh-dsa.js"
 const _dynImport = new Function("p", "return import(p)") as (p: string) => Promise<any>;
-const _PQ = "@noble/post-quantum/";
+const _ML_DSA_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9tbC1kc2EuanM=");
+const _FALCON_PATH  = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9mYWxjb24uanM=");
+const _SLH_DSA_PATH = atob("QG5vYmxlL3Bvc3QtcXVhbnR1bS9zbGgtZHNhLmpz");
 
 async function pqModules() {
   if (_pqModules) return _pqModules;
   const [ml, fa, sl] = await Promise.all([
-    _dynImport(_PQ + "ml-dsa.js"),
-    _dynImport(_PQ + "falcon.js"),
-    _dynImport(_PQ + "slh-dsa.js"),
+    _dynImport(_ML_DSA_PATH),
+    _dynImport(_FALCON_PATH),
+    _dynImport(_SLH_DSA_PATH),
   ]);
   _pqModules = { mlDsa: ml, falcon: fa, slhDsa: sl };
   return _pqModules;
