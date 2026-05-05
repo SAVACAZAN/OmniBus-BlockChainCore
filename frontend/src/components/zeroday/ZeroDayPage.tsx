@@ -263,8 +263,222 @@ export function ZeroDayPage() {
       ctx.globalAlpha = 1;
     }
 
+    // ── Lightning bolts ──────────────────────────────────────────────────────
+    type Lightning = {
+      x: number; y: number;        // start (top edge)
+      segs: { dx: number; dy: number }[];
+      life: number; maxLife: number;
+      color: string; width: number;
+    };
+    const lightnings: Lightning[] = [];
+    let nextLightning = 1.5 + Math.random() * 2;
+
+    function spawnLightning() {
+      const x = 80 + Math.random() * (W - 160);
+      const totalH = 120 + Math.random() * 220;
+      const segs: { dx: number; dy: number }[] = [];
+      const n = 8 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < n; i++) {
+        segs.push({ dx: (Math.random() - 0.5) * 70, dy: totalH / n });
+      }
+      const hue = Math.random() > 0.5 ? 55 : 200 + Math.random() * 60; // yellow or blue-white
+      const color = hslToHex(hue, 100, 85);
+      lightnings.push({ x, y: 0, segs, life: 0, maxLife: 0.35 + Math.random() * 0.25, color, width: 1.5 + Math.random() * 2 });
+    }
+
+    function drawLightnings(dt: number) {
+      for (let i = lightnings.length - 1; i >= 0; i--) {
+        const l = lightnings[i];
+        l.life += dt;
+        if (l.life >= l.maxLife) { lightnings.splice(i, 1); continue; }
+        const p = l.life / l.maxLife;
+        const alpha = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8;
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = l.width * (1 - p * 0.5);
+        ctx.shadowColor = l.color;
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        let lx = l.x, ly = l.y;
+        ctx.moveTo(lx, ly);
+        for (const seg of l.segs) {
+          lx += seg.dx + (Math.random() - 0.5) * 12;
+          ly += seg.dy;
+          ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+        // glow core
+        ctx.lineWidth = l.width * 0.4;
+        ctx.strokeStyle = "#ffffff";
+        ctx.globalAlpha = alpha * 0.6;
+        ctx.beginPath();
+        lx = l.x; ly = l.y;
+        ctx.moveTo(lx, ly);
+        for (const seg of l.segs) {
+          lx += seg.dx + (Math.random() - 0.5) * 6;
+          ly += seg.dy;
+          ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // ── Floating symbols (star ★ + heart ♥) ─────────────────────────────────
+    type FloatSymbol = {
+      x: number; y: number; vy: number; vx: number;
+      symbol: string; size: number; color: string;
+      life: number; maxLife: number; rotation: number; rotSpeed: number;
+    };
+    const floatSymbols: FloatSymbol[] = [];
+    let nextSymbol = 2 + Math.random() * 3;
+
+    function spawnSymbol() {
+      const isHeart = Math.random() < 0.4;
+      const x = 60 + Math.random() * (W - 120);
+      const y = H - 40;
+      const hue = isHeart ? 350 + Math.random() * 20 : 45 + Math.random() * 30;
+      floatSymbols.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 40,
+        vy: -(60 + Math.random() * 80),
+        symbol: isHeart ? "♥" : "★",
+        size: 16 + Math.random() * 20,
+        color: hslToHex(hue, 100, 70),
+        life: 0,
+        maxLife: 2.5 + Math.random() * 1.5,
+        rotation: (Math.random() - 0.5) * 0.4,
+        rotSpeed: (Math.random() - 0.5) * 1.5,
+      });
+    }
+
+    function drawFloatSymbols(dt: number) {
+      for (let i = floatSymbols.length - 1; i >= 0; i--) {
+        const s = floatSymbols[i];
+        s.life += dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.vy += 15 * dt; // light gravity
+        s.rotation += s.rotSpeed * dt;
+        if (s.life >= s.maxLife) { floatSymbols.splice(i, 1); continue; }
+        const p = s.life / s.maxLife;
+        const alpha = p < 0.15 ? p / 0.15 : p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
+        const scale = p < 0.15 ? easeOutBack(p / 0.15) : 1;
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = alpha * 0.95;
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = 20;
+        ctx.font = `${s.size}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(s.symbol, 0, 0);
+        // second pass slightly larger, lower alpha — glow ring
+        ctx.globalAlpha = alpha * 0.25;
+        ctx.font = `${s.size * 1.6}px serif`;
+        ctx.fillText(s.symbol, 0, 0);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // ── Meteor shower ─────────────────────────────────────────────────────────
+    type Meteor = {
+      x: number; y: number;
+      vx: number; vy: number;
+      len: number; size: number;
+      life: number; maxLife: number;
+      color: string;
+    };
+    const meteors: Meteor[] = [];
+    let nextMeteor = 0.3 + Math.random() * 0.5;
+
+    function spawnMeteor() {
+      const angle = Math.PI * 0.18 + Math.random() * 0.2; // steep diagonal
+      const speed = 600 + Math.random() * 500;
+      const x = Math.random() * W;
+      const y = -20;
+      const hue = Math.random() > 0.6 ? 35 : 200 + Math.random() * 40;
+      meteors.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        len: 60 + Math.random() * 100,
+        size: 1 + Math.random() * 2,
+        life: 0,
+        maxLife: 0.5 + Math.random() * 0.4,
+        color: hslToHex(hue, 90, 75),
+      });
+    }
+
+    function drawMeteors(dt: number) {
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.life += dt;
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        if (m.life >= m.maxLife || m.y > H + 40) { meteors.splice(i, 1); continue; }
+        const p = m.life / m.maxLife;
+        const alpha = p < 0.15 ? p / 0.15 : 1 - (p - 0.15) / 0.85;
+        const tailX = m.x - Math.cos(Math.PI * 0.18) * m.len * (1 - p * 0.4);
+        const tailY = m.y - Math.sin(Math.PI * 0.18) * m.len * (1 - p * 0.4);
+        const grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
+        grad.addColorStop(0, "transparent");
+        grad.addColorStop(1, m.color);
+        ctx.globalAlpha = alpha * 0.85;
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = m.size;
+        ctx.shadowColor = m.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(m.x, m.y);
+        ctx.stroke();
+        // head spark
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.size * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    let lastTime = performance.now();
+
     const draw = () => {
       const now = performance.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      // spawn lightning
+      nextLightning -= dt;
+      if (nextLightning <= 0) {
+        spawnLightning();
+        if (Math.random() < 0.3) spawnLightning(); // double strike
+        nextLightning = 1.2 + Math.random() * 3;
+      }
+      // spawn meteors — burst of 2-5 every interval
+      nextMeteor -= dt;
+      if (nextMeteor <= 0) {
+        const burst = 2 + Math.floor(Math.random() * 4);
+        for (let b = 0; b < burst; b++) spawnMeteor();
+        nextMeteor = 0.4 + Math.random() * 1.2;
+      }
+      // spawn floating symbols (★ ♥)
+      nextSymbol -= dt;
+      if (nextSymbol <= 0) {
+        spawnSymbol();
+        if (Math.random() < 0.25) spawnSymbol();
+        nextSymbol = 1.8 + Math.random() * 3;
+      }
       let elapsed = (now - startTime) / 1000;
 
       if (elapsed >= CYCLE_DURATION) {
@@ -297,6 +511,11 @@ export function ZeroDayPage() {
       for (let y = 0; y < H; y += 40) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
+
+      // Meteoriți, fulgere și simboluri — desenate înainte de plasma, sub orbe
+      drawMeteors(dt);
+      drawLightnings(dt);
+      drawFloatSymbols(dt);
 
       if (stage === 0) {
         const r = lerp(12, 28, e);
@@ -414,6 +633,7 @@ export function ZeroDayPage() {
       <p className="text-mempool-text-dim text-sm mb-6">
         Visual origin story: a yellow seed awakens into orange plasma, a colored spark splits and
         converges, forging the OmniBus hybrid. Each cycle generates a new color mutation.
+        Lightning strikes, meteor showers, floating ★ stars and ♥ hearts orbit the scene.
         At the apex, exchange partners orbit as a living sketch.
       </p>
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden flex justify-center">
