@@ -1,8 +1,9 @@
 import { createContext, useContext, useReducer, type Dispatch } from "react";
-import type { BlockchainState, BlockchainAction, BlockData } from "../types";
+import type { BlockchainState, BlockchainAction, BlockData, TradeRecord } from "../types";
 
 const MAX_RECENT_BLOCKS = 10;
 const MAX_PENDING_TXS = 50;
+const MAX_RECENT_TRADES = 50;
 
 export const initialState: BlockchainState = {
   blockCount: 0,
@@ -20,6 +21,9 @@ export const initialState: BlockchainState = {
   wsConnected: false,
   lastBlockTimestamp: null,
   isMining: false,
+  oraclePrices: {},
+  orderbookSnapshots: {},
+  recentTrades: [],
 };
 
 export function blockchainReducer(
@@ -92,6 +96,37 @@ export function blockchainReducer(
 
     case "UPDATE_BALANCE":
       return { ...state, balance: action.payload.balance, balanceOMNI: action.payload.balanceOMNI };
+
+    case "WS_ORACLE_PRICE": {
+      const p = action.payload;
+      return {
+        ...state,
+        oraclePrices: {
+          ...state.oraclePrices,
+          [p.pair]: { pair: p.pair, price_usd: p.price_usd, sources: p.sources, timestamp: p.timestamp },
+        },
+      };
+    }
+
+    case "WS_ORDERBOOK_UPDATE": {
+      const o = action.payload;
+      return {
+        ...state,
+        orderbookSnapshots: {
+          ...state.orderbookSnapshots,
+          [o.pair_id]: { pair_id: o.pair_id, pair: o.pair, best_bid: o.best_bid, best_ask: o.best_ask, spread: o.spread, order_count: o.order_count, height: o.height },
+        },
+      };
+    }
+
+    case "WS_NEW_TRADE": {
+      const t = action.payload;
+      const trade: TradeRecord = { pair: t.pair, price_sat: t.price_sat, qty_sat: t.qty_sat, side: t.side, height: t.height, timestamp: t.timestamp };
+      return {
+        ...state,
+        recentTrades: [trade, ...state.recentTrades].slice(0, MAX_RECENT_TRADES),
+      };
+    }
 
     default:
       return state;

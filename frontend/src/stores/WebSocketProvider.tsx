@@ -5,7 +5,7 @@ import {
   initialState,
 } from "./useBlockchainStore";
 import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
-import type { WsEvent, BlockData } from "../types";
+import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent } from "../types";
 
 // On HTTP: connects directly to ws://hostname:{8334|18334|28334}.
 // On HTTPS: routes via wss://host/ws-{chain} (Caddy proxy).
@@ -106,11 +106,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           pollTimer.current = null;
         }
 
-        // App-level keepalive: send a tiny text frame every 20 s. Without
-        // this the browser tends to close idle WS sockets after ~60 s.
-        // The Zig WS server tolerates short text frames (it doesn't even
-        // need to parse them) but the activity keeps Nginx + intermediate
-        // proxies from killing the connection.
+        // Subscribe to all topics
+        try { ws.send(JSON.stringify({ subscribe: "all" })); } catch {}
+
+        // App-level keepalive: send a tiny text frame every 20 s.
         if (pingTimer.current) clearInterval(pingTimer.current);
         pingTimer.current = window.setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
@@ -137,9 +136,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             case "status":
               dispatch({ type: "WS_STATUS", payload: data });
               break;
+            case "new_trade":
+              dispatch({ type: "WS_NEW_TRADE", payload: data as WsNewTradeEvent });
+              break;
+            case "orderbook_update":
+              dispatch({ type: "WS_ORDERBOOK_UPDATE", payload: data as WsOrderbookUpdateEvent });
+              break;
+            case "oracle_price":
+              dispatch({ type: "WS_ORACLE_PRICE", payload: data as WsOraclePriceEvent });
+              break;
             case "heartbeat":
-              // Server-side keepalive (25 s). No state to update — receiving
-              // it is enough to confirm the socket is alive.
               break;
           }
         } catch {}

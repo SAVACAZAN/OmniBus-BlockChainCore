@@ -28,11 +28,44 @@ export interface WsHeartbeatEvent {
   timestamp: number;
 }
 
+export interface WsNewTradeEvent {
+  event: "new_trade";
+  pair_id: number;
+  pair: string;
+  price_sat: number;
+  qty_sat: number;
+  side: "buy" | "sell";
+  height: number;
+  timestamp: number;
+}
+
+export interface WsOrderbookUpdateEvent {
+  event: "orderbook_update";
+  pair_id: number;
+  pair: string;
+  best_bid: number;
+  best_ask: number;
+  spread: number;
+  order_count: number;
+  height: number;
+}
+
+export interface WsOraclePriceEvent {
+  event: "oracle_price";
+  pair: string;       // "BTC/USD" | "LCX/USD"
+  price_usd: number;  // float from "12345.6789"
+  sources: number;
+  timestamp: number;
+}
+
 export type WsEvent =
   | WsNewBlockEvent
   | WsNewTxEvent
   | WsStatusEvent
-  | WsHeartbeatEvent;
+  | WsHeartbeatEvent
+  | WsNewTradeEvent
+  | WsOrderbookUpdateEvent
+  | WsOraclePriceEvent;
 
 // ── RPC Response Shapes ─────────────────────────────────────────────────────
 
@@ -162,6 +195,32 @@ export interface NonceInfo {
 
 // ── Store State ─────────────────────────────────────────────────────────────
 
+export interface OraclePrice {
+  pair: string;
+  price_usd: number;
+  sources: number;
+  timestamp: number;
+}
+
+export interface OrderbookSnapshot {
+  pair_id: number;
+  pair: string;
+  best_bid: number;
+  best_ask: number;
+  spread: number;
+  order_count: number;
+  height: number;
+}
+
+export interface TradeRecord {
+  pair: string;
+  price_sat: number;
+  qty_sat: number;
+  side: "buy" | "sell";
+  height: number;
+  timestamp: number;
+}
+
 export interface BlockchainState {
   blockCount: number;
   difficulty: number;
@@ -178,6 +237,9 @@ export interface BlockchainState {
   wsConnected: boolean;
   lastBlockTimestamp: number | null;
   isMining: boolean;
+  oraclePrices: Record<string, OraclePrice>;       // keyed by pair "BTC/USD"
+  orderbookSnapshots: Record<number, OrderbookSnapshot>; // keyed by pair_id
+  recentTrades: TradeRecord[];                     // last 50 trades
 }
 
 export interface PendingTx {
@@ -194,6 +256,9 @@ export type BlockchainAction =
   | { type: "WS_NEW_BLOCK"; payload: WsNewBlockEvent }
   | { type: "WS_NEW_TX"; payload: WsNewTxEvent }
   | { type: "WS_STATUS"; payload: WsStatusEvent }
+  | { type: "WS_NEW_TRADE"; payload: WsNewTradeEvent }
+  | { type: "WS_ORDERBOOK_UPDATE"; payload: WsOrderbookUpdateEvent }
+  | { type: "WS_ORACLE_PRICE"; payload: WsOraclePriceEvent }
   | { type: "SET_WS_CONNECTED"; payload: boolean }
   | { type: "UPDATE_MEMPOOL_STATS"; payload: MempoolStats }
   | { type: "UPDATE_MINERS"; payload: MinerInfo[] }
