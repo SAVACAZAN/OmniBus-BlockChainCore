@@ -77,6 +77,13 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // @noble/post-quantum ships pure ESM with subpath exports. Vite 4's
+    // esbuild scanner resolves the physical file but then fails to bundle it
+    // as a CommonJS-compatible dep. Excluding it tells Vite to serve it
+    // natively as ESM without pre-bundling.
+    optimizeDeps: {
+      exclude: ["@noble/post-quantum"],
+    },
     build: {
       outDir: "dist",
       sourcemap: false,
