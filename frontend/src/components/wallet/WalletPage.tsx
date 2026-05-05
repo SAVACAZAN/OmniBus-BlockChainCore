@@ -389,74 +389,74 @@ export function WalletPage() {
         {/* Addresses */}
         <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-4">
           <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-            Addresses (5 PQ Domains)
+            Addresses
           </h3>
 
-          {/* Primary address — registered name on top, raw bech32 below,
-              click expand for full metadata (UTXO list, balance, nonce). */}
-          <PrimaryAddressCard
-            address={unlocked.address}
-            name={myName}
-            balance={balance}
-            utxos={utxos}
-            nonce={walletNonce}
-            copied={copied === unlocked.address}
-            onCopy={() => copyAddr(unlocked.address)}
-          />
-          {copied === unlocked.address && (
-            <span className="text-[10px] text-mempool-green pl-1">Copied!</span>
-          )}
-
-          {/* Soulbound reputation domains — LOVE / FOOD / RENT / VACATION.
-              These are NOT transferable wallets. They are reputation cups
-              attached to your identity (the OMNI primary). */}
-          {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => (
-            <PQDomainCard
-              key={pq.prefix}
-              pq={pq}
-              repCup={reputation?.cups?.[pq.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"]}
-              repTier={reputation?.tier}
-              repTotal={reputation?.total}
+          {/* ── 1. OMNI Primary (secp256k1) ── */}
+          <div>
+            <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">🔑 OMNI Primary — secp256k1 ECDSA (Bitcoin-compatible)</p>
+            <PrimaryAddressCard
+              address={unlocked.address}
+              name={myName}
+              balance={balance}
+              utxos={utxos}
+              nonce={walletNonce}
+              copied={copied === unlocked.address}
+              onCopy={() => copyAddr(unlocked.address)}
             />
-          ))}
+            {copied === unlocked.address && (
+              <span className="text-[10px] text-mempool-green pl-1">Copied!</span>
+            )}
+          </div>
 
-          {/* ── PQ-OMNI Wallets ────────────────────────────────────────
-              Quantum-protected OMNI wallets. Same OMNI semantics on chain
-              (transferable, hold balance) but signed with post-quantum
-              algorithms instead of secp256k1. 4 schemes available, all
-              derived from the same mnemonic at separate BIP-44 accounts. */}
-          {unlocked.pqOmni && unlocked.pqOmni.length > 0 && (
-            <div className="pt-3 mt-2 border-t border-mempool-border/50">
-              <p className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">
-                Quantum-protected OMNI wallets <span className="text-mempool-blue normal-case tracking-normal">— transferable, separate from BTC-compatible primary</span>
-              </p>
+          {/* ── 2. PQ-OMNI Transferable (ob_q1_..ob_q4_) — same mnemonic ── */}
+          <div className="pt-3 border-t border-mempool-border/40">
+            <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
+              🛡 PQ-OMNI — Transferable, post-quantum signed
+              <span className="normal-case tracking-normal text-mempool-blue ml-1">(ob_q1_…ob_q4_, derivate din același mnemonic)</span>
+            </p>
+            {unlocked.pqOmni && unlocked.pqOmni.length > 0 ? (
               <div className="space-y-2">
                 {unlocked.pqOmni.map((slot) => (
                   <PqOmniSlotCard key={slot.scheme} slot={slot} />
                 ))}
               </div>
+            ) : (
+              <div className="text-[10px] text-mempool-text-dim/60 bg-mempool-bg rounded p-2">
+                Derivare în curs… (necesită unlock din mnemonic)
+              </div>
+            )}
+          </div>
+
+          {/* ── 3. BIP-44 all addresses (index 0..18) ── */}
+          {unlocked.allAddresses && unlocked.allAddresses.length > 0 && (
+            <div className="pt-3 border-t border-mempool-border/40">
+              <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
+                📋 Toate adresele BIP-44 — m/44'/777'/0'/0/0..18
+              </p>
+              <AllAddressesPanel addresses={unlocked.allAddresses} currentIndex={unlocked.walletIndex} />
             </div>
           )}
 
-          {/* All 19 BIP-44 addresses */}
-          {unlocked.allAddresses && unlocked.allAddresses.length > 0 && (
-            <AllAddressesPanel addresses={unlocked.allAddresses} currentIndex={unlocked.walletIndex} />
-          )}
-
-          {/* Reputation legend — explica ce reprezinta paharele */}
-          <div className="pt-2 border-t border-mempool-border/40 mt-2">
-            <p className="text-[10px] text-mempool-text-dim leading-relaxed">
-              <span className="font-semibold text-mempool-text">Reputation cups</span> (soulbound,
-              0–100 each):{" "}
-              <span title="Uptime + continuitate">❤️ LOVE</span>{" "}
-              <span className="opacity-60">·</span>{" "}
-              <span title="Work util — mining, oracle, agents">🥖 FOOD</span>{" "}
-              <span className="opacity-60">·</span>{" "}
-              <span title="Capital angajat — stake / LP / hold">🏠 RENT</span>{" "}
-              <span className="opacity-60">·</span>{" "}
-              <span title="Longevitate pe retea">🏖️ VACATION</span>{" "}
-              <span className="opacity-60">·</span>{" "}
+          {/* ── 4. Soulbound reputation domains — LOVE/FOOD/RENT/VACATION ── */}
+          <div className="pt-3 border-t border-mempool-border/40">
+            <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
+              🔒 Soulbound reputation domains — adrese separate, non-transferabile
+            </p>
+            <div className="space-y-2">
+              {PQ_DOMAINS.filter((pq) => pq.prefix !== "ob1q").map((pq) => (
+                <PQDomainCard
+                  key={pq.prefix}
+                  pq={pq}
+                  repCup={reputation?.cups?.[pq.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"]}
+                  repTier={reputation?.tier}
+                  repTotal={reputation?.total}
+                />
+              ))}
+            </div>
+            <p className="text-[9px] text-mempool-text-dim/50 mt-2 leading-relaxed">
               <span className="text-mempool-orange/90">100/100/100/100 = Satoshi badge</span>
+              {" · "}Adresele ob_k1_/ob_f5_/ob_d5_/ob_s3_ necesită vault cu 5 mnemonic-uri separate (desktop app).
             </p>
           </div>
 
@@ -1225,19 +1225,16 @@ function AllAddressesPanel({
   }
 
   return (
-    <div className="pt-3 mt-2 border-t border-mempool-border/50">
+    <div>
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center justify-between w-full text-left"
+        className="flex items-center justify-between w-full text-left mb-1"
       >
-        <p className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
-          All BIP-44 addresses <span className="normal-case tracking-normal text-mempool-blue">— m/44'/777'/0'/0/0..18</span>
-        </p>
-        <span className="text-[10px] text-mempool-text-dim">{expanded ? "▾" : "▸"} {addresses.length} addresses</span>
+        <span className="text-[10px] text-mempool-text-dim">{expanded ? "▾ Ascunde" : `▸ Arată toate ${addresses.length} adrese`}</span>
       </button>
       {expanded && (
-        <div className="mt-2 space-y-1">
+        <div className="space-y-1">
           {addresses.map(({ index, address, path }) => (
             <div
               key={index}
