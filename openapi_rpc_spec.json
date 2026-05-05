@@ -1,0 +1,522 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OmniBus Blockchain JSON-RPC 2.0 API",
+    "version": "1.0.0",
+    "description": "Complete RPC specification for OmniBus blockchain node. 97 endpoints covering crypto, chain, wallet, exchange, agents, governance.",
+    "contact": {
+      "name": "OmniBus Dev",
+      "url": "https://omnibusblockchain.cc"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://omnibusblockchain.cc:8443/",
+      "description": "Mainnet",
+      "variables": {
+        "port": {
+          "default": "8332",
+          "description": "RPC port (8332 mainnet, 18332 testnet)"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:8332",
+      "description": "Local mainnet"
+    },
+    {
+      "url": "http://localhost:18332",
+      "description": "Local testnet"
+    }
+  ],
+  "paths": {
+    "/": {
+      "post": {
+        "summary": "JSON-RPC 2.0 endpoint",
+        "description": "All blockchain operations via JSON-RPC 2.0. No HTTP basic auth required on localhost (unsafe). Production uses HMAC-SHA512.",
+        "tags": ["RPC"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JSONRPCRequest"
+              },
+              "examples": {
+                "getblockcount": {
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "method": "getblockcount",
+                    "params": [],
+                    "id": 1
+                  }
+                },
+                "sendtx": {
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "method": "sendtx",
+                    "params": [
+                      {
+                        "nonce": 0,
+                        "from": "ob1q...",
+                        "to": "ob1q...",
+                        "amount": 100000000,
+                        "memo": "hello",
+                        "sig": "..."
+                      }
+                    ],
+                    "id": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON-RPC 2.0 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONRPCResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "RPC error (method not found, invalid params, internal error)"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JSONRPCRequest": {
+        "type": "object",
+        "required": ["jsonrpc", "method", "id"],
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "enum": ["2.0"],
+            "description": "JSON-RPC protocol version"
+          },
+          "method": {
+            "type": "string",
+            "description": "RPC method name (see methods below)"
+          },
+          "params": {
+            "type": "array",
+            "description": "Method parameters (order-sensitive)"
+          },
+          "id": {
+            "type": "integer",
+            "description": "Request ID (returned in response)"
+          }
+        }
+      },
+      "JSONRPCResponse": {
+        "type": "object",
+        "required": ["jsonrpc", "id"],
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "enum": ["2.0"]
+          },
+          "result": {
+            "description": "Result (present if successful)"
+          },
+          "error": {
+            "$ref": "#/components/schemas/JSONRPCError",
+            "description": "Error (present if failed)"
+          },
+          "id": {
+            "type": "integer"
+          }
+        }
+      },
+      "JSONRPCError": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "-32700: Parse error, -32600: Invalid Request, -32601: Method not found, -32602: Invalid params, -32603: Internal error"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "description": "Additional error details"
+          }
+        }
+      },
+      "Block": {
+        "type": "object",
+        "properties": {
+          "height": { "type": "integer", "description": "Block height" },
+          "hash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$", "description": "Block hash (SHA256)" },
+          "prev_hash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+          "merkle_root": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+          "timestamp": { "type": "integer", "description": "Unix timestamp" },
+          "difficulty": { "type": "integer" },
+          "nonce": { "type": "integer" },
+          "tx_count": { "type": "integer" },
+          "reward": { "type": "integer", "description": "Block reward in SAT (1e9 SAT = 1 OMNI)" }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "nonce": { "type": "integer" },
+          "from": { "type": "string", "pattern": "^ob[1q_][a-z0-9]*$", "description": "Sender address" },
+          "to": { "type": "string", "description": "Recipient address" },
+          "amount": { "type": "integer", "description": "Amount in SAT" },
+          "fee": { "type": "integer", "description": "Fee in SAT (optional, default 0)" },
+          "memo": { "type": "string", "description": "Transaction memo (op_return)" },
+          "sig": { "type": "string", "pattern": "^0x[0-9a-f]*$", "description": "Secp256k1 signature (64 bytes hex)" },
+          "pq_sig": { "type": "string", "description": "Post-quantum signature (ML-DSA/Falcon/SLH-DSA, optional)" },
+          "hash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$", "description": "TX hash (SHA256)" }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "address": { "type": "string" },
+          "balance": { "type": "integer", "description": "Balance in SAT" },
+          "nonce": { "type": "integer", "description": "TX counter (for ordering)" },
+          "pubkey": { "type": "string", "description": "Public key (compressed, 33 bytes hex)" },
+          "script_pubkey": { "type": "string", "description": "Script (P2PKH, P2WPKH, P2TR variants)" },
+          "is_validator": { "type": "boolean" },
+          "stake": { "type": "integer", "description": "Staked amount (if validator)" },
+          "roles": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["validator", "miner", "agent"] }
+          }
+        }
+      },
+      "UTXO": {
+        "type": "object",
+        "properties": {
+          "txid": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+          "vout": { "type": "integer", "description": "Output index in TX" },
+          "amount": { "type": "integer", "description": "Amount in SAT" },
+          "address": { "type": "string" },
+          "script_pubkey": { "type": "string" },
+          "block_height": { "type": "integer", "description": "Block where UTXO was created" },
+          "confirmations": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "x-methods": {
+    "description": "Complete list of RPC methods. Call via JSON-RPC 2.0 POST to / endpoint.",
+    "methods": [
+      {
+        "name": "getblockcount",
+        "category": "blockchain",
+        "description": "Get current block height",
+        "params": [],
+        "returns": "integer (block height)",
+        "example_request": {
+          "jsonrpc": "2.0",
+          "method": "getblockcount",
+          "params": [],
+          "id": 1
+        },
+        "example_response": {
+          "jsonrpc": "2.0",
+          "result": 189623,
+          "id": 1
+        }
+      },
+      {
+        "name": "getblock",
+        "category": "blockchain",
+        "description": "Get block by height or hash",
+        "params": [
+          { "name": "block_id", "type": "integer|string", "description": "Height or hash (0x...)" }
+        ],
+        "returns": "Block object",
+        "example": {
+          "request": { "method": "getblock", "params": [189623] },
+          "response": {
+            "result": {
+              "height": 189623,
+              "hash": "0x...",
+              "prev_hash": "0x...",
+              "timestamp": 1714924800,
+              "tx_count": 5
+            }
+          }
+        }
+      },
+      {
+        "name": "sendtx",
+        "category": "chain",
+        "description": "Broadcast signed transaction",
+        "params": [
+          {
+            "name": "tx",
+            "type": "Transaction",
+            "description": "Signed transaction object with sig field"
+          }
+        ],
+        "returns": "{ txid: string, status: 'accepted'|'pending'|'rejected', error?: string }",
+        "errors": [
+          { "code": -32602, "message": "Invalid TX: bad signature" },
+          { "code": -32602, "message": "Invalid TX: insufficient balance" },
+          { "code": -32602, "message": "Invalid TX: double-spend" },
+          { "code": -32700, "message": "TX pool full" }
+        ]
+      },
+      {
+        "name": "getbalance",
+        "category": "wallet",
+        "description": "Get address balance",
+        "params": [
+          { "name": "address", "type": "string", "description": "ob1q... or ob_k1_... etc" },
+          { "name": "confirmations", "type": "integer", "description": "Min confirmations (default 0)" }
+        ],
+        "returns": "integer (balance in SAT)",
+        "example": {
+          "request": { "method": "getbalance", "params": ["ob1q...", 1] },
+          "response": { "result": 1580274936789 }
+        }
+      },
+      {
+        "name": "listunspent",
+        "category": "wallet",
+        "description": "List unspent outputs for address(es)",
+        "params": [
+          { "name": "addresses", "type": "array[string]", "description": "Address or array of addresses" },
+          { "name": "min_conf", "type": "integer", "description": "Min confirmations (default 0)" }
+        ],
+        "returns": "array[UTXO]",
+        "example": {
+          "request": { "method": "listunspent", "params": [["ob1q...", "ob1q..."]] },
+          "response": {
+            "result": [
+              { "txid": "0x...", "vout": 0, "amount": 100000000, "address": "ob1q..." }
+            ]
+          }
+        }
+      },
+      {
+        "name": "pq_listSchemes",
+        "category": "crypto",
+        "description": "List all post-quantum signature schemes supported",
+        "params": [],
+        "returns": "array[{ scheme: string, code: integer, address_prefix: string }]",
+        "example": {
+          "response": {
+            "result": [
+              { "scheme": "omni_ecdsa", "code": 0, "address_prefix": "ob1q" },
+              { "scheme": "love_dilithium", "code": 1, "address_prefix": "ob_k1_" },
+              { "scheme": "food_falcon", "code": 2, "address_prefix": "ob_f5_" },
+              { "scheme": "rent_slh_dsa", "code": 3, "address_prefix": "ob_d5_" },
+              { "scheme": "vacation_kem", "code": 4, "address_prefix": "ob_s3_" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "getrichlist",
+        "category": "chain",
+        "description": "Get top N addresses by balance",
+        "params": [
+          { "name": "limit", "type": "integer", "description": "Top N addresses (1-10000)" },
+          { "name": "skip", "type": "integer", "description": "Pagination offset (default 0)" }
+        ],
+        "returns": "{ entries: array[Address], total: integer, shown: integer, totalSupply: integer }",
+        "example": {
+          "response": {
+            "result": {
+              "entries": [
+                { "rank": 1, "address": "ob1q...", "balance": 1580274936789, "is_validator": true }
+              ],
+              "total": 1,
+              "shown": 1,
+              "totalSupply": 1580274936789
+            }
+          }
+        }
+      },
+      {
+        "name": "dns_register",
+        "category": "contracts",
+        "description": "Register a .omnibus or .arbitraje name (via TX op_return ns_claim:)",
+        "params": [
+          { "name": "name", "type": "string", "description": "Name without TLD (e.g. 'alice')" },
+          { "name": "tld", "type": "string", "enum": ["omnibus", "arbitraje"] },
+          { "name": "owner", "type": "string", "description": "Owner address" }
+        ],
+        "returns": "{ name: string, owner: string, expiry_block: integer, tx_hash: string }",
+        "note": "Requires TX with op_return='ns_claim:name.tld' and fee transfer"
+      },
+      {
+        "name": "dns_lookup",
+        "category": "contracts",
+        "description": "Resolve name to owner address",
+        "params": [
+          { "name": "name", "type": "string", "description": "Full name (e.g. 'alice.omnibus')" }
+        ],
+        "returns": "{ name: string, owner: string, expiry_block: integer } or null if not found"
+      },
+      {
+        "name": "exchange_getbalances",
+        "category": "exchange",
+        "description": "Get multi-asset portfolio (real or paper)",
+        "params": [
+          { "name": "api_key", "type": "string" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ mode: string, assets: { BTC: {balance, hold}, USD: {balance, hold}, ... } }",
+        "requires_auth": true
+      },
+      {
+        "name": "exchange_getOpenOrders",
+        "category": "exchange",
+        "description": "List open orders",
+        "params": [
+          { "name": "api_key", "type": "string" },
+          { "name": "pair", "type": "string", "description": "Optional filter (e.g. 'XBTUSDT')" }
+        ],
+        "returns": "array[{ ordertxid, refid, userref, status, opentm, starttm, expirtm, descr, vol, vol_exec, cost, fee, price, stopprice, ... }]",
+        "requires_auth": true
+      },
+      {
+        "name": "exchange_addOrder",
+        "category": "exchange",
+        "description": "Place buy/sell order",
+        "params": [
+          { "name": "api_key", "type": "string" },
+          { "name": "pair", "type": "string" },
+          { "name": "type", "type": "string", "enum": ["buy", "sell"] },
+          { "name": "ordertype", "type": "string", "enum": ["market", "limit"] },
+          { "name": "price", "type": "string", "description": "Limit price (if limit order)" },
+          { "name": "volume", "type": "string", "description": "Amount to trade" }
+        ],
+        "returns": "{ descr: { order: string }, txid: [string] }",
+        "requires_auth": true
+      },
+      {
+        "name": "agent_list",
+        "category": "agents",
+        "description": "List all active AI agents",
+        "params": [],
+        "returns": "array[{ id: string, tier: string, kind: string, balance: integer, active_orders: integer }]"
+      },
+      {
+        "name": "agent_execute",
+        "category": "agents",
+        "description": "Trigger manual agent execution",
+        "params": [
+          { "name": "agent_id", "type": "string" },
+          { "name": "action", "type": "string", "enum": ["place_orders", "rebalance", "harvest_fees"] }
+        ],
+        "returns": "{ agent_id: string, action: string, result: string, timestamp: integer }",
+        "requires_auth": true,
+        "admin_only": true
+      },
+      {
+        "name": "staking_lock",
+        "category": "staking",
+        "description": "Stake OMNI to become validator",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "amount", "type": "integer", "description": "Stake in SAT (min 1000 OMNI)" }
+        ],
+        "returns": "{ address: string, stake: integer, tier: string, effective_block: integer }",
+        "note": "Must send stake via TX, RPC confirms registration"
+      },
+      {
+        "name": "governance_getVotes",
+        "category": "governance",
+        "description": "Get active governance proposals + vote status",
+        "params": [
+          { "name": "proposer", "type": "string", "description": "Optional filter by proposer" }
+        ],
+        "returns": "array[{ proposal_id: integer, title: string, votes_for: integer, votes_against: integer, deadline_block: integer, ... }]"
+      },
+      {
+        "name": "governance_castVote",
+        "category": "governance",
+        "description": "Vote on proposal",
+        "params": [
+          { "name": "proposal_id", "type": "integer" },
+          { "name": "vote", "type": "string", "enum": ["for", "against"] },
+          { "name": "validator_address", "type": "string" }
+        ],
+        "returns": "{ proposal_id: integer, voter: string, vote: string, weight: integer, tx_hash: string }",
+        "requires_validator": true
+      },
+      {
+        "name": "reputation_getStatus",
+        "category": "reputation",
+        "description": "Get address reputation across 4 tiers (LOVE/FOOD/RENT/VACATION)",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address: string, love: integer, food: integer, rent: integer, vacation: integer, badge: string }",
+        "note": "Reputation is soulbound (non-transferable). Ranges 0-100 per tier. 100/100/100/100 = Satoshi badge."
+      },
+      {
+        "name": "oracle_getPrice",
+        "category": "oracle",
+        "description": "Get price feed for pair",
+        "params": [
+          { "name": "pair", "type": "string", "description": "e.g. 'BTC/USD', 'OMNI/BTC'" },
+          { "name": "sources", "type": "integer", "description": "Min oracle sources (default 3)" }
+        ],
+        "returns": "{ pair: string, price: number, timestamp: integer, sources: integer, median: true }",
+        "example": {
+          "response": {
+            "result": { "pair": "BTC/USD", "price": 80211.98, "timestamp": 1714924800, "sources": 3 }
+          }
+        }
+      },
+      {
+        "name": "gettransaction",
+        "category": "chain",
+        "description": "Get TX details by hash",
+        "params": [
+          { "name": "txid", "type": "string", "description": "Transaction hash (0x...)" }
+        ],
+        "returns": "Transaction object (with block_height, confirmations)"
+      },
+      {
+        "name": "estimatefee",
+        "category": "chain",
+        "description": "Estimate fee for TX of given size",
+        "params": [
+          { "name": "size_bytes", "type": "integer", "description": "Estimated TX size" },
+          { "name": "urgency", "type": "string", "enum": ["slow", "normal", "fast"], "default": "normal" }
+        ],
+        "returns": "{ fee_per_byte: integer, estimated_fee: integer, urgency: string }"
+      },
+      {
+        "name": "help",
+        "category": "utility",
+        "description": "Get help on RPC method",
+        "params": [
+          { "name": "method", "type": "string", "description": "Optional: specific method to describe" }
+        ],
+        "returns": "string (help text) or object with all methods"
+      },
+      {
+        "name": "getinfo",
+        "category": "utility",
+        "description": "Get node info (version, chain, sync status)",
+        "params": [],
+        "returns": "{ version: string, chain: 'mainnet'|'testnet'|'regtest', height: integer, sync: boolean, peers: integer, difficulty: integer }"
+      }
+    ]
+  }
+}
