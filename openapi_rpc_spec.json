@@ -516,7 +516,1062 @@
         "description": "Get node info (version, chain, sync status)",
         "params": [],
         "returns": "{ version: string, chain: 'mainnet'|'testnet'|'regtest', height: integer, sync: boolean, peers: integer, difficulty: integer }"
+      },
+      {
+        "name": "getlatestblock",
+        "category": "blockchain",
+        "description": "Get latest block header (lightweight, no TX list)",
+        "params": [],
+        "returns": "{ index: integer, timestamp: integer, hash: string, previousHash: string, nonce: integer, txCount: integer }"
+      },
+      {
+        "name": "getblocks",
+        "category": "blockchain",
+        "description": "Get a range of blocks by height",
+        "params": [
+          { "name": "from_height", "type": "integer" },
+          { "name": "to_height", "type": "integer" }
+        ],
+        "returns": "array[Block]"
+      },
+      {
+        "name": "getblockchaininfo",
+        "category": "blockchain",
+        "description": "Node info: version, chain, sync status",
+        "params": [],
+        "returns": "{ version: string, chain: string, height: integer, sync: boolean, peers: integer, difficulty: integer }"
+      },
+      {
+        "name": "getchainmetrics",
+        "category": "blockchain",
+        "description": "High-level dashboard stats: supply, addresses, validators, mempool, peers, block reward",
+        "params": [],
+        "returns": "{ height: integer, tipHash: string, totalSupply: integer, addressesWithBalance: integer, validators: integer, validatorSetSize: integer, minValidatorBalance: integer, mempoolSize: integer, peerCount: integer, currentBlockReward: integer, satPerOmni: integer }",
+        "example": {
+          "request": { "method": "getchainmetrics", "params": [] },
+          "response": {
+            "result": {
+              "height": 189623,
+              "tipHash": "0xabc...",
+              "totalSupply": 1580274936789,
+              "addressesWithBalance": 142,
+              "validators": 5,
+              "validatorSetSize": 5,
+              "minValidatorBalance": 100000000000,
+              "mempoolSize": 3,
+              "peerCount": 2,
+              "currentBlockReward": 50000000000,
+              "satPerOmni": 1000000000
+            }
+          }
+        }
+      },
+      {
+        "name": "getstatus",
+        "category": "blockchain",
+        "description": "Quick node health check: status, blockCount, mempoolSize, wallet address/balance",
+        "params": [],
+        "returns": "{ status: 'running', blockCount: integer, mempoolSize: integer, address: string, balance: integer }"
+      },
+      {
+        "name": "getmempoolsize",
+        "category": "chain",
+        "description": "Number of transactions in the mempool",
+        "params": [],
+        "returns": "integer"
+      },
+      {
+        "name": "getmempoolstats",
+        "category": "chain",
+        "description": "Detailed mempool statistics",
+        "params": [],
+        "returns": "{ count: integer, size_bytes: integer, min_fee: integer, max_fee: integer }"
+      },
+      {
+        "name": "gettransactions",
+        "category": "chain",
+        "description": "Get transactions for an address (paginated)",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "page", "type": "integer", "description": "Page number (default 0)" },
+          { "name": "limit", "type": "integer", "description": "Results per page (default 50)" }
+        ],
+        "returns": "array[Transaction]"
+      },
+      {
+        "name": "listtransactions",
+        "category": "chain",
+        "description": "List recent transactions by block range or address",
+        "params": [
+          { "name": "address", "type": "string", "description": "Optional filter" },
+          { "name": "from_height", "type": "integer" },
+          { "name": "to_height", "type": "integer" }
+        ],
+        "returns": "array[Transaction]"
+      },
+      {
+        "name": "getaddresshistory",
+        "category": "wallet",
+        "description": "Full transaction history for an address with sent/received amounts",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "array[{ txid, from, to, amount, fee, block_height, confirmations, timestamp }]"
+      },
+      {
+        "name": "sendtransaction",
+        "category": "chain",
+        "description": "Broadcast a signed transaction (alias: sendtx)",
+        "params": [
+          {
+            "name": "tx",
+            "type": "Transaction",
+            "description": "Signed TX object with sig field"
+          }
+        ],
+        "returns": "{ txid: string, status: 'accepted'|'pending'|'rejected' }",
+        "errors": [
+          { "code": -32602, "message": "Invalid TX: bad signature" },
+          { "code": -32602, "message": "Invalid TX: insufficient balance" },
+          { "code": -32602, "message": "Invalid TX: double-spend" },
+          { "code": -32700, "message": "TX pool full" }
+        ]
+      },
+      {
+        "name": "sendrawtransaction",
+        "category": "chain",
+        "description": "Broadcast raw hex-encoded signed transaction",
+        "params": [
+          { "name": "raw_hex", "type": "string", "description": "Hex-encoded serialized TX" }
+        ],
+        "returns": "{ txid: string, status: string }"
+      },
+      {
+        "name": "sendopreturn",
+        "category": "chain",
+        "description": "Send TX with OP_RETURN data (used for name reg, staking, agent commands)",
+        "params": [
+          { "name": "from", "type": "string" },
+          { "name": "to", "type": "string" },
+          { "name": "amount", "type": "integer", "description": "SAT (0 for metadata-only)" },
+          { "name": "op_return", "type": "string", "description": "e.g. ns_claim:alice.omnibus" },
+          { "name": "sig", "type": "string" },
+          { "name": "pubkey", "type": "string" }
+        ],
+        "returns": "{ txid: string, status: string }"
+      },
+      {
+        "name": "getnonce",
+        "category": "wallet",
+        "description": "Get next usable nonce for an address (accounts for pending mempool TXs)",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address: string, nonce: integer, chainNonce: integer, pendingCount: integer }",
+        "example": {
+          "response": {
+            "result": {
+              "address": "ob1q...",
+              "nonce": 42,
+              "chainNonce": 40,
+              "pendingCount": 2
+            }
+          }
+        }
+      },
+      {
+        "name": "getaddressbalance",
+        "category": "wallet",
+        "description": "Alias for getbalance",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "integer (balance in SAT)"
+      },
+      {
+        "name": "claimfaucet",
+        "category": "faucet",
+        "description": "Request testnet OMNI from the faucet. Each address can claim once.",
+        "params": [
+          { "name": "address", "type": "string", "description": "Recipient address (ob1q... or any scheme)" }
+        ],
+        "returns": "{ txid: string, recipient: string, amount: integer, fee: integer, status: 'accepted' }",
+        "errors": [
+          { "code": -32010, "message": "Faucet not enabled on this node" },
+          { "code": -32011, "message": "Address already claimed faucet" },
+          { "code": -32012, "message": "Faucet drained — wait for refill" }
+        ],
+        "example": {
+          "request": { "method": "claimfaucet", "params": ["ob1q..."] },
+          "response": {
+            "result": {
+              "txid": "0xabc...",
+              "recipient": "ob1q...",
+              "amount": 10000000000,
+              "fee": 1000,
+              "status": "accepted"
+            }
+          }
+        }
+      },
+      {
+        "name": "getfaucetstatus",
+        "category": "faucet",
+        "description": "Check faucet balance, grant amount, and claims served",
+        "params": [],
+        "returns": "{ enabled: boolean, address: string, balance: integer, grantPerClaim: integer, claimsServed: integer }",
+        "example": {
+          "response": {
+            "result": {
+              "enabled": true,
+              "address": "ob1q...",
+              "balance": 5000000000000,
+              "grantPerClaim": 10000000000,
+              "claimsServed": 47
+            }
+          }
+        }
+      },
+      {
+        "name": "registername",
+        "category": "names",
+        "description": "Register a .omnibus (5 OMNI) or .arbitraje (10 OMNI) name",
+        "params": [
+          { "name": "name", "type": "string", "description": "3-25 chars, a-z 0-9 _, starts with letter" },
+          { "name": "address", "type": "string", "description": "Resolved address" },
+          { "name": "owner", "type": "string", "description": "Owner address (defaults to address)" },
+          { "name": "tld", "type": "string", "enum": ["omnibus", "arbitraje"], "description": "Default: omnibus" },
+          { "name": "fee_txid", "type": "string", "description": "64-hex confirmed TX paying the fee" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string", "description": "ECDSA sig of OMNIBUS_DNS_REGISTER:..." },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ name, tld, fullLabel, address, registeredAtBlock, fee_paid_sat, fee_txid }",
+        "errors": [
+          { "code": -32031, "message": "Name already taken | fee TX invalid | Invalid name | Reserved name | Per-owner cap exceeded" },
+          { "code": -32401, "message": "Signing pubkey does not match owner address" },
+          { "code": -32030, "message": "DNS registry not enabled on this node" }
+        ]
+      },
+      {
+        "name": "resolvename",
+        "category": "names",
+        "description": "Resolve a .omnibus or .arbitraje name to its address",
+        "params": [
+          { "name": "name", "type": "string", "description": "Full label 'alice.omnibus' or split name+tld" },
+          { "name": "tld", "type": "string", "description": "Optional if embedded in name" }
+        ],
+        "returns": "{ name, tld, fullLabel, address: string|null, found: boolean }",
+        "example": {
+          "request": { "method": "resolvename", "params": ["alice.omnibus"] },
+          "response": {
+            "result": {
+              "name": "alice",
+              "tld": "omnibus",
+              "fullLabel": "alice.omnibus",
+              "address": "ob1q...",
+              "found": true
+            }
+          }
+        }
+      },
+      {
+        "name": "reverseresolvename",
+        "category": "names",
+        "description": "Find names registered to an address",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address, name: string|null, found: boolean }"
+      },
+      {
+        "name": "transfername",
+        "category": "names",
+        "description": "Transfer name ownership (requires current owner signature)",
+        "params": [
+          { "name": "name", "type": "string" },
+          { "name": "tld", "type": "string" },
+          { "name": "new_owner", "type": "string" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ name, tld, fullLabel, old_owner, new_owner, transferredAtBlock }"
+      },
+      {
+        "name": "updatename",
+        "category": "names",
+        "description": "Update the resolved address of a name",
+        "params": [
+          { "name": "name", "type": "string" },
+          { "name": "tld", "type": "string" },
+          { "name": "address", "type": "string" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ name, tld, fullLabel, address, updatedAtBlock }"
+      },
+      {
+        "name": "renewname",
+        "category": "names",
+        "description": "Renew a name before expiry (requires fee TX)",
+        "params": [
+          { "name": "name", "type": "string" },
+          { "name": "tld", "type": "string" },
+          { "name": "fee_txid", "type": "string" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ name, tld, fullLabel, expiresAtBlock }"
+      },
+      {
+        "name": "listnames",
+        "category": "names",
+        "description": "List all active registered names across all TLDs",
+        "params": [],
+        "returns": "{ entries: [{ name, tld, fullLabel, address, registeredAtBlock, expiresAtBlock }], total: integer }",
+        "example": {
+          "response": {
+            "result": {
+              "entries": [
+                {
+                  "name": "alice",
+                  "tld": "omnibus",
+                  "fullLabel": "alice.omnibus",
+                  "address": "ob1q...",
+                  "registeredAtBlock": 189500,
+                  "expiresAtBlock": 229500
+                }
+              ],
+              "total": 12
+            }
+          }
+        }
+      },
+      {
+        "name": "getensfee",
+        "category": "names",
+        "description": "Query current name registration fees and treasury address",
+        "params": [],
+        "returns": "{ treasury: string, enforcement: boolean, cost_omnibus_omni: integer, cost_arbitraje_omni: integer }",
+        "example": {
+          "response": {
+            "result": {
+              "treasury": "ob1q...",
+              "enforcement": true,
+              "cost_omnibus_omni": 5,
+              "cost_arbitraje_omni": 10
+            }
+          }
+        }
+      },
+      {
+        "name": "getvalidators",
+        "category": "staking",
+        "description": "Get active validator set with weights and join heights",
+        "params": [],
+        "returns": "{ count: integer, validators: [{ address, weight, since_height }] }"
+      },
+      {
+        "name": "getslotleader",
+        "category": "staking",
+        "description": "Current slot leader (next expected block producer)",
+        "params": [],
+        "returns": "{ slot: integer, leader: string|null, weight: integer }"
+      },
+      {
+        "name": "getstakinginfo",
+        "category": "staking",
+        "description": "Detailed staking info for a validator address",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address, status, total_stake, self_stake, delegated_stake, slash_count, slash_history_count, total_rewards, uptime_pct, blocks_produced, commission_pct }"
+      },
+      {
+        "name": "getclockstatus",
+        "category": "utility",
+        "description": "Hardware clock status: wall time, RDTSC cycle counter, bit spectrum",
+        "params": [],
+        "returns": "{ now_ms: integer, rdtsc: integer, spectrum: string }"
+      },
+      {
+        "name": "getslotcalendar",
+        "category": "staking",
+        "description": "Pre-computed next 60 slot assignments",
+        "params": [],
+        "returns": "{ head_slot, slot_interval_ms, entries: [{ slot_id, leader, expected_arrival_ms, state }] }"
+      },
+      {
+        "name": "getminerstats",
+        "category": "mining",
+        "description": "Mining statistics: hash rate, blocks/hour, recent block times",
+        "params": [],
+        "returns": "{ hash_rate: integer, blocks_per_hour: number, avg_block_time_ms: integer }"
+      },
+      {
+        "name": "getminerinfo",
+        "category": "mining",
+        "description": "This node's miner identity and current mining state",
+        "params": [],
+        "returns": "{ address, mining: boolean, block_template_height: integer }"
+      },
+      {
+        "name": "getpoolstats",
+        "category": "mining",
+        "description": "Mining pool stats (if pool mode enabled)",
+        "params": [],
+        "returns": "{ pool_size: integer, total_shares: integer, top_miners: array }"
+      },
+      {
+        "name": "registerminer",
+        "category": "mining",
+        "description": "Register a miner address with the pool",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "worker", "type": "string" }
+        ],
+        "returns": "{ registered: boolean, address: string, worker: string }"
+      },
+      {
+        "name": "getpeers",
+        "category": "network",
+        "description": "List connected P2P peers",
+        "params": [],
+        "returns": "array[{ address, port, node_id, version, height }]"
+      },
+      {
+        "name": "getnodelist",
+        "category": "network",
+        "description": "All known nodes (peers + bootstrap nodes)",
+        "params": [],
+        "returns": "array[{ address, port, node_id, last_seen }]"
+      },
+      {
+        "name": "getnetworkinfo",
+        "category": "network",
+        "description": "Network topology statistics",
+        "params": [],
+        "returns": "{ connections, inbound, outbound, relay_fee, version }"
+      },
+      {
+        "name": "getsyncstatus",
+        "category": "network",
+        "description": "IBD sync progress",
+        "params": [],
+        "returns": "{ synced: boolean, local_height, peer_height, behind, progress_pct }"
+      },
+      {
+        "name": "submitslashevidence",
+        "category": "staking",
+        "description": "Submit double-sign evidence against a validator",
+        "params": [
+          { "name": "validator", "type": "string" },
+          { "name": "block_a", "type": "object" },
+          { "name": "block_b", "type": "object" },
+          { "name": "sig_a", "type": "string" },
+          { "name": "sig_b", "type": "string" }
+        ],
+        "returns": "{ slashed: boolean, validator, slash_amount, height }"
+      },
+      {
+        "name": "getslashhistory",
+        "category": "staking",
+        "description": "Get slash events for a validator",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "array[{ height, reason, amount, timestamp }]"
+      },
+      {
+        "name": "getheaders",
+        "category": "blockchain",
+        "description": "Get block headers (no TX data) for a height range",
+        "params": [
+          { "name": "from_height", "type": "integer" },
+          { "name": "to_height", "type": "integer" }
+        ],
+        "returns": "array[{ height, hash, prev_hash, timestamp, difficulty, nonce }]"
+      },
+      {
+        "name": "getmerkleproof",
+        "category": "blockchain",
+        "description": "Get Merkle proof for a TX inclusion in a block",
+        "params": [
+          { "name": "txid", "type": "string" },
+          { "name": "block_height", "type": "integer" }
+        ],
+        "returns": "{ txid, block_height, merkle_root, proof: array[string], valid: boolean }"
+      },
+      {
+        "name": "getfuturepool",
+        "category": "chain",
+        "description": "Transactions scheduled for future blocks",
+        "params": [],
+        "returns": "array[{ txid, target_height, from, to, amount }]"
+      },
+      {
+        "name": "getperformance",
+        "category": "utility",
+        "description": "Internal performance counters (RPC latency, block processing time)",
+        "params": [],
+        "returns": "{ rpc_calls_total, avg_rpc_ms, blocks_processed, avg_block_ms }"
+      },
+      {
+        "name": "exchange_listPairs",
+        "category": "exchange",
+        "description": "List all supported trading pairs",
+        "params": [],
+        "returns": "array[{ id: integer, base: string, quote: string, label: string }]",
+        "example": {
+          "response": {
+            "result": [
+              {"id": 0, "base": "OMNI", "quote": "USDC", "label": "OMNI/USDC"},
+              {"id": 1, "base": "BTC",  "quote": "USDC", "label": "BTC/USDC"},
+              {"id": 2, "base": "LCX",  "quote": "USDC", "label": "LCX/USDC"},
+              {"id": 3, "base": "ETH",  "quote": "USDC", "label": "ETH/USDC"},
+              {"id": 4, "base": "OMNI", "quote": "BTC",  "label": "OMNI/BTC"},
+              {"id": 5, "base": "OMNI", "quote": "LCX",  "label": "OMNI/LCX"},
+              {"id": 6, "base": "OMNI", "quote": "ETH",  "label": "OMNI/ETH"}
+            ]
+          }
+        }
+      },
+      {
+        "name": "exchange_getOrderbook",
+        "category": "exchange",
+        "description": "Top-N bids and asks for a pair",
+        "params": [
+          { "name": "pair", "type": "string", "description": "e.g. 'OMNI/USDC' (or pairId: integer 0-6)" },
+          { "name": "depth", "type": "integer", "description": "Max entries per side (default 25, max 50)" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ pairId, bids: [{ orderId, price, amount, remaining, trader, ts }], asks: [...], bestBid, bestAsk, spread, orderCount }",
+        "note": "Price in micro-USD (1 USD = 1_000_000). Amount/remaining in SAT."
+      },
+      {
+        "name": "exchange_getStats",
+        "category": "exchange",
+        "description": "Global DEX summary: total orders, fills, best prices per pair",
+        "params": [
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ mode, totalOrders, bidCount, askCount, trades, pairs: [{ id, label, bestBid, bestAsk, spread, orderCount }] }"
+      },
+      {
+        "name": "exchange_getTrades",
+        "category": "exchange",
+        "description": "Recent fills (newest first). Up to 256.",
+        "params": [
+          { "name": "pair", "type": "string", "description": "Optional filter" },
+          { "name": "address", "type": "string", "description": "Optional trader filter" },
+          { "name": "limit", "type": "integer", "description": "Default 50, max 256" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "array[{ fillId, pairId, price, amount, buyer, seller, buyOrderId, sellOrderId, ts }]"
+      },
+      {
+        "name": "exchange_placeOrder",
+        "category": "exchange",
+        "description": "Place a signed limit order on the native DEX",
+        "params": [
+          { "name": "trader", "type": "string", "description": "ob1q... address" },
+          { "name": "side", "type": "string", "enum": ["buy", "sell"] },
+          { "name": "pair", "type": "string", "description": "e.g. 'OMNI/USDC' (or pairId: integer)" },
+          { "name": "price", "type": "integer", "description": "micro-USD per unit" },
+          { "name": "amount", "type": "integer", "description": "SAT amount of base asset" },
+          { "name": "nonce", "type": "integer", "description": "Strictly increasing, replay protection" },
+          { "name": "signature", "type": "string", "description": "ECDSA sig of OMNIBUS_ORDER:side:pairId:price:amount:nonce:trader" },
+          { "name": "publicKey", "type": "string", "description": "Compressed secp256k1 pubkey (33 bytes hex)" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ mode, orderId, txHash, side, pairId, price, amount, filled, remaining, status, fees: { networkFeeSat, exchangeTakerFeeMicroUsd, exchangeMakerFeeMicroUsd, takerBps, makerBps } }",
+        "note": "Use signature='REST_HMAC_BYPASS' for HMAC-authenticated REST layer calls. status: filled|partial|active."
+      },
+      {
+        "name": "exchange_cancelOrder",
+        "category": "exchange",
+        "description": "Cancel an active order (requires owner signature)",
+        "params": [
+          { "name": "orderId", "type": "integer" },
+          { "name": "trader", "type": "string" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ orderId: integer, cancelled: true }"
+      },
+      {
+        "name": "exchange_getUserOrders",
+        "category": "exchange",
+        "description": "All active orders for a trader address",
+        "params": [
+          { "name": "trader", "type": "string" },
+          { "name": "pair", "type": "string", "description": "Optional filter" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "array[{ orderId, side, pairId, price, amount, filled, remaining, status, ts }]"
+      },
+      {
+        "name": "exchange_getAuthNonce",
+        "category": "exchange",
+        "description": "Get a challenge nonce for exchange login",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address, nonce: integer, expires_at: integer }"
+      },
+      {
+        "name": "exchange_login",
+        "category": "exchange",
+        "description": "Authenticate to the exchange",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ session_token: string, address: string, expires_at: integer }"
+      },
+      {
+        "name": "exchange_createApiKey",
+        "category": "exchange",
+        "description": "Create a new API key for an authenticated account",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "signature", "type": "string" },
+          { "name": "label", "type": "string" }
+        ],
+        "returns": "{ api_key: string, address: string, created_at: integer }"
+      },
+      {
+        "name": "exchange_listApiKeys",
+        "category": "exchange",
+        "description": "List API keys for an account",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "signature", "type": "string" }
+        ],
+        "returns": "array[{ key_id, label, created_at, last_used }]"
+      },
+      {
+        "name": "exchange_revokeApiKey",
+        "category": "exchange",
+        "description": "Revoke an API key",
+        "params": [
+          { "name": "key_id", "type": "string" },
+          { "name": "address", "type": "string" },
+          { "name": "signature", "type": "string" }
+        ],
+        "returns": "{ revoked: true, key_id: string }"
+      },
+      {
+        "name": "exchange_getBalance",
+        "category": "exchange",
+        "description": "Get single-asset exchange balance for an address",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "asset", "type": "string", "description": "e.g. 'OMNI', 'USDC'" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ address, asset, balance: integer, hold: integer }"
+      },
+      {
+        "name": "exchange_getBalances",
+        "category": "exchange",
+        "description": "Get all exchange balances for an address",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "mode", "type": "string", "enum": ["real", "paper"] }
+        ],
+        "returns": "{ mode, assets: { OMNI: { balance, hold }, USDC: { balance, hold }, ... } }"
+      },
+      {
+        "name": "exchange_deposit",
+        "category": "exchange",
+        "description": "Record a deposit to the exchange internal ledger",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "asset", "type": "string" },
+          { "name": "amount", "type": "integer" }
+        ],
+        "returns": "{ deposit_id: string, address, asset, amount, status }"
+      },
+      {
+        "name": "exchange_depositReal",
+        "category": "exchange",
+        "description": "Deposit on-chain funds to exchange escrow via confirmed TX",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "txid", "type": "string" }
+        ],
+        "returns": "{ deposit_id, address, amount, status }"
+      },
+      {
+        "name": "exchange_depositDemo",
+        "category": "exchange",
+        "description": "Add demo/paper trading balance (testnet only)",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "asset", "type": "string" },
+          { "name": "amount", "type": "integer" }
+        ],
+        "returns": "{ address, asset, added: integer, new_balance: integer }"
+      },
+      {
+        "name": "exchange_withdraw",
+        "category": "exchange",
+        "description": "Withdraw from exchange internal ledger to on-chain address",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "asset", "type": "string" },
+          { "name": "amount", "type": "integer" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ txid, address, asset, amount, status }"
+      },
+      {
+        "name": "exchange_getEscrowAddress",
+        "category": "exchange",
+        "description": "Get the exchange escrow address for on-chain deposits",
+        "params": [],
+        "returns": "{ escrow_address: string }"
+      },
+      {
+        "name": "pq_balance",
+        "category": "crypto",
+        "description": "Balance + scheme info for a PQ address (any scheme prefix)",
+        "params": [
+          { "name": "address", "type": "string", "description": "ob1q/ob_k1_/ob_f5_/ob_d5_/ob_s3_/ob_q1_-q4_/ob_h1_-h4_" }
+        ],
+        "returns": "{ address, scheme, code, address_prefix, balance }",
+        "example": {
+          "response": {
+            "result": {
+              "address": "ob_k1_...",
+              "scheme": "love_dilithium",
+              "code": 1,
+              "address_prefix": "ob_k1_",
+              "balance": 500000000
+            }
+          }
+        }
+      },
+      {
+        "name": "pq_send",
+        "category": "crypto",
+        "description": "Send a transaction signed with any supported PQ scheme (codes 0-12, except vacation_kem/4)",
+        "params": [
+          { "name": "from", "type": "string" },
+          { "name": "to", "type": "string" },
+          { "name": "amount", "type": "integer", "description": "SAT (0 for op_return-only)" },
+          { "name": "fee", "type": "integer", "description": "SAT (default: TX_MIN_FEE_SAT)" },
+          { "name": "scheme", "type": "string|integer", "description": "Scheme name or code 0-12" },
+          { "name": "signature", "type": "string", "description": "PQ signature hex" },
+          { "name": "public_key", "type": "string", "description": "PQ public key hex" },
+          { "name": "op_return", "type": "string", "description": "Optional OP_RETURN data" },
+          { "name": "nonce", "type": "integer" },
+          { "name": "id", "type": "integer", "description": "TX id (must match what was signed)" },
+          { "name": "timestamp", "type": "integer", "description": "Unix seconds (must match what was signed)" }
+        ],
+        "returns": "{ txid: string, status: 'accepted' }",
+        "note": "vacation_kem (code 4) cannot sign. ECDSA (code 0): standard secp256k1 sig. Codes 1-8: PQ native. Codes 9-12: ECDSA+PQ hybrid."
+      },
+      {
+        "name": "pq_attestation",
+        "category": "crypto",
+        "description": "Submit or verify a PQ attestation (login proof, vote, identity claim)",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "message", "type": "string" },
+          { "name": "signature", "type": "string" },
+          { "name": "public_key", "type": "string" }
+        ],
+        "returns": "{ verified: boolean, address, scheme, timestamp }"
+      },
+      {
+        "name": "identity_set",
+        "category": "identity",
+        "description": "Set on-chain identity metadata for an address",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "alias", "type": "string" },
+          { "name": "email_hash", "type": "string", "description": "SHA-256 hex of email" },
+          { "name": "signature", "type": "string" },
+          { "name": "publicKey", "type": "string" }
+        ],
+        "returns": "{ address, alias, set_at_block: integer }"
+      },
+      {
+        "name": "identity_get",
+        "category": "identity",
+        "description": "Retrieve identity metadata for an address",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address, alias, email_hash, set_at_block } or null"
+      },
+      {
+        "name": "identity_search",
+        "category": "identity",
+        "description": "Search addresses by identity alias",
+        "params": [
+          { "name": "query", "type": "string" }
+        ],
+        "returns": "array[{ address, alias }]"
+      },
+      {
+        "name": "kyc_getStatus",
+        "category": "kyc",
+        "description": "Get KYC attestation level for an address",
+        "params": [
+          { "name": "address", "type": "string" }
+        ],
+        "returns": "{ address, level: integer, issuer, attested_at: integer, valid: boolean }"
+      },
+      {
+        "name": "kyc_attest",
+        "category": "kyc",
+        "description": "Submit a KYC attestation (issuer-signed)",
+        "params": [
+          { "name": "address", "type": "string" },
+          { "name": "issuer", "type": "string" },
+          { "name": "level", "type": "integer", "description": "1=basic, 2=verified, 3=accredited" },
+          { "name": "signature", "type": "string" }
+        ],
+        "returns": "{ attested: boolean, address, level, issuer }"
+      },
+      {
+        "name": "kyc_listIssuers",
+        "category": "kyc",
+        "description": "List trusted KYC issuers",
+        "params": [],
+        "returns": "array[{ address, name, level_max: integer }]"
+      },
+      {
+        "name": "omnibus_getoracleprices",
+        "category": "oracle",
+        "description": "All current oracle price feeds (median of exchange feeds)",
+        "params": [],
+        "returns": "{ pair: { price_micro_usd, sources, timestamp } }"
+      },
+      {
+        "name": "omnibus_getallprices",
+        "category": "oracle",
+        "description": "All prices from all connected exchange feeds (raw, not aggregated)",
+        "params": [],
+        "returns": "{ exchange: { pair: price } }"
+      },
+      {
+        "name": "omnibus_getblockprices",
+        "category": "oracle",
+        "description": "Oracle prices snapshot at a specific block height",
+        "params": [
+          { "name": "height", "type": "integer" }
+        ],
+        "returns": "{ height, prices: { pair: price_micro_usd } }"
+      },
+      {
+        "name": "omnibus_getpricerange",
+        "category": "oracle",
+        "description": "Price history for a pair over a block range",
+        "params": [
+          { "name": "pair", "type": "string" },
+          { "name": "from_height", "type": "integer" },
+          { "name": "to_height", "type": "integer" }
+        ],
+        "returns": "array[{ height, price_micro_usd, timestamp }]"
+      },
+      {
+        "name": "omnibus_getexchangefeed",
+        "category": "oracle",
+        "description": "Raw price feeds from each connected exchange (Kraken, LCX, etc.)",
+        "params": [],
+        "returns": "{ exchange: { pair: { bid, ask, last, timestamp } } }"
+      },
+      {
+        "name": "omnibus_getfxrate",
+        "category": "oracle",
+        "description": "Fiat FX rates (USD/EUR etc.) from oracle aggregation",
+        "params": [],
+        "returns": "{ rates: { EUR: number, GBP: number, ... }, timestamp: integer }"
+      },
+      {
+        "name": "omnibus_getorderbook",
+        "category": "oracle",
+        "description": "Oracle-aggregated orderbook (composite across connected exchanges)",
+        "params": [
+          { "name": "pair", "type": "string", "description": "e.g. 'BTC/USDC'" }
+        ],
+        "returns": "{ pair, bids: [{ price, amount }], asks: [{ price, amount }] }"
+      },
+      {
+        "name": "omnibus_getarbitrage",
+        "category": "oracle",
+        "description": "Current arbitrage opportunities detected between exchanges",
+        "params": [],
+        "returns": "array[{ pair, buy_exchange, sell_exchange, spread_pct, profit_est_usd }]"
+      },
+      {
+        "name": "omnibus_getbridgestatus",
+        "category": "bridge",
+        "description": "OmniBus <-> external chain bridge status",
+        "params": [],
+        "returns": "{ active: boolean, supported_chains: array, pending_transfers: integer }"
+      },
+      {
+        "name": "omnibus_getoraclepolicy",
+        "category": "oracle",
+        "description": "Current oracle update policy (min sources, max staleness)",
+        "params": [],
+        "returns": "{ min_sources: integer, max_age_seconds: integer, pairs: array }"
+      },
+      {
+        "name": "omnibus_setoraclepolicy",
+        "category": "oracle",
+        "description": "Update oracle policy (admin only)",
+        "params": [
+          { "name": "min_sources", "type": "integer" },
+          { "name": "max_age_seconds", "type": "integer" }
+        ],
+        "returns": "{ updated: boolean, min_sources, max_age_seconds }"
+      },
+      {
+        "name": "omnibus_getminers",
+        "category": "mining",
+        "description": "All known miners and their recent block production stats",
+        "params": [],
+        "returns": "array[{ address, blocks_mined, last_block_height, hash_rate }]"
+      },
+      {
+        "name": "minersendtx",
+        "category": "mining",
+        "description": "Internal: miner-node broadcasts self-signed TX",
+        "params": [
+          { "name": "tx", "type": "Transaction" }
+        ],
+        "returns": "{ txid, status }"
+      },
+      {
+        "name": "getheaders",
+        "category": "blockchain",
+        "description": "Lightweight block headers for a height range (no TX data)",
+        "params": [
+          { "name": "from_height", "type": "integer" },
+          { "name": "to_height", "type": "integer" }
+        ],
+        "returns": "array[{ height, hash, prev_hash, timestamp, difficulty, nonce }]"
       }
-    ]
+    ],
+    "websocket": {
+      "description": "WebSocket push events on port 8334 (local) or wss://omnibusblockchain.cc:8443/ws-testnet",
+      "subscription": "Send {\"subscribe\":\"topic\"} where topic = blocks|txs|trades|orderbook|oracle|all",
+      "default_subscription": "all",
+      "heartbeat_interval_seconds": 25,
+      "events": [
+        {
+          "name": "new_block",
+          "topic": "blocks",
+          "description": "Emitted on every accepted block",
+          "schema": {
+            "event": "new_block",
+            "height": "integer",
+            "hash": "string (0x... hex)",
+            "reward_sat": "integer",
+            "difficulty": "integer",
+            "mempool_size": "integer",
+            "timestamp": "integer (Unix seconds)"
+          },
+          "example": {
+            "event": "new_block",
+            "height": 189624,
+            "hash": "0xabc...",
+            "reward_sat": 50000000000,
+            "difficulty": 131072,
+            "mempool_size": 2,
+            "timestamp": 1714924810
+          }
+        },
+        {
+          "name": "new_tx",
+          "topic": "txs",
+          "description": "Emitted when a TX enters the mempool",
+          "schema": {
+            "event": "new_tx",
+            "txid": "string",
+            "from": "string",
+            "amount_sat": "integer"
+          }
+        },
+        {
+          "name": "new_trade",
+          "topic": "trades",
+          "description": "Emitted on every DEX fill (order match)",
+          "schema": {
+            "event": "new_trade",
+            "pair_id": "integer",
+            "pair": "string",
+            "price_sat": "integer (micro-USD)",
+            "qty_sat": "integer",
+            "side": "buy|sell",
+            "height": "integer",
+            "timestamp": "integer (Unix seconds)"
+          }
+        },
+        {
+          "name": "orderbook_update",
+          "topic": "orderbook",
+          "description": "Emitted after any orderbook change (place or cancel)",
+          "schema": {
+            "event": "orderbook_update",
+            "pair_id": "integer",
+            "pair": "string",
+            "best_bid": "integer (micro-USD)",
+            "best_ask": "integer (micro-USD)",
+            "spread": "integer",
+            "order_count": "integer",
+            "height": "integer"
+          }
+        },
+        {
+          "name": "oracle_price",
+          "topic": "oracle",
+          "description": "Emitted when an exchange oracle price is updated",
+          "schema": {
+            "event": "oracle_price",
+            "pair": "string",
+            "price_usd": "number (e.g. 80211.9800)",
+            "sources": "integer",
+            "timestamp": "integer (Unix seconds)"
+          }
+        },
+        {
+          "name": "ibd_progress",
+          "topic": "all (broadcast)",
+          "description": "Emitted during Initial Block Download sync",
+          "schema": {
+            "event": "ibd_progress",
+            "local_height": "integer",
+            "peer_height": "integer",
+            "behind": "integer",
+            "progress": "integer (0-100 percent)",
+            "active": "boolean"
+          }
+        },
+        {
+          "name": "heartbeat",
+          "topic": "all (no subscription needed)",
+          "description": "Sent every 25 seconds to all clients",
+          "schema": {
+            "event": "heartbeat",
+            "timestamp": "integer (Unix seconds)"
+          }
+        }
+      ]
+    }
   }
 }

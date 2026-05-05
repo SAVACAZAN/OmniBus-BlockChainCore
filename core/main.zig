@@ -117,6 +117,7 @@ const agent_tier_mod     = @import("agent_tier.zig");
 const agent_config_mod   = @import("agent_config.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const agent_manager_mod  = @import("agent_manager.zig");
+const bridge_mod         = @import("bridge_native.zig");
 
 // Single-source-of-time module — feeds slot/sub_block/stabilizer/ws
 // timers from one AtomicClock so cross-component latencies are real
@@ -413,6 +414,8 @@ const RPCThreadArgs = struct {
     /// Address of the KYC issuer (registrar slot 4 = `kyc.omnibus`).
     /// Null = node accepts no KYC issuance (read-only KYC).
     kyc_issuer_address: ?[]const u8,
+    /// Cross-chain bridge state. Allocated once, shared with RPC thread.
+    bridge: ?*bridge_mod.BridgeState,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -437,6 +440,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .identities_path = args.identities_path,
         .kyc_path = args.kyc_path,
         .kyc_issuer_address = args.kyc_issuer_address,
+        .bridge = args.bridge,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -1492,6 +1496,14 @@ pub fn main() !void {
         }
     }
 
+    // Bridge state — heap-allocated so the pointer stays valid across the
+    // RPC thread lifetime. BridgeState.init() needs an allocator.
+    const bridge_state_ptr = allocator.create(bridge_mod.BridgeState) catch null;
+    if (bridge_state_ptr) |bs| {
+        bs.* = bridge_mod.BridgeState.init(allocator);
+        std.debug.print("[BRIDGE] Native cross-chain bridge initialized\n", .{});
+    }
+
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
         .wallet   = &wallet,
@@ -1516,6 +1528,7 @@ pub fn main() !void {
         .identities_path = identities_path_owned,
         .kyc_path = kyc_path_owned,
         .kyc_issuer_address = kyc_issuer_owned,
+        .bridge = bridge_state_ptr,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

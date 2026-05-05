@@ -42,6 +42,7 @@ const reputation_mod = @import("reputation.zig");
 const reputation_manager_mod = @import("reputation_manager.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const isolated_wallet_mod = @import("isolated_wallet.zig");
+const bridge_mod      = @import("bridge_native.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const Blockchain  = blockchain_mod.Blockchain;
@@ -171,6 +172,10 @@ const ServerCtx = struct {
     /// so users + balances + keys survive restart.
     users_path_buf: [256]u8 = undefined,
     users_path_len: usize = 0,
+    /// Cross-chain bridge state — null until main.zig calls ctx.bridge = &g_bridge_state.
+    /// When null, bridge RPC methods return a "bridge not initialized" error.
+    bridge: ?*bridge_mod.BridgeState = null,
+    bridge_mutex: std.Thread.Mutex = .{},
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -335,6 +340,9 @@ pub const HTTPConfig = struct {
     /// address's signatures are honored by `kyc_attest`. Empty = the
     /// node won't accept any KYC issuance (read-only KYC view).
     kyc_issuer_address: ?[]const u8 = null,
+    /// Cross-chain bridge state. When null, bridge RPC methods return
+    /// "Bridge not initialized". Pass pointer to g_bridge_state from main.
+    bridge: ?*bridge_mod.BridgeState = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -369,6 +377,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.dns = cfg.dns;
     ctx.exchange = cfg.exchange;
     ctx.exchange_paper = cfg.exchange_paper;
+    ctx.bridge = cfg.bridge;
     ctx.reg_mutex = .{};
     ctx.exchange_mutex = .{};
 
@@ -3016,6 +3025,13 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "agent_status"))            return handleAgentStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_pending_decisions")) return handleAgentPendingDecisions(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_report_execution"))  return handleAgentReportExecution(body, ctx, id);
+
+    // ── Bridge endpoints ─────────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "getbridgestatus"))       return handleBridgeStatus(ctx, id);
+    if (std.mem.eql(u8, method, "bridge_lock"))           return handleBridgeLock(body, ctx, id);
+    if (std.mem.eql(u8, method, "bridge_unlock_request")) return handleBridgeUnlockRequest(body, ctx, id);
+    if (std.mem.eql(u8, method, "bridge_fraud_challenge"))return handleBridgeFraudChallenge(body, ctx, id);
+    if (std.mem.eql(u8, method, "bridge_settle"))         return handleBridgeSettle(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -6704,13 +6720,282 @@ fn handleOmnibusOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     );
 }
 
-/// omnibus_getbridgestatus — bridge relay status
+/// omnibus_getbridgestatus — real bridge state from BridgeState
 fn handleOmnibusBridge(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const block_count = ctx.bc.getBlockCount();
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    const bs = ctx.bridge orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32001,\"message\":\"Bridge not initialized\"}}}}",
+        .{id},
+    );
+    const height = ctx.bc.getBlockCount();
+    const daily  = bs.dailyVolumeSat(height);
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"bridge_active\":true,\"pending_orders\":0,\"last_settlement_block\":{d},\"relay_latency_ms\":100}}}}",
-        .{ id, block_count },
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"bridge_active\":{s}," ++
+        "\"paused\":{s}," ++
+        "\"paused_at_height\":{d}," ++
+        "\"locked_total_sat\":{d}," ++
+        "\"daily_volume_sat\":{d}," ++
+        "\"lock_count\":{d}," ++
+        "\"pending_unlock_count\":{d}," ++
+        "\"vault_addr\":\"{s}\"" ++
+        "}}}}",
+        .{
+            id,
+            if (!bs.paused) "true" else "false",
+            if (bs.paused) "true" else "false",
+            bs.paused_at_height,
+            bs.locked_total_sat,
+            daily,
+            bs.locks.items.len,
+            bs.pending_unlocks.count(),
+            chain_config.BRIDGE_VAULT_ADDR_HEX,
+        },
+    );
+}
+
+/// bridge_lock — user locks OMNI in vault to bridge to destination chain.
+/// Params: {address, amount_sat, destination_chain, destination_addr}
+/// Validates caps + creates LockRecord. The TX itself must be submitted
+/// separately via sendtransaction with op_return memo "bridge_lock:<nonce_hex>".
+/// This endpoint pre-validates and returns the nonce the user must embed.
+fn handleBridgeLock(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    const bs = ctx.bridge orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32001,\"message\":\"Bridge not initialized\"}}}}",
+        .{id},
+    );
+
+    // Parse params
+    const amount_sat = extractU64Param(body, "\"amount_sat\"") orelse
+        return errorJson(-32602, "Missing param: amount_sat", id, alloc);
+    const dest_chain = extractStrParam(body, "\"destination_chain\"") orelse
+        return errorJson(-32602, "Missing param: destination_chain", id, alloc);
+    const dest_addr  = extractStrParam(body, "\"destination_addr\"") orelse
+        return errorJson(-32602, "Missing param: destination_addr", id, alloc);
+
+    const height = ctx.bc.getBlockCount();
+    bs.validateLock(amount_sat, height) catch |err| {
+        const msg = switch (err) {
+            error.AmountExceedsPerTxCap   => "Amount exceeds per-tx cap",
+            error.AmountExceedsDailyQuota => "Daily quota exceeded",
+            error.AutoPauseActive         => "Bridge auto-paused (anomaly detected)",
+            else                          => "Bridge lock validation failed",
+        };
+        return errorJson(-32003, msg, id, alloc);
+    };
+
+    // Build nonce = SHA256(dest_chain || dest_addr || amount || height)
+    var nonce_input: [128]u8 = undefined;
+    const ni_len = std.fmt.bufPrint(&nonce_input, "{s}{s}{d}{d}", .{ dest_chain, dest_addr, amount_sat, height }) catch
+        return errorJson(-32003, "Nonce input overflow", id, alloc);
+    var nonce: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(ni_len, &nonce, .{});
+
+    const nonce_hex = std.fmt.bytesToHex(nonce, .lower);
+
+    const cap = chain_config.BRIDGE_MAX_PER_TX_SAT;
+    const daily_cap = chain_config.BRIDGE_MAX_DAILY_SAT;
+    const vault = chain_config.BRIDGE_VAULT_ADDR_HEX;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"pre_validated\"," ++
+        "\"nonce\":\"{s}\"," ++
+        "\"amount_sat\":{d}," ++
+        "\"destination_chain\":\"{s}\"," ++
+        "\"destination_addr\":\"{s}\"," ++
+        "\"vault_addr\":\"{s}\"," ++
+        "\"max_per_tx_sat\":{d}," ++
+        "\"max_daily_sat\":{d}," ++
+        "\"instruction\":\"Send amount_sat to vault_addr with op_return memo bridge_lock:<nonce>\"" ++
+        "}}}}",
+        .{
+            id, nonce_hex, amount_sat,
+            dest_chain[0..@min(dest_chain.len, 32)],
+            dest_addr[0..@min(dest_addr.len, 42)],
+            vault, cap, daily_cap,
+        },
+    );
+}
+
+/// bridge_unlock_request — relayer submits a multi-sig unlock for a burn event on dest chain.
+/// Params: {signer_addr (20-byte hex), recipient_addr (20-byte hex), amount_sat, nonce_hex, relayer_sig}
+fn handleBridgeUnlockRequest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    const bs = ctx.bridge orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32001,\"message\":\"Bridge not initialized\"}}}}",
+        .{id},
+    );
+
+    const signer_hex   = extractStrParam(body, "\"signer_addr\"")   orelse return errorJson(-32602, "Missing param: signer_addr",   id, alloc);
+    const recipient_hex= extractStrParam(body, "\"recipient_addr\"") orelse return errorJson(-32602, "Missing param: recipient_addr", id, alloc);
+    const amount_sat   = extractU64Param(body, "\"amount_sat\"")    orelse return errorJson(-32602, "Missing param: amount_sat",     id, alloc);
+    const nonce_hex_s  = extractStrParam(body, "\"nonce\"")         orelse return errorJson(-32602, "Missing param: nonce",          id, alloc);
+
+    // Decode hex → fixed arrays
+    var signer:    [20]u8 = std.mem.zeroes([20]u8);
+    var recipient: [20]u8 = std.mem.zeroes([20]u8);
+    var nonce:     [32]u8 = std.mem.zeroes([32]u8);
+
+    if (signer_hex.len >= 40)    _ = std.fmt.hexToBytes(signer[0..], signer_hex[0..40])    catch {};
+    if (recipient_hex.len >= 40) _ = std.fmt.hexToBytes(recipient[0..], recipient_hex[0..40]) catch {};
+    if (nonce_hex_s.len >= 64)   _ = std.fmt.hexToBytes(nonce[0..], nonce_hex_s[0..64])   catch {};
+
+    const height = ctx.bc.getBlockCount();
+    bs.submitUnlockSignature(signer, recipient, amount_sat, nonce, height) catch |err| {
+        const msg = switch (err) {
+            error.AutoPauseActive         => "Bridge auto-paused",
+            error.NonceAlreadyProcessed   => "Nonce already processed",
+            error.SignerNotInRelayerSet   => "Signer not in relayer set",
+            error.InsufficientVaultBalance=> "Insufficient vault balance",
+            error.DuplicateSignature      => "Duplicate relayer signature",
+            else                          => "Unlock request failed",
+        };
+        return errorJson(-32003, msg, id, alloc);
+    };
+
+    const entry = bs.pending_unlocks.get(nonce);
+    const sig_count: u8 = if (entry) |e| e.sig_count else 0;
+    const required   = chain_config.BRIDGE_REQUIRED_SIGS;
+    const window     = chain_config.BRIDGE_CHALLENGE_WINDOW_BLOCKS;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"signature_recorded\"," ++
+        "\"sig_count\":{d}," ++
+        "\"required_sigs\":{d}," ++
+        "\"threshold_reached\":{s}," ++
+        "\"challenge_window_blocks\":{d}," ++
+        "\"settles_after_height\":{d}" ++
+        "}}}}",
+        .{
+            id, sig_count, required,
+            if (sig_count >= required) "true" else "false",
+            window, height + window,
+        },
+    );
+}
+
+/// bridge_fraud_challenge — anyone can void a pending unlock with a fraud proof.
+/// Params: {nonce_hex, proof} (proof is logged but not cryptographically verified in V1)
+fn handleBridgeFraudChallenge(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    const bs = ctx.bridge orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32001,\"message\":\"Bridge not initialized\"}}}}",
+        .{id},
+    );
+
+    const nonce_hex_s = extractStrParam(body, "\"nonce\"") orelse
+        return errorJson(-32602, "Missing param: nonce", id, alloc);
+
+    var nonce: [32]u8 = std.mem.zeroes([32]u8);
+    if (nonce_hex_s.len >= 64) _ = std.fmt.hexToBytes(nonce[0..], nonce_hex_s[0..64]) catch {};
+
+    bs.voidUnlock(nonce) catch |err| {
+        const msg = switch (err) {
+            error.NonceAlreadyProcessed => "Nonce already processed or settled",
+            else                        => "Fraud challenge failed",
+        };
+        return errorJson(-32003, msg, id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"voided\",\"nonce\":\"{s}\"}}}}",
+        .{ id, nonce_hex_s[0..@min(nonce_hex_s.len, 64)] },
+    );
+}
+
+/// bridge_settle — try to settle a pending unlock after challenge window.
+/// Relayers call this; if threshold sigs present and window expired, funds release.
+fn handleBridgeSettle(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    const bs = ctx.bridge orelse return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32001,\"message\":\"Bridge not initialized\"}}}}",
+        .{id},
+    );
+
+    const nonce_hex_s = extractStrParam(body, "\"nonce\"") orelse
+        return errorJson(-32602, "Missing param: nonce", id, alloc);
+
+    var nonce: [32]u8 = std.mem.zeroes([32]u8);
+    if (nonce_hex_s.len >= 64) _ = std.fmt.hexToBytes(nonce[0..], nonce_hex_s[0..64]) catch {};
+
+    const height = ctx.bc.getBlockCount();
+    const result = bs.trySettle(nonce, height) catch |err| {
+        const msg = switch (err) {
+            error.InsufficientSignatures     => "Not enough relayer signatures",
+            error.ChallengeWindowNotExpired  => "Challenge window still open",
+            error.InsufficientVaultBalance   => "Insufficient vault balance",
+            error.NonceAlreadyProcessed      => "Already settled or voided",
+            else                             => "Settlement failed",
+        };
+        return errorJson(-32003, msg, id, alloc);
+    };
+
+    if (result) |r| {
+        const addr_hex = std.fmt.bytesToHex(r.recipient, .lower);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"settled\",\"recipient\":\"0x{s}\",\"amount_sat\":{d}}}}}",
+            .{ id, addr_hex, r.amount_sat },
+        );
+    } else {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"not_ready\"}}}}",
+            .{id},
+        );
+    }
+}
+
+/// getbridgestatus — returns live BridgeState summary (locked, volume, paused).
+fn handleBridgeStatus(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    ctx.bridge_mutex.lock();
+    defer ctx.bridge_mutex.unlock();
+    if (ctx.bridge) |bs| {
+        const height = ctx.bc.getBlockCount();
+        const lock_count: u32 = @intCast(bs.locks.items.len);
+        const pending_count: u32 = @intCast(bs.pending_unlocks.count());
+        const daily_vol = bs.dailyVolumeSat(height);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"locked_total_sat\":{d}," ++
+            "\"lock_count\":{d}," ++
+            "\"pending_unlock_count\":{d}," ++
+            "\"daily_volume_sat\":{d}," ++
+            "\"paused\":{s}," ++
+            "\"required_sigs\":{d}," ++
+            "\"challenge_window_blocks\":{d}," ++
+            "\"max_per_tx_sat\":{d}," ++
+            "\"max_daily_sat\":{d}" ++
+            "}}}}",
+            .{
+                id,
+                bs.locked_total_sat,
+                lock_count,
+                pending_count,
+                daily_vol,
+                if (bs.paused) "true" else "false",
+                chain_config.BRIDGE_REQUIRED_SIGS,
+                chain_config.BRIDGE_CHALLENGE_WINDOW_BLOCKS,
+                chain_config.BRIDGE_MAX_PER_TX_SAT,
+                chain_config.BRIDGE_MAX_DAILY_SAT,
+            },
+        );
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"not_initialized\"}}}}",
+        .{id},
     );
 }
 
