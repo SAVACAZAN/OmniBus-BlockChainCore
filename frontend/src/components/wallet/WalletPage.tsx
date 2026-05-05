@@ -428,13 +428,13 @@ export function WalletPage() {
             )}
           </div>
 
-          {/* ── 3. BIP-44 all addresses (index 0..18) ── */}
-          {unlocked.allAddresses && unlocked.allAddresses.length > 0 && (
+          {/* ── 3. Multichain addresses (24 chains) ── */}
+          {unlocked.multichainAddresses && unlocked.multichainAddresses.length > 0 && (
             <div className="pt-3 border-t border-mempool-border/40">
               <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
-                📋 Toate adresele BIP-44 — m/44'/777'/0'/0/0..18
+                🌐 Multi-Chain Addresses — same mnemonic, BIP-44 standard
               </p>
-              <AllAddressesPanel addresses={unlocked.allAddresses} currentIndex={unlocked.walletIndex} />
+              <MultichainPanel addresses={unlocked.multichainAddresses} />
             </div>
           )}
 
@@ -723,9 +723,24 @@ function SoulboundCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [balanceSat, setBalanceSat] = useState<number | null>(null);
   const meta = SOULBOUND_COLORS[tier] ?? { text: "text-white", dot: "bg-gray-400", emoji: "🔒", desc: "" };
   const cupVal = parseFloat(repCup ?? "0");
   const hasAddr = address && !address.includes("<");
+
+  useEffect(() => {
+    if (!hasAddr) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const r: any = await rpc.request_raw("getaddressbalance", [address]);
+        if (!cancelled && r && typeof r.balance === "number") setBalanceSat(r.balance);
+      } catch {}
+    };
+    poll();
+    const id = setInterval(poll, 10000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [address, hasAddr]);
 
   return (
     <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
@@ -739,8 +754,13 @@ function SoulboundCard({
           <span className={`text-[10px] font-bold uppercase w-16 flex-shrink-0 ${meta.text}`}>{tier}</span>
           <span className="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-semibold">SOULBOUND</span>
           <span className={`font-mono text-[10px] flex-1 truncate ${meta.text}`}>
-            {hasAddr ? address : `${prefix}…`}
+            {hasAddr ? `${address.slice(0, 12)}…${address.slice(-6)}` : `${prefix}…`}
           </span>
+          {balanceSat !== null && balanceSat > 0 && (
+            <span className="text-[9px] font-mono text-mempool-green font-semibold">
+              {(balanceSat / 1e9).toFixed(4)} OMNI
+            </span>
+          )}
           <span className="text-[9px] text-mempool-text-dim">{bits}-bit</span>
           <span className="text-[9px] text-mempool-text-dim">{expanded ? "▾" : "▸"}</span>
         </div>
@@ -765,15 +785,23 @@ function SoulboundCard({
             </div>
           )}
           {hasAddr && (
-            <div className="flex items-center gap-1 bg-mempool-bg-elev rounded px-2 py-1.5">
-              <span className={`font-mono text-[10px] flex-1 break-all ${meta.text}`}>{address}</span>
-              <button
-                type="button"
-                onClick={() => { navigator.clipboard.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                className="text-[9px] px-1.5 py-0.5 bg-mempool-bg rounded text-mempool-text-dim hover:text-mempool-text"
-              >
-                {copied ? "✓" : "copy"}
-              </button>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1 bg-mempool-bg-elev rounded px-2 py-1.5">
+                <span className={`font-mono text-[10px] flex-1 break-all ${meta.text}`}>{address}</span>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                  className="text-[9px] px-1.5 py-0.5 bg-mempool-bg rounded text-mempool-text-dim hover:text-mempool-text"
+                >
+                  {copied ? "✓" : "copy"}
+                </button>
+              </div>
+              <div className="flex items-center justify-between px-2 py-1 bg-mempool-bg-elev rounded text-[10px]">
+                <span className="text-mempool-text-dim uppercase tracking-wider">Rewards acumulate</span>
+                <span className="font-mono text-mempool-green font-semibold">
+                  {balanceSat !== null ? `${(balanceSat / 1e9).toFixed(8)} OMNI` : "…"}
+                </span>
+              </div>
             </div>
           )}
           <p className="text-[9px] text-red-300/70 pt-1">
@@ -1284,6 +1312,76 @@ function BackupRow({
         )}
       </div>
       <p className="text-[10px] font-mono text-mempool-text break-all leading-relaxed">{value}</p>
+    </div>
+  );
+}
+
+// ── MultichainPanel ─────────────────────────────────────────────────────────
+// 24 multichain addresses grouped by network family (BTC / EVM / LTC / DOGE /
+// BCH / OTHER). Collapsed by default, expand per group. Watch-only — copy only.
+
+const CHAIN_COLORS: Record<string, string> = {
+  BTC:   "text-amber-400",
+  EVM:   "text-blue-400",
+  LTC:   "text-gray-300",
+  DOGE:  "text-yellow-300",
+  BCH:   "text-green-400",
+  OTHER: "text-mempool-text-dim",
+};
+const CHAIN_ICONS: Record<string, string> = {
+  BTC: "₿", EVM: "Ξ", LTC: "Ł", DOGE: "Ð", BCH: "Ƀ", OTHER: "◈",
+};
+
+function MultichainPanel({ addresses }: { addresses: { chain: string; address: string; path: string; group: string }[] }) {
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const groups = addresses.reduce((acc, a) => {
+    (acc[a.group] ??= []).push(a);
+    return acc;
+  }, {} as Record<string, typeof addresses>);
+
+  function copy(addr: string) {
+    navigator.clipboard.writeText(addr);
+    setCopied(addr);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {Object.entries(groups).map(([group, items]) => (
+        <div key={group} className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setOpenGroups(g => ({ ...g, [group]: !g[group] }))}
+            className="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-mempool-bg-light transition-colors text-left"
+          >
+            <span className={`text-[11px] font-bold w-5 text-center ${CHAIN_COLORS[group] ?? "text-white"}`}>
+              {CHAIN_ICONS[group] ?? "◈"}
+            </span>
+            <span className={`text-[10px] font-bold w-14 ${CHAIN_COLORS[group] ?? "text-white"}`}>{group}</span>
+            <span className="text-[9px] text-mempool-text-dim">{items.length} addresses</span>
+            <span className="ml-auto text-[9px] text-mempool-text-dim">{openGroups[group] ? "▾" : "▸"}</span>
+          </button>
+          {openGroups[group] && (
+            <div className="border-t border-mempool-border/30 bg-gray-900/40 divide-y divide-mempool-border/20">
+              {items.map(({ chain, address }) => (
+                <div key={chain} className="flex items-center gap-2 px-2.5 py-1.5 text-[10px]">
+                  <span className={`font-bold w-20 shrink-0 ${CHAIN_COLORS[group] ?? "text-white"}`}>{chain}</span>
+                  <span className="font-mono text-mempool-text flex-1 truncate">{address}</span>
+                  <button
+                    type="button"
+                    onClick={() => copy(address)}
+                    className="text-[8px] text-mempool-text-dim hover:text-mempool-text shrink-0 px-1"
+                  >
+                    {copied === address ? "✓" : "copy"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

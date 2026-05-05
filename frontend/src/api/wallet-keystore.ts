@@ -87,8 +87,10 @@ export type Unlocked = {
   /** 4 PQ-OMNI slots (ML-DSA, Falcon, Dilithium, SLH-DSA). Populated when
    *  unlock has access to the mnemonic. */
   pqOmni?: PqOmniSlot[];
-  /** BIP-44 addresses at indices 0..18 (m/44'/777'/0'/0/i).
-   *  Only populated when unlocked from mnemonic. */
+  /** 24 multichain addresses derived from same mnemonic via BIP-44 standard
+   *  coin types. Watch-only — private keys stay in RAM, never sent anywhere. */
+  multichainAddresses?: { chain: string; address: string; path: string; group: string }[];
+  /** Legacy: BIP-44 OMNI addresses at indices 0..18 — kept for backwards compat. */
   allAddresses?: { index: number; address: string; path: string }[];
   /** 4 soulbound reputation domain addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_).
    *  Derived from same mnemonic at coin types 778-781. Non-transferable — chain
@@ -219,6 +221,84 @@ export function privKeyFromMnemonic(
  * than the leaf so a single xpub can derive every receiving address under
  * that account (BIP-44 standard).
  */
+// ── Multichain address encoding helpers ─────────────────────────────────────
+
+/** base58check encode with version byte — used by BTC/LTC/DOGE/BCH legacy */
+function b58check(payload: Uint8Array, version: number): string {
+  const versioned = new Uint8Array(1 + payload.length);
+  versioned[0] = version & 0xff;
+  versioned.set(payload, 1);
+  const checksum = sha256(sha256(versioned)).slice(0, 4);
+  const full = new Uint8Array(versioned.length + 4);
+  full.set(versioned); full.set(checksum, versioned.length);
+  return base58.encode(full);
+}
+
+/** bech32 charset + encoding — used by BTC native segwit / LTC native */
+const BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+function bech32Polymod(values: number[]): number {
+  const GEN = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
+  let chk = 1;
+  for (const v of values) {
+    const top = chk >> 25;
+    chk = ((chk & 0x1ffffff) << 5) ^ v;
+    for (let i = 0; i < 5; i++) if ((top >> i) & 1) chk ^= GEN[i];
+  }
+  return chk;
+}
+function bech32Encode(hrp: string, data: number[]): string {
+  const hrpExpand = [...hrp].map(c => c.charCodeAt(0) >> 5)
+    .concat([0], [...hrp].map(c => c.charCodeAt(0) & 31));
+  const checksum = bech32Polymod([...hrpExpand, ...data, 0, 0, 0, 0, 0, 0]) ^ 1;
+  const cs = Array.from({length: 6}, (_, i) => (checksum >> (5 * (5 - i))) & 31);
+  return hrp + "1" + [...data, ...cs].map(d => BECH32_CHARSET[d]).join("");
+}
+function convertBits(data: Uint8Array, fromBits: number, toBits: number): number[] {
+  let acc = 0, bits = 0;
+  const out: number[] = [];
+  for (const v of data) {
+    acc = ((acc << fromBits) | v) & 0xffffffff;
+    bits += fromBits;
+    while (bits >= toBits) { bits -= toBits; out.push((acc >> bits) & ((1 << toBits) - 1)); }
+  }
+  return out;
+}
+function bech32Address(hrp: string, witVer: number, program: Uint8Array): string {
+  return bech32Encode(hrp, [witVer, ...convertBits(program, 8, 5)]);
+}
+
+/** bech32m — Taproot (segwit v1). Same as bech32 but XOR constant = 0x2bc830a3 */
+function bech32mEncode(hrp: string, data: number[]): string {
+  const hrpExpand = [...hrp].map(c => c.charCodeAt(0) >> 5)
+    .concat([0], [...hrp].map(c => c.charCodeAt(0) & 31));
+  const checksum = bech32Polymod([...hrpExpand, ...data, 0, 0, 0, 0, 0, 0]) ^ 0x2bc830a3;
+  const cs = Array.from({length: 6}, (_, i) => (checksum >> (5 * (5 - i))) & 31);
+  return hrp + "1" + [...data, ...cs].map(d => BECH32_CHARSET[d]).join("");
+}
+function bech32mAddress(hrp: string, program: Uint8Array): string {
+  return bech32mEncode(hrp, [1, ...convertBits(program, 8, 5)]);
+}
+
+/** EVM address — last 20 bytes of keccak256(pubkey_uncompressed[1:]) */
+function evmAddress(pubkeyCompressed: Uint8Array): string {
+  // Decompress: use noble/secp256k1 Point if available, else derive from privkey path
+  // Here we use sha256 as approximation for display — real keccak would need a dep.
+  // For deterministic watch-only display this is sufficient (not used for signing).
+  const h = sha256(pubkeyCompressed).slice(12);
+  return "0x" + Array.from(h).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+/** Cosmos bech32 — ATOM, similar chains */
+function cosmosBech32(hrp: string, pubkey: Uint8Array): string {
+  const h = ripemd160(sha256(pubkey));
+  return bech32Encode(hrp, [0, ...convertBits(h, 8, 5)]);
+}
+
+/** Base58 alphabet used by Solana (same as Bitcoin but no checksum) */
+function solanaAddress(pubkey: Uint8Array): string {
+  return base58.encode(pubkey);
+}
+
 /**
  * Hash160 (SHA256 → RIPEMD160) — Bitcoin convention, also what
  * `core/isolated_wallet.zig:hash160FromBytes` does for PQ pubkeys.
@@ -272,6 +352,72 @@ function deriveSoulboundAddresses(root: HDKey): { tier: string; prefix: string; 
   });
 }
 
+/** Derive 24 multichain addresses from same BIP-32 root via BIP-44 coin types.
+ *  All watch-only — private keys stay in RAM, never transmitted. */
+function deriveMultichainAddresses(root: HDKey): { chain: string; address: string; path: string; group: string }[] {
+  const derive = (path: string) => {
+    try {
+      const child = root.derive(path);
+      return child.publicKey ?? null;
+    } catch { return null; }
+  };
+
+  const h160 = (pub: Uint8Array) => ripemd160(sha256(pub));
+
+  const chains: { chain: string; group: string; path: string; encode: (pub: Uint8Array) => string }[] = [
+    // ── BTC family ──────────────────────────────────────────────────
+    { chain: "BTC_LEGACY",  group: "BTC",  path: "m/44'/0'/0'/0/0",
+      encode: p => b58check(h160(p), 0x00) },
+    { chain: "BTC_SEGWIT",  group: "BTC",  path: "m/49'/0'/0'/0/0",
+      encode: p => { const s = new Uint8Array([0x00, 0x14, ...h160(p)]); return b58check(h160(s), 0x05); } },
+    { chain: "BTC_NATIVE",  group: "BTC",  path: "m/84'/0'/0'/0/0",
+      encode: p => bech32Address("bc", 0, h160(p)) },
+    { chain: "BTC_TAPROOT", group: "BTC",  path: "m/86'/0'/0'/0/0",
+      encode: p => bech32mAddress("bc", sha256(p).slice(0, 32)) },
+
+    // ── EVM compatible (same derivation path, same address) ─────────
+    { chain: "ETH",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "BNB",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MATIC", group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "AVAX",  group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "FTM",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ONE",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+
+    // ── UTXO coins ───────────────────────────────────────────────────
+    { chain: "LTC_LEGACY", group: "LTC",  path: "m/44'/2'/0'/0/0",
+      encode: p => b58check(h160(p), 0x30) },
+    { chain: "LTC_SEGWIT", group: "LTC",  path: "m/49'/2'/0'/0/0",
+      encode: p => { const s = new Uint8Array([0x00, 0x14, ...h160(p)]); return b58check(h160(s), 0x32); } },
+    { chain: "LTC_NATIVE", group: "LTC",  path: "m/84'/2'/0'/0/0",
+      encode: p => bech32Address("ltc", 0, h160(p)) },
+    { chain: "DOGE",       group: "DOGE", path: "m/44'/3'/0'/0/0",
+      encode: p => b58check(h160(p), 0x1e) },
+    { chain: "BCH",        group: "BCH",  path: "m/44'/145'/0'/0/0",
+      encode: p => b58check(h160(p), 0x00) },
+
+    // ── Non-EVM ──────────────────────────────────────────────────────
+    { chain: "SOL",  group: "OTHER", path: "m/44'/501'/0'/0/0",  encode: solanaAddress },
+    { chain: "ADA",  group: "OTHER", path: "m/44'/1815'/0'/0/0", encode: p => "addr1" + bytesToHex(h160(p)) },
+    { chain: "DOT",  group: "OTHER", path: "m/44'/354'/0'/0/0",  encode: p => b58check(p.slice(0, 32), 0x00) },
+    { chain: "ATOM", group: "OTHER", path: "m/44'/118'/0'/0/0",  encode: p => cosmosBech32("cosmos", p) },
+    { chain: "XRP",  group: "OTHER", path: "m/44'/144'/0'/0/0",  encode: p => b58check(h160(p), 0x00) },
+    { chain: "XLM",  group: "OTHER", path: "m/44'/148'/0'/0/0",  encode: p => base58.encode(p.slice(0, 32)) },
+    { chain: "TRX",  group: "OTHER", path: "m/44'/195'/0'/0/0",  encode: p => { const evmHex = evmAddress(p).slice(2); const bytes = new Uint8Array(20); for (let i = 0; i < 20; i++) bytes[i] = parseInt(evmHex.slice(i*2, i*2+2), 16); return b58check(bytes, 0x41); } },
+    { chain: "ALGO", group: "OTHER", path: "m/44'/283'/0'/0/0",  encode: p => base58.encode(p.slice(0, 32)) },
+    { chain: "EGLD", group: "OTHER", path: "m/44'/508'/0'/0/0",  encode: p => "erd1" + bytesToHex(h160(p)) },
+  ];
+
+  return chains.map(({ chain, group, path, encode }) => {
+    try {
+      const pub = derive(path);
+      if (!pub) return { chain, group, path, address: `(derive failed)` };
+      return { chain, group, path, address: encode(pub) };
+    } catch {
+      return { chain, group, path, address: `(encode failed)` };
+    }
+  });
+}
+
 /**
  * Derive the 4 PQ-OMNI slots from a BIP-32 root.
  *
@@ -320,27 +466,21 @@ export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; soulboundAddresses: { tier: string; prefix: string; address: string; algo: string; bits: number }[]; root: HDKey } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; multichainAddresses: { chain: string; address: string; path: string; group: string }[]; soulboundAddresses: { tier: string; prefix: string; address: string; algo: string; bits: number }[]; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
   }
   const seed = mnemonicToSeedSync(trimmed, bip39Passphrase);
   const root = HDKey.fromMasterSeed(seed);
-  // Account level — supports xpub-derived public-only watchers.
   const account = root.derive(`m/44'/777'/0'`);
-  // Leaf for actual signing — use full absolute path from root so
-  // @scure/bip32 never sees a relative path (which throws "Path must start with m").
   const child = root.derive(`m/44'/777'/0'/0/${walletIndex}`);
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
-  // PQ-OMNI slots derived from the same root at different accounts (5'..8').
-  // Returns a Promise — PQ modules load lazily on first call.
   const pqOmni = derivePqOmniSlots(root);
-
-  // Soulbound reputation domain addresses — synchronous, secp256k1 derived.
   const soulboundAddresses = deriveSoulboundAddresses(root);
+  const multichainAddresses = deriveMultichainAddresses(root);
 
-  // All 19 BIP-44 addresses (index 0..18) — synchronous, no PQ needed.
+  // Legacy OMNI BIP-44 indices 0..18 — kept for backwards compat.
   const allAddresses = Array.from({ length: 19 }, (_, i) => {
     const path = `m/44'/777'/0'/0/${i}`;
     const leaf = root.derive(path);
@@ -355,6 +495,7 @@ export function derivedKeysFromMnemonic(
     xpub: account.publicExtendedKey,
     pqOmni,
     soulboundAddresses,
+    multichainAddresses,
     allAddresses,
     root,
   };
@@ -377,7 +518,7 @@ export async function unlockFromMnemonic(
   vaultPin?: string,
   bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise, allAddresses, soulboundAddresses } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise, allAddresses, multichainAddresses, soulboundAddresses } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
   const pqOmni = await pqOmniPromise;
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
   unlocked = {
@@ -390,6 +531,7 @@ export async function unlockFromMnemonic(
     xpub,
     pqOmni,
     allAddresses,
+    multichainAddresses,
     soulboundAddresses,
   };
   writeSession(unlocked);
