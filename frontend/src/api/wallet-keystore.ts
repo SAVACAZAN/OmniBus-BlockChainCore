@@ -537,7 +537,7 @@ export async function unlockFromMnemonic(
   };
   writeSession(unlocked);
   if (vaultPin) {
-    await persistVault(privKey, walletIndex, address, vaultPin);
+    await persistVault(privKey, walletIndex, address, vaultPin, mnemonic.trim().toLowerCase());
   }
   notify();
   return unlocked;
@@ -578,11 +578,31 @@ export async function unlockFromVault(vaultPin: string): Promise<Unlocked> {
   if (!vault) throw new Error("Vault data missing");
   const privKey = await decryptVault(vault.ciphertext, vault.salt, vault.iv, passphrase);
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
-  // Sanity: the derived address must match the metadata. If not, the user
-  // typed the wrong passphrase OR the vault was tampered with.
   if (address !== meta.address) {
     throw new Error("Decryption succeeded but address mismatch — wrong passphrase?");
   }
+
+  // v2 vault: has encrypted mnemonic — re-derive all addresses exactly like mnemonic login.
+  if (vault.v === 2 && vault.mnemonicCt && vault.iv2) {
+    try {
+      const salt = hexToBytes(vault.salt);
+      const iv2 = hexToBytes(vault.iv2);
+      const key = await deriveAesKey(passphrase, salt);
+      const mnBytes = hexToBytes(vault.mnemonicCt);
+      const pt = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv2 as BufferSource },
+        key,
+        mnBytes as BufferSource,
+      );
+      const mnemonic = new TextDecoder().decode(pt);
+      // Re-derive everything from mnemonic — same as unlockFromMnemonic but no vault re-save.
+      return unlockFromMnemonic(mnemonic, meta.walletIndex);
+    } catch {
+      // Mnemonic decrypt failed — fall through to privkey-only unlock.
+    }
+  }
+
+  // v1 vault fallback: privkey only, no PQ/soulbound/multichain.
   unlocked = { privateKey: privKey, publicKey, address, walletIndex: meta.walletIndex };
   writeSession(unlocked);
   notify();
@@ -612,7 +632,7 @@ export function clearVault(): void {
   lockWallet();
 }
 
-function readVaultRaw(): { ciphertext: string; salt: string; iv: string } | null {
+function readVaultRaw(): { v?: number; ciphertext: string; salt: string; iv: string; iv2?: string; mnemonicCt?: string } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -631,19 +651,32 @@ async function persistVault(
   walletIndex: number,
   address: string,
   passphrase: string,
+  mnemonic?: string,
 ): Promise<void> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv2 = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveAesKey(passphrase, salt);
   const plaintext = hexToBytes(privKeyHex);
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv as BufferSource }, key, plaintext as BufferSource);
+
+  // Encrypt mnemonic separately (v2 vault) so PIN unlock can re-derive all addresses.
+  let mnemonicCt = "";
+  if (mnemonic) {
+    const mnBytes = new TextEncoder().encode(mnemonic.trim().toLowerCase());
+    const mnCt = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv2 as BufferSource }, key, mnBytes as BufferSource);
+    mnemonicCt = bytesToHex(new Uint8Array(mnCt));
+  }
+
   const payload = {
-    v: 1,
+    v: 2,
     walletIndex,
     address,
     ciphertext: bytesToHex(new Uint8Array(ct)),
     salt: bytesToHex(salt),
     iv: bytesToHex(iv),
+    iv2: bytesToHex(iv2),
+    mnemonicCt,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
