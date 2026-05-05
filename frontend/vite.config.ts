@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
 
 // VITE_RPC_HOST = backend host (default localhost — for local dev).
 // Pe VPS pornesc cu VITE_RPC_HOST=127.0.0.1 ca proxy-ul sa loveasca nodurile pe loopback.
@@ -16,17 +15,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    // @noble/post-quantum is pure ESM with .js-suffixed subpath exports.
-    // Vite 4's esbuild scanner can't resolve them via the package exports map.
-    // Alias to the real files relative to this config so both local dev and
-    // VPS (different __dirname) resolve correctly.
-    resolve: {
-      alias: {
-        "@noble/post-quantum/ml-dsa.js": path.resolve(__dirname, "node_modules/@noble/post-quantum/ml-dsa.js"),
-        "@noble/post-quantum/falcon.js": path.resolve(__dirname, "node_modules/@noble/post-quantum/falcon.js"),
-        "@noble/post-quantum/slh-dsa.js": path.resolve(__dirname, "node_modules/@noble/post-quantum/slh-dsa.js"),
-      },
-    },
     server: {
       port: 8888,
       host: "0.0.0.0",

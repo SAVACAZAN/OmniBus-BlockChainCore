@@ -240,8 +240,8 @@ function base58CheckEncodeWithVersion(payload: Uint8Array, version: number): str
  * shared on-chain in `tx.public_key`; secret stays in process RAM and is
  * stripped from `writeSession` before any sessionStorage persistence.
  */
-function derivePqOmniSlots(root: HDKey): PqOmniSlot[] {
-  return PQ_OMNI_SCHEMES.map((s) => {
+async function derivePqOmniSlots(root: HDKey): Promise<PqOmniSlot[]> {
+  return Promise.all(PQ_OMNI_SCHEMES.map(async (s) => {
     const path = `m/44'/777'/${s.account}'/0/0`;
     const child = root.derive(path);
     if (!child.privateKey) {
@@ -257,7 +257,7 @@ function derivePqOmniSlots(root: HDKey): PqOmniSlot[] {
     // Use the leaf privkey (32 bytes) as the deterministic seed for the PQ
     // keygen. pqKeypairFromSeed handles seed-length stretching per scheme.
     const seed = child.privateKey;
-    const kp = pqKeypairFromSeed(s.scheme as PqScheme, seed);
+    const kp = await pqKeypairFromSeed(s.scheme as PqScheme, seed);
     const address = pqAddressFromPublicKey(s.scheme as PqScheme, kp.publicKey);
     return {
       scheme: s.scheme,
@@ -267,14 +267,14 @@ function derivePqOmniSlots(root: HDKey): PqOmniSlot[] {
       publicKey: bytesToHex(kp.publicKey),
       secretKey: bytesToHex(kp.secretKey),
     };
-  });
+  }));
 }
 
 export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string; pqOmni: PqOmniSlot[]; root: HDKey } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
@@ -287,6 +287,7 @@ export function derivedKeysFromMnemonic(
   const child = account.derive(`/0/${walletIndex}`);
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
   // PQ-OMNI slots derived from the same root at different accounts (5'..8').
+  // Returns a Promise — PQ modules load lazily on first call.
   const pqOmni = derivePqOmniSlots(root);
   return {
     privateKey: bytesToHex(child.privateKey),
@@ -314,7 +315,8 @@ export async function unlockFromMnemonic(
   vaultPin?: string,
   bip39Passphrase = "",
 ): Promise<Unlocked> {
-  const { privateKey: privKey, xprv, xpub, pqOmni } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const { privateKey: privKey, xprv, xpub, pqOmni: pqOmniPromise } = derivedKeysFromMnemonic(mnemonic, walletIndex, bip39Passphrase);
+  const pqOmni = await pqOmniPromise;
   const { publicKey, address } = deriveAddressFromPrivKey(privKey);
   // Hold the mnemonic + xprv ONLY in process RAM (singleton). Never written
   // to sessionStorage / localStorage / vault — the vault payload is just the
