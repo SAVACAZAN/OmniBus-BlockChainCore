@@ -451,6 +451,134 @@ export function ZeroDayPage() {
       }
     }
 
+    // ── Fireworks ─────────────────────────────────────────────────────────────
+    type FWParticle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; color: string; size: number; };
+    type Firework = { x: number; y: number; vy: number; life: number; maxLife: number; color: string; burst: boolean; particles: FWParticle[]; };
+    const fireworks: Firework[] = [];
+    let nextFirework = 1 + Math.random() * 2;
+
+    function spawnFirework() {
+      const x = 80 + Math.random() * (W - 160);
+      const targetY = 60 + Math.random() * (H * 0.45);
+      const hue = Math.floor(Math.random() * 360);
+      fireworks.push({ x, y: H - 20, vy: -(targetY + (H - 20)) / 0.6, life: 0, maxLife: 0.6 + Math.random() * 0.2, color: hslToHex(hue, 100, 65), burst: false, particles: [] });
+    }
+
+    function burstFirework(fw: Firework) {
+      const count = 28 + Math.floor(Math.random() * 20);
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.3;
+        const speed = 60 + Math.random() * 120;
+        fw.particles.push({ x: fw.x, y: fw.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0, maxLife: 0.8 + Math.random() * 0.6, color: fw.color, size: 1.5 + Math.random() * 2 });
+      }
+    }
+
+    function drawFireworks(dt: number) {
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+        const fw = fireworks[i];
+        if (!fw.burst) {
+          fw.y += fw.vy * dt;
+          fw.life += dt;
+          if (fw.life >= fw.maxLife) { fw.burst = true; fw.y = Math.max(fw.y, 40); burstFirework(fw); }
+          // rocket trail
+          ctx.globalAlpha = 0.85;
+          ctx.strokeStyle = fw.color;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = fw.color; ctx.shadowBlur = 12;
+          ctx.beginPath(); ctx.moveTo(fw.x, fw.y + 10); ctx.lineTo(fw.x + (Math.random()-0.5)*4, fw.y); ctx.stroke();
+          ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+        } else {
+          let alive = false;
+          for (let j = fw.particles.length - 1; j >= 0; j--) {
+            const p = fw.particles[j];
+            p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt;
+            if (p.life >= p.maxLife) { fw.particles.splice(j, 1); continue; }
+            alive = true;
+            const a = 1 - p.life / p.maxLife;
+            ctx.globalAlpha = a * 0.9;
+            ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+          if (!alive) fireworks.splice(i, 1);
+        }
+      }
+    }
+
+    // ── Fire emitters ──────────────────────────────────────────────────────────
+    type Flame = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; hue: number; };
+    const flames: Flame[] = [];
+    // 3 fire sources along the bottom
+    const fireSources = [W * 0.15, W * 0.5, W * 0.85];
+
+    function spawnFlames() {
+      for (const sx of fireSources) {
+        for (let k = 0; k < 3; k++) {
+          flames.push({ x: sx + (Math.random()-0.5)*24, y: H - 10, vx: (Math.random()-0.5)*18, vy: -(80 + Math.random()*120), life: 0, maxLife: 0.6 + Math.random()*0.5, size: 8 + Math.random()*14, hue: 15 + Math.random()*30 });
+        }
+      }
+    }
+    let nextFlame = 0;
+
+    function drawFlames(dt: number) {
+      for (let i = flames.length - 1; i >= 0; i--) {
+        const f = flames[i];
+        f.life += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy *= 0.98;
+        if (f.life >= f.maxLife) { flames.splice(i, 1); continue; }
+        const p = f.life / f.maxLife;
+        const alpha = p < 0.2 ? p/0.2 : 1 - (p-0.2)/0.8;
+        const hue = f.hue + p * 25; // orange → yellow → white
+        const size = f.size * (1 - p * 0.4);
+        ctx.globalAlpha = alpha * 0.75;
+        ctx.fillStyle = hslToHex(hue, 100, 55 + p*30);
+        ctx.shadowColor = hslToHex(f.hue, 100, 50); ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.arc(f.x, f.y, size, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    }
+
+    // ── Puppy patrol 🐶 ───────────────────────────────────────────────────────
+    const PUPPY_EMOJIS = ["🐶","🐕","🐩","🦮","🐕‍🦺"];
+    type Puppy = { x: number; y: number; dir: number; speed: number; emoji: string; bounce: number; life: number; };
+    const puppies: Puppy[] = [];
+    // spawn initial patrol
+    for (let i = 0; i < 4; i++) {
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      puppies.push({ x: (i / 4) * W + Math.random()*80, y: H - 32, dir, speed: 55 + Math.random()*40, emoji: PUPPY_EMOJIS[i % PUPPY_EMOJIS.length], bounce: Math.random()*Math.PI*2, life: 0 });
+    }
+    let nextPuppy = 6 + Math.random() * 8;
+
+    function updateAndDrawPuppies(dt: number) {
+      // spawn extra puppy occasionally
+      nextPuppy -= dt;
+      if (nextPuppy <= 0 && puppies.length < 7) {
+        const dir = Math.random() < 0.5 ? 1 : -1;
+        puppies.push({ x: dir > 0 ? -30 : W + 30, y: H - 32, dir, speed: 60 + Math.random()*50, emoji: PUPPY_EMOJIS[Math.floor(Math.random()*PUPPY_EMOJIS.length)], bounce: 0, life: 0 });
+        nextPuppy = 4 + Math.random() * 6;
+      }
+      for (let i = puppies.length - 1; i >= 0; i--) {
+        const p = puppies[i];
+        p.life += dt;
+        p.x += p.dir * p.speed * dt;
+        p.bounce += dt * 6;
+        const bobY = Math.abs(Math.sin(p.bounce)) * 5;
+        // bounce off walls
+        if (p.x > W + 40) p.dir = -1;
+        if (p.x < -40) p.dir = 1;
+        const drawY = p.y - bobY;
+        ctx.save();
+        ctx.scale(p.dir < 0 ? -1 : 1, 1);
+        const drawX = p.dir < 0 ? -p.x : p.x;
+        ctx.font = "22px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.globalAlpha = 0.95;
+        ctx.fillText(p.emoji, drawX, drawY);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+    }
+
     let lastTime = performance.now();
 
     const draw = () => {
@@ -478,6 +606,19 @@ export function ZeroDayPage() {
         spawnSymbol();
         if (Math.random() < 0.25) spawnSymbol();
         nextSymbol = 1.8 + Math.random() * 3;
+      }
+      // spawn fireworks
+      nextFirework -= dt;
+      if (nextFirework <= 0) {
+        spawnFirework();
+        if (Math.random() < 0.4) spawnFirework();
+        nextFirework = 1.5 + Math.random() * 3;
+      }
+      // spawn flames continuously
+      nextFlame -= dt;
+      if (nextFlame <= 0) {
+        spawnFlames();
+        nextFlame = 0.08;
       }
       let elapsed = (now - startTime) / 1000;
 
@@ -512,10 +653,12 @@ export function ZeroDayPage() {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      // Meteoriți, fulgere și simboluri — desenate înainte de plasma, sub orbe
+      // Foc jos, meteoriți, fulgere, simboluri — sub plasma
+      drawFlames(dt);
       drawMeteors(dt);
       drawLightnings(dt);
       drawFloatSymbols(dt);
+      drawFireworks(dt);
 
       if (stage === 0) {
         const r = lerp(12, 28, e);
@@ -613,6 +756,9 @@ export function ZeroDayPage() {
 
         drawText("OmniBus 0day", `Orange + ${palette.secMain.toUpperCase()} = Evolution #${cycle + 1}`);
       }
+
+      // Cățeluși — mereu deasupra, patrulează la marginea de jos
+      updateAndDrawPuppies(dt);
 
       ctx.shadowBlur = 0;
       ctx.fillStyle = "#6b7280";
