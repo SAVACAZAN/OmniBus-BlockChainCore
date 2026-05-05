@@ -2,12 +2,14 @@ const std = @import("std");
 const transaction_mod = @import("transaction.zig");
 const light_client_mod = @import("light_client.zig");
 const oracle_types = @import("oracle_types.zig");
+const matching_mod = @import("matching_engine.zig");
 const array_list = std.array_list;
 
 pub const Transaction = transaction_mod.Transaction;
 pub const MerkleProof = light_client_mod.MerkleProof;
 pub const BlockPriceEntry = oracle_types.BlockPriceEntry;
 pub const BLOCK_PRICE_SLOTS = oracle_types.BLOCK_PRICE_SLOTS;
+pub const Fill = matching_mod.Fill;
 
 /// Maximum block size in bytes (1 MB, like Dogecoin/Bitcoin legacy)
 pub const MAX_BLOCK_SIZE: usize = 1_048_576;
@@ -42,6 +44,88 @@ pub const Block = struct {
     /// Mixed into calculateHash so the block hash commits to the prices —
     /// any tampering invalidates PoW. Zero-hash means "no prices recorded".
     prices_root: [32]u8 = [_]u8{0} ** 32,
+
+    /// PHASE 2D — Match fills produced when applyBlock matches order TXs
+    /// from this block. Fills are appended to history so RPC endpoints
+    /// (Ledgers, TradesHistory, OHLC, Spread) can derive answers from
+    /// chain state without an in-memory log. Empty for genesis and any
+    /// block that touched no orders.
+    fills: []const Fill = &.{},
+    /// SHA-256 of the canonical fills encoding (see computeFillsRoot).
+    /// Mixed into calculateHash so the block hash commits to the fills —
+    /// every node MUST reach the same set of fills for the same orders.
+    /// Zero-hash means "no fills produced".
+    fills_root: [32]u8 = [_]u8{0} ** 32,
+    /// True if `fills` slice owns heap memory (allocated by applyBlock,
+    /// freed in deinit). False when fills came from a static slice
+    /// (e.g. genesis, light-node restore from disk).
+    fills_heap: bool = false,
+
+    /// Canonical on-wire size for a single Fill record (180 bytes).
+    /// Layout (little-endian, packed):
+    ///   [0..8]    fill_id          u64
+    ///   [8..16]   buy_order_id     u64
+    ///   [16..24]  sell_order_id    u64
+    ///   [24..32]  price_micro_usd  u64
+    ///   [32..40]  amount_sat       u64
+    ///   [40..48]  timestamp_ms     i64
+    ///   [48..50]  pair_id          u16
+    ///   [50..114] buyer_address    [64]u8
+    ///   [114]     buyer_addr_len   u8
+    ///   [115..179] seller_address  [64]u8
+    ///   [179]     seller_addr_len  u8
+    pub const FILL_WIRE_SIZE: usize = 180;
+
+    /// Encode a single Fill to its canonical 180-byte representation.
+    pub fn encodeFill(f: *const Fill, out: []u8) void {
+        std.debug.assert(out.len >= FILL_WIRE_SIZE);
+        @memset(out[0..FILL_WIRE_SIZE], 0);
+        std.mem.writeInt(u64, out[0..8], f.fill_id, .little);
+        std.mem.writeInt(u64, out[8..16], f.buy_order_id, .little);
+        std.mem.writeInt(u64, out[16..24], f.sell_order_id, .little);
+        std.mem.writeInt(u64, out[24..32], f.price_micro_usd, .little);
+        std.mem.writeInt(u64, out[32..40], f.amount_sat, .little);
+        std.mem.writeInt(i64, out[40..48], f.timestamp_ms, .little);
+        std.mem.writeInt(u16, out[48..50], f.pair_id, .little);
+        @memcpy(out[50..114], &f.buyer_address);
+        out[114] = f.buyer_addr_len;
+        @memcpy(out[115..179], &f.seller_address);
+        out[179] = f.seller_addr_len;
+    }
+
+    /// Decode 180 bytes back into a Fill. No allocation needed.
+    pub fn decodeFill(buf: []const u8) Fill {
+        std.debug.assert(buf.len >= FILL_WIRE_SIZE);
+        var f = Fill.empty();
+        f.fill_id = std.mem.readInt(u64, buf[0..8], .little);
+        f.buy_order_id = std.mem.readInt(u64, buf[8..16], .little);
+        f.sell_order_id = std.mem.readInt(u64, buf[16..24], .little);
+        f.price_micro_usd = std.mem.readInt(u64, buf[24..32], .little);
+        f.amount_sat = std.mem.readInt(u64, buf[32..40], .little);
+        f.timestamp_ms = std.mem.readInt(i64, buf[40..48], .little);
+        f.pair_id = std.mem.readInt(u16, buf[48..50], .little);
+        @memcpy(&f.buyer_address, buf[50..114]);
+        f.buyer_addr_len = buf[114];
+        @memcpy(&f.seller_address, buf[115..179]);
+        f.seller_addr_len = buf[179];
+        return f;
+    }
+
+    /// Computes the fills_root: SHA-256 over canonical fill encoding.
+    /// Fills hashed in input order (matching engine's fill_id order).
+    /// Empty fills array → zero hash.
+    pub fn computeFillsRoot(fills: []const Fill) [32]u8 {
+        if (fills.len == 0) return [_]u8{0} ** 32;
+        var hasher = std.crypto.hash.sha2.Sha256.init(.{});
+        for (fills) |f| {
+            var rec: [FILL_WIRE_SIZE]u8 = undefined;
+            encodeFill(&f, &rec);
+            hasher.update(&rec);
+        }
+        var out: [32]u8 = undefined;
+        hasher.final(&out);
+        return out;
+    }
 
     /// Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bitcoin)
     pub fn calculateMerkleRoot(self: *const Block) [32]u8 {
