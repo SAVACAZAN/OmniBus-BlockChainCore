@@ -56,34 +56,51 @@ async function signerFor(scheme: PqScheme) {
  * Returns a Promise — callers must await. The modules load on first call
  * and are cached for subsequent calls.
  */
+/**
+ * Canonical seed expansion for PQ keygen — must match the chain side
+ * (`core/isolated_wallet.zig:325-432`) and any stress test in
+ * `tools/TESTING/`. The rule:
+ *
+ *   ML-DSA-87 / Dilithium-5  (expected 32 bytes) → sha256(input)
+ *   Falcon-512               (expected 48 bytes) → sha512(input)[0..48]
+ *   SLH-DSA-256s             (expected 96 bytes) → sha512 counter-mode
+ *
+ * Apply ALWAYS — even if the caller already passes 32 bytes — so derivation
+ * is deterministic across UI, scripts, and chain. Skipping the hash when
+ * input length already matches `expected` produced different keys for the
+ * same mnemonic in two code paths and stranded test balances on
+ * non-canonical addresses.
+ */
 export async function pqKeypairFromSeed(scheme: PqScheme, seed: Uint8Array): Promise<{
   publicKey: Uint8Array;
   secretKey: Uint8Array;
 }> {
   const signer = await signerFor(scheme);
-  let extendedSeed = seed;
   const expected = (signer as any).lengths?.seed ?? 32;
-  if (seed.length !== expected) {
-    if (expected === 48) {
-      extendedSeed = sha512(seed).slice(0, 48);
-    } else if (expected === 32) {
-      extendedSeed = sha256(seed).slice(0, 32);
-    } else {
-      const out = new Uint8Array(expected);
-      let off = 0;
-      let counter = 0;
-      while (off < expected) {
-        const counterBuf = new Uint8Array(seed.length + 1);
-        counterBuf.set(seed);
-        counterBuf[seed.length] = counter++;
-        const block = sha512(counterBuf);
-        const take = Math.min(block.length, expected - off);
-        out.set(block.slice(0, take), off);
-        off += take;
-      }
-      extendedSeed = out;
+
+  let extendedSeed: Uint8Array;
+  if (expected === 32) {
+    // ML-DSA-87 / Dilithium-5 — single SHA-256 round (deterministic, canon).
+    extendedSeed = sha256(seed);
+  } else if (expected === 48) {
+    // Falcon-512 — first 48 bytes of SHA-512.
+    extendedSeed = sha512(seed).slice(0, 48);
+  } else {
+    // SLH-DSA-256s (96 bytes) — counter-mode SHA-512 expansion.
+    extendedSeed = new Uint8Array(expected);
+    let off = 0;
+    let counter = 0;
+    while (off < expected) {
+      const counterBuf = new Uint8Array(seed.length + 1);
+      counterBuf.set(seed);
+      counterBuf[seed.length] = counter++;
+      const block = sha512(counterBuf);
+      const take = Math.min(block.length, expected - off);
+      extendedSeed.set(block.slice(0, take), off);
+      off += take;
     }
   }
+
   const kp = signer.keygen(extendedSeed);
   return {
     publicKey: kp.publicKey as Uint8Array,
