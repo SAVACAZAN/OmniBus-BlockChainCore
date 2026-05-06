@@ -12,6 +12,7 @@ import {
 } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
+import { NameManagePanel } from "../names/NameManagePanel";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -96,6 +97,9 @@ export function WalletPage() {
   const [sendTo, setSendTo] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [sendFee, setSendFee] = useState("");
+  // Source address selector — defaults to OMNI primary, can switch to any of the
+  // 4 transferable PQ-OMNI addresses (obk1_/obf5_/obd5_/obs3_).
+  const [sendFromScheme, setSendFromScheme] = useState<string>("omni_ecdsa");
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string; txid?: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -134,14 +138,26 @@ export function WalletPage() {
         });
       } catch {}
 
+      // Use getaddresshistory(unlocked.address) instead of listtransactions —
+      // listtransactions filters by ctx.wallet.address (the node's own miner
+      // wallet), which is NOT the user's connected address. Worse, even when
+      // the node IS the user, it only surfaced *sent* TXs in the legacy path.
+      // getaddresshistory walks address_tx_index for the *connected* address
+      // and includes BOTH directions (sent + received) plus mempool pending.
+      // classifyTx() reads tx.from/tx.to/tx.direction → already compatible.
       try {
-        const listResult = await rpc.listTransactions(50);
-        setTransactions(listResult?.transactions || []);
+        const histResult = await rpc.getAddressHistory(unlocked.address);
+        setTransactions(histResult?.transactions || []);
       } catch {
         try {
-          const fallback = await rpc.request_raw("gettransactions");
+          const fallback = await rpc.listTransactions(50);
           setTransactions(fallback?.transactions || []);
-        } catch {}
+        } catch {
+          try {
+            const last = await rpc.request_raw("gettransactions");
+            setTransactions(last?.transactions || []);
+          } catch {}
+        }
       }
 
       try {
@@ -182,6 +198,28 @@ export function WalletPage() {
     lockWallet();
   };
 
+  const handleResetAll = () => {
+    const ok = window.confirm(
+      "⚠ Reset complet?\n\n" +
+      "Aceasta va șterge TOATE datele wallet din browser:\n" +
+      "  • Mnemonic encriptat (vault)\n" +
+      "  • PIN-ul salvat\n" +
+      "  • Sesiunea curentă\n" +
+      "  • Cache local (chain selector, etc.)\n\n" +
+      "Vei putea reconecta cu mnemonic-ul tău (asigură-te că-l ai notat).\n" +
+      "OMNI tăi rămân pe blockchain — doar accesul local se resetează.\n\n" +
+      "Continui?"
+    );
+    if (!ok) return;
+    try {
+      lockWallet();
+    } catch {}
+    try { localStorage.clear(); } catch {}
+    try { sessionStorage.clear(); } catch {}
+    // Hard reload bypassing cache
+    window.location.replace(window.location.pathname + "?reset=" + Date.now());
+  };
+
   const handleSend = async () => {
     if (!sendTo || !sendAmount) return;
     setSending(true);
@@ -189,10 +227,70 @@ export function WalletPage() {
     try {
       const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
-      if (amountSat > balance.sat) throw new Error("Insufficient balance");
-      const result: any = await rpc.sendTransaction(sendTo, amountSat);
-      const txid = typeof result === "object" ? result?.txid : result;
-      setSendResult({ ok: true, msg: `TX signed & sent`, txid: (txid || "").toString() });
+
+      // ── PQ-OMNI path ────────────────────────────────────────────────────
+      // If user chose a transferable PQ-OMNI source, sign with the matching
+      // post-quantum scheme and route via pq_send RPC.
+      if (sendFromScheme !== "omni_ecdsa") {
+        const slot = unlocked?.pqOmni?.find(s => s.scheme === sendFromScheme);
+        if (!slot) throw new Error("PQ-OMNI slot not derived — re-unlock from mnemonic");
+        if (!slot.secretKey?.length) throw new Error("PQ secret key missing — re-unlock from mnemonic");
+
+        const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
+        const nonce: number = typeof nonceRes === "number" ? nonceRes
+          : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+        const txId = Math.floor(Math.random() * 0x7fffffff);
+        const timestamp = Math.floor(Date.now() / 1000);
+        const fee = sendFee ? parseInt(sendFee, 10) : (feeEstimate?.medianFee ?? 1);
+
+        const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } =
+          await import("../../api/pq-sign");
+        const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
+        // Scheme code: enum order from core/transaction.zig:
+        //   pq_omni_ml_dsa=5, pq_omni_falcon=6, pq_omni_dilithium=7, pq_omni_slh_dsa=8
+        // PQ_OMNI_SCHEMES order in keystore matches: [ml_dsa_87, falcon_512, dilithium_5, slh_dsa_256s] → +5.
+        // CRITICAL: param names must match buildTxHash signature exactly:
+        //   - `schemeCode` (NOT `scheme`)
+        //   - `opReturn`   (NOT `op_return`)
+        //   - `publicKeyBytes` MUST be passed — backend includes it in hash recipe.
+        const msgHash = buildTxHash({
+          id: txId,
+          from: slot.address,
+          to: sendTo,
+          amount: amountSat,
+          fee,
+          timestamp,
+          nonce,
+          schemeCode: Object.keys(PQ_OMNI_SCHEMES).indexOf(slot.scheme) + 5,
+          publicKeyBytes: pubKeyBytes,
+          opReturn: "",
+        });
+        const sigBytes = await pqSign(slot.scheme, hToB(slot.secretKey), msgHash);
+
+        // Backend uses canonical scheme names "pq_omni_ml_dsa" / "pq_omni_falcon" / etc.
+        // Frontend slot.scheme is short ("ml_dsa_87"). Map before sending.
+        const SCHEME_MAP: Record<string, string> = {
+          ml_dsa_87:    "pq_omni_ml_dsa",
+          falcon_512:   "pq_omni_falcon",
+          dilithium_5:  "pq_omni_dilithium",
+          slh_dsa_256s: "pq_omni_slh_dsa",
+        };
+        const wireScheme = SCHEME_MAP[slot.scheme] ?? slot.scheme;
+
+        const result: any = await rpc.pqSend({
+          from: slot.address, to: sendTo, amount: amountSat, fee,
+          scheme: wireScheme, signature: bToH(sigBytes), public_key: bToH(pubKeyBytes),
+          id: txId, timestamp, nonce, op_return: "",
+        });
+        const txid = typeof result === "object" ? result?.txid : result;
+        setSendResult({ ok: true, msg: `PQ TX signed & sent (${slot.scheme})`, txid: (txid || "").toString() });
+      } else {
+        // ── Classic OMNI primary path (secp256k1 ECDSA) ──────────────────
+        if (amountSat > balance.sat) throw new Error("Insufficient balance");
+        const result: any = await rpc.sendTransaction(sendTo, amountSat);
+        const txid = typeof result === "object" ? result?.txid : result;
+        setSendResult({ ok: true, msg: `TX signed & sent`, txid: (txid || "").toString() });
+      }
       setSendTo("");
       setSendAmount("");
       setSendFee("");
@@ -238,6 +336,15 @@ export function WalletPage() {
             ECDSA). Post-Quantum secured with 5 address domains (ML-DSA, Falcon,
             Dilithium, SLH-DSA).
           </p>
+          <div className="pt-2 border-t border-mempool-border/40">
+            <button
+              onClick={handleResetAll}
+              title="Șterge vault local, PIN, cache. OMNI rămân pe blockchain."
+              className="text-[10px] text-mempool-text-dim hover:text-red-400 transition-colors"
+            >
+              🗑 Reset all local data (vault corupt? folosește asta)
+            </button>
+          </div>
         </div>
 
         {/* Node status */}
@@ -264,30 +371,48 @@ export function WalletPage() {
             <p className="text-xs text-mempool-blue font-semibold mt-0.5">{myName}</p>
           )}
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-xs text-mempool-text-dim hover:text-mempool-red transition-colors px-3 py-1.5 rounded border border-mempool-border hover:border-mempool-red"
-        >
-          Lock Wallet
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="text-xs text-mempool-text-dim hover:text-mempool-red transition-colors px-3 py-1.5 rounded border border-mempool-border hover:border-mempool-red"
+          >
+            Lock Wallet
+          </button>
+          <button
+            onClick={handleResetAll}
+            title="Șterge mnemonic encriptat + PIN + cache local. OMNI rămân pe blockchain."
+            className="text-xs text-mempool-text-dim hover:text-red-400 transition-colors px-3 py-1.5 rounded border border-mempool-border hover:border-red-400"
+          >
+            🗑 Reset All
+          </button>
+        </div>
       </div>
 
-      {/* Balance Card */}
-      <div className="bg-gradient-to-br from-mempool-card to-mempool-bg-light rounded-xl border border-mempool-border p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-mempool-text-dim uppercase tracking-wider mb-1">Total Balance</p>
-            <p className="text-4xl font-mono font-bold text-mempool-green">{balance.omni}</p>
-            <p className="text-sm text-mempool-text-dim mt-1">
-              OMNI = {balance.sat.toLocaleString()} SAT
+      {/* Soulbound Hero — 4 domains showcased on top, animated bars */}
+      <SoulboundHero cups={reputation?.cups} tier={reputation?.tier} satoshi={reputation?.satoshi_badge} />
+
+      {/* Balance + quick stats — single full-width gradient card */}
+      <div className="bg-gradient-to-br from-mempool-card via-mempool-bg-elev to-mempool-bg-light rounded-2xl border border-mempool-border overflow-hidden">
+        <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="col-span-2 sm:col-span-2">
+            <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Total Balance</p>
+            <p className="text-4xl font-mono font-bold text-mempool-green tracking-tight">{balance.omni}</p>
+            <p className="text-xs text-mempool-text-dim mt-1">
+              OMNI · {balance.sat.toLocaleString()} SAT
             </p>
           </div>
-          {walletNonce !== null && (
-            <div className="text-right">
-              <p className="text-[10px] text-mempool-text-dim uppercase">Nonce</p>
-              <p className="text-lg font-mono text-mempool-blue">{walletNonce}</p>
-            </div>
-          )}
+          <div>
+            <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Nonce</p>
+            <p className="text-2xl font-mono text-mempool-blue">{walletNonce ?? "—"}</p>
+            <p className="text-[10px] text-mempool-text-dim/60 mt-1">UTXO: {utxos.length}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Tier</p>
+            <p className={`text-2xl font-bold ${reputation?.satoshi_badge ? "text-mempool-orange" : "text-mempool-text"}`}>
+              {reputation?.tier ?? "OMNI"}
+            </p>
+            {reputation?.satoshi_badge && <p className="text-[10px] text-mempool-orange mt-1">★ Satoshi</p>}
+          </div>
         </div>
       </div>
 
@@ -299,6 +424,33 @@ export function WalletPage() {
             Send OMNI
           </h3>
           <div className="space-y-3">
+            {/* From — source address selector */}
+            <div>
+              <label className="text-[10px] text-mempool-text-dim uppercase">From</label>
+              <select
+                value={sendFromScheme}
+                onChange={(e) => setSendFromScheme(e.target.value)}
+                className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue mt-1"
+              >
+                <option value="omni_ecdsa">
+                  🔑 OMNI Primary (ECDSA) — {unlocked.address.slice(0, 14)}…{unlocked.address.slice(-6)}
+                </option>
+                {unlocked.pqOmni && unlocked.pqOmni.map((slot) => (
+                  <option key={slot.scheme} value={slot.scheme}>
+                    {slot.scheme === "ml_dsa_87"   && "🛡 PQ ML-DSA-87"}
+                    {slot.scheme === "falcon_512"  && "🛡 PQ Falcon-512"}
+                    {slot.scheme === "dilithium_5" && "🛡 PQ Dilithium-5"}
+                    {slot.scheme === "slh_dsa_256s"&& "🛡 PQ SLH-DSA-256s"}
+                    {" — "}{slot.address.slice(0, 14)}…{slot.address.slice(-6)}
+                  </option>
+                ))}
+              </select>
+              {sendFromScheme !== "omni_ecdsa" && (
+                <p className="text-[9px] text-mempool-blue mt-1">
+                  Post-quantum signed — uses {sendFromScheme} secret key (RAM only)
+                </p>
+              )}
+            </div>
             <div>
               <label className="text-[10px] text-mempool-text-dim uppercase">Recipient Address</label>
               <input
@@ -342,7 +494,13 @@ export function WalletPage() {
             <div className="bg-mempool-bg rounded-lg p-3 text-[10px] text-mempool-text-dim space-y-1">
               <div className="flex justify-between">
                 <span>Signing:</span>
-                <span className="text-mempool-blue">secp256k1 ECDSA</span>
+                <span className="text-mempool-blue">
+                  {sendFromScheme === "omni_ecdsa"   && "secp256k1 ECDSA"}
+                  {sendFromScheme === "ml_dsa_87"    && "ML-DSA-87 (PQ)"}
+                  {sendFromScheme === "falcon_512"   && "Falcon-512 (PQ)"}
+                  {sendFromScheme === "dilithium_5"  && "Dilithium-5 (PQ)"}
+                  {sendFromScheme === "slh_dsa_256s" && "SLH-DSA-256s (PQ)"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Fee:</span>
@@ -508,8 +666,13 @@ export function WalletPage() {
       {/* My .omnibus names — pick which one represents me globally */}
       <MyNamesPanel address={unlocked.address} />
 
-      {/* Transaction History */}
-      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
+      {/* Phase 2 NS: per-name management (PQ slots, category badge, preferred slot) */}
+      <OwnedNameManageWrapper ownerAddress={unlocked.address} />
+
+      {/* Bottom split: 2/3 transaction history, 1/3 rewards legend (sticky) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Transaction History — 2/3 width */}
+      <div className="lg:col-span-2 bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
           <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
             Transaction History
@@ -604,6 +767,62 @@ export function WalletPage() {
               })
           )}
         </div>
+      </div>
+
+      {/* Rewards Legend — 1/3 width sticky sidebar (right column) */}
+      <div className="lg:col-span-1">
+        <div className="lg:sticky lg:top-4 space-y-3">
+          <RewardsLegendCard cups={reputation?.cups} />
+        </div>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+// ── RewardsLegendCard — bottom-right sidebar replacement ────────────────────
+// Compact, always-visible legend showing how each cup grows.
+// Replaces the old collapsible RewardsBreakdownPanel (still used elsewhere).
+
+function RewardsLegendCard({ cups }: { cups?: { love: string; food: string; rent: string; vacation: string } }) {
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
+      <div className="px-4 py-3 border-b border-mempool-border bg-gradient-to-r from-purple-900/20 to-transparent">
+        <h3 className="text-xs font-bold text-mempool-text uppercase tracking-wider">🎁 Rewards Legend</h3>
+        <p className="text-[10px] text-mempool-text-dim mt-0.5">How each soulbound cup fills</p>
+      </div>
+      <div className="p-3 space-y-2.5">
+        {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+          const r = REWARD_RULES[tier];
+          const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
+          return (
+            <div key={tier} className="rounded-lg bg-mempool-bg/50 border border-mempool-border/30 p-2.5">
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className={`text-[11px] font-bold ${r.color}`}>
+                  {r.emoji} {tier}
+                </span>
+                <span className="text-[10px] font-mono text-mempool-text-dim">{cup}/100</span>
+              </div>
+              <div className="space-y-0.5">
+                {r.earn.map((rule, i) => (
+                  <div key={i} className="flex items-center justify-between text-[9px] gap-2">
+                    <span className="text-mempool-text-dim/80 truncate flex-1">{rule.what}</span>
+                    <span className="font-mono text-mempool-green font-semibold whitespace-nowrap">{rule.pts}</span>
+                  </div>
+                ))}
+                {r.penalty?.map((p, i) => (
+                  <div key={`p${i}`} className="flex items-center justify-between text-[9px] gap-2">
+                    <span className="text-mempool-text-dim/60 truncate flex-1">{p.what}</span>
+                    <span className="font-mono text-red-400 font-semibold whitespace-nowrap">{p.pts}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <p className="text-[9px] text-mempool-text-dim/60 leading-snug px-1 pt-1">
+          Hit <span className="text-mempool-orange">100/100</span> in all 4 → Satoshi badge (Zen tier).
+        </p>
       </div>
     </div>
   );
@@ -704,6 +923,23 @@ function MyNamesPanel({ address }: { address: string }) {
   );
 }
 
+// ── OwnedNameManageWrapper ──────────────────────────────────────────────────
+//
+// Bridges useNamesOwnedBy() (whose entries shape lives in api/use-names.ts)
+// into the NameManagePanel which expects {fullLabel, name, tld,
+// registeredAtBlock} only. Keeps the panel decoupled from the concrete
+// hook so the same panel can be reused outside Wallet (e.g. NamesPage).
+function OwnedNameManageWrapper({ ownerAddress }: { ownerAddress: string }) {
+  const names = useNamesOwnedBy(ownerAddress);
+  const owned = names.map((n) => ({
+    fullLabel: n.fullLabel,
+    name: n.name,
+    tld: n.tld,
+    registeredAtBlock: n.registeredAtBlock,
+  }));
+  return <NameManagePanel ownerAddress={ownerAddress} ownedNames={owned} />;
+}
+
 // ── PQDomainCard ────────────────────────────────────────────────────────────
 //
 // Click to expand. Shows everything we know about this PQ domain for the
@@ -713,15 +949,405 @@ function MyNamesPanel({ address }: { address: string }) {
 // project_omnibus_5_isolated_wallets memory. For now we surface what we
 // have; full multi-mnemonic UI is its own session.
 
+// ── OnboardingFaucetButton ───────────────────────────────────────────────────
+// Step 1 of onboarding: claim ~0.001 OMNI from the protocol faucet so the
+// address can pay the small fee for pq_attest_v1. The button is hidden when
+// the wallet already has any OMNI balance, or when the faucet is empty.
+
+function OnboardingFaucetButton({ address, balanceSat }: { address: string; balanceSat: number }) {
+  const [status, setStatus] = useState<"idle"|"sending"|"ok"|"err"|"loading">("loading");
+  const [msg, setMsg] = useState("");
+  const [faucetEnabled, setFaucetEnabled] = useState(false);
+  const [declHash, setDeclHash] = useState("");
+
+  useEffect(() => {
+    rpc.getFaucetStatus().then(s => {
+      if (s) {
+        setFaucetEnabled(!!s.enabled);
+        setDeclHash(s.declaration_hash);
+      }
+      setStatus("idle");
+    }).catch(() => setStatus("idle"));
+  }, []);
+
+  async function claim() {
+    if (!declHash) { setMsg("Faucet status unavailable"); setStatus("err"); return; }
+    setStatus("sending");
+    try {
+      const r = await rpc.claimFaucet(address, declHash);
+      setStatus("ok");
+      setMsg(`TX: ${r.txid?.slice(0, 16)}…`);
+    } catch (e: any) {
+      setStatus("err");
+      setMsg(e?.message ?? "Claim failed");
+    }
+  }
+
+  // Hide when wallet already has funds or faucet is offline.
+  if (balanceSat > 0) return null;
+  if (status === "loading") return null;
+  if (!faucetEnabled) return (
+    <div className="mt-2 text-[9px] text-yellow-400">
+      ⚠ Faucet temporary offline — needs community refill
+    </div>
+  );
+  if (status === "ok") return (
+    <div className="mt-2 text-[9px] text-mempool-green font-semibold">
+      ✓ Faucet sent · {msg} · Now click Register Identity below
+    </div>
+  );
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={claim}
+        disabled={status === "sending"}
+        className="text-[9px] px-2.5 py-1 rounded bg-mempool-orange/20 border border-mempool-orange/40 text-mempool-orange hover:bg-mempool-orange/30 disabled:opacity-50 font-semibold"
+      >
+        {status === "sending" ? "Claiming…" : "🚰 Step 1: Claim Onboarding Faucet"}
+      </button>
+      {status === "err" && <span className="text-[9px] text-red-400">{msg}</span>}
+    </div>
+  );
+}
+
+// ── SoulboundHero — top of wallet, big animated showcase ────────────────────
+// 4 cards (LOVE / FOOD / RENT / VACATION) with animated progress bars. The
+// fill animation runs once per value change, smooth 1s ease-out. When all 4
+// are 100/100, the whole hero glows orange + shows the Satoshi badge.
+
+const SOULBOUND_HERO: { tier: "LOVE" | "FOOD" | "RENT" | "VACATION"; emoji: string; label: string; subtitle: string; gradient: string; bar: string; ring: string }[] = [
+  {
+    tier: "LOVE",
+    emoji: "❤️",
+    label: "LOVE",
+    subtitle: "Uptime · loyalty",
+    gradient: "from-purple-900/40 via-purple-800/20 to-mempool-bg-elev",
+    bar: "from-purple-500 to-fuchsia-400",
+    ring: "ring-purple-500/30",
+  },
+  {
+    tier: "FOOD",
+    emoji: "🥖",
+    label: "FOOD",
+    subtitle: "Useful work",
+    gradient: "from-emerald-900/40 via-green-800/20 to-mempool-bg-elev",
+    bar: "from-emerald-500 to-green-400",
+    ring: "ring-green-500/30",
+  },
+  {
+    tier: "RENT",
+    emoji: "🏠",
+    label: "RENT",
+    subtitle: "Capital committed",
+    gradient: "from-orange-900/40 via-amber-800/20 to-mempool-bg-elev",
+    bar: "from-orange-500 to-amber-400",
+    ring: "ring-orange-500/30",
+  },
+  {
+    tier: "VACATION",
+    emoji: "🏖️",
+    label: "VACATION",
+    subtitle: "Longevity",
+    gradient: "from-sky-900/40 via-cyan-800/20 to-mempool-bg-elev",
+    bar: "from-sky-400 to-cyan-300",
+    ring: "ring-sky-500/30",
+  },
+];
+
+function SoulboundHero({
+  cups,
+  tier,
+  satoshi,
+}: {
+  cups?: { love: string; food: string; rent: string; vacation: string };
+  tier?: string;
+  satoshi?: boolean;
+}) {
+  // Animate from 0 to actual value on mount + on value change.
+  const [animated, setAnimated] = useState({ love: 0, food: 0, rent: 0, vacation: 0 });
+
+  useEffect(() => {
+    // Two-frame trick — render at 0 first, then push to real values so CSS
+    // transition-all animates the fill.
+    const t = setTimeout(() => {
+      setAnimated({
+        love:     parseFloat(cups?.love     ?? "0"),
+        food:     parseFloat(cups?.food     ?? "0"),
+        rent:     parseFloat(cups?.rent     ?? "0"),
+        vacation: parseFloat(cups?.vacation ?? "0"),
+      });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [cups?.love, cups?.food, cups?.rent, cups?.vacation]);
+
+  const totalRep = (animated.love + animated.food + animated.rent + animated.vacation) * 2500;
+  const isZen = !!satoshi;
+
+  return (
+    <div className={`rounded-2xl border ${isZen ? "border-mempool-orange/60 shadow-[0_0_40px_rgba(249,115,22,0.15)]" : "border-mempool-border"} bg-mempool-bg-elev p-5`}>
+      {/* Header strip — tier + total + Zen badge */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-mempool-text-dim">Soulbound Identity</p>
+          <p className="text-sm text-mempool-text mt-0.5">
+            <span className="text-mempool-text-dim">Tier:</span>{" "}
+            <span className={`font-bold ${isZen ? "text-mempool-orange" : "text-mempool-blue"}`}>
+              {tier ?? "OMNI"}
+            </span>
+            {isZen && <span className="ml-2 text-mempool-orange">★ Satoshi</span>}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-widest text-mempool-text-dim">Reputation</p>
+          <p className={`text-2xl font-mono font-bold ${isZen ? "text-mempool-orange" : "text-mempool-text"}`}>
+            {Math.round(totalRep).toLocaleString()}
+            <span className="text-xs text-mempool-text-dim ml-1">/ 1M</span>
+          </p>
+        </div>
+      </div>
+
+      {/* 4 cards grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {SOULBOUND_HERO.map((d) => {
+          const val = animated[d.tier.toLowerCase() as "love"|"food"|"rent"|"vacation"];
+          const pct = Math.min(100, Math.max(0, val));
+          const filled = pct >= 99.9;
+          return (
+            <div
+              key={d.tier}
+              className={`relative overflow-hidden rounded-xl border border-mempool-border/50 bg-gradient-to-br ${d.gradient} p-4 transition-all hover:scale-[1.02] hover:border-mempool-border ${filled ? `ring-2 ${d.ring}` : ""}`}
+            >
+              {/* Filled-checkmark in corner when 100/100 */}
+              {filled && (
+                <div className="absolute top-2 right-2 text-mempool-orange text-xs">✓ MAX</div>
+              )}
+
+              {/* Emoji + label */}
+              <div className="flex items-baseline justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{d.emoji}</span>
+                  <div>
+                    <p className="text-xs font-bold tracking-wider text-mempool-text">{d.label}</p>
+                    <p className="text-[9px] text-mempool-text-dim">{d.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Big animated value */}
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-3xl font-mono font-bold text-mempool-text tabular-nums">
+                  {val.toFixed(2)}
+                </span>
+                <span className="text-xs text-mempool-text-dim">/ 100</span>
+              </div>
+
+              {/* Animated progress bar */}
+              <div className="h-2 rounded-full bg-mempool-bg/80 overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${d.bar} transition-all duration-1000 ease-out`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+
+              {/* Tiny subtle pulse when at 100 */}
+              {filled && (
+                <div className={`absolute inset-0 pointer-events-none rounded-xl bg-gradient-to-r ${d.bar} opacity-5 animate-pulse`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer hint */}
+      <p className="text-[10px] text-mempool-text-dim/60 mt-3 text-center">
+        Earn rewards by mining, staking, oracle pushes, agent decisions, uptime &amp; longevity.
+        Hit <span className="text-mempool-orange">100/100</span> in all four → unlock the Satoshi badge (Zen tier).
+      </p>
+    </div>
+  );
+}
+
+// ── RewardsBreakdownPanel ────────────────────────────────────────────────────
+// Shows the user EXACTLY how each soulbound cup is earned (and what costs them).
+// Mirrors the constants in core/reputation.zig — keep in sync if those change.
+//
+// All values are in "stored" units (×100). Display dividing by 100 to show OMNI-ish
+// fractional points. CUP_CAP = 10000 stored = 100.00 displayed.
+
+const REWARD_RULES: Record<string, {
+  label: string; emoji: string; color: string;
+  earn: { what: string; per: string; pts: string }[];
+  penalty?: { what: string; pts: string }[];
+}> = {
+  LOVE: {
+    label: "LOVE — Uptime & loyalty",
+    emoji: "❤️",
+    color: "text-mempool-purple",
+    earn: [
+      { what: "Online minute (heartbeat)",        per: "per minute",   pts: "+0.01" },
+      { what: "Daily streak (24h continuous)",     per: "per day",      pts: "+0.50" },
+      { what: "Weekly clean (no violations)",      per: "per week",     pts: "+2.00" },
+    ],
+    penalty: [
+      { what: "Inactivity decay (after 7d offline)", pts: "−0.10/day" },
+    ],
+  },
+  FOOD: {
+    label: "FOOD — Useful work",
+    emoji: "🥖",
+    color: "text-mempool-green",
+    earn: [
+      { what: "Block mined",                       per: "per block",    pts: "+1.00" },
+      { what: "PoUW work report (ML/research)",    per: "per report",   pts: "+0.50" },
+      { what: "Oracle price push",                 per: "per update",   pts: "+0.20" },
+      { what: "Agent decision (validated)",        per: "per decision", pts: "+0.30" },
+      { what: "Arbitrage profit reported",         per: "per fill",     pts: "+0.40" },
+    ],
+    penalty: [
+      { what: "Invalid PoUW/oracle report",         pts: "−1.00" },
+    ],
+  },
+  RENT: {
+    label: "RENT — Capital committed",
+    emoji: "🏠",
+    color: "text-mempool-orange",
+    earn: [
+      { what: "OMNI staked (per OMNI × day)",      per: "per OMNI/day", pts: "+0.01" },
+      { what: "LP liquidity (per OMNI × day)",     per: "per OMNI/day", pts: "+0.02" },
+      { what: "Hold > 90d (long-term lock)",       per: "per OMNI/day", pts: "+0.005" },
+    ],
+    penalty: [
+      { what: "Stake withdrawn before maturity",    pts: "−5.00" },
+    ],
+  },
+  VACATION: {
+    label: "VACATION — Longevity",
+    emoji: "🏖️",
+    color: "text-mempool-text",
+    earn: [
+      { what: "Day on network (since first activity)", per: "per day", pts: "+0.10" },
+      { what: "Year milestone (365d, 730d…)",      per: "per year",     pts: "+5.00" },
+    ],
+  },
+};
+
+function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; rent: string; vacation: string } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-3 rounded-lg bg-mempool-bg/60 border border-mempool-border/40">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full text-left px-3 py-2 flex items-center justify-between hover:bg-mempool-bg-light/30 transition-colors rounded-lg"
+      >
+        <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+          🎁 How rewards are earned (4 domains)
+        </span>
+        <span className="text-[10px] text-mempool-text-dim">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-3">
+          {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+            const r = REWARD_RULES[tier];
+            const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
+            const cupVal = parseFloat(cup);
+            const pct = Math.min(100, Math.max(0, cupVal));
+            return (
+              <div key={tier} className="rounded bg-mempool-bg-elev/60 p-2.5 border border-mempool-border/30">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`text-[10px] font-semibold ${r.color}`}>
+                    {r.emoji} {r.label}
+                  </span>
+                  <span className="text-[10px] font-mono text-mempool-text-dim">
+                    {cup}/100
+                  </span>
+                </div>
+                {/* progress bar */}
+                <div className="h-1 rounded-full bg-mempool-bg overflow-hidden mb-2">
+                  <div
+                    className={`h-full transition-all ${
+                      tier === "LOVE"     ? "bg-mempool-purple" :
+                      tier === "FOOD"     ? "bg-mempool-green" :
+                      tier === "RENT"     ? "bg-mempool-orange" :
+                                            "bg-gray-400"
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  {r.earn.map((rule, i) => (
+                    <div key={i} className="flex items-center justify-between text-[9px]">
+                      <span className="text-mempool-text-dim">
+                        {rule.what} <span className="text-mempool-text-dim/50">({rule.per})</span>
+                      </span>
+                      <span className="font-mono text-mempool-green font-semibold">{rule.pts}</span>
+                    </div>
+                  ))}
+                  {r.penalty && r.penalty.map((p, i) => (
+                    <div key={`p${i}`} className="flex items-center justify-between text-[9px]">
+                      <span className="text-mempool-text-dim/80">{p.what}</span>
+                      <span className="font-mono text-red-400 font-semibold">{p.pts}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          <p className="text-[9px] text-mempool-text-dim/60 leading-relaxed">
+            Toate paharele se umplu până la <span className="text-mempool-text">100/100</span>.
+            Reputația totală agregată e <span className="text-mempool-text">0–1,000,000</span>.
+            Când ai 100 în toate 4 → <span className="text-mempool-orange">Satoshi badge (Zen tier)</span>.
+            Sursă: <code className="text-mempool-blue">core/reputation.zig</code>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── PqAttestButton ───────────────────────────────────────────────────────────
 // One-click "Register Identity" — builds + signs pq_attest_v1 TX and sends
 // via sendpqattest RPC. First-claim wins on chain.
 
 function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keystore").Unlocked }) {
-  const [status, setStatus] = useState<"idle"|"sending"|"ok"|"err">("idle");
+  const [status, setStatus] = useState<"idle"|"checking"|"sending"|"ok"|"err"|"already">("checking");
   const [msg, setMsg] = useState("");
+  const [txid, setTxid] = useState("");
+
+  // On mount: check if this address already has a pq_attest registered on-chain.
+  // If yes, hide the button — first-claim wins, no need to retry.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Local cache — instant feedback if user just attested.
+        const cached = localStorage.getItem(`pqAttest:${unlocked.address}`);
+        if (cached) {
+          if (!cancelled) {
+            setStatus("already");
+            setTxid(cached);
+          }
+          return;
+        }
+        // Authoritative check via chain RPC.
+        const res: any = await rpc.request_raw("getpqidentity", [unlocked.address]);
+        if (!cancelled && res && res.omni_address) {
+          setStatus("already");
+          setTxid(res.attest_tx ?? "");
+          localStorage.setItem(`pqAttest:${unlocked.address}`, res.attest_tx ?? "registered");
+        } else if (!cancelled) {
+          setStatus("idle");
+        }
+      } catch {
+        if (!cancelled) setStatus("idle");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [unlocked.address]);
 
   async function register() {
+    if (status === "sending" || status === "ok" || status === "already") return; // hard guard
     if (!unlocked.soulboundAddresses || !unlocked.privateKey) return;
     const sb = unlocked.soulboundAddresses;
     const love     = sb.find(s => s.tier === "LOVE")?.address     ?? "";
@@ -743,18 +1369,45 @@ function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keyst
         nonce: nextNonce(),
       });
       const res: any = await rpc.request_raw("sendpqattest", payload);
-      if (res?.status === "queued") {
+      if (res && (res.status === "queued" || res.txid)) {
         setStatus("ok");
-        setMsg(`TX queued: ${res.txid?.slice(0, 16)}…`);
+        const tx = res.txid ?? "";
+        setTxid(tx);
+        setMsg(`TX queued: ${tx.slice(0, 16)}…`);
+        // Persist so a re-render doesn't bring the button back.
+        localStorage.setItem(`pqAttest:${unlocked.address}`, tx || "queued");
+      } else if (res?.error?.code === -32001 || (res?.error?.message ?? "").includes("already")) {
+        // First-claim violation — treat as "already registered"
+        setStatus("already");
+        localStorage.setItem(`pqAttest:${unlocked.address}`, "already");
       } else {
         setStatus("err");
-        setMsg(res?.error?.message ?? "Eroare necunoscută");
+        setMsg(res?.error?.message ?? "TX rejected by node");
       }
     } catch (e: any) {
+      const errMsg = e?.message ?? "Eroare";
+      // The chain may return error -32001 inside the thrown RPC error.
+      if (errMsg.includes("already") || errMsg.includes("first-claim")) {
+        setStatus("already");
+        localStorage.setItem(`pqAttest:${unlocked.address}`, "already");
+        return;
+      }
       setStatus("err");
-      setMsg(e?.message ?? "Eroare");
+      setMsg(errMsg);
     }
   }
+
+  if (status === "checking") return (
+    <div className="mt-2 text-[9px] text-mempool-text-dim/60 italic">
+      Checking identity status…
+    </div>
+  );
+
+  if (status === "already") return (
+    <div className="mt-2 text-[9px] text-mempool-green font-semibold">
+      ✓ Identitate deja înregistrată on-chain {txid && `· TX: ${txid.slice(0, 16)}…`}
+    </div>
+  );
 
   if (status === "ok") return (
     <div className="mt-2 text-[9px] text-mempool-green font-semibold">
@@ -1403,6 +2056,8 @@ const CHAIN_ICONS: Record<string, string> = {
 function MultichainPanel({ addresses }: { addresses: { chain: string; address: string; path: string; group: string }[] }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
+  const [balances, setBalances] = useState<Record<string, { native: string; symbol: string } | null>>({});
+  const [refreshing, setRefreshing] = useState<string | null>(null);
 
   const groups = addresses.reduce((acc, a) => {
     (acc[a.group] ??= []).push(a);
@@ -1413,6 +2068,45 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
     navigator.clipboard.writeText(addr);
     setCopied(addr);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function refreshBalance(chain: string, address: string) {
+    setRefreshing(chain);
+    try {
+      const { fetchChainBalance } = await import("../../api/multichain-balances");
+      const bal = await fetchChainBalance(chain, address);
+      setBalances(b => ({ ...b, [chain]: bal ? { native: bal.native, symbol: bal.symbol } : null }));
+    } catch {
+      setBalances(b => ({ ...b, [chain]: null }));
+    } finally {
+      setRefreshing(null);
+    }
+  }
+
+  // Auto-fetch balances when a group is opened — only chains we don't have yet.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { fetchChainBalance } = await import("../../api/multichain-balances");
+      for (const [group, items] of Object.entries(groups)) {
+        if (!openGroups[group]) continue;
+        for (const { chain, address } of items) {
+          if (cancelled) return;
+          if (chain in balances) continue; // already fetched
+          const bal = await fetchChainBalance(chain, address);
+          if (cancelled) return;
+          setBalances(b => ({ ...b, [chain]: bal ? { native: bal.native, symbol: bal.symbol } : null }));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openGroups]);
+
+  async function openSendLink(chain: string, address: string) {
+    const { getSendDeepLink } = await import("../../api/multichain-balances");
+    const url = getSendDeepLink(chain, address);
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -1433,23 +2127,63 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
           </button>
           {openGroups[group] && (
             <div className="border-t border-mempool-border/30 bg-gray-900/40 divide-y divide-mempool-border/20">
-              {items.map(({ chain, address }) => (
-                <div key={chain} className="flex items-center gap-2 px-2.5 py-1.5 text-[10px]">
-                  <span className={`font-bold w-20 shrink-0 ${CHAIN_COLORS[group] ?? "text-white"}`}>{chain}</span>
-                  <span className="font-mono text-mempool-text flex-1 truncate">{address}</span>
-                  <button
-                    type="button"
-                    onClick={() => copy(address)}
-                    className="text-[8px] text-mempool-text-dim hover:text-mempool-text shrink-0 px-1"
-                  >
-                    {copied === address ? "✓" : "copy"}
-                  </button>
-                </div>
-              ))}
+              {items.map(({ chain, address }) => {
+                const bal = balances[chain];
+                const isLoading = refreshing === chain || !(chain in balances);
+                return (
+                  <div key={chain} className="px-2.5 py-2 text-[10px] space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold w-20 shrink-0 ${CHAIN_COLORS[group] ?? "text-white"}`}>{chain}</span>
+                      <span className="font-mono text-mempool-text flex-1 truncate" title={address}>{address}</span>
+                      <button
+                        type="button"
+                        onClick={() => copy(address)}
+                        className="text-[8px] text-mempool-text-dim hover:text-mempool-text shrink-0 px-1"
+                      >
+                        {copied === address ? "✓" : "copy"}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 ml-[5.5rem]">
+                      <span className="text-[9px] text-mempool-text-dim">Balance:</span>
+                      {isLoading ? (
+                        <span className="text-[9px] text-mempool-text-dim/50 italic">loading…</span>
+                      ) : bal ? (
+                        <span className={`text-[9px] font-mono font-semibold ${parseFloat(bal.native) > 0 ? "text-mempool-green" : "text-mempool-text-dim"}`}>
+                          {bal.native} {bal.symbol}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] text-mempool-text-dim/50">unavailable</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => refreshBalance(chain, address)}
+                        disabled={refreshing === chain}
+                        title="Refresh balance"
+                        className="text-[8px] text-mempool-text-dim hover:text-mempool-blue ml-1 disabled:opacity-30"
+                      >
+                        ⟳
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openSendLink(chain, address)}
+                        title="Open this address in the chain's official block explorer (preview balance + history; signing happens in your wallet of choice)"
+                        className="ml-auto text-[9px] px-2 py-0.5 rounded border border-mempool-blue/40 text-mempool-blue hover:bg-mempool-blue/10 transition-colors"
+                      >
+                        Send ↗
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       ))}
+      <p className="text-[9px] text-mempool-text-dim/60 mt-2 leading-relaxed">
+        Balances pulled live from public block explorers (blockchair, etherscan, solscan etc).
+        Send button opens the chain's explorer — to actually move funds, paste the address into your hardware wallet
+        or chain-specific app. Cross-chain signing in this UI is on the roadmap.
+      </p>
     </div>
   );
 }
@@ -1554,7 +2288,9 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
 
       const txId = Math.floor(Math.random() * 0x7fffffff);
       const timestamp = Math.floor(Date.now() / 1000);
-      const schemeCode = Object.keys(PQ_OMNI_SCHEME_NAMES).indexOf(slot.scheme) + 9;
+      // PQ-OMNI scheme codes from core/transaction.zig: ml_dsa=5, falcon=6, dilithium=7, slh_dsa=8.
+      // PQ_OMNI_SCHEME_NAMES key order matches that enum order, so +5 (not +9 = hybrid).
+      const schemeCode = Object.keys(PQ_OMNI_SCHEME_NAMES).indexOf(slot.scheme) + 5;
 
       const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = await import("../../api/pq-sign");
       const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
