@@ -182,22 +182,30 @@ pub const BlockchainV2 = struct {
         return block;
     }
 
-    /// Mine block (simple PoW)
+    /// Mine block (simple PoW). Same hot-loop optimization as
+    /// Blockchain.mineBlockForMiner — see hex_utils.MiningPrefix.
     pub fn mineBlock(self: *BlockchainV2, block: *Block) !void {
+        var tx_hashes_buf: [10000][]const u8 = undefined;
+        const tx_count = @min(block.transactions.items.len, 10000);
+        for (0..tx_count) |i| {
+            tx_hashes_buf[i] = block.transactions.items[i].hash;
+        }
+        const tx_hashes_slice = tx_hashes_buf[0..tx_count];
+        const mining_prefix = hex_utils.MiningPrefix.init(
+            block.index, block.timestamp, block.previous_hash.len, &.{},
+        );
+
         var nonce: u64 = 0;
         const MAX_NONCE: u64 = 4_294_967_296;
         while (nonce < MAX_NONCE) {
-            block.nonce = nonce;
-            const hash = try self.calculateBlockHash(block);
-
-            if (try self.isValidHash(hash)) {
-                block.hash = hash;
+            const raw = mining_prefix.buildHash(nonce, tx_hashes_slice);
+            if (hex_utils.meetsDifficultyRaw(raw, self.difficulty)) {
+                block.nonce = nonce;
+                block.hash = try hex_utils.bytesToHexAlloc(raw, self.allocator);
                 break;
             }
-
-            self.allocator.free(hash);
             nonce += 1;
-            if (nonce > 10000000) break;
+            if (nonce > 10_000_000) break;
         }
     }
 

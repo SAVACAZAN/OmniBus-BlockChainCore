@@ -131,8 +131,13 @@ pub const RATE_LIMIT_BYTES_PER_SEC: u64 = 10 * 1024 * 1024;
 pub const RATE_LIMIT_BAN_SCORE: i32 = 50;
 /// Max banned peers tracked
 pub const MAX_BANNED_PEERS: usize = 256;
-/// Max peers from same /16 subnet (anti-eclipse)
+/// Max peers from same /16 subnet (anti-eclipse, applies to both directions)
 pub const MAX_PEERS_PER_SUBNET: usize = 2;
+/// Max INBOUND peers from same /16 subnet (anti-eclipse, stricter than total).
+/// Prevents a single subnet from filling all inbound slots even if outbound
+/// happens to dial into the same subnet. Default: half the per-subnet cap so
+/// there is always room for an outbound peer from any subnet.
+pub const MAX_INBOUND_PER_SUBNET: usize = 4;
 /// Minimum distinct /16 subnets for diversity
 pub const MIN_SUBNET_DIVERSITY: usize = 4;
 
@@ -2063,6 +2068,26 @@ pub const P2PNode = struct {
         return same_subnet < MAX_PEERS_PER_SUBNET;
     }
 
+    /// Inbound-only subnet diversity check (anti-eclipse on accept path).
+    /// Counts only peers with `direction == .inbound` matching the same /16
+    /// subnet, and rejects when the count would exceed MAX_INBOUND_PER_SUBNET.
+    /// Loopback (127.x.x.x) is exempt to keep local dev / multi-node-on-one-host
+    /// workflows working.
+    pub fn checkInboundSubnetDiversity(self: *P2PNode, ip: [4]u8) bool {
+        if (ip[0] == 127) return true; // loopback exempt
+        self.peers_mutex.lock();
+        defer self.peers_mutex.unlock();
+        var same_inbound: usize = 0;
+        for (self.peers.items) |p| {
+            if (!p.connected) continue;
+            if (p.direction != .inbound) continue;
+            if (p.ip_bytes[0] == ip[0] and p.ip_bytes[1] == ip[1]) {
+                same_inbound += 1;
+            }
+        }
+        return same_inbound < MAX_INBOUND_PER_SUBNET;
+    }
+
     /// Count the number of distinct /16 subnets among connected peers
     pub fn subnetCount(self: *P2PNode) usize {
         self.peers_mutex.lock();
@@ -2198,6 +2223,29 @@ pub const P2PNode = struct {
             // immediately. Symmetric with the outbound connect path.
             enableTcpNoDelay(conn.stream);
 
+            // ── Hardening: extract remote IPv4 bytes for diversity checks ──
+            // Note: when family != AF.INET (IPv6), we leave ip4 = {0,0,0,0}.
+            // IPv6 inbound is currently out of scope for diversity gating;
+            // the node listens on an IPv4 address so this is unreachable in
+            // practice, but we keep the fallback safe.
+            var ip4: [4]u8 = .{ 0, 0, 0, 0 };
+            if (conn.address.any.family == std.posix.AF.INET) {
+                const raw = std.mem.toBytes(conn.address.in.sa.addr);
+                ip4 = .{ raw[0], raw[1], raw[2], raw[3] };
+            }
+
+            // ── Hardening: anti-eclipse subnet diversity (FINDING-1 fix) ──
+            // The outbound dial path already calls checkSubnetDiversity at
+            // line 1397; mirror the same gate here on accept. Without this,
+            // a single attacker /16 (or single host with many ephemeral src
+            // ports) can fill every inbound slot — the classic eclipse setup.
+            if (!node.checkInboundSubnetDiversity(ip4)) {
+                std.debug.print("[P2P] Inbound subnet limit reached for {d}.{d}.x.x — rejected\n",
+                    .{ ip4[0], ip4[1] });
+                conn.stream.close();
+                continue;
+            }
+
             // ── Hardening: check inbound limits ──────────────────────────
             if (!node.canAcceptInbound()) {
                 std.debug.print("[P2P] Inbound limit reached — rejecting connection\n", .{});
@@ -2207,10 +2255,14 @@ pub const P2PNode = struct {
 
             std.debug.print("[P2P] Inbound connection de la {any}\n", .{conn.address});
 
-            // Aloca context peer inbound
-            const PeerArgs = struct { conn: std.net.Server.Connection, node: *P2PNode };
+            // Aloca context peer inbound. We carry ip4 forward so the
+            // PeerConnection slot in node.peers gets its real subnet — without
+            // this, ip_bytes stays {0,0,0,0} and subsequent diversity checks
+            // (inbound + outbound) see all inbound peers as subnet 0.0,
+            // poisoning the eviction / diversity logic.
+            const PeerArgs = struct { conn: std.net.Server.Connection, node: *P2PNode, ip4: [4]u8 };
             const pargs = node.allocator.create(PeerArgs) catch continue;
-            pargs.* = .{ .conn = conn, .node = node };
+            pargs.* = .{ .conn = conn, .node = node, .ip4 = ip4 };
 
             const pt = std.Thread.spawn(.{}, handleInboundPeer, .{pargs}) catch |err| {
                 std.debug.print("[P2P] Thread spawn error: {}\n", .{err});
@@ -2225,6 +2277,7 @@ pub const P2PNode = struct {
     fn handleInboundPeer(args: anytype) void {
         const conn = args.conn;
         const node = args.node;
+        const ip4 = args.ip4;
         defer node.allocator.destroy(args);
         defer conn.stream.close();
 
@@ -2256,6 +2309,10 @@ pub const P2PNode = struct {
             .connected = true,
             .allocator = node.allocator,
             .direction = .inbound,
+            // FINDING-1 fix: populate the real /16 subnet so subsequent
+            // checkSubnetDiversity / checkInboundSubnetDiversity calls
+            // see this peer's actual network rather than 0.0.x.x.
+            .ip_bytes  = ip4,
         };
 
         std.debug.print("[P2P] Handler pornit pentru {s}\n", .{peer_id[0..@min(peer_id.len, 24)]});

@@ -1127,17 +1127,47 @@ pub const Blockchain = struct {
             block.setPrices(entries);
         }
 
-        // Proof-of-Work (bounded: max 2^32 nonces before giving up, like Bitcoin)
+        // Proof-of-Work hot loop — optimized 2026-05 (PERF_HOTSPOTS #1).
+        //
+        // Old path: per nonce we rebuilt the entire SHA-256 input, hex-encoded
+        // the result into a heap-allocated 64-byte string, and walked ASCII
+        // chars to count leading '0's. Each miss heap-freed the string. That
+        // burned ~95% of the cycle budget on formatting and allocation rather
+        // than hashing.
+        //
+        // New path:
+        //   1. Pre-seed an SHA-256 state with the static prefix (index|ts|
+        //      prev_hash_len) once per block attempt.
+        //   2. Per nonce: clone the state, feed nonce decimal digits + tx
+        //      hashes, finalize → [32]u8.
+        //   3. Compare raw bytes against the difficulty target (no hex).
+        // Hex conversion only happens once, on the accepted nonce, to keep
+        // block.hash in its canonical 64-char hex form for storage/RPC.
+        //
+        // Consensus-equivalent: hex_utils.MiningPrefix.buildHash() feeds the
+        // hasher in exactly the same byte order as the legacy path
+        // (calculateBlockHashHex), so the digest for any (header, nonce) pair
+        // is bit-identical. Difficulty check via meetsDifficultyRaw matches
+        // isValidHashDifficulty's leading-hex-zero semantics.
+        var tx_hashes_buf: [10000][]const u8 = undefined;
+        const tx_count = @min(block.transactions.items.len, 10000);
+        for (0..tx_count) |i| {
+            tx_hashes_buf[i] = block.transactions.items[i].hash;
+        }
+        const tx_hashes_slice = tx_hashes_buf[0..tx_count];
+        const mining_prefix = hex_utils.MiningPrefix.init(
+            block.index, block.timestamp, block.previous_hash.len, &.{},
+        );
+
         var nonce: u64 = 0;
         const MAX_NONCE: u64 = 4_294_967_296; // 2^32 — if not found, re-roll with new timestamp
         while (nonce < MAX_NONCE) {
-            block.nonce = nonce;
-            const hash = try self.calculateBlockHash(&block);
-            if (try self.isValidHash(hash)) {
-                block.hash = hash;
+            const raw = mining_prefix.buildHash(nonce, tx_hashes_slice);
+            if (hex_utils.meetsDifficultyRaw(raw, self.difficulty)) {
+                block.nonce = nonce;
+                block.hash = try hex_utils.bytesToHexAlloc(raw, self.allocator);
                 break;
             }
-            self.allocator.free(hash);
             nonce += 1;
         }
 
