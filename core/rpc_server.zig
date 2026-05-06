@@ -2918,6 +2918,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "updatename"))       return handleUpdateName(body, ctx, id);
     if (std.mem.eql(u8, method, "renewname"))        return handleRenewName(body, ctx, id);
     if (std.mem.eql(u8, method, "resolvename"))      return handleResolveName(body, ctx, id);
+    if (std.mem.eql(u8, method, "ns_resolveforsend")) return handleResolveForSend(body, ctx, id);
     if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
     if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
@@ -3953,6 +3954,112 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
+        .{ id, name, tld, name, tld });
+}
+
+/// Phase 2 send-routing helper — closes the loop on `preferred_slot`.
+///
+/// `resolveName` returns the full DNS entry (all 4 PQ slots + flags), pushing
+/// the routing decision to the client. `ns_resolveForSend` is the opinionated
+/// variant: chain decides which address to deliver to and tells the wallet
+/// exactly which kind of address it is.
+///
+/// Result contract:
+/// ```
+/// {
+///   "name": "alice", "tld": "bank", "fullLabel": "alice.bank",
+///   "primary_address": "ob1q…",        // always the ECDSA address
+///   "route_slot": 0|1|2|3|4,            // 0 = ECDSA, 1=ML-DSA, 2=Falcon,
+///                                       // 3=Dilithium, 4=SLH-DSA
+///   "route_address": "obk1_…",          // the address to send to
+///   "route_address_kind": "ecdsa"|"ml_dsa"|"falcon"|"dilithium"|"slh_dsa",
+///   "preferred_slot": <stored>,         // raw on-chain field (may differ
+///                                       // from route_slot if pref slot empty)
+///   "fell_back_to_primary": false,      // true if pref was set but slot empty
+///   "found": true
+/// }
+/// ```
+/// When `preferred_slot == 0` or the corresponding PQ slot is unset, the chain
+/// falls back to the primary ECDSA address and `route_slot == 0`. Default
+/// behavior is therefore unchanged for legacy entries.
+fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    var name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    // Mirror `resolvename` tolerance — accept "alice.bank" or just "alice".
+    var tld_from_name: ?[]const u8 = null;
+    inline for (.{
+        ".omnibus", ".arbitraje", ".quantum", ".bank", ".gov",
+        ".mil", ".fin", ".edu", ".org", ".dev",
+    }) |suffix| {
+        if (name.len > suffix.len and std.mem.eql(u8, name[name.len - suffix.len ..], suffix)) {
+            tld_from_name = suffix[1..];
+            name = name[0 .. name.len - suffix.len];
+            break;
+        }
+    }
+    const tld = extractArrayStr(body, 1) orelse extractStr(body, "tld") orelse
+        (tld_from_name orelse "omnibus");
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const entry = dns.lookupEntry(name, tld);
+    if (entry) |e| {
+        if (e.active and !e.isExpired(current_block)) {
+            const primary = e.getAddress();
+            var route_slot: u8 = 0;
+            var route_addr: []const u8 = primary;
+            var route_kind: []const u8 = "ecdsa";
+            var fell_back: bool = false;
+
+            if (e.preferred_slot >= 1 and e.preferred_slot <= dns_mod.PQ_SLOT_COUNT) {
+                const idx = e.preferred_slot - 1;
+                if (e.addr_pq_lens[idx] > 0) {
+                    route_slot = e.preferred_slot;
+                    route_addr = e.addr_pq[idx][0..e.addr_pq_lens[idx]];
+                    route_kind = switch (idx) {
+                        0 => "ml_dsa",
+                        1 => "falcon",
+                        2 => "dilithium",
+                        3 => "slh_dsa",
+                        else => "ecdsa",
+                    };
+                } else {
+                    // Owner declared a preference but never populated the slot;
+                    // wallet falls through to ECDSA so the TX still lands.
+                    fell_back = true;
+                }
+            }
+
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+                    "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+                    "\"primary_address\":\"{s}\"," ++
+                    "\"route_slot\":{d}," ++
+                    "\"route_address\":\"{s}\"," ++
+                    "\"route_address_kind\":\"{s}\"," ++
+                    "\"preferred_slot\":{d}," ++
+                    "\"fell_back_to_primary\":{}," ++
+                    "\"found\":true" ++
+                "}}}}",
+                .{
+                    id, name, tld, name, tld,
+                    primary,
+                    route_slot,
+                    route_addr,
+                    route_kind,
+                    e.preferred_slot,
+                    fell_back,
+                });
+        }
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+            "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
+            "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
+            "\"fell_back_to_primary\":false,\"found\":false}}}}",
         .{ id, name, tld, name, tld });
 }
 

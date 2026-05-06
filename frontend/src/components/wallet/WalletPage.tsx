@@ -228,31 +228,44 @@ export function WalletPage() {
       const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
 
-      // Phase 2 — resolve <name>.<tld> to a chain address before sending.
-      // If user typed something like "alice.bank", look it up via resolvename;
-      // otherwise treat the input as a raw bech32 address and skip resolution.
+      // Phase 2 — resolve <name>.<tld> via the chain's send-routing helper.
+      // `ns_resolveForSend` returns the address the chain wants funds delivered
+      // to (honouring `preferred_slot` when the matching PQ slot is populated)
+      // plus the kind tag, so we can show the user *why* the address changed.
       const looksLikeName = /^[a-z][a-z0-9_]{2,24}\.(omnibus|arbitraje|quantum|bank|gov|mil|fin|edu|org|dev)$/i.test(sendTo.trim());
       let resolvedTo = sendTo.trim();
+      let routeKind = "ecdsa";
+      let routeSlot = 0;
+      const fullLabelInput = sendTo.trim().toLowerCase();
       if (looksLikeName) {
-        const [n, t] = sendTo.trim().toLowerCase().split(".");
-        const r: any = await rpc.request_raw("resolvename", [n, t]).catch(() => null);
+        const [n, t] = fullLabelInput.split(".");
+        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]).catch(() => null);
         if (!r || !r.found) {
           throw new Error(`Name "${sendTo}" not registered on chain`);
         }
-        // Honor the recipient's preferred PQ slot when set.
-        // 0 = primary; 1=ml_dsa, 2=falcon, 3=dilithium, 4=slh_dsa.
-        const ps = r.preferred_slot ?? 0;
-        const addrs = r.addresses;
-        if (ps > 0 && addrs) {
-          const slotKey = ["primary", "k", "f", "s", "d"][ps];
-          const setKey  = `${slotKey}_set`;
-          if (slotKey && addrs[slotKey] && addrs[setKey]) {
-            resolvedTo = addrs[slotKey];
-          } else {
-            resolvedTo = r.address; // fallback to primary
+        resolvedTo = r.route_address || r.primary_address;
+        routeKind  = r.route_address_kind || "ecdsa";
+        routeSlot  = r.route_slot ?? 0;
+
+        // If the chain re-routed to a PQ address, surface this to the user
+        // before broadcasting. `preferred_slot` is now functional, not
+        // cosmetic — but the user should still see *what* they are signing.
+        if (routeSlot > 0 && resolvedTo !== r.primary_address) {
+          const kindLabel = ({
+            ml_dsa:    "PQ-1 (ML-DSA-87)",
+            falcon:    "PQ-2 (Falcon-512)",
+            dilithium: "PQ-3 (Dilithium-5)",
+            slh_dsa:   "PQ-4 (SLH-DSA-256s)",
+          } as Record<string, string>)[routeKind] ?? `PQ-${routeSlot}`;
+          const ok = window.confirm(
+            `${fullLabelInput} prefers ${kindLabel}.\n\n` +
+            `Sending to ${resolvedTo}\ninstead of ${r.primary_address}.\n\n` +
+            `Continue?`
+          );
+          if (!ok) {
+            setSending(false);
+            return;
           }
-        } else {
-          resolvedTo = r.address;
         }
       }
       // Mutate sendTo for the rest of the flow — every downstream call uses it.
@@ -999,24 +1012,20 @@ function SendNamePreview({ rawInput, onResolve }: {
       setErr(null);
       try {
         const [n, t] = txt.split(".");
-        const r: any = await rpc.request_raw("resolvename", [n, t]);
+        // Use the chain's authoritative send-routing helper so the preview
+        // matches exactly what `handleSend` will broadcast.
+        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]);
         if (cancelled) return;
         if (!r?.found) {
           setErr(`${txt} — not registered`);
           setData(null);
           onResolve(null);
         } else {
-          setData(r);
-          // Compute the routed address (preferred slot or primary).
-          const ps = r.preferred_slot ?? 0;
-          const addrs = r.addresses;
-          let routed = r.address;
-          if (ps > 0 && addrs) {
-            const slotKey = ["primary", "k", "f", "s", "d"][ps];
-            const setKey  = `${slotKey}_set`;
-            if (slotKey && addrs[slotKey] && addrs[setKey]) routed = addrs[slotKey];
-          }
-          onResolve(routed);
+          // Also fetch the full entry for category badge — `ns_resolveforsend`
+          // intentionally omits category to keep the contract narrow.
+          const full: any = await rpc.request_raw("resolvename", [n, t]).catch(() => null);
+          setData({ ...r, category: full?.category });
+          onResolve(r.route_address || r.primary_address);
         }
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? "lookup failed");
@@ -1032,27 +1041,36 @@ function SendNamePreview({ rawInput, onResolve }: {
   if (err) return <p className="text-[10px] text-amber-400 mt-1">{err}</p>;
   if (!data) return null;
 
-  const ps = data.preferred_slot ?? 0;
-  const slotName = ["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][ps];
-  const addrs = data.addresses;
-  let routed = data.address;
-  if (ps > 0 && addrs) {
-    const slotKey = ["primary", "k", "f", "s", "d"][ps];
-    const setKey  = `${slotKey}_set`;
-    if (slotKey && addrs[slotKey] && addrs[setKey]) routed = addrs[slotKey];
-  }
+  // Chain-driven routing — fields come straight from `ns_resolveforsend` so
+  // the preview is byte-identical to what `handleSend` will sign against.
+  const routeSlot: number = data.route_slot ?? 0;
+  const routed: string    = data.route_address || data.primary_address;
+  const fellBack: boolean = !!data.fell_back_to_primary;
+  const slotName = ["primary (ECDSA)", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][routeSlot];
+  const isPq = routeSlot > 0;
 
   return (
-    <div className="mt-1 p-2 rounded text-[10px] bg-green-500/10 border border-green-500/30">
-      <p className="text-green-300">
+    <div className={`mt-1 p-2 rounded text-[10px] border ${isPq ? "bg-mempool-blue/10 border-mempool-blue/40" : "bg-green-500/10 border-green-500/30"}`}>
+      <p className={isPq ? "text-mempool-blue" : "text-green-300"}>
         <span className="font-semibold">✓ {data.fullLabel}</span>
         {data.category && data.category !== "none" && (
           <span className="ml-2 px-1 rounded bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
             {data.category}
           </span>
         )}
-        <span className="ml-2 text-mempool-text-dim">routes to {slotName}</span>
+        {isPq ? (
+          <span className="ml-2 px-1 rounded bg-mempool-blue/30 text-mempool-blue font-semibold uppercase tracking-wider">
+            via PQ-{routeSlot} ({slotName})
+          </span>
+        ) : (
+          <span className="ml-2 text-mempool-text-dim">routes to {slotName}</span>
+        )}
       </p>
+      {fellBack && (
+        <p className="text-amber-400 mt-0.5">
+          owner declared a PQ preference but never published the slot — falling back to primary
+        </p>
+      )}
       <p className="font-mono text-mempool-text-dim mt-1 break-all">→ {routed}</p>
     </div>
   );
