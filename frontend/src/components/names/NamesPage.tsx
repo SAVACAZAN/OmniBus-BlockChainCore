@@ -93,6 +93,27 @@ function feeMapFromList(list: TldFeeEntry[] | null, fallback: EnsFeeResp | null)
   return out;
 }
 
+// Phase 2 — registration years tier (from ns_yearTiers RPC).
+type YearTier = {
+  years: number;
+  multiplier: number;       // e.g. 1.000, 1.900, 8.000, 55.000
+  per_year_pct: number;     // 100 = 1.00x/yr, 55 = best deal
+};
+
+// Hardcoded fallback if ns_yearTiers RPC isn't shipped on this node.
+// Mirrors handleNsYearTiers in core/rpc_server.zig.
+const FALLBACK_YEAR_TIERS: YearTier[] = [
+  { years: 1,   multiplier: 1.000,  per_year_pct: 100 },
+  { years: 2,   multiplier: 1.900,  per_year_pct: 95  },
+  { years: 3,   multiplier: 2.800,  per_year_pct: 93  },
+  { years: 4,   multiplier: 3.700,  per_year_pct: 92  },
+  { years: 5,   multiplier: 4.500,  per_year_pct: 90  },
+  { years: 10,  multiplier: 8.000,  per_year_pct: 80  },
+  { years: 25,  multiplier: 18.000, per_year_pct: 72  },
+  { years: 50,  multiplier: 32.000, per_year_pct: 64  },
+  { years: 100, multiplier: 55.000, per_year_pct: 55  },
+];
+
 export function NamesPage() {
   const [list, setList] = useState<ListResp | null>(null);
   const [search, setSearch] = useState("");
@@ -118,6 +139,8 @@ export function NamesPage() {
 
   const [ensFee, setEnsFee] = useState<EnsFeeResp | null>(null);
   const [tldList, setTldList] = useState<TldFeeEntry[] | null>(null);
+  const [yearTiers, setYearTiers] = useState<YearTier[]>(FALLBACK_YEAR_TIERS);
+  const [regYears, setRegYears] = useState<number>(1);
 
   const [error, setError] = useState<string | null>(null);
   const [methodMissing, setMethodMissing] = useState(false);
@@ -163,8 +186,17 @@ export function NamesPage() {
         // older node without ns_listTlds — fee map will fall back to ensFee
       }
     };
+    const loadYears = async () => {
+      try {
+        const r = (await rpc.request_raw("ns_yearTiers", [])) as YearTier[];
+        if (!cancelled && Array.isArray(r) && r.length > 0) setYearTiers(r);
+      } catch {
+        // older node — keep FALLBACK_YEAR_TIERS already in state
+      }
+    };
     loadFee();
     loadTlds();
+    loadYears();
     return () => { cancelled = true; };
   }, []);
 
@@ -239,7 +271,10 @@ export function NamesPage() {
       // way mainnet will work. The op_return memo gets persisted into the
       // block forever; the registry uses fee_txid as anti-replay key.
       const feeMap = feeMapFromList(tldList, ensFee);
-      const feeOmni = feeMap[regTld] ?? 5;  // generic fallback if registry unknown
+      const baseFeeOmni = feeMap[regTld] ?? 5;  // generic fallback if registry unknown
+      // Phase 2 — multi-year tier multiplier (1.000 .. 55.000)
+      const tier = yearTiers.find(t => t.years === regYears) ?? yearTiers[0];
+      const feeOmni = baseFeeOmni * tier.multiplier;
       const feeSat = Math.floor(feeOmni * 1e9);
       const memo = `ns_claim:${clean}.${regTld}`;
 
@@ -263,16 +298,16 @@ export function NamesPage() {
       // will reject with "fee TX missing op_return".
       void memo; // op_return inclusion is best-effort on legacy nodes
 
-      // STEP 2: Register the name with the fee txid.
-      setRegResult({ ok: true, message: `Step 2/2: fee TX ${generatedTxid.slice(0,16)}… registering name…` });
-      // params: [name, address, owner, tld, fee_txid]
-      const params: any[] = [clean, regAddr.trim(), regAddr.trim(), regTld, generatedTxid];
+      // STEP 2: Register the name with the fee txid + years tier.
+      setRegResult({ ok: true, message: `Step 2/2: fee TX ${generatedTxid.slice(0,16)}… registering name for ${regYears} year${regYears===1?"":"s"}…` });
+      // params: [name, address, owner, tld, fee_txid, {years}]
+      const params: any[] = [clean, regAddr.trim(), regAddr.trim(), regTld, generatedTxid, { years: regYears }];
       const r: any = await rpc.request_raw("registername", params);
       if (r && r.name) {
         const label = r.fullLabel || `${r.name}.${r.tld || regTld}`;
         setRegResult({
           ok: true,
-          message: `✓ ${label} registered at block ${r.registeredAtBlock} (${feeOmni} OMNI to treasury). Fee TX:`,
+          message: `✓ ${label} registered at block ${r.registeredAtBlock} for ${regYears} ${regYears===1?"year":"years"} (${feeOmni.toFixed(3)} OMNI to treasury). Fee TX:`,
           txid: generatedTxid,
         });
         setRegName("");
@@ -377,6 +412,11 @@ export function NamesPage() {
               <span className={`font-semibold ${TLD_INFO[searchTld].color}`}>
                 {(searchResult as any).fullLabel || `${searchResult.name}.${(searchResult as any).tld || searchTld}`}
               </span>
+              {(searchResult as any).category && (searchResult as any).category !== "none" && (
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
+                  {(searchResult as any).category}
+                </span>
+              )}
               {" — "}
               {searchResult.found ? (
                 <span className="text-green-300">TAKEN</span>
@@ -386,12 +426,42 @@ export function NamesPage() {
             </p>
             {searchResult.found && searchResult.address && (
               <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">
-                → {searchResult.address}
+                → primary: {searchResult.address}
+              </p>
+            )}
+            {searchResult.found && (searchResult as any).addresses && (
+              <div className="text-[10px] mt-2 space-y-0.5">
+                {(["k", "f", "s", "d"] as const).map((slot) => {
+                  const addrs = (searchResult as any).addresses;
+                  const isSet = addrs[`${slot}_set`];
+                  if (!isSet) return null;
+                  const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                  return (
+                    <p key={slot} className="text-mempool-text-dim font-mono break-all">
+                      <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}
+                    </p>
+                  );
+                })}
+              </div>
+            )}
+            {searchResult.found && (searchResult as any).preferred_slot != null && (searchResult as any).preferred_slot > 0 && (
+              <p className="text-[11px] text-mempool-blue mt-1">
+                Preferred receiving scheme: slot {(searchResult as any).preferred_slot} (
+                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][(searchResult as any).preferred_slot]}
+                )
+              </p>
+            )}
+            {searchResult.found && (searchResult as any).registered_years != null && (searchResult as any).registered_years > 0 && (
+              <p className="text-xs text-mempool-text-dim mt-1">
+                Registered for {(searchResult as any).registered_years} {(searchResult as any).registered_years === 1 ? "year" : "years"}
               </p>
             )}
             {searchResult.found && searchResult.registeredAtBlock != null && (
               <p className="text-xs text-mempool-text-dim mt-1">
-                registered at block #{searchResult.registeredAtBlock.toLocaleString()}
+                Block #{searchResult.registeredAtBlock.toLocaleString()}
+                {(searchResult as any).expiresAtBlock && (
+                  <span> · expires #{(searchResult as any).expiresAtBlock.toLocaleString()}</span>
+                )}
               </p>
             )}
           </div>
@@ -405,16 +475,52 @@ export function NamesPage() {
             Register a name
           </h2>
 
+          {/* Years tier — Phase 2 multi-year registration */}
+          <div className="mb-3 p-3 rounded border border-mempool-border bg-mempool-bg text-xs">
+            <p className="text-mempool-text-dim mb-2">
+              <span className="font-semibold text-mempool-text">Registration period</span>{" "}
+              — longer commits get progressively cheaper per year:
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {yearTiers.map((t) => {
+                const baseFee = feeMapFromList(tldList, ensFee)[regTld] ?? 0;
+                const totalFee = baseFee * t.multiplier;
+                const perYear = totalFee / t.years;
+                const isSel = regYears === t.years;
+                return (
+                  <button
+                    key={t.years}
+                    onClick={() => setRegYears(t.years)}
+                    className={`px-2 py-1 rounded text-[11px] flex flex-col items-center min-w-[64px] ${
+                      isSel
+                        ? "bg-mempool-blue text-white font-semibold"
+                        : "bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text"
+                    }`}
+                    title={`${t.years} ${t.years===1?"year":"years"} — total ${totalFee.toFixed(3)} OMNI (${t.per_year_pct}%/yr)`}
+                  >
+                    <span className="font-semibold">{t.years}{t.years===1?"y":"y"}</span>
+                    <span className="text-[10px]">{perYear.toFixed(3)}/yr</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-mempool-text-dim mt-2 text-[11px]">
+              Discount: {yearTiers.find(t => t.years === regYears)?.per_year_pct ?? 100}% of base per year
+              (multiplier {(yearTiers.find(t => t.years === regYears)?.multiplier ?? 1).toFixed(3)}×)
+            </p>
+          </div>
+
           {/* Fee info */}
           {ensFee && (
             <div className="mb-3 p-3 rounded border border-mempool-border bg-mempool-bg text-xs">
               <p className="text-mempool-text-dim">
-                Fee for <span className={`font-semibold ${TLD_INFO[regTld].color}`}>.{regTld}</span>:{" "}
+                Fee for <span className={`font-semibold ${TLD_INFO[regTld].color}`}>.{regTld}</span>{" "}
+                × <span className="text-mempool-text font-semibold">{regYears}{regYears===1?" year":" years"}</span>:{" "}
                 <span className="text-mempool-text font-semibold">
-                  {feeMapFromList(tldList, ensFee)[regTld] ?? "?"} OMNI
+                  {(((feeMapFromList(tldList, ensFee)[regTld] ?? 0) * (yearTiers.find(t => t.years === regYears)?.multiplier ?? 1))).toFixed(3)} OMNI
                 </span>
                 <span className="text-mempool-text-dim ml-2">
-                  ({TLD_INFO[regTld].desc})
+                  (base {feeMapFromList(tldList, ensFee)[regTld] ?? "?"} OMNI × {(yearTiers.find(t => t.years === regYears)?.multiplier ?? 1).toFixed(3)})
                 </span>
               </p>
               <p className="text-mempool-text-dim mt-1">

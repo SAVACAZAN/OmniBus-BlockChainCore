@@ -3887,9 +3887,12 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
         return errorJson(-32602, "Missing param: name", id, alloc);
     // Tolerant: strip the TLD suffix if user includes it (UI typically
-    // displays "alice.omnibus" or "arb_bot.arbitraje").
+    // displays "alice.omnibus" or "alice.bank" — Phase 2 extends to all 10).
     var tld_from_name: ?[]const u8 = null;
-    inline for (.{ ".omnibus", ".arbitraje" }) |suffix| {
+    inline for (.{
+        ".omnibus", ".arbitraje", ".quantum", ".bank", ".gov",
+        ".mil", ".fin", ".edu", ".org", ".dev",
+    }) |suffix| {
         if (name.len > suffix.len and std.mem.eql(u8, name[name.len - suffix.len ..], suffix)) {
             tld_from_name = suffix[1..]; // drop leading dot
             name = name[0 .. name.len - suffix.len];
@@ -3901,12 +3904,51 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         (tld_from_name orelse "omnibus");
 
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const resolved = dns.resolveWithTld(name, tld, current_block);
-
-    if (resolved) |addr| {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"found\":true}}}}",
-            .{ id, name, tld, name, tld, addr });
+    // Phase 2: lookup the full entry (not just the address) so we can
+    // surface category, PQ slots, preferred slot, and registered_years.
+    const entry = dns.lookupEntry(name, tld);
+    if (entry) |e| {
+        if (e.active and !e.isExpired(current_block)) {
+            // Pull each PQ slot — empty slot returns the primary as fallback,
+            // so JS sees a usable address either way. Mark `*_set` so the UI
+            // can still render "not configured" badges where appropriate.
+            const pq_k = e.getPqAddress(.ml_dsa);
+            const pq_f = e.getPqAddress(.falcon);
+            const pq_s = e.getPqAddress(.dilithium);
+            const pq_d = e.getPqAddress(.slh_dsa);
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+                    "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+                    "\"address\":\"{s}\"," ++  // primary (legacy field)
+                    "\"addresses\":{{" ++
+                        "\"primary\":\"{s}\"," ++
+                        "\"k\":\"{s}\",\"k_set\":{}," ++
+                        "\"f\":\"{s}\",\"f_set\":{}," ++
+                        "\"s\":\"{s}\",\"s_set\":{}," ++
+                        "\"d\":\"{s}\",\"d_set\":{}" ++
+                    "}}," ++
+                    "\"category\":\"{s}\"," ++
+                    "\"preferred_slot\":{d}," ++
+                    "\"registered_years\":{d}," ++
+                    "\"registered_block\":{d}," ++
+                    "\"expires_block\":{d}," ++
+                    "\"found\":true" ++
+                "}}}}",
+                .{
+                    id, name, tld, name, tld,
+                    e.getAddress(),
+                    e.getAddress(),
+                    pq_k, e.addr_pq_lens[0] > 0,
+                    pq_f, e.addr_pq_lens[1] > 0,
+                    pq_s, e.addr_pq_lens[2] > 0,
+                    pq_d, e.addr_pq_lens[3] > 0,
+                    e.category.toString(),
+                    e.preferred_slot,
+                    e.registered_years,
+                    e.registered_block,
+                    e.expires_block,
+                });
+        }
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
@@ -3955,8 +3997,17 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!first) try w.writeAll(",");
         first = false;
         try w.print(
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
-            .{ e.getName(), e.getTld(), e.getName(), e.getTld(), e.getAddress(), e.registered_block, e.expires_block },
+            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+                "\"address\":\"{s}\"," ++
+                "\"category\":\"{s}\"," ++
+                "\"preferred_slot\":{d}," ++
+                "\"registered_years\":{d}," ++
+                "\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
+            .{
+                e.getName(), e.getTld(), e.getName(), e.getTld(), e.getAddress(),
+                e.category.toString(), e.preferred_slot, e.registered_years,
+                e.registered_block, e.expires_block,
+            },
         );
         active_count += 1;
     }
