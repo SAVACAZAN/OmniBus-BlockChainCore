@@ -2922,6 +2922,12 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
     if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
     if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
+    if (std.mem.eql(u8, method, "ns_yearTiers"))     return handleNsYearTiers(ctx, id);
+    // Phase 2 NS — multi-address per name + category badges
+    if (std.mem.eql(u8, method, "setpqaddress"))     return handleSetPqAddress(body, ctx, id);
+    if (std.mem.eql(u8, method, "setcategory"))      return handleSetCategory(body, ctx, id);
+    if (std.mem.eql(u8, method, "setpreferredslot")) return handleSetPreferredSlot(body, ctx, id);
+    if (std.mem.eql(u8, method, "getnamesbycategory")) return handleGetNamesByCategory(body, ctx, id);
     if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
 
     // ── Native DEX (matching engine on-chain) ───────────────────────────
@@ -3764,6 +3770,12 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const tld = extractArrayStr(body, 3) orelse extractStr(body, "tld") orelse "omnibus";
     // Fee txid optional — param[4] sau key "fee_txid".
     const fee_txid = extractArrayStr(body, 4) orelse extractStr(body, "fee_txid") orelse null;
+    // Phase 2: years tier (1, 2, 3, 4, 5, 10, 25, 50, 100). Default 1.
+    const years_raw = extractArrayNumByKey(body, "years");
+    const years: u32 = if (years_raw == 0) 1 else @intCast(@min(years_raw, dns_mod.MAX_REGISTRATION_YEARS));
+    if (!dns_mod.isValidYears(years)) {
+        return errorJson(-32602, "Invalid years (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)", id, alloc);
+    }
 
     // Phase 1: optional signature params (param[5..7] sau keys).
     const nonce = extractArrayNumByKey(body, "nonce");
@@ -3771,7 +3783,7 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
 
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const required_fee = dns_mod.feeForName(name, tld);
+    const required_fee = dns_mod.feeForRegistration(name, tld, years);
 
     // Phase 1: signature verification when signed_required is true.
     const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
@@ -3826,11 +3838,13 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         }
     }
 
-    dns.registerWithTldAndFee(name, tld, address, owner, current_block, fee_txid) catch |err| {
+    dns.registerWithTldYearsAndFee(name, tld, address, owner, current_block, fee_txid, years) catch |err| {
         const msg: []const u8 = switch (err) {
             error.InvalidName     => "Invalid name (3-25 chars, lowercase a-z 0-9 _, must start with letter)",
             error.InvalidTld      => "Invalid TLD (allowed: omnibus, arbitraje, quantum, bank, gov, mil, fin, edu, org, dev)",
-            error.NameTaken       => "Name already taken",
+            error.NameTaken       => "Name already taken on this TLD",
+            error.NameTakenCrossTld => "Name already held by another owner on a different TLD (cross-TLD uniqueness — anti-squatting)",
+            error.InvalidYears    => "Invalid years tier (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)",
             error.RegistryFull    => "Registry full",
             error.FeeRequired     => "Fee required",
             error.InvalidTxid     => "Invalid txid",
@@ -3989,6 +4003,186 @@ fn handleNsListTlds(ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"tld\":\"dev\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"developer\",\"mainnet_fee_omni\":5}}" ++
         "]}}",
         .{id});
+}
+
+/// ns_yearTiers — read-only. Returns the allowed registration durations
+/// (years) and their fee multipliers. Wallet UI uses this to render the
+/// "register for X years" dropdown without hardcoding the table.
+fn handleNsYearTiers(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
+            "{{\"years\":1,\"multiplier\":1.000,\"per_year_pct\":100}}," ++
+            "{{\"years\":2,\"multiplier\":1.900,\"per_year_pct\":95}}," ++
+            "{{\"years\":3,\"multiplier\":2.800,\"per_year_pct\":93}}," ++
+            "{{\"years\":4,\"multiplier\":3.700,\"per_year_pct\":92}}," ++
+            "{{\"years\":5,\"multiplier\":4.500,\"per_year_pct\":90}}," ++
+            "{{\"years\":10,\"multiplier\":8.000,\"per_year_pct\":80}}," ++
+            "{{\"years\":25,\"multiplier\":18.000,\"per_year_pct\":72}}," ++
+            "{{\"years\":50,\"multiplier\":32.000,\"per_year_pct\":64}}," ++
+            "{{\"years\":100,\"multiplier\":55.000,\"per_year_pct\":55}}" ++
+        "]}}",
+        .{id});
+}
+
+// ─── Phase 2 NS — multi-address per name + categories ──────────────────────
+
+/// setpqaddress — owner attaches/clears a specific PQ scheme address slot.
+/// Params: { name, tld?, slot ("ml_dsa"|"falcon"|"dilithium"|"slh_dsa" or 0..3),
+///           pq_address (empty string to clear), owner }
+fn handleSetPqAddress(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const slot_str = extractStr(body, "slot") orelse extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing param: slot (ml_dsa|falcon|dilithium|slh_dsa)", id, alloc);
+    const pq_addr = extractStr(body, "pq_address") orelse extractArrayStr(body, 3) orelse "";
+    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 4) orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+
+    const slot: dns_mod.PqSlot = blk: {
+        if (std.mem.eql(u8, slot_str, "ml_dsa")    or std.mem.eql(u8, slot_str, "obk1") or std.mem.eql(u8, slot_str, "0")) break :blk .ml_dsa;
+        if (std.mem.eql(u8, slot_str, "falcon")    or std.mem.eql(u8, slot_str, "obf5") or std.mem.eql(u8, slot_str, "1")) break :blk .falcon;
+        if (std.mem.eql(u8, slot_str, "dilithium") or std.mem.eql(u8, slot_str, "obs3") or std.mem.eql(u8, slot_str, "2")) break :blk .dilithium;
+        if (std.mem.eql(u8, slot_str, "slh_dsa")   or std.mem.eql(u8, slot_str, "obd5") or std.mem.eql(u8, slot_str, "3")) break :blk .slh_dsa;
+        return errorJson(-32602, "Invalid slot (use ml_dsa|falcon|dilithium|slh_dsa or 0..3)", id, alloc);
+    };
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    dns.updatePqAddress(name, tld, owner, slot, pq_addr, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner     => "Not owner of this name",
+            error.AddrTooLong  => "PQ address exceeds 64 chars",
+        };
+        return errorJson(-32030, msg, id, alloc);
+    };
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"slot\":\"{s}\",\"pq_address\":\"{s}\",\"updated\":true}}}}",
+        .{ id, name, tld, slot_str, pq_addr });
+}
+
+/// setcategory — owner assigns a category badge to their name.
+/// Params: { name, tld?, category ("personal"|"bank"|...), owner }
+fn handleSetCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const cat_str = extractStr(body, "category") orelse extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing param: category", id, alloc);
+    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 3) orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+
+    const cat: dns_mod.Category = blk: {
+        if (std.mem.eql(u8, cat_str, "personal")) break :blk .personal;
+        if (std.mem.eql(u8, cat_str, "bank"))     break :blk .bank;
+        if (std.mem.eql(u8, cat_str, "gov"))      break :blk .gov;
+        if (std.mem.eql(u8, cat_str, "mil"))      break :blk .mil;
+        if (std.mem.eql(u8, cat_str, "fin"))      break :blk .fin;
+        if (std.mem.eql(u8, cat_str, "edu"))      break :blk .edu;
+        if (std.mem.eql(u8, cat_str, "org"))      break :blk .org;
+        if (std.mem.eql(u8, cat_str, "dev"))      break :blk .dev;
+        if (std.mem.eql(u8, cat_str, "trading"))  break :blk .trading;
+        if (std.mem.eql(u8, cat_str, "none"))     break :blk .none;
+        return errorJson(-32602, "Invalid category (use personal|bank|gov|mil|fin|edu|org|dev|trading|none)", id, alloc);
+    };
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    dns.updateCategory(name, tld, owner, cat, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner     => "Not owner of this name",
+        };
+        return errorJson(-32030, msg, id, alloc);
+    };
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
+        .{ id, name, tld, cat.toString() });
+}
+
+/// setpreferredslot — owner sets which scheme they want funds delivered to by default.
+/// Params: { name, tld?, slot (0=primary, 1=ml_dsa, 2=falcon, 3=dilithium, 4=slh_dsa), owner }
+fn handleSetPreferredSlot(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: name", id, alloc);
+    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
+    const slot_raw = extractArrayNumByKey(body, "slot");
+    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 3) orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+
+    if (slot_raw > 4) return errorJson(-32602, "Invalid slot (0=primary, 1..4=PQ)", id, alloc);
+    const slot_idx: u8 = @intCast(slot_raw);
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    dns.updatePreferredSlot(name, tld, owner, slot_idx, current_block) catch |err| {
+        const msg: []const u8 = switch (err) {
+            error.NameNotFound => "Name not found",
+            error.NotOwner     => "Not owner of this name",
+            error.InvalidSlot  => "Invalid slot",
+        };
+        return errorJson(-32030, msg, id, alloc);
+    };
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
+        .{ id, name, tld, slot_idx });
+}
+
+/// getnamesbycategory — list all names with a given category badge.
+/// Params: { category ("bank"|"gov"|...), limit? }
+fn handleGetNamesByCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const cat_str = extractStr(body, "category") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: category", id, alloc);
+    const limit_raw = extractArrayNumByKey(body, "limit");
+    const limit: usize = if (limit_raw > 0 and limit_raw <= 200) @intCast(limit_raw) else 50;
+
+    const cat: dns_mod.Category = blk: {
+        if (std.mem.eql(u8, cat_str, "personal")) break :blk .personal;
+        if (std.mem.eql(u8, cat_str, "bank"))     break :blk .bank;
+        if (std.mem.eql(u8, cat_str, "gov"))      break :blk .gov;
+        if (std.mem.eql(u8, cat_str, "mil"))      break :blk .mil;
+        if (std.mem.eql(u8, cat_str, "fin"))      break :blk .fin;
+        if (std.mem.eql(u8, cat_str, "edu"))      break :blk .edu;
+        if (std.mem.eql(u8, cat_str, "org"))      break :blk .org;
+        if (std.mem.eql(u8, cat_str, "dev"))      break :blk .dev;
+        if (std.mem.eql(u8, cat_str, "trading"))  break :blk .trading;
+        return errorJson(-32602, "Invalid category", id, alloc);
+    };
+
+    var buf: [200]*const dns_mod.DnsEntry = undefined;
+    const slice = buf[0..@min(limit, buf.len)];
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const found = dns.listByCategory(cat, slice, current_block);
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    var hdr: [128]u8 = undefined;
+    const hdr_str = try std.fmt.bufPrint(&hdr,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"category\":\"{s}\",\"total\":{d},\"entries\":[",
+        .{ id, cat.toString(), found });
+    try out.appendSlice(alloc, hdr_str);
+    var i: usize = 0;
+    while (i < found) : (i += 1) {
+        const e = slice[i];
+        if (i > 0) try out.appendSlice(alloc, ",");
+        var row: [256]u8 = undefined;
+        const row_str = try std.fmt.bufPrint(&row,
+            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
+            .{ e.getName(), e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
+        try out.appendSlice(alloc, row_str);
+    }
+    try out.appendSlice(alloc, "]}}");
+    return alloc.dupe(u8, out.items);
 }
 
 // ─── Phase 1: transfername ──────────────────────────────────────────────────

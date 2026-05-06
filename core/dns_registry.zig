@@ -46,10 +46,70 @@ pub const COST_FIN_SAT: u64     = COST_TESTNET_TIER_SAT;
 pub const COST_EDU_SAT: u64     = COST_TESTNET_TIER_SAT;
 pub const COST_ORG_SAT: u64     = COST_TESTNET_TIER_SAT;
 pub const COST_DEV_SAT: u64     = COST_TESTNET_TIER_SAT;
-/// Renewal period in blocks (~1 year = 365.25 * 86400 blocks at 1/s)
-pub const RENEWAL_PERIOD_BLOCKS: u64 = 31_557_600;
-/// Grace period after expiry (~30 days = 30 * 86400 blocks at 1/s)
-pub const GRACE_PERIOD_BLOCKS: u64 = 2_592_000;
+/// Block time assumption: ~1 second per block. Adjust constants if chain
+/// retargets to a different cadence.
+pub const BLOCKS_PER_YEAR: u64 = 31_557_600;        // 365.25 * 86_400
+
+/// Default registration period if owner doesn't specify `years`. Stays at
+/// 1 year for backward compatibility with v1/v2 entries.
+pub const RENEWAL_PERIOD_BLOCKS: u64 = BLOCKS_PER_YEAR;
+
+/// Grace period after expiry — owner can still renew. Other parties remain
+/// blocked. After this, the name + cross-TLD lock release entirely.
+pub const GRACE_PERIOD_BLOCKS: u64 = 2_592_000;     // ~30 days
+
+/// Allowed registration durations (years) — owner picks one of these tiers
+/// at register/renew time. More years up-front = better OMNI/year ratio.
+pub const ALLOWED_YEARS = [_]u32{ 1, 2, 3, 4, 5, 10, 25, 50, 100 };
+/// Maximum years a single registration can lock. Hard cap.
+pub const MAX_REGISTRATION_YEARS: u32 = 100;
+/// Minimum years.
+pub const MIN_REGISTRATION_YEARS: u32 = 1;
+
+/// Returns `true` if `years` is one of the allowed durations.
+pub fn isValidYears(years: u32) bool {
+    for (ALLOWED_YEARS) |y| {
+        if (y == years) return true;
+    }
+    return false;
+}
+
+/// Multiplier (in basis-points × 10, i.e. integer × 1000 for precision)
+/// applied to the per-year fee to get the total fee for `years`.
+/// Curve rewards long-term commitments with progressively better /year rate.
+///
+/// Examples (base fee = 5 OMNI on .omnibus, mainnet):
+///   1y:  5 OMNI   × 1.000 = 5 OMNI            (5 OMNI/yr)
+///   2y:  5 OMNI   × 1.900 = 9.5 OMNI          (4.75 OMNI/yr — 5% off)
+///   3y:  5 OMNI   × 2.800 = 14 OMNI           (4.67 OMNI/yr)
+///   5y:  5 OMNI   × 4.500 = 22.5 OMNI         (4.50 OMNI/yr — 10% off)
+///   10y: 5 OMNI   × 8.000 = 40 OMNI           (4.00 OMNI/yr — 20% off)
+///   25y: 5 OMNI   × 18.000 = 90 OMNI          (3.60 OMNI/yr — 28% off)
+///   50y: 5 OMNI   × 32.000 = 160 OMNI         (3.20 OMNI/yr — 36% off)
+///   100y:5 OMNI   × 55.000 = 275 OMNI         (2.75 OMNI/yr — 45% off)
+pub fn yearsMultiplierMilli(years: u32) u64 {
+    return switch (years) {
+        1   => 1_000,
+        2   => 1_900,
+        3   => 2_800,
+        4   => 3_700,
+        5   => 4_500,
+        10  => 8_000,
+        25  => 18_000,
+        50  => 32_000,
+        100 => 55_000,
+        else => 0, // invalid
+    };
+}
+
+/// Compute total fee for `years` registration on a given TLD + name length.
+/// = feeForName(name, tld) × yearsMultiplierMilli(years) / 1000.
+pub fn feeForRegistration(name: []const u8, tld: []const u8, years: u32) u64 {
+    const base = feeForName(name, tld);
+    const mul = yearsMultiplierMilli(years);
+    if (mul == 0) return 0; // invalid years
+    return (base * mul) / 1_000;
+}
 
 /// Returneaza fee-ul required pentru un TLD (in SAT).
 pub fn feeForTld(tld: []const u8) u64 {
@@ -253,7 +313,69 @@ fn isRegistrarAddress(addr: []const u8) bool {
     return false;
 }
 
-/// DNS entry (v2 layout — additive over v1).
+/// Maximum address length used by every slot. ECDSA bech32 = ~42 chars,
+/// PQ-OMNI base58 ~38 chars; 64 fits all with margin.
+pub const MAX_ADDR_LEN: usize = 64;
+
+/// Phase 2 category tag — institutional / themed badge applied to a name.
+/// Bag of 8 fixed slugs. `none` = legacy entries that pre-date Phase 2.
+pub const Category = enum(u8) {
+    none = 0,
+    personal = 1,    // .omnibus / .quantum default human user
+    bank = 2,        // .bank — financial institution
+    gov = 3,         // .gov — government agency
+    mil = 4,         // .mil — military
+    fin = 5,         // .fin — financial trustee / fund / pension
+    edu = 6,         // .edu — academic
+    org = 7,         // .org — non-profit
+    dev = 8,         // .dev — developer / open-source
+    trading = 9,     // .arbitraje — market-making agent
+
+    pub fn fromTld(tld: []const u8) Category {
+        if (std.mem.eql(u8, tld, "omnibus"))   return .personal;
+        if (std.mem.eql(u8, tld, "arbitraje")) return .trading;
+        if (std.mem.eql(u8, tld, "quantum"))   return .personal;
+        if (std.mem.eql(u8, tld, "bank"))      return .bank;
+        if (std.mem.eql(u8, tld, "gov"))       return .gov;
+        if (std.mem.eql(u8, tld, "mil"))       return .mil;
+        if (std.mem.eql(u8, tld, "fin"))       return .fin;
+        if (std.mem.eql(u8, tld, "edu"))       return .edu;
+        if (std.mem.eql(u8, tld, "org"))       return .org;
+        if (std.mem.eql(u8, tld, "dev"))       return .dev;
+        return .none;
+    }
+
+    pub fn toString(self: Category) []const u8 {
+        return switch (self) {
+            .none => "none",
+            .personal => "personal",
+            .bank => "bank",
+            .gov => "gov",
+            .mil => "mil",
+            .fin => "fin",
+            .edu => "edu",
+            .org => "org",
+            .dev => "dev",
+            .trading => "trading",
+        };
+    }
+};
+
+/// PQ scheme slot index — what `addr_pq_<X>` resolves to.
+/// Aligns with isolated_wallet.Scheme codes 5..8 minus 5 (offset zero).
+pub const PqSlot = enum(u8) {
+    ml_dsa = 0,    // obk1_  → ML-DSA-87 (FIPS 204)
+    falcon = 1,    // obf5_  → Falcon-512 (FIPS 206)
+    dilithium = 2, // obs3_  → Dilithium-5 (ML-DSA-87 alias)
+    slh_dsa = 3,   // obd5_  → SLH-DSA-256s (FIPS 205)
+};
+
+pub const PQ_SLOT_COUNT: usize = 4;
+
+/// DNS entry (v3 layout — Phase 2: multi-address per name + category).
+/// Backward compat: entries created in v1/v2 have `category == .none` and
+/// all PQ slots `addr_pq_<X>_len == 0`. Resolvers fall back to `address`
+/// (primary ECDSA) when the requested PQ slot is unset.
 pub const DnsEntry = struct {
     /// Registered name (lowercase, alphanumeric)
     name: [MAX_NAME_LEN]u8,
@@ -261,11 +383,12 @@ pub const DnsEntry = struct {
     /// TLD (e.g. "omnibus", "arbitraje"). Default = DEFAULT_TLD.
     tld: [MAX_TLD_LEN]u8,
     tld_len: u8,
-    /// Address this name resolves to
-    address: [64]u8,
+    /// Primary address this name resolves to (ECDSA `ob1q…` typically).
+    /// Backward compat: legacy entries store everything here.
+    address: [MAX_ADDR_LEN]u8,
     addr_len: u8,
     /// Owner who registered (may differ from address)
-    owner: [64]u8,
+    owner: [MAX_ADDR_LEN]u8,
     owner_len: u8,
     /// Block when registered
     registered_block: u64,
@@ -279,6 +402,20 @@ pub const DnsEntry = struct {
     last_action_block: u64,
     /// Phase 1: grace period end = expires_block + GRACE_PERIOD_BLOCKS
     grace_until_block: u64,
+    /// Phase 2: category badge derived from TLD by default; owners may
+    /// override via `updatename`. Legacy entries = .none until updated.
+    category: Category = .none,
+    /// Phase 2: 4 optional PQ-scheme address slots. Index by PqSlot.
+    /// `addr_pq_lens[i] == 0` means "slot empty, fall back to primary".
+    /// Same MAX_ADDR_LEN cap. All zero on legacy entries.
+    addr_pq: [PQ_SLOT_COUNT][MAX_ADDR_LEN]u8 = [_][MAX_ADDR_LEN]u8{[_]u8{0} ** MAX_ADDR_LEN} ** PQ_SLOT_COUNT,
+    addr_pq_lens: [PQ_SLOT_COUNT]u8 = [_]u8{0} ** PQ_SLOT_COUNT,
+    /// Phase 2: owner's preferred scheme to receive funds. 0 = primary,
+    /// 1..4 = PqSlot+1. Legacy entries = 0.
+    preferred_slot: u8 = 0,
+    /// Phase 2: years the owner registered/renewed for. Drives expires_block
+    /// computation. Legacy entries default to 1 (single year, current behavior).
+    registered_years: u32 = 1,
 
     pub fn getName(self: *const DnsEntry) []const u8 {
         return self.name[0..self.name_len];
@@ -308,6 +445,42 @@ pub const DnsEntry = struct {
 
     pub fn getOwner(self: *const DnsEntry) []const u8 {
         return self.owner[0..self.owner_len];
+    }
+
+    /// Phase 2: get the address for a specific PQ scheme slot, or fall back
+    /// to the primary address when the slot is empty (legacy entry / not set).
+    pub fn getPqAddress(self: *const DnsEntry, slot: PqSlot) []const u8 {
+        const idx = @intFromEnum(slot);
+        const len = self.addr_pq_lens[idx];
+        if (len == 0) return self.getAddress(); // fallback to primary
+        return self.addr_pq[idx][0..len];
+    }
+
+    /// Phase 2: returns true when this entry has any PQ slot configured.
+    pub fn hasAnyPqSlot(self: *const DnsEntry) bool {
+        for (self.addr_pq_lens) |len| {
+            if (len > 0) return true;
+        }
+        return false;
+    }
+
+    /// Phase 2: pick the address the owner most likely wants funds delivered to.
+    /// `preferred_slot == 0` → primary (ECDSA). 1..4 → PqSlot index+1.
+    pub fn getPreferredAddress(self: *const DnsEntry) []const u8 {
+        if (self.preferred_slot == 0) return self.getAddress();
+        if (self.preferred_slot >= 1 and self.preferred_slot <= PQ_SLOT_COUNT) {
+            const slot: PqSlot = @enumFromInt(self.preferred_slot - 1);
+            return self.getPqAddress(slot);
+        }
+        return self.getAddress();
+    }
+
+    /// Phase 2: set a PQ slot address. `addr.len == 0` clears the slot.
+    pub fn setPqAddress(self: *DnsEntry, slot: PqSlot, addr: []const u8) error{AddrTooLong}!void {
+        if (addr.len > MAX_ADDR_LEN) return error.AddrTooLong;
+        const idx = @intFromEnum(slot);
+        if (addr.len > 0) @memcpy(self.addr_pq[idx][0..addr.len], addr);
+        self.addr_pq_lens[idx] = @intCast(addr.len);
     }
 
     pub fn isExpired(self: *const DnsEntry, current_block: u64) bool {
@@ -491,6 +664,20 @@ pub const DnsRegistry = struct {
         current_block: u64,
         fee_txid: ?[]const u8,
     ) !void {
+        return self.registerWithTldYearsAndFee(name, tld, address, owner, current_block, fee_txid, 1);
+    }
+
+    /// Phase 2: register with explicit years tier.
+    pub fn registerWithTldYearsAndFee(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        address: []const u8,
+        owner: []const u8,
+        current_block: u64,
+        fee_txid: ?[]const u8,
+        years: u32,
+    ) !void {
         if (self.fee_enforcement) {
             const txid = fee_txid orelse return error.FeeRequired;
             if (txid.len != TXID_LEN) return error.InvalidTxid;
@@ -499,10 +686,11 @@ pub const DnsRegistry = struct {
             // amount corect, si destinatie e treasury. Aici doar consume.
             try self.consumeTxid(txid);
         }
-        try self.registerWithTld(name, tld, address, owner, current_block);
+        try self.registerWithTldYears(name, tld, address, owner, current_block, years);
     }
 
-    /// Register with explicit TLD ("omnibus" sau "arbitraje").
+    /// Register with explicit TLD + years tier. Backward-compat wrapper
+    /// `registerWithTld` (no years) defaults to 1 year.
     pub fn registerWithTld(
         self: *DnsRegistry,
         name: []const u8,
@@ -511,13 +699,48 @@ pub const DnsRegistry = struct {
         owner: []const u8,
         current_block: u64,
     ) !void {
+        return self.registerWithTldYears(name, tld, address, owner, current_block, 1);
+    }
+
+    /// Same as registerWithTld but takes a years tier (1, 2, 3, 4, 5, 10, 25, 50, 100).
+    /// expires_block = current_block + years * BLOCKS_PER_YEAR.
+    pub fn registerWithTldYears(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        address: []const u8,
+        owner: []const u8,
+        current_block: u64,
+        years: u32,
+    ) !void {
+        if (!isValidYears(years)) return error.InvalidYears;
         if (!isValidName(name)) return error.InvalidName;
         if (!isValidTld(tld)) return error.InvalidTld;
         if (self.entry_count >= MAX_ENTRIES) return error.RegistryFull;
         if (isReservedName(name, tld)) return error.ReservedName;
         if (self.isOwnerCapped(owner, current_block)) return error.OwnerCapExceeded;
 
-        // Name+TLD pair must be unique. "alice.omnibus" si "alice.arbitraje" pot coexista.
+        // Phase 2 — STRICT CROSS-TLD UNIQUENESS for brand protection.
+        // If `name` is held by ANYONE on ANY TLD (active, not expired past
+        // grace), reject unless the new claim is from the SAME owner.
+        // Rationale: prevents `bcr.bank` (owner X) and `bcr.gov` (owner Y)
+        // from coexisting under different parties — that's brand confusion.
+        // Same owner CAN claim the same name across TLDs (alice.omnibus +
+        // alice.bank if Alice is a banker).
+        for (self.entries[0..self.entry_count]) |*e| {
+            if (!e.active) continue;
+            if (e.isAuctionable(current_block)) continue; // released / squat-bait
+            if (!std.mem.eql(u8, e.getName(), name)) continue;
+            // same name held — owner-match check
+            if (!std.mem.eql(u8, e.getOwner(), owner)) {
+                return error.NameTakenCrossTld;
+            }
+            // same owner: allowed across TLDs, but NameTaken on identical pair
+            if (std.mem.eql(u8, e.getTld(), tld)) {
+                return error.NameTaken;
+            }
+        }
+
         // Allow re-registration if the existing entry is auctionable (expired + past grace).
         if (self.lookupEntry(name, tld)) |existing| {
             if (!existing.isAuctionable(current_block)) return error.NameTaken;
@@ -543,12 +766,18 @@ pub const DnsRegistry = struct {
         entry.owner_len = @intCast(olen);
 
         entry.registered_block = current_block;
-        entry.expires_block = current_block + RENEWAL_PERIOD_BLOCKS;
+        // Phase 2: expires after `years * BLOCKS_PER_YEAR` (was hardcoded 1y).
+        entry.expires_block = current_block + (@as(u64, years) * BLOCKS_PER_YEAR);
+        entry.registered_years = years;
         entry.active = true;
         // Phase 1 v2 fields
         entry.last_nonce = 0;
         entry.last_action_block = current_block;
         entry.grace_until_block = entry.expires_block + GRACE_PERIOD_BLOCKS;
+        // Phase 2: auto-derive category from TLD. Owners can override
+        // later via updatename if they want a non-default category.
+        // PQ slots remain empty; setPqAddress lets owners populate them.
+        entry.category = Category.fromTld(tld);
 
         self.entries[self.entry_count] = entry;
         self.entry_count += 1;
@@ -768,6 +997,72 @@ pub const DnsRegistry = struct {
         @memcpy(e.address[0..alen], new_address[0..alen]);
         e.addr_len = @intCast(alen);
         e.last_action_block = current_block;
+    }
+
+    /// Phase 2: set or clear a PQ-scheme slot on an existing name.
+    /// `new_address.len == 0` clears the slot (resolver falls back to primary).
+    pub fn updatePqAddress(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        owner: []const u8,
+        slot: PqSlot,
+        new_address: []const u8,
+        current_block: u64,
+    ) !void {
+        const e = self.lookupEntry(name, tld) orelse return error.NameNotFound;
+        if (!std.mem.eql(u8, e.getOwner(), owner)) return error.NotOwner;
+        try e.setPqAddress(slot, new_address);
+        e.last_action_block = current_block;
+    }
+
+    /// Phase 2: change the category badge on an existing name. Owners can
+    /// override the auto-derived TLD category (e.g. mark `alice.omnibus`
+    /// as `bank` if they're a regulated entity using the default TLD).
+    pub fn updateCategory(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        owner: []const u8,
+        new_cat: Category,
+        current_block: u64,
+    ) !void {
+        const e = self.lookupEntry(name, tld) orelse return error.NameNotFound;
+        if (!std.mem.eql(u8, e.getOwner(), owner)) return error.NotOwner;
+        e.category = new_cat;
+        e.last_action_block = current_block;
+    }
+
+    /// Phase 2: set the owner's preferred receiving slot.
+    /// `slot_idx == 0` → primary; 1..4 → matching PqSlot.
+    pub fn updatePreferredSlot(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        owner: []const u8,
+        slot_idx: u8,
+        current_block: u64,
+    ) !void {
+        if (slot_idx > PQ_SLOT_COUNT) return error.InvalidSlot;
+        const e = self.lookupEntry(name, tld) orelse return error.NameNotFound;
+        if (!std.mem.eql(u8, e.getOwner(), owner)) return error.NotOwner;
+        e.preferred_slot = slot_idx;
+        e.last_action_block = current_block;
+    }
+
+    /// Phase 2: list all entries with a specific category. Useful for
+    /// `getNamesByCategory` RPC — returns banks, gov agencies, etc.
+    pub fn listByCategory(self: *const DnsRegistry, cat: Category, out: []*const DnsEntry, current_block: u64) usize {
+        var i: usize = 0;
+        for (self.entries[0..self.entry_count]) |*e| {
+            if (i >= out.len) break;
+            if (!e.active or e.isExpired(current_block)) continue;
+            if (e.category == cat) {
+                out[i] = e;
+                i += 1;
+            }
+        }
+        return i;
     }
 
     /// Count active (non-expired) entries
