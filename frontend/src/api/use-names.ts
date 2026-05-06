@@ -118,9 +118,19 @@ export function useNameForAddress(addr: string | null | undefined): string | nul
   const list = namesByAddress.get(addr);
   if (!list || list.length === 0) return null;
 
-  // Stable default: .omnibus before .arbitraje, then alphabetical.
+  // Stable default: institutional categories first (gov/mil/bank/fin pin
+  // identity to a regulated entity), then quantum (premium personal),
+  // then omnibus (default), then niche (edu/org/dev), then arbitraje last.
+  const TLD_PRIORITY: Record<string, number> = {
+    gov: 0, mil: 1, bank: 2, fin: 3,
+    quantum: 4, omnibus: 5,
+    edu: 6, org: 7, dev: 8,
+    arbitraje: 9,
+  };
   const sorted = [...list].sort((a, b) => {
-    if (a.tld !== b.tld) return a.tld === "omnibus" ? -1 : 1;
+    const pa = TLD_PRIORITY[a.tld] ?? 99;
+    const pb = TLD_PRIORITY[b.tld] ?? 99;
+    if (pa !== pb) return pa - pb;
     return a.name.localeCompare(b.name);
   });
   return sorted[0].fullLabel;

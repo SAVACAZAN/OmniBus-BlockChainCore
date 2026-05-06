@@ -21,12 +21,33 @@ const VALID_RE = /^[a-z][a-z0-9_]{2,24}$/;
 // sending any fee.
 const CANONICAL_ENS_TREASURY = "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa";
 
-const TLDS = ["omnibus", "arbitraje"] as const;
+// Canonical TLD list — must mirror dns_registry.zig:ALLOWED_TLDS.
+// Use ns_listTlds RPC to fetch live fee + category metadata at runtime.
+const TLDS = [
+  "omnibus", "arbitraje", "quantum",
+  "bank", "gov", "mil", "fin", "edu", "org", "dev",
+] as const;
 type Tld = typeof TLDS[number];
 
-const TLD_INFO: Record<Tld, { color: string; desc: string }> = {
-  omnibus:   { color: "text-mempool-blue",    desc: "Default OmniBus identity (e.g. alice.omnibus)" },
-  arbitraje: { color: "text-amber-400",       desc: "For arbitrage agents / market makers (alice.arbitraje)" },
+const TLD_INFO: Record<Tld, { color: string; desc: string; badge: string }> = {
+  omnibus:   { color: "text-mempool-blue",    badge: "personal",        desc: "Default OmniBus identity (e.g. alice.omnibus)" },
+  arbitraje: { color: "text-amber-400",       badge: "trading",         desc: "Arbitrage agents / market makers (alice.arbitraje)" },
+  quantum:   { color: "text-purple-400",      badge: "premium",         desc: "Premium PQ-aware personal tier (alice.quantum)" },
+  bank:      { color: "text-emerald-400",     badge: "financial",       desc: "Banks, financial institutions (ing.bank)" },
+  gov:       { color: "text-red-400",         badge: "government",      desc: "Government, prefectures, agencies (mae.gov)" },
+  mil:       { color: "text-orange-400",      badge: "military",        desc: "Military, defense (smfa.mil)" },
+  fin:       { color: "text-teal-400",        badge: "financial",       desc: "Financial trustees, funds (pensionfund.fin)" },
+  edu:       { color: "text-sky-400",         badge: "academic",        desc: "Universities, research institutes (ubb.edu)" },
+  org:       { color: "text-lime-400",        badge: "non-profit",      desc: "NGOs, charities (unicef.org)" },
+  dev:       { color: "text-fuchsia-400",     badge: "developer",       desc: "Developers, open-source (linus.dev)" },
+};
+
+type TldFeeEntry = {
+  tld: string;
+  fee_sat: number;
+  fee_omni: string;
+  category: string;
+  mainnet_fee_omni: number;
 };
 
 type ListEntry = {
@@ -57,6 +78,21 @@ type EnsFeeResp = {
   cost_arbitraje_omni: number;
 };
 
+// Builds a {tld -> fee in OMNI} map from the ns_listTlds RPC. Falls back
+// to legacy getensfee fields for omnibus/arbitraje so the UI keeps working
+// against older nodes that don't ship ns_listTlds yet.
+function feeMapFromList(list: TldFeeEntry[] | null, fallback: EnsFeeResp | null): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (list && Array.isArray(list)) {
+    for (const e of list) out[e.tld] = parseFloat(e.fee_omni);
+  }
+  if (fallback) {
+    if (out.omnibus   == null) out.omnibus   = fallback.cost_omnibus_omni;
+    if (out.arbitraje == null) out.arbitraje = fallback.cost_arbitraje_omni;
+  }
+  return out;
+}
+
 export function NamesPage() {
   const [list, setList] = useState<ListResp | null>(null);
   const [search, setSearch] = useState("");
@@ -81,6 +117,7 @@ export function NamesPage() {
   const [regResult, setRegResult] = useState<{ ok: boolean; message: string; txid?: string } | null>(null);
 
   const [ensFee, setEnsFee] = useState<EnsFeeResp | null>(null);
+  const [tldList, setTldList] = useState<TldFeeEntry[] | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [methodMissing, setMethodMissing] = useState(false);
@@ -118,12 +155,28 @@ export function NamesPage() {
         // silent fail — fee info is optional
       }
     };
+    const loadTlds = async () => {
+      try {
+        const r = (await rpc.request_raw("ns_listTlds", [])) as TldFeeEntry[];
+        if (!cancelled && Array.isArray(r)) setTldList(r);
+      } catch {
+        // older node without ns_listTlds — fee map will fall back to ensFee
+      }
+    };
     loadFee();
+    loadTlds();
     return () => { cancelled = true; };
   }, []);
 
   const validateName = (n: string): string | null => {
-    const clean = n.toLowerCase().replace(".omnibus", "");
+    let clean = n.toLowerCase().trim();
+    // strip any allowed TLD suffix (".omnibus", ".bank", etc.)
+    for (const t of TLDS) {
+      if (clean.endsWith("." + t)) {
+        clean = clean.slice(0, -("." + t).length);
+        break;
+      }
+    }
     if (!clean) return "name is empty";
     if (!VALID_RE.test(clean)) {
       return "3-25 chars, must start with letter, only a-z 0-9 _";
@@ -185,9 +238,8 @@ export function NamesPage() {
       // create a real TX so the user sees a hash on-chain — exactly the
       // way mainnet will work. The op_return memo gets persisted into the
       // block forever; the registry uses fee_txid as anti-replay key.
-      const feeOmni = regTld === "omnibus"
-        ? ensFee.cost_omnibus_omni
-        : ensFee.cost_arbitraje_omni;
+      const feeMap = feeMapFromList(tldList, ensFee);
+      const feeOmni = feeMap[regTld] ?? 5;  // generic fallback if registry unknown
       const feeSat = Math.floor(feeOmni * 1e9);
       const memo = `ns_claim:${clean}.${regTld}`;
 
@@ -243,13 +295,24 @@ export function NamesPage() {
       <h1 className="text-2xl font-bold text-mempool-text mb-2">
         OmniNS — <span className="text-mempool-blue">.omnibus</span> Names
       </h1>
-      <p className="text-mempool-text-dim text-sm mb-6">
+      <p className="text-mempool-text-dim text-sm mb-2">
         Native on-chain name registry pe OmniBus. Nume <code>&lt;label&gt;.&lt;tld&gt;</code> mapate la
-        adrese bech32. TLD-uri: <span className="text-mempool-blue">.omnibus</span> (default,
-        identitate generală) sau <span className="text-amber-400">.arbitraje</span> (agenți de
-        arbitraj / market making). Reguli nume: 3–25 chars, lowercase <code>a-z 0-9 _</code>,
+        adrese bech32. Reguli nume: 3–25 chars, lowercase <code>a-z 0-9 _</code>,
         începe cu literă. Persistat pe disc — rămâne după restart.
       </p>
+      <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-1 text-[11px]">
+        {TLDS.map((t) => {
+          const info = TLD_INFO[t];
+          const fee = feeMapFromList(tldList, ensFee)[t];
+          return (
+            <div key={t} className="px-2 py-1 rounded border border-mempool-border bg-mempool-bg/50">
+              <span className={`font-semibold ${info.color}`}>.{t}</span>
+              <span className="text-mempool-text-dim ml-1">({info.badge})</span>
+              {fee != null && <span className="text-mempool-text-dim ml-1">— {fee} OMNI</span>}
+            </div>
+          );
+        })}
+      </div>
 
       {methodMissing && (
         <div className="mb-6 p-4 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 text-sm">
@@ -346,8 +409,13 @@ export function NamesPage() {
           {ensFee && (
             <div className="mb-3 p-3 rounded border border-mempool-border bg-mempool-bg text-xs">
               <p className="text-mempool-text-dim">
-                Fee: <span className="text-mempool-text font-semibold">{ensFee.cost_omnibus_omni} OMNI</span> for .omnibus /{" "}
-                <span className="text-mempool-text font-semibold">{ensFee.cost_arbitraje_omni} OMNI</span> for .arbitraje
+                Fee for <span className={`font-semibold ${TLD_INFO[regTld].color}`}>.{regTld}</span>:{" "}
+                <span className="text-mempool-text font-semibold">
+                  {feeMapFromList(tldList, ensFee)[regTld] ?? "?"} OMNI
+                </span>
+                <span className="text-mempool-text-dim ml-2">
+                  ({TLD_INFO[regTld].desc})
+                </span>
               </p>
               <p className="text-mempool-text-dim mt-1">
                 Treasury:{" "}
