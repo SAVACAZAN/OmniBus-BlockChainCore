@@ -1,0 +1,1016 @@
+{
+  "rpc": {
+    "total": 176,
+    "implemented": 169,
+    "stubs": [
+      "channelpay",
+      "closechannel",
+      "createmultisig",
+      "generatewallet",
+      "getchannels",
+      "openchannel",
+      "sendmultisig"
+    ],
+    "by_namespace": {
+      "Agents": [
+        "agent_list",
+        "agent_pending_decisions",
+        "agent_report_execution",
+        "agent_status"
+      ],
+      "Labels": [
+        "applylabel",
+        "getlabels",
+        "removelabel"
+      ],
+      "Bridge": [
+        "bridge_fraud_challenge",
+        "bridge_lock",
+        "bridge_settle",
+        "bridge_unlock_request",
+        "getbridgestatus"
+      ],
+      "Channels (TODO)": [
+        "channelpay",
+        "closechannel",
+        "getchannels",
+        "openchannel"
+      ],
+      "Faucet": [
+        "claimfaucet",
+        "getfaucetstatus"
+      ],
+      "Wallet / address": [
+        "createmultisig",
+        "generatewallet",
+        "getaddressbalance",
+        "getaddresshistory",
+        "getbalance",
+        "listunspent",
+        "sendmultisig"
+      ],
+      "Escrow": [
+        "escrow_create",
+        "escrow_dispute",
+        "escrow_refund",
+        "escrow_release",
+        "getescrow",
+        "getescrows"
+      ],
+      "Mempool": [
+        "estimatefee",
+        "getmempoolsize",
+        "getmempoolstats",
+        "getnonce",
+        "gettransaction",
+        "gettransactions",
+        "listtransactions",
+        "sendopreturn",
+        "sendrawtransaction",
+        "sendtransaction"
+      ],
+      "Ethereum compat": [
+        "eth_blockNumber",
+        "eth_call",
+        "eth_chainId",
+        "eth_estimateGas",
+        "eth_gasPrice",
+        "eth_getBalance",
+        "eth_getBlockByNumber",
+        "eth_getCode",
+        "eth_getLogs",
+        "eth_getTransactionCount",
+        "eth_getTransactionReceipt",
+        "eth_sendRawTransaction",
+        "net_version"
+      ],
+      "Exchange (CEX-style)": [
+        "exchange_cancelOrder",
+        "exchange_createApiKey",
+        "exchange_deposit",
+        "exchange_depositDemo",
+        "exchange_depositReal",
+        "exchange_getAuthNonce",
+        "exchange_getBalance",
+        "exchange_getBalances",
+        "exchange_getEscrowAddress",
+        "exchange_getOrderbook",
+        "exchange_getStats",
+        "exchange_getTrades",
+        "exchange_getUserOrders",
+        "exchange_listApiKeys",
+        "exchange_listPairs",
+        "exchange_login",
+        "exchange_placeOrder",
+        "exchange_revokeApiKey",
+        "exchange_withdraw"
+      ],
+      "Social graph": [
+        "follow",
+        "getfollowers",
+        "getfollowing",
+        "unfollow"
+      ],
+      "Bitcoin-compatible": [
+        "getbestblockhash",
+        "getblockchaininfo",
+        "getblockhash",
+        "getconnectioncount",
+        "getdifficulty",
+        "getmempoolinfo",
+        "getmininginfo",
+        "getpeerinfo"
+      ],
+      "Block / chain": [
+        "getblock",
+        "getblockcount",
+        "getblocks",
+        "getchainmetrics",
+        "getheaders",
+        "getlatestblock",
+        "getmerkleproof",
+        "getrichlist",
+        "getstatus"
+      ],
+      "Clock / scheduler": [
+        "getclockstatus",
+        "getfuturepool",
+        "getslotcalendar"
+      ],
+      "Name service": [
+        "getensfee",
+        "getnamesbycategory",
+        "listnames",
+        "ns_expiringSoon",
+        "ns_listTlds",
+        "ns_pruneExpired",
+        "ns_resolveforsend",
+        "ns_stats",
+        "ns_yearTiers",
+        "registername",
+        "renewname",
+        "resolvename",
+        "reverseresolvename",
+        "setcategory",
+        "setpqaddress",
+        "setpreferredslot",
+        "transfername",
+        "updatename"
+      ],
+      "Identity / KYC": [
+        "getidentity",
+        "identity_get",
+        "identity_search",
+        "identity_set",
+        "kyc_attest",
+        "kyc_getStatus",
+        "kyc_listIssuers"
+      ],
+      "Mining / pool": [
+        "getminerinfo",
+        "getminerstats",
+        "getnodelist",
+        "getpoolstats",
+        "minersendtx",
+        "registerminer"
+      ],
+      "Network / peers": [
+        "getnetworkinfo",
+        "getpeers",
+        "getperformance",
+        "getsyncstatus"
+      ],
+      "Notarize": [
+        "getnotarizations",
+        "notarizedoc",
+        "revokenotarize",
+        "verifynotarize"
+      ],
+      "POAP": [
+        "getpoapevent",
+        "getpoaps",
+        "poap_claim",
+        "poap_close",
+        "poap_createevent"
+      ],
+      "PQ crypto": [
+        "getpqidentity",
+        "pq_attestation",
+        "pq_balance",
+        "pq_listSchemes",
+        "pq_send",
+        "pq_verify_test",
+        "sendpqattest"
+      ],
+      "Governance": [
+        "getproposal",
+        "getproposals",
+        "gov_propose",
+        "gov_vote"
+      ],
+      "Reputation": [
+        "getreputation",
+        "getreputationtop"
+      ],
+      "Staking / slashing": [
+        "getslashhistory",
+        "getslotleader",
+        "getstakinginfo",
+        "getvalidators",
+        "submitslashevidence"
+      ],
+      "Subscription": [
+        "getsubscriptions",
+        "sub_cancel",
+        "sub_create"
+      ],
+      "Oracle / Omnibus": [
+        "omnibus_bridge_limits",
+        "omnibus_getallprices",
+        "omnibus_getarbitrage",
+        "omnibus_getblockprices",
+        "omnibus_getbridgestatus",
+        "omnibus_getexchangefeed",
+        "omnibus_getfxrate",
+        "omnibus_getminers",
+        "omnibus_getoraclepolicy",
+        "omnibus_getoracleprices",
+        "omnibus_getorderbook",
+        "omnibus_getpricerange",
+        "omnibus_gettotalmined",
+        "omnibus_setoraclepolicy"
+      ]
+    }
+  },
+  "tx": {
+    "tx_types": [
+      {
+        "name": "transfer",
+        "code": "0x00"
+      },
+      {
+        "name": "order_place",
+        "code": "0x10"
+      },
+      {
+        "name": "order_cancel",
+        "code": "0x11"
+      },
+      {
+        "name": "order_modify",
+        "code": "0x12"
+      },
+      {
+        "name": "bridge_lock",
+        "code": "0x20"
+      },
+      {
+        "name": "bridge_deposit_report",
+        "code": "0x21"
+      },
+      {
+        "name": "bridge_unlock_request",
+        "code": "0x22"
+      },
+      {
+        "name": "bridge_unlock_sign",
+        "code": "0x23"
+      },
+      {
+        "name": "bridge_fraud_challenge",
+        "code": "0x24"
+      },
+      {
+        "name": "htlc_init",
+        "code": "0x30"
+      },
+      {
+        "name": "htlc_claim",
+        "code": "0x31"
+      },
+      {
+        "name": "htlc_refund",
+        "code": "0x32"
+      },
+      {
+        "name": "intent_post",
+        "code": "0x40"
+      },
+      {
+        "name": "intent_fill_commit",
+        "code": "0x41"
+      },
+      {
+        "name": "intent_settle",
+        "code": "0x42"
+      },
+      {
+        "name": "intent_timeout",
+        "code": "0x43"
+      },
+      {
+        "name": "tss_dkg_commit",
+        "code": "0x50"
+      },
+      {
+        "name": "tss_dkg_finalize",
+        "code": "0x51"
+      },
+      {
+        "name": "tss_vault_rotate",
+        "code": "0x52"
+      },
+      {
+        "name": "governance",
+        "code": "0x60"
+      }
+    ],
+    "schemes": [
+      {
+        "name": "omni_ecdsa",
+        "code": 0
+      },
+      {
+        "name": "love_dilithium",
+        "code": 1
+      },
+      {
+        "name": "food_falcon",
+        "code": 2
+      },
+      {
+        "name": "rent_slh_dsa",
+        "code": 3
+      },
+      {
+        "name": "vacation_kem",
+        "code": 4
+      },
+      {
+        "name": "pq_omni_ml_dsa",
+        "code": 5
+      },
+      {
+        "name": "pq_omni_falcon",
+        "code": 6
+      },
+      {
+        "name": "pq_omni_dilithium",
+        "code": 7
+      },
+      {
+        "name": "pq_omni_slh_dsa",
+        "code": 8
+      },
+      {
+        "name": "hybrid_q1",
+        "code": 9
+      },
+      {
+        "name": "hybrid_q2",
+        "code": 10
+      },
+      {
+        "name": "hybrid_q3",
+        "code": 11
+      },
+      {
+        "name": "hybrid_q4",
+        "code": 12
+      }
+    ],
+    "tx_count": 20,
+    "scheme_count": 13
+  },
+  "modules": {
+    "module_count": 124,
+    "total_loc": 77569,
+    "total_pub_fn": 178,
+    "modules": [
+      {
+        "file": "agent_config.zig",
+        "loc": 464,
+        "pub_fn": 2
+      },
+      {
+        "file": "agent_executor.zig",
+        "loc": 482,
+        "pub_fn": 0
+      },
+      {
+        "file": "agent_manager.zig",
+        "loc": 678,
+        "pub_fn": 0
+      },
+      {
+        "file": "agent_tier.zig",
+        "loc": 173,
+        "pub_fn": 1
+      },
+      {
+        "file": "agent_wallet.zig",
+        "loc": 113,
+        "pub_fn": 1
+      },
+      {
+        "file": "agents_main.zig",
+        "loc": 127,
+        "pub_fn": 1
+      },
+      {
+        "file": "archive_manager.zig",
+        "loc": 224,
+        "pub_fn": 0
+      },
+      {
+        "file": "bech32.zig",
+        "loc": 446,
+        "pub_fn": 10
+      },
+      {
+        "file": "benchmark.zig",
+        "loc": 628,
+        "pub_fn": 1
+      },
+      {
+        "file": "binary_codec.zig",
+        "loc": 258,
+        "pub_fn": 0
+      },
+      {
+        "file": "bip32_wallet.zig",
+        "loc": 883,
+        "pub_fn": 1
+      },
+      {
+        "file": "block.zig",
+        "loc": 778,
+        "pub_fn": 0
+      },
+      {
+        "file": "block_filter.zig",
+        "loc": 220,
+        "pub_fn": 0
+      },
+      {
+        "file": "blockchain.zig",
+        "loc": 4027,
+        "pub_fn": 5
+      },
+      {
+        "file": "blockchain_v2.zig",
+        "loc": 541,
+        "pub_fn": 0
+      },
+      {
+        "file": "bls_signatures.zig",
+        "loc": 294,
+        "pub_fn": 5
+      },
+      {
+        "file": "bootstrap.zig",
+        "loc": 810,
+        "pub_fn": 8
+      },
+      {
+        "file": "bread_ledger.zig",
+        "loc": 368,
+        "pub_fn": 0
+      },
+      {
+        "file": "bridge_listener.zig",
+        "loc": 882,
+        "pub_fn": 0
+      },
+      {
+        "file": "bridge_native.zig",
+        "loc": 480,
+        "pub_fn": 0
+      },
+      {
+        "file": "bridge_relay.zig",
+        "loc": 453,
+        "pub_fn": 0
+      },
+      {
+        "file": "chain_config.zig",
+        "loc": 425,
+        "pub_fn": 0
+      },
+      {
+        "file": "cli.zig",
+        "loc": 523,
+        "pub_fn": 0
+      },
+      {
+        "file": "compact_blocks.zig",
+        "loc": 287,
+        "pub_fn": 2
+      },
+      {
+        "file": "compact_transaction.zig",
+        "loc": 223,
+        "pub_fn": 0
+      },
+      {
+        "file": "consensus.zig",
+        "loc": 280,
+        "pub_fn": 0
+      },
+      {
+        "file": "consensus_pouw.zig",
+        "loc": 842,
+        "pub_fn": 0
+      },
+      {
+        "file": "crypto.zig",
+        "loc": 185,
+        "pub_fn": 0
+      },
+      {
+        "file": "database.zig",
+        "loc": 1867,
+        "pub_fn": 2
+      },
+      {
+        "file": "dns_registry.zig",
+        "loc": 1688,
+        "pub_fn": 10
+      },
+      {
+        "file": "dns_registry_test.zig",
+        "loc": 184,
+        "pub_fn": 0
+      },
+      {
+        "file": "domain_minter.zig",
+        "loc": 419,
+        "pub_fn": 0
+      },
+      {
+        "file": "e2e_mining.zig",
+        "loc": 219,
+        "pub_fn": 0
+      },
+      {
+        "file": "encrypted_p2p.zig",
+        "loc": 215,
+        "pub_fn": 0
+      },
+      {
+        "file": "escrow.zig",
+        "loc": 347,
+        "pub_fn": 4
+      },
+      {
+        "file": "evm_executor.zig",
+        "loc": 224,
+        "pub_fn": 7
+      },
+      {
+        "file": "evm_ffi.zig",
+        "loc": 51,
+        "pub_fn": 0
+      },
+      {
+        "file": "exchange_main.zig",
+        "loc": 124,
+        "pub_fn": 1
+      },
+      {
+        "file": "explorer_main.zig",
+        "loc": 120,
+        "pub_fn": 1
+      },
+      {
+        "file": "faucet.zig",
+        "loc": 193,
+        "pub_fn": 1
+      },
+      {
+        "file": "finality.zig",
+        "loc": 355,
+        "pub_fn": 0
+      },
+      {
+        "file": "genesis.zig",
+        "loc": 366,
+        "pub_fn": 2
+      },
+      {
+        "file": "governance.zig",
+        "loc": 393,
+        "pub_fn": 0
+      },
+      {
+        "file": "governance_onchain.zig",
+        "loc": 695,
+        "pub_fn": 3
+      },
+      {
+        "file": "guardian.zig",
+        "loc": 249,
+        "pub_fn": 0
+      },
+      {
+        "file": "hex_utils.zig",
+        "loc": 151,
+        "pub_fn": 5
+      },
+      {
+        "file": "htlc.zig",
+        "loc": 303,
+        "pub_fn": 0
+      },
+      {
+        "file": "identity.zig",
+        "loc": 276,
+        "pub_fn": 0
+      },
+      {
+        "file": "integration_test.zig",
+        "loc": 963,
+        "pub_fn": 0
+      },
+      {
+        "file": "isolated_wallet.zig",
+        "loc": 971,
+        "pub_fn": 6
+      },
+      {
+        "file": "isolated_wallet_test.zig",
+        "loc": 343,
+        "pub_fn": 0
+      },
+      {
+        "file": "kademlia_dht.zig",
+        "loc": 352,
+        "pub_fn": 3
+      },
+      {
+        "file": "key_encryption.zig",
+        "loc": 341,
+        "pub_fn": 0
+      },
+      {
+        "file": "kyc.zig",
+        "loc": 278,
+        "pub_fn": 1
+      },
+      {
+        "file": "label.zig",
+        "loc": 370,
+        "pub_fn": 3
+      },
+      {
+        "file": "light_client.zig",
+        "loc": 979,
+        "pub_fn": 1
+      },
+      {
+        "file": "light_miner.zig",
+        "loc": 351,
+        "pub_fn": 0
+      },
+      {
+        "file": "lightning.zig",
+        "loc": 354,
+        "pub_fn": 0
+      },
+      {
+        "file": "main.zig",
+        "loc": 2715,
+        "pub_fn": 3
+      },
+      {
+        "file": "matching_engine.zig",
+        "loc": 987,
+        "pub_fn": 1
+      },
+      {
+        "file": "mempool.zig",
+        "loc": 871,
+        "pub_fn": 0
+      },
+      {
+        "file": "metachain.zig",
+        "loc": 385,
+        "pub_fn": 0
+      },
+      {
+        "file": "miner_genesis.zig",
+        "loc": 214,
+        "pub_fn": 0
+      },
+      {
+        "file": "miner_wallet.zig",
+        "loc": 449,
+        "pub_fn": 0
+      },
+      {
+        "file": "mining_pool.zig",
+        "loc": 215,
+        "pub_fn": 0
+      },
+      {
+        "file": "multisig.zig",
+        "loc": 664,
+        "pub_fn": 2
+      },
+      {
+        "file": "network.zig",
+        "loc": 324,
+        "pub_fn": 0
+      },
+      {
+        "file": "node_launcher.zig",
+        "loc": 424,
+        "pub_fn": 0
+      },
+      {
+        "file": "notarize.zig",
+        "loc": 329,
+        "pub_fn": 2
+      },
+      {
+        "file": "omni_brain.zig",
+        "loc": 243,
+        "pub_fn": 0
+      },
+      {
+        "file": "oracle.zig",
+        "loc": 377,
+        "pub_fn": 0
+      },
+      {
+        "file": "oracle_fetcher.zig",
+        "loc": 697,
+        "pub_fn": 5
+      },
+      {
+        "file": "oracle_main.zig",
+        "loc": 187,
+        "pub_fn": 1
+      },
+      {
+        "file": "oracle_policy.zig",
+        "loc": 429,
+        "pub_fn": 2
+      },
+      {
+        "file": "oracle_types.zig",
+        "loc": 42,
+        "pub_fn": 0
+      },
+      {
+        "file": "orchestrator.zig",
+        "loc": 811,
+        "pub_fn": 5
+      },
+      {
+        "file": "orderbook_sync.zig",
+        "loc": 984,
+        "pub_fn": 0
+      },
+      {
+        "file": "os_mode.zig",
+        "loc": 204,
+        "pub_fn": 0
+      },
+      {
+        "file": "p2p.zig",
+        "loc": 4096,
+        "pub_fn": 11
+      },
+      {
+        "file": "pair_registry.zig",
+        "loc": 201,
+        "pub_fn": 2
+      },
+      {
+        "file": "payment_channel.zig",
+        "loc": 984,
+        "pub_fn": 0
+      },
+      {
+        "file": "peer_scoring.zig",
+        "loc": 281,
+        "pub_fn": 0
+      },
+      {
+        "file": "poap.zig",
+        "loc": 521,
+        "pub_fn": 3
+      },
+      {
+        "file": "pq_crypto.zig",
+        "loc": 543,
+        "pub_fn": 5
+      },
+      {
+        "file": "price_oracle.zig",
+        "loc": 668,
+        "pub_fn": 0
+      },
+      {
+        "file": "prune_config.zig",
+        "loc": 224,
+        "pub_fn": 0
+      },
+      {
+        "file": "psbt.zig",
+        "loc": 299,
+        "pub_fn": 0
+      },
+      {
+        "file": "registrar_addresses.zig",
+        "loc": 135,
+        "pub_fn": 3
+      },
+      {
+        "file": "reputation.zig",
+        "loc": 553,
+        "pub_fn": 1
+      },
+      {
+        "file": "reputation_manager.zig",
+        "loc": 183,
+        "pub_fn": 0
+      },
+      {
+        "file": "ripemd160.zig",
+        "loc": 193,
+        "pub_fn": 0
+      },
+      {
+        "file": "rpc_server.zig",
+        "loc": 13107,
+        "pub_fn": 4
+      },
+      {
+        "file": "schnorr.zig",
+        "loc": 285,
+        "pub_fn": 4
+      },
+      {
+        "file": "script.zig",
+        "loc": 736,
+        "pub_fn": 6
+      },
+      {
+        "file": "secp256k1.zig",
+        "loc": 142,
+        "pub_fn": 0
+      },
+      {
+        "file": "settlement_submitter.zig",
+        "loc": 825,
+        "pub_fn": 1
+      },
+      {
+        "file": "shard_config.zig",
+        "loc": 191,
+        "pub_fn": 0
+      },
+      {
+        "file": "shard_coordinator.zig",
+        "loc": 268,
+        "pub_fn": 0
+      },
+      {
+        "file": "social_graph.zig",
+        "loc": 279,
+        "pub_fn": 2
+      },
+      {
+        "file": "spark_invariants.zig",
+        "loc": 297,
+        "pub_fn": 5
+      },
+      {
+        "file": "staking.zig",
+        "loc": 1087,
+        "pub_fn": 0
+      },
+      {
+        "file": "state_trie.zig",
+        "loc": 234,
+        "pub_fn": 0
+      },
+      {
+        "file": "storage.zig",
+        "loc": 331,
+        "pub_fn": 0
+      },
+      {
+        "file": "sub_block.zig",
+        "loc": 407,
+        "pub_fn": 0
+      },
+      {
+        "file": "subscription.zig",
+        "loc": 275,
+        "pub_fn": 2
+      },
+      {
+        "file": "synapse_priority.zig",
+        "loc": 241,
+        "pub_fn": 1
+      },
+      {
+        "file": "sync.zig",
+        "loc": 749,
+        "pub_fn": 1
+      },
+      {
+        "file": "tor_proxy.zig",
+        "loc": 177,
+        "pub_fn": 5
+      },
+      {
+        "file": "transaction.zig",
+        "loc": 1031,
+        "pub_fn": 3
+      },
+      {
+        "file": "treasury_agent.zig",
+        "loc": 411,
+        "pub_fn": 0
+      },
+      {
+        "file": "tx_payload.zig",
+        "loc": 404,
+        "pub_fn": 1
+      },
+      {
+        "file": "tx_receipt.zig",
+        "loc": 217,
+        "pub_fn": 0
+      },
+      {
+        "file": "ubi_distributor.zig",
+        "loc": 310,
+        "pub_fn": 0
+      },
+      {
+        "file": "utxo.zig",
+        "loc": 356,
+        "pub_fn": 0
+      },
+      {
+        "file": "validator_registry.zig",
+        "loc": 286,
+        "pub_fn": 5
+      },
+      {
+        "file": "vault_engine.zig",
+        "loc": 314,
+        "pub_fn": 0
+      },
+      {
+        "file": "vault_reader.zig",
+        "loc": 142,
+        "pub_fn": 1
+      },
+      {
+        "file": "wallet.zig",
+        "loc": 841,
+        "pub_fn": 1
+      },
+      {
+        "file": "wasm_exports.zig",
+        "loc": 201,
+        "pub_fn": 0
+      },
+      {
+        "file": "witness_data.zig",
+        "loc": 417,
+        "pub_fn": 0
+      },
+      {
+        "file": "ws_client.zig",
+        "loc": 598,
+        "pub_fn": 0
+      },
+      {
+        "file": "ws_client_test.zig",
+        "loc": 36,
+        "pub_fn": 0
+      },
+      {
+        "file": "ws_exchange_feed.zig",
+        "loc": 1495,
+        "pub_fn": 3
+      },
+      {
+        "file": "ws_server.zig",
+        "loc": 612,
+        "pub_fn": 0
+      }
+    ]
+  },
+  "ws": {
+    "event_names": [],
+    "event_count": 0
+  }
+}
