@@ -14,10 +14,11 @@ import { NamesPage } from "./components/names/NamesPage";
 import { ExchangePage } from "./components/exchange/ExchangePage";
 import { ZeroDayPage } from "./components/zeroday/ZeroDayPage";
 import { ApiDocsPage } from "./components/api/ApiDocsPage";
+import { BridgePage } from "./components/bridge/BridgePage";
 import { MatrixBackground } from "./components/effects/MatrixBackground";
 import { PlasmaSlotProvider } from "./components/effects/PlasmaSlotContext";
 
-export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "zeroday" | "api" | "roadmap";
+export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "bridge" | "zeroday" | "api" | "roadmap";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -26,6 +27,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "reputation", label: "Reputation" },
   { id: "names", label: ".omnibus" },
   { id: "exchange", label: "Exchange" },
+  { id: "bridge", label: "Bridge" },
   { id: "agents", label: "Agents" },
   { id: "wallet", label: "Wallet" },
   { id: "network", label: "Network" },
@@ -78,6 +80,7 @@ export default function App() {
           {activeTab === "reputation" && <ReputationPage />}
           {activeTab === "names" && <NamesPage />}
           {activeTab === "exchange" && <ExchangePage />}
+          {activeTab === "bridge" && <BridgePage />}
           {activeTab === "api" && <ApiDocsPage />}
           {activeTab === "roadmap" && (
             <iframe

@@ -111,6 +111,14 @@ pub fn feeForRegistration(name: []const u8, tld: []const u8, years: u32) u64 {
     return (base * mul) / 1_000;
 }
 
+/// Phase 2 — renewal fee for `additional_years`. Same multiplier curve as
+/// registration: 1y costs base, 100y costs ~55× base instead of 100×.
+/// The renewal pricing intentionally matches registration so the owner
+/// always sees a single, simple price table.
+pub fn feeForRenewal(name: []const u8, tld: []const u8, additional_years: u32) u64 {
+    return feeForRegistration(name, tld, additional_years);
+}
+
 /// Returneaza fee-ul required pentru un TLD (in SAT).
 pub fn feeForTld(tld: []const u8) u64 {
     if (std.mem.eql(u8, tld, "omnibus"))   return COST_OMNIBUS_SAT;
@@ -528,7 +536,7 @@ pub const DnsRegistry = struct {
             .treasury_address = std.mem.zeroes([64]u8),
             .treasury_addr_len = 0,
             .fee_enforcement = false,
-            .signed_required = false,
+            .signed_required = true,
             .consumed_txids = std.mem.zeroes([MAX_CONSUMED_TXIDS][TXID_LEN]u8),
             .consumed_count = 0,
         };
@@ -1014,6 +1022,117 @@ pub const DnsRegistry = struct {
         e.last_action_block = current_block;
     }
 
+    /// Phase 2 — years-aware renewal. Extends `expires_block` by
+    /// `additional_years * BLOCKS_PER_YEAR` (relative to the current expiry,
+    /// NOT current_block, so renewing early doesn't waste already-paid time).
+    /// Caps cumulative `registered_years` at MAX_REGISTRATION_YEARS.
+    ///
+    /// Backward compat: legacy entries with `registered_years == 0` are
+    /// treated as 1y (the default duration of all v1/v2 records). After
+    /// renewWithYears they're brought up to `1 + additional_years`.
+    ///
+    /// Errors:
+    ///   error.NameNotFound     — entry missing
+    ///   error.NotOwner         — caller is not current owner
+    ///   error.InvalidYears     — `additional_years` not in ALLOWED_YEARS
+    ///   error.YearsCapExceeded — total registered_years would exceed 100
+    pub fn renewWithYears(
+        self: *DnsRegistry,
+        name: []const u8,
+        tld: []const u8,
+        owner: []const u8,
+        additional_years: u32,
+        current_block: u64,
+    ) !void {
+        if (!isValidYears(additional_years)) return error.InvalidYears;
+        const e = self.lookupEntry(name, tld) orelse return error.NameNotFound;
+        if (!std.mem.eql(u8, e.getOwner(), owner)) return error.NotOwner;
+
+        // Treat legacy `registered_years == 0` as 1y (the implicit v1 default).
+        const effective_existing: u32 = if (e.registered_years == 0) 1 else e.registered_years;
+        const new_total: u64 = @as(u64, effective_existing) + @as(u64, additional_years);
+        if (new_total > MAX_REGISTRATION_YEARS) return error.YearsCapExceeded;
+
+        // Add to the EXISTING expiry, not current_block — renewing 6 months
+        // before expiry shouldn't burn 6 months. If the entry is already past
+        // expiry (in grace), anchor to current_block instead so the new
+        // window is `additional_years` from now.
+        const anchor: u64 = if (e.expires_block > current_block) e.expires_block else current_block;
+        e.expires_block = anchor + (@as(u64, additional_years) * BLOCKS_PER_YEAR);
+        e.grace_until_block = e.expires_block + GRACE_PERIOD_BLOCKS;
+        e.registered_years = @intCast(new_total);
+        e.last_action_block = current_block;
+    }
+
+    /// Phase 2 — drop entries whose grace period has fully elapsed. Returns
+    /// the number of entries removed. Safe to call periodically (e.g. every
+    /// N blocks from main.zig). The deletion is in-place + compact, so
+    /// `entry_count` shrinks by the returned value.
+    ///
+    /// We prune past-grace, NOT past-expiry: an expired-but-in-grace name
+    /// can still be renewed by its owner, so dropping it would lose data.
+    pub fn pruneExpiredNames(self: *DnsRegistry, current_block: u64) usize {
+        var removed: usize = 0;
+        var i: usize = 0;
+        while (i < self.entry_count) {
+            const e = &self.entries[i];
+            // Only consider truly auctionable (past grace) entries. Inactive
+            // entries (already marked dead) also get compacted.
+            const is_dead_past_grace = e.active and e.isAuctionable(current_block);
+            if (is_dead_past_grace or !e.active) {
+                // Swap-with-last to compact in O(1) per removal.
+                if (i + 1 < self.entry_count) {
+                    self.entries[i] = self.entries[self.entry_count - 1];
+                }
+                self.entry_count -= 1;
+                removed += 1;
+                // Don't advance i — the swapped-in entry needs checking too.
+                continue;
+            }
+            i += 1;
+        }
+        return removed;
+    }
+
+    /// Phase 2 — list names owned by `owner` that expire within
+    /// `blocks_threshold` blocks from `current_block`. Writes up to
+    /// `out.len` entries and returns the number written. Used by the UI
+    /// to surface "your N name(s) expire soon" warnings in the header pill.
+    ///
+    /// Selection: entry must be active, NOT yet expired, and
+    /// (expires_block - current_block) <= blocks_threshold. Already-expired
+    /// names (in grace) are also included since the owner urgently needs
+    /// to renew them before they auction off.
+    pub fn getExpiringNames(
+        self: *const DnsRegistry,
+        owner: []const u8,
+        current_block: u64,
+        blocks_threshold: u64,
+        out: []*const DnsEntry,
+    ) usize {
+        var n: usize = 0;
+        for (self.entries[0..self.entry_count]) |*e| {
+            if (n >= out.len) break;
+            if (!e.active) continue;
+            if (!std.mem.eql(u8, e.getOwner(), owner)) continue;
+            // Past-grace entries are auctionable — owner already lost them.
+            if (e.isAuctionable(current_block)) continue;
+            // In-grace entries always count as "expiring" (urgent).
+            if (e.isInGrace(current_block)) {
+                out[n] = e;
+                n += 1;
+                continue;
+            }
+            // Pre-expiry: include if within threshold.
+            const remaining = e.expires_block - current_block;
+            if (remaining <= blocks_threshold) {
+                out[n] = e;
+                n += 1;
+            }
+        }
+        return n;
+    }
+
     /// Transfer name to new owner/address. Phase 1: updates nonce, checks cap.
     pub fn transfer(
         self: *DnsRegistry,
@@ -1252,7 +1371,7 @@ test "DnsRegistry — register and resolve" {
 test "DnsRegistry — name taken" {
     var reg = DnsRegistry.init();
     try reg.register("bob", "ob1qvkpmansk8z28n9v9g5rx07x3r9xht7kcv5tkvc", "ob1qvkpmansk8z28n9v9g5rx07x3r9xht7kcv5tkvc", 1000);
-    try testing.expectError(error.NameTaken,
+    try testing.expectError(error.NameTakenCrossTld,
         reg.register("bob", "ob1q632e5a5f9njdlucpm2g7cqsf7p2gk3u8h25wah", "ob1q632e5a5f9njdlucpm2g7cqsf7p2gk3u8h25wah", 1001));
 }
 
@@ -1306,10 +1425,15 @@ test "DnsRegistry — active count" {
 
 test "DnsRegistry — same name, different TLDs coexist" {
     var reg = DnsRegistry.init();
-    try reg.registerWithTld("alpha", "omnibus", "ob1qaaa", "ob1qaaa", 1000);
-    try reg.registerWithTld("alpha", "arbitraje", "ob1qbbb", "ob1qbbb", 1000);
-    try testing.expectEqualStrings("ob1qaaa", reg.resolveWithTld("alpha", "omnibus", 1001).?);
-    try testing.expectEqualStrings("ob1qbbb", reg.resolveWithTld("alpha", "arbitraje", 1001).?);
+    try reg.registerWithTld("alpha_brand", "omnibus", "ob1qaaa", "ob1qaaa", 1000);
+    // Phase 2 brand-protection: a *different* owner cannot grab the same name on
+    // a different TLD — cross-TLD uniqueness fires first.
+    try testing.expectError(error.NameTakenCrossTld,
+        reg.registerWithTld("alpha_brand", "arbitraje", "ob1qbbb", "ob1qbbb", 1000));
+    // Same owner is still allowed across TLDs.
+    try reg.registerWithTld("alpha_brand", "arbitraje", "ob1qaaa", "ob1qaaa", 1000);
+    try testing.expectEqualStrings("ob1qaaa", reg.resolveWithTld("alpha_brand", "omnibus", 1001).?);
+    try testing.expectEqualStrings("ob1qaaa", reg.resolveWithTld("alpha_brand", "arbitraje", 1001).?);
 }
 
 test "DnsRegistry — invalid TLD rejected" {
@@ -1459,6 +1583,101 @@ test "DnsRegistry — grace period fields set correctly" {
     try testing.expect(e.isInGrace(1000 + RENEWAL_PERIOD_BLOCKS + GRACE_PERIOD_BLOCKS - 1));
     try testing.expect(!e.isAuctionable(1000 + RENEWAL_PERIOD_BLOCKS + GRACE_PERIOD_BLOCKS - 1));
     try testing.expect(e.isAuctionable(1000 + RENEWAL_PERIOD_BLOCKS + GRACE_PERIOD_BLOCKS));
+}
+
+test "DnsRegistry — renewWithYears extends expiry from existing expires_block" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rny", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 5);
+    const initial_expires = reg.entries[0].expires_block;
+    try testing.expectEqual(@as(u64, 1000 + 5 * BLOCKS_PER_YEAR), initial_expires);
+    try testing.expectEqual(@as(u32, 5), reg.entries[0].registered_years);
+
+    // Renew +10y BEFORE expiry — anchor at existing expires_block, no time burned.
+    try reg.renewWithYears("rny", "omnibus", "ob1qaaa", 10, 2000);
+    try testing.expectEqual(@as(u64, initial_expires + 10 * BLOCKS_PER_YEAR), reg.entries[0].expires_block);
+    try testing.expectEqual(@as(u32, 15), reg.entries[0].registered_years);
+    try testing.expectEqual(@as(u64, reg.entries[0].expires_block + GRACE_PERIOD_BLOCKS), reg.entries[0].grace_until_block);
+}
+
+test "DnsRegistry — renewWithYears caps at MAX_REGISTRATION_YEARS" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rcap", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 100);
+    try testing.expectError(error.YearsCapExceeded,
+        reg.renewWithYears("rcap", "omnibus", "ob1qaaa", 1, 2000));
+}
+
+test "DnsRegistry — renewWithYears rejects invalid years tier" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rinv", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 1);
+    try testing.expectError(error.InvalidYears,
+        reg.renewWithYears("rinv", "omnibus", "ob1qaaa", 7, 2000));
+}
+
+test "DnsRegistry — renewWithYears rejects non-owner" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rno", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 1);
+    try testing.expectError(error.NotOwner,
+        reg.renewWithYears("rno", "omnibus", "ob1qbbb", 1, 2000));
+}
+
+test "DnsRegistry — renewWithYears legacy entry (registered_years==0) treats as 1y" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rlegacy", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 1);
+    // Simulate a legacy v1 record where years was never written.
+    reg.entries[0].registered_years = 0;
+    try reg.renewWithYears("rlegacy", "omnibus", "ob1qaaa", 4, 2000);
+    // 0 (treated as 1) + 4 = 5 total
+    try testing.expectEqual(@as(u32, 5), reg.entries[0].registered_years);
+}
+
+test "DnsRegistry — renewWithYears anchors to current_block when in grace" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("rgrace", "omnibus", "ob1qaaa", "ob1qaaa", 1000, 1);
+    const post_expiry = 1000 + BLOCKS_PER_YEAR + 100; // in grace
+    try reg.renewWithYears("rgrace", "omnibus", "ob1qaaa", 2, post_expiry);
+    try testing.expectEqual(@as(u64, post_expiry + 2 * BLOCKS_PER_YEAR), reg.entries[0].expires_block);
+}
+
+test "DnsRegistry — pruneExpiredNames drops only past-grace entries" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("alive", "omnibus", "ob1qa", "ob1qa", 1000, 1);
+    try reg.registerWithTldYears("ingrace", "omnibus", "ob1qb", "ob1qb", 1000, 1);
+    try reg.registerWithTldYears("dead", "omnibus", "ob1qc", "ob1qc", 1000, 1);
+    // Make `dead` past grace, `ingrace` in grace, `alive` still valid.
+    reg.entries[2].expires_block = 1100;
+    reg.entries[2].grace_until_block = 1200;
+    reg.entries[1].expires_block = 1100;
+    reg.entries[1].grace_until_block = 5000;
+
+    const removed = reg.pruneExpiredNames(1500);
+    try testing.expectEqual(@as(usize, 1), removed);
+    try testing.expectEqual(@as(usize, 2), reg.entry_count);
+    // `alive` and `ingrace` survive
+    try testing.expect(reg.lookupEntry("alive", "omnibus") != null);
+    try testing.expect(reg.lookupEntry("ingrace", "omnibus") != null);
+    try testing.expect(reg.lookupEntry("dead", "omnibus") == null);
+}
+
+test "DnsRegistry — getExpiringNames returns only owner's about-to-expire" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTldYears("mine_soon", "omnibus", "ob1qme", "ob1qme", 1000, 1);
+    try reg.registerWithTldYears("mine_far",  "omnibus", "ob1qme", "ob1qme", 1000, 100);
+    try reg.registerWithTldYears("yours",     "bank",    "ob1qyou","ob1qyou",1000, 1);
+
+    var buf: [10]*const DnsEntry = undefined;
+    // 30-day threshold, current ~6 months before mine_soon expires
+    const threshold: u64 = 30 * 86_400; // 30 days in seconds (=blocks at 1s/block)
+    const cb: u64 = 1000 + BLOCKS_PER_YEAR - threshold + 100; // inside the window
+    const n = reg.getExpiringNames("ob1qme", cb, threshold, &buf);
+    try testing.expectEqual(@as(usize, 1), n);
+    try testing.expectEqualStrings("mine_soon", buf[0].getName());
+}
+
+test "DnsRegistry — feeForRenewal mirrors feeForRegistration curve" {
+    try testing.expectEqual(feeForRegistration("alice", "omnibus", 1),
+                            feeForRenewal("alice", "omnibus", 1));
+    try testing.expectEqual(feeForRegistration("alice", "omnibus", 100),
+                            feeForRenewal("alice", "omnibus", 100));
 }
 
 test "DnsRegistry — lookupEntry finds expired but active names" {

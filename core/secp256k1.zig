@@ -53,13 +53,13 @@ pub const Secp256k1Crypto = struct {
         return true;
     }
 
-    /// Verifica daca o cheie privata e valida (in range [1, n-1])
+    /// Verifica daca o cheie privata e valida (in range [1, n-1]).
+    /// Constant-time: ruleaza in timp independent de continutul cheii.
     pub fn isValidPrivateKey(private_key: PrivateKey) bool {
-        var all_zero = true;
-        for (private_key) |b| {
-            if (b != 0) { all_zero = false; break; }
-        }
-        if (all_zero) return false;
+        // Constant-time "is non-zero": OR all bytes; result == 0 iff all zero.
+        var nz_acc: u8 = 0;
+        for (private_key) |b| nz_acc |= b;
+        const non_zero: u1 = @intFromBool(nz_acc != 0);
 
         const n = [_]u8{
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -67,11 +67,26 @@ pub const Secp256k1Crypto = struct {
             0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
             0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41,
         };
-        for (private_key, n) |pk_byte, n_byte| {
-            if (pk_byte < n_byte) return true;
-            if (pk_byte > n_byte) return false;
+
+        // Constant-time "private_key < n": compute n - private_key as a
+        // 256-bit big-int subtraction, walking LSB→MSB. If a borrow propagates
+        // out of the top byte, then private_key > n; otherwise private_key <= n.
+        var borrow: u16 = 0;
+        var i: usize = 32;
+        while (i > 0) {
+            i -= 1;
+            const diff: u16 = @as(u16, n[i]) -% @as(u16, private_key[i]) -% borrow;
+            borrow = (diff >> 15) & 1; // sign bit on underflow
         }
-        return false;
+        // borrow == 0 means private_key <= n. We need strict less-than.
+        // Detect equality (private_key == n) in constant time.
+        var eq_acc: u8 = 0;
+        for (private_key, n) |a, b| eq_acc |= a ^ b;
+        const not_equal: u1 = @intFromBool(eq_acc != 0);
+        const less_or_equal: u1 = @intFromBool(borrow == 0);
+        const strictly_less: u1 = less_or_equal & not_equal;
+
+        return (non_zero & strictly_less) == 1;
     }
 
     /// Genereaza o pereche de chei random (pentru teste/debug)

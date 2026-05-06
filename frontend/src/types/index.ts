@@ -58,6 +58,47 @@ export interface WsOraclePriceEvent {
   timestamp: number;
 }
 
+export interface WsTxConfirmedEvent {
+  event: "tx_confirmed";
+  hash: string;
+  blockHeight: number;
+  blockHash: string;
+}
+
+export interface WsNameRegisteredEvent {
+  event: "name_registered";
+  name: string;
+  tld: string;
+  fullLabel: string;       // "alice.omnibus"
+  address: string;
+  years: number;
+  timestamp: number;
+}
+
+export interface WsNameRenewedEvent {
+  event: "name_renewed";
+  name: string;
+  tld: string;
+  fullLabel: string;
+  address: string;
+  years: number;
+  timestamp: number;
+}
+
+export interface WsPeerConnectEvent {
+  event: "peer_connect";
+  nodeId: string;
+  address: string;          // "host:port"
+  timestamp: number;
+}
+
+export interface WsPeerDisconnectEvent {
+  event: "peer_disconnect";
+  nodeId: string;
+  address: string;
+  timestamp: number;
+}
+
 export type WsEvent =
   | WsNewBlockEvent
   | WsNewTxEvent
@@ -65,7 +106,12 @@ export type WsEvent =
   | WsHeartbeatEvent
   | WsNewTradeEvent
   | WsOrderbookUpdateEvent
-  | WsOraclePriceEvent;
+  | WsOraclePriceEvent
+  | WsTxConfirmedEvent
+  | WsNameRegisteredEvent
+  | WsNameRenewedEvent
+  | WsPeerConnectEvent
+  | WsPeerDisconnectEvent;
 
 // ── RPC Response Shapes ─────────────────────────────────────────────────────
 

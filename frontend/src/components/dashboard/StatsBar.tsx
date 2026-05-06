@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 
@@ -39,6 +40,17 @@ function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }:
 export function StatsBar() {
   const { state } = useBlockchain();
   const [totalMined, setTotalMined] = useState<string | null>(null);
+  // Optimistic mempool delta — increments on every `new_tx` WS event and
+  // resets when the next block lands (mempool size is authoritative again).
+  // Skips the 500ms WS throttle by using ws-bus directly so users see TX
+  // arrival the instant the node accepts it.
+  const [pendingDelta, setPendingDelta] = useState(0);
+
+  useEffect(() => {
+    const off1 = wsSubscribe("new_tx", () => setPendingDelta((n) => n + 1));
+    const off2 = wsSubscribe("new_block", () => setPendingDelta(0));
+    return () => { off1(); off2(); };
+  }, []);
 
   // Fetch total mined every time block count changes (cheap on server side —
   // it's a single sum loop). This is the canonical "Total Mined Network"
@@ -76,13 +88,19 @@ export function StatsBar() {
       />
       <StatCard
         label="Mempool"
-        value={state.mempoolSize}
+        value={state.mempoolSize + pendingDelta}
         sub={
-          state.mempoolStats
+          pendingDelta > 0
+            ? `+${pendingDelta} just received`
+            : state.mempoolStats
             ? `${(state.mempoolStats.bytes / 1024).toFixed(1)} KB`
             : "pending TXs"
         }
-        color={state.mempoolSize > 0 ? "text-mempool-orange" : "text-mempool-text"}
+        color={
+          (state.mempoolSize + pendingDelta) > 0
+            ? "text-mempool-orange"
+            : "text-mempool-text"
+        }
         slotIndex={1}
       />
       <StatCard

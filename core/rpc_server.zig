@@ -8,6 +8,7 @@ pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled
 const blockchain_mod  = @import("blockchain.zig");
 const wallet_mod      = @import("wallet.zig");
 const transaction_mod = @import("transaction.zig");
+const tx_payload_mod  = @import("tx_payload.zig");
 const mempool_mod     = @import("mempool.zig");
 const p2p_mod         = @import("p2p.zig");
 const sync_mod        = @import("sync.zig");
@@ -2925,6 +2926,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
     if (std.mem.eql(u8, method, "ns_yearTiers"))     return handleNsYearTiers(ctx, id);
     if (std.mem.eql(u8, method, "ns_stats"))         return handleNsStats(ctx, id);
+    if (std.mem.eql(u8, method, "ns_expiringSoon"))  return handleNsExpiringSoon(body, ctx, id);
+    if (std.mem.eql(u8, method, "ns_pruneExpired"))  return handleNsPruneExpired(ctx, id);
     // Phase 2 NS — multi-address per name + category badges
     if (std.mem.eql(u8, method, "setpqaddress"))     return handleSetPqAddress(body, ctx, id);
     if (std.mem.eql(u8, method, "setcategory"))      return handleSetCategory(body, ctx, id);
@@ -3876,6 +3879,11 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ name, tld, address, owner, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "register", audit_fields);
 
+    // WS push — frontend name-list refreshes without polling.
+    if (main_mod.g_ws_srv) |ws| {
+        ws.broadcastNameRegistered(name, tld, address, @intCast(@min(years, 255)));
+    }
+
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
         .{ id, name, tld, name, tld, address, current_block, fee_paid_sat, fee_txid_esc });
@@ -4523,7 +4531,17 @@ fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, name, tld, old_address, new_address, current_block });
 }
 
-// ─── Phase 1: renewname ─────────────────────────────────────────────────────
+// ─── Phase 1+2: renewname ───────────────────────────────────────────────────
+//
+// Phase 2 contract — params (positional or keyed):
+//   name, tld?, owner_address?, fee_txid?, {years, nonce, signature, publicKey}
+//
+// `years` is the additional years to add (1, 2, 3, 4, 5, 10, 25, 50, 100).
+// Default 1 for backward compatibility with Phase 1 callers.
+//
+// The signing message is V2 when years is supplied (embeds years to prevent
+// cross-tier replay). Phase 1 V1 callers (no years key, signed_required off)
+// still work — we fall back to renewWithYears(1y) and do NOT verify a V2 sig.
 fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
@@ -4536,12 +4554,19 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const sig_hex = extractStr(body, "signature") orelse "";
     const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
     const fee_txid = extractStr(body, "fee_txid") orelse null;
+    // Phase 2: years tier (default 1 for V1 compat).
+    const years_raw = extractArrayNumByKey(body, "years");
+    const years: u32 = if (years_raw == 0) 1 else @intCast(@min(years_raw, dns_mod.MAX_REGISTRATION_YEARS));
+    if (!dns_mod.isValidYears(years)) {
+        return errorJson(-32602, "Invalid years (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)", id, alloc);
+    }
 
     const entry = dns.lookupEntry(name, tld) orelse
         return errorJson(-32400, "Name not found", id, alloc);
     const owner = entry.getOwner();
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
     const old_expires = entry.expires_block;
+    const old_years = entry.registered_years;
 
     const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
     if (dns.signed_required and !is_hmac_bypass) {
@@ -4549,9 +4574,19 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
         }
         var msg_buf: [512]u8 = undefined;
-        const msg = buildDnsRenewSignMessage(name, tld, nonce, &msg_buf) catch
+        // V2 signing message embeds years; V1 message kept for legacy callers
+        // that don't pass `years` (defaulted to 1). We try V2 first; if it
+        // fails AND years==1, fall back to V1 to keep Phase 1 clients alive.
+        const msg_v2 = buildDnsRenewYearsSignMessage(name, tld, years, nonce, &msg_buf) catch
             return errorJson(-32603, "Failed to build sign message", id, alloc);
-        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
+        var ok = verifyDnsSignature(msg_v2, sig_hex, pubkey_hex, owner, alloc);
+        if (!ok and years == 1) {
+            var legacy_buf: [512]u8 = undefined;
+            const msg_v1 = buildDnsRenewSignMessage(name, tld, nonce, &legacy_buf) catch
+                return errorJson(-32603, "Failed to build sign message", id, alloc);
+            ok = verifyDnsSignature(msg_v1, sig_hex, pubkey_hex, owner, alloc);
+        }
+        if (!ok) {
             return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
         }
     }
@@ -4560,8 +4595,10 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
     }
 
-    // Fee enforcement for renewal (same pattern as register)
-    const required_fee = dns_mod.feeForName(name, tld);
+    // Fee enforcement for renewal — Phase 2: scales with `years` via the
+    // same multiplier curve as registration. 100y renew costs ~55× base,
+    // not 100× (long-term commitment discount).
+    const required_fee = dns_mod.feeForRenewal(name, tld, years);
     if (dns.fee_enforcement) {
         const txid = fee_txid orelse
             return errorJson(-32602, "fee_txid required (mainnet)", id, alloc);
@@ -4601,10 +4638,12 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
     }
 
-    dns.renew(name, tld, owner, current_block) catch |err| {
+    dns.renewWithYears(name, tld, owner, years, current_block) catch |err| {
         const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner => "Not owner",
+            error.NameNotFound      => "Name not found",
+            error.NotOwner          => "Not owner",
+            error.InvalidYears      => "Invalid years tier (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)",
+            error.YearsCapExceeded  => "Cumulative registered_years would exceed 100 (hard cap)",
         };
         return errorJson(-32031, msg, id, alloc);
     };
@@ -4615,13 +4654,102 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     var audit_buf: [1024]u8 = undefined;
     const audit_fields = std.fmt.bufPrint(&audit_buf,
-        "\"name\":\"{s}\",\"tld\":\"{s}\",\"new_expires_block\":{d},\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\",\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"",
-        .{ name, tld, entry.expires_block, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
+        "\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"old_years\":{d},\"new_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\",\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"",
+        .{ name, tld, years, old_years, entry.registered_years, old_expires, entry.expires_block, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "renew", audit_fields);
 
+    // WS push — UI updates the expiry pill on the renewed name.
+    if (main_mod.g_ws_srv) |ws| {
+        ws.broadcastNameRenewed(name, tld, owner, @intCast(@min(years, 255)));
+    }
+
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
-        .{ id, name, tld, old_expires, entry.expires_block, fee_paid_sat });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
+        .{ id, name, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
+}
+
+// ─── Phase 2: ns_expiringSoon ───────────────────────────────────────────────
+//
+// Lifecycle UI helper. Given an owner address, returns names that expire
+// within `blocks_threshold` blocks (default = 30 days = 30*86400/10 = 259200
+// at the canonical 10s block time). The frontend uses this for the warning
+// badge on the WalletConnect pill + the per-row "expires in N days" label.
+//
+// Params (positional or keyed):
+//   address: string         — owner wallet (ob1q…). Required.
+//   blocks_threshold?: u64  — default 259200.
+//
+// Result:
+//   {
+//     address, current_block, blocks_threshold,
+//     entries: [
+//       { name, tld, fullLabel, expiresAtBlock, blocks_remaining,
+//         estimated_days_remaining, registered_years, in_grace }
+//     ]
+//   }
+//
+// Note: `blocks_remaining` is signed conceptually but JSON-emitted unsigned;
+// when the entry is in grace, it's reported as 0 and `in_grace: true`.
+fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+
+    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    // Default ~30 days at 10s block time = 259200 blocks.
+    const DEFAULT_THRESHOLD_BLOCKS: u64 = 259_200;
+    const t_raw = extractArrayNumByKey(body, "blocks_threshold");
+    const blocks_threshold: u64 = if (t_raw == 0) DEFAULT_THRESHOLD_BLOCKS else t_raw;
+
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    var buf: [dns_mod.MAX_NAMES_PER_OWNER]*const dns_mod.DnsEntry = undefined;
+    const n = dns.getExpiringNames(address, current_block, blocks_threshold, &buf);
+
+    // Build JSON result. ~512B per entry is plenty.
+    var out = std.array_list.Managed(u8).init(alloc);
+    defer out.deinit();
+    const w = out.writer();
+    try std.fmt.format(w,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"current_block\":{d},\"blocks_threshold\":{d},\"entries\":[",
+        .{ id, address, current_block, blocks_threshold });
+    for (buf[0..n], 0..) |e, i| {
+        if (i > 0) try w.writeAll(",");
+        const name = e.getName();
+        const tld_s = e.getTld();
+        const in_grace = e.isInGrace(current_block);
+        const remaining: u64 = if (in_grace or e.expires_block <= current_block)
+            0
+        else
+            e.expires_block - current_block;
+        // 10s/block, so days = remaining / (86400/10) = remaining / 8640
+        const est_days: u64 = remaining / 8640;
+        try std.fmt.format(w,
+            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
+            .{ name, tld_s, name, tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
+    }
+    try w.writeAll("]}}");
+    return out.toOwnedSlice();
+}
+
+// ─── Phase 2: ns_pruneExpired ───────────────────────────────────────────────
+//
+// Admin / maintenance RPC. Drops every entry whose grace period has fully
+// elapsed (truly auctionable + abandoned). Returns the number removed and
+// the new entry_count. Not auto-called; main.zig invokes it once at startup
+// and (optionally) every N blocks during mining.
+//
+// Result: { removed: u64, entry_count: u64, current_block: u64 }
+fn handleNsPruneExpired(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const removed = dns.pruneExpiredNames(current_block);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"removed\":{d},\"entry_count\":{d},\"current_block\":{d}}}}}",
+        .{ id, removed, dns.entry_count, current_block });
 }
 
 // ─── sendrawtransaction — submit a CLIENT-SIGNED OmniBus transaction ────────
@@ -8629,6 +8757,46 @@ fn computeExchangeFeeMicro(price_micro: u64, amount_sat: u64, bps: u64) u64 {
     return @intCast(@min(fee, @as(u128, std.math.maxInt(u64))));
 }
 
+// ── KYC tier order caps ──────────────────────────────────────────────
+// Per-tier max notional (in micro-USD) for a single order. `none` is
+// blocked entirely; `pro` is uncapped. Mirrors LCX/Kraken brackets,
+// scaled to micro-USD to match `computeExchangeFeeMicro` units.
+fn kycMaxNotionalMicro(level: kyc_mod.Level) u64 {
+    return switch (level) {
+        .none     => 0,
+        .starter  => 1_000_000_000,         // $1k
+        .verified => 100_000_000_000,       // $100k
+        .pro      => std.math.maxInt(u64),  // unlimited
+    };
+}
+
+/// Notional for a single order: price (micro-USD) × amount (SAT) / 1e9.
+/// Saturates at u64.max instead of overflowing.
+fn orderNotionalMicro(price_micro: u64, amount_sat: u64) u64 {
+    const n: u128 =
+        (@as(u128, price_micro) * @as(u128, amount_sat)) / 1_000_000_000;
+    return @intCast(@min(n, @as(u128, std.math.maxInt(u64))));
+}
+
+// ── Oracle price-band ────────────────────────────────────────────────
+/// Reject orders priced more than this many basis points away from the
+/// oracle reference. 1000 bps = 10%. Hardcoded for now; future work:
+/// expose via `omnibus_setoraclepolicy` (would add `order_band_bps` to
+/// `oracle_policy.OraclePolicy`).
+const ORDER_BAND_BPS: u64 = 1000;
+
+/// Map an exchange pair_id to the oracle ChainId for its BASE leg, when
+/// the chain is one the oracle tracks. LCX (pair_id 2) returns null —
+/// no oracle feed, skip the band check.
+fn oracleChainForPair(pair_id: u16) ?price_oracle_mod.ChainId {
+    return switch (pair_id) {
+        0, 4, 5, 6 => .omni,
+        1          => .btc,
+        3          => .eth,
+        else       => null, // LCX (2) or unknown
+    };
+}
+
 fn exchangePairLookup(label: []const u8) ?u16 {
     // Accept "BASE/QUOTE" sau "BASE-QUOTE". Case-insensitive.
     var sep: ?usize = null;
@@ -8877,6 +9045,127 @@ fn createOrderTransaction(
     };
 }
 
+/// Build and submit a Phase-2A typed `order_place` chain TX into the
+/// blockchain mempool. This is what makes the orderbook deterministic
+/// across replaying nodes — `applyOrderTxs` reads these TXs back out of
+/// each block and re-runs matching. Without this submission, the in-memory
+/// matching engine on this node holds the only copy of the book.
+///
+/// `signature` is intentionally left empty: the user's ECDSA was over the
+/// `EXCHANGE_ORDER_V1` canonical message (already verified at handler
+/// entry), not over the chain TX hash. The pubkey_registry signature path
+/// in `validateTransaction` is gated on `tx.signature.len == 128`, so an
+/// empty signature skips that path — `validateTransaction` will accept the
+/// TX provided the typed-TX exemptions for amount=0 / dust hold.
+///
+/// All string fields are heap-duped from the caller's allocator so the TX
+/// can outlive this function frame. Caller must NOT free them — ownership
+/// transfers into the mempool via `addTransaction`.
+fn submitOrderPlaceTx(
+    ctx: *ServerCtx,
+    trader: []const u8,
+    side: matching_mod.Side,
+    pair_id: u16,
+    price_micro_usd: u64,
+    amount_sat: u64,
+) !void {
+    const alloc = ctx.allocator;
+
+    // Encode OrderPlacePayload (32 bytes wire format).
+    const payload = tx_payload_mod.OrderPlacePayload{
+        .pair_id = pair_id,
+        .side = if (side == .buy) .buy else .sell,
+        .price_micro_usd = price_micro_usd,
+        .amount_sat = amount_sat,
+        .nonce = ctx.bc.getNextAvailableNonce(trader),
+    };
+    const data_buf = try alloc.alloc(u8, tx_payload_mod.OrderPlacePayload.WIRE_SIZE);
+    errdefer alloc.free(data_buf);
+    _ = try payload.encode(data_buf);
+
+    // Heap-dup the addresses; `to_address = trader` is a self-send carrier
+    // (orderbook layer ignores `to_address`; it's required by the address
+    // validator only).
+    const from_owned = try alloc.dupe(u8, trader);
+    errdefer alloc.free(from_owned);
+    const to_owned = try alloc.dupe(u8, trader);
+    errdefer alloc.free(to_owned);
+
+    var tx = transaction_mod.Transaction{
+        .id           = g_tx_counter.fetchAdd(1, .monotonic),
+        .from_address = from_owned,
+        .to_address   = to_owned,
+        .amount       = 0,                 // typed TX — value is in `data`
+        .fee          = 1,                 // TX_MIN_FEE
+        .timestamp    = std.time.timestamp(),
+        .nonce        = payload.nonce,
+        .signature    = "",                // see doc comment
+        .hash         = "",
+        .tx_type      = .order_place,
+        .data         = data_buf,
+    };
+
+    // Compute and store hash so the TX is identifiable in mempool/blocks.
+    const h = tx.calculateHash();
+    var hash_hex_buf: [64]u8 = undefined;
+    for (h, 0..) |byte, i| {
+        _ = std.fmt.bufPrint(hash_hex_buf[i*2..i*2+2], "{x:0>2}", .{byte}) catch {};
+    }
+    const hash_owned = try alloc.dupe(u8, &hash_hex_buf);
+    errdefer alloc.free(hash_owned);
+    tx.hash = hash_owned;
+
+    try ctx.bc.addTransaction(tx);
+}
+
+/// Build and submit a Phase-2A typed `order_cancel` chain TX. Same
+/// ownership/signature semantics as `submitOrderPlaceTx`.
+fn submitOrderCancelTx(
+    ctx: *ServerCtx,
+    trader: []const u8,
+    order_id: u64,
+) !void {
+    const alloc = ctx.allocator;
+
+    const payload = tx_payload_mod.OrderCancelPayload{
+        .order_id = order_id,
+        .nonce = ctx.bc.getNextAvailableNonce(trader),
+    };
+    const data_buf = try alloc.alloc(u8, tx_payload_mod.OrderCancelPayload.WIRE_SIZE);
+    errdefer alloc.free(data_buf);
+    _ = try payload.encode(data_buf);
+
+    const from_owned = try alloc.dupe(u8, trader);
+    errdefer alloc.free(from_owned);
+    const to_owned = try alloc.dupe(u8, trader);
+    errdefer alloc.free(to_owned);
+
+    var tx = transaction_mod.Transaction{
+        .id           = g_tx_counter.fetchAdd(1, .monotonic),
+        .from_address = from_owned,
+        .to_address   = to_owned,
+        .amount       = 0,
+        .fee          = 1,
+        .timestamp    = std.time.timestamp(),
+        .nonce        = payload.nonce,
+        .signature    = "",
+        .hash         = "",
+        .tx_type      = .order_cancel,
+        .data         = data_buf,
+    };
+
+    const h = tx.calculateHash();
+    var hash_hex_buf: [64]u8 = undefined;
+    for (h, 0..) |byte, i| {
+        _ = std.fmt.bufPrint(hash_hex_buf[i*2..i*2+2], "{x:0>2}", .{byte}) catch {};
+    }
+    const hash_owned = try alloc.dupe(u8, &hash_hex_buf);
+    errdefer alloc.free(hash_owned);
+    tx.hash = hash_owned;
+
+    try ctx.bc.addTransaction(tx);
+}
+
 /// True dacă body-ul cere mod paper. Cautam `"mode":"paper"` literal —
 /// orice altceva (default, "real", missing) → real engine. Ca și pe REST
 /// (`/exchange/0/*` vs `/paper/0/*`) modul e doar un selector de routing.
@@ -9013,6 +9302,21 @@ fn buildDnsRenewSignMessage(
         .{ name, tld, nonce });
 }
 
+/// Phase 2 — years-aware renewal sign message. Owner signs over the
+/// {name, tld, additional_years, nonce} tuple so a captured V1 signature
+/// can't be replayed at a different years tier.
+fn buildDnsRenewYearsSignMessage(
+    name: []const u8,
+    tld: []const u8,
+    years: u32,
+    nonce: u64,
+    out: []u8,
+) ![]u8 {
+    return std.fmt.bufPrint(out,
+        "DNS_RENEW_V2\n{s}\n{s}\n{d}\n{d}",
+        .{ name, tld, years, nonce });
+}
+
 /// Verifica semnatura ECDSA pentru operatii DNS.
 /// Returneaza true daca semnatura e valida SI pubkey-ul deriveaza expected_owner_addr.
 fn verifyDnsSignature(
@@ -9114,6 +9418,29 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
     }
 
+    // Oracle price-band: reject orders priced > ORDER_BAND_BPS bps from
+    // the consensus oracle. Skip when oracle is unavailable, the pair has
+    // no oracle feed (e.g. LCX), or the consensus price isn't valid yet.
+    if (!is_paper) if (ctx.oracle) |oracle_ptr| {
+        if (oracleChainForPair(pair_id)) |chain| {
+            if (oracle_ptr.getPrice(chain)) |ref| {
+                if (ref.is_valid and ref.price_micro_usd > 0) {
+                    const ref_p = ref.price_micro_usd;
+                    const diff = if (price > ref_p) price - ref_p else ref_p - price;
+                    const dev_bps = (@as(u128, diff) * 10_000) / @as(u128, ref_p);
+                    if (dev_bps > ORDER_BAND_BPS) {
+                        const msg = std.fmt.allocPrint(alloc,
+                            "oracle_band_exceeded: ref={d} price={d} band_bps={d} dev_bps={d}",
+                            .{ ref_p, price, ORDER_BAND_BPS, dev_bps },
+                        ) catch return errorJson(-32098, "oracle_band_exceeded", id, alloc);
+                        defer alloc.free(msg);
+                        return errorJson(-32098, msg, id, alloc);
+                    }
+                }
+            }
+        }
+    };
+
     const side: matching_mod.Side =
         if (asciiEqIgnoreCase(side_str, "buy")) .buy
         else if (asciiEqIgnoreCase(side_str, "sell")) .sell
@@ -9183,6 +9510,23 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         }
     }
 
+    // KYC tier cap: gate per-order notional. `none` blocked, `pro` unlimited.
+    // Skipped in paper mode and when no KYC store is wired (dev/local).
+    if (!is_paper) if (ctx.kyc_store) |ks| {
+        const tier: kyc_mod.Level =
+            if (ks.highest(trader, std.time.milliTimestamp())) |att| att.level else .none;
+        const cap = kycMaxNotionalMicro(tier);
+        const order_notional = orderNotionalMicro(price, amount);
+        if (order_notional > cap) {
+            const msg = std.fmt.allocPrint(alloc,
+                "kyc_tier_exceeded: tier={s} max={d} requested={d}",
+                .{ tier.label(), cap, order_notional },
+            ) catch return errorJson(-32099, "kyc_tier_exceeded", id, alloc);
+            defer alloc.free(msg);
+            return errorJson(-32099, msg, id, alloc);
+        }
+    };
+
     var order = matching_mod.Order.empty();
     order.side = side;
     order.pair_id = pair_id;
@@ -9216,21 +9560,74 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var total_network_fee_sat: u64 = 0;
     var total_taker_fee_micro: u64 = 0;
     var total_maker_fee_micro: u64 = 0;
+    const block_height_now: u64 = ctx.bc.chain.items.len;
     var fi = fills_before;
     while (fi < engine.fill_count) : (fi += 1) {
         const f = engine.fills[fi];
         tradeLogPush(ctx, f, is_paper);
-        total_network_fee_sat += FILL_NETWORK_FEE_SAT;
-        total_taker_fee_micro += computeExchangeFeeMicro(
+
+        const taker_fee = computeExchangeFeeMicro(
             f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_TAKER_BPS);
-        total_maker_fee_micro += computeExchangeFeeMicro(
+        const maker_fee = computeExchangeFeeMicro(
             f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_MAKER_BPS);
+        const quote_micro = orderNotionalMicro(f.price_micro_usd, f.amount_sat);
+
+        total_network_fee_sat += FILL_NETWORK_FEE_SAT;
+        total_taker_fee_micro += taker_fee;
+        total_maker_fee_micro += maker_fee;
+
+        // Settle fees on chain — the taker is always our newly-placed
+        // order; the maker is the resting opposite-side order.
+        const buyer_addr = f.getBuyerAddress();
+        const seller_addr = f.getSellerAddress();
+        const taker_addr = if (side == .buy) buyer_addr else seller_addr;
+        const maker_addr = if (side == .buy) seller_addr else buyer_addr;
+        if (!is_paper) {
+            ctx.bc.applyExchangeFees(
+                taker_addr, maker_addr, taker_fee, maker_fee, FILL_NETWORK_FEE_SAT,
+            ) catch |err| {
+                std.debug.print(
+                    "[EXCHANGE-FEE] settlement failed for fill {d}: {} — fees not collected on this fill\n",
+                    .{ f.fill_id, err },
+                );
+            };
+        }
+
+        // Per-fill audit log (forensics — taker/maker addrs, fees, height).
+        var fbuf: [512]u8 = undefined;
+        const fline = std.fmt.bufPrint(&fbuf,
+            "\"fillId\":{d},\"pairId\":{d},\"taker\":\"{s}\",\"maker\":\"{s}\"," ++
+            "\"price\":{d},\"amount\":{d},\"quote\":{d}," ++
+            "\"takerFee\":{d},\"makerFee\":{d},\"networkFee\":{d}," ++
+            "\"blockHeight\":{d},\"ts\":{d},\"paper\":{}",
+            .{
+                f.fill_id, f.pair_id, taker_addr, maker_addr,
+                f.price_micro_usd, f.amount_sat, quote_micro,
+                taker_fee, maker_fee, FILL_NETWORK_FEE_SAT,
+                block_height_now, f.timestamp_ms, is_paper,
+            },
+        ) catch "";
+        if (fline.len > 0) ordersAppendJournal(ctx, "fill", fline);
     }
 
     nonceSet(ctx, trader, nonce);
 
     // Note: reservation is derived from `engine.asks[]` directly (single source
     // of truth — see computeReservedFromOrderbook). No separate state to update.
+
+    // ── Submit canonical typed `order_place` TX into the chain mempool ──
+    // The in-memory matching engine path above is now a *preview* — the
+    // authoritative orderbook is rebuilt deterministically by every node
+    // from on-chain `order_place` TXs via `applyOrderTxs`. Skip in paper
+    // mode (paper trades never touch chain). On submission failure we log
+    // but don't fail the RPC — the user-facing orderbook still saw the
+    // order place via the preview engine.
+    if (!is_paper) {
+        submitOrderPlaceTx(ctx, trader, side, pair_id, price, amount) catch |sub_err| {
+            std.debug.print("[EXCHANGE] order_place chain TX submit failed: {} (orderbook will rebuild from preview-only on this node)\n",
+                .{sub_err});
+        };
+    }
 
     // Create on-chain order TX with hash
     const tx_result = createOrderTransaction(
@@ -9356,6 +9753,15 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     // Note: cancelOrder marks the order .cancelled, so it's automatically
     // excluded from computeReservedFromOrderbook on next balance check.
+
+    // ── Submit canonical typed `order_cancel` TX into the chain mempool ──
+    // Replaying nodes apply this via `applyOrderTxs`, which removes the
+    // order from the deterministic book.
+    if (!is_paper) {
+        submitOrderCancelTx(ctx, trader, order_id) catch |sub_err| {
+            std.debug.print("[EXCHANGE] order_cancel chain TX submit failed: {}\n", .{sub_err});
+        };
+    }
 
     nonceSet(ctx, trader, nonce);
 

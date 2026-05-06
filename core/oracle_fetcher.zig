@@ -296,7 +296,7 @@ pub const OracleFetcher = struct {
     }
 
     /// Format median BTC price as a human-readable string: "$84,321.45"
-    pub fn formatMedianPrice(self: *const Self, buf: []u8) []const u8 {
+    pub fn formatMedianPrice(self: *Self, buf: []u8) []const u8 {
         const median = self.getMedianPrice() orelse return "N/A";
         return formatMicroUsd(buf, median);
     }

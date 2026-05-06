@@ -23,9 +23,21 @@ pub const GENESIS_TIMESTAMP: i64 = 1_743_000_000;
 
 /// Hash genesis — deterministic, hardcodat dupa primul calcul
 /// Format: SHA256(message || timestamp) exprimat in hex
+///
+/// SINGLE SOURCE OF TRUTH: this constant is now derived from
+/// `ChainConfig.mainnet().genesis_hash` so the two cannot drift apart.
+/// Previously this string was 63 hex chars (truncated) while chain_config
+/// had 64 — two nodes computing genesis would diverge instantly. Fixed
+/// 2026-05-07.
+///
+/// TODO(mainnet-launch): replace the placeholder string in
+/// `chain_config.zig:162` with the real SHA-256 of the canonical genesis
+/// block (computed by serializing the genesis Block fields and hashing).
+/// This is a placeholder, NOT the real hash — it just needs to be the
+/// same placeholder on every node to avoid network split before mainnet.
+///
 /// @deprecated: prefera `ChainConfig.mainnet().genesis_hash`
-pub const GENESIS_HASH =
-    "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8";
+pub const GENESIS_HASH: []const u8 = chain_config_mod.ChainConfig.mainnet().genesis_hash;
 
 /// Versiunea protocolului la genesis
 pub const GENESIS_VERSION: u32 = 1;

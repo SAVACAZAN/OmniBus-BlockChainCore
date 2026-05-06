@@ -1444,6 +1444,12 @@ pub const P2PNode = struct {
         _ = self.outbound_count.fetchAdd(1, .release);
         std.debug.print("[P2P] Connected to peer {s} ({s}:{d}) — HELLO sent\n", .{ node_id, host, port });
 
+        // WS push: notify UI that a peer joined. Network panel updates the
+        // peer count + adds the entry without polling getpeers.
+        if (self.ws_server) |ws| {
+            ws.broadcastPeerConnect(node_id, host, port);
+        }
+
         // CRITICAL FIX (2026-04-26): spawn a recv thread for this OUTBOUND peer
         // so we can actually read the WELCOME, PONG, blocks, sync responses
         // that the acceptor sends back. Without this, the dialer never learned
@@ -1474,6 +1480,10 @@ pub const P2PNode = struct {
                     dispatchMessage(args.node, peer, msg.msg_type, msg.payload);
                 }
                 std.debug.print("[P2P] Outbound peer {s} disconnected\n", .{pid});
+                // WS push: peer dropped — UI removes from active list.
+                if (args.node.ws_server) |ws| {
+                    ws.broadcastPeerDisconnect(peer.node_id[0..@min(peer.node_id.len, 32)], peer.host, peer.port);
+                }
             }
         }.run, .{pargs}) catch |err| {
             std.debug.print("[P2P] outbound recv thread spawn failed: {}\n", .{err});

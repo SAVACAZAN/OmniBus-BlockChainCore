@@ -38,23 +38,35 @@ pub const Validator = struct {
 
 /// Genesis-time validator set.
 ///
-/// 2026-04-27: switched from hardcoded list to **dynamic**, chain-derived
-/// set. Validators are now whoever has produced a block AND has at least
-/// `MIN_VALIDATOR_BALANCE` in their wallet at the current chain tip.
+/// 2026-05-07: Casper FFG was dead because the empty set made
+/// `hasSupermajority` always return false (total_power == 0 → never
+/// finalize). Now seeded with ONE bootstrap validator so the finality
+/// gadget actually runs on testnet/dev.
 ///
-/// Bootstrap: until the first block is produced, the set is empty and
-/// `leaderForSlot` returns null. Mining loop treats `null leader` as
-/// "free-for-all" — anyone with a `miner_address` flag may produce
-/// block #1. Once that block is committed and gossiped, the producer
-/// becomes the first validator. Slot-skip then onboards subsequent
-/// validators organically as they show up.
+/// BOOTSTRAP-ONLY: this is a single-validator seed for testnet. Mainnet
+/// MUST replace this with a multi-validator set (genesis-config from a
+/// trusted ceremony) before launch. Single-validator finality is by
+/// definition centralized — any compromise of this address halts
+/// finality. Acceptable for testnet/dev because PoW still secures the
+/// chain; only the FFG layer is centralized.
 ///
-/// Anti-Sybil:
+/// Address: `ob1qzhrauq...` is the testnet founder/dev address that has
+/// been mining the chain since the 2026-04-26 launch (matches the
+/// `alpha-validator-address` placeholder used by tests). Replace before
+/// any mainnet deployment.
+///
+/// Anti-Sybil for the *dynamic* set (rebuildValidatorSet below):
 ///   1. Each validator must have minted at least one block (PoW work)
 ///   2. Each validator must have ≥ MIN_VALIDATOR_BALANCE on-chain
 ///   3. The faucet rate-limits new addresses (1 per addr ever, 24h per IP)
 ///   For real value, layer staking on top once `staking.zig` is ready.
-pub const GENESIS_VALIDATORS = [_]Validator{};
+pub const GENESIS_VALIDATORS = [_]Validator{
+    .{
+        .address = "ob1qzhrauqbootstrapvalidator0testnet0replaceformainnet",
+        .weight = 1,
+        .since_height = 0,
+    },
+};
 
 /// Minimum on-chain balance to count as an active validator.
 ///
@@ -219,8 +231,20 @@ pub fn rebuildValidatorSet(
 
 // ─── Tests ────────────────────────────────────────────────────────────────
 
-test "GENESIS_VALIDATORS is empty (dynamic onboarding)" {
-    try std.testing.expectEqual(@as(usize, 0), GENESIS_VALIDATORS.len);
+test "GENESIS_VALIDATORS has bootstrap seed (Casper FFG can engage)" {
+    // 2026-05-07: was empty (dynamic onboarding), but that left FFG dead
+    // because total_power == 0 means hasSupermajority is always false.
+    // Now exactly one bootstrap validator so finality logic actually runs.
+    try std.testing.expectEqual(@as(usize, 1), GENESIS_VALIDATORS.len);
+    try std.testing.expect(GENESIS_VALIDATORS[0].weight >= 1);
+    try std.testing.expect(GENESIS_VALIDATORS[0].address.len > 0);
+}
+
+test "GENESIS_VALIDATORS — leaderForSlot returns the bootstrap validator" {
+    // With a single validator, every slot must be assigned to that one.
+    const ldr = leaderForSlot(0, "deadbeef", GENESIS_VALIDATORS[0..]);
+    try std.testing.expect(ldr != null);
+    try std.testing.expectEqualStrings(GENESIS_VALIDATORS[0].address, ldr.?.address);
 }
 
 test "leaderForSlot — deterministic same input same output" {

@@ -8,7 +8,12 @@ pub const Transaction = transaction_mod.Transaction;
 pub const MEMPOOL_MAX_TX:       usize = 10_000;
 pub const MEMPOOL_MAX_BYTES:    usize = 1_048_576;     // 1 MB per block worth
 pub const MEMPOOL_MAX_MEMORY:   usize = 314_572_800;   // 300 MB total (ca Bitcoin Core)
-pub const TX_MAX_BYTES:         usize = 512;            // max 512 bytes per TX
+/// Max bytes per single TX. Sized to fit the largest PQ signature the chain
+/// supports (SLH-DSA-256s ≈ 60 KB hex sig + payload + headroom). At 100 KB a
+/// single TX still fits ~10 per 1 MB block, so an attacker can't trivially
+/// fill a block with one TX. Smaller-sig schemes (Falcon ~1.4 KB, ML-DSA-87
+/// ~9.2 KB, Dilithium-5 ~4.6 KB) all fit comfortably under this cap.
+pub const TX_MAX_BYTES:         usize = 100_000;
 pub const TX_MIN_FEE_SAT:       u64   = 1;              // min 1 SAT fee (anti-spam)
 /// Expiry time: TX neconfirmata dupa 14 zile e stearsa (ca Bitcoin Core: 336 ore)
 pub const MEMPOOL_EXPIRY_SEC:   i64   = 14 * 24 * 3600; // 1,209,600 secunde = 14 zile
@@ -537,14 +542,29 @@ pub const Mempool = struct {
     }
 };
 
-/// Estimare marime TX in bytes (aproximare conservatoare)
+/// Estimare marime TX in bytes (aproximare conservatoare).
+/// Includes EVERY variable-length field so the TX_MAX_BYTES cap is honest —
+/// an attacker can't smuggle huge payloads in `data`/`public_key`/`script_*`
+/// past the cap by hiding them outside the legacy id/amount/sig/hash slots.
 fn estimateTxSize(tx: *const Transaction) usize {
-    return 8                       // id + amount + timestamp
-        + tx.from_address.len
-        + tx.to_address.len
-        + tx.signature.len
-        + tx.hash.len
-        + 32;                      // overhead struct
+    var n: usize = 64;             // fixed-field overhead (id, amount, fee,
+                                   // nonce, timestamp, locktime, sequence,
+                                   // tx_type, scheme, struct padding)
+    n += tx.from_address.len;
+    n += tx.to_address.len;
+    n += tx.signature.len;
+    n += tx.hash.len;
+    n += tx.public_key.len;
+    n += tx.data.len;              // PHASE-2A typed payload
+    n += tx.op_return.len;
+    n += tx.script_pubkey.len;
+    n += tx.script_sig.len;
+    // PHASE-C v2 inputs/outputs — variable-length owners + amounts + indexes.
+    // Conservative ~96 bytes/input (tx_hash hex + idx + struct overhead) and
+    // ~96 bytes/output (address + amount + struct overhead).
+    n += tx.inputs.len * 96;
+    n += tx.outputs.len * 96;
+    return n;
 }
 
 // ─── Teste ────────────────────────────────────────────────────────────────────

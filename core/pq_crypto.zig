@@ -79,6 +79,9 @@ const OqsSigError = error{
     OqsVerifyFailed,
     InvalidKeySize,
     InvalidSignatureSize,
+    SignatureTooLarge,
+    PqKeyGenFailed,
+    OqsSigInitFailed,
     OutOfMemory,
 };
 
@@ -109,19 +112,16 @@ pub const MlDsa87 = struct {
     }
 
     /// Determinist din seed (pentru HD-wallet derivation).
-    pub fn generateKeyPairFromSeed(seed: [32]u8) MlDsa87 {
+    pub fn generateKeyPairFromSeed(seed: [32]u8) !MlDsa87 {
         activateDetRng(&seed);
         defer deactivateDetRng();
 
-        const sig = c.OQS_SIG_new(ALG_NAME) orelse {
-            // Fallback la zeroed key — caller ar trebui sa detecteze.
-            return std.mem.zeroes(MlDsa87);
-        };
+        const sig = c.OQS_SIG_new(ALG_NAME) orelse return OqsSigError.OqsSigInitFailed;
         defer c.OQS_SIG_free(sig);
 
         var kp: MlDsa87 = undefined;
         const rc = c.OQS_SIG_keypair(sig, &kp.public_key, &kp.secret_key);
-        if (rc != c.OQS_SUCCESS) return std.mem.zeroes(MlDsa87);
+        if (rc != c.OQS_SUCCESS) return OqsSigError.PqKeyGenFailed;
         return kp;
     }
 
@@ -145,6 +145,7 @@ pub const MlDsa87 = struct {
     }
 
     pub fn verify(self: *const MlDsa87, message: []const u8, signature: []const u8) bool {
+        if (signature.len > SIGNATURE_MAX) return false;
         const sig = newSig(ALG_NAME) catch return false;
         defer c.OQS_SIG_free(sig);
 
@@ -179,16 +180,16 @@ pub const Falcon512 = struct {
         return kp;
     }
 
-    pub fn generateKeyPairFromSeed(seed: [48]u8) Falcon512 {
+    pub fn generateKeyPairFromSeed(seed: [48]u8) !Falcon512 {
         activateDetRng(&seed);
         defer deactivateDetRng();
 
-        const sig = c.OQS_SIG_new(ALG_NAME) orelse return std.mem.zeroes(Falcon512);
+        const sig = c.OQS_SIG_new(ALG_NAME) orelse return OqsSigError.OqsSigInitFailed;
         defer c.OQS_SIG_free(sig);
 
         var kp: Falcon512 = undefined;
         const rc = c.OQS_SIG_keypair(sig, &kp.public_key, &kp.secret_key);
-        if (rc != c.OQS_SUCCESS) return std.mem.zeroes(Falcon512);
+        if (rc != c.OQS_SUCCESS) return OqsSigError.PqKeyGenFailed;
         return kp;
     }
 
@@ -213,6 +214,7 @@ pub const Falcon512 = struct {
     }
 
     pub fn verify(self: *const Falcon512, message: []const u8, signature: []const u8) bool {
+        if (signature.len > SIGNATURE_MAX) return false;
         const sig = newSig(ALG_NAME) catch return false;
         defer c.OQS_SIG_free(sig);
 
@@ -250,7 +252,7 @@ pub const SlhDsa256s = struct {
 
     /// API-compatibility cu vechiul cod care lua 3 seed-uri (sk_seed, sk_prf, pk_seed).
     /// Le concatenam intr-un singur seed de 96 bytes pentru SHAKE stream.
-    pub fn generateKeyPairFromSeed(sk_seed: [32]u8, sk_prf: [32]u8, pk_seed: [32]u8) SlhDsa256s {
+    pub fn generateKeyPairFromSeed(sk_seed: [32]u8, sk_prf: [32]u8, pk_seed: [32]u8) !SlhDsa256s {
         var combined: [96]u8 = undefined;
         @memcpy(combined[0..32], &sk_seed);
         @memcpy(combined[32..64], &sk_prf);
@@ -259,12 +261,12 @@ pub const SlhDsa256s = struct {
         activateDetRng(&combined);
         defer deactivateDetRng();
 
-        const sig = c.OQS_SIG_new(ALG_NAME) orelse return std.mem.zeroes(SlhDsa256s);
+        const sig = c.OQS_SIG_new(ALG_NAME) orelse return OqsSigError.OqsSigInitFailed;
         defer c.OQS_SIG_free(sig);
 
         var kp: SlhDsa256s = undefined;
         const rc = c.OQS_SIG_keypair(sig, &kp.public_key, &kp.secret_key);
-        if (rc != c.OQS_SUCCESS) return std.mem.zeroes(SlhDsa256s);
+        if (rc != c.OQS_SUCCESS) return OqsSigError.PqKeyGenFailed;
         return kp;
     }
 
@@ -289,6 +291,7 @@ pub const SlhDsa256s = struct {
     }
 
     pub fn verify(self: *const SlhDsa256s, message: []const u8, signature: []const u8) bool {
+        if (signature.len > SIGNATURE_MAX) return false;
         const sig = newSig(ALG_NAME) catch return false;
         defer c.OQS_SIG_free(sig);
 
@@ -328,16 +331,16 @@ pub const MlKem768 = struct {
         return kp;
     }
 
-    pub fn generateKeyPairFromSeed(d: [32]u8) MlKem768 {
+    pub fn generateKeyPairFromSeed(d: [32]u8) !MlKem768 {
         activateDetRng(&d);
         defer deactivateDetRng();
 
-        const kem = c.OQS_KEM_new(ALG_NAME) orelse return std.mem.zeroes(MlKem768);
+        const kem = c.OQS_KEM_new(ALG_NAME) orelse return OqsSigError.OqsSigInitFailed;
         defer c.OQS_KEM_free(kem);
 
         var kp: MlKem768 = undefined;
         const rc = c.OQS_KEM_keypair(kem, &kp.public_key, &kp.secret_key);
-        if (rc != c.OQS_SUCCESS) return std.mem.zeroes(MlKem768);
+        if (rc != c.OQS_SUCCESS) return OqsSigError.PqKeyGenFailed;
         return kp;
     }
 
@@ -404,6 +407,7 @@ pub fn mldsaVerify(
     sig: []const u8,
 ) bool {
     if (pk.len != MlDsa87.PUBLIC_KEY_SIZE) return false;
+    if (sig.len > MlDsa87.SIGNATURE_MAX) return false;
 
     const ctx = newSig(MlDsa87.ALG_NAME) catch return false;
     defer c.OQS_SIG_free(ctx);
@@ -486,8 +490,8 @@ test "ML-DSA-87 — verify fails on tampered signature" {
 test "ML-DSA-87 — deterministic from seed" {
     init();
     const seed: [32]u8 = .{1} ** 32;
-    const kp1 = MlDsa87.generateKeyPairFromSeed(seed);
-    const kp2 = MlDsa87.generateKeyPairFromSeed(seed);
+    const kp1 = try MlDsa87.generateKeyPairFromSeed(seed);
+    const kp2 = try MlDsa87.generateKeyPairFromSeed(seed);
     try testing.expectEqualSlices(u8, &kp1.public_key, &kp2.public_key);
     try testing.expectEqualSlices(u8, &kp1.secret_key, &kp2.secret_key);
 }

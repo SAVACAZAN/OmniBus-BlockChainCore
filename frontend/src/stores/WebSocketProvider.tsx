@@ -5,6 +5,7 @@ import {
   initialState,
 } from "./useBlockchainStore";
 import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
+import { publish as wsBusPublish } from "../api/ws-bus";
 import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent } from "../types";
 
 // On HTTP: connects directly to ws://hostname:{8334|18334|28334}.
@@ -121,11 +122,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       // Throttle: max 2 updates per second to avoid UI freeze
       let lastUpdate = 0;
       ws.onmessage = (evt) => {
+        let data: WsEvent;
+        try { data = JSON.parse(evt.data); } catch { return; }
+        // Fan out to ad-hoc subscribers (header pulse, name list, peer
+        // ticker, etc.) FIRST and unthrottled — subscribers do their own
+        // throttling. The reducer-bound switch below stays throttled to
+        // 2/sec to protect React renders on busy chains.
+        wsBusPublish(data);
         const now = Date.now();
-        if (now - lastUpdate < 500) return; // skip if <500ms since last
+        if (now - lastUpdate < 500) return;
         lastUpdate = now;
         try {
-          const data: WsEvent = JSON.parse(evt.data);
           switch (data.event) {
             case "new_block":
               dispatch({ type: "WS_NEW_BLOCK", payload: data });

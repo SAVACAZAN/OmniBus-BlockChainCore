@@ -275,6 +275,12 @@ pub const Transaction = struct {
     /// in practice; we keep a tighter bound until we have soak data.
     pub const MAX_INPUTS: usize = 256;
     pub const MAX_OUTPUTS: usize = 256;
+    /// Cap on `public_key` field length. Largest legitimate PQ pubkey on
+    /// this chain is SLH-DSA-256s @ 64 bytes raw (~128 hex chars); ML-DSA-87
+    /// is 2592 bytes raw, Falcon-512 is 897 bytes. 64 KiB is far above the
+    /// largest scheme but blocks the unbounded-pubkey DoS vector flagged in
+    /// EXPLOIT_DRILLS finding #4.
+    pub const MAX_PUBLIC_KEY: usize = 65_536;
 
     /// True when the TX uses explicit v2 inputs/outputs.
     pub fn isV2(self: *const Transaction) bool {
@@ -421,6 +427,11 @@ pub const Transaction = struct {
     pub fn isValid(self: *const Transaction) bool {
         // OP_RETURN validation: max 80 bytes
         if (self.op_return.len > MAX_OP_RETURN) return false;
+
+        // public_key cap — defends against unbounded-pubkey DoS
+        // (EXPLOIT_DRILLS finding #4). Largest legitimate PQ pubkey
+        // (ML-DSA-87 @ 2592 bytes) sits well under MAX_PUBLIC_KEY.
+        if (self.public_key.len > MAX_PUBLIC_KEY) return false;
 
         // PHASE-2A — typed envelope basic validation.
         // Per-type deep validation lives in validateTransaction() (consensus

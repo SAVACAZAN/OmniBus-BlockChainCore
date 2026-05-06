@@ -696,6 +696,51 @@ pub const Blockchain = struct {
         gop.value_ptr.* -= amount;
     }
 
+    /// Settle exchange fees from a single fill: debit taker + maker by their
+    /// fee shares, credit registrar slot #2 (exchange treasury) with the sum,
+    /// plus the network fee. All under self.mutex with `in_apply_block=true`
+    /// to bypass the phantom-write detector. Returns `error.InsufficientBalance`
+    /// without partial mutation if either side cannot pay.
+    ///
+    /// NOTE on units: taker_fee_micro / maker_fee_micro are in QUOTE micro-USD,
+    /// while balances are in OMNI SAT. We charge them as SAT 1:1 for now —
+    /// caller is responsible for unit conversion when the quote isn't OMNI.
+    /// The network fee is in SAT and split ceil(net/2) taker, floor(net/2) maker.
+    /// TODO: route network_fee_sat to the block miner rather than the treasury;
+    /// this requires a miner-address handle that the RPC thread doesn't have.
+    pub fn applyExchangeFees(
+        self: *Blockchain,
+        taker_addr: []const u8,
+        maker_addr: []const u8,
+        taker_fee: u64,
+        maker_fee: u64,
+        network_fee_sat: u64,
+    ) !void {
+        const treasury = registrar_mod.addressOf(.exchange) orelse return error.NoTreasury;
+        const net_taker_share = (network_fee_sat + 1) / 2; // ceil
+        const net_maker_share = network_fee_sat - net_taker_share; // floor
+        const taker_total = taker_fee + net_taker_share;
+        const maker_total = maker_fee + net_maker_share;
+
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
+        // Pre-check both balances so we never partial-mutate.
+        const taker_bal = self.balances.get(taker_addr) orelse 0;
+        const maker_bal = self.balances.get(maker_addr) orelse 0;
+        if (taker_bal < taker_total) return error.InsufficientBalance;
+        if (maker_bal < maker_total) return error.InsufficientBalance;
+
+        const was_in_apply = self.in_apply_block;
+        self.in_apply_block = true;
+        defer self.in_apply_block = was_in_apply;
+
+        if (taker_total > 0) try self.debitBalanceLocked(taker_addr, taker_total);
+        if (maker_total > 0) try self.debitBalanceLocked(maker_addr, maker_total);
+        const credit = taker_total + maker_total;
+        if (credit > 0) try self.creditBalanceLocked(treasury, credit);
+    }
+
     /// Inregistreaza public key-ul unei adrese (pentru verificare semnatura TX)
     /// pubkey_hex = compressed secp256k1 public key, 66 hex chars
     pub fn registerPubkey(self: *Blockchain, address: []const u8, pubkey_hex: []const u8) !void {
@@ -752,6 +797,17 @@ pub const Blockchain = struct {
         }
         try self.mempool.append(tx);
         std.debug.print("[ADD-TX] OK appended to mempool (size now={d})\n", .{self.mempool.items.len});
+
+        // Push real-time WS event for new mempool TX. Off-thread broadcast
+        // walks the connected-clients list under its own mutex; a few µs added
+        // here is fine because addTransaction already holds bc.mutex (i.e. we
+        // are NOT in the inner mining hot loop). Cheap inline JSON via
+        // bufPrint inside ws_srv.broadcastTx — no allocations on this path.
+        if (main_mod.g_ws_srv) |ws| {
+            if (tx.hash.len > 0) {
+                ws.broadcastTx(tx.hash, tx.from_address, tx.amount);
+            }
+        }
     }
 
     /// Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX)
@@ -797,9 +853,13 @@ pub const Blockchain = struct {
             }
         }
 
-        // 1. Amount trebuie > 0 (unless OP_RETURN data-only TX)
+        // 1. Amount trebuie > 0 (unless OP_RETURN data-only TX OR Phase-2A typed TX
+        //    that carries its semantic value in `data`, e.g. order_place/order_cancel
+        //    where the orderbook collateral is reserved separately and `amount`=0
+        //    is the canonical wire form).
         const is_op_return_tx = tx.op_return.len > 0 and tx.amount == 0;
-        if (tx.amount == 0 and !is_op_return_tx) { std.debug.print("[VALIDATE] FAIL: amount=0\n", .{}); return false; }
+        const is_typed_tx = tx.tx_type != .transfer;
+        if (tx.amount == 0 and !is_op_return_tx and !is_typed_tx) { std.debug.print("[VALIDATE] FAIL: amount=0\n", .{}); return false; }
 
         // 2. Adrese nu pot fi goale si trebuie minim 8 chars (prefix "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt")
         if (tx.from_address.len < 8 or tx.to_address.len < 8) { std.debug.print("[VALIDATE] FAIL: addr too short from={d} to={d}\n", .{tx.from_address.len, tx.to_address.len}); return false; }
@@ -809,7 +869,9 @@ pub const Blockchain = struct {
 
         // 3b. Dust threshold — respinge TX prea mici (anti-spam, ca Bitcoin 546 sat)
         //     Skip dust check for OP_RETURN data-only TXs (amount=0 is allowed)
-        if (!is_op_return_tx and tx.amount < DUST_THRESHOLD_SAT) { std.debug.print("[VALIDATE] FAIL: dust {d} < {d}\n", .{tx.amount, DUST_THRESHOLD_SAT}); return false; }
+        //     Skip for Phase-2A typed TXs (orderbook/bridge/etc. — amount carries
+        //     no transfer semantics, the typed `data` payload does).
+        if (!is_op_return_tx and !is_typed_tx and tx.amount < DUST_THRESHOLD_SAT) { std.debug.print("[VALIDATE] FAIL: dust {d} < {d}\n", .{tx.amount, DUST_THRESHOLD_SAT}); return false; }
 
         // 3c. Fee minimum check (fee market — at least TX_MIN_FEE = 1 SAT)
         if (tx.fee < TX_MIN_FEE) { std.debug.print("[VALIDATE] FAIL: fee {d} < min {d}\n", .{tx.fee, TX_MIN_FEE}); return false; }
@@ -3978,4 +4040,64 @@ test "v2 wire: validateTransaction rejects TX with non-existent input" {
 
     const ok = try bc.validateTransaction(&tx);
     try testing.expect(!ok); // must reject — input not in UTXO set
+}
+
+// Helper for fee-settlement tests: free the duped balance keys we inserted
+// outside the normal apply_block flow (Blockchain.deinit doesn't own them).
+fn freeBalanceKeys(bc: *Blockchain, addrs: []const []const u8) void {
+    for (addrs) |a| {
+        if (bc.balances.fetchRemove(a)) |kv| {
+            bc.allocator.free(kv.key);
+        }
+    }
+}
+
+test "applyExchangeFees: credits exchange treasury and debits both sides" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const taker = "ob1qtestxtaker0000000000000000000000000000";
+    const maker = "ob1qtestxmaker0000000000000000000000000000";
+    const treasury = registrar_mod.addressOf(.exchange).?;
+    defer freeBalanceKeys(&bc, &.{ taker, maker, treasury });
+
+    bc.in_apply_block = true;
+    try bc.creditBalanceLocked(taker, 1_000_000);
+    try bc.creditBalanceLocked(maker, 1_000_000);
+    bc.in_apply_block = false;
+
+    const treasury_before = bc.balances.get(treasury) orelse 0;
+
+    // Charge: taker_fee=2000, maker_fee=1000, network=1000 → split 500/500.
+    try bc.applyExchangeFees(taker, maker, 2_000, 1_000, 1_000);
+
+    try testing.expectEqual(@as(u64, 1_000_000 - 2_500), bc.balances.get(taker).?);
+    try testing.expectEqual(@as(u64, 1_000_000 - 1_500), bc.balances.get(maker).?);
+    try testing.expectEqual(treasury_before + 4_000, bc.balances.get(treasury) orelse 0);
+}
+
+test "applyExchangeFees: rejects insufficient balance without partial mutation" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const taker = "ob1qpoor0taker000000000000000000000000000";
+    const maker = "ob1qrich0maker000000000000000000000000000";
+    const treasury = registrar_mod.addressOf(.exchange).?;
+    defer freeBalanceKeys(&bc, &.{ taker, maker, treasury });
+
+    bc.in_apply_block = true;
+    try bc.creditBalanceLocked(taker, 100);
+    try bc.creditBalanceLocked(maker, 1_000_000);
+    bc.in_apply_block = false;
+
+    const treasury_before = bc.balances.get(treasury) orelse 0;
+
+    try testing.expectError(
+        error.InsufficientBalance,
+        bc.applyExchangeFees(taker, maker, 5_000, 1_000, 1_000),
+    );
+
+    try testing.expectEqual(@as(u64, 100), bc.balances.get(taker).?);
+    try testing.expectEqual(@as(u64, 1_000_000), bc.balances.get(maker).?);
+    try testing.expectEqual(treasury_before, bc.balances.get(treasury) orelse 0);
 }

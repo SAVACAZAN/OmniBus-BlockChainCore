@@ -449,6 +449,128 @@ pub const WsServer = struct {
         self.broadcastTopic(Topic.orderbook, json);
     }
 
+    /// Trimite eveniment "tx_confirmed" — TX inclus intr-un bloc minat.
+    /// Subscribers la "txs" primesc TX hash + block height/hash. UI poate
+    /// muta entry-ul din lista "pending" in "confirmed".
+    pub fn broadcastTxConfirmed(
+        self:        *WsServer,
+        tx_hash:     []const u8,
+        block_height: u64,
+        block_hash:  []const u8,
+    ) void {
+        var buf: [256]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"tx_confirmed\",\"hash\":\"{s}\",\"blockHeight\":{d},\"blockHash\":\"{s}\"}}",
+            .{
+                tx_hash[0..@min(tx_hash.len, 64)],
+                block_height,
+                block_hash[0..@min(block_hash.len, 64)],
+            },
+        ) catch return;
+        self.broadcastTopic(Topic.txs, json);
+    }
+
+    /// Trimite eveniment "name_registered" — domeniu DNS inregistrat.
+    /// Broadcast la "all" (nu avem topic dedicat — mic volum, util la UI).
+    pub fn broadcastNameRegistered(
+        self:        *WsServer,
+        name:        []const u8,
+        tld:         []const u8,
+        address:     []const u8,
+        years:       u8,
+    ) void {
+        var buf: [384]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"name_registered\"," ++
+            "\"name\":\"{s}\"," ++
+            "\"tld\":\"{s}\"," ++
+            "\"fullLabel\":\"{s}.{s}\"," ++
+            "\"address\":\"{s}\"," ++
+            "\"years\":{d}," ++
+            "\"timestamp\":{d}}}",
+            .{
+                name[0..@min(name.len, 25)],
+                tld[0..@min(tld.len, 16)],
+                name[0..@min(name.len, 25)],
+                tld[0..@min(tld.len, 16)],
+                address[0..@min(address.len, 64)],
+                years,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcast(json);
+    }
+
+    /// Trimite eveniment "name_renewed" — domeniu DNS reinnoit.
+    pub fn broadcastNameRenewed(
+        self:        *WsServer,
+        name:        []const u8,
+        tld:         []const u8,
+        address:     []const u8,
+        years:       u8,
+    ) void {
+        var buf: [384]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"name_renewed\"," ++
+            "\"name\":\"{s}\"," ++
+            "\"tld\":\"{s}\"," ++
+            "\"fullLabel\":\"{s}.{s}\"," ++
+            "\"address\":\"{s}\"," ++
+            "\"years\":{d}," ++
+            "\"timestamp\":{d}}}",
+            .{
+                name[0..@min(name.len, 25)],
+                tld[0..@min(tld.len, 16)],
+                name[0..@min(name.len, 25)],
+                tld[0..@min(tld.len, 16)],
+                address[0..@min(address.len, 64)],
+                years,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcast(json);
+    }
+
+    /// Trimite eveniment "peer_connect" — peer P2P nou.
+    pub fn broadcastPeerConnect(
+        self:    *WsServer,
+        node_id: []const u8,
+        host:    []const u8,
+        port:    u16,
+    ) void {
+        var buf: [256]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"peer_connect\",\"nodeId\":\"{s}\",\"address\":\"{s}:{d}\",\"timestamp\":{d}}}",
+            .{
+                node_id[0..@min(node_id.len, 32)],
+                host[0..@min(host.len, 64)],
+                port,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcast(json);
+    }
+
+    /// Trimite eveniment "peer_disconnect" — peer P2P deconectat.
+    pub fn broadcastPeerDisconnect(
+        self:    *WsServer,
+        node_id: []const u8,
+        host:    []const u8,
+        port:    u16,
+    ) void {
+        var buf: [256]u8 = undefined;
+        const json = std.fmt.bufPrint(&buf,
+            "{{\"event\":\"peer_disconnect\",\"nodeId\":\"{s}\",\"address\":\"{s}:{d}\",\"timestamp\":{d}}}",
+            .{
+                node_id[0..@min(node_id.len, 32)],
+                host[0..@min(host.len, 64)],
+                port,
+                std.time.timestamp(),
+            },
+        ) catch return;
+        self.broadcast(json);
+    }
+
     /// Trimite pret oracle "oracle_price" la clientii abonati la "oracle"
     /// price_micro_usd: 1 USD = 1_000_000 (micro-USD)
     pub fn broadcastOraclePrice(

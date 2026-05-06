@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
 import { ElectricOrganism } from "../effects/ElectricOrganism";
@@ -22,7 +23,17 @@ export function Header() {
   const { state } = useBlockchain();
   const [showSearch, setShowSearch] = useState(false);
   const [searchInitial, setSearchInitial] = useState<string>("");
+  // Brief flash on every new_block — purely visual, signals chain liveness.
+  // 600 ms matches the CSS animation length below; auto-clears via setTimeout.
+  const [blockPulse, setBlockPulse] = useState(false);
   const activeChain = getActiveChain();
+
+  useEffect(() => {
+    return wsSubscribe<import("../../types").WsNewBlockEvent>("new_block", () => {
+      setBlockPulse(true);
+      window.setTimeout(() => setBlockPulse(false), 600);
+    });
+  }, []);
 
   // Permite altor componente sa deschida cautarea cu un TX preselectat
   // — RecentTransactions.tsx face <button onClick={() => window.__openTx(id)}>
@@ -70,7 +81,13 @@ export function Header() {
               <p className="text-xs text-mempool-text-dim uppercase tracking-wider">
                 Block Height
               </p>
-              <p className="text-2xl font-mono font-bold text-mempool-text">
+              <p
+                className={`text-2xl font-mono font-bold transition-all duration-300 ${
+                  blockPulse
+                    ? "text-mempool-green scale-110 drop-shadow-[0_0_8px_rgba(94,234,212,0.8)]"
+                    : "text-mempool-text"
+                }`}
+              >
                 {state.blockCount.toLocaleString()}
               </p>
             </div>

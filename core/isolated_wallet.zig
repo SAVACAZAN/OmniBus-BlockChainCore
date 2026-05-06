@@ -347,7 +347,7 @@ pub const IsolatedWallet = struct {
             .love_dilithium => {
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -358,7 +358,7 @@ pub const IsolatedWallet = struct {
                 std.crypto.hash.sha2.Sha512.hash(mnemonic, &hash512, .{});
                 var seed: [48]u8 = undefined;
                 @memcpy(&seed, hash512[0..48]);
-                var kp = pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -374,7 +374,7 @@ pub const IsolatedWallet = struct {
                 @memcpy(pk_seed_input[0..32], &sk_seed);
                 @memcpy(pk_seed_input[32..64], &sk_prf);
                 std.crypto.hash.sha2.Sha256.hash(&pk_seed_input, &pk_seed, .{});
-                var kp = pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+                var kp = try pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -389,7 +389,7 @@ pub const IsolatedWallet = struct {
                 // encryption use cases that don't need an on-chain address.
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -402,7 +402,7 @@ pub const IsolatedWallet = struct {
             .pq_omni_ml_dsa, .pq_omni_dilithium => {
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -413,7 +413,7 @@ pub const IsolatedWallet = struct {
                 std.crypto.hash.sha2.Sha512.hash(mnemonic, &hash512, .{});
                 var seed: [48]u8 = undefined;
                 @memcpy(&seed, hash512[0..48]);
-                var kp = pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -429,7 +429,7 @@ pub const IsolatedWallet = struct {
                 @memcpy(pk_seed_input[0..32], &sk_seed);
                 @memcpy(pk_seed_input[32..64], &sk_prf);
                 std.crypto.hash.sha2.Sha256.hash(&pk_seed_input, &pk_seed, .{});
-                var kp = pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+                var kp = try pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -442,7 +442,7 @@ pub const IsolatedWallet = struct {
             .hybrid_q1 => {
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -453,7 +453,7 @@ pub const IsolatedWallet = struct {
                 std.crypto.hash.sha2.Sha512.hash(mnemonic, &hash512, .{});
                 var seed: [48]u8 = undefined;
                 @memcpy(&seed, hash512[0..48]);
-                var kp = pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.Falcon512.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -464,7 +464,7 @@ pub const IsolatedWallet = struct {
                 // signing, not ML-KEM. Hybrid path verifies ECDSA + ML-DSA.
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -480,7 +480,7 @@ pub const IsolatedWallet = struct {
                 @memcpy(pk_seed_input[0..32], &sk_seed);
                 @memcpy(pk_seed_input[32..64], &sk_prf);
                 std.crypto.hash.sha2.Sha256.hash(&pk_seed_input, &pk_seed, .{});
-                var kp = pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+                var kp = try pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);

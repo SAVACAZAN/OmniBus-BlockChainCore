@@ -354,6 +354,14 @@ pub var g_slot_calendar: orchestrator_mod.SlotCalendar =
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
+
+// ── Global WS Server pointer — set after WsServer.start() in main() ──────────
+// Used by chain hot paths (blockchain.addTransaction, dns_registry handlers,
+// p2p connect/disconnect) to push real-time events to frontend without needing
+// a direct dependency on ws_server.zig from those modules. Safe to read from
+// any thread because ws_srv internally locks. Null until server starts; null
+// after server stops — every emit must check for null.
+pub var g_ws_srv: ?*WsServer = null;
 /// Optional pair registry loaded from `--pair-registry FILE`. Owned by main()
 /// — lives until process exit. WS feed holds a borrow.
 pub var g_pair_registry: ?pair_registry_mod.PairRegistry = null;
@@ -1287,6 +1295,15 @@ pub fn main() !void {
         if (migrated > 0) {
             std.debug.print("[DNS] Auto-migrated {d} legacy entries to Phase 2 (category from TLD)\n", .{migrated});
         }
+        // Phase 2 lifecycle — drop entries whose grace period has fully
+        // elapsed. This is a one-shot at startup; for steady-state cleanup
+        // during long runs, call dns.pruneExpiredNames(currentBlock) every
+        // ~1000 blocks from the mining loop. (TODO: hook into mining loop.)
+        const startup_block: u64 = @intCast(bc.chain.items.len);
+        const pruned = dns.pruneExpiredNames(startup_block);
+        if (pruned > 0) {
+            std.debug.print("[DNS] Pruned {d} expired (past-grace) names at startup\n", .{pruned});
+        }
     }
 
     // Set treasury = ens.omnibus address from the canonical registrar table.
@@ -1308,6 +1325,13 @@ pub fn main() !void {
     dns.enableFee(parsed.chain_mode == .mainnet);
     std.debug.print("[DNS] Treasury: {s} | fee_enforcement: {}\n",
         .{ ens_treasury_addr, dns.fee_enforcement });
+    // Phase 1 hardening: signed_required defaults true in DnsRegistry.init().
+    // Log it explicitly so operators can verify auth is on at every launch.
+    std.debug.print("[DNS] signed_required = {}\n", .{dns.signed_required});
+    if (parsed.chain_mode == .mainnet and !dns.signed_required) {
+        std.debug.print("[DNS] FATAL: signed_required must be true on mainnet\n", .{});
+        return error.DnsSignedRequiredDisabled;
+    }
 
     // Attach the registry to the blockchain so applyBlock can run pay-to-claim:
     // every TX with op_return `ns_claim:<name>.<tld>` paying ens.omnibus the
@@ -1413,6 +1437,9 @@ pub fn main() !void {
         std.debug.print("[WS] Server start failed on port {d}: {} — continuam fara WS\n", .{ ws_port, err });
     };
     p2p.attachWsServer(&ws_srv);
+    // Publish to global so non-main modules (blockchain, dns_registry hooks)
+    // can emit events without holding a direct WsServer pointer.
+    g_ws_srv = &ws_srv;
     // Tell P2P which wallet address mines on this node, so block
     // announcements carry the WALLET address as `miner_id` (which is
     // what peers validate against the slot leader). Without this, peers
@@ -2379,6 +2406,15 @@ pub fn main() !void {
                 bc.difficulty,
                 mempool.size(),
             );
+
+            // Emit tx_confirmed for every TX bundled in this block. UI uses this
+            // to flip mempool entries from "pending" → "confirmed" without
+            // re-querying. Skip the coinbase (idx=0) which has no real sender.
+            for (new_block.transactions.items, 0..) |tx, idx| {
+                if (idx == 0) continue;
+                if (tx.hash.len == 0) continue;
+                ws_srv.broadcastTxConfirmed(tx.hash, block_count, new_block.hash);
+            }
 
             // ── WS: broadcast fills (trades) + orderbook snapshots ──────
             {
