@@ -2921,6 +2921,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
     if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
+    if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
     if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
 
     // ── Native DEX (matching engine on-chain) ───────────────────────────
@@ -3828,7 +3829,7 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     dns.registerWithTldAndFee(name, tld, address, owner, current_block, fee_txid) catch |err| {
         const msg: []const u8 = switch (err) {
             error.InvalidName     => "Invalid name (3-25 chars, lowercase a-z 0-9 _, must start with letter)",
-            error.InvalidTld      => "Invalid TLD (allowed: omnibus, arbitraje)",
+            error.InvalidTld      => "Invalid TLD (allowed: omnibus, arbitraje, quantum, bank, gov, mil, fin, edu, org, dev)",
             error.NameTaken       => "Name already taken",
             error.RegistryFull    => "Registry full",
             error.FeeRequired     => "Fee required",
@@ -3965,6 +3966,29 @@ fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
         .{ id, treasury, dns.fee_enforcement });
+}
+
+/// ns_listTlds — read-only. Returneaza toate TLD-urile permise + fee-uri
+/// pentru auto-discovery la wallet UI / SDK. Equivalent cu pq_listSchemes
+/// dar pentru namespace.
+fn handleNsListTlds(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    // Hardcoded list — must mirror dns_mod.ALLOWED_TLDS exactly.
+    // Each entry: {tld, fee_sat (raw), fee_omni (display), category, mainnet_fee_omni}
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
+            "{{\"tld\":\"omnibus\",\"fee_sat\":5000000000,\"fee_omni\":\"5\",\"category\":\"personal\",\"mainnet_fee_omni\":5}}," ++
+            "{{\"tld\":\"arbitraje\",\"fee_sat\":10000000000,\"fee_omni\":\"10\",\"category\":\"trading\",\"mainnet_fee_omni\":10}}," ++
+            "{{\"tld\":\"quantum\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"premium_personal\",\"mainnet_fee_omni\":10}}," ++
+            "{{\"tld\":\"bank\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"financial_institution\",\"mainnet_fee_omni\":50}}," ++
+            "{{\"tld\":\"gov\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"government\",\"mainnet_fee_omni\":100}}," ++
+            "{{\"tld\":\"mil\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"military\",\"mainnet_fee_omni\":50}}," ++
+            "{{\"tld\":\"fin\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"financial_trustee\",\"mainnet_fee_omni\":50}}," ++
+            "{{\"tld\":\"edu\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"academic\",\"mainnet_fee_omni\":20}}," ++
+            "{{\"tld\":\"org\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"non_profit\",\"mainnet_fee_omni\":10}}," ++
+            "{{\"tld\":\"dev\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"developer\",\"mainnet_fee_omni\":5}}" ++
+        "]}}",
+        .{id});
 }
 
 // ─── Phase 1: transfername ──────────────────────────────────────────────────

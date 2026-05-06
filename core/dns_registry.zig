@@ -22,9 +22,30 @@ pub const MAX_ENTRIES: usize = 4096;
 /// Registration cost in SAT (1 OMNI = 1e9 SAT).
 /// Default cost — used if no per-TLD override.
 pub const REGISTER_COST_SAT: u64 = 1_000_000_000;
-/// Per-TLD fee. Alex (2026-04-27): "5 sau 10 OMNI"
+/// Per-TLD fees. Alex (2026-04-27): "5 sau 10 OMNI"
 pub const COST_OMNIBUS_SAT: u64 = 5_000_000_000;   // 5 OMNI per .omnibus name
 pub const COST_ARBITRAJE_SAT: u64 = 10_000_000_000; // 10 OMNI per .arbitraje name (premium)
+/// Phase 2 — institutional / themed TLDs added 2026-05-06.
+/// On TESTNET all of them cost a flat 1_000_000 SAT (0.001 OMNI) so we can
+/// test allocation without burning balance. The mainnet target tiers (set in
+/// comments) reflect anti-squatting + institutional gravity:
+///   .quantum  = 10 OMNI   (premium personal tier)
+///   .bank     = 50 OMNI   (financial institution)
+///   .gov      = 100 OMNI  (top tier; phase-2 will gate via on-chain attestation)
+///   .mil      = 50 OMNI   (military / defense)
+///   .fin      = 50 OMNI   (financial trustees, funds, pensions)
+///   .edu      = 20 OMNI   (academic, with discount)
+///   .org      = 10 OMNI   (non-profit / NGO discount)
+///   .dev      = 5 OMNI    (developer, baseline)
+pub const COST_TESTNET_TIER_SAT: u64 = 1_000_000;  // 0.001 OMNI on testnet
+pub const COST_QUANTUM_SAT: u64 = COST_TESTNET_TIER_SAT;
+pub const COST_BANK_SAT: u64    = COST_TESTNET_TIER_SAT;
+pub const COST_GOV_SAT: u64     = COST_TESTNET_TIER_SAT;
+pub const COST_MIL_SAT: u64     = COST_TESTNET_TIER_SAT;
+pub const COST_FIN_SAT: u64     = COST_TESTNET_TIER_SAT;
+pub const COST_EDU_SAT: u64     = COST_TESTNET_TIER_SAT;
+pub const COST_ORG_SAT: u64     = COST_TESTNET_TIER_SAT;
+pub const COST_DEV_SAT: u64     = COST_TESTNET_TIER_SAT;
 /// Renewal period in blocks (~1 year = 365.25 * 86400 blocks at 1/s)
 pub const RENEWAL_PERIOD_BLOCKS: u64 = 31_557_600;
 /// Grace period after expiry (~30 days = 30 * 86400 blocks at 1/s)
@@ -32,8 +53,16 @@ pub const GRACE_PERIOD_BLOCKS: u64 = 2_592_000;
 
 /// Returneaza fee-ul required pentru un TLD (in SAT).
 pub fn feeForTld(tld: []const u8) u64 {
-    if (std.mem.eql(u8, tld, "omnibus")) return COST_OMNIBUS_SAT;
+    if (std.mem.eql(u8, tld, "omnibus"))   return COST_OMNIBUS_SAT;
     if (std.mem.eql(u8, tld, "arbitraje")) return COST_ARBITRAJE_SAT;
+    if (std.mem.eql(u8, tld, "quantum"))   return COST_QUANTUM_SAT;
+    if (std.mem.eql(u8, tld, "bank"))      return COST_BANK_SAT;
+    if (std.mem.eql(u8, tld, "gov"))       return COST_GOV_SAT;
+    if (std.mem.eql(u8, tld, "mil"))       return COST_MIL_SAT;
+    if (std.mem.eql(u8, tld, "fin"))       return COST_FIN_SAT;
+    if (std.mem.eql(u8, tld, "edu"))       return COST_EDU_SAT;
+    if (std.mem.eql(u8, tld, "org"))       return COST_ORG_SAT;
+    if (std.mem.eql(u8, tld, "dev"))       return COST_DEV_SAT;
     return REGISTER_COST_SAT; // fallback
 }
 
@@ -100,9 +129,22 @@ pub const MAX_TLD_LEN: usize = 16;
 pub const DEFAULT_TLD: []const u8 = "omnibus";
 
 /// Currently allowed TLDs. Add new ones here.
+///
+/// Phase 1 (open registration on all): omnibus, arbitraje, quantum, bank,
+/// gov, mil, fin, edu, org, dev. The institutional TLDs (bank/gov/mil/fin)
+/// are open for now on testnet — Phase 2 will gate them via on-chain
+/// attestation (only verified entities can register).
 pub const ALLOWED_TLDS = [_][]const u8{
-    "omnibus",   // base TLD
+    "omnibus",   // base TLD — personal default
     "arbitraje", // for arbitrage agents / market-making nodes
+    "quantum",   // premium personal tier (PQ-aware identities)
+    "bank",      // banks, financial institutions
+    "gov",       // government, prefectures, state agencies
+    "mil",       // military, defense contractors
+    "fin",       // financial trustees, funds, pensions
+    "edu",       // universities, research institutes
+    "org",       // NGOs, charities, non-profits
+    "dev",       // developers, open-source projects
 };
 
 pub fn isValidTld(tld: []const u8) bool {
@@ -128,8 +170,10 @@ pub fn isValidName(name: []const u8) bool {
     return true;
 }
 
-/// Hardcoded reserved names (brands + ecosystem internals).
-/// These are reserved across ALL TLDs.
+/// Hardcoded reserved names (brands + ecosystem internals + institutional).
+/// These are reserved across ALL TLDs (so `bcr.omnibus`, `bcr.bank`,
+/// `bcr.fin` are all blocked unless claimed by the legitimate entity in
+/// Phase 2 via on-chain attestation).
 pub const RESERVED_NAMES = [_][]const u8{
     // OmniBus / ecosystem self-references
     "omnibus", "omni", "blockchain", "satoshi", "nakamoto",
@@ -144,6 +188,38 @@ pub const RESERVED_NAMES = [_][]const u8{
     // Stablecoins / financial
     "usdc", "usdt", "dai", "tether", "circle",
     "visa", "mastercard", "paypal", "stripe",
+    // RO banks (.bank — protect Romanian banking brands)
+    "bcr", "brd", "bt", "ing", "raiffeisen", "unicredit", "cec",
+    "alpha", "garanti", "patria", "libra", "exim",
+    // Government / official RO (.gov — protect state agencies)
+    "guvern", "presedintie", "parlament", "senat", "camera",
+    "mae",      // Ministerul Afacerilor Externe
+    "mapn",     // Ministerul Apararii Nationale
+    "mai",      // Ministerul Afacerilor Interne
+    "mfp",      // Ministerul Finantelor Publice
+    "mts",      // Ministerul Tineretului si Sportului
+    "mmediu",   // Ministerul Mediului
+    "mt",       // Ministerul Transporturilor
+    "msanatate","ministerul",
+    "anaf", "bnr", "asf", "csm", "ccr", "iccj",
+    // Government / official global (top-level abbreviations)
+    "fbi", "cia", "nsa", "dod", "irs", "sec", "fcc", "fda", "epa",
+    "europa", "ec", "eu", "nato", "un", "who", "imf", "worldbank",
+    // Military (.mil — protect armed forces brands)
+    "us-army", "usarmy", "navy", "airforce", "marines",
+    "smfa",     // Statul Major al Fortelor Aeriene (RO)
+    "smfn",     // Statul Major al Fortelor Navale (RO)
+    "smfr",     // Statul Major al Fortelor Terestre (RO)
+    // Education (.edu — protect top RO + global universities)
+    "ubb",       // Universitatea Babes-Bolyai
+    "ub",        // Universitatea Bucuresti
+    "upb",       // Politehnica Bucuresti
+    "utcn",      // Tehnica Cluj-Napoca
+    "ase",       // Academia de Studii Economice
+    "tum", "umfst",
+    "harvard", "mit", "stanford", "oxford", "cambridge",
+    // Major NGOs (.org)
+    "redcross", "unicef", "amnesty", "wwf", "greenpeace", "msf",
 };
 
 /// Returns true if `name.tld` is reserved.
