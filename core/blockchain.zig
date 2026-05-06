@@ -18,6 +18,14 @@ const main_mod = @import("main.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const dns_mod = @import("dns_registry.zig");
 const registrar_mod = @import("registrar_addresses.zig");
+const label_mod = @import("label.zig");
+const sub_mod = @import("subscription.zig");
+const notarize_mod = @import("notarize.zig");
+const escrow_mod = @import("escrow.zig");
+const social_mod = @import("social_graph.zig");
+const poap_mod = @import("poap.zig");
+const gov_mod    = @import("governance_onchain.zig");
+const faucet_mod = @import("faucet.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -267,6 +275,31 @@ pub const Blockchain = struct {
     /// First-claim wins — subsequent attests for the same omni_address are ignored.
     pq_identity_map: std.StringHashMap(PqIdentity),
 
+    /// On-chain address label registry.
+    /// Populated from op_return "label:<target>:<tag>[:<note>]" TXs.
+    label_registry: label_mod.LabelRegistry,
+
+    /// On-chain subscription registry.
+    /// Populated from op_return "sub_create:..." TXs.
+    /// Auto-executed per block in applyBlock.
+    sub_registry: sub_mod.SubscriptionRegistry,
+
+    /// On-chain document notarization registry.
+    /// Populated from op_return "notarize:..." TXs.
+    notarize_registry: notarize_mod.NotarizeRegistry,
+
+    /// On-chain programmable escrow registry.
+    escrow_registry: escrow_mod.EscrowRegistry,
+
+    /// On-chain social graph (follow/unfollow).
+    social_graph: social_mod.SocialGraph,
+
+    /// POAP — Proof of Attendance Protocol (soulbound event badges).
+    poap_registry: poap_mod.PoapRegistry,
+
+    /// On-chain governance (propose / vote).
+    gov_registry: gov_mod.GovernanceRegistry,
+
     /// Native cross-chain bridge state. Tracks locks, pending unlocks,
     /// processed nonces, daily volume cap (defense-in-depth from Ronin/
     /// Wormhole/Nomad/Kelp DAO post-mortems). Defined in bridge_native.zig.
@@ -311,7 +344,7 @@ pub const Blockchain = struct {
             try validator_set.append(v);
         }
 
-        return Blockchain{
+        const bc = Blockchain{
             .chain = chain,
             .mempool = mempool,
             .difficulty = 4,
@@ -330,7 +363,15 @@ pub const Blockchain = struct {
             .block_prices_initialized = true,
             .fills_history = std.AutoHashMap(u32, []matching_mod.Fill).init(allocator),
             .pq_identity_map = std.StringHashMap(PqIdentity).init(allocator),
+            .label_registry    = label_mod.LabelRegistry.init(allocator),
+            .sub_registry      = sub_mod.SubscriptionRegistry.init(allocator),
+            .notarize_registry = notarize_mod.NotarizeRegistry.init(allocator),
+            .escrow_registry   = escrow_mod.EscrowRegistry.init(allocator),
+            .social_graph      = social_mod.SocialGraph.init(allocator),
+            .poap_registry     = poap_mod.PoapRegistry.init(allocator),
+            .gov_registry      = gov_mod.GovernanceRegistry.init(allocator),
         };
+        return bc;
     }
 
     /// Snapshot oracle prices for a freshly mined block. Caller passes the
@@ -389,6 +430,13 @@ pub const Blockchain = struct {
         self.stake_amounts.deinit();
         self.registered_agents.deinit();
         self.pq_identity_map.deinit();
+        self.label_registry.deinit();
+        self.sub_registry.deinit();
+        self.notarize_registry.deinit();
+        self.escrow_registry.deinit();
+        self.social_graph.deinit();
+        self.poap_registry.deinit();
+        self.gov_registry.deinit();
         // Clean up address TX index (lists of TX hash pointers — no owned memory)
         {
             var ati_it = self.address_tx_index.iterator();
@@ -832,7 +880,31 @@ pub const Blockchain = struct {
             if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, available, tx.amount + tx.fee}); return false; }
         }
 
-        // 5b. Multisig address check: if from_address is "ob_ms_*", it must be a registered multisig
+        // 5b-faucet. Faucet address restriction: TX from FAUCET_ADDR may only go
+        //   to addresses that have NOT yet completed pq_attest (onboarding gate).
+        //   This rule is enforced by every miner — funds cannot leave the faucet
+        //   for any purpose other than onboarding a fresh address.
+        if (std.mem.eql(u8, tx.from_address, faucet_mod.FAUCET_ADDR)) {
+            // op_return must be a valid faucet_claim
+            if (!std.mem.startsWith(u8, tx.op_return, faucet_mod.FAUCET_OP_PREFIX)) {
+                std.debug.print("[VALIDATE] FAIL: faucet TX missing faucet_claim op_return\n", .{});
+                return false;
+            }
+            // destination must NOT already have pq_attest (no double-funding)
+            if (self.pq_identity_map.contains(tx.to_address)) {
+                std.debug.print("[VALIDATE] FAIL: faucet TX to already-attested address {s}\n",
+                    .{tx.to_address[0..@min(20, tx.to_address.len)]});
+                return false;
+            }
+            // amount must not exceed FAUCET_AMOUNT_SAT (prevent draining)
+            if (tx.amount > faucet_mod.FAUCET_AMOUNT_SAT) {
+                std.debug.print("[VALIDATE] FAIL: faucet TX amount {d} > max {d}\n",
+                    .{tx.amount, faucet_mod.FAUCET_AMOUNT_SAT});
+                return false;
+            }
+        }
+
+        // 5c. Multisig address check: if from_address is "ob_ms_*", it must be a registered multisig
         //     Multisig TXs skip normal ECDSA verification — they are validated via MultisigWallet.verify()
         //     before being submitted (the RPC handler ensures M-of-N signatures are collected)
         if (std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX)) {
@@ -1612,6 +1684,142 @@ pub const Blockchain = struct {
                 self.allocator.free(owned_key);
                 return;
             };
+            // Persist to disk (JSONL append) so the registry survives restarts.
+            // Best-effort: failure here doesn't break consensus, just means the
+            // identity will need to be re-applied via chain replay on next start.
+            persistPqIdentityAppend(self.allocator, tx.from_address, &identity);
+        } else if (std.mem.startsWith(u8, tx.op_return, "label:")) {
+            // op_return: "label:<target>:<tag>[:<note>]"
+            // Fee check: minimum LABEL_FEE_SAT (0.1 OMNI) anti-spam
+            if (tx.fee < label_mod.LABEL_FEE_SAT) return;
+            const parsed = label_mod.parseApply(tx.op_return) orelse return;
+            // reporter tier — look up reputation, fall back to OMNI default
+            const reporter_tier = blk: {
+                // Reputation module not directly accessible here; default "OMNI"
+                // The tier weight will be overridden by RPC when submitting.
+                break :blk "OMNI";
+            };
+            _ = self.label_registry.apply(
+                parsed.target,
+                tx.from_address,
+                parsed.tag,
+                parsed.note,
+                reporter_tier,
+                @intCast(self.chain.items.len),
+                tx.hash,
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "label_remove:")) {
+            // op_return: "label_remove:<id>"
+            const label_id = label_mod.parseRemove(tx.op_return) orelse return;
+            _ = self.label_registry.remove(label_id, tx.from_address);
+        } else if (std.mem.startsWith(u8, tx.op_return, "sub_create:")) {
+            // op_return: "sub_create:<to>:<amount>:<interval>:<max>[:<note>]"
+            if (tx.fee < sub_mod.SUB_CREATE_FEE_SAT) return;
+            const parsed = sub_mod.parseCreate(tx.op_return) orelse return;
+            _ = self.sub_registry.create(
+                tx.from_address,
+                parsed,
+                @intCast(self.chain.items.len),
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "sub_cancel:")) {
+            // op_return: "sub_cancel:<id>"
+            const sub_id = sub_mod.parseCancel(tx.op_return) orelse return;
+            _ = self.sub_registry.cancel(sub_id, tx.from_address);
+        } else if (std.mem.startsWith(u8, tx.op_return, "notarize:")) {
+            // op_return: "notarize:<sha256>:<doc_type>:<expiry>[:<note>]"
+            if (tx.fee < notarize_mod.NOTARIZE_FEE_SAT) return;
+            const parsed = notarize_mod.parsNotarize(tx.op_return) orelse return;
+            _ = self.notarize_registry.notarize(
+                tx.from_address,
+                parsed,
+                @intCast(self.chain.items.len),
+                tx.hash,
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "notarize_revoke:")) {
+            // op_return: "notarize_revoke:<id>"
+            if (tx.fee < notarize_mod.NOTARIZE_REVOKE_FEE_SAT) return;
+            const notarize_id = notarize_mod.parseRevoke(tx.op_return) orelse return;
+            _ = self.notarize_registry.revoke(notarize_id, tx.from_address);
+        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_create:")) {
+            // op_return: "escrow_create:<to>:<amount>:<condition_hash>:<timeout>[:<note>]"
+            if (tx.fee < escrow_mod.ESCROW_CREATE_FEE_SAT) return;
+            const parsed = escrow_mod.parseCreate(tx.op_return) orelse return;
+            // Fondurile sunt deja debitate din UTXO-ul senderului in applyBlock.
+            // Inregistram escrow-ul — suma e tinuta virtual in registry.
+            _ = self.escrow_registry.create(
+                tx.from_address, parsed,
+                @intCast(self.chain.items.len),
+                tx.hash,
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_release:")) {
+            // op_return: "escrow_release:<id>:<proof_hash>"
+            const parsed = escrow_mod.parseRelease(tx.op_return) orelse return;
+            const amount = self.escrow_registry.tryRelease(
+                parsed.escrow_id, parsed.proof_hash,
+                tx.from_address, @intCast(self.chain.items.len),
+            );
+            if (amount > 0) {
+                // Crediteaza to_address (from_address este to-ul escrow-ului)
+                const bal = self.balances.get(tx.from_address) orelse 0;
+                self.balances.put(tx.from_address, bal + amount) catch {};
+            }
+        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_refund:")) {
+            // op_return: "escrow_refund:<id>"
+            const escrow_id = escrow_mod.parseRefund(tx.op_return) orelse return;
+            const amount = self.escrow_registry.tryRefund(
+                escrow_id, tx.from_address,
+                @intCast(self.chain.items.len),
+            );
+            if (amount > 0) {
+                const bal = self.balances.get(tx.from_address) orelse 0;
+                self.balances.put(tx.from_address, bal + amount) catch {};
+            }
+        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_dispute:")) {
+            if (tx.fee < escrow_mod.ESCROW_DISPUTE_FEE_SAT) return;
+            const escrow_id = escrow_mod.parseDispute(tx.op_return) orelse return;
+            _ = self.escrow_registry.openDispute(escrow_id, tx.from_address);
+
+        // ── Social Graph ────────────────────────────────────────────────
+        } else if (std.mem.startsWith(u8, tx.op_return, "follow:")) {
+            const target = social_mod.parseFollow(tx.op_return) orelse return;
+            self.social_graph.follow(
+                tx.from_address, target, @intCast(self.chain.items.len),
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "unfollow:")) {
+            const target = social_mod.parseUnfollow(tx.op_return) orelse return;
+            self.social_graph.unfollow(tx.from_address, target);
+
+        // ── POAP ────────────────────────────────────────────────────────
+        } else if (std.mem.startsWith(u8, tx.op_return, "poap_event:")) {
+            if (tx.fee < poap_mod.POAP_EVENT_FEE_SAT) return;
+            const parsed = poap_mod.parseEvent(tx.op_return) orelse return;
+            self.poap_registry.createEvent(
+                tx.from_address, parsed, @intCast(self.chain.items.len),
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "poap_claim:")) {
+            if (tx.fee < poap_mod.POAP_CLAIM_FEE_SAT) return;
+            const event_id = poap_mod.parseClaim(tx.op_return) orelse return;
+            self.poap_registry.claimPoap(
+                tx.from_address, event_id, @intCast(self.chain.items.len), tx.hash,
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "poap_close:")) {
+            const event_id = poap_mod.parseClose(tx.op_return) orelse return;
+            _ = self.poap_registry.closeEvent(event_id, tx.from_address);
+
+        // ── Governance ──────────────────────────────────────────────────
+        } else if (std.mem.startsWith(u8, tx.op_return, "gov_propose:")) {
+            if (tx.fee < gov_mod.GOV_PROPOSE_FEE_SAT) return;
+            const parsed = gov_mod.parsePropose(tx.op_return) orelse return;
+            _ = self.gov_registry.propose(
+                tx.from_address, parsed, @intCast(self.chain.items.len),
+            ) catch return;
+        } else if (std.mem.startsWith(u8, tx.op_return, "gov_vote:")) {
+            if (tx.fee < gov_mod.GOV_VOTE_FEE_SAT) return;
+            const parsed = gov_mod.parseVote(tx.op_return) orelse return;
+            self.gov_registry.vote(
+                parsed.id, tx.from_address, parsed.yes, "OMNI",
+                @intCast(self.chain.items.len),
+            ) catch return;
         }
     }
 
@@ -1783,6 +1991,57 @@ pub const Blockchain = struct {
             }
         }
 
+        // ── Governance proposal finalization ────────────────────────────────
+        self.gov_registry.finalizeProposals(@intCast(block.index));
+
+        // ── Escrow auto-refund (timeout expired) ────────────────────────────
+        // Verifica escrow-uri timed-out si returneaza fondurile la from_address.
+        {
+            var timed_out: [32]u64 = undefined;
+            const n_to = self.escrow_registry.collectTimedOut(@intCast(block.index), &timed_out);
+            for (timed_out[0..n_to]) |esc_id| {
+                const esc = self.escrow_registry.get(esc_id) orelse continue;
+                // Auto-refund: nu necesita TX explicit, chain o face automat
+                const amount = self.escrow_registry.tryRefund(
+                    esc_id, esc.fromSlice(), @intCast(block.index),
+                );
+                if (amount > 0) {
+                    const bal = self.balances.get(esc.fromSlice()) orelse 0;
+                    self.balances.put(esc.fromSlice(), bal + amount) catch {};
+                    std.debug.print("[ESCROW-TIMEOUT] id={d} refund={d} to={s}\n",
+                        .{ esc_id, amount, esc.fromSlice()[0..@min(16, esc.fromSlice().len)] });
+                }
+            }
+        }
+
+        // ── Subscription auto-execution ─────────────────────────────────────
+        // For every subscription due at this block height, debit the
+        // subscriber and credit the recipient directly in the balance cache.
+        // Skips if subscriber doesn't have enough funds (payment deferred to
+        // next interval — subscription stays active, not cancelled).
+        {
+            var due_ids: [64]u64 = undefined;
+            const n_due = self.sub_registry.collectDue(@intCast(block.index), &due_ids);
+            for (due_ids[0..n_due]) |sub_id| {
+                const sub = self.sub_registry.get(sub_id) orelse continue;
+                const total_debit = sub.amount_sat + sub_mod.SUB_EXEC_FEE_SAT;
+                const from_bal = self.balances.get(sub.fromSlice()) orelse 0;
+                if (from_bal < total_debit) {
+                    // Insufficient funds — defer, advance next_block anyway
+                    self.sub_registry.markExecuted(sub_id, @intCast(block.index));
+                    continue;
+                }
+                self.balances.put(sub.fromSlice(), from_bal - total_debit) catch {};
+                const to_bal = self.balances.get(sub.toSlice()) orelse 0;
+                self.balances.put(sub.toSlice(), to_bal + sub.amount_sat) catch {};
+                // SUB_EXEC_FEE goes to miner (already in block.reward via fee accounting)
+                self.sub_registry.markExecuted(sub_id, @intCast(block.index));
+                std.debug.print("[SUB-EXEC] id={d} from={s} to={s} amount={d}\n",
+                    .{ sub_id, sub.fromSlice()[0..@min(16, sub.fromSlice().len)],
+                       sub.toSlice()[0..@min(16, sub.toSlice().len)], sub.amount_sat });
+            }
+        }
+
         try self.chain.append(block);
 
         // Update cumulative work — proxy for 2^256 / target. Difficulty is
@@ -1880,6 +2139,12 @@ pub const Blockchain = struct {
                 self.nonces.put(tx.from_address, current_nonce + 1) catch {};
                 self.tx_block_height.put(tx.hash, @intCast(blk.index)) catch {};
                 self.applyOpReturnRoles(tx);
+                // Rebuild address_tx_index from persisted TXs (DB v4) so that
+                // getaddresshistory returns history through restarts.
+                self.indexAddressTx(tx.from_address, tx.hash);
+                if (!std.mem.eql(u8, tx.from_address, tx.to_address)) {
+                    self.indexAddressTx(tx.to_address, tx.hash);
+                }
                 self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(blk.index), "", false) catch {};
             }
             const fees_burned = blk_total_fees * FEE_BURN_PCT / 100;
@@ -2102,6 +2367,133 @@ pub const Blockchain = struct {
         }
     }
 };
+
+// ── PQ identity persistence ─────────────────────────────────────────────────
+// pq_identity_map needs to survive restarts. We append-only-log every accepted
+// pq_attest_v1 to a JSONL sidecar file at data/<chain>/pq_identities.jsonl,
+// then re-hydrate the in-memory map at startup (see loadPqIdentitiesFromDisk
+// below — called from main.zig after database restore).
+
+var g_pq_persist_path_buf: [512]u8 = @splat(0);
+var g_pq_persist_path_len: usize = 0;
+var g_pq_persist_mutex: std.Thread.Mutex = .{};
+
+pub fn pqPersistSetPath(path: []const u8) void {
+    g_pq_persist_mutex.lock();
+    defer g_pq_persist_mutex.unlock();
+    const n = @min(path.len, g_pq_persist_path_buf.len);
+    @memcpy(g_pq_persist_path_buf[0..n], path[0..n]);
+    g_pq_persist_path_len = n;
+}
+
+fn pqPersistPath() ?[]const u8 {
+    if (g_pq_persist_path_len == 0) return null;
+    return g_pq_persist_path_buf[0..g_pq_persist_path_len];
+}
+
+fn persistPqIdentityAppend(alloc: std.mem.Allocator, from: []const u8, idt: *const PqIdentity) void {
+    g_pq_persist_mutex.lock();
+    defer g_pq_persist_mutex.unlock();
+    const path = pqPersistPath() orelse return;
+
+    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
+        std.debug.print("[PQ-IDENT] persist open {s} failed: {}\n", .{ path, err });
+        return;
+    };
+    defer f.close();
+    f.seekFromEnd(0) catch return;
+
+    // Layout:
+    //  {"from":"...","love":"...","food":"...","rent":"...","vacation":"...",
+    //   "btc":"...","eth":"...","attest_block":N,"attest_tx":"..."}\n
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    buf.writer().print(
+        "{{\"from\":\"{s}\",\"love\":\"{s}\",\"food\":\"{s}\",\"rent\":\"{s}\",\"vacation\":\"{s}\"," ++
+        "\"btc\":\"{s}\",\"eth\":\"{s}\",\"attest_block\":{d},\"attest_tx\":\"{s}\"}}\n",
+        .{
+            from,
+            idt.loveSlice(), idt.foodSlice(), idt.rentSlice(), idt.vacationSlice(),
+            idt.btcSlice(), idt.ethSlice(),
+            idt.attest_block, idt.attestTxSlice(),
+        },
+    ) catch return;
+    _ = f.writeAll(buf.items) catch |err| {
+        std.debug.print("[PQ-IDENT] append failed: {}\n", .{err});
+    };
+}
+
+/// Reload pq_identity_map from the JSONL sidecar. Called once at startup
+/// after the database restore. Idempotent — duplicate `from` entries are
+/// silently skipped (first-claim wins, matches on-chain semantics).
+pub fn loadPqIdentitiesFromDisk(bc: *Blockchain, path: []const u8) !void {
+    pqPersistSetPath(path);
+    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return,
+        else => return err,
+    };
+    defer f.close();
+    const stat = try f.stat();
+    if (stat.size == 0) return;
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
+    _ = try f.readAll(buf);
+
+    var lines = std.mem.splitScalar(u8, buf, '\n');
+    var loaded: usize = 0;
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
+        const from = extractJsonStr(line, "\"from\":\"") orelse continue;
+        if (bc.pq_identity_map.contains(from)) continue;
+
+        var ident = PqIdentity{};
+        if (extractJsonStr(line, "\"love\":\""))     |s| { copyToFixed(&ident.love,     &ident.love_len,     s); }
+        if (extractJsonStr(line, "\"food\":\""))     |s| { copyToFixed(&ident.food,     &ident.food_len,     s); }
+        if (extractJsonStr(line, "\"rent\":\""))     |s| { copyToFixed(&ident.rent,     &ident.rent_len,     s); }
+        if (extractJsonStr(line, "\"vacation\":\"")) |s| { copyToFixed(&ident.vacation, &ident.vacation_len, s); }
+        if (extractJsonStr(line, "\"btc\":\""))      |s| { copyToFixed(&ident.btc,      &ident.btc_len,      s); }
+        if (extractJsonStr(line, "\"eth\":\""))      |s| { copyToFixed(&ident.eth,      &ident.eth_len,      s); }
+        if (extractJsonStr(line, "\"attest_tx\":\"")) |s| {
+            const c = @min(s.len, ident.attest_tx.len - 1);
+            @memcpy(ident.attest_tx[0..c], s[0..c]);
+            ident.attest_tx_len = @intCast(c);
+        }
+        if (extractJsonU64(line, "\"attest_block\":")) |n| ident.attest_block = n;
+
+        const owned = bc.allocator.dupe(u8, from) catch continue;
+        bc.pq_identity_map.put(owned, ident) catch {
+            bc.allocator.free(owned);
+            continue;
+        };
+        loaded += 1;
+    }
+    std.debug.print("[PQ-IDENT] Loaded {d} identity record(s) from {s}\n", .{ loaded, path });
+}
+
+fn extractJsonStr(line: []const u8, key: []const u8) ?[]const u8 {
+    const start = std.mem.indexOf(u8, line, key) orelse return null;
+    const from = start + key.len;
+    if (from >= line.len) return null;
+    const end = std.mem.indexOfScalarPos(u8, line, from, '"') orelse return null;
+    return line[from..end];
+}
+
+fn extractJsonU64(line: []const u8, key: []const u8) ?u64 {
+    const start = std.mem.indexOf(u8, line, key) orelse return null;
+    const from = start + key.len;
+    var end = from;
+    while (end < line.len and std.ascii.isDigit(line[end])) : (end += 1) {}
+    if (end == from) return null;
+    return std.fmt.parseInt(u64, line[from..end], 10) catch null;
+}
+
+fn copyToFixed(buf: []u8, len_field: *u8, src: []const u8) void {
+    const c = @min(src.len, buf.len);
+    @memcpy(buf[0..c], src[0..c]);
+    len_field.* = @intCast(c);
+}
 
 /// Self-contained snapshot of a block's metadata. No heap pointers / no slices
 /// into the chain — safe to read after the originating Blockchain.mutex is released.

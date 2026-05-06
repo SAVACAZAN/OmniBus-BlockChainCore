@@ -612,6 +612,209 @@ pub const Transaction = struct {
     }
 };
 
+// ─── DB v4 Wire Codec ───────────────────────────────────────────────────────
+// Persistent serialization for Transaction inside chain.dat blocks. Used by
+// database.zig saveBlockchain/parseBlockData to keep TX history through
+// restarts (DB v4, 2026-05-06). Layout — all integers little-endian:
+//
+//   [tx_type:1][scheme:1][id:4][amount:8][fee:8][nonce:8][timestamp:8]
+//   [locktime:8][sequence:4]
+//   [from_len:1][from][to_len:1][to][hash_len:1][hash]
+//   [sig_len:2][signature][pubkey_len:2][public_key]
+//   [opret_len:1][op_return]
+//   [scriptpub_len:2][script_pubkey][scriptsig_len:2][script_sig]
+//   [data_len:2][data]
+//   [in_count:1][per: tx_hash_len:1, tx_hash, output_index:4]
+//   [out_count:1][per: amount:8, addr_len:1, addr]
+//
+// Variable strings <=255 bytes use 1-byte length; bigger fields (sig/pubkey/
+// scripts/data) use 2-byte. This packs an average TX into ~320 B.
+
+pub const TX_WIRE_VERSION: u8 = 1;
+
+pub fn encodeWireSize(tx: *const Transaction) usize {
+    var n: usize = 0;
+    n += 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 4;            // fixed numeric fields
+    n += 1 + tx.from_address.len;
+    n += 1 + tx.to_address.len;
+    n += 1 + tx.hash.len;
+    n += 2 + tx.signature.len;
+    n += 2 + tx.public_key.len;
+    n += 1 + tx.op_return.len;
+    n += 2 + tx.script_pubkey.len;
+    n += 2 + tx.script_sig.len;
+    n += 2 + tx.data.len;
+    n += 1; // in_count
+    for (tx.inputs) |inp| n += 1 + inp.tx_hash.len + 4;
+    n += 1; // out_count
+    for (tx.outputs) |out| n += 8 + 1 + out.address.len;
+    return n;
+}
+
+pub fn encodeWire(out: *std.array_list.Managed(u8), tx: *const Transaction) !void {
+    try out.append(@intFromEnum(tx.tx_type));
+    try out.append(@intFromEnum(tx.scheme));
+
+    var u4buf: [4]u8 = undefined;
+    var u8buf: [8]u8 = undefined;
+
+    std.mem.writeInt(u32, &u4buf, tx.id, .little);            try out.appendSlice(&u4buf);
+    std.mem.writeInt(u64, &u8buf, tx.amount, .little);        try out.appendSlice(&u8buf);
+    std.mem.writeInt(u64, &u8buf, tx.fee, .little);           try out.appendSlice(&u8buf);
+    std.mem.writeInt(u64, &u8buf, tx.nonce, .little);         try out.appendSlice(&u8buf);
+    std.mem.writeInt(i64, &u8buf, tx.timestamp, .little);     try out.appendSlice(&u8buf);
+    std.mem.writeInt(u64, &u8buf, tx.locktime, .little);      try out.appendSlice(&u8buf);
+    std.mem.writeInt(u32, &u4buf, tx.sequence, .little);      try out.appendSlice(&u4buf);
+
+    try writeLp1(out, tx.from_address);
+    try writeLp1(out, tx.to_address);
+    try writeLp1(out, tx.hash);
+
+    try writeLp2(out, tx.signature);
+    try writeLp2(out, tx.public_key);
+
+    try writeLp1(out, tx.op_return);
+
+    try writeLp2(out, tx.script_pubkey);
+    try writeLp2(out, tx.script_sig);
+    try writeLp2(out, tx.data);
+
+    if (tx.inputs.len > 255) return error.TooManyInputs;
+    try out.append(@intCast(tx.inputs.len));
+    for (tx.inputs) |inp| {
+        try writeLp1(out, inp.tx_hash);
+        std.mem.writeInt(u32, &u4buf, inp.output_index, .little);
+        try out.appendSlice(&u4buf);
+    }
+    if (tx.outputs.len > 255) return error.TooManyOutputs;
+    try out.append(@intCast(tx.outputs.len));
+    for (tx.outputs) |o| {
+        std.mem.writeInt(u64, &u8buf, o.amount, .little);
+        try out.appendSlice(&u8buf);
+        try writeLp1(out, o.address);
+    }
+}
+
+fn writeLp1(out: *std.array_list.Managed(u8), s: []const u8) !void {
+    if (s.len > 255) return error.LengthOverflow;
+    try out.append(@intCast(s.len));
+    try out.appendSlice(s);
+}
+
+fn writeLp2(out: *std.array_list.Managed(u8), s: []const u8) !void {
+    if (s.len > 65535) return error.LengthOverflow;
+    var b2: [2]u8 = undefined;
+    std.mem.writeInt(u16, &b2, @intCast(s.len), .little);
+    try out.appendSlice(&b2);
+    try out.appendSlice(s);
+}
+
+/// Decode TX from wire format. All variable-length slices are heap-duped via
+/// `alloc` so the caller owns them — append the resulting Transaction into a
+/// container that lives at least as long as the allocator.
+pub fn decodeWire(buf: []const u8, alloc: std.mem.Allocator, consumed: *usize) !Transaction {
+    var p: usize = 0;
+    if (buf.len < 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 4) return error.WireTooShort;
+
+    const tx_type_raw = buf[p]; p += 1;
+    const scheme_raw  = buf[p]; p += 1;
+
+    const id        = std.mem.readInt(u32, buf[p..][0..4], .little); p += 4;
+    const amount    = std.mem.readInt(u64, buf[p..][0..8], .little); p += 8;
+    const fee       = std.mem.readInt(u64, buf[p..][0..8], .little); p += 8;
+    const nonce     = std.mem.readInt(u64, buf[p..][0..8], .little); p += 8;
+    const timestamp = std.mem.readInt(i64, buf[p..][0..8], .little); p += 8;
+    const locktime  = std.mem.readInt(u64, buf[p..][0..8], .little); p += 8;
+    const sequence  = std.mem.readInt(u32, buf[p..][0..4], .little); p += 4;
+
+    const from = try readLp1Dup(buf, &p, alloc);
+    const to   = try readLp1Dup(buf, &p, alloc);
+    const hash = try readLp1Dup(buf, &p, alloc);
+
+    const sig    = try readLp2Dup(buf, &p, alloc);
+    const pubkey = try readLp2Dup(buf, &p, alloc);
+
+    const op_ret = try readLp1Dup(buf, &p, alloc);
+
+    const script_pub = try readLp2Dup(buf, &p, alloc);
+    const script_sig = try readLp2Dup(buf, &p, alloc);
+    const data       = try readLp2Dup(buf, &p, alloc);
+
+    if (p + 1 > buf.len) return error.WireTooShort;
+    const in_count = buf[p]; p += 1;
+    const inputs = if (in_count == 0) blk: {
+        break :blk &[_]Outpoint{};
+    } else blk: {
+        const arr = try alloc.alloc(Outpoint, in_count);
+        for (arr) |*entry| {
+            const tx_hash = try readLp1Dup(buf, &p, alloc);
+            if (p + 4 > buf.len) return error.WireTooShort;
+            const idx = std.mem.readInt(u32, buf[p..][0..4], .little); p += 4;
+            entry.* = Outpoint{ .tx_hash = tx_hash, .output_index = idx };
+        }
+        break :blk arr;
+    };
+
+    if (p + 1 > buf.len) return error.WireTooShort;
+    const out_count = buf[p]; p += 1;
+    const outputs = if (out_count == 0) blk: {
+        break :blk &[_]TxOutput{};
+    } else blk: {
+        const arr = try alloc.alloc(TxOutput, out_count);
+        for (arr) |*entry| {
+            if (p + 8 > buf.len) return error.WireTooShort;
+            const amt = std.mem.readInt(u64, buf[p..][0..8], .little); p += 8;
+            const addr = try readLp1Dup(buf, &p, alloc);
+            entry.* = TxOutput{ .amount = amt, .address = addr };
+        }
+        break :blk arr;
+    };
+
+    consumed.* = p;
+    return Transaction{
+        .id = id,
+        .scheme = std.meta.intToEnum(Scheme, scheme_raw) catch .omni_ecdsa,
+        .from_address = from,
+        .to_address = to,
+        .amount = amount,
+        .fee = fee,
+        .timestamp = timestamp,
+        .nonce = nonce,
+        .op_return = op_ret,
+        .locktime = locktime,
+        .sequence = sequence,
+        .script_pubkey = script_pub,
+        .script_sig = script_sig,
+        .signature = sig,
+        .hash = hash,
+        .public_key = pubkey,
+        .inputs = inputs,
+        .outputs = outputs,
+        .tx_type = std.meta.intToEnum(TxType, tx_type_raw) catch .transfer,
+        .data = data,
+    };
+}
+
+fn readLp1Dup(buf: []const u8, p: *usize, alloc: std.mem.Allocator) ![]const u8 {
+    if (p.* + 1 > buf.len) return error.WireTooShort;
+    const n = buf[p.*]; p.* += 1;
+    if (n == 0) return "";
+    if (p.* + n > buf.len) return error.WireTooShort;
+    const slice = buf[p.* .. p.* + n];
+    p.* += n;
+    return try alloc.dupe(u8, slice);
+}
+
+fn readLp2Dup(buf: []const u8, p: *usize, alloc: std.mem.Allocator) ![]const u8 {
+    if (p.* + 2 > buf.len) return error.WireTooShort;
+    const n = std.mem.readInt(u16, buf[p.*..][0..2], .little); p.* += 2;
+    if (n == 0) return "";
+    if (p.* + n > buf.len) return error.WireTooShort;
+    const slice = buf[p.* .. p.* + n];
+    p.* += n;
+    return try alloc.dupe(u8, slice);
+}
+
 // ─── Teste ───────────────────────────────────────────────────────────────────
 
 const testing = std.testing;

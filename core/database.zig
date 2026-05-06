@@ -2,6 +2,7 @@ const std = @import("std");
 const storage_mod = @import("storage.zig");
 const blockchain_mod = @import("blockchain.zig");
 const block_mod = @import("block.zig");
+const transaction_mod = @import("transaction.zig");
 const array_list = std.array_list;
 
 const KeyValueStore = storage_mod.KeyValueStore;
@@ -17,7 +18,7 @@ const DB_MAGIC = [4]u8{ 'O', 'M', 'N', 'I' };
 ///   v3 (2026-05-05) — Phase 2C adds orderbook_state section after agent_state.
 ///                     Backward-compat: v2 files load fine (orderbook_state
 ///                     simply absent → empty in-RAM book). New saves write v3.
-const DB_VERSION: u32 = 3;
+const DB_VERSION: u32 = 4;
 /// Per-order on-disk record size. Power of two for cache-line alignment.
 /// See PHASE2C_ORDERBOOK_PERSISTENCE_DESIGN_2026-05-05.md §J for layout.
 const ORDERBOOK_ORDER_BYTES: usize = 128;
@@ -729,20 +730,45 @@ pub const PersistentBlockchain = struct {
         try out.appendSlice(&hdr4);
 
         // Blocks (index 1..N — skip genesis)
+        // DB v4 (2026-05-06): block payload now appends [tx_count:4][tx_wire:N]…
+        // after the legacy pipe-delimited header. Length-prefix `data_len` covers
+        // header+TXs so the slot grows transparently. v3 readers still parse the
+        // header (everything before the first non-printable byte) safely.
+        var tx_scratch = array_list.Managed(u8).init(self.allocator);
+        defer tx_scratch.deinit();
         for (chain[1..]) |blk| {
             var data_buf: [512]u8 = undefined;
-            const data = try std.fmt.bufPrint(&data_buf, "{d}|{d}|{d}|{s}|{s}|{s}|{d}", .{
+            const header = try std.fmt.bufPrint(&data_buf, "{d}|{d}|{d}|{s}|{s}|{s}|{d}", .{
                 blk.index, blk.timestamp, blk.nonce,
                 blk.previous_hash, blk.hash,
                 blk.miner_address, blk.reward_sat,
             });
+
+            // Encode TX section: [tx_count:4][per tx: encodeWireSize bytes]
+            tx_scratch.clearRetainingCapacity();
+            var tx_cnt4: [4]u8 = undefined;
+            std.mem.writeInt(u32, &tx_cnt4, @intCast(blk.transactions.items.len), .little);
+            try tx_scratch.appendSlice(&tx_cnt4);
+            for (blk.transactions.items) |tx| {
+                transaction_mod.encodeWire(&tx_scratch, &tx) catch {
+                    // Skip malformed TXs — log but keep going so the rest of
+                    // the block still saves. On replay these would be missing.
+                    std.debug.print(
+                        "[DB] WARN: encodeWire failed for tx in block {d}\n",
+                        .{blk.index},
+                    );
+                };
+            }
+
+            const total_data_len = header.len + tx_scratch.items.len;
             var h8: [8]u8 = undefined;
             var l4: [4]u8 = undefined;
             std.mem.writeInt(u64, &h8, blk.index, .little);
-            std.mem.writeInt(u32, &l4, @intCast(data.len), .little);
+            std.mem.writeInt(u32, &l4, @intCast(total_data_len), .little);
             try out.appendSlice(&h8);
             try out.appendSlice(&l4);
-            try out.appendSlice(data);
+            try out.appendSlice(header);
+            try out.appendSlice(tx_scratch.items);
         }
 
         try appendCrc32(&out, section_blocks_start);
@@ -872,7 +898,7 @@ pub const PersistentBlockchain = struct {
         else
             0;
         const fills_blocks_saved: u32 = @intCast(bc.fills_history.count());
-        std.debug.print("[DB] Saved v3 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms + {d} stakes + {d} agents + {d} orders + fills/{d} blocks → {s}\n",
+        std.debug.print("[DB] Saved v4 {d} blocks + {d} balances + {d} nonces + {d} tx_confirms + {d} stakes + {d} agents + {d} orders + fills/{d} blocks → {s}\n",
             .{ save_count, bc.balances.count(), bc.nonces.count(), bc.tx_block_height.count(),
                bc.stake_amounts.count(), bc.registered_agents.count(), order_count_saved,
                fills_blocks_saved, path });
@@ -1229,9 +1255,39 @@ pub const PersistentBlockchain = struct {
         logRestoreSummary(bc, loaded_blocks, addr_count, nonce_count, tx_confirm_count, path);
     }
 
+    /// Find where the pipe-delimited header ends and the binary TX section
+    /// (DB v4) begins. Header has 6 `|` separators (7 fields); the 7th field
+    /// is `reward_sat` — a digit run. We walk past the 6th `|` and consume
+    /// the trailing digit run; the next byte (or end-of-data) marks the
+    /// header end. For v3 files the function returns `data.len`.
+    fn findHeaderEnd(data: []const u8) usize {
+        var pipes: u8 = 0;
+        var i: usize = 0;
+        while (i < data.len) : (i += 1) {
+            if (data[i] == '|') {
+                pipes += 1;
+                if (pipes == 6) {
+                    // Walk past the digit run of reward_sat.
+                    var j = i + 1;
+                    while (j < data.len and std.ascii.isDigit(data[j])) : (j += 1) {}
+                    return j;
+                }
+            }
+        }
+        return data.len;
+    }
+
     /// Parse a single block's pipe-delimited data and return a Block struct
     fn parseBlockData(self: *PersistentBlockchain, bc: *blockchain_mod.Blockchain, data: []const u8, height: u64) !block_mod.Block {
-        var parts = std.mem.splitScalar(u8, data, '|');
+        // DB v4 layout: [header pipe-delimited]\0?[tx_count:4][tx_wire…]
+        // The header has exactly 6 `|` separators (7 fields). After the 7th
+        // field's last printable byte, the binary TX section begins. We find
+        // the split by counting `|` and walking past the trailing digits of
+        // reward_sat. v3 files have no TX section — split offset == data.len.
+        const header_end = findHeaderEnd(data);
+        const header = data[0..header_end];
+
+        var parts = std.mem.splitScalar(u8, header, '|');
         const p_index = parts.next() orelse return error.InvalidBlockData;
         const p_ts = parts.next() orelse return error.InvalidBlockData;
         const p_nonce = parts.next() orelse return error.InvalidBlockData;
@@ -1252,10 +1308,32 @@ pub const PersistentBlockchain = struct {
         const miner_copy = try self.allocator.dupe(u8, p_miner);
         const prev_block_hash = bc.chain.items[bc.chain.items.len - 1].hash;
 
+        var transactions = array_list.Managed(block_mod.Transaction).init(self.allocator);
+
+        // DB v4 — decode TX section if present.
+        if (data.len > header_end + 4) {
+            const tx_section = data[header_end..];
+            const tx_count = std.mem.readInt(u32, tx_section[0..4], .little);
+            var p: usize = 4;
+            var ti: u32 = 0;
+            while (ti < tx_count and p < tx_section.len) : (ti += 1) {
+                var consumed: usize = 0;
+                const tx = transaction_mod.decodeWire(tx_section[p..], bc.allocator, &consumed) catch |err| {
+                    std.debug.print(
+                        "[DB] WARN: decodeWire failed at block {d} tx {d}: {} — skipping rest\n",
+                        .{ blk_index, ti, err },
+                    );
+                    break;
+                };
+                transactions.append(tx) catch break;
+                p += consumed;
+            }
+        }
+
         return block_mod.Block{
             .index = blk_index,
             .timestamp = blk_ts,
-            .transactions = array_list.Managed(block_mod.Transaction).init(self.allocator),
+            .transactions = transactions,
             .previous_hash = prev_block_hash,
             .nonce = blk_nonce,
             .hash = hash_copy,

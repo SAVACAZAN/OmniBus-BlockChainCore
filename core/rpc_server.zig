@@ -40,6 +40,14 @@ const registrar_mod   = @import("registrar_addresses.zig");
 const agent_manager_mod = @import("agent_manager.zig");
 const reputation_mod = @import("reputation.zig");
 const reputation_manager_mod = @import("reputation_manager.zig");
+const label_mod = @import("label.zig");
+const sub_mod = @import("subscription.zig");
+const notarize_mod = @import("notarize.zig");
+const escrow_mod = @import("escrow.zig");
+const social_mod = @import("social_graph.zig");
+const poap_mod   = @import("poap.zig");
+const gov_mod    = @import("governance_onchain.zig");
+const faucet_mod = @import("faucet.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const isolated_wallet_mod = @import("isolated_wallet.zig");
 const bridge_mod      = @import("bridge_native.zig");
@@ -2944,6 +2952,52 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getpqidentity"))    return handleGetPqIdentity(body, ctx, id);
     if (std.mem.eql(u8, method, "sendpqattest"))     return handleSendPqAttest(body, ctx, id);
 
+    // ── On-chain labels (decentralized address tagging) ─────────────────
+    if (std.mem.eql(u8, method, "applylabel"))       return handleApplyLabel(body, ctx, id);
+    if (std.mem.eql(u8, method, "getlabels"))        return handleGetLabels(body, ctx, id);
+    if (std.mem.eql(u8, method, "removelabel"))      return handleRemoveLabel(body, ctx, id);
+
+    // ── On-chain subscriptions (recurring payments) ──────────────────────
+    if (std.mem.eql(u8, method, "sub_create"))       return handleSubCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "sub_cancel"))       return handleSubCancel(body, ctx, id);
+    if (std.mem.eql(u8, method, "getsubscriptions")) return handleGetSubscriptions(body, ctx, id);
+
+    // ── Document notarization ────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "notarizedoc"))      return handleNotarizeDoc(body, ctx, id);
+    if (std.mem.eql(u8, method, "verifynotarize"))   return handleVerifyNotarize(body, ctx, id);
+    if (std.mem.eql(u8, method, "revokenotarize"))   return handleRevokeNotarize(body, ctx, id);
+    if (std.mem.eql(u8, method, "getnotarizations")) return handleGetNotarizations(body, ctx, id);
+
+    // ── Programmable escrow ──────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "escrow_create"))    return handleEscrowCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_release"))   return handleEscrowRelease(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_refund"))    return handleEscrowRefund(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_dispute"))   return handleEscrowDispute(body, ctx, id);
+    if (std.mem.eql(u8, method, "getescrow"))        return handleGetEscrow(body, ctx, id);
+    if (std.mem.eql(u8, method, "getescrows"))       return handleGetEscrows(body, ctx, id);
+
+    // ── Social Graph ─────────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "follow"))           return handleFollow(body, ctx, id);
+    if (std.mem.eql(u8, method, "unfollow"))         return handleUnfollow(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfollowers"))     return handleGetFollowers(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfollowing"))     return handleGetFollowing(body, ctx, id);
+
+    // ── POAP (Proof of Attendance) ────────────────────────────────────────
+    if (std.mem.eql(u8, method, "poap_createevent")) return handlePoapCreateEvent(body, ctx, id);
+    if (std.mem.eql(u8, method, "poap_claim"))       return handlePoapClaim(body, ctx, id);
+    if (std.mem.eql(u8, method, "poap_close"))       return handlePoapClose(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpoaps"))         return handleGetPoaps(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpoapevent"))     return handleGetPoapEvent(body, ctx, id);
+
+    // ── Governance ────────────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "gov_propose"))      return handleGovPropose(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_vote"))         return handleGovVote(body, ctx, id);
+    if (std.mem.eql(u8, method, "getproposals"))     return handleGetProposals(body, ctx, id);
+    if (std.mem.eql(u8, method, "getproposal"))      return handleGetProposal(body, ctx, id);
+
+    // ── Identity Hub ──────────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "getidentity"))      return handleGetIdentity(body, ctx, id);
+
     // ── Identity (public nickname + ENS-pref + visibility) ─────────────
     if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
     if (std.mem.eql(u8, method, "identity_get"))    return handleIdentityGet(body, ctx, id);
@@ -3234,291 +3288,183 @@ fn handleSendOpReturn(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Usage: {"method":"minersendtx","params":["from_miner_address","to_address",amount_sat,fee_sat],"id":1}
 // ─── Faucet rate-limit state (in-memory, per-process) ────────────────────────
 //
-// Simple anti-Sybil for the testnet faucet. State is in-memory only (no JSON
-// persistence yet — that lives in Faza 5 when we add auto-refill). On node
-// restart the table resets to empty, which means a determined attacker could
-// claim again after each restart. Acceptable for testnet; tighten before
-// mainnet.
+// ── Faucet — Protocol Onboarding Gate ────────────────────────────────────────
 //
-// Rules:
-//   - Per-address: 1 claim ever (once an address gets faucet funds, no more)
-//   - Per-IP: cooldown of FAUCET_IP_COOLDOWN_S between claims from the same IP
+// The faucet address is derived from the well-known OmniBus protocol mnemonic
+// ("abandon x11 about"). Its address and mnemonic are PUBLIC — security comes
+// from the chain rule in validateTransaction (5b-faucet), not from key secrecy.
 //
-// Limits chosen so legit users can run multiple validators (their own family
-// of wallets) without hitting the IP cooldown wall constantly: 1 minute, not
-// 24h, on testnet. Tighten on mainnet.
+// Every claimer signs the Declaration of Honesty (faucet_mod.DECLARATION_TEXT).
+// The SHA-256 hash of the declaration is embedded in the op_return and stored
+// on-chain permanently — irrevocable proof of agreement.
+//
+// Anti-Sybil rules:
+//   - One claim per address (ever) — enforced by g_faucet_addr_set
+//   - One claim per IP per 24h   — enforced by g_faucet_ip_map
+//   - Chain rule: faucet TX invalid if destination already has pq_attest
 
-const FAUCET_IP_COOLDOWN_S: i64 = 60;
-const FAUCET_MAX_CLAIMED_ADDRS: usize = 4096;
-const FAUCET_MAX_TRACKED_IPS: usize = 1024;
-
-const FaucetClaim = struct {
-    addr: [64]u8 = @splat(0),
-    addr_len: u8 = 0,
-    timestamp: i64 = 0,
+// Global in-memory state — reset on node restart intentionally (persist via
+// chain state: if an address has balance, it already claimed).
+var g_faucet_addr_set = faucet_mod.ClaimedSet{
+    .set   = @as(@TypeOf(faucet_mod.ClaimedSet.init(undefined).set), undefined),
+    .mutex = .{},
 };
-
-const FaucetIpEntry = struct {
-    ip: [4]u8 = .{ 0, 0, 0, 0 },
-    last_claim: i64 = 0,
-    used: bool = false,
+var g_faucet_ip_map = faucet_mod.IpCooldownMap{
+    .map   = @as(@TypeOf(faucet_mod.IpCooldownMap.init(undefined).map), undefined),
+    .mutex = .{},
 };
+var g_faucet_state_init = false;
+var g_faucet_state_mutex: std.Thread.Mutex = .{};
 
-var g_faucet_claims: [FAUCET_MAX_CLAIMED_ADDRS]FaucetClaim = @splat(.{});
-var g_faucet_claim_count: usize = 0;
-var g_faucet_ip_table: [FAUCET_MAX_TRACKED_IPS]FaucetIpEntry = @splat(.{});
-var g_faucet_mutex: std.Thread.Mutex = .{};
-/// File path where claims persist across restarts. Set by `faucetSetPersistPath`
-/// at node startup. Empty = persistence disabled (in-memory only).
-var g_faucet_persist_path_buf: [512]u8 = @splat(0);
-var g_faucet_persist_path_len: usize = 0;
-var g_faucet_persist_loaded: bool = false;
-
-/// Set the on-disk path for the claim ledger. Idempotent — calling it
-/// repeatedly with the same path is a no-op. Called once from main.zig
-/// after the chain data dir is known (so testnet/regtest get separate
-/// ledgers from mainnet automatically).
-pub fn faucetSetPersistPath(path: []const u8) void {
-    g_faucet_mutex.lock();
-    defer g_faucet_mutex.unlock();
-    const n = @min(path.len, g_faucet_persist_path_buf.len);
-    @memcpy(g_faucet_persist_path_buf[0..n], path[0..n]);
-    g_faucet_persist_path_len = n;
-    if (!g_faucet_persist_loaded) {
-        faucetLoadFromDisk() catch |err| {
-            std.debug.print("[FAUCET] load from disk failed: {} (starting fresh)\n", .{err});
-        };
-        g_faucet_persist_loaded = true;
-    }
+fn ensureFaucetState(alloc: std.mem.Allocator) void {
+    g_faucet_state_mutex.lock();
+    defer g_faucet_state_mutex.unlock();
+    if (g_faucet_state_init) return;
+    g_faucet_addr_set  = faucet_mod.ClaimedSet.init(alloc);
+    g_faucet_ip_map    = faucet_mod.IpCooldownMap.init(alloc);
+    g_faucet_state_init = true;
 }
 
-fn faucetPersistPath() ?[]const u8 {
-    if (g_faucet_persist_path_len == 0) return null;
-    return g_faucet_persist_path_buf[0..g_faucet_persist_path_len];
-}
-
-/// Append-only JSON-Lines file: one record per claim. Survives restart.
-/// Format: `{"addr":"ob1q...","ts":1234567890}\n` per line.
-/// We read the whole file at startup and parse line-by-line; this avoids
-/// needing a real JSON array we'd have to rewrite on every claim.
-fn faucetLoadFromDisk() !void {
-    const path = faucetPersistPath() orelse return;
-    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
-        error.FileNotFound => return, // fresh start, no claims yet
-        else => return err,
-    };
-    defer f.close();
-    const stat = try f.stat();
-    if (stat.size == 0) return;
-
-    // Read whole file (small — ~50 bytes/claim, capped at 4096 claims = ~200KB).
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
-    _ = try f.readAll(buf);
-
-    var line_iter = std.mem.splitScalar(u8, buf, '\n');
-    var loaded: usize = 0;
-    while (line_iter.next()) |line| {
-        if (line.len == 0) continue;
-        // Extract "addr":"...", "ts":N — minimal parser, no full JSON dep.
-        const addr_key = "\"addr\":\"";
-        const a_start = std.mem.indexOf(u8, line, addr_key) orelse continue;
-        const a_from = a_start + addr_key.len;
-        const a_end = std.mem.indexOfScalarPos(u8, line, a_from, '"') orelse continue;
-        const addr = line[a_from..a_end];
-
-        const ts_key = "\"ts\":";
-        const t_start = std.mem.indexOf(u8, line, ts_key) orelse continue;
-        const t_from = t_start + ts_key.len;
-        var t_end = t_from;
-        while (t_end < line.len and (std.ascii.isDigit(line[t_end]) or line[t_end] == '-')) t_end += 1;
-        const ts = std.fmt.parseInt(i64, line[t_from..t_end], 10) catch 0;
-
-        if (g_faucet_claim_count >= FAUCET_MAX_CLAIMED_ADDRS) break;
-        const e = &g_faucet_claims[g_faucet_claim_count];
-        const n = @min(addr.len, e.addr.len);
-        @memcpy(e.addr[0..n], addr[0..n]);
-        e.addr_len = @intCast(n);
-        e.timestamp = ts;
-        g_faucet_claim_count += 1;
-        loaded += 1;
-    }
-    std.debug.print("[FAUCET] Loaded {d} claim(s) from {s}\n", .{ loaded, path });
-}
-
-/// Append a new claim line to the on-disk ledger. Best-effort — if the
-/// write fails, we log but do not crash the claim path. The in-memory
-/// table is the source of truth during runtime.
-fn faucetAppendToDisk(addr: []const u8, ts: i64) void {
-    const path = faucetPersistPath() orelse return;
-    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
-        std.debug.print("[FAUCET] cannot open {s} for append: {}\n", .{ path, err });
-        return;
-    };
-    defer f.close();
-    f.seekFromEnd(0) catch return;
-    var buf: [256]u8 = undefined;
-    const line = std.fmt.bufPrint(&buf, "{{\"addr\":\"{s}\",\"ts\":{d}}}\n", .{ addr, ts }) catch return;
-    _ = f.writeAll(line) catch |err| {
-        std.debug.print("[FAUCET] append failed: {}\n", .{err});
-    };
-}
-
-fn faucetAddressClaimed(addr: []const u8) bool {
-    var i: usize = 0;
-    while (i < g_faucet_claim_count) : (i += 1) {
-        const e = &g_faucet_claims[i];
-        if (e.addr_len == addr.len and std.mem.eql(u8, e.addr[0..e.addr_len], addr)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-fn faucetRecordClaim(addr: []const u8, now_s: i64) void {
-    if (g_faucet_claim_count >= FAUCET_MAX_CLAIMED_ADDRS) return; // table full, refuse silently
-    const e = &g_faucet_claims[g_faucet_claim_count];
-    const n = @min(addr.len, e.addr.len);
-    @memcpy(e.addr[0..n], addr[0..n]);
-    e.addr_len = @intCast(n);
-    e.timestamp = now_s;
-    g_faucet_claim_count += 1;
-    // Persist to disk so the counter + per-address dedup survives a node
-    // restart. Without this, every restart resets the rate-limit table to
-    // empty and an attacker can re-claim the faucet repeatedly.
-    faucetAppendToDisk(addr, now_s);
-}
-
-/// Returns seconds remaining on cooldown (0 = OK to claim).
-fn faucetIpCooldownRemaining(ip: [4]u8, now_s: i64) i64 {
-    for (&g_faucet_ip_table) |*e| {
-        if (!e.used) continue;
-        if (std.mem.eql(u8, &e.ip, &ip)) {
-            const elapsed = now_s - e.last_claim;
-            if (elapsed >= FAUCET_IP_COOLDOWN_S) return 0;
-            return FAUCET_IP_COOLDOWN_S - elapsed;
-        }
-    }
-    return 0;
-}
-
-fn faucetIpRecord(ip: [4]u8, now_s: i64) void {
-    // Update existing entry first.
-    for (&g_faucet_ip_table) |*e| {
-        if (e.used and std.mem.eql(u8, &e.ip, &ip)) {
-            e.last_claim = now_s;
-            return;
-        }
-    }
-    // Find a free slot (or oldest entry if full).
-    var oldest: *FaucetIpEntry = &g_faucet_ip_table[0];
-    for (&g_faucet_ip_table) |*e| {
-        if (!e.used) {
-            e.used = true;
-            e.ip = ip;
-            e.last_claim = now_s;
-            return;
-        }
-        if (e.last_claim < oldest.last_claim) oldest = e;
-    }
-    // Table full — overwrite oldest.
-    oldest.ip = ip;
-    oldest.last_claim = now_s;
-}
-
-/// RPC "claimfaucet" — request 0.1 OMNI for a fresh wallet so it can cross
-/// MIN_VALIDATOR_BALANCE and start mining. One grant per address ever, with
-/// a per-IP cooldown to discourage trivial Sybil.
+/// RPC "claimfaucet"
+/// { "address": "ob1q...", "declaration_hash": "<sha256-64>",
+///   "signature": "hex", "public_key": "hex", "nonce": N }
 ///
-/// Usage:
-///   {"method":"claimfaucet","params":["ob1q...recipient..."],"id":1}
+/// The client MUST:
+///   1. Read faucet_mod.DECLARATION_TEXT
+///   2. Compute SHA-256(DECLARATION_TEXT) → declaration_hash
+///   3. Sign the TX hash with their private key
+///   4. Submit this request
 ///
-/// Response on success:
-///   {"result":{"txid":"...","amount":100000000,"recipient":"..."}}
-///
-/// Response on rejection: error -32010..-32014 with reason.
-///
-/// This handler is a no-op when the node was started without --faucet-mode
-/// (faucet_wallet=null or faucet_grant_sat=0).
+/// On success: TX is queued in mempool, 0.001 OMNI arrives after next block.
 fn handleClaimFaucet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-
-    if (ctx.faucet_wallet == null or ctx.faucet_grant_sat == 0) {
-        return errorJson(-32010, "Faucet not enabled on this node", id, alloc);
-    }
-    const fw = ctx.faucet_wallet.?;
-    const grant = ctx.faucet_grant_sat;
+    ensureFaucetState(alloc);
 
     const recipient = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address (recipient)", id, alloc);
-    if (recipient.len < 8 or recipient.len > 64) {
-        return errorJson(-32602, "Address looks invalid (length out of range)", id, alloc);
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    if (recipient.len < 8 or recipient.len > 64)
+        return errorJson(-32602, "Invalid address length", id, alloc);
+
+    const decl_hash = extractStr(body, "declaration_hash") orelse
+        return errorJson(-32602, "Missing param: declaration_hash — read the Declaration of Honesty", id, alloc);
+    if (decl_hash.len != 64)
+        return errorJson(-32602, "declaration_hash must be 64-char SHA-256 hex", id, alloc);
+
+    // Verify the client hashed the correct declaration text.
+    if (!std.mem.eql(u8, decl_hash, faucet_mod.DECLARATION_HASH))
+        return errorJson(-32015,
+            "declaration_hash mismatch — you must hash the exact OmniBus Declaration of Honesty v1",
+            id, alloc);
+
+    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature",  id, alloc);
+    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce  = extractParamObjectU64(body, "nonce");
+
+    // One-time per address.
+    if (!g_faucet_addr_set.tryRecord(recipient)) {
+        // Also check on-chain: if address already has balance it claimed before.
+        const existing_bal = ctx.bc.getAddressBalance(recipient);
+        if (existing_bal > 0 or g_faucet_addr_set.hasClaimed(recipient))
+            return errorJson(-32011, "Address already received faucet funds", id, alloc);
     }
 
-    g_faucet_mutex.lock();
-    defer g_faucet_mutex.unlock();
-
-    const now_s = std.time.timestamp();
-
-    if (faucetAddressClaimed(recipient)) {
-        return errorJson(-32011, "Address already claimed faucet", id, alloc);
+    // IP cooldown (best-effort — peer IP not available in all call paths,
+    // skip enforcement when empty).
+    const peer_ip = extractStr(body, "_peer_ip") orelse "";
+    if (peer_ip.len > 0) {
+        const now_s = std.time.timestamp();
+        if (!g_faucet_ip_map.tryRecord(peer_ip, now_s)) {
+            const last = g_faucet_ip_map.lastClaim(peer_ip);
+            const wait = faucet_mod.FAUCET_COOLDOWN_S - (now_s - last);
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32016,\"message\":\"IP cooldown: wait {d}s before claiming again\"}}}}",
+                .{ id, wait });
+        }
     }
 
-    // IP cooldown — best-effort: we get IP from connection in handleConn.
-    // For the simple handler signature here, we trust loopback/local. A
-    // future revision can pass the peer IP through ServerCtx per-request.
-    // For now we skip per-IP enforcement on loopback claims.
+    // Check faucet balance.
+    const faucet_bal = ctx.bc.getAddressBalance(faucet_mod.FAUCET_ADDR);
+    const fee_sat: u64 = 1_000;
+    if (faucet_bal < faucet_mod.FAUCET_AMOUNT_SAT + fee_sat)
+        return errorJson(-32012, "Faucet drained — community refill needed", id, alloc);
 
-    // Check faucet wallet has enough balance + min fee.
-    const fee_sat: u64 = mempool_mod.TX_MIN_FEE_SAT;
-    const faucet_balance = ctx.bc.getAddressBalance(fw.address);
-    if (faucet_balance < grant + fee_sat) {
-        return errorJson(-32012, "Faucet drained — wait for refill", id, alloc);
-    }
+    // Build op_return: "faucet_claim:<decl_hash>:<recipient>"
+    const op_return = try std.fmt.allocPrint(alloc,
+        "faucet_claim:{s}:{s}", .{ decl_hash, recipient });
+    defer alloc.free(op_return);
 
-    // Build, sign, broadcast via existing wallet TX path.
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    const nonce = ctx.bc.getNextAvailableNonce(fw.address);
-    var tx = fw.createTransactionFull(recipient, grant, tx_id, nonce, fee_sat, 0, "", alloc) catch
-        return errorJson(-32013, "Faucet sign error", id, alloc);
-    if (!tx.isValid()) return errorJson(-32013, "Faucet TX invalid", id, alloc);
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, faucet_mod.FAUCET_ADDR, ts });
+    defer alloc.free(provisional);
 
-    ctx.bc.registerPubkey(fw.address, fw.addresses[0].public_key_hex) catch {};
-    ctx.bc.addTransaction(tx) catch
-        return errorJson(-32014, "Mempool refused faucet TX", id, alloc);
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = faucet_mod.FAUCET_ADDR,
+        .to_address   = recipient,
+        .amount       = faucet_mod.FAUCET_AMOUNT_SAT,
+        .fee          = fee_sat,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
 
-    faucetRecordClaim(recipient, now_s);
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32014, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
 
-    std.debug.print("[FAUCET] Granted {d} SAT to {s}.. (txid={s})\n",
-        .{ grant, recipient[0..@min(recipient.len, 16)], tx.hash[0..@min(tx.hash.len, 16)] });
+    std.debug.print("[FAUCET] Onboarding {d} SAT → {s} (decl_hash={s})\n",
+        .{ faucet_mod.FAUCET_AMOUNT_SAT, recipient[0..@min(recipient.len, 20)], decl_hash[0..8] });
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"recipient\":\"{s}\",\"amount\":{d},\"fee\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, tx.hash, tx.from_address, tx.amount, tx.fee });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"txid\":\"{s}\"," ++
+        "\"recipient\":\"{s}\"," ++
+        "\"amount\":{d}," ++
+        "\"declaration\":\"signed\"," ++
+        "\"status\":\"accepted\"," ++
+        "\"message\":\"Welcome to OmniBus. Now complete pq_attest to unlock full access.\"" ++
+        "}}}}",
+        .{ id, canonical, recipient, faucet_mod.FAUCET_AMOUNT_SAT });
 }
 
-/// RPC "getfaucetstatus" — returns whether the faucet is enabled, current
-/// balance, configured grant, and number of distinct addresses that have
-/// already claimed. Useful for UI dashboards (so "Get Faucet" button can
-/// gray out when drained or disabled).
+/// RPC "getfaucetstatus"
 fn handleFaucetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const enabled = ctx.faucet_wallet != null and ctx.faucet_grant_sat > 0;
-    var faucet_addr: []const u8 = "";
-    var faucet_bal: u64 = 0;
-    if (ctx.faucet_wallet) |fw| {
-        faucet_addr = fw.address;
-        faucet_bal = ctx.bc.getAddressBalance(fw.address);
-    }
-    g_faucet_mutex.lock();
-    const claimed = g_faucet_claim_count;
-    g_faucet_mutex.unlock();
+    const faucet_bal = ctx.bc.getAddressBalance(faucet_mod.FAUCET_ADDR);
+    const enabled = faucet_bal >= faucet_mod.FAUCET_AMOUNT_SAT;
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"enabled\":{},\"address\":\"{s}\",\"balance\":{d},\"grantPerClaim\":{d},\"claimsServed\":{d}}}}}",
-        .{ id, enabled, faucet_addr, faucet_bal, ctx.faucet_grant_sat, claimed });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"enabled\":{}," ++
+        "\"address\":\"{s}\"," ++
+        "\"balance\":{d}," ++
+        "\"grantPerClaim\":{d}," ++
+        "\"cooldownHours\":24," ++
+        "\"declaration_hash\":\"{s}\"," ++
+        "\"declaration_text\":\"{s}\"" ++
+        "}}}}",
+        .{ id, enabled,
+           faucet_mod.FAUCET_ADDR,
+           faucet_bal,
+           faucet_mod.FAUCET_AMOUNT_SAT,
+           faucet_mod.DECLARATION_HASH,
+           faucet_mod.DECLARATION_TEXT });
 }
+
+/// Keep the old faucetSetPersistPath symbol so main.zig call sites still compile.
+/// The new faucet doesn't need disk persistence (chain state is authoritative).
+pub fn faucetSetPersistPath(_: []const u8) void {}
 
 // ─── Rich list + chain metrics ──────────────────────────────────────────────
 
@@ -11015,6 +10961,1385 @@ fn handleSendPqAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"op_return\":\"{s}\"}}}}",
         .{ id, canonical, op_return });
+}
+
+// ── applylabel ────────────────────────────────────────────────────────────────
+// Submit a label TX: { "from":"ob1q...", "target":"ob1q...", "tag":"scam",
+//   "note":"optional", "tier":"FOOD", "signature":"hex", "public_key":"hex", "nonce":N }
+// Fee: minimum 0.1 OMNI (LABEL_FEE_SAT). anti-spam.
+
+fn handleApplyLabel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const from    = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const target  = extractStr(body, "target")  orelse return errorJson(-32602, "Missing: target", id, alloc);
+    const tag_str = extractStr(body, "tag")     orelse return errorJson(-32602, "Missing: tag", id, alloc);
+    const note    = extractStr(body, "note")    orelse "";
+    const tier    = extractStr(body, "tier")    orelse "OMNI";
+    const sig     = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey  = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce   = extractParamObjectU64(body, "nonce");
+
+    const tag = label_mod.Tag.fromStr(tag_str) orelse
+        return errorJson(-32602, "Unknown tag", id, alloc);
+
+    // Build op_return
+    const op_return = try std.fmt.allocPrint(alloc, "label:{s}:{s}:{s}", .{ target, tag.toStr(), note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = label_mod.LABEL_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    // Also apply immediately to the in-memory registry so getlabels reflects it
+    // before the block is mined (optimistic — removed if TX is dropped).
+    _ = ctx.bc.label_registry.apply(
+        target, from, tag, note, tier,
+        @intCast(ctx.bc.getBlockCount()),
+        canonical,
+    ) catch {};
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"tag\":\"{s}\",\"target\":\"{s}\"}}}}",
+        .{ id, canonical, tag.toStr(), target });
+}
+
+// ── getlabels ─────────────────────────────────────────────────────────────────
+// Returns address report + active labels: { "address":"ob1q..." }
+
+fn handleGetLabels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing: address", id, alloc);
+
+    const rep = ctx.bc.label_registry.report(address);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"verdict\":\"{s}\"," ++
+        "\"positive_score\":{d}," ++
+        "\"negative_score\":{d}," ++
+        "\"label_count\":{d}," ++
+        "\"top_tag\":\"{s}\"," ++
+        "\"labels\":[",
+        .{
+            id,
+            rep.verdictStr(),
+            rep.positive_score,
+            rep.negative_score,
+            rep.label_count,
+            if (rep.top_tag) |t| t.toStr() else "none",
+        },
+    );
+
+    var entries: [label_mod.MAX_LABELS_PER_ADDRESS]label_mod.LabelEntry = undefined;
+    const n = ctx.bc.label_registry.listActive(address, &entries);
+    for (entries[0..n], 0..) |e, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"id\":{d},\"reporter\":\"{s}\",\"tag\":\"{s}\",\"note\":\"{s}\"," ++
+            "\"weight\":{d},\"block\":{d}}}",
+            .{ e.id, e.reporterSlice(), e.tag.toStr(), e.noteSlice(), e.weight, e.block_height },
+        );
+    }
+
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── removelabel ───────────────────────────────────────────────────────────────
+// Mark label as removed (only original reporter can remove):
+// { "from":"ob1q...", "label_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleRemoveLabel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const from     = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const label_id = extractParamObjectU64(body, "label_id");
+    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce    = extractParamObjectU64(body, "nonce");
+
+    // Build op_return
+    const op_return = try std.fmt.allocPrint(alloc, "label_remove:{d}", .{label_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = 1000,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    // Optimistic in-memory remove
+    const removed = ctx.bc.label_registry.remove(label_id, from);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"removed\":{s}}}}}",
+        .{ id, canonical, if (removed) "true" else "false" });
+}
+
+// ── follow ────────────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "target":"ob1q...", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleFollow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc  = ctx.allocator;
+    const from   = extractStr(body, "from")   orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const target = extractStr(body, "target") orelse return errorJson(-32602, "Missing: target", id, alloc);
+    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce  = extractParamObjectU64(body, "nonce");
+
+    if (std.mem.eql(u8, from, target)) return errorJson(-32602, "Cannot follow yourself", id, alloc);
+
+    const op_return = try std.fmt.allocPrint(alloc, "follow:{s}", .{target});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = social_mod.FOLLOW_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.social_graph.follow(from, target, @intCast(ctx.bc.getBlockCount())) catch {};
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"following\":\"{s}\"}}}}",
+        .{ id, canonical, target });
+}
+
+// ── unfollow ──────────────────────────────────────────────────────────────────
+
+fn handleUnfollow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc  = ctx.allocator;
+    const from   = extractStr(body, "from")   orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const target = extractStr(body, "target") orelse return errorJson(-32602, "Missing: target", id, alloc);
+    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce  = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "unfollow:{s}", .{target});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = social_mod.FOLLOW_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.social_graph.unfollow(from, target);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\"}}}}",
+        .{ id, canonical });
+}
+
+// ── getfollowers ──────────────────────────────────────────────────────────────
+// { "address":"ob1q..." }
+
+fn handleGetFollowers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
+
+    var addrs: [social_mod.MAX_LIST][]const u8 = undefined;
+    const n     = ctx.bc.social_graph.getFollowers(address, &addrs);
+    const count = ctx.bc.social_graph.followerCount(address);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"followers\":[", .{ id, count });
+    for (addrs[0..n], 0..) |a, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print("\"{s}\"", .{a});
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── getfollowing ──────────────────────────────────────────────────────────────
+
+fn handleGetFollowing(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
+
+    var addrs: [social_mod.MAX_LIST][]const u8 = undefined;
+    const n     = ctx.bc.social_graph.getFollowing(address, &addrs);
+    const count = ctx.bc.social_graph.followingCount(address);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"following\":[", .{ id, count });
+    for (addrs[0..n], 0..) |a, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print("\"{s}\"", .{a});
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── poap_createevent ──────────────────────────────────────────────────────────
+// { "from":"ob1q...", "event_id":"conf2026", "name":"OmniBus Conf 2026",
+//   "max_claims":500, "note":"...", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handlePoapCreateEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const event_id   = extractStr(body, "event_id")   orelse return errorJson(-32602, "Missing: event_id", id, alloc);
+    const name       = extractStr(body, "name")       orelse return errorJson(-32602, "Missing: name", id, alloc);
+    const max_claims = extractParamObjectU64(body, "max_claims");
+    const note       = extractStr(body, "note") orelse "";
+    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "poap_event:{s}:{s}:{d}:{s}", .{ event_id, name, max_claims, note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = poap_mod.POAP_EVENT_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    const parsed = poap_mod.parseEvent(op_return).?;
+    ctx.bc.poap_registry.createEvent(from, parsed, @intCast(ctx.bc.getBlockCount())) catch {};
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\",\"fee_sat\":{d}}}}}",
+        .{ id, canonical, event_id, poap_mod.POAP_EVENT_FEE_SAT });
+}
+
+// ── poap_claim ────────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "event_id":"conf2026", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handlePoapClaim(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const from     = extractStr(body, "from")     orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
+    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce    = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "poap_claim:{s}", .{event_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = poap_mod.POAP_CLAIM_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.poap_registry.claimPoap(from, event_id, @intCast(ctx.bc.getBlockCount()), canonical) catch |err| {
+        const msg = switch (err) {
+            error.EventNotFound  => "Event not found",
+            error.EventClosed    => "Event is closed or max claims reached",
+            error.AlreadyClaimed => "Already claimed this POAP",
+            else                 => "Claim failed",
+        };
+        return errorJson(-32001, msg, id, alloc);
+    };
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\"}}}}",
+        .{ id, canonical, event_id });
+}
+
+// ── poap_close ────────────────────────────────────────────────────────────────
+
+fn handlePoapClose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const from     = extractStr(body, "from")     orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
+    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce    = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "poap_close:{s}", .{event_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = 1000,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    const closed = ctx.bc.poap_registry.closeEvent(event_id, from);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"closed\":{s}}}}}",
+        .{ id, canonical, if (closed) "true" else "false" });
+}
+
+// ── getpoaps ──────────────────────────────────────────────────────────────────
+// { "address":"ob1q..." }  — lista POAP-urilor unui wallet
+
+fn handleGetPoaps(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
+
+    var claims: [64]poap_mod.PoapClaim = undefined;
+    const n = ctx.bc.poap_registry.listClaims(address, &claims);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"poaps\":[", .{id});
+    for (claims[0..n], 0..) |c, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print("{{\"event_id\":\"{s}\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}",
+            .{ c.eventIdSlice(), c.claim_block, c.txHashSlice() });
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── getpoapevent ──────────────────────────────────────────────────────────────
+// { "event_id":"conf2026" }
+
+fn handleGetPoapEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
+
+    const ev = ctx.bc.poap_registry.getEvent(event_id) orelse
+        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"event_id\":\"{s}\",\"name\":\"{s}\"," ++
+        "\"organizer\":\"{s}\",\"max_claims\":{d}," ++
+        "\"claims_count\":{d},\"create_block\":{d}," ++
+        "\"closed\":{s},\"note\":\"{s}\"}}}}",
+        .{ id, ev.eventIdSlice(), ev.nameSlice(), ev.organizerSlice(),
+           ev.max_claims, ev.claims_count, ev.create_block,
+           if (ev.closed) "true" else "false", ev.noteSlice() });
+}
+
+// ── gov_propose ───────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "title_hash":"<sha256>", "voting_blocks":1440,
+//   "quorum":200, "note":"...", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleGovPropose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc         = ctx.allocator;
+    const from          = extractStr(body, "from")         orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const title_hash    = extractStr(body, "title_hash")   orelse return errorJson(-32602, "Missing: title_hash", id, alloc);
+    const voting_blocks = extractParamObjectU64(body, "voting_blocks");
+    const quorum        = @as(u32, @intCast(@min(extractParamObjectU64(body, "quorum"), 0xFFFFFFFF)));
+    const note          = extractStr(body, "note") orelse "";
+    const sig           = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey        = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce         = extractParamObjectU64(body, "nonce");
+
+    if (title_hash.len != gov_mod.TITLE_HASH_LEN)
+        return errorJson(-32602, "title_hash must be 64-char SHA-256 hex", id, alloc);
+    if (voting_blocks == 0) return errorJson(-32602, "voting_blocks must be > 0", id, alloc);
+
+    const op_return = try std.fmt.allocPrint(alloc, "gov_propose:{s}:{d}:{d}:{s}",
+        .{ title_hash, voting_blocks, quorum, note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = gov_mod.GOV_PROPOSE_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    const parsed = gov_mod.parsePropose(op_return).?;
+    const prop_id = ctx.bc.gov_registry.propose(from, parsed, @intCast(ctx.bc.getBlockCount())) catch 0;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"queued\",\"txid\":\"{s}\"," ++
+        "\"proposal_id\":{d},\"voting_end_block\":{d}," ++
+        "\"quorum\":{d}}}}}",
+        .{ id, canonical, prop_id, ctx.bc.getBlockCount() + voting_blocks, quorum });
+}
+
+// ── gov_vote ──────────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "proposal_id":1, "vote":"yes"|"no",
+//   "tier":"FOOD", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleGovVote(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc       = ctx.allocator;
+    const from        = extractStr(body, "from")        orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const proposal_id = extractParamObjectU64(body, "proposal_id");
+    const vote_str    = extractStr(body, "vote")        orelse return errorJson(-32602, "Missing: vote (yes|no)", id, alloc);
+    const tier        = extractStr(body, "tier")        orelse "OMNI";
+    const sig         = extractStr(body, "signature")   orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey      = extractStr(body, "public_key")  orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce       = extractParamObjectU64(body, "nonce");
+
+    const yes = std.mem.eql(u8, vote_str, "yes");
+
+    const op_return = try std.fmt.allocPrint(alloc, "gov_vote:{d}:{s}", .{ proposal_id, vote_str });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = gov_mod.GOV_VOTE_FEE_SAT,
+        .timestamp = ts, .nonce = nonce, .op_return = op_return,
+        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.gov_registry.vote(proposal_id, from, yes, tier, @intCast(ctx.bc.getBlockCount())) catch |err| {
+        const msg = switch (err) {
+            error.ProposalNotFound => "Proposal not found",
+            error.VotingEnded      => "Voting period has ended",
+            error.AlreadyVoted     => "Already voted on this proposal",
+            else                   => "Vote failed",
+        };
+        return errorJson(-32001, msg, id, alloc);
+    };
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"vote\":\"{s}\"}}}}",
+        .{ id, canonical, vote_str });
+}
+
+// ── getproposals ──────────────────────────────────────────────────────────────
+// { "filter":"active"|"all" }
+
+fn handleGetProposals(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc  = ctx.allocator;
+    const filter = extractStr(body, "filter") orelse "active";
+
+    var props: [gov_mod.MAX_PROPOSALS]gov_mod.Proposal = undefined;
+    const n = if (std.mem.eql(u8, filter, "all"))
+        ctx.bc.gov_registry.listAll(&props)
+    else
+        ctx.bc.gov_registry.listActive(&props);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"proposals\":[", .{id});
+    for (props[0..n], 0..) |p, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
+            "\"status\":\"{s}\",\"yes_weight\":{d},\"no_weight\":{d}," ++
+            "\"quorum\":{d},\"voting_end_block\":{d},\"vote_count\":{d}}}",
+            .{ p.id, p.getProposer(), p.getTitleHash(), p.statusStr(),
+               p.yes_weight, p.no_weight, p.quorum_weight,
+               p.voting_end_block, p.vote_count });
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── getproposal ───────────────────────────────────────────────────────────────
+// { "proposal_id":1 }
+
+fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc       = ctx.allocator;
+    const proposal_id = extractParamObjectU64(body, "proposal_id");
+
+    const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
+        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
+        "\"note\":\"{s}\",\"status\":\"{s}\"," ++
+        "\"yes_weight\":{d},\"no_weight\":{d}," ++
+        "\"quorum\":{d},\"voting_end_block\":{d}," ++
+        "\"create_block\":{d},\"vote_count\":{d}}}}}",
+        .{ id, p.id, p.getProposer(), p.getTitleHash(), p.getNote(),
+           p.statusStr(), p.yes_weight, p.no_weight,
+           p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count });
+}
+
+// ── getidentity — Identity Hub aggregator ────────────────────────────────────
+// { "address": "ob1q..." }
+// Returns a single JSON object with all identity facets for an address.
+
+fn handleGetIdentity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr  = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    // ── 1. PQ identity (pq_attest) ────────────────────────────────────────
+    ctx.bc.mutex.lock();
+    const identity_opt = ctx.bc.pq_identity_map.get(addr);
+    const omni_balance = ctx.bc.balances.get(addr) orelse 0;
+    ctx.bc.mutex.unlock();
+
+    var pq_json: []const u8 = "null";
+    var pq_json_owned = false;
+    if (identity_opt) |idt| {
+        pq_json = try std.fmt.allocPrint(alloc,
+            "{{\"love\":\"{s}\",\"food\":\"{s}\",\"rent\":\"{s}\"," ++
+            "\"vacation\":\"{s}\",\"btc\":\"{s}\",\"eth\":\"{s}\"," ++
+            "\"attest_block\":{d}}}",
+            .{ idt.loveSlice(), idt.foodSlice(), idt.rentSlice(),
+               idt.vacationSlice(), idt.btcSlice(), idt.ethSlice(),
+               idt.attest_block });
+        pq_json_owned = true;
+    }
+    defer if (pq_json_owned) alloc.free(pq_json);
+
+    // ── 2. Labels ─────────────────────────────────────────────────────────
+    const label_verdict = ctx.bc.label_registry.report(addr).verdictStr();
+
+    // ── 3. Social graph ───────────────────────────────────────────────────
+    const followers_n  = ctx.bc.social_graph.followerCount(addr);
+    const following_n  = ctx.bc.social_graph.followingCount(addr);
+
+    // ── 4. POAP ───────────────────────────────────────────────────────────
+    const poap_n = ctx.bc.poap_registry.claimCountByHolder(addr);
+
+    // ── 5. Notarizations ──────────────────────────────────────────────────
+    var note_entries: [64]notarize_mod.NotarizeEntry = undefined;
+    const note_count = ctx.bc.notarize_registry.listByOwner(addr, &note_entries);
+
+    // ── 6. Escrow stats ───────────────────────────────────────────────────
+    var esc_from_buf: [64]escrow_mod.EscrowEntry = undefined;
+    var esc_to_buf:   [64]escrow_mod.EscrowEntry = undefined;
+    const esc_sent = ctx.bc.escrow_registry.listByFrom(addr, &esc_from_buf);
+    const esc_recv = ctx.bc.escrow_registry.listByTo(addr, &esc_to_buf);
+
+    // ── 7. Reputation ─────────────────────────────────────────────────────
+    var rep_json: []const u8 = "null";
+    var rep_json_owned = false;
+    if (main_mod.g_reputation) |*rep_ptr| {
+        if (rep_ptr.snapshot(addr)) |cups| {
+            const total = cups.computeRepTotal();
+            rep_json = try std.fmt.allocPrint(alloc,
+                "{{\"love\":{d},\"food\":{d},\"rent\":{d},\"vacation\":{d}," ++
+                "\"total\":{d},\"tier\":\"{s}\",\"satoshi_badge\":{}}}",
+                .{ cups.love_stored, cups.food_stored,
+                   cups.rent_stored, cups.vacation_stored,
+                   total, cups.tier().name(), cups.hasSatoshiBadge() });
+            rep_json_owned = true;
+        }
+    }
+    defer if (rep_json_owned) alloc.free(rep_json);
+
+    // ── 8. Active governance proposals / votes (counts only) ─────────────
+    const active_proposals = ctx.bc.gov_registry.activeProposalCount();
+    const votes_cast = ctx.bc.gov_registry.voteCountBy(addr);
+
+    // ── Assemble final JSON ───────────────────────────────────────────────
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"address\":\"{s}\"," ++
+        "\"balance_sat\":{d}," ++
+        "\"pq_identity\":{s}," ++
+        "\"label_verdict\":\"{s}\"," ++
+        "\"social\":{{\"followers\":{d},\"following\":{d}}}," ++
+        "\"poap_count\":{d}," ++
+        "\"notarization_count\":{d}," ++
+        "\"escrow\":{{\"sent\":{d},\"received\":{d}}}," ++
+        "\"reputation\":{s}," ++
+        "\"governance\":{{\"active_chain_proposals\":{d},\"votes_cast\":{d}}}" ++
+        "}}}}",
+        .{
+            id, addr,
+            omni_balance,
+            pq_json,
+            label_verdict,
+            followers_n, following_n,
+            poap_n,
+            note_count,
+            esc_sent, esc_recv,
+            rep_json,
+            active_proposals, votes_cast,
+        },
+    );
+}
+
+// ── escrow_create ─────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "to":"ob1q...", "amount":5000000000, "condition_hash":"<sha256>",
+//   "timeout_blocks":144, "note":"proiect X", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleEscrowCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const to         = extractStr(body, "to")         orelse return errorJson(-32602, "Missing: to", id, alloc);
+    const amount     = extractParamObjectU64(body, "amount");
+    const cond_hash  = extractStr(body, "condition_hash") orelse return errorJson(-32602, "Missing: condition_hash", id, alloc);
+    const timeout_bl = extractParamObjectU64(body, "timeout_blocks");
+    const note       = extractStr(body, "note")       orelse "";
+    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    if (amount == 0)    return errorJson(-32602, "amount must be > 0", id, alloc);
+    if (timeout_bl == 0) return errorJson(-32602, "timeout_blocks must be > 0", id, alloc);
+    if (cond_hash.len != escrow_mod.HASH_LEN)
+        return errorJson(-32602, "condition_hash must be 64-char SHA-256 hex", id, alloc);
+
+    const op_return = try std.fmt.allocPrint(alloc,
+        "escrow_create:{s}:{d}:{s}:{d}:{s}", .{ to, amount, cond_hash, timeout_bl, note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = amount,  // fondurile sunt debitate din balanta
+        .fee          = escrow_mod.ESCROW_CREATE_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    const parsed = escrow_mod.parseCreate(op_return).?;
+    const esc_id = ctx.bc.escrow_registry.create(
+        from, parsed, @intCast(ctx.bc.getBlockCount()), canonical,
+    ) catch 0;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"queued\"," ++
+        "\"txid\":\"{s}\"," ++
+        "\"escrow_id\":{d}," ++
+        "\"amount_sat\":{d}," ++
+        "\"timeout_block\":{d}," ++
+        "\"condition_hash\":\"{s}\"" ++
+        "}}}}",
+        .{ id, canonical, esc_id, amount,
+           ctx.bc.getBlockCount() + timeout_bl, cond_hash });
+}
+
+// ── escrow_release ────────────────────────────────────────────────────────────
+// { "from":"ob1q_to...", "escrow_id":1, "proof_hash":"<sha256>",
+//   "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleEscrowRelease(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const escrow_id  = extractParamObjectU64(body, "escrow_id");
+    const proof_hash = extractStr(body, "proof_hash") orelse return errorJson(-32602, "Missing: proof_hash", id, alloc);
+    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    if (proof_hash.len != escrow_mod.HASH_LEN)
+        return errorJson(-32602, "proof_hash must be 64-char SHA-256 hex", id, alloc);
+
+    const op_return = try std.fmt.allocPrint(alloc,
+        "escrow_release:{d}:{s}", .{ escrow_id, proof_hash });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = 1000,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    // Optimistic in-memory release
+    const amount = ctx.bc.escrow_registry.tryRelease(
+        escrow_id, proof_hash, from, @intCast(ctx.bc.getBlockCount()),
+    );
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    if (amount == 0)
+        return errorJson(-32001, "Release failed: proof_hash mismatch, wrong caller, or escrow not pending", id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"released_sat\":{d}}}}}",
+        .{ id, canonical, amount });
+}
+
+// ── escrow_refund ─────────────────────────────────────────────────────────────
+// { "from":"ob1q_from...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleEscrowRefund(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc     = ctx.allocator;
+    const from      = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const escrow_id = extractParamObjectU64(body, "escrow_id");
+    const sig       = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey    = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce     = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "escrow_refund:{d}", .{escrow_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = 1000,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    const amount = ctx.bc.escrow_registry.tryRefund(
+        escrow_id, from, @intCast(ctx.bc.getBlockCount()),
+    );
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    if (amount == 0)
+        return errorJson(-32001, "Refund failed: not timed out yet, wrong caller, or escrow not pending", id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"refunded_sat\":{d}}}}}",
+        .{ id, canonical, amount });
+}
+
+// ── escrow_dispute ────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleEscrowDispute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc     = ctx.allocator;
+    const from      = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const escrow_id = extractParamObjectU64(body, "escrow_id");
+    const sig       = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey    = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce     = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "escrow_dispute:{d}", .{escrow_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = escrow_mod.ESCROW_DISPUTE_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    const opened = ctx.bc.escrow_registry.openDispute(escrow_id, from);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"disputed\":{s}}}}}",
+        .{ id, canonical, if (opened) "true" else "false" });
+}
+
+// ── getescrow ─────────────────────────────────────────────────────────────────
+// { "escrow_id":1 }
+
+fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc     = ctx.allocator;
+    const escrow_id = extractParamObjectU64(body, "escrow_id");
+
+    const e = ctx.bc.escrow_registry.get(escrow_id) orelse
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"id\":{d}," ++
+        "\"from\":\"{s}\"," ++
+        "\"to\":\"{s}\"," ++
+        "\"amount_sat\":{d}," ++
+        "\"condition_hash\":\"{s}\"," ++
+        "\"timeout_block\":{d}," ++
+        "\"create_block\":{d}," ++
+        "\"status\":\"{s}\"," ++
+        "\"timed_out\":{s}," ++
+        "\"note\":\"{s}\"" ++
+        "}}}}",
+        .{ id, e.id, e.fromSlice(), e.toSlice(),
+           e.amount_sat, e.conditionSlice(),
+           e.timeout_block, e.create_block, e.statusStr(),
+           if (e.isTimedOut(current_block)) "true" else "false",
+           e.noteSlice() });
+}
+
+// ── getescrows ────────────────────────────────────────────────────────────────
+// { "address":"ob1q...", "role":"from"|"to" }
+
+fn handleGetEscrows(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing: address", id, alloc);
+    const role    = extractStr(body, "role") orelse "from";
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+
+    var entries: [64]escrow_mod.EscrowEntry = undefined;
+    const n = if (std.mem.eql(u8, role, "to"))
+        ctx.bc.escrow_registry.listByTo(address, &entries)
+    else
+        ctx.bc.escrow_registry.listByFrom(address, &entries);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"escrows\":[", .{id});
+    for (entries[0..n], 0..) |e, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print(
+            "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
+            "\"amount_sat\":{d},\"status\":\"{s}\"," ++
+            "\"timeout_block\":{d},\"timed_out\":{s}," ++
+            "\"condition_hash\":\"{s}\",\"note\":\"{s}\"}}",
+            .{ e.id, e.fromSlice(), e.toSlice(),
+               e.amount_sat, e.statusStr(),
+               e.timeout_block,
+               if (e.isTimedOut(current_block)) "true" else "false",
+               e.conditionSlice(), e.noteSlice() },
+        );
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── notarizedoc ───────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "doc_hash":"<sha256_hex_64>", "doc_type":"audit",
+//   "expiry_blocks":0, "note":"Contract X", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc       = ctx.allocator;
+    const from        = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const doc_hash    = extractStr(body, "doc_hash")   orelse return errorJson(-32602, "Missing: doc_hash", id, alloc);
+    const doc_type_s  = extractStr(body, "doc_type")   orelse "other";
+    const expiry      = extractParamObjectU64(body, "expiry_blocks");
+    const note        = extractStr(body, "note")       orelse "";
+    const sig         = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey      = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce       = extractParamObjectU64(body, "nonce");
+
+    if (doc_hash.len != notarize_mod.HASH_LEN)
+        return errorJson(-32602, "doc_hash must be 64-char SHA-256 hex", id, alloc);
+
+    const op_return = try std.fmt.allocPrint(alloc,
+        "notarize:{s}:{s}:{d}:{s}", .{ doc_hash, doc_type_s, expiry, note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = notarize_mod.NOTARIZE_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    // Optimistic in-memory notarize
+    const parsed = notarize_mod.parsNotarize(op_return).?;
+    const note_id = ctx.bc.notarize_registry.notarize(
+        from, parsed, @intCast(ctx.bc.getBlockCount()), canonical,
+    ) catch 0;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"queued\"," ++
+        "\"txid\":\"{s}\"," ++
+        "\"notarize_id\":{d}," ++
+        "\"doc_hash\":\"{s}\"," ++
+        "\"doc_type\":\"{s}\"," ++
+        "\"fee_sat\":{d}" ++
+        "}}}}",
+        .{ id, canonical, note_id, doc_hash, doc_type_s, notarize_mod.NOTARIZE_FEE_SAT });
+}
+
+// ── verifynotarize ────────────────────────────────────────────────────────────
+// { "doc_hash":"<sha256_hex_64>" }  — verifica daca documentul e notarizat pe chain
+
+fn handleVerifyNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const doc_hash = extractStr(body, "doc_hash") orelse
+        return errorJson(-32602, "Missing: doc_hash", id, alloc);
+
+    if (doc_hash.len != notarize_mod.HASH_LEN)
+        return errorJson(-32602, "doc_hash must be 64-char SHA-256 hex", id, alloc);
+
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const result = ctx.bc.notarize_registry.verify(doc_hash, current_block);
+
+    if (result.entry == null) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"doc_hash\":\"{s}\"}}}}",
+            .{ id, result.statusStr(), doc_hash });
+    }
+
+    const e = result.entry.?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"{s}\"," ++
+        "\"notarize_id\":{d}," ++
+        "\"doc_hash\":\"{s}\"," ++
+        "\"doc_type\":\"{s}\"," ++
+        "\"owner\":\"{s}\"," ++
+        "\"block_height\":{d}," ++
+        "\"tx_hash\":\"{s}\"," ++
+        "\"expiry_block\":{d}," ++
+        "\"note\":\"{s}\"" ++
+        "}}}}",
+        .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
+           e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, e.noteSlice() });
+}
+
+// ── revokenotarize ────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "notarize_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleRevokeNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc       = ctx.allocator;
+    const from        = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const notarize_id = extractParamObjectU64(body, "notarize_id");
+    const sig         = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey      = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce       = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "notarize_revoke:{d}", .{notarize_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = notarize_mod.NOTARIZE_REVOKE_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    const revoked = ctx.bc.notarize_registry.revoke(notarize_id, from);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"revoked\":{s}}}}}",
+        .{ id, canonical, if (revoked) "true" else "false" });
+}
+
+// ── getnotarizations ──────────────────────────────────────────────────────────
+// { "address":"ob1q..." }  — lista notarizarilor unui owner (newest first)
+
+fn handleGetNotarizations(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing: address", id, alloc);
+
+    var entries: [64]notarize_mod.NotarizeEntry = undefined;
+    const n = ctx.bc.notarize_registry.listByOwner(address, &entries);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"notarizations\":[", .{id});
+    for (entries[0..n], 0..) |e, i| {
+        if (i > 0) try w.writeByte(',');
+        const status = if (e.revoked) "revoked"
+            else if (e.expiry_block > 0 and current_block > e.expiry_block) "expired"
+            else "valid";
+        try w.print(
+            "{{\"id\":{d},\"doc_hash\":\"{s}\",\"doc_type\":\"{s}\"," ++
+            "\"block_height\":{d},\"tx_hash\":\"{s}\"," ++
+            "\"expiry_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
+            .{ e.id, e.docHashSlice(), e.doc_type.toStr(),
+               e.block_height, e.txHashSlice(),
+               e.expiry_block, status, e.noteSlice() },
+        );
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
+}
+
+// ── sub_create ────────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "to":"ob1q...", "amount":1000000, "interval":100,
+//   "max_payments":12, "note":"Netflix", "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleSubCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc    = ctx.allocator;
+    const from     = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const to       = extractStr(body, "to")      orelse return errorJson(-32602, "Missing: to", id, alloc);
+    const amount   = extractParamObjectU64(body, "amount");
+    const interval = extractParamObjectU64(body, "interval");
+    const max_pay  = extractParamObjectU64(body, "max_payments");
+    const note     = extractStr(body, "note") orelse "";
+    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce    = extractParamObjectU64(body, "nonce");
+
+    if (amount == 0)   return errorJson(-32602, "amount must be > 0", id, alloc);
+    if (interval == 0) return errorJson(-32602, "interval must be > 0", id, alloc);
+
+    // Build op_return
+    const op_return = try std.fmt.allocPrint(alloc,
+        "sub_create:{s}:{d}:{d}:{d}:{s}", .{ to, amount, interval, max_pay, note });
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = sub_mod.SUB_CREATE_FEE_SAT,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    // Optimistic in-memory create
+    const parsed = sub_mod.parseCreate(op_return).?;
+    const sub_id = ctx.bc.sub_registry.create(from, parsed, @intCast(ctx.bc.getBlockCount())) catch 0;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"sub_id\":{d},\"next_block\":{d}}}}}",
+        .{ id, canonical, sub_id, ctx.bc.getBlockCount() + interval });
+}
+
+// ── sub_cancel ────────────────────────────────────────────────────────────────
+// { "from":"ob1q...", "sub_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
+
+fn handleSubCancel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const from    = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const sub_id  = extractParamObjectU64(body, "sub_id");
+    const sig     = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey  = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce   = extractParamObjectU64(body, "nonce");
+
+    const op_return = try std.fmt.allocPrint(alloc, "sub_cancel:{d}", .{sub_id});
+    defer alloc.free(op_return);
+
+    const ts    = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id           = tx_id,
+        .from_address = from,
+        .to_address   = from,
+        .amount       = 0,
+        .fee          = 1000,
+        .timestamp    = ts,
+        .nonce        = nonce,
+        .op_return    = op_return,
+        .signature    = sig,
+        .public_key   = pubkey,
+        .scheme       = .omni_ecdsa,
+        .hash         = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    const cancelled = ctx.bc.sub_registry.cancel(sub_id, from);
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"cancelled\":{s}}}}}",
+        .{ id, canonical, if (cancelled) "true" else "false" });
+}
+
+// ── getsubscriptions ──────────────────────────────────────────────────────────
+// { "address":"ob1q..." }  — returnează toate subscripțiile (emise și primite)
+
+fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing: address", id, alloc);
+
+    var entries: [sub_mod.MAX_SUBS_PER_ADDRESS]sub_mod.Subscription = undefined;
+    const n = ctx.bc.sub_registry.listByFrom(address, &entries);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"subscriptions\":[", .{id});
+    for (entries[0..n], 0..) |sub, i| {
+        if (i > 0) try w.writeByte(',');
+        const status_str: []const u8 = switch (sub.status) {
+            .active    => "active",
+            .cancelled => "cancelled",
+            .completed => "completed",
+        };
+        try w.print(
+            "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
+            "\"amount_sat\":{d},\"interval_blocks\":{d}," ++
+            "\"max_payments\":{d},\"payments_done\":{d}," ++
+            "\"next_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
+            .{ sub.id, sub.fromSlice(), sub.toSlice(),
+               sub.amount_sat, sub.interval_blocks,
+               sub.max_payments, sub.payments_done,
+               sub.next_block, status_str, sub.noteSlice() },
+        );
+    }
+    try w.writeAll("]}}}}");
+    return buf.toOwnedSlice();
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────

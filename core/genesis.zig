@@ -3,6 +3,7 @@ const blockchain_mod  = @import("blockchain.zig");
 const block_mod       = @import("block.zig");
 const transaction_mod = @import("transaction.zig");
 const chain_config_mod = @import("chain_config.zig");
+const faucet_mod      = @import("faucet.zig");
 const array_list      = std.array_list;
 
 pub const Block        = block_mod.Block;
