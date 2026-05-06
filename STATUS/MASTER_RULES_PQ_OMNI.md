@@ -30,15 +30,19 @@ Cryptographically both currently use the same liboqs `OQS_SIG_alg_ml_dsa_87`
 backend; the distinction lives in the chain enum, not in the math. Treat the
 two as separate "slots" with separate addresses, even if they share library.
 
-## The five canonical PQ-OMNI slots
+## The four canonical PQ-OMNI slots (transferable + soulbound mirror)
 
-| Code | Scheme name (canon) | NIST family | Address prefix | BIP-44 path | Soulbound twin |
+The 4 transferable PQ-OMNI prefixes mirror the 4 soulbound prefixes
+**byte-for-byte except for the leading underscore**. Every transferable
+prefix has a soulbound twin with the **same algorithm family**; only
+the underscore distinguishes "money" from "identity" visually.
+
+| Code | Transferable | NIST | Prefix | BIP-44 | Soulbound twin (same algo) |
 |---|---|---|---|---|---|
 | 5 | `pq_omni_ml_dsa` (ML-DSA-87) | FIPS 204 | `obk1_` | `m/44'/777'/5'/0/0` | `ob_k1_` (love_dilithium, code 1) |
 | 6 | `pq_omni_falcon` (Falcon-512) | FIPS 206 | `obf5_` | `m/44'/777'/6'/0/0` | `ob_f5_` (food_falcon, code 2) |
-| 7 | `pq_omni_dilithium` (Dilithium-5 alias) | FIPS 204 | `obs3_` | `m/44'/777'/7'/0/0` | (none) |
+| 7 | `pq_omni_dilithium` (ML-DSA-87 alias) | FIPS 204 | `obs3_` | `m/44'/777'/7'/0/0` | `ob_s3_` (vacation_kem, code 4) |
 | 8 | `pq_omni_slh_dsa` (SLH-DSA-256s) | FIPS 205 | `obd5_` | `m/44'/777'/8'/0/0` | `ob_d5_` (rent_slh_dsa, code 3) |
-| — | (vacation_kem, KEM-only) | FIPS 203 | `ob_s3_` | (soulbound, code 4) | n/a |
 
 **Rules:**
 - Address prefix is **3 lowercase letters + `_`** (no leading underscore for
@@ -55,7 +59,7 @@ two as separate "slots" with separate addresses, even if they share library.
 | 1 | `love_dilithium` | OMNI_LOVE — identity reputation | `ob_k1_` |
 | 2 | `food_falcon`    | OMNI_FOOD — sustenance reputation | `ob_f5_` |
 | 3 | `rent_slh_dsa`   | OMNI_RENT — housing reputation | `ob_d5_` |
-| 4 | `vacation_kem`   | OMNI_VACATION — leisure (KEM, no signing) | `ob_s3_` |
+| 4 | `vacation_kem` *(legacy name; now ML-DSA-87 signing)* | OMNI_VACATION — leisure | `ob_s3_` |
 
 ## Address derivation algorithm (must match across UI / chain / tests)
 
@@ -102,6 +106,9 @@ Tests that lock these in (run on every PR):
 | 2026-05-06 | Audit found `obs3_` ↔ `obd5_` swap in `pq-sign.ts` and `stress-pq-matrix.mjs`. Aligned to chain canon. Drift: 2 → 0. |
 | 2026-05-06 | Stress test BIP-44 accounts fixed: 10/11/12/13 → 5/6/7/8 (matches UI). |
 | 2026-05-06 | Stress test seed expansion fixed: SHA-256 round → SHA-512 (Falcon, SLH-DSA). |
+| 2026-05-06 | `pq_listSchemes` RPC was returning stale prefixes (`ob_q1_`..`ob_q4_`); fixed to return canon (`obk1_`..`obd5_`) for transferable PQ-OMNI and hybrid. |
+| 2026-05-06 | Soulbound `vacation_kem` (code 4, `ob_s3_`) realigned to use ML-DSA-87 signing (was ML-KEM). Now mirrors transferable `obs3_` (Dilithium-5) byte-for-byte. Hybrid `hybrid_q3` (code 11) likewise realigned to ML-DSA from ML-KEM. ML-KEM remains available as a separate primitive in `pq_crypto.zig` for encryption use cases that don't need an on-chain address. |
+| 2026-05-06 | aweb3 `HybridScheme` enum reordered: `QuantumK=1, QuantumF=2, QuantumS=3, QuantumD=4` (was K/F/D/S). `QuantumS` now uses ML-DSA-87 (was ML-KEM). Frontend labels updated. |
 
 ## How to add a new PQ scheme
 

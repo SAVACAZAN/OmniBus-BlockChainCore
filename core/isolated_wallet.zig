@@ -11,11 +11,20 @@ const Ripemd160 = ripemd160_mod.Ripemd160;
 ///
 /// Scop: daca un mnemonic e compromis, celelalte 4 wallet-uri raman securizate.
 /// Fiecare domain foloseste algoritmul sau propriu:
-///   OMNI     = secp256k1 ECDSA   (adresa ob1q...)
-///   LOVE     = ML-DSA (Dilithium) (adresa ob_k1_...)
-///   FOOD     = Falcon-512         (adresa ob_f5_...)
-///   RENT     = SLH-DSA (SPHINCS+) (adresa ob_d5_...)
-///   VACATION = ML-KEM (Kyber)     (adresa ob_s3_...)
+/// Soulbound (non-transferable, identity-bound — codes 1..4):
+///   LOVE     = ML-DSA-87           (adresa ob_k1_...)  → mirror of obk1_
+///   FOOD     = Falcon-512          (adresa ob_f5_...)  → mirror of obf5_
+///   VACATION = ML-DSA-87 (Dilithium alias)
+///                                  (adresa ob_s3_...)  → mirror of obs3_
+///   RENT     = SLH-DSA-256s        (adresa ob_d5_...)  → mirror of obd5_
+///
+/// Design: the 4 soulbound prefixes mirror the 4 transferable PQ-OMNI
+/// prefixes (obk1_/obf5_/obs3_/obd5_) byte-for-byte except for the leading
+/// underscore. Same algorithm family on each pair so users see consistent
+/// semantics; the underscore visually distinguishes "this is identity, not
+/// money".
+///
+///   OMNI     = secp256k1 ECDSA    (adresa ob1q...)
 ///
 /// NOTA: pentru chain-side, mnemonic-ul e stocat ca hex string de 64 chars
 /// (32 bytes entropy). Conversia BIP-39 la cuvinte e responsabilitatea UI-ului.
@@ -47,7 +56,7 @@ pub const Scheme = enum(u8) {
     // "ob_h{N}_" pe acelasi tipar ca ob_q{N}_ ca sa fie usor de citit.
     hybrid_q1 = 9,    // ECDSA + ML-DSA-87 (Dilithium-5)
     hybrid_q2 = 10,   // ECDSA + Falcon-512
-    hybrid_q3 = 11,   // ECDSA + ML-KEM-768 KEM-DEM PoP (MAC SHA-256)
+    hybrid_q3 = 11,   // ECDSA + Dilithium-5 (ML-DSA-87) — aligned with code 7
     hybrid_q4 = 12,   // ECDSA + SLH-DSA-256s
 
     pub fn prefix(self: Scheme) []const u8 {
@@ -372,9 +381,15 @@ pub const IsolatedWallet = struct {
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
             .vacation_kem => {
+                // Soulbound vacation mirrors transferable obs3_ (Dilithium-5)
+                // — both use ML-DSA-87 signing for design consistency. The
+                // legacy enum name `vacation_kem` is kept for backwards
+                // compatibility but no longer means ML-KEM. KEM remains
+                // available as a separate primitive in pq_crypto for
+                // encryption use cases that don't need an on-chain address.
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlKem768.generateKeyPairFromSeed(seed);
+                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -445,9 +460,11 @@ pub const IsolatedWallet = struct {
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
             .hybrid_q3 => {
+                // Aligned with code 7 (pq_omni_dilithium / obs3_) — ML-DSA-87
+                // signing, not ML-KEM. Hybrid path verifies ECDSA + ML-DSA.
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = pq_crypto.MlKem768.generateKeyPairFromSeed(seed);
+                var kp = pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -567,7 +584,11 @@ pub fn verifySignature(scheme: Scheme, message: []const u8, signature: []const u
         .pq_omni_falcon => verifyFoodSignature(message, signature, public_key),
         .pq_omni_slh_dsa => verifyRentSignature(message, signature, public_key),
         .rent_slh_dsa => verifyRentSignature(message, signature, public_key),
-        .vacation_kem => false, // KEM nu semneaza
+        // vacation_kem (legacy name) now uses ML-DSA-87 signing — same as
+        // its transferable mirror obs3_. Verification reuses verifyLoveSignature
+        // (also ML-DSA-87). Old TXs signed with the previous KEM-only impl
+        // are not on-chain (soulbound vacation had no balance/TX path).
+        .vacation_kem => verifyLoveSignature(message, signature, public_key),
         // Hybrid schemes folosesc verifyHybridSignature (2 pubkeys, sig combinata).
         // Daca cineva apeleaza verifySignature pe un scheme hybrid, returnam false —
         // single-pubkey API e insuficient pt defense-in-depth.
@@ -625,17 +646,9 @@ pub fn verifyHybridSignature(
     return switch (scheme) {
         .hybrid_q1 => verifyLoveSignature(message, pq_sig_bytes, pq_public_key),
         .hybrid_q2 => verifyFoodSignature(message, pq_sig_bytes, pq_public_key),
-        .hybrid_q3 => blk: {
-            // TODO: implementare reala KEM-DEM PoP necesita ML-KEM decapsulation
-            // ca sa derivam shared secret-ul, apoi MAC SHA-256(shared_secret || msg).
-            // Pentru moment acceptam doar daca MAC are exact 64 bytes (SHA-256 hex)
-            // si pq_public_key are dimensiune corecta MlKem768.PUBLIC_KEY_SIZE.
-            if (pq_public_key.len != pq_crypto.MlKem768.PUBLIC_KEY_SIZE) break :blk false;
-            if (pq_sig_bytes.len != 32) break :blk false; // SHA-256 MAC raw = 32 bytes
-            // Nu putem face verificarea reala fara secret-ul KEM la chain-side;
-            // marcam ca pass daca formatul e correct (placeholder pentru V3).
-            break :blk true;
-        },
+        // hybrid_q3 mirrors pq_omni_dilithium (code 7) — ECDSA + ML-DSA-87.
+        // Same verify path as hybrid_q1 (love_dilithium also uses ML-DSA).
+        .hybrid_q3 => verifyLoveSignature(message, pq_sig_bytes, pq_public_key),
         .hybrid_q4 => verifyRentSignature(message, pq_sig_bytes, pq_public_key),
         else => false,
     };

@@ -10574,14 +10574,18 @@ fn handlePqListSchemes(ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\",\"transferable\":false}}," ++
             "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
             "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
-            "{{\"scheme\":\"pq_omni_ml_dsa\",\"code\":5,\"address_prefix\":\"ob_q1_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"pq_omni_falcon\",\"code\":6,\"address_prefix\":\"ob_q2_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"pq_omni_dilithium\",\"code\":7,\"address_prefix\":\"ob_q3_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"pq_omni_slh_dsa\",\"code\":8,\"address_prefix\":\"ob_q4_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"hybrid_q1\",\"code\":9,\"address_prefix\":\"ob_h1_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"hybrid_q2\",\"code\":10,\"address_prefix\":\"ob_h2_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"hybrid_q3\",\"code\":11,\"address_prefix\":\"ob_h3_\",\"transferable\":true}}," ++
-            "{{\"scheme\":\"hybrid_q4\",\"code\":12,\"address_prefix\":\"ob_h4_\",\"transferable\":true}}" ++
+            // Canon transferable PQ-OMNI prefixes — must match
+            // core/transaction.zig:prefix() and STATUS/MASTER_RULES_PQ_OMNI.md.
+            "{{\"scheme\":\"pq_omni_ml_dsa\",\"code\":5,\"address_prefix\":\"obk1_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_falcon\",\"code\":6,\"address_prefix\":\"obf5_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_dilithium\",\"code\":7,\"address_prefix\":\"obs3_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"pq_omni_slh_dsa\",\"code\":8,\"address_prefix\":\"obd5_\",\"transferable\":true}}," ++
+            // Hybrid uses the same address prefixes as the PQ-OMNI scheme half;
+            // chain distinguishes via tx.scheme byte, not by prefix.
+            "{{\"scheme\":\"hybrid_q1\",\"code\":9,\"address_prefix\":\"obk1_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q2\",\"code\":10,\"address_prefix\":\"obf5_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q3\",\"code\":11,\"address_prefix\":\"obs3_\",\"transferable\":true}}," ++
+            "{{\"scheme\":\"hybrid_q4\",\"code\":12,\"address_prefix\":\"obd5_\",\"transferable\":true}}" ++
         "]}}",
         .{id});
 }
