@@ -31,6 +31,29 @@ export type DnsEntry = {
   address: string;
   registeredAtBlock: number;
   expiresAtBlock: number;
+  // Phase 2 NS — optional fields, present on Phase-2 nodes via listnames RPC.
+  // Older nodes omit them; UI must treat undefined as "legacy entry".
+  category?: string;        // "personal" | "bank" | "gov" | "mil" | "fin" | "edu" | "org" | "dev" | "trading" | "none"
+  preferred_slot?: number;  // 0 = primary; 1..4 = ML-DSA / Falcon / Dilithium / SLH-DSA
+  registered_years?: number;
+};
+
+/**
+ * Maps a TLD to its rendering color + emoji + category fallback. UI-only —
+ * the source of truth for category lives on-chain in the `category` field.
+ * When category is absent (older node), we infer from TLD as a best-effort.
+ */
+export const TLD_THEME: Record<string, { color: string; emoji: string; categoryHint: string }> = {
+  omnibus:   { color: "text-mempool-blue",  emoji: "👤", categoryHint: "personal" },
+  arbitraje: { color: "text-amber-400",     emoji: "📈", categoryHint: "trading" },
+  quantum:   { color: "text-purple-400",    emoji: "⚛",  categoryHint: "personal" },
+  bank:      { color: "text-emerald-400",   emoji: "🏦", categoryHint: "bank" },
+  gov:       { color: "text-red-400",       emoji: "🏛", categoryHint: "gov" },
+  mil:       { color: "text-orange-400",    emoji: "⚔",  categoryHint: "mil" },
+  fin:       { color: "text-teal-400",      emoji: "💼", categoryHint: "fin" },
+  edu:       { color: "text-sky-400",       emoji: "🎓", categoryHint: "edu" },
+  org:       { color: "text-lime-400",      emoji: "🤝", categoryHint: "org" },
+  dev:       { color: "text-fuchsia-400",   emoji: "💻", categoryHint: "dev" },
 };
 
 // ── Global cache ──────────────────────────────────────────────────────────
@@ -153,6 +176,47 @@ export function useNamesOwnedBy(addr: string | null | undefined): DnsEntry[] {
   if (!addr) return [];
   const list = namesByAddress.get(addr) ?? [];
   return list.slice(0, MAX_NAMES_PER_WALLET);
+}
+
+/**
+ * Phase 2 — like useNameForAddress but returns the FULL DnsEntry (with
+ * category, preferred_slot, registered_years) for the chosen name.
+ * Useful when the UI wants to render a category badge alongside the name.
+ */
+export function useEntryForAddress(addr: string | null | undefined): DnsEntry | null {
+  const [, force] = useState(0);
+
+  useEffect(() => {
+    const cb = () => force((n) => n + 1);
+    subscribers.add(cb);
+    if (addr && !namesByAddress.has(addr) && !allEntriesPromise) loadAllEntries();
+    return () => { subscribers.delete(cb); };
+  }, [addr]);
+
+  if (!addr) return null;
+  const list = namesByAddress.get(addr);
+  if (!list || list.length === 0) return null;
+
+  // Honor user-set primary if one exists; else use the same priority order
+  // as useNameForAddress.
+  const primaryLabel = getPrimaryName(addr);
+  if (primaryLabel) {
+    const found = list.find((e) => e.fullLabel === primaryLabel);
+    if (found) return found;
+  }
+  const TLD_PRIORITY: Record<string, number> = {
+    gov: 0, mil: 1, bank: 2, fin: 3,
+    quantum: 4, omnibus: 5,
+    edu: 6, org: 7, dev: 8,
+    arbitraje: 9,
+  };
+  const sorted = [...list].sort((a, b) => {
+    const pa = TLD_PRIORITY[a.tld] ?? 99;
+    const pb = TLD_PRIORITY[b.tld] ?? 99;
+    if (pa !== pb) return pa - pb;
+    return a.name.localeCompare(b.name);
+  });
+  return sorted[0];
 }
 
 export { MAX_NAMES_PER_WALLET };

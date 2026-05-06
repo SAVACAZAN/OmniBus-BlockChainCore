@@ -7,7 +7,7 @@
  * tooltip always shows the full ob1q… so power users can copy-paste it.
  */
 
-import { useNameForAddress } from "../../api/use-names";
+import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/use-names";
 
 type Props = {
   address: string;
@@ -16,6 +16,10 @@ type Props = {
   /** Override truncation length. Defaults to 8/6. */
   truncate?: { left: number; right: number };
   className?: string;
+  /** Phase 2 — when true, render the category badge (BANK / GOV / …) next to the name. */
+  showCategory?: boolean;
+  /** Phase 2 — when true, prefix with the TLD emoji (🏦 / 🏛 / …). */
+  showEmoji?: boolean;
 };
 
 export function AddressLabel({
@@ -23,8 +27,13 @@ export function AddressLabel({
   showRawAddress = false,
   truncate = { left: 8, right: 6 },
   className = "",
+  showCategory = false,
+  showEmoji = false,
 }: Props) {
   const name = useNameForAddress(address);
+  // Phase 2 — full entry for category/tld coloring. Same address, single
+  // shared cache, so no extra RPC.
+  const entry = useEntryForAddress(address);
 
   if (!address) return null;
 
@@ -41,18 +50,36 @@ export function AddressLabel({
     );
   }
 
+  const tld = entry?.tld;
+  const theme = tld ? TLD_THEME[tld] : undefined;
+  const cat = entry?.category && entry.category !== "none" ? entry.category : null;
+  const colorClass = theme?.color ?? "";
+
+  // Build the inner content once so the three render branches stay short.
+  const inner = (
+    <>
+      {showEmoji && theme?.emoji && <span className="mr-1">{theme.emoji}</span>}
+      <span className={`font-semibold ${colorClass}`}>{name}</span>
+      {showCategory && cat && (
+        <span className="ml-1 text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold align-middle">
+          {cat}
+        </span>
+      )}
+    </>
+  );
+
   if (showRawAddress) {
     return (
-      <span className={className} title={address}>
-        <span className="font-semibold">{name}</span>
+      <span className={className} title={`${name} → ${address}${cat ? ` [${cat}]` : ""}`}>
+        {inner}
         <span className="opacity-60"> · {truncated}</span>
       </span>
     );
   }
 
   return (
-    <span className={className} title={`${name} → ${address}`}>
-      {name}
+    <span className={className} title={`${name} → ${address}${cat ? ` [${cat}]` : ""}`}>
+      {inner}
     </span>
   );
 }

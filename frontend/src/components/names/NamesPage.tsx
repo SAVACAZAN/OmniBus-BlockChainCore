@@ -468,6 +468,9 @@ export function NamesPage() {
         )}
       </div>
 
+      {/* NS Health Dashboard — Phase 2 totals */}
+      {!methodMissing && <NsHealthDashboard />}
+
       {/* Browse by Category — Phase 2 NS */}
       {!methodMissing && <BrowseByCategory />}
 
@@ -975,6 +978,99 @@ function BrowseByCategory() {
       {!activeCat && (
         <p className="text-[11px] text-mempool-text-dim italic">
           Pick a category above to see all on-chain entities of that type.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── NsHealthDashboard ─────────────────────────────────────────────────────
+//
+// Phase 2 NS — quick at-a-glance stats: total active names, breakdown
+// per category. Data comes from listnames (already cached in use-names).
+// Sits at the top of the page so users immediately see the registry's
+// "shape" before drilling into Browse / Lookup / Register.
+
+interface CountsByCat {
+  total: number;
+  perCat: Record<string, number>;
+  perTld: Record<string, number>;
+}
+
+function NsHealthDashboard() {
+  const [stats, setStats] = useState<CountsByCat>({ total: 0, perCat: {}, perTld: {} });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = (await rpc.request_raw("listnames", [{ limit: 1000 }])) as {
+          entries?: { tld: string; category?: string }[];
+          total?: number;
+        };
+        if (cancelled) return;
+        const entries = r?.entries ?? [];
+        const perCat: Record<string, number> = {};
+        const perTld: Record<string, number> = {};
+        for (const e of entries) {
+          const cat = e.category ?? "none";
+          perCat[cat] = (perCat[cat] ?? 0) + 1;
+          perTld[e.tld] = (perTld[e.tld] ?? 0) + 1;
+        }
+        setStats({ total: r?.total ?? entries.length, perCat, perTld });
+      } catch {
+        // ignore — health dashboard is best-effort
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    const id = setInterval(load, 30_000); // 30s refresh
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  if (loading && stats.total === 0) {
+    return null; // hide entirely on first paint to avoid empty-state flash
+  }
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
+      <div className="flex items-baseline justify-between mb-3">
+        <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+          NS health
+          <span className="ml-2 text-[10px] text-mempool-text-dim normal-case">
+            registry totals · auto-refresh 30s
+          </span>
+        </h2>
+        <span className="text-xs text-mempool-text-dim">
+          Total: <span className="text-mempool-text font-semibold">{stats.total}</span>
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1">
+        {CAT_PILLS.map((c) => {
+          const n = stats.perCat[c.id] ?? 0;
+          return (
+            <div
+              key={c.id}
+              className="px-2 py-1.5 rounded bg-mempool-bg/40 border border-mempool-border flex flex-col items-center"
+              title={`${c.label}: ${n} name${n === 1 ? "" : "s"}`}
+            >
+              <span className="text-base">{c.emoji}</span>
+              <span className={`text-xs font-bold ${c.color}`}>{n}</span>
+              <span className="text-[9px] text-mempool-text-dim">{c.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {Object.keys(stats.perTld).length > 0 && (
+        <p className="text-[10px] text-mempool-text-dim mt-3">
+          Per-TLD: {Object.entries(stats.perTld)
+            .sort(([, a], [, b]) => b - a)
+            .map(([t, n]) => `.${t}=${n}`)
+            .join(" · ")}
         </p>
       )}
     </div>

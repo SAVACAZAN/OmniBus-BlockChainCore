@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
-import { useNameForAddress } from "../../api/use-names";
+import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/use-names";
 
 // Inline SVG icons (lucide-react isn't installed in this frontend; matches the
 // inline-SVG style used everywhere else in Header.tsx).
@@ -67,22 +67,32 @@ type Mode = "vault" | "mnemonic" | "privkey";
 export function WalletConnectButton() {
   const wallet = useWallet();
   const primaryName = useNameForAddress(wallet?.address);
+  const entry = useEntryForAddress(wallet?.address);  // Phase 2: full entry for category
   const [showModal, setShowModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Connected: pill with name (if registered) or truncated address.
+  // Connected: pill with name + Phase 2 category badge (if registered) or truncated address.
   if (wallet) {
+    const tld = entry?.tld;
+    const theme = tld ? TLD_THEME[tld] : undefined;
+    const cat = entry?.category && entry.category !== "none" ? entry.category : null;
     return (
       <div className="relative">
         <button
           onClick={() => setShowDropdown((v) => !v)}
           className="flex items-center gap-2 bg-mempool-blue/15 border border-mempool-blue/40 rounded-lg px-3 py-1.5 hover:bg-mempool-blue/25 transition-colors"
-          title={primaryName ? `${primaryName} → ${wallet.address}` : wallet.address}
+          title={primaryName ? `${primaryName} → ${wallet.address}${cat ? ` [${cat}]` : ""}` : wallet.address}
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className={`text-xs text-mempool-blue ${primaryName ? "font-semibold" : "font-mono"}`}>
+          <span className={`text-xs ${theme?.color ?? "text-mempool-blue"} ${primaryName ? "font-semibold" : "font-mono"}`}>
+            {theme?.emoji && <span className="mr-1">{theme.emoji}</span>}
             {primaryName ?? `${wallet.address.slice(0, 8)}…${wallet.address.slice(-6)}`}
           </span>
+          {cat && (
+            <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
+              {cat}
+            </span>
+          )}
         </button>
         {showDropdown && (
           <>
