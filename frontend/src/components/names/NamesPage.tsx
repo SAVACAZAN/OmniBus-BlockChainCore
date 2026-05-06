@@ -71,6 +71,11 @@ type ResolveResp = {
   expiresAtBlock?: number;
 };
 
+// Multi-TLD lookup result: same shape as ResolveResp but tagged with which
+// TLD it came from, so we can render one card per TLD when the user
+// searches across all TLDs at once.
+type MultiResolveResp = ResolveResp & { _tld: Tld };
+
 type EnsFeeResp = {
   treasury: string;
   enforcement: boolean;
@@ -118,6 +123,8 @@ export function NamesPage() {
   const [list, setList] = useState<ListResp | null>(null);
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState<ResolveResp | null>(null);
+  const [searchAllResults, setSearchAllResults] = useState<MultiResolveResp[] | null>(null);
+  const [searchAll, setSearchAll] = useState<boolean>(true);
   const [searching, setSearching] = useState(false);
 
   // Register form
@@ -216,23 +223,49 @@ export function NamesPage() {
     return null;
   };
 
-  const lookup = async () => {
+  // Detect whether the input has an explicit ".tld" suffix at the end. If
+  // it does, single-TLD lookup is the right path; otherwise we fan out
+  // across all TLDs in parallel.
+  const detectExplicitTld = (raw: string): Tld | null => {
+    const clean = raw.toLowerCase().trim();
+    for (const t of TLDS) {
+      if (clean.endsWith("." + t)) return t;
+    }
+    return null;
+  };
+
+  const lookup = async (overrideAll?: boolean) => {
     if (!search.trim()) return;
     setSearching(true);
     setSearchResult(null);
+    setSearchAllResults(null);
     try {
       let clean = search.toLowerCase().trim();
-      // If user types "alice.arbitraje", auto-detect TLD; else use selectorul.
-      let tld: Tld = searchTld;
-      for (const t of TLDS) {
-        if (clean.endsWith("." + t)) {
-          tld = t;
-          clean = clean.slice(0, -("." + t).length);
-          break;
+      const explicitTld = detectExplicitTld(clean);
+      const useAll = overrideAll ?? searchAll;
+
+      // Decide: single-TLD path when (a) user typed an explicit suffix, OR
+      // (b) the "Search all TLDs" toggle is OFF. Otherwise fan out.
+      const doMulti = explicitTld === null && useAll;
+
+      if (doMulti) {
+        // strip trailing dot if user typed "alice."
+        if (clean.endsWith(".")) clean = clean.slice(0, -1);
+        const calls = TLDS.map(async (t): Promise<MultiResolveResp> => {
+          const r = (await rpc.request_raw("resolvename", [clean, t])) as ResolveResp;
+          return { ...r, _tld: t };
+        });
+        const all = await Promise.all(calls);
+        setSearchAllResults(all);
+      } else {
+        let tld: Tld = searchTld;
+        if (explicitTld) {
+          tld = explicitTld;
+          clean = clean.slice(0, -("." + explicitTld).length);
         }
+        const r = (await rpc.request_raw("resolvename", [clean, tld])) as ResolveResp;
+        setSearchResult(r);
       }
-      const r = (await rpc.request_raw("resolvename", [clean, tld])) as ResolveResp;
-      setSearchResult(r);
     } catch (e: any) {
       setError(e?.message || "Lookup failed");
     } finally {
@@ -383,6 +416,28 @@ export function NamesPage() {
             </button>
           ))}
         </div>
+        <label className="flex gap-2 items-center mb-2 text-xs text-mempool-text-dim cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={searchAll}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setSearchAll(next);
+              // Re-run search if there's an input so the result panel
+              // updates immediately without the user pressing Search again.
+              if (search.trim()) {
+                void lookup(next);
+              }
+            }}
+            className="accent-mempool-blue"
+          />
+          <span>
+            Search all TLDs in parallel{" "}
+            <span className="opacity-70">
+              (auto-disabled when input ends with <code>.tld</code>)
+            </span>
+          </span>
+        </label>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
@@ -390,15 +445,21 @@ export function NamesPage() {
               placeholder="yourname"
               value={search}
               onChange={(e) => setSearch(e.target.value.toLowerCase())}
-              onKeyDown={(e) => { if (e.key === "Enter") lookup(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") void lookup(); }}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 pr-24 text-sm font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
             />
-            <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${TLD_INFO[searchTld].color}`}>
-              .{searchTld}
+            <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
+              searchAll && detectExplicitTld(search) === null
+                ? "text-mempool-text-dim"
+                : TLD_INFO[detectExplicitTld(search) ?? searchTld].color
+            }`}>
+              {searchAll && detectExplicitTld(search) === null
+                ? ".*"
+                : `.${detectExplicitTld(search) ?? searchTld}`}
             </span>
           </div>
           <button
-            onClick={lookup}
+            onClick={() => void lookup()}
             disabled={searching}
             className="px-4 py-2 text-sm bg-mempool-blue text-white rounded hover:bg-blue-500 disabled:opacity-50"
           >
@@ -466,6 +527,102 @@ export function NamesPage() {
             )}
           </div>
         )}
+
+        {/* Multi-TLD results — one card per TLD that resolved. The header
+            line shows "Found N of M TLDs" and an "available everywhere"
+            hint when nothing matches. Each card renders the same metadata
+            block as the single-result path above. */}
+        {searchAllResults && (() => {
+          const found = searchAllResults.filter((r) => r.found);
+          if (found.length === 0) {
+            return (
+              <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
+                <p className="text-sm text-mempool-text font-mono">
+                  <span className="font-semibold text-mempool-text">
+                    {(searchAllResults[0] && searchAllResults[0].name) || search}
+                  </span>
+                  {" — "}
+                  <span className="text-amber-300">AVAILABLE everywhere</span>
+                  <span className="ml-2 text-[11px] text-mempool-text-dim">
+                    (0 of {searchAllResults.length} TLDs taken — pick one in the Register form below)
+                  </span>
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-mempool-text-dim">
+                Found <span className="font-semibold text-mempool-text">{found.length}</span> of{" "}
+                {searchAllResults.length} TLDs
+              </p>
+              {found.map((r) => {
+                const tld = r._tld;
+                const info = TLD_INFO[tld];
+                const anyR = r as any;
+                return (
+                  <div
+                    key={tld}
+                    className="p-3 rounded border border-green-500/40 bg-green-500/10"
+                  >
+                    <p className="text-sm text-mempool-text font-mono">
+                      <span className={`font-semibold ${info.color}`}>
+                        {anyR.fullLabel || `${r.name}.${anyR.tld || tld}`}
+                      </span>
+                      {anyR.category && anyR.category !== "none" && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
+                          {anyR.category}
+                        </span>
+                      )}
+                      {" — "}
+                      <span className="text-green-300">TAKEN</span>
+                    </p>
+                    {r.address && (
+                      <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">
+                        → primary: {r.address}
+                      </p>
+                    )}
+                    {anyR.addresses && (
+                      <div className="text-[10px] mt-2 space-y-0.5">
+                        {(["k", "f", "s", "d"] as const).map((slot) => {
+                          const addrs = anyR.addresses;
+                          const isSet = addrs[`${slot}_set`];
+                          if (!isSet) return null;
+                          const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                          return (
+                            <p key={slot} className="text-mempool-text-dim font-mono break-all">
+                              <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {anyR.preferred_slot != null && anyR.preferred_slot > 0 && (
+                      <p className="text-[11px] text-mempool-blue mt-1">
+                        Preferred receiving scheme: slot {anyR.preferred_slot} (
+                        {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][anyR.preferred_slot]}
+                        )
+                      </p>
+                    )}
+                    {anyR.registered_years != null && anyR.registered_years > 0 && (
+                      <p className="text-xs text-mempool-text-dim mt-1">
+                        Registered for {anyR.registered_years} {anyR.registered_years === 1 ? "year" : "years"}
+                      </p>
+                    )}
+                    {r.registeredAtBlock != null && (
+                      <p className="text-xs text-mempool-text-dim mt-1">
+                        Block #{r.registeredAtBlock.toLocaleString()}
+                        {anyR.expiresAtBlock && (
+                          <span> · expires #{anyR.expiresAtBlock.toLocaleString()}</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* NS Health Dashboard — Phase 2 totals */}
@@ -535,6 +692,8 @@ export function NamesPage() {
                   <AddressLabel
                     address={ensFee.treasury}
                     showRawAddress
+                    showCategory
+                    showEmoji
                     className="font-mono text-mempool-text"
                     truncate={{ left: 14, right: 8 }}
                   />
@@ -879,6 +1038,7 @@ interface CatEntry {
   address: string;
   preferred_slot: number;
   registeredAtBlock: number;
+  registered_years?: number;
 }
 
 function BrowseByCategory() {
@@ -887,6 +1047,7 @@ function BrowseByCategory() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [filterYear, setFilterYear] = useState<number | null>(null);
 
   const load = async (cat: string) => {
     setLoading(true);
@@ -897,6 +1058,8 @@ function BrowseByCategory() {
       };
       setEntries(r.entries ?? []);
       setTotal(r.total ?? 0);
+      // reset year filter so switching category always starts at "Any"
+      setFilterYear(null);
     } catch (e: any) {
       setErr(e?.message ?? "RPC error");
       setEntries([]);
@@ -905,6 +1068,18 @@ function BrowseByCategory() {
       setLoading(false);
     }
   };
+
+  // Counts per year tier within the currently-loaded category.
+  // Treats undefined registered_years as 1 (legacy default for older nodes).
+  const yearCounts: Record<number, number> = entries.reduce((acc, e) => {
+    const y = e.registered_years ?? 1;
+    acc[y] = (acc[y] ?? 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
+
+  const visibleEntries: CatEntry[] = filterYear == null
+    ? entries
+    : entries.filter((e) => (e.registered_years ?? 1) === filterYear);
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
@@ -933,21 +1108,69 @@ function BrowseByCategory() {
           </button>
         ))}
       </div>
+      {/* Secondary filter: registration year tier. Only meaningful when
+          a category is selected and there are entries to filter, so we
+          gate the whole row on activeCat + entries.length. */}
+      {activeCat && entries.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3 items-center">
+          <span className="text-[10px] text-mempool-text-dim mr-1 uppercase tracking-wider">
+            Year tier:
+          </span>
+          <button
+            onClick={() => setFilterYear(null)}
+            className={`px-2 py-1 text-xs rounded ${
+              filterYear == null
+                ? "text-mempool-blue bg-mempool-bg font-semibold border border-current"
+                : "text-mempool-text-dim bg-mempool-bg/50 hover:text-mempool-text border border-transparent"
+            }`}
+            title="Show all year tiers"
+          >
+            Any <span className="text-[10px] opacity-70">({entries.length})</span>
+          </button>
+          {FALLBACK_YEAR_TIERS.map((t) => {
+            const count = yearCounts[t.years] ?? 0;
+            const isSel = filterYear === t.years;
+            const dimmed = count === 0;
+            return (
+              <button
+                key={t.years}
+                onClick={() => setFilterYear(t.years)}
+                className={`px-2 py-1 text-xs rounded ${
+                  isSel
+                    ? "text-mempool-blue bg-mempool-bg font-semibold border border-current"
+                    : "text-mempool-text-dim bg-mempool-bg/50 hover:text-mempool-text border border-transparent"
+                } ${dimmed && !isSel ? "opacity-40" : ""}`}
+                title={`${count} name${count === 1 ? "" : "s"} registered for ${t.years} year${t.years === 1 ? "" : "s"}`}
+              >
+                {t.years}y <span className="text-[10px] opacity-70">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       {loading && <p className="text-[11px] text-mempool-text-dim">Loading…</p>}
       {err && <p className="text-[11px] text-red-300">{err}</p>}
       {activeCat && !loading && !err && (
         <div className="text-xs">
           <p className="text-mempool-text-dim mb-2">
-            <span className="font-semibold">{total}</span> name{total === 1 ? "" : "s"} in{" "}
+            <span className="font-semibold">{visibleEntries.length}</span>
+            {filterYear != null && <> of <span className="font-semibold">{total}</span></>}
+            {filterYear == null && <> of <span className="font-semibold">{total}</span></>}
+            {" "}name{visibleEntries.length === 1 ? "" : "s"} in{" "}
             <span className="font-semibold">{CAT_PILLS.find((c) => c.id === activeCat)?.label}</span>
+            {filterYear != null && (
+              <> · filtered to <span className="font-semibold">{filterYear} year{filterYear === 1 ? "" : "s"}</span></>
+            )}
           </p>
-          {entries.length === 0 ? (
+          {visibleEntries.length === 0 ? (
             <p className="text-mempool-text-dim italic">
-              No names yet. Be the first to register and tag yourself!
+              {entries.length === 0
+                ? "No names yet. Be the first to register and tag yourself!"
+                : `No names in this category registered for exactly ${filterYear} year${filterYear === 1 ? "" : "s"}.`}
             </p>
           ) : (
             <div className="space-y-1 max-h-80 overflow-y-auto">
-              {entries.map((e) => {
+              {visibleEntries.map((e) => {
                 const cat = CAT_PILLS.find((c) => c.id === activeCat);
                 return (
                   <div

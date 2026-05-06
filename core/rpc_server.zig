@@ -2923,6 +2923,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
     if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
     if (std.mem.eql(u8, method, "ns_yearTiers"))     return handleNsYearTiers(ctx, id);
+    if (std.mem.eql(u8, method, "ns_stats"))         return handleNsStats(ctx, id);
     // Phase 2 NS — multi-address per name + category badges
     if (std.mem.eql(u8, method, "setpqaddress"))     return handleSetPqAddress(body, ctx, id);
     if (std.mem.eql(u8, method, "setcategory"))      return handleSetCategory(body, ctx, id);
@@ -4074,6 +4075,66 @@ fn handleNsYearTiers(ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"years\":100,\"multiplier\":55.000,\"per_year_pct\":55}}" ++
         "]}}",
         .{id});
+}
+
+/// ns_stats — read-only. Returns the full NS Health Dashboard snapshot in
+/// a single round-trip: totals, per-category / per-TLD / per-years counts,
+/// and PQ/preferred-slot adoption metrics. Replaces the old fan-out where
+/// the UI called `getnamesbycategory` per category or downloaded all 1000
+/// entries via `listnames`.
+fn handleNsStats(ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
+    const dns = ctx.dns.?;
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    const s = dns.getStats(current_block);
+    // Category indices (match dns_mod.Category enum):
+    //   0=none, 1=personal, 2=bank, 3=gov, 4=mil, 5=fin, 6=edu, 7=org, 8=dev, 9=trading
+    // TLD indices (match dns_mod.ALLOWED_TLDS):
+    //   0=omnibus, 1=arbitraje, 2=quantum, 3=bank, 4=gov, 5=mil, 6=fin, 7=edu, 8=org, 9=dev
+    // Years indices (match dns_mod.ALLOWED_YEARS):
+    //   0=1, 1=2, 2=3, 3=4, 4=5, 5=10, 6=25, 7=50, 8=100
+    // Split into 3 chunks — std.fmt.allocPrint caps at 32 args per call.
+    const head = try std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"total_active\":{d},\"total_expired\":{d}," ++
+            "\"by_category\":{{" ++
+                "\"personal\":{d},\"bank\":{d},\"gov\":{d},\"mil\":{d},\"fin\":{d}," ++
+                "\"edu\":{d},\"org\":{d},\"dev\":{d},\"trading\":{d},\"none\":{d}" ++
+            "}},",
+        .{
+            id, s.total_active, s.total_expired,
+            s.counts_by_category[1], s.counts_by_category[2], s.counts_by_category[3],
+            s.counts_by_category[4], s.counts_by_category[5], s.counts_by_category[6],
+            s.counts_by_category[7], s.counts_by_category[8], s.counts_by_category[9],
+            s.counts_by_category[0],
+        });
+    defer alloc.free(head);
+    const middle = try std.fmt.allocPrint(alloc,
+        "\"by_tld\":{{" ++
+            "\"omnibus\":{d},\"arbitraje\":{d},\"quantum\":{d},\"bank\":{d},\"gov\":{d}," ++
+            "\"mil\":{d},\"fin\":{d},\"edu\":{d},\"org\":{d},\"dev\":{d}" ++
+        "}},",
+        .{
+            s.counts_by_tld[0], s.counts_by_tld[1], s.counts_by_tld[2], s.counts_by_tld[3],
+            s.counts_by_tld[4], s.counts_by_tld[5], s.counts_by_tld[6], s.counts_by_tld[7],
+            s.counts_by_tld[8], s.counts_by_tld[9],
+        });
+    defer alloc.free(middle);
+    const tail = try std.fmt.allocPrint(alloc,
+        "\"by_years\":{{" ++
+            "\"1\":{d},\"2\":{d},\"3\":{d},\"4\":{d},\"5\":{d}," ++
+            "\"10\":{d},\"25\":{d},\"50\":{d},\"100\":{d}" ++
+        "}}," ++
+        "\"pq_slots_set\":{d},\"preferred_slot_set\":{d}}}}}",
+        .{
+            s.counts_by_years[0], s.counts_by_years[1], s.counts_by_years[2],
+            s.counts_by_years[3], s.counts_by_years[4], s.counts_by_years[5],
+            s.counts_by_years[6], s.counts_by_years[7], s.counts_by_years[8],
+            s.pq_slots_set, s.preferred_slot_set,
+        });
+    defer alloc.free(tail);
+    return std.mem.concat(alloc, u8, &.{ head, middle, tail });
 }
 
 // ─── Phase 2 NS — multi-address per name + categories ──────────────────────

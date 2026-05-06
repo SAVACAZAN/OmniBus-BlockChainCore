@@ -772,7 +772,7 @@ export function WalletPage() {
                     {tx.txid && <TxHashLink txid={tx.txid} truncate={{ left: 14, right: 6 }} className="text-xs" />}
                   </div>
                   <p className="text-[10px] text-mempool-text-dim mt-0.5">
-                    {tx.from && <AddressLabel address={tx.from} truncate={{ left: 12, right: 6 }} />} → {tx.to && <AddressLabel address={tx.to} truncate={{ left: 12, right: 6 }} />}
+                    {tx.from && <AddressLabel address={tx.from} truncate={{ left: 12, right: 6 }} showCategory />} → {tx.to && <AddressLabel address={tx.to} truncate={{ left: 12, right: 6 }} showCategory />}
                   </p>
                   {tx.op_return && (
                     <p className="text-[10px] text-mempool-orange/80 mt-0.5 font-mono break-all">

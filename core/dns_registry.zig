@@ -829,10 +829,13 @@ pub const DnsRegistry = struct {
     /// v2 entry: v1 fields + 8B last_nonce + 8B last_action_block + 8B grace_until_block
     /// = 190 + 24 = 214 bytes per entry.
     const MAGIC: [8]u8 = [_]u8{ 'O', 'M', 'N', 'I', 'D', 'N', 'S', '1' };
-    const VERSION: u32 = 2;
+    const VERSION: u32 = 3;
     const HEADER_SIZE: usize = 8 + 4 + 4;
     const V1_ENTRY_SIZE: usize = 190;
     const V2_ENTRY_SIZE: usize = 214;
+    // v3 adds: category(1) + addr_pq(4*64=256) + addr_pq_lens(4)
+    //         + preferred_slot(1) + registered_years(4) = 266 bytes.
+    const V3_ENTRY_SIZE: usize = V2_ENTRY_SIZE + 1 + (PQ_SLOT_COUNT * MAX_ADDR_LEN) + PQ_SLOT_COUNT + 1 + 4;
 
     pub fn saveToFile(self: *const DnsRegistry, path: []const u8) !void {
         var file = try std.fs.cwd().createFile(path, .{ .truncate = true });
@@ -842,7 +845,7 @@ pub const DnsRegistry = struct {
         std.mem.writeInt(u32, buf[8..12], VERSION, .little);
         std.mem.writeInt(u32, buf[12..16], @intCast(self.entry_count), .little);
         try file.writeAll(&buf);
-        var rec: [V2_ENTRY_SIZE]u8 = undefined;
+        var rec: [V3_ENTRY_SIZE]u8 = undefined;
         for (self.entries[0..self.entry_count]) |e| {
             @memset(&rec, 0);
             rec[0] = e.name_len;
@@ -860,6 +863,22 @@ pub const DnsRegistry = struct {
             std.mem.writeInt(u64, rec[190..198], e.last_nonce, .little);
             std.mem.writeInt(u64, rec[198..206], e.last_action_block, .little);
             std.mem.writeInt(u64, rec[206..214], e.grace_until_block, .little);
+            // v3 fields (Phase 2)
+            var off: usize = V2_ENTRY_SIZE;
+            rec[off] = @intFromEnum(e.category);
+            off += 1;
+            // addr_pq[4][64]
+            var s: usize = 0;
+            while (s < PQ_SLOT_COUNT) : (s += 1) {
+                @memcpy(rec[off .. off + MAX_ADDR_LEN], &e.addr_pq[s]);
+                off += MAX_ADDR_LEN;
+            }
+            // addr_pq_lens[4]
+            @memcpy(rec[off .. off + PQ_SLOT_COUNT], &e.addr_pq_lens);
+            off += PQ_SLOT_COUNT;
+            rec[off] = e.preferred_slot;
+            off += 1;
+            std.mem.writeInt(u32, rec[off..][0..4], e.registered_years, .little);
             try file.writeAll(&rec);
         }
     }
@@ -883,7 +902,46 @@ pub const DnsRegistry = struct {
         if (count > MAX_ENTRIES) return error.TooManyEntries;
         self.entry_count = 0;
 
-        if (ver == 2) {
+        if (ver == 3) {
+            var rec: [V3_ENTRY_SIZE]u8 = undefined;
+            var i: u32 = 0;
+            while (i < count) : (i += 1) {
+                const r = try file.readAll(&rec);
+                if (r < V3_ENTRY_SIZE) return error.CorruptFile;
+                var e: DnsEntry = std.mem.zeroes(DnsEntry);
+                e.name_len = rec[0];
+                @memcpy(&e.name, rec[1..26]);
+                e.tld_len = rec[26];
+                @memcpy(&e.tld, rec[27..43]);
+                e.addr_len = rec[43];
+                @memcpy(&e.address, rec[44..108]);
+                e.owner_len = rec[108];
+                @memcpy(&e.owner, rec[109..173]);
+                e.registered_block = std.mem.readInt(u64, rec[173..181], .little);
+                e.expires_block = std.mem.readInt(u64, rec[181..189], .little);
+                e.active = rec[189] != 0;
+                e.last_nonce = std.mem.readInt(u64, rec[190..198], .little);
+                e.last_action_block = std.mem.readInt(u64, rec[198..206], .little);
+                e.grace_until_block = std.mem.readInt(u64, rec[206..214], .little);
+                // v3 fields
+                var off: usize = V2_ENTRY_SIZE;
+                const cat_byte = rec[off];
+                e.category = std.meta.intToEnum(Category, cat_byte) catch .none;
+                off += 1;
+                var s: usize = 0;
+                while (s < PQ_SLOT_COUNT) : (s += 1) {
+                    @memcpy(&e.addr_pq[s], rec[off .. off + MAX_ADDR_LEN]);
+                    off += MAX_ADDR_LEN;
+                }
+                @memcpy(&e.addr_pq_lens, rec[off .. off + PQ_SLOT_COUNT]);
+                off += PQ_SLOT_COUNT;
+                e.preferred_slot = rec[off];
+                off += 1;
+                e.registered_years = std.mem.readInt(u32, rec[off..][0..4], .little);
+                self.entries[self.entry_count] = e;
+                self.entry_count += 1;
+            }
+        } else if (ver == 2) {
             var rec: [V2_ENTRY_SIZE]u8 = undefined;
             var i: u32 = 0;
             while (i < count) : (i += 1) {
@@ -904,6 +962,9 @@ pub const DnsRegistry = struct {
                 e.last_nonce = std.mem.readInt(u64, rec[190..198], .little);
                 e.last_action_block = std.mem.readInt(u64, rec[198..206], .little);
                 e.grace_until_block = std.mem.readInt(u64, rec[206..214], .little);
+                // v3 fields default to zero (category=.none, all slots empty,
+                // preferred_slot=0, registered_years=0). migrateLegacyEntries()
+                // backfills these to sensible values after load.
                 self.entries[self.entry_count] = e;
                 self.entry_count += 1;
             }
@@ -1102,6 +1163,63 @@ pub const DnsRegistry = struct {
         }
         return count;
     }
+
+    /// Phase 2: aggregate registry health snapshot in a single pass.
+    /// Powers the `ns_stats` RPC so the NS Health Dashboard avoids
+    /// fan-out queries per category / TLD / years tier.
+    pub fn getStats(self: *const DnsRegistry, current_block: u64) NsStats {
+        var s = NsStats{
+            .total_active = 0,
+            .total_expired = 0,
+            .counts_by_category = [_]usize{0} ** 10,
+            .counts_by_tld = [_]usize{0} ** 10,
+            .counts_by_years = [_]usize{0} ** 9,
+            .pq_slots_set = 0,
+            .preferred_slot_set = 0,
+        };
+        for (self.entries[0..self.entry_count]) |*e| {
+            if (!e.active) continue;
+            if (e.isExpired(current_block)) {
+                s.total_expired += 1;
+            } else {
+                s.total_active += 1;
+            }
+            // category bucket (enum value 0..9 maps 1:1 to slot index)
+            const cat_idx = @intFromEnum(e.category);
+            if (cat_idx < s.counts_by_category.len) {
+                s.counts_by_category[cat_idx] += 1;
+            }
+            // TLD bucket — match against ALLOWED_TLDS order
+            const tld = e.getTld();
+            for (ALLOWED_TLDS, 0..) |t, i| {
+                if (std.mem.eql(u8, t, tld)) {
+                    s.counts_by_tld[i] += 1;
+                    break;
+                }
+            }
+            // years bucket — match against ALLOWED_YEARS
+            for (ALLOWED_YEARS, 0..) |y, i| {
+                if (e.registered_years == y) {
+                    s.counts_by_years[i] += 1;
+                    break;
+                }
+            }
+            if (e.hasAnyPqSlot()) s.pq_slots_set += 1;
+            if (e.preferred_slot != 0) s.preferred_slot_set += 1;
+        }
+        return s;
+    }
+};
+
+/// Aggregate registry-wide stats — see DnsRegistry.getStats.
+pub const NsStats = struct {
+    total_active: usize,
+    total_expired: usize,
+    counts_by_category: [10]usize, // indexed by Category enum (none=0 .. trading=9)
+    counts_by_tld: [10]usize,      // indexed by ALLOWED_TLDS order
+    counts_by_years: [9]usize,     // indexed by ALLOWED_YEARS
+    pq_slots_set: usize,
+    preferred_slot_set: usize,
 };
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
