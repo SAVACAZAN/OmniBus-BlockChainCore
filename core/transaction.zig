@@ -300,10 +300,10 @@ pub const Transaction = struct {
         "ob_ms_",      // Multisig (M-of-N P2SH-style) — legacy
         // PQ-OMNI transferable (Phase 1 PQ verify + Phase 2 hybrid ECDSA+PQ verify):
         // FARA underscore initial — distinct vizual de soulbound de mai sus.
-        "obk1_",       // PQ-OMNI Dilithium / Hybrid Q1 (ECDSA + Dilithium)
-        "obf5_",       // PQ-OMNI Falcon    / Hybrid Q2 (ECDSA + Falcon)
-        "obd5_",       // PQ-OMNI SLH-DSA   / Hybrid Q4 (ECDSA + SLH-DSA)
-        "obs3_",       // PQ-OMNI ML-KEM    / Hybrid Q3 (ECDSA + ML-KEM PoP)
+        "obk1_",       // PQ-OMNI ML-DSA-87  (FIPS 204)  / Hybrid Q1 (ECDSA + ML-DSA)
+        "obf5_",       // PQ-OMNI Falcon-512 (FIPS 206)  / Hybrid Q2 (ECDSA + Falcon)
+        "obs3_",       // PQ-OMNI Dilithium-5            / Hybrid Q3 (ECDSA + Dilithium)
+        "obd5_",       // PQ-OMNI SLH-DSA-256s (FIPS 205)/ Hybrid Q4 (ECDSA + SLH-DSA)
         "0x",          // ETH-compatible bridge
     };
 

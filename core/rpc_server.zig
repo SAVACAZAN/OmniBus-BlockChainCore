@@ -2948,6 +2948,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "pq_listSchemes"))   return handlePqListSchemes(ctx, id);
     if (std.mem.eql(u8, method, "pq_balance"))       return handlePqBalance(body, ctx, id);
     if (std.mem.eql(u8, method, "pq_send"))          return handlePqSend(body, ctx, id);
+    if (std.mem.eql(u8, method, "pq_verify_test"))   return handlePqVerifyTest(body, ctx, id);
     if (std.mem.eql(u8, method, "pq_attestation"))   return handlePqAttestation(body, ctx, id);
     if (std.mem.eql(u8, method, "getpqidentity"))    return handleGetPqIdentity(body, ctx, id);
     if (std.mem.eql(u8, method, "sendpqattest"))     return handleSendPqAttest(body, ctx, id);
@@ -10608,6 +10609,58 @@ fn handlePqBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "\"balance\":{d}" ++
         "}}}}",
         .{ id, addr, @tagName(scheme), @intFromEnum(scheme), scheme.prefix(), balance });
+}
+
+/// pq_verify_test — debug RPC. Apeleaza isolated_wallet.verifySignature DIRECT
+/// pe (scheme, message_bytes, signature_bytes, pubkey_bytes), bypass TX hash.
+/// Folosit pentru a confirma ca librariile noble (frontend) si liboqs (chain)
+/// sunt interoperabile la nivel de bytes ai semnaturii.
+///
+/// Params (object): scheme (string sau cod 5..8), public_key (hex), message (hex), signature (hex).
+/// Returns: {"verified": true|false, "scheme": "...", "msg_len": N, "pk_len": N, "sig_len": N}
+fn handlePqVerifyTest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const scheme_str = extractStr(body, "scheme") orelse "";
+    const scheme_num = extractArrayNumByKey(body, "scheme");
+    const pubkey_hex = extractStr(body, "public_key") orelse extractStr(body, "publicKey") orelse
+        return errorJson(-32602, "Missing public_key (hex)", id, alloc);
+    const message_hex = extractStr(body, "message") orelse extractStr(body, "msg") orelse
+        return errorJson(-32602, "Missing message (hex)", id, alloc);
+    const signature_hex = extractStr(body, "signature") orelse extractStr(body, "sig") orelse
+        return errorJson(-32602, "Missing signature (hex)", id, alloc);
+
+    const scheme: isolated_wallet_mod.Scheme = blk: {
+        if (scheme_str.len > 0) {
+            if (std.mem.eql(u8, scheme_str, "pq_omni_ml_dsa")    or std.mem.eql(u8, scheme_str, "ml_dsa_87"))    break :blk .pq_omni_ml_dsa;
+            if (std.mem.eql(u8, scheme_str, "pq_omni_falcon")    or std.mem.eql(u8, scheme_str, "falcon_512"))   break :blk .pq_omni_falcon;
+            if (std.mem.eql(u8, scheme_str, "pq_omni_dilithium") or std.mem.eql(u8, scheme_str, "dilithium_5"))  break :blk .pq_omni_dilithium;
+            if (std.mem.eql(u8, scheme_str, "pq_omni_slh_dsa")   or std.mem.eql(u8, scheme_str, "slh_dsa_256s")) break :blk .pq_omni_slh_dsa;
+            return errorJson(-32602, "Unknown scheme name (use ml_dsa_87/falcon_512/dilithium_5/slh_dsa_256s)", id, alloc);
+        }
+        if (scheme_num >= 5 and scheme_num <= 8) break :blk @enumFromInt(@as(u8, @intCast(scheme_num)));
+        return errorJson(-32602, "Provide scheme (string) or scheme code 5..8", id, alloc);
+    };
+
+    if (pubkey_hex.len % 2 != 0)    return errorJson(-32602, "public_key hex length odd", id, alloc);
+    if (message_hex.len % 2 != 0)   return errorJson(-32602, "message hex length odd", id, alloc);
+    if (signature_hex.len % 2 != 0) return errorJson(-32602, "signature hex length odd", id, alloc);
+
+    const pk_bytes  = alloc.alloc(u8, pubkey_hex.len / 2)    catch return errorJson(-32603, "OOM pk", id, alloc);
+    defer alloc.free(pk_bytes);
+    const msg_bytes = alloc.alloc(u8, message_hex.len / 2)   catch return errorJson(-32603, "OOM msg", id, alloc);
+    defer alloc.free(msg_bytes);
+    const sig_bytes = alloc.alloc(u8, signature_hex.len / 2) catch return errorJson(-32603, "OOM sig", id, alloc);
+    defer alloc.free(sig_bytes);
+
+    hex_utils.hexToBytes(pubkey_hex, pk_bytes)     catch return errorJson(-32602, "public_key not valid hex", id, alloc);
+    hex_utils.hexToBytes(message_hex, msg_bytes)   catch return errorJson(-32602, "message not valid hex", id, alloc);
+    hex_utils.hexToBytes(signature_hex, sig_bytes) catch return errorJson(-32602, "signature not valid hex", id, alloc);
+
+    const ok = isolated_wallet_mod.verifySignature(scheme, msg_bytes, sig_bytes, pk_bytes);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"verified\":{},\"scheme\":\"{s}\",\"msg_len\":{d},\"pk_len\":{d},\"sig_len\":{d}}}}}",
+        .{ id, ok, @tagName(scheme), msg_bytes.len, pk_bytes.len, sig_bytes.len });
 }
 
 /// pq_send — construieste si submite o tranzactie semnata cu o scheme PQ.

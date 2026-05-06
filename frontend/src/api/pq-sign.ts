@@ -108,11 +108,13 @@ export async function pqVerify(scheme: PqScheme, publicKey: Uint8Array, msgHash:
  * Synchronous — uses only @noble/hashes which Vite resolves fine.
  */
 export function pqAddressFromPublicKey(scheme: PqScheme, publicKey: Uint8Array): string {
+  // Canon — must match core/transaction.zig:180-201 + core/isolated_wallet.zig:64-67.
+  // obs3_ = Dilithium-5, obd5_ = SLH-DSA-256s. Do NOT swap without updating chain code.
   const prefix = ({
     ml_dsa_87:    "obk1_",
     falcon_512:   "obf5_",
-    dilithium_5:  "obd5_",
-    slh_dsa_256s: "obs3_",
+    dilithium_5:  "obs3_",
+    slh_dsa_256s: "obd5_",
   } as Record<PqScheme, string>)[scheme];
   const h160 = ripemd160(sha256(publicKey));
   const versioned = new Uint8Array(1 + h160.length);
@@ -127,7 +129,14 @@ export function pqAddressFromPublicKey(scheme: PqScheme, publicKey: Uint8Array):
 
 /**
  * Build the canonical TX hash — same recipe as core/transaction.zig:calculateHash().
- * Synchronous.
+ *
+ * CRITICAL ALIGNMENT (verified live 2026-05-06 via stress-test.mjs):
+ *   1. Chain hashes `self.public_key` which is the HEX STRING stored in
+ *      tx.public_key (rpc_server.zig:10713 sets it from extractStr "public_key").
+ *      So we MUST hash the hex form, NOT raw bytes.
+ *   2. Chain finalises with SHA-256d (double): `Crypto.sha256(sha256_state)`
+ *      at transaction.zig:417. We must do the same.
+ *   3. `publicKeyBytes` legacy param still accepted — converts to hex internally.
  */
 export function buildTxHash(args: {
   id: number | bigint;
@@ -138,6 +147,7 @@ export function buildTxHash(args: {
   nonce: number | bigint;
   schemeCode: number;
   publicKeyBytes?: Uint8Array;
+  publicKeyHex?: string;
   fee?: number | bigint;
   locktime?: number | bigint;
   opReturn?: string;
@@ -160,9 +170,14 @@ export function buildTxHash(args: {
     push(":SC:");
     push(String(args.schemeCode));
   }
-  if (args.publicKeyBytes && args.publicKeyBytes.length > 0) {
+  // Public key MUST be hashed as hex string (matches chain's tx.public_key).
+  let pubHex = args.publicKeyHex;
+  if (!pubHex && args.publicKeyBytes && args.publicKeyBytes.length > 0) {
+    pubHex = bytesToHex(args.publicKeyBytes);
+  }
+  if (pubHex && pubHex.length > 0) {
     push(":PK:");
-    parts.push(args.publicKeyBytes);
+    push(pubHex);
   }
   if (args.fee && BigInt(args.fee) > 0n) {
     push(":");
@@ -180,7 +195,8 @@ export function buildTxHash(args: {
   const buf = new Uint8Array(total);
   let off = 0;
   for (const p of parts) { buf.set(p, off); off += p.length; }
-  return sha256(buf);
+  // SHA-256d (double) — chain does Crypto.sha256(sha256_state) at transaction.zig:417
+  return sha256(sha256(buf));
 }
 
 export { hexToBytes, bytesToHex };

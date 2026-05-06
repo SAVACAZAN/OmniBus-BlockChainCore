@@ -61,10 +61,12 @@ pub const Scheme = enum(u8) {
             // prefixele dispar de underscore-ul de la inceput, sa nu se confunde
             // vizual cu cele 4 PQ soulbound (ob_k1_/ob_f5_/ob_d5_/ob_s3_).
             // User vede: obk1_... = transferable Dilithium-OMNI, ob_k1_... = soulbound LOVE.
-            .pq_omni_ml_dsa => "obk1_",
-            .pq_omni_falcon => "obf5_",
-            .pq_omni_dilithium => "obs3_",  // alias — folosim s pt simetrie cu vacation
-            .pq_omni_slh_dsa => "obd5_",
+            // Canon prefixes — must align across chain + UI + audit tools.
+            // See STATUS/MASTER_RULES_PQ_OMNI.md for the single source of truth.
+            .pq_omni_ml_dsa    => "obk1_",  // ML-DSA-87    (FIPS 204)
+            .pq_omni_falcon    => "obf5_",  // Falcon-512   (FIPS 206)
+            .pq_omni_dilithium => "obs3_",  // Dilithium-5
+            .pq_omni_slh_dsa   => "obd5_",  // SLH-DSA-256s (FIPS 205)
             // Hybrid Phase 2 (verifica ECDSA AND PQ) — folosim aceleasi prefixe
             // ca PQ-OMNI; chain-ul distinge prin scheme-num din TX, nu prin prefix.
             // Asta inseamna ca o adresa obk1_... poate primi TX-uri scheme=5
@@ -513,10 +515,29 @@ pub fn verifyOmniSignature(message: []const u8, signature_hex: []const u8, pubke
 }
 
 pub fn verifyLoveSignature(message: []const u8, signature: []const u8, public_key: []const u8) bool {
-    if (public_key.len != pq_crypto.MlDsa87.PUBLIC_KEY_SIZE) return false;
+    if (public_key.len != pq_crypto.MlDsa87.PUBLIC_KEY_SIZE) {
+        std.debug.print("[VERIFY-MLDSA-FAIL] pk_len={d} expected={d}\n",
+            .{ public_key.len, pq_crypto.MlDsa87.PUBLIC_KEY_SIZE });
+        return false;
+    }
     var kp: pq_crypto.MlDsa87 = undefined;
     @memcpy(&kp.public_key, public_key[0..pq_crypto.MlDsa87.PUBLIC_KEY_SIZE]);
-    return kp.verify(message, signature);
+    const ok = kp.verify(message, signature);
+    if (!ok) {
+        var pk16: [32]u8 = undefined;
+        var sig16: [32]u8 = undefined;
+        var msg16: [32]u8 = undefined;
+        const hex = "0123456789abcdef";
+        const pkn = @min(16, public_key.len);
+        for (public_key[0..pkn], 0..) |b, i| { pk16[i*2]=hex[b>>4]; pk16[i*2+1]=hex[b&0xf]; }
+        const sn = @min(16, signature.len);
+        for (signature[0..sn], 0..) |b, i| { sig16[i*2]=hex[b>>4]; sig16[i*2+1]=hex[b&0xf]; }
+        const mn = @min(16, message.len);
+        for (message[0..mn], 0..) |b, i| { msg16[i*2]=hex[b>>4]; msg16[i*2+1]=hex[b&0xf]; }
+        std.debug.print("[VERIFY-MLDSA-FAIL] liboqs rejected: msg_len={d} sig_len={d} pk={s} sig={s} msg={s}\n",
+            .{ message.len, signature.len, pk16[0..pkn*2], sig16[0..sn*2], msg16[0..mn*2] });
+    }
+    return ok;
 }
 
 pub fn verifyFoodSignature(message: []const u8, signature: []const u8, public_key: []const u8) bool {
