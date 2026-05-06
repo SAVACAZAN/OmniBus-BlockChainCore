@@ -1065,6 +1065,35 @@ pub const DnsRegistry = struct {
         return i;
     }
 
+    /// Phase 2: backfill `category` and `registered_years` on legacy entries
+    /// that were saved with v1/v2 layouts (category=.none, registered_years=0).
+    /// Idempotent — safe to call repeatedly. Returns count of migrated entries.
+    ///
+    /// Triggers:
+    ///   - category == .none → derive from TLD via Category.fromTld(tld).
+    ///     Owners can still override later with setcategory.
+    ///   - registered_years == 0 → set to 1 (the legacy default duration).
+    pub fn migrateLegacyEntries(self: *DnsRegistry) usize {
+        var migrated: usize = 0;
+        for (self.entries[0..self.entry_count]) |*e| {
+            if (!e.active) continue;
+            var changed = false;
+            if (e.category == .none) {
+                const c = Category.fromTld(e.getTld());
+                if (c != .none) {
+                    e.category = c;
+                    changed = true;
+                }
+            }
+            if (e.registered_years == 0) {
+                e.registered_years = 1;
+                changed = true;
+            }
+            if (changed) migrated += 1;
+        }
+        return migrated;
+    }
+
     /// Count active (non-expired) entries
     pub fn activeCount(self: *const DnsRegistry, current_block: u64) usize {
         var count: usize = 0;

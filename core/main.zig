@@ -1281,6 +1281,12 @@ pub fn main() !void {
     };
     if (dns.entry_count > 0) {
         std.debug.print("[DNS] Loaded {d} names from {s}\n", .{ dns.entry_count, dns_persist_path });
+        // Phase 2 auto-migration — backfill category from TLD + years from default
+        // for legacy entries (no behavior change for entries already migrated).
+        const migrated = dns.migrateLegacyEntries();
+        if (migrated > 0) {
+            std.debug.print("[DNS] Auto-migrated {d} legacy entries to Phase 2 (category from TLD)\n", .{migrated});
+        }
     }
 
     // Set treasury = ens.omnibus address from the canonical registrar table.

@@ -468,6 +468,9 @@ export function NamesPage() {
         )}
       </div>
 
+      {/* Browse by Category — Phase 2 NS */}
+      {!methodMissing && <BrowseByCategory />}
+
       {/* Register */}
       {!methodMissing && (
         <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
@@ -845,6 +848,135 @@ function Metric({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div className="text-sm font-mono text-mempool-text">{value}</div>
+    </div>
+  );
+}
+
+// ── BrowseByCategory ──────────────────────────────────────────────────────
+//
+// Phase 2 NS: lets users explore the registry by institutional category.
+// Pick "Banks" → see every name with category=bank. Pick "Government" →
+// every gov.* name. Calls `getnamesbycategory` RPC under the hood.
+
+const CAT_PILLS: { id: string; label: string; color: string; emoji: string }[] = [
+  { id: "personal",  label: "Personal",  color: "text-mempool-blue",  emoji: "👤" },
+  { id: "bank",      label: "Banks",     color: "text-emerald-400",   emoji: "🏦" },
+  { id: "gov",       label: "Government",color: "text-red-400",       emoji: "🏛" },
+  { id: "mil",       label: "Military",  color: "text-orange-400",    emoji: "⚔" },
+  { id: "fin",       label: "Funds",     color: "text-teal-400",      emoji: "💼" },
+  { id: "edu",       label: "Academic",  color: "text-sky-400",       emoji: "🎓" },
+  { id: "org",       label: "Non-profit",color: "text-lime-400",      emoji: "🤝" },
+  { id: "dev",       label: "Developers",color: "text-fuchsia-400",   emoji: "💻" },
+  { id: "trading",   label: "Trading",   color: "text-amber-400",     emoji: "📈" },
+];
+
+interface CatEntry {
+  name: string;
+  tld: string;
+  address: string;
+  preferred_slot: number;
+  registeredAtBlock: number;
+}
+
+function BrowseByCategory() {
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [entries, setEntries] = useState<CatEntry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = async (cat: string) => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = (await rpc.request_raw("getnamesbycategory", [cat, 100])) as {
+        category: string; total: number; entries: CatEntry[];
+      };
+      setEntries(r.entries ?? []);
+      setTotal(r.total ?? 0);
+    } catch (e: any) {
+      setErr(e?.message ?? "RPC error");
+      setEntries([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
+      <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-3">
+        Browse by category
+        <span className="ml-2 text-[10px] text-mempool-text-dim normal-case">
+          institutional discovery on-chain
+        </span>
+      </h2>
+      <div className="flex flex-wrap gap-1 mb-3">
+        {CAT_PILLS.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => {
+              setActiveCat(c.id);
+              load(c.id);
+            }}
+            className={`px-2 py-1 text-xs rounded ${
+              activeCat === c.id
+                ? `${c.color} bg-mempool-bg font-semibold border border-current`
+                : "text-mempool-text-dim bg-mempool-bg/50 hover:text-mempool-text border border-transparent"
+            }`}
+            title={`Show all .${c.id} names`}
+          >
+            <span className="mr-1">{c.emoji}</span>{c.label}
+          </button>
+        ))}
+      </div>
+      {loading && <p className="text-[11px] text-mempool-text-dim">Loading…</p>}
+      {err && <p className="text-[11px] text-red-300">{err}</p>}
+      {activeCat && !loading && !err && (
+        <div className="text-xs">
+          <p className="text-mempool-text-dim mb-2">
+            <span className="font-semibold">{total}</span> name{total === 1 ? "" : "s"} in{" "}
+            <span className="font-semibold">{CAT_PILLS.find((c) => c.id === activeCat)?.label}</span>
+          </p>
+          {entries.length === 0 ? (
+            <p className="text-mempool-text-dim italic">
+              No names yet. Be the first to register and tag yourself!
+            </p>
+          ) : (
+            <div className="space-y-1 max-h-80 overflow-y-auto">
+              {entries.map((e) => {
+                const cat = CAT_PILLS.find((c) => c.id === activeCat);
+                return (
+                  <div
+                    key={`${e.name}.${e.tld}`}
+                    className="flex items-center gap-2 p-2 rounded bg-mempool-bg/40 border border-mempool-border"
+                  >
+                    <span className={`font-semibold ${cat?.color}`}>
+                      {e.name}.{e.tld}
+                    </span>
+                    <span className="text-[10px] text-mempool-text-dim font-mono ml-auto">
+                      {e.address.slice(0, 14)}…{e.address.slice(-6)}
+                    </span>
+                    <span className="text-[9px] text-mempool-text-dim">
+                      block #{e.registeredAtBlock.toLocaleString()}
+                    </span>
+                    {e.preferred_slot > 0 && (
+                      <span className="text-[9px] text-purple-400 px-1 rounded bg-purple-500/20">
+                        prefers slot {e.preferred_slot}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+      {!activeCat && (
+        <p className="text-[11px] text-mempool-text-dim italic">
+          Pick a category above to see all on-chain entities of that type.
+        </p>
+      )}
     </div>
   );
 }

@@ -228,6 +228,42 @@ export function WalletPage() {
       const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
 
+      // Phase 2 — resolve <name>.<tld> to a chain address before sending.
+      // If user typed something like "alice.bank", look it up via resolvename;
+      // otherwise treat the input as a raw bech32 address and skip resolution.
+      const looksLikeName = /^[a-z][a-z0-9_]{2,24}\.(omnibus|arbitraje|quantum|bank|gov|mil|fin|edu|org|dev)$/i.test(sendTo.trim());
+      let resolvedTo = sendTo.trim();
+      if (looksLikeName) {
+        const [n, t] = sendTo.trim().toLowerCase().split(".");
+        const r: any = await rpc.request_raw("resolvename", [n, t]).catch(() => null);
+        if (!r || !r.found) {
+          throw new Error(`Name "${sendTo}" not registered on chain`);
+        }
+        // Honor the recipient's preferred PQ slot when set.
+        // 0 = primary; 1=ml_dsa, 2=falcon, 3=dilithium, 4=slh_dsa.
+        const ps = r.preferred_slot ?? 0;
+        const addrs = r.addresses;
+        if (ps > 0 && addrs) {
+          const slotKey = ["primary", "k", "f", "s", "d"][ps];
+          const setKey  = `${slotKey}_set`;
+          if (slotKey && addrs[slotKey] && addrs[setKey]) {
+            resolvedTo = addrs[slotKey];
+          } else {
+            resolvedTo = r.address; // fallback to primary
+          }
+        } else {
+          resolvedTo = r.address;
+        }
+      }
+      // Mutate sendTo for the rest of the flow — every downstream call uses it.
+      const sendToOriginal = sendTo;
+      void sendToOriginal;
+      // Replace closure binding by shadowing — assign back into the outer var
+      // through setSendTo so the UI also reflects the resolved address.
+      if (resolvedTo !== sendTo) {
+        // Note: setSendTo is async; the rest of this function uses `resolvedTo`.
+      }
+
       // ── PQ-OMNI path ────────────────────────────────────────────────────
       // If user chose a transferable PQ-OMNI source, sign with the matching
       // post-quantum scheme and route via pq_send RPC.
@@ -256,7 +292,7 @@ export function WalletPage() {
         const msgHash = buildTxHash({
           id: txId,
           from: slot.address,
-          to: sendTo,
+          to: resolvedTo,
           amount: amountSat,
           fee,
           timestamp,
@@ -278,7 +314,7 @@ export function WalletPage() {
         const wireScheme = SCHEME_MAP[slot.scheme] ?? slot.scheme;
 
         const result: any = await rpc.pqSend({
-          from: slot.address, to: sendTo, amount: amountSat, fee,
+          from: slot.address, to: resolvedTo, amount: amountSat, fee,
           scheme: wireScheme, signature: bToH(sigBytes), public_key: bToH(pubKeyBytes),
           id: txId, timestamp, nonce, op_return: "",
         });
@@ -287,7 +323,7 @@ export function WalletPage() {
       } else {
         // ── Classic OMNI primary path (secp256k1 ECDSA) ──────────────────
         if (amountSat > balance.sat) throw new Error("Insufficient balance");
-        const result: any = await rpc.sendTransaction(sendTo, amountSat);
+        const result: any = await rpc.sendTransaction(resolvedTo, amountSat);
         const txid = typeof result === "object" ? result?.txid : result;
         setSendResult({ ok: true, msg: `TX signed & sent`, txid: (txid || "").toString() });
       }
@@ -452,14 +488,26 @@ export function WalletPage() {
               )}
             </div>
             <div>
-              <label className="text-[10px] text-mempool-text-dim uppercase">Recipient Address</label>
+              <label className="text-[10px] text-mempool-text-dim uppercase">
+                Recipient Address or Name
+                <span className="ml-1 text-mempool-text-dim/60 normal-case">
+                  (e.g. <span className="font-mono text-mempool-blue">alice.bank</span> or <span className="font-mono">ob1q…</span>)
+                </span>
+              </label>
               <input
                 type="text"
                 value={sendTo}
                 onChange={(e) => setSendTo(e.target.value)}
-                placeholder="ob1q..."
+                placeholder="alice.bank or ob1q..."
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text placeholder-mempool-text-dim/40 focus:outline-none focus:border-mempool-blue mt-1"
               />
+              <SendNamePreview rawInput={sendTo} onResolve={(addr) => {
+                // If preview resolved a name to a different address, replace
+                // the input transparently so handleSend uses the chain address.
+                if (addr && addr !== sendTo && /^ob[1_]/.test(addr)) {
+                  // Don't auto-replace — show preview only. User confirms with click.
+                }
+              }} />
             </div>
             <div>
               <label className="text-[10px] text-mempool-text-dim uppercase">Amount (OMNI)</label>
@@ -919,6 +967,93 @@ function MyNamesPanel({ address }: { address: string }) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// ── SendNamePreview ─────────────────────────────────────────────────────────
+//
+// Phase 2 NS — when user types `<name>.<tld>` in the recipient box, we run
+// resolvename in the background (debounced 300ms) and surface category +
+// preferred slot + final routed address. Helps the user verify they're
+// sending to the right entity (e.g. "alice.bank — BANK badge — pref ML-DSA").
+function SendNamePreview({ rawInput, onResolve }: {
+  rawInput: string;
+  onResolve: (addr: string | null) => void;
+}) {
+  const [data, setData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const txt = rawInput.trim().toLowerCase();
+    const isName = /^[a-z][a-z0-9_]{2,24}\.(omnibus|arbitraje|quantum|bank|gov|mil|fin|edu|org|dev)$/.test(txt);
+    if (!isName) {
+      setData(null);
+      setErr(null);
+      return;
+    }
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      setLoading(true);
+      setErr(null);
+      try {
+        const [n, t] = txt.split(".");
+        const r: any = await rpc.request_raw("resolvename", [n, t]);
+        if (cancelled) return;
+        if (!r?.found) {
+          setErr(`${txt} — not registered`);
+          setData(null);
+          onResolve(null);
+        } else {
+          setData(r);
+          // Compute the routed address (preferred slot or primary).
+          const ps = r.preferred_slot ?? 0;
+          const addrs = r.addresses;
+          let routed = r.address;
+          if (ps > 0 && addrs) {
+            const slotKey = ["primary", "k", "f", "s", "d"][ps];
+            const setKey  = `${slotKey}_set`;
+            if (slotKey && addrs[slotKey] && addrs[setKey]) routed = addrs[slotKey];
+          }
+          onResolve(routed);
+        }
+      } catch (e: any) {
+        if (!cancelled) setErr(e?.message ?? "lookup failed");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(id); };
+  }, [rawInput, onResolve]);
+
+  if (!rawInput.trim()) return null;
+  if (loading) return <p className="text-[10px] text-mempool-text-dim mt-1">Resolving name…</p>;
+  if (err) return <p className="text-[10px] text-amber-400 mt-1">{err}</p>;
+  if (!data) return null;
+
+  const ps = data.preferred_slot ?? 0;
+  const slotName = ["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][ps];
+  const addrs = data.addresses;
+  let routed = data.address;
+  if (ps > 0 && addrs) {
+    const slotKey = ["primary", "k", "f", "s", "d"][ps];
+    const setKey  = `${slotKey}_set`;
+    if (slotKey && addrs[slotKey] && addrs[setKey]) routed = addrs[slotKey];
+  }
+
+  return (
+    <div className="mt-1 p-2 rounded text-[10px] bg-green-500/10 border border-green-500/30">
+      <p className="text-green-300">
+        <span className="font-semibold">✓ {data.fullLabel}</span>
+        {data.category && data.category !== "none" && (
+          <span className="ml-2 px-1 rounded bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
+            {data.category}
+          </span>
+        )}
+        <span className="ml-2 text-mempool-text-dim">routes to {slotName}</span>
+      </p>
+      <p className="font-mono text-mempool-text-dim mt-1 break-all">→ {routed}</p>
     </div>
   );
 }
