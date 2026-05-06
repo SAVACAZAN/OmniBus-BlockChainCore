@@ -333,9 +333,18 @@ pub fn build(b: *std.Build) void {
     const test_bench_step = b.step("test-bench", "Test benchmark + metrics");
     test_bench_step.dependOn(&addTest(b, "benchmark", "core/benchmark.zig", target, optimize).step);
 
-    // ── Tests: PQ crypto pure Zig (fara liboqs) ───────────────────────────────
-    const test_pq_step = b.step("test-pq", "Test PQ crypto pure Zig + wallet (necesita liboqs pt wallet)");
-    test_pq_step.dependOn(&addTest(b, "pq-crypto", "core/pq_crypto.zig", target, optimize).step);
+    // ── Tests: PQ crypto cu liboqs ───────────────────────────────────────────
+    // pq_crypto.zig cheama liboqs C bindings via @cImport — necesita link
+    const test_pq_crypto = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/pq_crypto.zig"),
+            .target = target, .optimize = optimize,
+        }),
+    });
+    addOqs(test_pq_crypto, use_oqs);
+    test_pq_crypto.root_module.link_libc = true;
+    const test_pq_step = b.step("test-pq", "Test PQ crypto cu liboqs (real FIPS 203/204/205/206)");
+    test_pq_step.dependOn(&b.addRunArtifact(test_pq_crypto).step);
 
     // ── Tests: wallet (necesita liboqs) ──────────────────────────────────────
     const test_pq_wallet = b.addTest(.{

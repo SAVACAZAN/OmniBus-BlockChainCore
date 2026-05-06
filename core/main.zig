@@ -38,6 +38,7 @@ fn acquireSingleInstanceLock() void {
         std.mem.doNotOptimizeAway(&file);
     }
 }
+const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
 const rpc_mod         = @import("rpc_server.zig");
 const wallet_mod      = @import("wallet.zig");
@@ -55,6 +56,7 @@ const metachain_mod   = @import("metachain.zig");
 const shard_mod       = @import("shard_coordinator.zig");
 const miner_wallet_mod = @import("miner_wallet.zig");
 const benchmark_mod    = @import("benchmark.zig");
+const faucet_mod       = @import("faucet.zig");
 
 const Blockchain           = blockchain_mod.Blockchain;
 const Wallet               = wallet_mod.Wallet;
@@ -847,6 +849,11 @@ pub fn main() !void {
     std.debug.print("[CLOCK] TSC calibrated: {d} Hz ({d:.3} GHz)\n",
         .{ g_tsc_freq, @as(f64, @floatFromInt(g_tsc_freq)) / 1e9 });
 
+    // Initialize liboqs (CPU feature detection, PQ crypto runtime).
+    // MUST run before any pq_crypto.* call (wallet derivation, TX verify).
+    pq_crypto_mod.init();
+    std.debug.print("[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready\n", .{});
+
     // Single-instance lock dezactivat — permite multiple instante pe acelasi PC
     // pentru testare retea cu N mineri. In productie, reactivati acquireSingleInstanceLock().
     // acquireSingleInstanceLock();
@@ -1007,6 +1014,7 @@ pub fn main() !void {
         std.debug.print("[DB] Restore failed ({}) — pornire de la genesis\n", .{err});
     };
 
+
     // Attach persistent database to blockchain for auto-save support
     bc.persistent_db = &pbc;
     bc.db_path = db_path;
@@ -1024,6 +1032,24 @@ pub fn main() !void {
     bc.recalculateFromHeight(0) catch |err| {
         std.debug.print("[DB] UTXO rebuild after restore failed: {}\n", .{err});
     };
+    // Faucet starts at 0 — funded organically by mining donations, community top-ups,
+    // and miner auto-refill (see FAUCET_REFILL_THRESHOLD_SAT in faucetRefillLoop).
+    // No genesis-allocated supply: every OMNI in the faucet was mined by someone first.
+
+    // ── pq_identity_map persistence ──────────────────────────────────────────
+    // The chain's pq_attest registry survives node restarts via a JSONL sidecar.
+    // Without this, every restart wipes all registered identities until each
+    // user re-attests — bad UX and breaks first-claim semantics.
+    {
+        const pq_path = std.fmt.allocPrint(allocator, "data/{s}/pq_identities.jsonl", .{short_name}) catch null;
+        if (pq_path) |p| {
+            defer allocator.free(p);
+            blockchain_mod.loadPqIdentitiesFromDisk(&bc, p) catch |err| {
+                std.debug.print("[PQ-IDENT] load failed: {} (starting fresh)\n", .{err});
+                blockchain_mod.pqPersistSetPath(p);
+            };
+        }
+    }
 
     // ── PHASE C.4 — open the Bitcoin-style chainstate KV ──────────────
     //
