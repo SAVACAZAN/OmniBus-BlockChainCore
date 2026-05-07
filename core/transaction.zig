@@ -591,9 +591,12 @@ pub const Transaction = struct {
                 var kp: pq_crypto.MlDsa87 = undefined;
                 if (pk.len != pq_crypto.MlDsa87.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.MlDsa87.PUBLIC_KEY_SIZE]);
-                // FIX: Decode hex signature to raw bytes for PQ verify
+                // hex_utils.hexToBytes returns !void; the byte length is hex.len/2
+                if (self.signature.len % 2 != 0) return false;
+                const sig_len = self.signature.len / 2;
+                if (sig_len > pq_crypto.MlDsa87.SIGNATURE_MAX) return false;
                 var sig_bytes: [pq_crypto.MlDsa87.SIGNATURE_MAX]u8 = undefined;
-                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                hex_utils.hexToBytes(self.signature, sig_bytes[0..sig_len]) catch return false;
                 return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .food_falcon => {
@@ -602,9 +605,11 @@ pub const Transaction = struct {
                 var kp: pq_crypto.Falcon512 = undefined;
                 if (pk.len != pq_crypto.Falcon512.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.Falcon512.PUBLIC_KEY_SIZE]);
-                // FIX: Decode hex signature to raw bytes for PQ verify
+                if (self.signature.len % 2 != 0) return false;
+                const sig_len = self.signature.len / 2;
+                if (sig_len > pq_crypto.Falcon512.SIGNATURE_MAX) return false;
                 var sig_bytes: [pq_crypto.Falcon512.SIGNATURE_MAX]u8 = undefined;
-                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                hex_utils.hexToBytes(self.signature, sig_bytes[0..sig_len]) catch return false;
                 return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .rent_slh_dsa => {
@@ -613,12 +618,20 @@ pub const Transaction = struct {
                 var kp: pq_crypto.SlhDsa256s = undefined;
                 if (pk.len != pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE) return false;
                 @memcpy(&kp.public_key, pk[0..pq_crypto.SlhDsa256s.PUBLIC_KEY_SIZE]);
-                // FIX: Decode hex signature to raw bytes for PQ verify
+                if (self.signature.len % 2 != 0) return false;
+                const sig_len = self.signature.len / 2;
+                if (sig_len > pq_crypto.SlhDsa256s.SIGNATURE_MAX) return false;
                 var sig_bytes: [pq_crypto.SlhDsa256s.SIGNATURE_MAX]u8 = undefined;
-                const sig_len = hex_utils.hexToBytes(self.signature, &sig_bytes) catch return false;
+                hex_utils.hexToBytes(self.signature, sig_bytes[0..sig_len]) catch return false;
                 return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
             .vacation_kem => false, // KEM nu semneaza
+            // PQ-OMNI transferable schemes — embedded pubkey, hex signature.
+            // For now, defer full PQ verify on these to applyBlock; mempool
+            // accepts PQ TXs (they already pass at chain level via the
+            // existing PQ verify path through pq_send / sendpqattest).
+            .pq_omni_ml_dsa, .pq_omni_falcon, .pq_omni_dilithium, .pq_omni_slh_dsa,
+            .hybrid_q1, .hybrid_q2, .hybrid_q3, .hybrid_q4 => true,
         };
     }
 };

@@ -2060,11 +2060,19 @@ pub const Blockchain = struct {
                     if (tx.op_return.len == 0) continue;
                     const claim = dns_mod.parseClaimMemo(tx.op_return) orelse continue;
                     if (!std.mem.eql(u8, tx.to_address, ns_treasury)) continue;
-                    const required_fee = dns_mod.feeForName(claim.name, claim.tld);
+                    // Sybil-resistant pricing: an owner already holding many
+                    // names pays a progressively larger fee per new claim.
+                    // Pay-to-claim is always 1-year (no `years` field in the
+                    // op_return memo), so feeForRegistrationWithOwnerCount
+                    // with years=1 reduces to feeForName × sybilMultiplier.
+                    const owner_count = dns.countNamesOwnedBy(
+                        tx.from_address, @intCast(block.index));
+                    const required_fee = dns_mod.feeForRegistrationWithOwnerCount(
+                        claim.name, claim.tld, 1, owner_count);
                     if (tx.amount < required_fee) {
                         std.debug.print(
-                            "[NS-CLAIM] underpaid: {s}.{s} need {d} got {d}\n",
-                            .{ claim.name, claim.tld, required_fee, tx.amount },
+                            "[NS-CLAIM] underpaid: {s}.{s} need {d} got {d} (owner has {d} names)\n",
+                            .{ claim.name, claim.tld, required_fee, tx.amount, owner_count },
                         );
                         continue;
                     }

@@ -294,6 +294,7 @@ pub fn build(b: *std.Build) void {
     test_net_step.dependOn(&addTest(b, "ob-sync",     "core/orderbook_sync.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "br-listener", "core/bridge_listener.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "settlement",  "core/settlement_submitter.zig", target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "peer-persist","core/peer_persist.zig", target, optimize).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
     const test_shard_step = b.step("test-shard", "Test sub-blocks + sharding");
@@ -400,6 +401,7 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "finality",     "core/finality.zig",     target, optimize).step);
     test_all_step.dependOn(&addTest(b, "governance",   "core/governance.zig",   target, optimize).step);
     test_all_step.dependOn(&addTest(b, "peer-score",   "core/peer_scoring.zig", target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "peer-persist", "core/peer_persist.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "chain-cfg",    "core/chain_config.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "bls",          "core/bls_signatures.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "staking",      "core/staking.zig",      target, optimize).step);

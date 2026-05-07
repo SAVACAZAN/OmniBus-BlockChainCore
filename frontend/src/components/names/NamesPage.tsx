@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { refreshNameCache } from "../../api/use-names";
+import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
 
@@ -56,6 +56,10 @@ type ListEntry = {
   fullLabel?: string;
   address: string;
   registeredAtBlock: number;
+  // Phase 2 — present on listnames responses from Phase-2 nodes; older nodes
+  // omit it. UI guards on Number.isFinite before using.
+  expiresAtBlock?: number;
+  registered_years?: number;
 };
 
 type ListResp = {
@@ -81,6 +85,12 @@ type EnsFeeResp = {
   enforcement: boolean;
   cost_omnibus_omni: number;
   cost_arbitraje_omni: number;
+  // Sybil-resistant fee fields (added 2026-05-07). owner_count = how many
+  // names the queried address already holds; sybil_multiplier_milli is the
+  // resulting fee multiplier in milli-units (1000 = 1.00×). Older nodes
+  // omit these fields → treat as 0 / 1000.
+  owner_count?: number;
+  sybil_multiplier_milli?: number;
 };
 
 // Builds a {tld -> fee in OMNI} map from the ns_listTlds RPC. Falls back
@@ -104,6 +114,33 @@ type YearTier = {
   multiplier: number;       // e.g. 1.000, 1.900, 8.000, 55.000
   per_year_pct: number;     // 100 = 1.00x/yr, 55 = best deal
 };
+
+// Phase 2 lifecycle — render a coloured "expires in N days" pill.
+// Rules: green > 180d, amber 30..180d, red < 30d, magenta = in grace.
+// Caller passes `daysRemaining` (Infinity = no expiry data; we hide).
+function ExpiryBadge({ days, inGrace }: { days: number; inGrace?: boolean }) {
+  if (inGrace) {
+    return (
+      <span className="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-fuchsia-500/20 text-fuchsia-300 uppercase tracking-wider">
+        in grace · renew now
+      </span>
+    );
+  }
+  if (!Number.isFinite(days)) return null;
+  let cls = "bg-green-500/20 text-green-300";
+  let label = `${days}d left`;
+  if (days < 30) {
+    cls = "bg-red-500/20 text-red-300";
+    label = `${days}d left · renew`;
+  } else if (days < 180) {
+    cls = "bg-amber-500/20 text-amber-300";
+  }
+  return (
+    <span className={`ml-2 px-1.5 py-0.5 text-[10px] rounded uppercase tracking-wider ${cls}`}>
+      {label}
+    </span>
+  );
+}
 
 // Hardcoded fallback if ns_yearTiers RPC isn't shipped on this node.
 // Mirrors handleNsYearTiers in core/rpc_server.zig.
@@ -152,6 +189,15 @@ export function NamesPage() {
   const [error, setError] = useState<string | null>(null);
   const [methodMissing, setMethodMissing] = useState(false);
 
+  // Phase 2 lifecycle — drives expiry badges on each row.
+  // Polls `getblockchaininfo` so the "expires in N days" math is fresh.
+  const [currentBlock, setCurrentBlock] = useState<number>(0);
+  // Modal state for the Renew flow.
+  const [renewTarget, setRenewTarget] = useState<ListEntry | null>(null);
+  // The user's expiring names — used to highlight rows that need attention.
+  const expiringNames = useExpiringNames(wallet?.address);
+  const expiringByLabel = new Set(expiringNames.map((e) => e.fullLabel));
+
   const refresh = async () => {
     try {
       const r = (await rpc.request_raw("listnames", [{ limit: 200 }])) as ListResp;
@@ -175,11 +221,31 @@ export function NamesPage() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  // Track chain tip so the per-row "expires in N days" badge stays fresh.
+  // 30s is plenty — block time is 10s but UI rounds to days anyway.
+  useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r: any = await rpc.request_raw("getblockchaininfo", []);
+        const h = r?.height ?? r?.blocks ?? r?.chain_height;
+        if (!cancelled && typeof h === "number") setCurrentBlock(h);
+      } catch { /* keep stale */ }
+    };
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const loadFee = async () => {
       try {
-        const r = (await rpc.request_raw("getensfee", [])) as EnsFeeResp;
+        // Pass connected wallet address so the node returns the actual
+        // Sybil-adjusted multiplier this user faces (3× at 10 names, etc.).
+        // Empty/missing wallet → multiplier defaults to 1.00× server-side.
+        const params = wallet?.address ? [wallet.address] : [];
+        const r = (await rpc.request_raw("getensfee", params)) as EnsFeeResp;
         if (!cancelled) setEnsFee(r);
       } catch {
         // silent fail — fee info is optional
@@ -205,7 +271,10 @@ export function NamesPage() {
     loadTlds();
     loadYears();
     return () => { cancelled = true; };
-  }, []);
+    // Re-fetch the fee when the connected wallet changes — the Sybil
+    // multiplier is per-owner, so the displayed price needs to follow
+    // whichever address the user is registering from.
+  }, [wallet?.address]);
 
   const validateName = (n: string): string | null => {
     let clean = n.toLowerCase().trim();
@@ -838,16 +907,30 @@ export function NamesPage() {
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Name</th>
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Address</th>
                 <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-32">Block</th>
+                <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-40">Expires</th>
+                <th className="text-right px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-24">Action</th>
               </tr>
             </thead>
             <tbody>
               {list.entries.map((e) => {
                 const tld = (e.tld || "omnibus") as Tld;
                 const colorClass = TLD_INFO[tld]?.color || "text-mempool-blue";
+                const isMine = !!wallet && wallet.address === e.address;
+                const fullLabel = e.fullLabel || `${e.name}.${tld}`;
+                const inGrace = expiringByLabel.has(fullLabel) &&
+                  expiringNames.find((x) => x.fullLabel === fullLabel)?.in_grace === true;
+                const days = currentBlock > 0 && Number.isFinite(e.expiresAtBlock)
+                  ? daysUntilExpiry({ expiresAtBlock: e.expiresAtBlock as number }, currentBlock)
+                  : Infinity;
                 return (
                 <tr key={`${e.name}.${tld}`} className="border-b border-mempool-border/40 hover:bg-mempool-bg/30">
                   <td className={`px-3 py-2 font-mono ${colorClass}`}>
                     {e.name}<span className="text-mempool-text-dim">.{tld}</span>
+                    {isMine && (
+                      <span className="ml-2 text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
+                        yours
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-xs">
                     <button
@@ -860,6 +943,25 @@ export function NamesPage() {
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">
                     #{e.registeredAtBlock.toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">
+                    {Number.isFinite(e.expiresAtBlock) && (
+                      <>#{(e.expiresAtBlock as number).toLocaleString()}</>
+                    )}
+                    <ExpiryBadge days={days} inGrace={inGrace} />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {isMine ? (
+                      <button
+                        onClick={() => setRenewTarget(e)}
+                        className="px-2 py-1 text-[10px] rounded bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider"
+                        title="Extend the registration period"
+                      >
+                        Renew
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-mempool-text-dim">—</span>
+                    )}
                   </td>
                 </tr>
                 );
@@ -880,6 +982,22 @@ export function NamesPage() {
           omnibus, admin, root (cannot be registered)
         </p>
       </div>
+
+      {renewTarget && (
+        <RenewModal
+          entry={{
+            name: renewTarget.name,
+            tld: renewTarget.tld || "omnibus",
+            address: renewTarget.address,
+            registeredAtBlock: renewTarget.registeredAtBlock,
+          }}
+          ensFee={ensFee}
+          tldList={tldList}
+          yearTiers={yearTiers}
+          onClose={() => setRenewTarget(null)}
+          onRenewed={() => { void refresh(); }}
+        />
+      )}
     </div>
   );
 }
@@ -998,6 +1116,152 @@ function TreasuryStatusCard() {
           to register a name. The treasury agent immediately recycles the OMNI
           into OMNI/USDC grid orders — funds never leave the ecosystem.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// RenewModal — Phase 2 lifecycle. Owner picks a years tier (same 9 tiers
+// as registration), sees the fee preview, then calls `renewname` RPC.
+// Mirrors the register flow's two-step: send fee TX with op_return memo
+// → call renewname with the resulting txid + years.
+//
+// Props:
+//   entry — the row the user clicked Renew on (name + tld + current expiry)
+//   ensFee / tldList / yearTiers — same data the register form uses, passed
+//     down to avoid re-fetching per modal open
+//   onClose / onRenewed — modal lifecycle callbacks
+// ─────────────────────────────────────────────────────────────────────────
+
+type RenewModalProps = {
+  entry: { name: string; tld: string; address: string; registeredAtBlock: number };
+  ensFee: EnsFeeResp | null;
+  tldList: TldFeeEntry[] | null;
+  yearTiers: YearTier[];
+  onClose: () => void;
+  onRenewed: () => void;
+};
+
+function RenewModal({ entry, ensFee, tldList, yearTiers, onClose, onRenewed }: RenewModalProps) {
+  const [years, setYears] = useState<number>(1);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; message: string; txid?: string } | null>(null);
+
+  const tld = entry.tld as Tld;
+  const baseFeeOmni = feeMapFromList(tldList, ensFee)[tld] ?? 5;
+  const tier = yearTiers.find((t) => t.years === years) ?? yearTiers[0];
+  const feeOmni = baseFeeOmni * tier.multiplier;
+
+  const onRenew = async () => {
+    setResult(null);
+    if (!ensFee?.treasury) {
+      setResult({ ok: false, message: "Treasury not available — node not ready" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const feeSat = Math.floor(feeOmni * 1e9);
+      // Same two-step as register: fee TX first (so renewal also leaves an
+      // on-chain trace), then renewname with the resulting txid + years.
+      setResult({ ok: true, message: `Step 1/2: sending ${feeOmni.toFixed(3)} OMNI renewal fee…` });
+      const feeResp: any = await rpc.request_raw("sendtransaction", [
+        ensFee.treasury, feeSat, 0, 0,
+      ]);
+      const txid: string = (typeof feeResp === "string" ? feeResp : feeResp?.txid) || "";
+      if (!txid) throw new Error("Fee TX did not return a txid");
+
+      setResult({ ok: true, message: `Step 2/2: extending ${entry.name}.${entry.tld} by ${years}y…` });
+      // Renewname reads `name`/`tld` from positional 0/1 OR keyed; everything
+      // else (fee_txid, years, signature, nonce, publicKey) is keyed only.
+      // Owner is read from the existing on-chain entry, no need to send it.
+      const r: any = await rpc.request_raw("renewname", [
+        { name: entry.name, tld: entry.tld, fee_txid: txid, years },
+      ]);
+      if (r && (r.new_expires_block || r.added_years != null)) {
+        setResult({
+          ok: true,
+          message: `Renewed +${years}y → total ${r.registered_years}y, expires #${(r.new_expires_block ?? 0).toLocaleString()}. Fee TX:`,
+          txid,
+        });
+        refreshNameCache();
+        // Give the user a beat to read the success message.
+        setTimeout(() => { onRenewed(); onClose(); }, 1800);
+      } else {
+        setResult({ ok: false, message: "Unknown response from node" });
+      }
+    } catch (e: any) {
+      setResult({ ok: false, message: e?.message || "Renewal failed" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl shadow-2xl max-w-md w-full p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-mempool-text">
+            Renew <span className={TLD_INFO[tld]?.color ?? "text-mempool-blue"}>
+              {entry.name}.{entry.tld}
+            </span>
+          </h2>
+          <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text">×</button>
+        </div>
+
+        <p className="text-[11px] text-mempool-text-dim">
+          Extend the registration. Fee scales with the years tier exactly like
+          first-time registration — longer commits get a better per-year rate.
+        </p>
+
+        <div className="flex flex-wrap gap-1">
+          {yearTiers.map((t) => {
+            const total = baseFeeOmni * t.multiplier;
+            const perYear = total / t.years;
+            const isSel = years === t.years;
+            return (
+              <button
+                key={t.years}
+                onClick={() => setYears(t.years)}
+                className={`px-2 py-1 rounded text-[11px] flex flex-col items-center min-w-[60px] ${
+                  isSel ? "bg-mempool-blue text-white font-semibold" : "bg-mempool-bg text-mempool-text-dim hover:text-mempool-text"
+                }`}
+                title={`+${t.years}y · ${total.toFixed(3)} OMNI · ${perYear.toFixed(3)}/yr`}
+              >
+                <span className="font-semibold">+{t.years}y</span>
+                <span className="text-[10px]">{perYear.toFixed(3)}/yr</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-3 rounded border border-mempool-border bg-mempool-bg text-xs">
+          <p className="text-mempool-text-dim">
+            Total fee: <span className="text-mempool-text font-semibold">{feeOmni.toFixed(3)} OMNI</span>
+            <span className="text-mempool-text-dim ml-2">
+              (base {baseFeeOmni} × {tier.multiplier.toFixed(3)})
+            </span>
+          </p>
+        </div>
+
+        {result && (
+          <div className={`p-3 rounded border text-sm ${
+            result.ok ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"
+          }`}>
+            {result.message}
+            {result.txid && (
+              <> <TxHashLink txid={result.txid} truncate={{ left: 14, right: 8 }} /></>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={onRenew}
+          disabled={busy}
+          className="w-full bg-mempool-blue hover:bg-mempool-blue/80 disabled:bg-gray-700 text-white font-semibold rounded py-2 text-sm transition-colors"
+        >
+          {busy ? "Renewing…" : `Pay fee + renew +${years}y`}
+        </button>
       </div>
     </div>
   );

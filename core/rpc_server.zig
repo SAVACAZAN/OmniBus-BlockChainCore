@@ -2922,7 +2922,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "ns_resolveforsend")) return handleResolveForSend(body, ctx, id);
     if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
     if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
-    if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(ctx, id);
+    if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(body, ctx, id);
     if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
     if (std.mem.eql(u8, method, "ns_yearTiers"))     return handleNsYearTiers(ctx, id);
     if (std.mem.eql(u8, method, "ns_stats"))         return handleNsStats(ctx, id);
@@ -3788,7 +3788,11 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
 
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const required_fee = dns_mod.feeForRegistration(name, tld, years);
+    // Sybil-resistant fee: scales with how many names `owner` already holds
+    // (cheap for first-time registrants, progressively expensive for bulk
+    // squatters). Owner count snapshotted at current_block, before this TX.
+    const owner_count = dns.countNamesOwnedBy(owner, current_block);
+    const required_fee = dns_mod.feeForRegistrationWithOwnerCount(name, tld, years, owner_count);
 
     // Phase 1: signature verification when signed_required is true.
     const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
@@ -4132,21 +4136,38 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     return json.toOwnedSlice();
 }
 
-fn handleGetEnsFee(ctx: *ServerCtx, id: u64) ![]u8 {
+fn handleGetEnsFee(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     // Name registration PRICE — same on every chain. This is what the user
     // pays to claim the name (think domain-registrar pricing, not gas fee).
     // The TX-level network fee is separate and tiny (TX_MIN_FEE_SAT).
+    //
+    // Optional `owner_address` (param[0] or key) — when provided, returns
+    // the Sybil progressive multiplier the owner currently faces (1.0× for
+    // 0 names, 2.0× at 5 names, 3.0× at 10, etc.). Without it, multiplier
+    // defaults to 1.0× (base price). Frontend wallet UI passes the
+    // connected address so the displayed price matches what the chain
+    // will actually charge.
     if (ctx.dns == null) {
         return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10,\"owner_count\":0,\"sybil_multiplier_milli\":1000}}}}",
             .{id});
     }
     const dns = ctx.dns.?;
     const treasury = dns.getTreasury();
+
+    var owner_count: usize = 0;
+    var multiplier_milli: u64 = 1000;
+    if (extractArrayStr(body, 0) orelse extractStr(body, "owner_address")) |owner_addr| {
+        if (owner_addr.len > 0) {
+            const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+            owner_count = dns.countNamesOwnedBy(owner_addr, current_block);
+            multiplier_milli = dns_mod.sybilFeeMultiplierMilli(owner_count);
+        }
+    }
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10}}}}",
-        .{ id, treasury, dns.fee_enforcement });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10,\"owner_count\":{d},\"sybil_multiplier_milli\":{d}}}}}",
+        .{ id, treasury, dns.fee_enforcement, owner_count, multiplier_milli });
 }
 
 /// ns_listTlds — read-only. Returneaza toate TLD-urile permise + fee-uri

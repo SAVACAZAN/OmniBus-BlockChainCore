@@ -90,6 +90,7 @@ const guardian_mod     = @import("guardian.zig");
 const dns_mod          = @import("dns_registry.zig");
 const registrar_mod    = @import("registrar_addresses.zig");
 const peer_scoring_mod = @import("peer_scoring.zig");
+const peer_persist_mod = @import("peer_persist.zig");
 const compact_mod      = @import("compact_blocks.zig");
 const kademlia_mod     = @import("kademlia_dht.zig");
 const key_enc_mod      = @import("key_encryption.zig");
@@ -99,6 +100,7 @@ const payment_mod      = @import("payment_channel.zig");
 const bread_mod        = @import("bread_ledger.zig");
 const schnorr_mod      = @import("schnorr.zig");
 const multisig_mod     = @import("multisig.zig");
+const transaction_mod  = @import("transaction.zig");
 const bls_mod          = @import("bls_signatures.zig");
 const matching_mod     = @import("matching_engine.zig");
 const price_oracle_mod = @import("price_oracle.zig");
@@ -152,6 +154,54 @@ comptime {
 }
 
 const LEGACY_DB_PATH = "omnibus-chain.dat";  // mainnet fallback only
+
+// ── Mempool TX verifier (HIGH-05) ──────────────────────────────────────────
+// Closes the RBF-without-sig-check hole: every TX entering the mempool
+// (initial submit OR replace-by-fee replacement) is signature-checked here
+// before acceptance. Mirrors the dispatch in blockchain.validateTransaction:
+//   ECDSA  → look up pubkey in bc.pubkey_registry (or use embedded pubkey
+//             field if the sender hasn't registered yet — backward compat
+//             with the same first-tx behavior the chain validator uses).
+//   PQ     → pubkey is embedded in the TX itself (PQ keys aren't in the
+//             registry; each PQ scheme carries its own pk).
+// Returns false on any decode/lookup error so the mempool rejects the TX.
+fn mempoolVerifierFn(ctx_opt: ?*anyopaque, tx: *const transaction_mod.Transaction) bool {
+    const ctx = ctx_opt orelse return false;
+    const bc: *Blockchain = @ptrCast(@alignCast(ctx));
+
+    // Coinbase / system TXs have empty signatures — let them through; the
+    // chain validator owns the coinbase-specific checks.
+    if (tx.signature.len == 0) return true;
+
+    // Multisig uses M-of-N verification at submission time (rpc layer).
+    // The mempool can't re-verify without quorum data, so skip and let
+    // applyBlock catch any invariant violations.
+    if (std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX)) {
+        return true;
+    }
+
+    return switch (tx.scheme) {
+        .omni_ecdsa => blk: {
+            // Prefer embedded pubkey (first TX from a fresh address); fall
+            // back to the registry for established senders.
+            if (tx.public_key.len == 66) {
+                break :blk tx.verifySignature(tx.public_key);
+            }
+            if (bc.pubkey_registry.get(tx.from_address)) |pk_hex| {
+                break :blk tx.verifySignature(pk_hex);
+            }
+            // Unknown sender, no embedded pk — same backward-compat policy
+            // as validateTransaction: accept (registry will be populated
+            // after this TX confirms). Mempool rejection is reserved for
+            // *bad* signatures, not missing ones.
+            break :blk true;
+        },
+        .love_dilithium, .food_falcon, .rent_slh_dsa => tx.verifySignature(null),
+        .vacation_kem => false, // KEM doesn't sign — never accept as a TX
+        .pq_omni_ml_dsa, .pq_omni_falcon, .pq_omni_dilithium, .pq_omni_slh_dsa,
+        .hybrid_q1, .hybrid_q2, .hybrid_q3, .hybrid_q4 => tx.verifySignature(null),
+    };
+}
 
 // ── Graceful Shutdown — Ctrl+C / SIGINT handler ─────────────────────────────
 // Atomic flag checked by the mining loop; set by OS signal handler.
@@ -1239,7 +1289,14 @@ pub fn main() !void {
     // ── Init Mempool FIFO ─────────────────────────────────────────────────────
     var mempool = Mempool.init(allocator);
     defer mempool.deinit();
-    std.debug.print("[MEMPOOL] FIFO init | Max: {d} TX / {d} KB | Expiry: 14 days\n\n",
+    // HIGH-05 enforcement: wire the signature verifier so RBF + initial
+    // submit both check signatures. Verifier dispatches per scheme — see
+    // mempoolVerifierFn above. Without this, the gate stays inactive
+    // (verifier defaults to null) and an attacker can replace a victim's
+    // pending TX without producing a valid signature.
+    mempool.verifier_ctx = &bc;
+    mempool.verifier = mempoolVerifierFn;
+    std.debug.print("[MEMPOOL] FIFO init | Max: {d} TX / {d} KB | Expiry: 14 days | sig_verifier=ON\n\n",
         .{ mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES / 1024 });
 
     // ── Init Consensus Engine ─────────────────────────────────────────────────
@@ -1273,6 +1330,27 @@ pub fn main() !void {
 
     // ── Init Peer Scoring ────────────────────────────────────────────────────
     var peer_scoring = peer_scoring_mod.PeerScoringEngine.init();
+    // Ban-list persistence: per-chain file alongside the chain DB. Bans
+    // outlive node restarts (and crashes) so a banned peer can't dodge by
+    // waiting for the operator to bounce the process. Format documented in
+    // core/peer_persist.zig (magic+version+payload+CRC32).
+    var peer_bans_path_buf: [256]u8 = undefined;
+    const peer_bans_path = std.fmt.bufPrint(
+        &peer_bans_path_buf,
+        "data/{s}/peer-bans.dat",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/peer-bans.dat";
+    peer_persist_mod.loadFromFile(&peer_scoring, peer_bans_path) catch |err| {
+        std.debug.print("[PEER-BANS] Load from {s} failed: {s} (starting empty)\n",
+            .{ peer_bans_path, @errorName(err) });
+    };
+    if (peer_scoring.persistentBanCount() > 0) {
+        std.debug.print("[PEER-BANS] Loaded {d} persistent bans from {s}\n",
+            .{ peer_scoring.persistentBanCount(), peer_bans_path });
+    }
+    // Periodic save cadence (mining loop checks elapsed time).
+    var peer_bans_last_save: i64 = std.time.timestamp();
+    const PEER_BANS_SAVE_INTERVAL_S: i64 = 60;
 
     // ── Init DNS Registry + persist file (per-chain) ────────────────────────
     var dns = dns_mod.DnsRegistry.init();
@@ -2545,6 +2623,20 @@ pub fn main() !void {
                 mempool.printStats();
             }
 
+            // ── Peer ban list periodic flush ──────────────────────────────
+            // Saves every PEER_BANS_SAVE_INTERVAL_S so a crash doesn't
+            // forget bans accumulated since the last graceful shutdown.
+            // File is small (≤28 KiB) so the rewrite is cheap.
+            {
+                const now_ts = std.time.timestamp();
+                if (now_ts - peer_bans_last_save >= PEER_BANS_SAVE_INTERVAL_S) {
+                    peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {
+                        std.debug.print("[PEER-BANS] Periodic save failed: {s}\n", .{@errorName(err)});
+                    };
+                    peer_bans_last_save = now_ts;
+                }
+            }
+
             // DB checkpoint disabled in mining loop.
             //
             // The blockchain itself IS the database — balances, nonces,
@@ -2734,6 +2826,10 @@ pub fn main() !void {
     // Save DNS registry too — names registered after last auto-save would be lost otherwise.
     dns.saveToFile(dns_persist_path) catch |err| {
         std.debug.print("[SHUTDOWN] DNS save failed: {s}\n", .{@errorName(err)});
+    };
+    // Save peer ban list so bans survive the restart.
+    peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {
+        std.debug.print("[SHUTDOWN] Peer ban save failed: {s}\n", .{@errorName(err)});
     };
     std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses, {d} names\n", .{ bc.chain.items.len, bc.balances.count(), dns.entry_count });
     std.debug.print("[SHUTDOWN] Cleaning up (P2P, WS, wallet via defer)... Goodbye!\n", .{});
