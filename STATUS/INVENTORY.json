@@ -1,15 +1,9 @@
 {
   "rpc": {
     "total": 176,
-    "implemented": 169,
+    "implemented": 175,
     "stubs": [
-      "channelpay",
-      "closechannel",
-      "createmultisig",
-      "generatewallet",
-      "getchannels",
-      "openchannel",
-      "sendmultisig"
+      "generatewallet"
     ],
     "by_namespace": {
       "Agents": [
@@ -383,9 +377,9 @@
     "scheme_count": 13
   },
   "modules": {
-    "module_count": 124,
-    "total_loc": 77569,
-    "total_pub_fn": 178,
+    "module_count": 125,
+    "total_loc": 79602,
+    "total_pub_fn": 188,
     "modules": [
       {
         "file": "agent_config.zig",
@@ -454,12 +448,12 @@
       },
       {
         "file": "blockchain.zig",
-        "loc": 4027,
+        "loc": 4164,
         "pub_fn": 5
       },
       {
         "file": "blockchain_v2.zig",
-        "loc": 541,
+        "loc": 549,
         "pub_fn": 0
       },
       {
@@ -524,7 +518,7 @@
       },
       {
         "file": "crypto.zig",
-        "loc": 185,
+        "loc": 203,
         "pub_fn": 0
       },
       {
@@ -534,8 +528,8 @@
       },
       {
         "file": "dns_registry.zig",
-        "loc": 1688,
-        "pub_fn": 10
+        "loc": 1824,
+        "pub_fn": 12
       },
       {
         "file": "dns_registry_test.zig",
@@ -594,7 +588,7 @@
       },
       {
         "file": "genesis.zig",
-        "loc": 366,
+        "loc": 378,
         "pub_fn": 2
       },
       {
@@ -614,8 +608,8 @@
       },
       {
         "file": "hex_utils.zig",
-        "loc": 151,
-        "pub_fn": 5
+        "loc": 319,
+        "pub_fn": 8
       },
       {
         "file": "htlc.zig",
@@ -679,7 +673,7 @@
       },
       {
         "file": "main.zig",
-        "loc": 2715,
+        "loc": 2838,
         "pub_fn": 3
       },
       {
@@ -689,7 +683,7 @@
       },
       {
         "file": "mempool.zig",
-        "loc": 871,
+        "loc": 1031,
         "pub_fn": 0
       },
       {
@@ -714,8 +708,8 @@
       },
       {
         "file": "multisig.zig",
-        "loc": 664,
-        "pub_fn": 2
+        "loc": 879,
+        "pub_fn": 5
       },
       {
         "file": "network.zig",
@@ -779,7 +773,7 @@
       },
       {
         "file": "p2p.zig",
-        "loc": 4096,
+        "loc": 4186,
         "pub_fn": 11
       },
       {
@@ -789,12 +783,17 @@
       },
       {
         "file": "payment_channel.zig",
-        "loc": 984,
+        "loc": 988,
         "pub_fn": 0
       },
       {
+        "file": "peer_persist.zig",
+        "loc": 156,
+        "pub_fn": 2
+      },
+      {
         "file": "peer_scoring.zig",
-        "loc": 281,
+        "loc": 500,
         "pub_fn": 0
       },
       {
@@ -804,7 +803,7 @@
       },
       {
         "file": "pq_crypto.zig",
-        "loc": 543,
+        "loc": 547,
         "pub_fn": 5
       },
       {
@@ -844,7 +843,7 @@
       },
       {
         "file": "rpc_server.zig",
-        "loc": 13107,
+        "loc": 13375,
         "pub_fn": 4
       },
       {
@@ -859,7 +858,7 @@
       },
       {
         "file": "secp256k1.zig",
-        "loc": 142,
+        "loc": 287,
         "pub_fn": 0
       },
       {
@@ -929,7 +928,7 @@
       },
       {
         "file": "transaction.zig",
-        "loc": 1031,
+        "loc": 1055,
         "pub_fn": 3
       },
       {
@@ -959,7 +958,7 @@
       },
       {
         "file": "validator_registry.zig",
-        "loc": 286,
+        "loc": 310,
         "pub_fn": 5
       },
       {
@@ -1004,7 +1003,7 @@
       },
       {
         "file": "ws_server.zig",
-        "loc": 612,
+        "loc": 734,
         "pub_fn": 0
       }
     ]
