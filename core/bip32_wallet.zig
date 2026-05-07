@@ -651,11 +651,11 @@ pub const PQDomainDerivation = struct {
     };
 
     pub const DOMAINS = [_]Domain{
-        .{ .name = "omnibus.omni",     .algorithm = "Dilithium-5 + Kyber-768", .prefix = "ob",     .coin_type = 777, .security_level = 256 },
-        .{ .name = "omnibus.love",     .algorithm = "ML-DSA (Dilithium-5)",    .prefix = "ob_k1_", .coin_type = 778, .security_level = 256 },
-        .{ .name = "omnibus.food",     .algorithm = "Falcon-512",              .prefix = "ob_f5_", .coin_type = 779, .security_level = 192 },
-        .{ .name = "omnibus.rent",     .algorithm = "SLH-DSA (SPHINCS+)",      .prefix = "ob_d5_", .coin_type = 780, .security_level = 256 },
-        .{ .name = "omnibus.vacation", .algorithm = "Falcon-Light / AES-128",  .prefix = "ob_s3_", .coin_type = 781, .security_level = 128 },
+        .{ .name = "omnibus.omni",     .algorithm = "ML-DSA-87",     .prefix = "ob",     .coin_type = 777, .security_level = 256 },
+        .{ .name = "omnibus.love",     .algorithm = "ML-DSA-87",     .prefix = "ob_k1_", .coin_type = 778, .security_level = 256 },
+        .{ .name = "omnibus.food",     .algorithm = "Falcon-512",    .prefix = "ob_f5_", .coin_type = 779, .security_level = 192 },
+        .{ .name = "omnibus.rent",     .algorithm = "SLH-DSA-256s",  .prefix = "ob_d5_", .coin_type = 780, .security_level = 256 },
+        .{ .name = "omnibus.vacation", .algorithm = "ML-DSA-87",     .prefix = "ob_s3_", .coin_type = 781, .security_level = 256 },
     };
 
     pub fn init(wallet: BIP32Wallet) PQDomainDerivation {

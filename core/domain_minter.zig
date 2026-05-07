@@ -1,11 +1,11 @@
 /// domain_minter.zig — SoulBound Domain Minter
 ///
 /// Cele 5 domenii PQ ale OmniBus (din Whitepaper):
-///   ob_omni_ — ML-KEM-768 (identity layer, non-transferabil)
-///   ob_k1_   — Dilithium-5 (signing, transferabil cu conditii)
+///   ob_omni_ — ML-KEM-768  (identity layer, non-transferabil)
+///   ob_k1_   — ML-DSA-87   (signing, transferabil cu conditii)
 ///   ob_f5_   — Falcon-512  (high-frequency, transferabil)
-///   ob_d5_   — SLH-DSA     (archival, non-transferabil)
-///   ob_s3_   — Falcon-Light (satellite / IoT, transferabil)
+///   ob_d5_   — SLH-DSA-256s (archival, non-transferabil)
+///   ob_s3_   — ML-DSA-87   (satellite / IoT alias slot, transferabil)
 ///
 /// SoulBound = adresa legata de identitate, NU poate fi transferata
 /// (ca SBT - Soulbound Tokens din Ethereum EIP-4973)
@@ -18,11 +18,11 @@ const spark = @import("spark_invariants.zig");
 // --- TIPURI ------------------------------------------------------------------
 
 pub const DomainType = enum(u8) {
-    omni = 0,  // ob_omni_ — ML-KEM-768 — identity, non-transferabil
-    k1   = 1,  // ob_k1_   — Dilithium-5
+    omni = 0,  // ob_omni_ — ML-KEM-768   — identity, non-transferabil
+    k1   = 1,  // ob_k1_   — ML-DSA-87
     f5   = 2,  // ob_f5_   — Falcon-512
-    d5   = 3,  // ob_d5_   — SLH-DSA — archival, non-transferabil
-    s3   = 4,  // ob_s3_   — Falcon-Light
+    d5   = 3,  // ob_d5_   — SLH-DSA-256s — archival, non-transferabil
+    s3   = 4,  // ob_s3_   — ML-DSA-87 (alias slot)
 
     pub fn prefix(self: DomainType) []const u8 {
         return switch (self) {
@@ -37,10 +37,10 @@ pub const DomainType = enum(u8) {
     pub fn algorithm(self: DomainType) []const u8 {
         return switch (self) {
             .omni => "ML-KEM-768",
-            .k1   => "Dilithium-5",
+            .k1   => "ML-DSA-87",
             .f5   => "Falcon-512",
-            .d5   => "SLH-DSA",
-            .s3   => "Falcon-Light",
+            .d5   => "SLH-DSA-256s",
+            .s3   => "ML-DSA-87",
         };
     }
 
@@ -282,8 +282,8 @@ const testing = std.testing;
 test "DomainType — prefix si algorithm corecte" {
     try testing.expectEqualStrings("ob1q",    DomainType.omni.prefix());
     try testing.expectEqualStrings("ob_k1_",      DomainType.k1.prefix());
-    try testing.expectEqualStrings("ML-KEM-768",  DomainType.omni.algorithm());
-    try testing.expectEqualStrings("Dilithium-5", DomainType.k1.algorithm());
+    try testing.expectEqualStrings("ML-KEM-768", DomainType.omni.algorithm());
+    try testing.expectEqualStrings("ML-DSA-87",  DomainType.k1.algorithm());
 }
 
 test "DomainType — isSoulBound corecte" {
