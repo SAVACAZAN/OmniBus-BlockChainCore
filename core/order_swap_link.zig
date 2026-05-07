@@ -36,9 +36,10 @@ const std = @import("std");
 /// (use core/htlc_btc.zig / EVM contracts; we only hold a reference here).
 pub const Chain = enum(u8) {
     omnibus = 0,
-    btc = 1,
-    eth = 2,
-    base = 3,
+    btc     = 1,
+    eth     = 2,   // Ethereum Sepolia (chain_id 11155111)
+    base    = 3,   // Base Sepolia     (chain_id 84532)
+    liberty = 4,   // LCX Liberty      (chain_id 76847801)
 
     pub fn fromU8(v: u8) ?Chain {
         return switch (v) {
@@ -46,7 +47,28 @@ pub const Chain = enum(u8) {
             1 => .btc,
             2 => .eth,
             3 => .base,
+            4 => .liberty,
             else => null,
+        };
+    }
+
+    /// EVM chain_id for EthRef encoding (0 for non-EVM chains).
+    pub fn evmChainId(self: Chain) u64 {
+        return switch (self) {
+            .eth     => 11155111,
+            .base    => 84532,
+            .liberty => 76847801,
+            else     => 0,
+        };
+    }
+
+    pub fn label(self: Chain) []const u8 {
+        return switch (self) {
+            .omnibus => "OmniBus",
+            .btc     => "Bitcoin",
+            .eth     => "Sepolia",
+            .base    => "Base Sepolia",
+            .liberty => "LCX Liberty",
         };
     }
 };
@@ -397,12 +419,72 @@ pub const SwapBindingRegistry = struct {
 // Backward compat: cross_chain_chain == 0 OR trailer absent → legacy
 // behaviour, no SwapBinding registered.
 
+// ─── Pair routing table ────────────────────────────────────────────────
+//
+// Each trading pair maps to two chains + two HTLC contract addresses.
+// Maker always provides the BASE asset, taker provides the QUOTE asset.
+//
+//   pair_id 0: OMNI/USDC  — maker locks OMNI on OmniBus (nativ), taker locks USDC on Base
+//   pair_id 1: BTC/USDC   — future (BTC HTLC + Base USDC)
+//   pair_id 2: LCX/USDC   — maker locks LCX on Liberty, taker locks USDC on Base
+//   pair_id 3: ETH/USDC   — maker locks ETH on Sepolia, taker locks USDC on Base
+//   pair_id 4: OMNI/BTC   — future
+//   pair_id 5: OMNI/LCX   — maker locks OMNI on OmniBus (nativ), taker locks LCX on Liberty
+//   pair_id 6: OMNI/ETH   — maker locks OMNI on OmniBus (nativ), taker locks ETH on Sepolia
+//   pair_id 7: LCX/ETH    — maker locks LCX on Liberty, taker locks ETH on Sepolia
+
+pub const HTLC_CONTRACT_SEPOLIA  = "270D74dDAccd7a4ABf668DA6F9b238c042353739"; // slot6
+pub const HTLC_CONTRACT_BASE     = "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"; // slot1
+pub const HTLC_CONTRACT_LIBERTY  = "a4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb"; // slot1
+
+pub const PairRoute = struct {
+    pair_id:         u16,
+    base_asset:      []const u8,
+    quote_asset:     []const u8,
+    maker_chain:     Chain,
+    taker_chain:     Chain,
+    /// hex string of HTLC contract on maker chain (empty = native OmniBus HTLC)
+    maker_contract:  []const u8,
+    /// hex string of HTLC contract on taker chain
+    taker_contract:  []const u8,
+};
+
+pub const PAIR_ROUTES = [_]PairRoute{
+    .{ .pair_id = 0, .base_asset = "OMNI", .quote_asset = "USDC",
+       .maker_chain = .omnibus, .taker_chain = .base,
+       .maker_contract = "",                    .taker_contract  = HTLC_CONTRACT_BASE },
+    .{ .pair_id = 2, .base_asset = "LCX",  .quote_asset = "USDC",
+       .maker_chain = .liberty, .taker_chain = .base,
+       .maker_contract = HTLC_CONTRACT_LIBERTY, .taker_contract  = HTLC_CONTRACT_BASE },
+    .{ .pair_id = 3, .base_asset = "ETH",  .quote_asset = "USDC",
+       .maker_chain = .eth,     .taker_chain = .base,
+       .maker_contract = HTLC_CONTRACT_SEPOLIA, .taker_contract  = HTLC_CONTRACT_BASE },
+    .{ .pair_id = 5, .base_asset = "OMNI", .quote_asset = "LCX",
+       .maker_chain = .omnibus, .taker_chain = .liberty,
+       .maker_contract = "",                    .taker_contract  = HTLC_CONTRACT_LIBERTY },
+    .{ .pair_id = 6, .base_asset = "OMNI", .quote_asset = "ETH",
+       .maker_chain = .omnibus, .taker_chain = .eth,
+       .maker_contract = "",                    .taker_contract  = HTLC_CONTRACT_SEPOLIA },
+    .{ .pair_id = 7, .base_asset = "LCX",  .quote_asset = "ETH",
+       .maker_chain = .liberty, .taker_chain = .eth,
+       .maker_contract = HTLC_CONTRACT_LIBERTY, .taker_contract  = HTLC_CONTRACT_SEPOLIA },
+};
+
+pub fn routeForPair(pair_id: u16) ?*const PairRoute {
+    for (&PAIR_ROUTES) |*r| {
+        if (r.pair_id == pair_id) return r;
+    }
+    return null;
+}
+
+// ───────────────────────────────────────────────────────────────────────
+
 pub const CROSS_CHAIN_TRAILER_SIZE: usize = 82;
 pub const ORDER_PAYLOAD_V2_SIZE: usize = 32 + CROSS_CHAIN_TRAILER_SIZE; // 114
 
 pub const CrossChainTrailer = struct {
     ext_version: u8 = 2,
-    cross_chain_chain: u8, // 0=none, 1=btc, 2=eth, 3=base
+    cross_chain_chain: u8, // 0=none, 1=btc, 2=eth, 3=base, 4=liberty
     cross_chain_htlc_ref: [40]u8,
     cross_chain_hash_lock: [32]u8,
     cross_chain_timeout_block: u64,

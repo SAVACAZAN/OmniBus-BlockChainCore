@@ -3429,6 +3429,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_getUserOrders"))return handleExchangeGetUserOrders(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getTrades"))     return handleExchangeGetTrades(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_listPairs"))     return handleExchangeListPairs(ctx, id);
+    if (std.mem.eql(u8, method, "exchange_pairInfo"))      return handleExchangePairInfo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getStats"))      return handleExchangeGetStats(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getAuthNonce"))  return handleExchangeGetAuthNonce(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_login"))         return handleExchangeLogin(body, ctx, id);
@@ -7061,14 +7062,15 @@ fn stateName(s: swap_link_mod.SwapState) []const u8 {
 fn chainName(c: swap_link_mod.Chain) []const u8 {
     return switch (c) {
         .omnibus => "omnibus",
-        .btc => "btc",
-        .eth => "eth",
-        .base => "base",
+        .btc     => "btc",
+        .eth     => "eth",
+        .base    => "base",
+        .liberty => "liberty",
     };
 }
 
 /// swap_open — register a SwapBinding for an existing order_place TX.
-/// Params: order_id, taker_chain (1=btc,2=eth,3=base), taker_htlc_ref (hex up to 80 chars),
+/// Params: order_id, taker_chain (1=btc,2=eth,3=base,4=liberty), taker_htlc_ref (hex up to 80 chars),
 ///   hash_lock (64 hex), timeout (u64 block height).
 fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -7076,8 +7078,8 @@ fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Missing param: order_id", id, alloc);
     const taker_chain_u = extractU64Param(body, "\"taker_chain\"") orelse
         return errorJson(-32602, "Missing param: taker_chain", id, alloc);
-    if (taker_chain_u > 3 or taker_chain_u == 0)
-        return errorJson(-32602, "taker_chain must be 1=btc, 2=eth, 3=base", id, alloc);
+    if (taker_chain_u > 4 or taker_chain_u == 0)
+        return errorJson(-32602, "taker_chain must be 1=btc, 2=eth, 3=base, 4=liberty", id, alloc);
     const taker_chain = swap_link_mod.Chain.fromU8(@intCast(taker_chain_u)) orelse
         return errorJson(-32602, "Bad taker_chain", id, alloc);
 
@@ -7115,7 +7117,7 @@ fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             const vout = std.mem.readInt(u32, ref_bytes[32..36], .little);
             break :blk swap_link_mod.HtlcRef{ .btc = .{ .txid = txid, .vout = vout } };
         },
-        .eth, .base => blk: {
+        .eth, .base, .liberty => blk: {
             const chain_id = std.mem.readInt(u64, ref_bytes[0..8], .little);
             var contract: [20]u8 = undefined;
             @memcpy(&contract, ref_bytes[8..28]);
@@ -12038,6 +12040,30 @@ fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// exchange_listPairs — perechi suportate. Static (definite la compile-time).
+/// exchange_pairInfo — returns chain routing + HTLC contract addresses for a pair.
+/// Params: { "pair_id": N }
+/// Result: { pair_id, base, quote, maker_chain, taker_chain, maker_chain_id,
+///            taker_chain_id, maker_contract, taker_contract }
+fn handleExchangePairInfo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const pair_id_u = extractU64Param(body, "\"pair_id\"") orelse
+        return errorJson(-32602, "Missing param: pair_id", id, alloc);
+    const route = swap_link_mod.routeForPair(@intCast(pair_id_u)) orelse
+        return errorJson(-32602, "Unknown pair_id", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"pair_id\":{d},\"base\":\"{s}\",\"quote\":\"{s}\"," ++
+        "\"maker_chain\":\"{s}\",\"taker_chain\":\"{s}\"," ++
+        "\"maker_chain_id\":{d},\"taker_chain_id\":{d}," ++
+        "\"maker_contract\":\"{s}\",\"taker_contract\":\"{s}\"}}}}",
+        .{
+            id, route.pair_id, route.base_asset, route.quote_asset,
+            route.maker_chain.label(), route.taker_chain.label(),
+            route.maker_chain.evmChainId(), route.taker_chain.evmChainId(),
+            route.maker_contract, route.taker_contract,
+        });
+}
+
 fn handleExchangeListPairs(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     var out = std.ArrayList(u8){};
