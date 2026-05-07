@@ -11668,6 +11668,27 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             },
         ) catch "";
         if (fline.len > 0) ordersAppendJournal(ctx, "fill", fline);
+
+        // Push new_trade event to WebSocket subscribers.
+        if (main_mod.g_ws_srv) |ws| {
+            const pair_label = pairIdToLabel(f.pair_id);
+            const trade_side = if (side == .buy) "buy" else "sell";
+            ws.broadcastTrade(f.pair_id, pair_label, f.price_micro_usd,
+                f.amount_sat, trade_side, block_height_now);
+        }
+    }
+
+    // Push orderbook_update after all fills so subscribers see final state.
+    if (main_mod.g_ws_srv) |ws| {
+        const pair_label = pairIdToLabel(pair_id);
+        ws.broadcastOrderbook(
+            pair_id, pair_label,
+            engine.bestBid(pair_id) orelse 0,
+            engine.bestAsk(pair_id) orelse 0,
+            engine.spread(pair_id) orelse 0,
+            engine.orderCountForPair(pair_id),
+            @intCast(ctx.bc.chain.items.len),
+        );
     }
 
     nonceSet(ctx, trader, nonce);
