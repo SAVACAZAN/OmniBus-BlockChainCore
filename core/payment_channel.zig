@@ -443,9 +443,13 @@ pub const PaymentChannel = struct {
         };
     }
 
-    /// Format channel_id as hex string into provided buffer
+    /// Format channel_id as hex string into provided buffer (must be >=64 bytes).
+    /// Returns slice of buf containing the hex string.
     pub fn getChannelIdHex(self: *const PaymentChannel, buf: []u8) []u8 {
-        return std.fmt.bufPrint(buf, "{}", .{std.fmt.fmtSliceHexLower(&self.channel_id)}) catch buf[0..0];
+        const hex = std.fmt.bytesToHex(self.channel_id, .lower);
+        if (buf.len < hex.len) return buf[0..0];
+        @memcpy(buf[0..hex.len], &hex);
+        return buf[0..hex.len];
     }
 };
 

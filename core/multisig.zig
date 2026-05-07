@@ -373,6 +373,98 @@ pub const MultisigTx = struct {
     }
 };
 
+// ─── Signature bundle codec (for embedding in Transaction.script_sig) ───────
+//
+// Layout (raw bytes, NOT hex):
+//   magic[3] = "MS\x01"
+//   count   : u8     (number of signatures, must be >= threshold)
+//   entries : count * 65 bytes
+//             - signer_index : u8
+//             - signature    : [64]u8 (R || S, ECDSA secp256k1)
+//
+// Total size: 4 + 65 * count, capped at 4 + 65*16 = 1044 bytes.
+// Stored in Transaction.script_sig — wire codec already length-prefixes it.
+
+pub const BUNDLE_MAGIC: [3]u8 = .{ 'M', 'S', 0x01 };
+pub const BUNDLE_MAX_SIZE: usize = 4 + 65 * MAX_SIGNERS;
+
+/// Encode collected signatures into a script_sig bundle.
+/// `out_buf` must hold at least 4 + 65*sig_count bytes.
+/// Returns the number of bytes written.
+pub fn encodeBundle(
+    sig_count: u8,
+    signer_indices: []const u8,
+    signatures: []const [64]u8,
+    out_buf: []u8,
+) !usize {
+    if (sig_count == 0 or sig_count > MAX_SIGNERS) return error.InvalidSigCount;
+    if (signer_indices.len < sig_count or signatures.len < sig_count) return error.BufferTooSmall;
+    const need = 4 + @as(usize, sig_count) * 65;
+    if (out_buf.len < need) return error.BufferTooSmall;
+    @memcpy(out_buf[0..3], &BUNDLE_MAGIC);
+    out_buf[3] = sig_count;
+    var off: usize = 4;
+    var i: usize = 0;
+    while (i < sig_count) : (i += 1) {
+        out_buf[off] = signer_indices[i];
+        off += 1;
+        @memcpy(out_buf[off..off + 64], &signatures[i]);
+        off += 64;
+    }
+    return need;
+}
+
+/// Decode a script_sig bundle. Returns sig_count and fills indices/sigs arrays.
+pub const DecodedBundle = struct {
+    sig_count: u8,
+    signer_indices: [MAX_SIGNERS]u8,
+    signatures: [MAX_SIGNERS][64]u8,
+};
+
+pub fn decodeBundle(buf: []const u8) !DecodedBundle {
+    if (buf.len < 4) return error.BundleTooShort;
+    if (!std.mem.eql(u8, buf[0..3], &BUNDLE_MAGIC)) return error.BadMagic;
+    const count = buf[3];
+    if (count == 0 or count > MAX_SIGNERS) return error.InvalidSigCount;
+    const need = 4 + @as(usize, count) * 65;
+    if (buf.len < need) return error.BundleTooShort;
+    var out: DecodedBundle = .{
+        .sig_count = count,
+        .signer_indices = [_]u8{0} ** MAX_SIGNERS,
+        .signatures = [_][64]u8{[_]u8{0} ** 64} ** MAX_SIGNERS,
+    };
+    var off: usize = 4;
+    var i: usize = 0;
+    while (i < count) : (i += 1) {
+        out.signer_indices[i] = buf[off];
+        off += 1;
+        @memcpy(&out.signatures[i], buf[off..off + 64]);
+        off += 64;
+    }
+    return out;
+}
+
+/// Verify a script_sig bundle against a multisig config and a transaction hash.
+/// This is the chain-side validation entrypoint: anyone with the registered
+/// MultisigConfig + the TX hash can independently re-verify the M-of-N quorum.
+pub fn verifyBundle(
+    config: *const MultisigConfig,
+    tx_hash: [32]u8,
+    bundle_bytes: []const u8,
+) bool {
+    const decoded = decodeBundle(bundle_bytes) catch return false;
+    if (decoded.sig_count < config.threshold) return false;
+    var msigs: [MAX_SIGNERS]MultisigSignature = undefined;
+    var i: usize = 0;
+    while (i < decoded.sig_count) : (i += 1) {
+        msigs[i] = .{
+            .signer_index = decoded.signer_indices[i],
+            .signature = decoded.signatures[i],
+        };
+    }
+    return verifyMultisig(config, tx_hash, msigs[0..decoded.sig_count]);
+}
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 const testing = std.testing;
@@ -660,4 +752,127 @@ test "MultisigTx — txHash is deterministic" {
     const h1 = tx.txHash();
     const h2 = tx.txHash();
     try testing.expectEqualSlices(u8, &h1, &h2);
+}
+
+// ─── Bundle codec tests (chain-side re-verification path) ───────────────────
+
+test "encodeBundle / decodeBundle roundtrip 2-of-3" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+    const kp3 = try Secp256k1Crypto.generateKeyPair();
+
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key };
+    const wallet = try MultisigWallet.create(2, &pks);
+
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 5000, 50, 7);
+    _ = try wallet.addSignature(&tx, kp1.private_key);
+    _ = try wallet.addSignature(&tx, kp3.private_key);
+    try testing.expect(tx.isComplete());
+
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(tx.sig_count, &tx.signer_indices, &tx.signatures, &buf);
+    try testing.expectEqual(@as(usize, 4 + 65 * 2), n);
+
+    const decoded = try decodeBundle(buf[0..n]);
+    try testing.expectEqual(@as(u8, 2), decoded.sig_count);
+}
+
+test "verifyBundle 2-of-3 — valid quorum passes" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+    const kp3 = try Secp256k1Crypto.generateKeyPair();
+
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key };
+    const wallet = try MultisigWallet.create(2, &pks);
+
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 5000, 50, 8);
+    _ = try wallet.addSignature(&tx, kp1.private_key);
+    _ = try wallet.addSignature(&tx, kp2.private_key);
+
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(tx.sig_count, &tx.signer_indices, &tx.signatures, &buf);
+
+    try testing.expect(verifyBundle(&wallet.config, tx.txHash(), buf[0..n]));
+}
+
+test "verifyBundle — wrong tx_hash rejected (replay-by-hash defence)" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
+    const wallet = try MultisigWallet.create(2, &pks);
+
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 5000, 50, 9);
+    _ = try wallet.addSignature(&tx, kp1.private_key);
+    _ = try wallet.addSignature(&tx, kp2.private_key);
+
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(tx.sig_count, &tx.signer_indices, &tx.signatures, &buf);
+
+    // Tamper: flip a byte in the hash. Sigs are over the real hash, so verify must fail.
+    var wrong_hash: [32]u8 = tx.txHash();
+    wrong_hash[0] ^= 0xff;
+    try testing.expect(!verifyBundle(&wallet.config, wrong_hash, buf[0..n]));
+}
+
+test "verifyBundle — replay same sig twice rejected (M sigs from <M signers)" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
+    const config = try MultisigConfig.init(2, &pks);
+
+    const msg = Crypto.sha256("replay attack");
+    const sig = try signForMultisig(&config, kp1.private_key, msg);
+
+    // Build a forged bundle with the same signature twice.
+    var indices: [MAX_SIGNERS]u8 = [_]u8{0} ** MAX_SIGNERS;
+    var sigs: [MAX_SIGNERS][64]u8 = [_][64]u8{[_]u8{0} ** 64} ** MAX_SIGNERS;
+    indices[0] = sig.signer_index;
+    indices[1] = sig.signer_index;
+    sigs[0] = sig.signature;
+    sigs[1] = sig.signature;
+
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(2, &indices, &sigs, &buf);
+
+    try testing.expect(!verifyBundle(&config, msg, buf[0..n]));
+}
+
+test "verifyBundle — magic bytes invalid → reject" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const pks = [_][33]u8{kp1.public_key};
+    const config = try MultisigConfig.init(1, &pks);
+    const msg = Crypto.sha256("bad magic");
+    const garbage = [_]u8{ 'X', 'Y', 'Z', 1, 0 } ++ [_]u8{0} ** 64;
+    try testing.expect(!verifyBundle(&config, msg, &garbage));
+}
+
+test "verifyBundle 1-of-2 — single sig sufficient" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key };
+    const wallet = try MultisigWallet.create(1, &pks);
+
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 5000, 50, 10);
+    _ = try wallet.addSignature(&tx, kp2.private_key);
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(tx.sig_count, &tx.signer_indices, &tx.signatures, &buf);
+    try testing.expect(verifyBundle(&wallet.config, tx.txHash(), buf[0..n]));
+}
+
+test "verifyBundle M==N (3-of-3) edge case" {
+    const kp1 = try Secp256k1Crypto.generateKeyPair();
+    const kp2 = try Secp256k1Crypto.generateKeyPair();
+    const kp3 = try Secp256k1Crypto.generateKeyPair();
+    const pks = [_][33]u8{ kp1.public_key, kp2.public_key, kp3.public_key };
+    const wallet = try MultisigWallet.create(3, &pks);
+
+    var tx = wallet.createTx("ob1qry95qmwrhpaqfg69j65qej9whjqjh2ydpjurgh", 5000, 50, 11);
+    _ = try wallet.addSignature(&tx, kp1.private_key);
+    _ = try wallet.addSignature(&tx, kp2.private_key);
+    _ = try wallet.addSignature(&tx, kp3.private_key);
+    var buf: [BUNDLE_MAX_SIZE]u8 = undefined;
+    const n = try encodeBundle(tx.sig_count, &tx.signer_indices, &tx.signatures, &buf);
+    try testing.expect(verifyBundle(&wallet.config, tx.txHash(), buf[0..n]));
 }

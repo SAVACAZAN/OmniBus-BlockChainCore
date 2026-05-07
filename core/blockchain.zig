@@ -966,17 +966,39 @@ pub const Blockchain = struct {
             }
         }
 
-        // 5c. Multisig address check: if from_address is "ob_ms_*", it must be a registered multisig
-        //     Multisig TXs skip normal ECDSA verification — they are validated via MultisigWallet.verify()
-        //     before being submitted (the RPC handler ensures M-of-N signatures are collected)
+        // 5c. Multisig validation: if from_address is "ob_ms_*", recover the
+        //     registered MultisigConfig, decode the M-of-N signature bundle
+        //     from script_sig, and re-verify the quorum independently. Without
+        //     re-verifying here anyone could spend from a registered multisig
+        //     by submitting a TX with signature="multisig_verified".
         if (std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX)) {
-            if (self.getMultisigConfig(tx.from_address) == null) {
+            const ms_config = self.getMultisigConfig(tx.from_address) orelse {
                 std.debug.print("[VALIDATE] FAIL: multisig address not registered: {s}\n",
                     .{tx.from_address[0..@min(20, tx.from_address.len)]});
                 return false;
+            };
+            if (tx.script_sig.len == 0) {
+                std.debug.print("[VALIDATE] FAIL: multisig TX missing script_sig bundle\n", .{});
+                return false;
             }
-            // Multisig TX accepted — signature verification was done at submission time
-            // (M-of-N signatures collected and verified by MultisigWallet.verify())
+            // The signers signed Transaction.calculateHash() — re-derive it
+            // and verify the M-of-N quorum against the registered pubkeys.
+            const expected_hash = tx.calculateHash();
+            if (!multisig_mod.verifyBundle(ms_config, expected_hash, tx.script_sig)) {
+                std.debug.print("[VALIDATE] FAIL: multisig M-of-N quorum verification failed for {s}\n",
+                    .{tx.from_address[0..@min(20, tx.from_address.len)]});
+                return false;
+            }
+            // Bonus check: tx.hash (if set) must match the canonical hash so
+            // explorers/clients see a consistent value.
+            if (tx.hash.len == 64) {
+                var stored_hash: [32]u8 = undefined;
+                hex_utils.hexToBytes(tx.hash, &stored_hash) catch return false;
+                if (!std.mem.eql(u8, &stored_hash, &expected_hash)) {
+                    std.debug.print("[VALIDATE] FAIL: multisig tx.hash mismatch\n", .{});
+                    return false;
+                }
+            }
         }
 
         // 6. Verificare semnatura ECDSA secp256k1 cu public key inregistrat

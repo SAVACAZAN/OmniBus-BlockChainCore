@@ -3036,15 +3036,15 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getslashhistory"))     return handleGetSlashHistory(body, ctx, id);
     if (std.mem.eql(u8, method, "getstakinginfo"))      return handleGetStakingInfo(body, ctx, id);
 
-    // Multisig endpoints (TODO: implement handlers)
-    if (std.mem.eql(u8, method, "createmultisig"))      return errorJson(-32601, "Multisig not yet implemented", id, alloc);
-    if (std.mem.eql(u8, method, "sendmultisig"))        return errorJson(-32601, "Multisig not yet implemented", id, alloc);
+    // Multisig endpoints — real M-of-N implementation backed by core/multisig.zig
+    if (std.mem.eql(u8, method, "createmultisig"))      return handleCreateMultisig(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendmultisig"))        return handleSendMultisig(body, ctx, id);
 
-    // Payment channel (L2) endpoints (TODO: implement handlers)
-    if (std.mem.eql(u8, method, "openchannel"))       return errorJson(-32601, "Payment channels not yet implemented", id, alloc);
-    if (std.mem.eql(u8, method, "channelpay"))        return errorJson(-32601, "Payment channels not yet implemented", id, alloc);
-    if (std.mem.eql(u8, method, "closechannel"))      return errorJson(-32601, "Payment channels not yet implemented", id, alloc);
-    if (std.mem.eql(u8, method, "getchannels"))       return errorJson(-32601, "Payment channels not yet implemented", id, alloc);
+    // Payment channel (L2) endpoints — Lightning-style bidirectional channels
+    if (std.mem.eql(u8, method, "openchannel"))       return handleOpenChannel(body, ctx, id);
+    if (std.mem.eql(u8, method, "channelpay"))        return handleChannelPay(body, ctx, id);
+    if (std.mem.eql(u8, method, "closechannel"))      return handleCloseChannel(body, ctx, id);
+    if (std.mem.eql(u8, method, "getchannels"))       return handleGetChannels(body, ctx, id);
 
     // ── OmniBus custom endpoints (exchange integration) ─────────────────
     if (std.mem.eql(u8, method, "getblockchaininfo"))    return handleBlockchainInfo(ctx, id);
@@ -5941,7 +5941,6 @@ fn handleGetStakingInfo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 const Secp256k1Crypto = secp256k1_mod.Secp256k1Crypto;
 const MultisigWallet = multisig_mod.MultisigWallet;
-const MultisigConfig = multisig_mod.MultisigConfig;
 
 /// RPC "createmultisig" — create M-of-N multisig wallet, register it, return address.
 /// Usage: {"method":"createmultisig","params":[M, ["pubkey1_hex", "pubkey2_hex", ...]],"id":1}
@@ -6018,64 +6017,85 @@ fn handleSendMultisig(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const config_ptr = ctx.bc.getMultisigConfig(from_addr) orelse
         return errorJson(-32000, "Multisig address not registered. Call createmultisig first.", id, alloc);
 
-    // Build MultisigWallet from stored config
-    var wallet_addr: [64]u8 = [_]u8{0} ** 64;
-    const addr_copy_len = @min(from_addr.len, 64);
-    @memcpy(wallet_addr[0..addr_copy_len], from_addr[0..addr_copy_len]);
+    const config = config_ptr.*;
 
-    const ms_wallet = MultisigWallet{
-        .config = config_ptr.*,
-        .address = wallet_addr,
-        .address_len = @intCast(addr_copy_len),
-    };
-
+    // Build the on-chain Transaction skeleton FIRST so signers sign over the
+    // canonical Transaction.calculateHash() — same hash the chain re-checks.
     const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    var ms_tx = ms_wallet.createTx(to_addr, amount_sat, fee_sat, tx_id);
-
-    // Collect private keys from params[4..] and sign
-    // Private keys are 64 hex chars (32 bytes)
-    var signed: u8 = 0;
-    var pk_idx: usize = 4;
-    while (pk_idx < 20) : (pk_idx += 1) {
-        const pk_hex = extractArrayStr(body, pk_idx) orelse break;
-        if (pk_hex.len != 64) continue; // skip non-privkey params
-        var privkey: [32]u8 = undefined;
-        hex_utils.hexToBytes(pk_hex, &privkey) catch continue;
-        const done = ms_wallet.addSignature(&ms_tx, privkey) catch continue;
-        signed += 1;
-        if (done) break;
-    }
-
-    if (signed < config_ptr.threshold) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32000,\"message\":\"Insufficient signatures: {d}/{d} required\"}}}}",
-            .{ id, signed, config_ptr.threshold });
-    }
-
-    // Verify the multisig TX
-    if (!ms_wallet.verify(&ms_tx)) {
-        return errorJson(-32000, "Multisig verification failed", id, alloc);
-    }
-
-    // Create a regular Transaction to submit to the blockchain
     const nonce = ctx.bc.getNextAvailableNonce(from_addr);
-    const tx = transaction_mod.Transaction{
+    const ts = std.time.timestamp();
+
+    var tx = transaction_mod.Transaction{
         .id = tx_id,
         .from_address = from_addr,
         .to_address = to_addr,
         .amount = amount_sat,
         .fee = fee_sat,
-        .timestamp = std.time.timestamp(),
+        .timestamp = ts,
         .nonce = nonce,
-        .signature = "multisig_verified", // marker — not a standard ECDSA sig
+        .signature = "multisig", // marker; real sigs in script_sig
         .hash = "",
     };
+    const tx_hash = tx.calculateHash();
+
+    // Collect private keys from params[4..]; for each, derive its pubkey,
+    // find the matching signer index in the multisig config, sign tx_hash.
+    var indices: [multisig_mod.MAX_SIGNERS]u8 = [_]u8{0} ** multisig_mod.MAX_SIGNERS;
+    var sigs: [multisig_mod.MAX_SIGNERS][64]u8 = [_][64]u8{[_]u8{0} ** 64} ** multisig_mod.MAX_SIGNERS;
+    var used: [multisig_mod.MAX_SIGNERS]bool = [_]bool{false} ** multisig_mod.MAX_SIGNERS;
+    var signed: u8 = 0;
+
+    var pk_idx: usize = 4;
+    while (pk_idx < 4 + multisig_mod.MAX_SIGNERS) : (pk_idx += 1) {
+        const pk_hex = extractArrayStr(body, pk_idx) orelse break;
+        if (pk_hex.len != 64) continue;
+        var privkey: [32]u8 = undefined;
+        hex_utils.hexToBytes(pk_hex, &privkey) catch continue;
+        const pubkey = Secp256k1Crypto.privateKeyToPublicKey(privkey) catch continue;
+
+        // Find this pubkey's index in the config
+        var found_idx: ?u8 = null;
+        for (0..config.pubkey_count) |i| {
+            if (std.mem.eql(u8, &config.pubkeys[i], &pubkey)) {
+                found_idx = @intCast(i);
+                break;
+            }
+        }
+        const sidx = found_idx orelse continue; // not a signer
+        if (used[sidx]) continue;                // dedupe
+
+        const sig = Secp256k1Crypto.sign(privkey, &tx_hash) catch continue;
+        indices[signed] = sidx;
+        sigs[signed] = sig;
+        used[sidx] = true;
+        signed += 1;
+        if (signed >= config.threshold) break;
+    }
+
+    if (signed < config.threshold) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32000,\"message\":\"Insufficient signatures: {d}/{d} required\"}}}}",
+            .{ id, signed, config.threshold });
+    }
+
+    // Encode bundle and attach to script_sig + commit hash
+    var bundle_buf: [multisig_mod.BUNDLE_MAX_SIZE]u8 = undefined;
+    const bundle_len = multisig_mod.encodeBundle(signed, &indices, &sigs, &bundle_buf) catch
+        return errorJson(-32000, "Failed to encode multisig bundle", id, alloc);
+
+    // Sanity: re-verify locally before submitting
+    if (!multisig_mod.verifyBundle(&config, tx_hash, bundle_buf[0..bundle_len])) {
+        return errorJson(-32000, "Multisig bundle self-verification failed", id, alloc);
+    }
+
+    tx.script_sig = try alloc.dupe(u8, bundle_buf[0..bundle_len]);
+    tx.hash = try hex_utils.bytesToHexAlloc(tx_hash, alloc);
 
     ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool rejected TX", id, alloc);
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"signatures\":{d},\"required\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, from_addr, to_addr, amount_sat, fee_sat, signed, config_ptr.threshold });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"signatures\":{d},\"required\":{d},\"txid\":\"{s}\",\"status\":\"accepted\"}}}}",
+        .{ id, from_addr, to_addr, amount_sat, fee_sat, signed, config.threshold, tx.hash });
 }
 
 /// Extract the inner array from params: "params":[2, ["a","b"]] -> returns content of inner [...]
@@ -6430,21 +6450,33 @@ fn handleCloseChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
     };
 
-    var tx_a_hex: [64]u8 = undefined;
-    const tx_a_str = std.fmt.bufPrint(&tx_a_hex, "{}", .{std.fmt.fmtSliceHexLower(&settle.tx_hash_a)}) catch "";
-    var tx_b_hex: [64]u8 = undefined;
-    const tx_b_str = std.fmt.bufPrint(&tx_b_hex, "{}", .{std.fmt.fmtSliceHexLower(&settle.tx_hash_b)}) catch "";
+    const tx_a_hex = std.fmt.bytesToHex(settle.tx_hash_a, .lower);
+    const tx_b_hex = std.fmt.bytesToHex(settle.tx_hash_b, .lower);
 
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"state\":\"settled\",\"final_balance_a\":{d},\"final_balance_b\":{d},\"tx_hash_a\":\"{s}\",\"tx_hash_b\":\"{s}\"}}}}",
-        .{ id, settle.final_balance_a, settle.final_balance_b, tx_a_str, tx_b_str });
+        .{ id, settle.final_balance_a, settle.final_balance_b, &tx_a_hex, &tx_b_hex });
 }
 
-/// RPC "getchannels" — list all payment channels with their states.
-/// Usage: {"method":"getchannels","id":1}
-fn handleGetChannels(ctx: *ServerCtx, id: u64) ![]u8 {
+/// RPC "getchannels" — list payment channels with full per-channel details.
+/// Usage: {"method":"getchannels","params":[],"id":1}
+///        {"method":"getchannels","params":["<pubkey_hex_33>"],"id":1}  // filter by participant
+/// Returns: { summary: {...}, channels: [ {id, party_a, party_b, capacity_sat, balance_a, balance_b,
+///                                         sequence_num, state, funding_tx_hash}, ... ] }
+fn handleGetChannels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const mgr = ctx.channel_mgr orelse return errorJson(-32000, "Payment channels not initialized", id, alloc);
+
+    // Optional pubkey filter (66-char hex compressed pubkey).
+    // NOTE: Filter is by raw pubkey hex, NOT by bech32 address. Address-based lookup
+    // would require a pubkey→address map; deferred to a follow-up since channels
+    // currently store [33]u8 pubkeys, not bech32 strings.
+    var filter_pk: ?[33]u8 = null;
+    if (extractArrayStr(body, 0)) |hex| {
+        if (hex.len == 66) {
+            filter_pk = hexDecode33(hex);
+        }
+    }
 
     const open_count = mgr.countByState(.open);
     const closing_count = mgr.countByState(.closing);
@@ -6452,9 +6484,69 @@ fn handleGetChannels(ctx: *ServerCtx, id: u64) ![]u8 {
     const disputed_count = mgr.countByState(.disputed);
     const total_locked = mgr.getTotalLockedSat();
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"total_channels\":{d},\"open\":{d},\"closing\":{d},\"settled\":{d},\"disputed\":{d},\"total_locked_sat\":{d}}}}}",
-        .{ id, mgr.channel_count, open_count, closing_count, settled_count, disputed_count, total_locked });
+    // Build the channels array. Use a heap-backed growable buffer because the
+    // count is variable (up to MAX_CHANNELS = 64) and per-channel JSON is ~600B.
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+
+    {
+        const hdr = try std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"summary\":{{\"total_channels\":{d},\"open\":{d},\"closing\":{d},\"settled\":{d},\"disputed\":{d},\"total_locked_sat\":{d}}}," ++
+            "\"channels\":[",
+            .{ id, mgr.channel_count, open_count, closing_count, settled_count, disputed_count, total_locked },
+        );
+        defer alloc.free(hdr);
+        try out.appendSlice(alloc, hdr);
+    }
+
+    var first: bool = true;
+    var i: u8 = 0;
+    while (i < mgr.channel_count) : (i += 1) {
+        const ch = &mgr.channels[i];
+
+        // Apply filter if set: include only if filter_pk == party_a or party_b.
+        if (filter_pk) |pk| {
+            const match_a = std.mem.eql(u8, &ch.party_a, &pk);
+            const match_b = std.mem.eql(u8, &ch.party_b, &pk);
+            if (!match_a and !match_b) continue;
+        }
+
+        if (!first) try out.append(alloc, ',');
+        first = false;
+
+        const state_str: []const u8 = switch (ch.state) {
+            .opening => "opening",
+            .open => "open",
+            .closing => "closing",
+            .settled => "settled",
+            .disputed => "disputed",
+        };
+
+        const cid_hex = std.fmt.bytesToHex(ch.channel_id, .lower);
+        const pa_hex = std.fmt.bytesToHex(ch.party_a, .lower);
+        const pb_hex = std.fmt.bytesToHex(ch.party_b, .lower);
+        const ftx_hex = std.fmt.bytesToHex(ch.funding_tx_hash, .lower);
+
+        const entry = try std.fmt.allocPrint(alloc,
+            "{{\"channel_id\":\"{s}\",\"party_a\":\"{s}\",\"party_b\":\"{s}\"," ++
+            "\"capacity_sat\":{d},\"balance_a\":{d},\"balance_b\":{d}," ++
+            "\"sequence_num\":{d},\"state\":\"{s}\",\"funding_tx_hash\":\"{s}\"," ++
+            "\"close_block\":{d},\"htlc_count\":{d}}}",
+            .{
+                &cid_hex, &pa_hex, &pb_hex,
+                ch.total_locked, ch.balance_a, ch.balance_b,
+                ch.sequence_num, state_str, &ftx_hex,
+                ch.close_block,
+                ch.htlc_count,
+            },
+        );
+        defer alloc.free(entry);
+        try out.appendSlice(alloc, entry);
+    }
+
+    try out.appendSlice(alloc, "]}}");
+    return alloc.dupe(u8, out.items);
 }
 
 /// Decode 66-char hex string to [33]u8 (compressed pubkey)
@@ -6464,7 +6556,7 @@ fn hexDecode33(hex: []const u8) ?[33]u8 {
     for (0..33) |i| {
         const hi = hexVal(hex[i * 2]) orelse return null;
         const lo = hexVal(hex[i * 2 + 1]) orelse return null;
-        out[i] = (hi << 4) | lo;
+        out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
     }
     return out;
 }
@@ -6476,7 +6568,7 @@ fn hexDecode32(hex: []const u8) ?[32]u8 {
     for (0..32) |i| {
         const hi = hexVal(hex[i * 2]) orelse return null;
         const lo = hexVal(hex[i * 2 + 1]) orelse return null;
-        out[i] = (hi << 4) | lo;
+        out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
     }
     return out;
 }
