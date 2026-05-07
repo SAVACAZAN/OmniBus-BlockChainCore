@@ -220,3 +220,81 @@ export function useEntryForAddress(addr: string | null | undefined): DnsEntry | 
 }
 
 export { MAX_NAMES_PER_WALLET };
+
+// ── Phase 2 lifecycle: expiry warnings ────────────────────────────────────
+//
+// Surfaces names that are about to expire so the UI can nudge the owner to
+// renew. Backed by `ns_expiringSoon` RPC. Auto-refresh every 60s — expiry
+// is on the scale of months, so we don't need tighter polling.
+
+/// One entry from `ns_expiringSoon` — a name owned by the queried address
+/// that's within `blocks_threshold` blocks of expiry (or already in grace).
+export type ExpiringNameEntry = {
+  name: string;
+  tld: string;
+  fullLabel: string;
+  expiresAtBlock: number;
+  blocks_remaining: number;
+  estimated_days_remaining: number;
+  registered_years: number;
+  in_grace: boolean;
+};
+
+/**
+ * Returns the list of the user's names that expire within `blocks_threshold`
+ * blocks (default ~30 days at the canonical 10s block time). Re-fetches
+ * every 60s. Empty array when the address is null, the RPC isn't shipped on
+ * this node, or no names match the threshold.
+ *
+ * Used by:
+ *   - WalletConnectButton header pill — shows a warning badge if length > 0
+ *   - NamesPage — drives the "expires in N days" badge per-row
+ */
+export function useExpiringNames(
+  addr: string | null | undefined,
+  blocksThreshold?: number,
+): ExpiringNameEntry[] {
+  const [list, setList] = useState<ExpiringNameEntry[]>([]);
+
+  useEffect(() => {
+    if (!addr) {
+      setList([]);
+      return;
+    }
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const params: any[] = blocksThreshold == null
+          ? [addr]
+          : [addr, blocksThreshold];
+        const r = (await rpc.request_raw("ns_expiringSoon", params)) as {
+          entries?: ExpiringNameEntry[];
+        };
+        if (!cancelled) setList(r?.entries ?? []);
+      } catch {
+        // Older nodes without ns_expiringSoon — silently treat as "nothing
+        // expiring", same UX as a fully renewed wallet.
+        if (!cancelled) setList([]);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [addr, blocksThreshold]);
+
+  return list;
+}
+
+/**
+ * Helper: estimate days remaining until a DnsEntry expires, given the
+ * current chain tip block. Returns Infinity if expiresAtBlock is missing
+ * or already passed (callers should also check `in_grace` separately).
+ * Block time = 10s, so 1 day = 8640 blocks.
+ */
+export function daysUntilExpiry(
+  entry: { expiresAtBlock: number },
+  currentBlock: number,
+): number {
+  if (!entry.expiresAtBlock || entry.expiresAtBlock <= currentBlock) return 0;
+  return Math.floor((entry.expiresAtBlock - currentBlock) / 8640);
+}

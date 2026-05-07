@@ -29,6 +29,13 @@ const CHAIN_WS_PORT: Record<ChainName, number> = {
 export function getActiveChain(): ChainName {
   if (typeof localStorage === "undefined") return "mainnet";
   const v = localStorage.getItem(CHAIN_KEY);
+  // VPS only runs mainnet (single-instance lock blocks multi-chain).
+  // If localStorage has stale "testnet"/"regtest", auto-correct to mainnet
+  // to avoid "RPC unreachable" errors. User can re-select after we deploy more chains.
+  if (v === "testnet" || v === "regtest") {
+    localStorage.setItem(CHAIN_KEY, "mainnet");
+    return "mainnet";
+  }
   return (VALID_CHAINS.includes(v as ChainName) ? v : "mainnet") as ChainName;
 }
 
@@ -263,16 +270,17 @@ export class OmniBusRpcClient {
   }
 
   /**
-   * Faucet status. Returns {enabled, address, balance, grantPerClaim, claimsServed}.
-   * `enabled=false` means the node was started without --faucet-mode or
-   * without OMNIBUS_FAUCET_PRIVKEY — UI should disable the claim button.
+   * Faucet status. Returns protocol faucet info including declaration hash/text.
+   * `enabled=false` means balance is depleted — donations welcome at faucet address.
    */
   async getFaucetStatus(): Promise<{
     enabled: boolean;
     address: string;
     balance: number;
     grantPerClaim: number;
-    claimsServed: number;
+    cooldownHours: number;
+    declaration_hash: string;
+    declaration_text: string;
   } | null> {
     try {
       return await this.request("getfaucetstatus");
@@ -282,19 +290,27 @@ export class OmniBusRpcClient {
   }
 
   /**
-   * Request 0.1 OMNI from the testnet faucet. Server enforces:
-   *   - 1 grant per address ever
-   *   - faucet must have ≥ grantPerClaim + fee balance
-   * Returns the txid on success; throws Error with the RPC message otherwise.
+   * Claim from the protocol faucet. Requires the declaration_hash from getfaucetstatus.
+   * The claimer must provide their wallet signature to prove identity and agreement.
+   * One claim per address ever; IP cooldown enforced server-side.
    */
-  async claimFaucet(address: string): Promise<{
+  async claimFaucet(address: string, declarationHash: string): Promise<{
     txid: string;
     recipient: string;
     amount: number;
-    fee: number;
+    declaration: string;
     status: string;
+    message: string;
   }> {
-    return this.request("claimfaucet", [address]);
+    // Note: full signing flow requires wallet private key — for now sends
+    // declaration_hash as proof of reading. Full sig enforcement in Phase 2.
+    return this.request("claimfaucet", {
+      address,
+      declaration_hash: declarationHash,
+      signature: "00".repeat(64),   // placeholder — node validates decl_hash only for now
+      public_key: "00".repeat(33),
+      nonce: 0,
+    });
   }
 
   async getMempoolStats(): Promise<any> {

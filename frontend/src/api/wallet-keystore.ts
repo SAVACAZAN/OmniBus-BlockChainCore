@@ -99,14 +99,17 @@ export type Unlocked = {
   soulboundAddresses?: { tier: string; prefix: string; address: string; algo: string; bits: number }[];
 };
 
-/** PQ-OMNI scheme catalogue. The `account` index is the BIP-44 account
- *  hardened path under coin type 777 — keep in sync with chain
- *  isolated_wallet.zig if/when the chain learns these new schemes. */
+/** PQ-OMNI scheme catalogue. Prefixes MUST match `core/transaction.zig:Scheme.prefix()`:
+ *    pq_omni_ml_dsa    = obk1_
+ *    pq_omni_falcon    = obf5_
+ *    pq_omni_dilithium = obs3_   ← swapped vs prior versions; verified 2026-05-06
+ *    pq_omni_slh_dsa   = obd5_   ← swapped vs prior versions; verified 2026-05-06
+ *  Mismatch causes `pq_send` to reject with "from address prefix does not match scheme". */
 export const PQ_OMNI_SCHEMES = [
   { scheme: "ml_dsa_87"    as const, account: 5, prefix: "obk1_", algo: "ML-DSA-87",     bits: 256 },
   { scheme: "falcon_512"   as const, account: 6, prefix: "obf5_", algo: "Falcon-512",    bits: 192 },
-  { scheme: "dilithium_5"  as const, account: 7, prefix: "obd5_", algo: "Dilithium-5",   bits: 256 },
-  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "obs3_", algo: "SLH-DSA-256s",  bits: 256 },
+  { scheme: "dilithium_5"  as const, account: 7, prefix: "obs3_", algo: "Dilithium-5",   bits: 256 },
+  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "obd5_", algo: "SLH-DSA-256s",  bits: 256 },
 ];
 
 export type VaultMetadata = {

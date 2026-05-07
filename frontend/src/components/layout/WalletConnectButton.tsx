@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
-import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/use-names";
+import { useNameForAddress, useEntryForAddress, useExpiringNames, TLD_THEME } from "../../api/use-names";
 
 // Inline SVG icons (lucide-react isn't installed in this frontend; matches the
 // inline-SVG style used everywhere else in Header.tsx).
@@ -68,6 +68,8 @@ export function WalletConnectButton() {
   const wallet = useWallet();
   const primaryName = useNameForAddress(wallet?.address);
   const entry = useEntryForAddress(wallet?.address);  // Phase 2: full entry for category
+  // Phase 2 lifecycle — warn if any of the wallet's names is in / approaching grace.
+  const expiring = useExpiringNames(wallet?.address);
   const [showModal, setShowModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -76,12 +78,27 @@ export function WalletConnectButton() {
     const tld = entry?.tld;
     const theme = tld ? TLD_THEME[tld] : undefined;
     const cat = entry?.category && entry.category !== "none" ? entry.category : null;
+    const expiringCount = expiring.length;
+    const expiringTitle = expiringCount > 0
+      ? `${expiringCount} name${expiringCount === 1 ? "" : "s"} expiring soon — click to renew`
+      : "";
     return (
       <div className="relative">
         <button
-          onClick={() => setShowDropdown((v) => !v)}
+          onClick={() => {
+            // Click jumps to NamesPage when there's something to renew —
+            // otherwise toggles the existing wallet dropdown.
+            if (expiringCount > 0) {
+              window.location.hash = "#names";
+            } else {
+              setShowDropdown((v) => !v);
+            }
+          }}
           className="flex items-center gap-2 bg-mempool-blue/15 border border-mempool-blue/40 rounded-lg px-3 py-1.5 hover:bg-mempool-blue/25 transition-colors"
-          title={primaryName ? `${primaryName} → ${wallet.address}${cat ? ` [${cat}]` : ""}` : wallet.address}
+          title={
+            expiringTitle ||
+            (primaryName ? `${primaryName} → ${wallet.address}${cat ? ` [${cat}]` : ""}` : wallet.address)
+          }
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           <span className={`text-xs ${theme?.color ?? "text-mempool-blue"} ${primaryName ? "font-semibold" : "font-mono"}`}>
@@ -91,6 +108,14 @@ export function WalletConnectButton() {
           {cat && (
             <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
               {cat}
+            </span>
+          )}
+          {expiringCount > 0 && (
+            <span
+              className="text-[9px] uppercase tracking-wider px-1 rounded bg-amber-500/30 text-amber-300 font-bold"
+              title={expiringTitle}
+            >
+              ⚠ {expiringCount} expiring
             </span>
           )}
         </button>

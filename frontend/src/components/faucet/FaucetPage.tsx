@@ -10,15 +10,18 @@ type FaucetStatus = {
   address: string;
   balance: number;
   grantPerClaim: number;
-  claimsServed: number;
+  cooldownHours: number;
+  declaration_hash: string;
+  declaration_text: string;
 };
 
 type ClaimResult = {
   txid: string;
   recipient: string;
   amount: number;
-  fee: number;
+  declaration: string;
   status: string;
+  message: string;
 };
 
 export function FaucetPage() {
@@ -29,9 +32,8 @@ export function FaucetPage() {
   const [claiming, setClaiming] = useState(false);
   const [result, setResult] = useState<ClaimResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDeclaration, setShowDeclaration] = useState(false);
 
-  // Recipient is fully derived from the connected wallet. The input is
-  // read-only — faucet always claims to the user's own address.
   useEffect(() => {
     setRecipient(wallet ? wallet.address : "");
   }, [wallet]);
@@ -48,10 +50,7 @@ export function FaucetPage() {
     };
     refresh();
     const id = setInterval(refresh, 6000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   const claim = async () => {
@@ -66,11 +65,14 @@ export function FaucetPage() {
       setError("Address length looks wrong.");
       return;
     }
+    if (!status?.declaration_hash) {
+      setError("Could not fetch declaration hash from node.");
+      return;
+    }
     setClaiming(true);
     try {
-      const r = await rpc.claimFaucet(addr);
+      const r = await rpc.claimFaucet(addr, status.declaration_hash);
       setResult(r);
-      // Refresh status so balance/claimsServed update right away.
       rpc.getFaucetStatus().then(setStatus).catch(() => {});
     } catch (e: any) {
       setError(e?.message || "Claim failed");
@@ -79,14 +81,16 @@ export function FaucetPage() {
     }
   };
 
-  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
+  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(4);
+  const canClaim = !!wallet && !!status?.enabled && (status.balance >= status.grantPerClaim);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-mempool-text mb-2">OmniBus Faucet</h1>
+      <h1 className="text-2xl font-bold text-mempool-text mb-2">OmniBus Onboarding Faucet</h1>
       <p className="text-mempool-text-dim text-sm mb-6">
-        Get 0.1 OMNI to your address so it crosses the validator threshold and
-        can start mining. One grant per address. Testnet only — no real value.
+        Get {status ? omniFmt(status.grantPerClaim) : "0.001"} OMNI to activate your address on-chain.
+        After claiming, complete <code>pq_attest</code> to unlock full ecosystem access
+        (mining, exchange, governance).
       </p>
 
       {/* Status card */}
@@ -100,11 +104,12 @@ export function FaucetPage() {
         )}
         {status && !status.enabled && (
           <div className="text-yellow-400 text-sm">
-            Faucet disabled on this node (no <code>--faucet-mode</code>).
+            Faucet temporarily offline — balance depleted. Community donations welcome at{" "}
+            <span className="font-mono text-xs">{status.address}</span>
           </div>
         )}
         {status?.enabled && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
             <div>
               <div className="text-mempool-text-dim text-xs">Balance</div>
               <div className="text-mempool-blue font-mono">{omniFmt(status.balance)} OMNI</div>
@@ -114,18 +119,42 @@ export function FaucetPage() {
               <div className="text-mempool-text font-mono">{omniFmt(status.grantPerClaim)} OMNI</div>
             </div>
             <div>
-              <div className="text-mempool-text-dim text-xs">Served</div>
-              <div className="text-mempool-text font-mono">{status.claimsServed}</div>
-            </div>
-            <div>
-              <div className="text-mempool-text-dim text-xs">Address</div>
-              <div className="text-mempool-text font-mono text-xs truncate" title={status.address}>
-                {status.address.slice(0, 12)}…{status.address.slice(-6)}
-              </div>
+              <div className="text-mempool-text-dim text-xs">Cooldown</div>
+              <div className="text-mempool-text font-mono">{status.cooldownHours}h per IP</div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Declaration of Honesty */}
+      {status?.declaration_text && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs uppercase tracking-wider text-mempool-text-dim">
+              Declaration of Honesty
+            </div>
+            <button
+              onClick={() => setShowDeclaration(v => !v)}
+              className="text-xs text-mempool-blue hover:underline"
+            >
+              {showDeclaration ? "Hide" : "Read"}
+            </button>
+          </div>
+          {showDeclaration && (
+            <p className="text-mempool-text text-sm leading-relaxed mb-3">
+              {status.declaration_text}
+            </p>
+          )}
+          <div className="text-xs text-mempool-text-dim font-mono break-all">
+            SHA-256: {status.declaration_hash}
+          </div>
+          <p className="text-xs text-mempool-text-dim mt-2">
+            By claiming, you sign this declaration with your wallet key. It is recorded
+            permanently on-chain as proof of agreement. Violations may result in
+            stake slashing and validator exclusion.
+          </p>
+        </div>
+      )}
 
       {/* Claim form */}
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
@@ -143,62 +172,46 @@ export function FaucetPage() {
           readOnly
           disabled={!wallet}
           placeholder={wallet ? "" : "Connect a wallet from the header to claim"}
-          title={wallet ? "Read-only — faucet always claims to your connected wallet" : "Connect a wallet from the header"}
           className="w-full bg-mempool-bg/50 border border-mempool-border rounded px-3 py-2 text-mempool-text-dim font-mono text-sm mb-3 cursor-not-allowed select-all"
           spellCheck={false}
         />
         <button
           onClick={claim}
-          disabled={claiming || !wallet || !status?.enabled || (status?.balance ?? 0) < (status?.grantPerClaim ?? 0)}
+          disabled={claiming || !canClaim}
           className="px-4 py-2 bg-mempool-blue hover:bg-blue-600 disabled:bg-mempool-bg disabled:text-mempool-text-dim disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
         >
-          {claiming ? "Sending…" : "Get 0.1 OMNI"}
+          {claiming ? "Signing declaration…" : "Claim & sign declaration"}
         </button>
-        {status?.enabled && (status.balance < status.grantPerClaim) && (
+        {status?.enabled && status.balance < status.grantPerClaim && (
           <span className="ml-3 text-xs text-yellow-400">Faucet drained — wait for refill</span>
+        )}
+        {!wallet && (
+          <span className="ml-3 text-xs text-mempool-text-dim">Connect wallet to claim</span>
         )}
       </div>
 
       {/* Result */}
-      {error && (
-        <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-          {error}
-        </div>
-      )}
       {result && (
-        <div className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
-          <div className="text-green-300 font-medium mb-2">Claim accepted</div>
-          <div className="grid grid-cols-1 gap-1 font-mono text-xs">
-            <div>
-              <span className="text-mempool-text-dim">txid:</span>{" "}
-              <span className="text-mempool-text break-all">{result.txid}</span>
-            </div>
-            <div>
-              <span className="text-mempool-text-dim">amount:</span>{" "}
-              <span className="text-mempool-text">{omniFmt(result.amount)} OMNI</span>
-            </div>
-            <div>
-              <span className="text-mempool-text-dim">recipient:</span>{" "}
-              <span className="text-mempool-text break-all">{result.recipient}</span>
-            </div>
+        <div className="mt-4 rounded-lg border border-green-600 bg-mempool-bg-elev p-4">
+          <div className="text-green-400 font-medium mb-2">✓ {result.message}</div>
+          <div className="text-xs text-mempool-text-dim space-y-1">
+            <div>TX: <span className="font-mono">{result.txid}</span></div>
+            <div>Amount: <span className="font-mono">{omniFmt(result.amount)} OMNI</span></div>
+            <div>Declaration: <span className="text-green-400">{result.declaration}</span></div>
           </div>
-          <div className="mt-2 text-xs text-mempool-text-dim">
-            TX is in the mempool. It will confirm in the next block (~1-3 seconds on testnet).
-          </div>
+          <p className="mt-3 text-xs text-mempool-text-dim">
+            Next step: complete <code>pq_attest</code> in the Wallet section to link your
+            4 soulbound domains and unlock full ecosystem access.
+          </p>
         </div>
       )}
 
-      <div className="mt-8 text-xs text-mempool-text-dim">
-        <p>
-          <span className="font-semibold text-mempool-text">How it works:</span> the faucet wallet
-          holds a small balance and signs a transfer of 0.1 OMNI to the address you submit. Your
-          address must reach 0.1 OMNI to be eligible as a validator (slot leader rotation).
-        </p>
-        <p className="mt-2">
-          Anti-Sybil: 1 grant per address, ever. The faucet refills automatically from the
-          operator&apos;s mining wallet when its balance dips below 0.5 OMNI.
-        </p>
-      </div>
+      {/* Error */}
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-600 bg-mempool-bg-elev p-3 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
     </div>
   );
 }
