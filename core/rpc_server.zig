@@ -12040,28 +12040,48 @@ fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// exchange_listPairs — perechi suportate. Static (definite la compile-time).
-/// exchange_pairInfo — returns chain routing + HTLC contract addresses for a pair.
+/// exchange_pairInfo — returns multi-chain routing + HTLC contract addresses for a pair.
 /// Params: { "pair_id": N }
-/// Result: { pair_id, base, quote, maker_chain, taker_chain, maker_chain_id,
-///            taker_chain_id, maker_contract, taker_contract }
+/// Result: { pair_id, base, quote,
+///            maker_chains: [{chain, chain_id, contract}...],
+///            taker_chains: [{chain, chain_id, contract}...] }
 fn handleExchangePairInfo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const pair_id_u = extractU64Param(body, "\"pair_id\"") orelse
         return errorJson(-32602, "Missing param: pair_id", id, alloc);
     const route = swap_link_mod.routeForPair(@intCast(pair_id_u)) orelse
         return errorJson(-32602, "Unknown pair_id", id, alloc);
-    return std.fmt.allocPrint(alloc,
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try std.fmt.format(out.writer(alloc),
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"pair_id\":{d},\"base\":\"{s}\",\"quote\":\"{s}\"," ++
-        "\"maker_chain\":\"{s}\",\"taker_chain\":\"{s}\"," ++
-        "\"maker_chain_id\":{d},\"taker_chain_id\":{d}," ++
-        "\"maker_contract\":\"{s}\",\"taker_contract\":\"{s}\"}}}}",
-        .{
-            id, route.pair_id, route.base_asset, route.quote_asset,
-            route.maker_chain.label(), route.taker_chain.label(),
-            route.maker_chain.evmChainId(), route.taker_chain.evmChainId(),
-            route.maker_contract, route.taker_contract,
-        });
+        "\"maker_chains\":[",
+        .{ id, route.pair_id, route.base_asset, route.quote_asset });
+
+    const maker_chains = swap_link_mod.chainsForAsset(route.base_asset);
+    var first: bool = true;
+    for (maker_chains) |ch| {
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"chain\":\"{s}\",\"chain_id\":{d},\"contract\":\"{s}\"}}",
+            .{ ch.label(), ch.evmChainId(), swap_link_mod.htlcContractFor(ch) });
+    }
+    try out.appendSlice(alloc, "],\"taker_chains\":[");
+
+    const taker_chains = swap_link_mod.chainsForAsset(route.quote_asset);
+    first = true;
+    for (taker_chains) |ch| {
+        if (!first) try out.appendSlice(alloc, ",");
+        first = false;
+        try std.fmt.format(out.writer(alloc),
+            "{{\"chain\":\"{s}\",\"chain_id\":{d},\"contract\":\"{s}\"}}",
+            .{ ch.label(), ch.evmChainId(), swap_link_mod.htlcContractFor(ch) });
+    }
+    try out.appendSlice(alloc, "]}}");
+    return alloc.dupe(u8, out.items);
 }
 
 fn handleExchangeListPairs(ctx: *ServerCtx, id: u64) ![]u8 {
