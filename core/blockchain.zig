@@ -141,6 +141,39 @@ pub const MultisigConfigEntry = struct {
 /// to embed it directly without a circular import. It is re-exported above
 /// as `blockchain_mod.BlockPriceEntry` so callers don't need to change.
 
+/// Mutable consensus parameters that on-chain governance can override at
+/// runtime. The hardcoded constants above (BLOCK_REWARD_SAT, MIN_DIFFICULTY,
+/// etc.) are the bootstrap defaults; once a passing proposal calls
+/// executeProposal, the corresponding field below is the live value used by
+/// mining/validation/RPC.
+///
+/// Plain-old-data so it can be zero-initialised, copied, and (eventually)
+/// persisted as part of chain.dat without owned slices to free.
+pub const ConsensusParams = struct {
+    /// Per-block coinbase reward in SAT. Bootstrapped to BLOCK_REWARD_SAT;
+    /// updates apply to *future* blocks (existing block.reward_sat values
+    /// stay intact for replay determinism).
+    block_reward_sat: u64 = BLOCK_REWARD_SAT,
+    /// Floor for PoW difficulty after retarget (clamps retargetDifficulty
+    /// output). Bootstrapped to MIN_DIFFICULTY.
+    min_difficulty: u32 = MIN_DIFFICULTY,
+    /// Maximum block size in bytes. Bootstrapped to block.MAX_BLOCK_SIZE.
+    block_size_limit: u64 = 1_048_576,
+    /// Maximum size of a single PQ signature in bytes. Default 5KB covers
+    /// SLH-DSA-256s (~30KB → set higher in PQ proposals).
+    pq_signature_max: u64 = 5_120,
+    /// Whether DNS records must be signed by the owner key for acceptance.
+    dns_signed_required: bool = false,
+    /// Minimum number of validators required for finality quorum. Default 2
+    /// matches GENESIS_VALIDATORS bootstrap; raise via governance once the
+    /// active set grows.
+    validator_quorum_min: u32 = 2,
+    /// When true, TX fees collected via applyExchangeFees flow to the next
+    /// block's miner instead of the exchange treasury. Default true (Bitcoin-
+    /// style miner incentive); flip via governance to revert to treasury.
+    route_fees_to_miner: bool = true,
+};
+
 /// Cross-chain identity record — registered via op_return "pq_attest_v1:".
 /// Stores the 4 soulbound domain addresses + optional BTC/ETH addresses.
 /// First-claim wins: once registered, cannot be overwritten.
@@ -189,10 +222,26 @@ pub const Blockchain = struct {
     /// Active validator set — slot-leader rotation reads from this list
     /// at every block. Initialised at genesis from
     /// validator_registry.GENESIS_VALIDATORS (bootstrap seed of 2 entries).
-    /// Mutable thereafter via on-chain governance proposals (TODO: governance
-    /// hook). Address strings are static-lifetime (point at GENESIS_VALIDATORS
-    /// data) until governance wires up dupe-on-add.
+    /// Mutable thereafter via on-chain governance proposals (validator
+    /// quorum / membership go through executeProposal). Address strings
+    /// are static-lifetime (point at GENESIS_VALIDATORS data) until
+    /// governance wires up dupe-on-add.
     validator_set: std.array_list.Managed(Validator),
+    /// Mutable consensus parameters — governance proposals update this
+    /// struct via executeProposal. See ConsensusParams above for fields.
+    /// Defaults to the hardcoded constants at struct init.
+    consensus_params: ConsensusParams = .{},
+    /// Accumulator for exchange-engine network fees (FILL_NETWORK_FEE_SAT)
+    /// that the matching engine collects between blocks. When the next
+    /// block is mined / applied, this amount is credited to the miner
+    /// alongside the coinbase reward and TX-level fees, then reset to 0.
+    /// Bypasses the treasury entirely when consensus_params.route_fees_to_miner
+    /// is true (the default — see applyExchangeFees and applyBlock).
+    pending_miner_fees: u64 = 0,
+    /// Cumulative network/exchange fees ever credited to miners (informational,
+    /// surfaced via getminerstats). Distinct from per-TX fees which already
+    /// flowed to miners via the existing total_fees pipeline.
+    total_miner_exchange_fees: u64 = 0,
     allocator: std.mem.Allocator,
     /// Balantele adreselor (in-memory, sincronizat cu database)
     balances: std.StringHashMap(u64),
@@ -734,8 +783,17 @@ pub const Blockchain = struct {
     /// while balances are in OMNI SAT. We charge them as SAT 1:1 for now —
     /// caller is responsible for unit conversion when the quote isn't OMNI.
     /// The network fee is in SAT and split ceil(net/2) taker, floor(net/2) maker.
-    /// TODO: route network_fee_sat to the block miner rather than the treasury;
-    /// this requires a miner-address handle that the RPC thread doesn't have.
+    ///
+    /// Fee routing (2026-05): when consensus_params.route_fees_to_miner is
+    /// true (default), the network_fee_sat portion accumulates in
+    /// `pending_miner_fees` and is credited to the next block's miner during
+    /// applyBlock. Taker/maker exchange fees still go to the treasury (those
+    /// pay for matching/orderbook services, which are a treasury concern).
+    /// When the flag is false, the legacy behaviour applies — full sum to
+    /// the exchange treasury.
+    ///
+    /// Switching back to the old behaviour is a single governance proposal
+    /// (action set_route_fees_to_miner=false) — no code change required.
     pub fn applyExchangeFees(
         self: *Blockchain,
         taker_addr: []const u8,
@@ -765,8 +823,19 @@ pub const Blockchain = struct {
 
         if (taker_total > 0) try self.debitBalanceLocked(taker_addr, taker_total);
         if (maker_total > 0) try self.debitBalanceLocked(maker_addr, maker_total);
-        const credit = taker_total + maker_total;
-        if (credit > 0) try self.creditBalanceLocked(treasury, credit);
+
+        // Treasury credit covers taker_fee + maker_fee always.
+        // Network-fee portion goes to either accumulator (miner) or treasury
+        // depending on the route_fees_to_miner switch.
+        const treasury_credit = if (self.consensus_params.route_fees_to_miner)
+            taker_fee + maker_fee
+        else
+            taker_total + maker_total;
+        if (treasury_credit > 0) try self.creditBalanceLocked(treasury, treasury_credit);
+
+        if (self.consensus_params.route_fees_to_miner and network_fee_sat > 0) {
+            self.pending_miner_fees +|= network_fee_sat;
+        }
     }
 
     /// Inregistreaza public key-ul unei adrese (pentru verificare semnatura TX)
@@ -1965,6 +2034,82 @@ pub const Blockchain = struct {
         }
     }
 
+    // ── Governance execution ─────────────────────────────────────────────────
+
+    /// Apply a passed governance proposal's action to consensus_params and
+    /// mark it executed. Errors on:
+    ///   - error.ProposalNotFound — id not in registry
+    ///   - error.ProposalNotPassed — status != .passed (still voting / rejected
+    ///     / expired / already executed all surface as ProposalNotPassed via
+    ///     gov_registry.markExecuted)
+    ///   - error.AlreadyExecuted — markExecuted reports this for the second
+    ///     execution attempt during a race (caller already past status check)
+    ///
+    /// Idempotent across the chain: once a proposal's status flips to .executed,
+    /// subsequent applyBlock passes skip it via collectPassedUnexecuted.
+    pub fn executeProposal(self: *Blockchain, proposal_id: u64, current_block: u64) !void {
+        const proposal = self.gov_registry.getProposal(proposal_id) orelse
+            return error.ProposalNotFound;
+        if (proposal.status != .passed) return error.ProposalNotPassed;
+        if (proposal.executed) return error.AlreadyExecuted;
+
+        // Apply the action. Unknown action kinds (forward-compat from a future
+        // node version) are treated as no-op so the chain doesn't fork on the
+        // execution itself — the proposal is still marked executed.
+        switch (proposal.action.kind) {
+            .none => {},
+            .set_block_reward => self.consensus_params.block_reward_sat = proposal.action.u64_value,
+            .set_min_difficulty => self.consensus_params.min_difficulty =
+                @intCast(@min(proposal.action.u64_value, @as(u64, MAX_DIFFICULTY))),
+            .set_block_size_limit => self.consensus_params.block_size_limit = proposal.action.u64_value,
+            .set_pq_signature_max => self.consensus_params.pq_signature_max = proposal.action.u64_value,
+            .set_dns_signed_required => self.consensus_params.dns_signed_required = proposal.action.bool_value,
+            .set_validator_quorum_min => self.consensus_params.validator_quorum_min =
+                @intCast(@min(proposal.action.u64_value, @as(u64, std.math.maxInt(u32)))),
+            .set_route_fees_to_miner => self.consensus_params.route_fees_to_miner = proposal.action.bool_value,
+            _ => {
+                // Forward-compat: unknown action kind. Mark executed anyway so
+                // proposals aren't re-tried every block in a stuck loop.
+            },
+        }
+
+        try self.gov_registry.markExecuted(proposal_id, current_block);
+
+        // Push WS event so dashboards / explorers see the protocol parameter
+        // change in real time. Best-effort: failure to format / broadcast must
+        // not roll back the executed mutation (it's already on chain via the
+        // governance registry).
+        if (main_mod.g_ws_srv) |ws| {
+            var buf: [512]u8 = undefined;
+            const json = std.fmt.bufPrint(&buf,
+                "{{\"type\":\"gov_executed\",\"proposal_id\":{d}," ++
+                "\"action_kind\":{d},\"u64_value\":{d},\"bool_value\":{}," ++
+                "\"executed_block\":{d}}}",
+                .{
+                    proposal_id,
+                    @intFromEnum(proposal.action.kind),
+                    proposal.action.u64_value,
+                    proposal.action.bool_value,
+                    current_block,
+                }) catch null;
+            if (json) |j| ws.broadcast(j);
+        }
+    }
+
+    /// Auto-execute every passed-but-unexecuted proposal at the current block
+    /// height. Called from applyBlock once per block. Safe under self.mutex
+    /// because executeProposal only mutates consensus_params + the gov registry
+    /// (both already serialised by applyBlock's caller).
+    fn autoExecutePassedProposals(self: *Blockchain, current_block: u64) void {
+        var ids: [16]u64 = undefined;
+        const n = self.gov_registry.collectPassedUnexecuted(&ids);
+        for (ids[0..n]) |pid| {
+            self.executeProposal(pid, current_block) catch |err| {
+                std.debug.print("[GOV-EXEC] proposal {d} failed: {}\n", .{ pid, err });
+            };
+        }
+    }
+
     fn applyBlock(self: *Blockchain, block: Block) !void {
         // PHASE C.3 — open the legitimate-write window.
         self.in_apply_block = true;
@@ -2101,9 +2246,21 @@ pub const Blockchain = struct {
         const fees_to_miner = total_fees - fees_burned;
         total_fees_burned_sat += fees_burned;
 
-        if (block.miner_address.len > 0 and (block.reward_sat > 0 or fees_to_miner > 0)) {
-            self.creditBalanceLocked(block.miner_address, block.reward_sat + fees_to_miner) catch {};
-            self.utxo_set.addUTXO(block.hash, 0, block.miner_address, block.reward_sat + fees_to_miner, @intCast(block.index), "", true) catch {};
+        // Drain accumulated network fees from applyExchangeFees into this
+        // block's miner. See ConsensusParams.route_fees_to_miner. Reset to
+        // zero whether or not we credited (orphan-block path may skip the
+        // credit but still wants the slate clean for the next attempt).
+        const exchange_fees_to_miner: u64 = if (self.consensus_params.route_fees_to_miner)
+            self.pending_miner_fees
+        else
+            0;
+        self.pending_miner_fees = 0;
+
+        const total_miner_credit: u64 = block.reward_sat + fees_to_miner + exchange_fees_to_miner;
+        if (block.miner_address.len > 0 and total_miner_credit > 0) {
+            self.creditBalanceLocked(block.miner_address, total_miner_credit) catch {};
+            self.utxo_set.addUTXO(block.hash, 0, block.miner_address, total_miner_credit, @intCast(block.index), "", true) catch {};
+            self.total_miner_exchange_fees +|= exchange_fees_to_miner;
         }
 
         // ── Pay-to-claim NS scan ────────────────────────────────────────────
@@ -2157,8 +2314,13 @@ pub const Blockchain = struct {
             }
         }
 
-        // ── Governance proposal finalization ────────────────────────────────
+        // ── Governance proposal finalization + auto-execute ─────────────────
+        // finalizeProposals flips voting → passed/rejected/expired for any
+        // proposal whose voting_end_block < current. autoExecutePassedProposals
+        // then runs each newly-passed action against consensus_params and marks
+        // it .executed so it never re-runs.
         self.gov_registry.finalizeProposals(@intCast(block.index));
+        self.autoExecutePassedProposals(@intCast(block.index));
 
         // ── Escrow auto-refund (timeout expired) ────────────────────────────
         // Verifica escrow-uri timed-out si returneaza fondurile la from_address.
@@ -2362,23 +2524,154 @@ pub const Blockchain = struct {
         return null;
     }
 
-    // FIXME: SEGFAULT-RISK [scan-2026-04-25] HIGH - returns Block by value while mining loop mutates self.chain
-    // Reason: Block contains array_list.Managed(Transaction) holding heap pointers. If mining loop
-    //   calls chain.append() between `len-1` read and the indexed copy, items pointer can be reallocated
-    //   and the returned Block's `.transactions.items` slice points to freed memory. Also `.hash`/`.previous_hash`
-    //   are slices that may reference allocator-owned memory the caller does not lock.
-    // Suggested fix: callers MUST hold self.mutex while using returned Block, OR use
-    //   getLatestBlockSnapshot() which returns a self-contained, allocation-free snapshot.
-    pub fn getLatestBlock(self: *Blockchain) Block {
-        return self.chain.items[self.chain.items.len - 1];
+    // SEGFAULT-FIX [scan-2026-04-25] HIGH — getLatestBlock now deep-clones
+    // under the chain mutex and returns an owned Block whose every heap-
+    // borrowed slice (`hash`, `previous_hash`, `miner_address`, every TX
+    // string, optional `fills` slice) is independently allocated from
+    // `alloc`. Caller MUST call `freeClonedBlock(alloc, &block)` when done —
+    // failing to do so leaks the cloned strings, the cloned TX list, and the
+    // optional fills buffer. The returned Block is safe to access after
+    // releasing bc.mutex even while the mining loop appends new blocks: it
+    // shares no memory with `self.chain`.
+    //
+    // For RPC handlers that just need a header snapshot, prefer
+    // `getLatestBlockSnapshot()` — no allocation, fixed-size buffers.
+    // `getLatestBlock` is intentionally kept for code paths that need the
+    // full Block (with TX list) — primarily test code.
+    pub fn getLatestBlock(self: *Blockchain, alloc: std.mem.Allocator) !Block {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        if (self.chain.items.len == 0) return error.EmptyChain;
+        return cloneBlockOwned(alloc, &self.chain.items[self.chain.items.len - 1]);
     }
 
-    // FIXME: SEGFAULT-RISK [scan-2026-04-25] LOW - reads len without lock
-    // Reason: ArrayList.items.len is a single usize so torn-read on x86-64 is not the failure mode here,
-    //   but callers chain this with subsequent index reads without holding mutex (see rpc_server.zig
-    //   getlatestblock / getbestblockhash). Length can change between getBlockCount() and chain[i].
-    // Suggested fix: callers must hold blockchain.mutex when correlating count with chain access.
+    /// Free a Block returned by `getLatestBlock`. Frees every heap-borrowed
+    /// slice, the cloned TX list, and the optional fills buffer.
+    pub fn freeClonedBlock(alloc: std.mem.Allocator, block: *Block) void {
+        if (block.hash.len > 0) alloc.free(block.hash);
+        if (block.previous_hash.len > 0) alloc.free(block.previous_hash);
+        if (block.miner_address.len > 0) alloc.free(block.miner_address);
+        for (block.transactions.items) |*tx| {
+            freeClonedTx(alloc, tx);
+        }
+        block.transactions.deinit();
+        if (block.fills_heap and block.fills.len > 0) {
+            alloc.free(block.fills);
+        }
+    }
+
+    /// Internal: deep-clone a Block. Every heap-borrowed slice gets a fresh
+    /// allocation from `alloc`. The returned Block shares no memory with `src`.
+    fn cloneBlockOwned(alloc: std.mem.Allocator, src: *const Block) !Block {
+        var out = Block{
+            .index = src.index,
+            .timestamp = src.timestamp,
+            .transactions = array_list.Managed(Transaction).init(alloc),
+            .previous_hash = "",
+            .nonce = src.nonce,
+            .hash = "",
+            .merkle_root = src.merkle_root,
+            .miner_address = "",
+            .reward_sat = src.reward_sat,
+            .miner_heap = true,
+            .prices = src.prices,
+            .prices_root = src.prices_root,
+            .fills = &.{},
+            .fills_root = src.fills_root,
+            .fills_heap = false,
+        };
+        errdefer freeClonedBlock(alloc, &out);
+
+        if (src.hash.len > 0) {
+            out.hash = try alloc.dupe(u8, src.hash);
+        }
+        if (src.previous_hash.len > 0) {
+            out.previous_hash = try alloc.dupe(u8, src.previous_hash);
+        }
+        if (src.miner_address.len > 0) {
+            out.miner_address = try alloc.dupe(u8, src.miner_address);
+        }
+        try out.transactions.ensureTotalCapacity(src.transactions.items.len);
+        for (src.transactions.items) |*src_tx| {
+            const cloned_tx = try cloneTxOwned(alloc, src_tx);
+            try out.transactions.append(cloned_tx);
+        }
+        if (src.fills.len > 0) {
+            const Fill = @import("matching_engine.zig").Fill;
+            const fills_buf = try alloc.alloc(Fill, src.fills.len);
+            @memcpy(fills_buf, src.fills);
+            out.fills = fills_buf;
+            out.fills_heap = true;
+        }
+        return out;
+    }
+
+    fn cloneTxOwned(alloc: std.mem.Allocator, src: *const Transaction) !Transaction {
+        var out: Transaction = src.*;
+        // Reset slice fields so errdefer cleanup is well-defined if a later
+        // dupe() fails partway through.
+        out.from_address = "";
+        out.to_address = "";
+        out.op_return = "";
+        out.script_pubkey = "";
+        out.script_sig = "";
+        out.signature = "";
+        out.hash = "";
+        out.public_key = "";
+        out.inputs = &.{};
+        out.outputs = &.{};
+        out.data = "";
+        errdefer freeClonedTx(alloc, &out);
+
+        if (src.from_address.len > 0)  out.from_address  = try alloc.dupe(u8, src.from_address);
+        if (src.to_address.len > 0)    out.to_address    = try alloc.dupe(u8, src.to_address);
+        if (src.op_return.len > 0)     out.op_return     = try alloc.dupe(u8, src.op_return);
+        if (src.script_pubkey.len > 0) out.script_pubkey = try alloc.dupe(u8, src.script_pubkey);
+        if (src.script_sig.len > 0)    out.script_sig    = try alloc.dupe(u8, src.script_sig);
+        if (src.signature.len > 0)     out.signature     = try alloc.dupe(u8, src.signature);
+        if (src.hash.len > 0)          out.hash          = try alloc.dupe(u8, src.hash);
+        if (src.public_key.len > 0)    out.public_key    = try alloc.dupe(u8, src.public_key);
+        if (src.inputs.len > 0) {
+            const InT = @TypeOf(src.inputs[0]);
+            const buf = try alloc.alloc(InT, src.inputs.len);
+            @memcpy(buf, src.inputs);
+            out.inputs = buf;
+        }
+        if (src.outputs.len > 0) {
+            const OutT = @TypeOf(src.outputs[0]);
+            const buf = try alloc.alloc(OutT, src.outputs.len);
+            @memcpy(buf, src.outputs);
+            out.outputs = buf;
+        }
+        if (src.data.len > 0)          out.data          = try alloc.dupe(u8, src.data);
+        return out;
+    }
+
+    fn freeClonedTx(alloc: std.mem.Allocator, tx: *Transaction) void {
+        if (tx.from_address.len > 0)  alloc.free(tx.from_address);
+        if (tx.to_address.len > 0)    alloc.free(tx.to_address);
+        if (tx.op_return.len > 0)     alloc.free(tx.op_return);
+        if (tx.script_pubkey.len > 0) alloc.free(tx.script_pubkey);
+        if (tx.script_sig.len > 0)    alloc.free(tx.script_sig);
+        if (tx.signature.len > 0)     alloc.free(tx.signature);
+        if (tx.hash.len > 0)          alloc.free(tx.hash);
+        if (tx.public_key.len > 0)    alloc.free(tx.public_key);
+        if (tx.inputs.len > 0)        alloc.free(tx.inputs);
+        if (tx.outputs.len > 0)       alloc.free(tx.outputs);
+        if (tx.data.len > 0)          alloc.free(tx.data);
+    }
+
+    // SEGFAULT-FIX [scan-2026-04-25] LOW — read len under chain mutex so the
+    // value can't change while a caller turns it into an index on the very
+    // next line. ArrayList.items.len is a single usize (no torn read on
+    // x86-64), but the larger correctness issue was that the value was used
+    // immediately afterward to index `chain.items`; locking ensures this read
+    // doesn't interleave with an in-flight `chain.append` reallocation. The
+    // chain only grows during normal operation, so the value remains valid
+    // (as a high-water mark) until the next append on this same thread.
     pub fn getBlockCount(self: *Blockchain) u32 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
         return @intCast(self.chain.items.len);
     }
 
@@ -3191,7 +3484,8 @@ test "Blockchain.getBlock — index inexistent returneaza null" {
 test "Blockchain.getLatestBlock — initial = genesis" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
-    const latest = bc.getLatestBlock();
+    var latest = try bc.getLatestBlock(testing.allocator);
+    defer Blockchain.freeClonedBlock(testing.allocator, &latest);
     try testing.expectEqual(@as(u32, 0), latest.index);
 }
 
@@ -4605,7 +4899,7 @@ fn freeBalanceKeys(bc: *Blockchain, addrs: []const []const u8) void {
     }
 }
 
-test "applyExchangeFees: credits exchange treasury and debits both sides" {
+test "applyExchangeFees: routes network fee to miner accumulator (default)" {
     var bc = try Blockchain.init(testing.allocator);
     defer bc.deinit();
 
@@ -4620,13 +4914,45 @@ test "applyExchangeFees: credits exchange treasury and debits both sides" {
     bc.in_apply_block = false;
 
     const treasury_before = bc.balances.get(treasury) orelse 0;
+    try testing.expect(bc.consensus_params.route_fees_to_miner); // default ON
 
     // Charge: taker_fee=2000, maker_fee=1000, network=1000 → split 500/500.
+    // Default routing: treasury gets only the exchange fees (3_000), the
+    // network 1_000 lands in pending_miner_fees and is settled at the next
+    // applyBlock to that block's miner.
     try bc.applyExchangeFees(taker, maker, 2_000, 1_000, 1_000);
 
     try testing.expectEqual(@as(u64, 1_000_000 - 2_500), bc.balances.get(taker).?);
     try testing.expectEqual(@as(u64, 1_000_000 - 1_500), bc.balances.get(maker).?);
+    try testing.expectEqual(treasury_before + 3_000, bc.balances.get(treasury) orelse 0);
+    try testing.expectEqual(@as(u64, 1_000), bc.pending_miner_fees);
+}
+
+test "applyExchangeFees: legacy treasury routing when flag flipped" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const taker = "ob1qtreasurytaker0000000000000000000000000";
+    const maker = "ob1qtreasurymaker0000000000000000000000000";
+    const treasury = registrar_mod.addressOf(.exchange).?;
+    defer freeBalanceKeys(&bc, &.{ taker, maker, treasury });
+
+    bc.consensus_params.route_fees_to_miner = false; // revert to old behaviour
+
+    bc.in_apply_block = true;
+    try bc.creditBalanceLocked(taker, 1_000_000);
+    try bc.creditBalanceLocked(maker, 1_000_000);
+    bc.in_apply_block = false;
+
+    const treasury_before = bc.balances.get(treasury) orelse 0;
+
+    try bc.applyExchangeFees(taker, maker, 2_000, 1_000, 1_000);
+
+    try testing.expectEqual(@as(u64, 1_000_000 - 2_500), bc.balances.get(taker).?);
+    try testing.expectEqual(@as(u64, 1_000_000 - 1_500), bc.balances.get(maker).?);
+    // Full taker_fee + maker_fee + network goes to treasury (legacy path).
     try testing.expectEqual(treasury_before + 4_000, bc.balances.get(treasury) orelse 0);
+    try testing.expectEqual(@as(u64, 0), bc.pending_miner_fees);
 }
 
 test "applyExchangeFees: rejects insufficient balance without partial mutation" {
@@ -4653,6 +4979,200 @@ test "applyExchangeFees: rejects insufficient balance without partial mutation" 
     try testing.expectEqual(@as(u64, 100), bc.balances.get(taker).?);
     try testing.expectEqual(@as(u64, 1_000_000), bc.balances.get(maker).?);
     try testing.expectEqual(treasury_before, bc.balances.get(treasury) orelse 0);
+}
+
+// ─── Governance proposal execution + miner fee routing tests ────────────────
+
+test "executeProposal: set_block_reward updates consensus_params after pass" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Bootstrap default == BLOCK_REWARD_SAT.
+    try testing.expectEqual(@as(u64, BLOCK_REWARD_SAT), bc.consensus_params.block_reward_sat);
+
+    const pp = gov_mod.ParsedPropose{
+        .title_hash = "a" ** gov_mod.TITLE_HASH_LEN,
+        .voting_blocks = 5,
+        .quorum = 100,
+        .note = "set reward to 40 OMNI",
+    };
+    const action = gov_mod.ProposalAction{
+        .kind = .set_block_reward,
+        .u64_value = 40_000_000_000, // 40 OMNI in SAT
+    };
+    const id = try bc.gov_registry.proposeWithAction("ob1qproposer", pp, 100, action);
+    try bc.gov_registry.vote(id, "ob1qzen", true, "ZEN", 101); // weight 1000
+    bc.gov_registry.finalizeProposals(110);
+
+    try bc.executeProposal(id, 110);
+
+    try testing.expectEqual(@as(u64, 40_000_000_000), bc.consensus_params.block_reward_sat);
+    const p = bc.gov_registry.getProposal(id).?;
+    try testing.expect(p.executed);
+    try testing.expectEqual(gov_mod.ProposalStatus.executed, p.status);
+}
+
+test "executeProposal: rejects already-executed proposal" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const pp = gov_mod.ParsedPropose{
+        .title_hash = "b" ** gov_mod.TITLE_HASH_LEN,
+        .voting_blocks = 5,
+        .quorum = 50,
+        .note = "",
+    };
+    const action = gov_mod.ProposalAction{
+        .kind = .set_min_difficulty,
+        .u64_value = 8,
+    };
+    const id = try bc.gov_registry.proposeWithAction("ob1qprop", pp, 100, action);
+    try bc.gov_registry.vote(id, "ob1qzen", true, "ZEN", 101);
+    bc.gov_registry.finalizeProposals(110);
+
+    try bc.executeProposal(id, 110);
+    try testing.expectEqual(@as(u32, 8), bc.consensus_params.min_difficulty);
+
+    // Second call must reject — proposal is now .executed, not .passed.
+    try testing.expectError(error.ProposalNotPassed, bc.executeProposal(id, 111));
+}
+
+test "executeProposal: rejects proposal that did not pass" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const pp = gov_mod.ParsedPropose{
+        .title_hash = "c" ** gov_mod.TITLE_HASH_LEN,
+        .voting_blocks = 5,
+        .quorum = 50,
+        .note = "",
+    };
+    const action = gov_mod.ProposalAction{
+        .kind = .set_block_size_limit,
+        .u64_value = 2_097_152,
+    };
+    const id = try bc.gov_registry.proposeWithAction("ob1qprop", pp, 100, action);
+    // Vote NO so the proposal is rejected at finalize.
+    try bc.gov_registry.vote(id, "ob1qzen", false, "ZEN", 101);
+    bc.gov_registry.finalizeProposals(110);
+
+    try testing.expectError(error.ProposalNotPassed, bc.executeProposal(id, 110));
+    try testing.expectEqual(@as(u64, 1_048_576), bc.consensus_params.block_size_limit); // unchanged
+}
+
+test "applyBlock auto-executes a passed proposal at the next block" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const pp = gov_mod.ParsedPropose{
+        .title_hash = "d" ** gov_mod.TITLE_HASH_LEN,
+        .voting_blocks = 1,
+        .quorum = 50,
+        .note = "",
+    };
+    const action = gov_mod.ProposalAction{
+        .kind = .set_validator_quorum_min,
+        .u64_value = 5,
+    };
+    // Voting opens at create_block; ends at create_block + 1.
+    const id = try bc.gov_registry.proposeWithAction("ob1qprop", pp, 0, action);
+    try bc.gov_registry.vote(id, "ob1qzen", true, "ZEN", 1); // weight 1000
+
+    // Mine a block at index >= voting_end_block (1) so finalize+autoExec kick.
+    const block = Block{
+        .index = 5,
+        .timestamp = 1700000000,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "block_gov_autoexec______________________________",
+        .miner_address = "ob1qminergov",
+        .reward_sat = BLOCK_REWARD_SAT,
+    };
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    try testing.expectEqual(@as(u32, 5), bc.consensus_params.validator_quorum_min);
+    const p = bc.gov_registry.getProposal(id).?;
+    try testing.expectEqual(gov_mod.ProposalStatus.executed, p.status);
+    try testing.expectEqual(@as(u64, 5), p.executed_block);
+}
+
+test "applyBlock credits accumulated exchange fees to miner alongside reward" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Simulate a fill that landed mid-block: pending_miner_fees has 7_500 sat.
+    bc.pending_miner_fees = 7_500;
+    try testing.expect(bc.consensus_params.route_fees_to_miner);
+
+    const block = Block{
+        .index = 1,
+        .timestamp = 1700000000,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "block_fees_to_miner____________________________1",
+        .miner_address = "ob1qminerfees",
+        .reward_sat = BLOCK_REWARD_SAT,
+    };
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    // Miner receives reward + accumulator. No TX-level fees in this block.
+    const miner_bal = bc.utxo_set.getBalance("ob1qminerfees");
+    try testing.expectEqual(BLOCK_REWARD_SAT + 7_500, miner_bal);
+    // Accumulator drained.
+    try testing.expectEqual(@as(u64, 0), bc.pending_miner_fees);
+    // Cumulative tracker incremented.
+    try testing.expectEqual(@as(u64, 7_500), bc.total_miner_exchange_fees);
+}
+
+test "applyBlock: per-TX fees + N*F miner credit (block_reward + N*fee)" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    // Two senders, each pre-funded; each pays a fee F=10_000.
+    try bc.utxo_set.addUTXO("seed_a_fees", 0, "ob1qfeealice", 1_000_000_000, 1, "", false);
+    try bc.utxo_set.addUTXO("seed_b_fees", 0, "ob1qfeebob",   1_000_000_000, 1, "", false);
+
+    const F: u64 = 10_000;
+    const tx_a = Transaction{
+        .id = 1, .from_address = "ob1qfeealice", .to_address = "ob1qfeerecv1",
+        .amount = 100_000, .fee = F, .timestamp = 1700000000, .nonce = 0,
+        .signature = "", .hash = "tx_fee_a_______________________________________a",
+    };
+    const tx_b = Transaction{
+        .id = 2, .from_address = "ob1qfeebob", .to_address = "ob1qfeerecv2",
+        .amount = 100_000, .fee = F, .timestamp = 1700000000, .nonce = 0,
+        .signature = "", .hash = "tx_fee_b_______________________________________b",
+    };
+
+    var block = Block{
+        .index = 1, .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1", .nonce = 0,
+        .hash = "block_NF_to_miner______________________________1",
+        .miner_address = "ob1qminerNF", .reward_sat = BLOCK_REWARD_SAT,
+    };
+    try block.transactions.append(tx_a);
+    try block.transactions.append(tx_b);
+
+    bc.mutex.lock();
+    defer bc.mutex.unlock();
+    try bc.applyBlock(block);
+
+    // Total fees = 2*F = 20_000; FEE_BURN_PCT=50 → 10_000 burned, 10_000 to miner.
+    const total_fees = 2 * F;
+    const fees_burned = total_fees * FEE_BURN_PCT / 100;
+    const fees_to_miner = total_fees - fees_burned;
+    const expected = BLOCK_REWARD_SAT + fees_to_miner;
+
+    try testing.expectEqual(expected, bc.utxo_set.getBalance("ob1qminerNF"));
 }
 
 // ─── PHASE 2F.2 — HTLC end-to-end test ──────────────────────────────────────

@@ -78,7 +78,8 @@ test "E2E — hash bloc minat respecta difficulty" {
     defer bc.deinit();
 
     try mineOne(&bc, MINER_ADDR);
-    const blk = bc.getLatestBlock();
+    var blk = try bc.getLatestBlock(testing.allocator);
+    defer Blockchain.freeClonedBlock(testing.allocator, &blk);
 
     // hash trebuie sa inceapa cu cel putin 4 zerouri
     try testing.expect(blk.hash.len >= 4);
@@ -201,7 +202,8 @@ test "E2E — getLatestBlock dupa 2 mine = index 2" {
     try mineOne(&bc, MINER_ADDR);
     try mineOne(&bc, MINER_ADDR);
 
-    const latest = bc.getLatestBlock();
+    var latest = try bc.getLatestBlock(testing.allocator);
+    defer Blockchain.freeClonedBlock(testing.allocator, &latest);
     try testing.expectEqual(@as(u32, 2), latest.index);
 }
 

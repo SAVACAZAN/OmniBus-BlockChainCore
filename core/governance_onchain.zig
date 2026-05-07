@@ -52,6 +52,45 @@ pub const ProposalStatus = enum(u8) {
     passed = 1,
     rejected = 2,
     expired = 3,
+    /// Proposal already executed via executeProposal — terminal state.
+    executed = 4,
+};
+
+/// Discrete actions a governance proposal can apply to consensus state when
+/// it passes. `none` is a text-only signal proposal (no protocol mutation).
+///
+/// Tagged union with a `kind` discriminator + per-arm payloads. Adding new
+/// arms is backward-compatible: existing zero-initialized proposals deserialize
+/// to `kind = .none` (zero) which executeProposal treats as no-op.
+pub const ProposalActionKind = enum(u8) {
+    /// Text-only proposal (default for legacy proposals with no action field).
+    none = 0,
+    /// Set per-block reward (in SAT). Affects future blocks only.
+    set_block_reward = 1,
+    /// Lower bound on PoW difficulty after retarget.
+    set_min_difficulty = 2,
+    /// Maximum block size in bytes.
+    set_block_size_limit = 3,
+    /// Maximum size of a single PQ signature in bytes.
+    set_pq_signature_max = 4,
+    /// Whether DNS records must be signed by their owner key.
+    set_dns_signed_required = 5,
+    /// Minimum number of validators required for finality quorum.
+    set_validator_quorum_min = 6,
+    /// Toggle: route TX network fees to miner (true) or treasury (false).
+    set_route_fees_to_miner = 7,
+    _,
+};
+
+/// Action payload — `kind` selects which member is meaningful.
+/// Stored on every Proposal. zero-initialized = `none` (no-op).
+pub const ProposalAction = struct {
+    kind: ProposalActionKind = .none,
+    /// Generic numeric argument for set_block_reward / set_min_difficulty /
+    /// set_block_size_limit / set_pq_signature_max / set_validator_quorum_min.
+    u64_value: u64 = 0,
+    /// Boolean flag for set_dns_signed_required / set_route_fees_to_miner.
+    bool_value: bool = false,
 };
 
 // ── Named structs ─────────────────────────────────────────────────────────────
@@ -85,6 +124,14 @@ pub const Proposal = struct {
     status: ProposalStatus,
     create_block: u64,
     vote_count: u32,
+    /// Action to apply when the proposal passes. zero-initialized → no-op
+    /// (text-only proposal). Field appended after `vote_count` so legacy
+    /// std.mem.zeroes(Proposal) call sites stay valid.
+    action: ProposalAction = .{},
+    /// True after executeProposal() ran successfully. Prevents replay.
+    executed: bool = false,
+    /// Block height when execution happened (0 if not yet executed).
+    executed_block: u64 = 0,
 
     // ── Slice helpers ────────────────────────────────────────────────────────
 
@@ -107,6 +154,7 @@ pub const Proposal = struct {
             .passed => "passed",
             .rejected => "rejected",
             .expired => "expired",
+            .executed => "executed",
         };
     }
 };
@@ -175,11 +223,24 @@ pub const GovernanceRegistry = struct {
     // ── Public API ───────────────────────────────────────────────────────────
 
     /// Create a new proposal. Returns the new proposal id.
+    /// Action defaults to `.none` (text-only / signaling proposal).
     pub fn propose(
         self: *GovernanceRegistry,
         proposer: []const u8,
         parsed: ParsedPropose,
         block_height: u64,
+    ) !u64 {
+        return self.proposeWithAction(proposer, parsed, block_height, .{});
+    }
+
+    /// Create a proposal carrying a binding ProposalAction. When the proposal
+    /// passes, executeProposal applies the action's mutation to consensus state.
+    pub fn proposeWithAction(
+        self: *GovernanceRegistry,
+        proposer: []const u8,
+        parsed: ParsedPropose,
+        block_height: u64,
+        action: ProposalAction,
     ) !u64 {
         self.mutex.lock();
         defer self.mutex.unlock();
@@ -196,6 +257,9 @@ pub const GovernanceRegistry = struct {
         p.vote_count = 0;
         p.yes_weight = 0;
         p.no_weight = 0;
+        p.action = action;
+        p.executed = false;
+        p.executed_block = 0;
 
         // Copy proposer address.
         {
@@ -382,6 +446,48 @@ pub const GovernanceRegistry = struct {
             }
         }
         return n;
+    }
+
+    /// Collect IDs of proposals that are passed AND not yet executed. Caller
+    /// passes a small fixed buffer; the function returns how many entries it
+    /// filled. Used by Blockchain.applyBlock to drive auto-execution per block.
+    pub fn collectPassedUnexecuted(self: *GovernanceRegistry, out: []u64) usize {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
+        var n: usize = 0;
+        var it = self.proposals.valueIterator();
+        while (it.next()) |p_ptr| {
+            if (n >= out.len) break;
+            if (p_ptr.status == .passed and !p_ptr.executed) {
+                out[n] = p_ptr.id;
+                n += 1;
+            }
+        }
+        return n;
+    }
+
+    /// Mark a proposal as executed. Called by Blockchain.executeProposal after
+    /// the action mutation has succeeded. Errors:
+    ///   - error.ProposalNotFound — id not in registry
+    ///   - error.ProposalNotPassed — status != .passed
+    ///   - error.AlreadyExecuted — executed flag already set
+    pub fn markExecuted(
+        self: *GovernanceRegistry,
+        proposal_id: u64,
+        block_height: u64,
+    ) !void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
+        const p_ptr = self.proposals.getPtr(proposal_id) orelse
+            return error.ProposalNotFound;
+        if (p_ptr.status != .passed) return error.ProposalNotPassed;
+        if (p_ptr.executed) return error.AlreadyExecuted;
+
+        p_ptr.executed = true;
+        p_ptr.executed_block = block_height;
+        p_ptr.status = .executed;
     }
 
     /// Returns true if `voter` has already voted on `proposal_id`.
@@ -691,4 +797,105 @@ test "Proposal — statusStr" {
     try testing.expectEqualSlices(u8, "rejected", p.statusStr());
     p.status = .expired;
     try testing.expectEqualSlices(u8, "expired", p.statusStr());
+    p.status = .executed;
+    try testing.expectEqualSlices(u8, "executed", p.statusStr());
+}
+
+test "ProposalAction — zero-init defaults to none (legacy text-only proposals)" {
+    const a = ProposalAction{};
+    try testing.expectEqual(ProposalActionKind.none, a.kind);
+    try testing.expectEqual(@as(u64, 0), a.u64_value);
+    try testing.expectEqual(false, a.bool_value);
+}
+
+test "GovernanceRegistry — proposeWithAction stores binding action" {
+    var reg = GovernanceRegistry.init(testing.allocator);
+    defer reg.deinit();
+
+    const pp = ParsedPropose{
+        .title_hash = "a" ** TITLE_HASH_LEN,
+        .voting_blocks = 100,
+        .quorum = 10,
+        .note = "",
+    };
+    const action = ProposalAction{
+        .kind = .set_block_reward,
+        .u64_value = 40_000_000_000, // 40 OMNI
+    };
+    const id = try reg.proposeWithAction("ob1prop", pp, 1000, action);
+
+    const p = reg.getProposal(id) orelse return error.TestFailed;
+    try testing.expectEqual(ProposalActionKind.set_block_reward, p.action.kind);
+    try testing.expectEqual(@as(u64, 40_000_000_000), p.action.u64_value);
+    try testing.expectEqual(false, p.executed);
+}
+
+test "GovernanceRegistry — markExecuted requires passed status" {
+    var reg = GovernanceRegistry.init(testing.allocator);
+    defer reg.deinit();
+
+    const pp = ParsedPropose{
+        .title_hash = "b" ** TITLE_HASH_LEN,
+        .voting_blocks = 50,
+        .quorum = 10,
+        .note = "",
+    };
+    const id = try reg.propose("ob1prop", pp, 100);
+
+    // Status is still `voting` — markExecuted must fail.
+    try testing.expectError(error.ProposalNotPassed, reg.markExecuted(id, 200));
+}
+
+test "GovernanceRegistry — markExecuted is idempotent (second call rejects)" {
+    var reg = GovernanceRegistry.init(testing.allocator);
+    defer reg.deinit();
+
+    const pp = ParsedPropose{
+        .title_hash = "c" ** TITLE_HASH_LEN,
+        .voting_blocks = 10,
+        .quorum = 100,
+        .note = "",
+    };
+    const id = try reg.propose("ob1prop", pp, 100);
+    try reg.vote(id, "ob1zen", true, "ZEN", 101);
+    reg.finalizeProposals(120);
+
+    // First markExecuted succeeds.
+    try reg.markExecuted(id, 121);
+    const p = reg.getProposal(id) orelse return error.TestFailed;
+    try testing.expect(p.executed);
+    try testing.expectEqual(ProposalStatus.executed, p.status);
+
+    // Second markExecuted on the same id rejects with AlreadyExecuted.
+    // (Status is now .executed, not .passed, so the not-passed branch fires
+    // first; that's still a clear failure to the caller.)
+    try testing.expectError(error.ProposalNotPassed, reg.markExecuted(id, 122));
+}
+
+test "GovernanceRegistry — collectPassedUnexecuted returns only passed+unexecuted" {
+    var reg = GovernanceRegistry.init(testing.allocator);
+    defer reg.deinit();
+
+    // Three proposals: one passes, one rejected, one stays in voting.
+    const pp = ParsedPropose{ .title_hash = "d" ** TITLE_HASH_LEN, .voting_blocks = 10, .quorum = 50, .note = "" };
+    const id_pass = try reg.propose("ob1a", pp, 100);
+    try reg.vote(id_pass, "ob1ax", true, "ZEN", 101);
+
+    const id_reject = try reg.propose("ob1b", pp, 100);
+    try reg.vote(id_reject, "ob1bx", false, "ZEN", 101);
+
+    const pp_long = ParsedPropose{ .title_hash = "e" ** TITLE_HASH_LEN, .voting_blocks = 1000, .quorum = 50, .note = "" };
+    _ = try reg.propose("ob1c", pp_long, 100);
+
+    reg.finalizeProposals(115); // first two end at 110 → finalized; third still voting
+
+    var ids: [8]u64 = undefined;
+    const n = reg.collectPassedUnexecuted(&ids);
+    try testing.expectEqual(@as(usize, 1), n);
+    try testing.expectEqual(id_pass, ids[0]);
+
+    // After marking executed, list shrinks to 0.
+    try reg.markExecuted(id_pass, 116);
+    const n2 = reg.collectPassedUnexecuted(&ids);
+    try testing.expectEqual(@as(usize, 0), n2);
 }
