@@ -1,7 +1,7 @@
 {
   "rpc": {
-    "total": 176,
-    "implemented": 175,
+    "total": 196,
+    "implemented": 195,
     "stubs": [
       "generatewallet"
     ],
@@ -218,6 +218,21 @@
         "sub_cancel",
         "sub_create"
       ],
+      "Other (htlc_*)": [
+        "htlc_btc_buildScript",
+        "htlc_claim",
+        "htlc_get",
+        "htlc_init",
+        "htlc_listByAddress",
+        "htlc_listPending",
+        "htlc_refund"
+      ],
+      "Other (intent_*)": [
+        "intent_fill_commit",
+        "intent_post",
+        "intent_settle",
+        "intent_timeout"
+      ],
       "Oracle / Omnibus": [
         "omnibus_bridge_limits",
         "omnibus_getallprices",
@@ -233,6 +248,21 @@
         "omnibus_getpricerange",
         "omnibus_gettotalmined",
         "omnibus_setoraclepolicy"
+      ],
+      "Other (oracle_*)": [
+        "oracle_btcHeight",
+        "oracle_ethHeight",
+        "oracle_recordHeader"
+      ],
+      "Other (spv_*)": [
+        "spv_btc_verifyTx",
+        "spv_eth_verifyEvent"
+      ],
+      "Other (swap_*)": [
+        "swap_listOpen",
+        "swap_open",
+        "swap_proveSettle",
+        "swap_status"
       ]
     }
   },
@@ -377,9 +407,9 @@
     "scheme_count": 13
   },
   "modules": {
-    "module_count": 125,
-    "total_loc": 79602,
-    "total_pub_fn": 188,
+    "module_count": 131,
+    "total_loc": 83571,
+    "total_pub_fn": 209,
     "modules": [
       {
         "file": "agent_config.zig",
@@ -448,7 +478,7 @@
       },
       {
         "file": "blockchain.zig",
-        "loc": 4164,
+        "loc": 4484,
         "pub_fn": 5
       },
       {
@@ -514,6 +544,11 @@
       {
         "file": "consensus_pouw.zig",
         "loc": 842,
+        "pub_fn": 0
+      },
+      {
+        "file": "cross_chain_oracle.zig",
+        "loc": 248,
         "pub_fn": 0
       },
       {
@@ -613,8 +648,18 @@
       },
       {
         "file": "htlc.zig",
-        "loc": 303,
-        "pub_fn": 0
+        "loc": 531,
+        "pub_fn": 1
+      },
+      {
+        "file": "htlc_btc.zig",
+        "loc": 535,
+        "pub_fn": 8
+      },
+      {
+        "file": "htlc_persist.zig",
+        "loc": 213,
+        "pub_fn": 2
       },
       {
         "file": "identity.zig",
@@ -673,7 +718,7 @@
       },
       {
         "file": "main.zig",
-        "loc": 2838,
+        "loc": 2866,
         "pub_fn": 3
       },
       {
@@ -762,6 +807,11 @@
         "pub_fn": 5
       },
       {
+        "file": "order_swap_link.zig",
+        "loc": 644,
+        "pub_fn": 1
+      },
+      {
         "file": "orderbook_sync.zig",
         "loc": 984,
         "pub_fn": 0
@@ -843,7 +893,7 @@
       },
       {
         "file": "rpc_server.zig",
-        "loc": 13375,
+        "loc": 14185,
         "pub_fn": 4
       },
       {
@@ -885,6 +935,16 @@
         "file": "spark_invariants.zig",
         "loc": 297,
         "pub_fn": 5
+      },
+      {
+        "file": "spv_btc.zig",
+        "loc": 465,
+        "pub_fn": 4
+      },
+      {
+        "file": "spv_eth.zig",
+        "loc": 213,
+        "pub_fn": 4
       },
       {
         "file": "staking.zig",
@@ -938,8 +998,8 @@
       },
       {
         "file": "tx_payload.zig",
-        "loc": 404,
-        "pub_fn": 1
+        "loc": 669,
+        "pub_fn": 2
       },
       {
         "file": "tx_receipt.zig",

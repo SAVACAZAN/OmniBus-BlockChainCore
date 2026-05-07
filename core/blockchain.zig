@@ -26,6 +26,8 @@ const social_mod = @import("social_graph.zig");
 const poap_mod = @import("poap.zig");
 const gov_mod    = @import("governance_onchain.zig");
 const faucet_mod = @import("faucet.zig");
+const htlc_mod   = @import("htlc.zig");
+const swap_link_mod = @import("order_swap_link.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -311,6 +313,24 @@ pub const Blockchain = struct {
     /// replay paths; applyOrderTxs short-circuits when null so the chain
     /// stays consistent without consensus matching.
     exchange_engine: ?*matching_mod.MatchingEngine = null,
+
+    /// PHASE 2F.2 — on-chain HTLC registry. Stores active/claimed/refunded
+    /// hash-time-locked contracts created via TX type 0x30 (htlc_init) and
+    /// transitioned via 0x31 (claim) / 0x32 (refund). State is fully
+    /// persisted to data/<chain>/htlc_registry.bin via htlc_persist.zig so
+    /// pending HTLCs survive restart. Funds locked in active HTLCs are
+    /// virtually held — `bc.balances` is debited at init and re-credited
+    /// to the matching party (recipient on claim, sender on refund). No
+    /// UTXO movement happens for HTLC TXs themselves.
+    htlc_registry: htlc_mod.HtlcOnChainRegistry = .{},
+
+    /// PHASE 2F.5 — cross-chain atomic-swap binding registry. Populated by
+    /// applyOrderTxs when an order_place TX carries a v2 cross-chain
+    /// trailer (see core/order_swap_link.zig + tx_payload.OrderCrossChainTrailer).
+    /// State machine: pending → both_locked → claimed | timed_out.
+    /// Persisted alongside other registries to data/<chain>/swap_bindings.bin
+    /// (caller wires the path via main.zig).
+    swap_registry: swap_link_mod.SwapBindingRegistry = swap_link_mod.SwapBindingRegistry.init(),
 
     /// PHASE 2D — fills produced per block height. Keyed by block.index,
     /// value is a heap-owned slice of Fill records generated when that
@@ -1957,6 +1977,15 @@ pub const Blockchain = struct {
             // Bridge_lock IS a UTXO movement (vault payment) and falls
             // through to the regular path; bridge_unlock_request is virtual.
             if (tx.tx_type != .transfer and tx.tx_type != .bridge_lock) {
+                // PHASE 2F.2 — HTLC state transitions before the generic
+                // typed-TX fallthrough. Funds are tracked virtually via
+                // bc.balances: init debits sender, claim credits recipient,
+                // refund credits sender. UTXOs are not touched (the typed
+                // TX has amount=0 by convention).
+                self.applyHtlcTx(tx, @intCast(block.index)) catch |err| {
+                    std.debug.print("[HTLC] apply tx {s} type={} failed: {}\n",
+                        .{ tx.hash[0..@min(16, tx.hash.len)], tx.tx_type, err });
+                };
                 // Still increment nonce + index TX so listings show it.
                 const cur_nonce = self.nonces.get(tx.from_address) orelse 0;
                 self.nonces.put(tx.from_address, cur_nonce + 1) catch {};
@@ -2368,6 +2397,123 @@ pub const Blockchain = struct {
         return snap;
     }
 
+    // ─── PHASE 2F.2 — HTLC state transitions ────────────────────────────
+    //
+    // Dispatch a single HTLC-typed TX (htlc_init / htlc_claim / htlc_refund).
+    // Called from applyBlock for every TX whose `tx_type` is in the HTLC
+    // group. Funds are tracked virtually: bc.balances is the only ledger
+    // touched. UTXO state is intentionally left alone — htlc_init carries
+    // amount=0 on the typed envelope; the locked value lives entirely in
+    // the registry until claim/refund releases it back into bc.balances.
+    //
+    // This emits WS events on success (htlc_created/htlc_claimed/htlc_refunded)
+    // so the UI can react in real time. Errors are logged and the TX is
+    // skipped — applyBlock keeps going so a single bad HTLC TX cannot stall
+    // the rest of the block.
+    fn applyHtlcTx(self: *Blockchain, tx: Transaction, block_height: u32) !void {
+        switch (tx.tx_type) {
+            .htlc_init => {
+                const payload = try tx_payload_mod.HtlcInitPayload.decode(tx.data);
+                try payload.validate();
+
+                // Sender must have enough free balance to lock.
+                const sender_bal = self.balances.get(tx.from_address) orelse 0;
+                if (sender_bal < payload.amount_sat) return error.HtlcInsufficientFunds;
+
+                // Build the deterministic 32-byte id from the init TX hash.
+                const id = htlc_mod.computeHtlcId(tx.hash);
+
+                // Build entry. sender = tx.from_address, recipient = tx.to_address.
+                if (tx.from_address.len > htlc_mod.HTLC_MAX_ADDR_LEN) return error.HtlcAddressTooLong;
+                if (tx.to_address.len > htlc_mod.HTLC_MAX_ADDR_LEN) return error.HtlcAddressTooLong;
+
+                var e = htlc_mod.HtlcEntry{
+                    .id = id,
+                    .amount_sat = payload.amount_sat,
+                    .hash_lock = payload.hash_lock,
+                    .timelock_block = payload.timelock_block,
+                    .init_block = block_height,
+                    .state = .active,
+                };
+                @memcpy(e.sender[0..tx.from_address.len], tx.from_address);
+                e.sender_len = @intCast(tx.from_address.len);
+                @memcpy(e.recipient[0..tx.to_address.len], tx.to_address);
+                e.recipient_len = @intCast(tx.to_address.len);
+                if (tx.hash.len <= 64) {
+                    @memcpy(e.init_tx_hash[0..tx.hash.len], tx.hash);
+                    e.init_tx_hash_len = @intCast(tx.hash.len);
+                }
+
+                try self.htlc_registry.addEntry(e);
+                // Lock sender funds (debit balance — held until claim/refund).
+                try self.debitBalanceLocked(tx.from_address, payload.amount_sat);
+
+                // WS event: htlc_created.
+                if (main_mod.g_ws_srv) |ws| {
+                    var json_buf: [512]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"htlc_created\",\"htlc_id\":\"{s}\",\"sender\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"timelock_block\":{d}}}",
+                        .{ tx.hash, tx.from_address, tx.to_address, payload.amount_sat, payload.timelock_block }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+            },
+            .htlc_claim => {
+                const payload = try tx_payload_mod.HtlcClaimPayload.decode(tx.data);
+                try payload.validate();
+
+                // Lookup BEFORE applying claim so we can validate identity.
+                const entry_opt = self.htlc_registry.get(payload.htlc_id);
+                const entry = entry_opt orelse return error.HtlcNotFound;
+                if (entry.state != .active) return error.HtlcNotActive;
+                // Only the registered recipient can claim.
+                if (!std.mem.eql(u8, entry.recipientSlice(), tx.from_address))
+                    return error.HtlcUnauthorizedClaim;
+
+                try self.htlc_registry.applyClaim(payload.htlc_id, payload.preimage);
+                // Release locked funds to recipient (== tx.from_address here).
+                try self.creditBalanceLocked(tx.from_address, entry.amount_sat);
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var json_buf: [512]u8 = undefined;
+                    var pre_hex: [64]u8 = undefined;
+                    for (payload.preimage, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(pre_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"htlc_claimed\",\"htlc_id_tx\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"preimage\":\"{s}\"}}",
+                        .{ tx.hash, tx.from_address, entry.amount_sat, &pre_hex }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+            },
+            .htlc_refund => {
+                const payload = try tx_payload_mod.HtlcRefundPayload.decode(tx.data);
+                try payload.validate();
+
+                const entry_opt = self.htlc_registry.get(payload.htlc_id);
+                const entry = entry_opt orelse return error.HtlcNotFound;
+                if (entry.state != .active and entry.state != .expired)
+                    return error.HtlcNotRefundable;
+                // Only the original sender can refund.
+                if (!std.mem.eql(u8, entry.senderSlice(), tx.from_address))
+                    return error.HtlcUnauthorizedRefund;
+                if (block_height < entry.timelock_block) return error.HtlcNotExpired;
+
+                try self.htlc_registry.applyRefund(payload.htlc_id, block_height);
+                // Return locked funds to sender.
+                try self.creditBalanceLocked(tx.from_address, entry.amount_sat);
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var json_buf: [512]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"htlc_refunded\",\"htlc_id_tx\":\"{s}\",\"sender\":\"{s}\",\"amount_sat\":{d}}}",
+                        .{ tx.hash, tx.from_address, entry.amount_sat }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+            },
+            else => {}, // not an HTLC TX — caller filtered already
+        }
+    }
+
     // ─── PHASE 2B: deterministic order matching ─────────────────────────
     //
     // Called from applyBlock after all transfer TXs have settled.
@@ -2441,6 +2587,17 @@ pub const Blockchain = struct {
             const tx = block.transactions.items[idx];
             const payload = tx_payload_mod.OrderPlacePayload.decode(tx.data) catch continue;
 
+            // Check for optional cross-chain trailer. When present + chain != 0,
+            // we register a SwapBinding before (or in parallel with) placing
+            // the order. The Omnibus side still goes through the matching
+            // engine so a local taker can match it; the binding tracks the
+            // remote-chain HTLC counterpart.
+            const trailer_opt: ?tx_payload_mod.OrderCrossChainTrailer = blk: {
+                const got = tx_payload_mod.decodeOrderPlaceWithTrailer(tx.data) catch break :blk null;
+                break :blk got.trailer;
+            };
+
+            var assigned_order_id: u64 = 0;
             if (engine_opt) |eng| {
                 var order = matching_mod.Order.empty();
                 order.side = switch (payload.side) {
@@ -2456,10 +2613,68 @@ pub const Blockchain = struct {
                 order.trader_addr_len = @intCast(tn);
                 order.status = .active;
 
+                // Capture the order_id assigned by the matching engine
+                // before placing (eng.next_order_id is the next id it will
+                // hand out — it bumps on success, so this is correct).
+                assigned_order_id = eng.next_order_id;
                 eng.placeOrder(order) catch |err| {
                     std.debug.print("[ORDER-PLACE] {s} pair={d}: {}\n",
                         .{ tx.from_address[0..@min(16, tx.from_address.len)],
                            payload.pair_id, err });
+                    assigned_order_id = 0; // signal failure
+                };
+            }
+
+            // ─ cross-chain binding ─────────────────────────────────────
+            if (trailer_opt) |t| {
+                if (assigned_order_id == 0) continue; // engine rejected
+                const taker_chain = swap_link_mod.Chain.fromU8(t.cross_chain_chain) orelse continue;
+                if (taker_chain == .omnibus) continue; // not actually cross-chain
+                // Build references. Maker side = Omnibus (the order TX itself is
+                // the on-chain commitment; we use the tx hash as a synthetic
+                // htlc id until htlc_init lands). Taker side = remote chain;
+                // we copy the first 32 bytes of the htlc_ref blob as a
+                // chain-agnostic anchor.
+                var maker_anchor: [32]u8 = undefined;
+                {
+                    const hn = @min(tx.hash.len, 32);
+                    @memset(&maker_anchor, 0);
+                    @memcpy(maker_anchor[0..hn], tx.hash[0..hn]);
+                }
+                const maker_ref = swap_link_mod.HtlcRef{ .omnibus = maker_anchor };
+                const taker_ref: swap_link_mod.HtlcRef = switch (taker_chain) {
+                    .btc => blk: {
+                        var txid: [32]u8 = undefined;
+                        @memcpy(&txid, t.cross_chain_htlc_ref[0..32]);
+                        const vout = std.mem.readInt(u32, t.cross_chain_htlc_ref[32..36], .little);
+                        break :blk swap_link_mod.HtlcRef{ .btc = .{ .txid = txid, .vout = vout } };
+                    },
+                    .eth, .base => blk: {
+                        const chain_id = std.mem.readInt(u64, t.cross_chain_htlc_ref[0..8], .little);
+                        var contract: [20]u8 = undefined;
+                        @memcpy(&contract, t.cross_chain_htlc_ref[8..28]);
+                        var hid: [32]u8 = std.mem.zeroes([32]u8);
+                        @memcpy(hid[0..12], t.cross_chain_htlc_ref[28..40]);
+                        break :blk swap_link_mod.HtlcRef{ .eth = .{
+                            .chain_id = chain_id,
+                            .contract = contract,
+                            .id = hid,
+                        } };
+                    },
+                    .omnibus => unreachable,
+                };
+                self.swap_registry.open(
+                    assigned_order_id,
+                    t.cross_chain_hash_lock,
+                    .omnibus, // maker side is Omnibus (this chain)
+                    taker_chain,
+                    maker_ref,
+                    taker_ref,
+                    t.cross_chain_timeout_block,
+                    block.index,
+                ) catch |err| {
+                    std.debug.print("[SWAP-BIND] open failed order_id={d}: {}\n",
+                        .{ assigned_order_id, err });
                 };
             }
         }
@@ -4160,4 +4375,109 @@ test "applyExchangeFees: rejects insufficient balance without partial mutation" 
     try testing.expectEqual(@as(u64, 100), bc.balances.get(taker).?);
     try testing.expectEqual(@as(u64, 1_000_000), bc.balances.get(maker).?);
     try testing.expectEqual(treasury_before, bc.balances.get(treasury) orelse 0);
+}
+
+// ─── PHASE 2F.2 — HTLC end-to-end test ──────────────────────────────────────
+
+test "HTLC roundtrip: A locks → B claims with preimage → balances flip" {
+    var bc = try Blockchain.init(testing.allocator);
+    defer bc.deinit();
+
+    const alice = "ob1qalice00000000000000000000000000000000";
+    const bob   = "ob1qbob000000000000000000000000000000000";
+
+    // Seed Alice's balance.
+    bc.in_apply_block = true;
+    try bc.creditBalanceLocked(alice, 1_000_000);
+    bc.in_apply_block = false;
+
+    // Generate preimage / hash.
+    const pair = htlc_mod.HTLC.generatePreimage();
+
+    // ── Block 1: Alice's htlc_init locks 500_000 ──────────────────────────
+    var init_payload_buf: [tx_payload_mod.HtlcInitPayload.WIRE_SIZE]u8 = undefined;
+    const init_p = tx_payload_mod.HtlcInitPayload{
+        .hash_lock = pair.hash,
+        .timelock_block = 100,
+        .amount_sat = 500_000,
+    };
+    _ = try init_p.encode(&init_payload_buf);
+
+    const init_tx_hash = "htlc_init_tx_hash_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const init_tx = Transaction{
+        .id = 1,
+        .from_address = alice,
+        .to_address = bob,
+        .amount = 0,
+        .fee = 0,
+        .timestamp = 1700000000,
+        .nonce = 0,
+        .signature = "",
+        .hash = init_tx_hash,
+        .tx_type = .htlc_init,
+        .data = &init_payload_buf,
+    };
+
+    var b1 = Block{
+        .index = 1,
+        .timestamp = 1700000001,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "genesis_hash_omnibus_v1",
+        .nonce = 0,
+        .hash = "htlc_block_1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    };
+    try b1.transactions.append(init_tx);
+
+    bc.mutex.lock();
+    try bc.applyBlock(b1);
+    bc.mutex.unlock();
+
+    // Alice should have lost 500_000; HTLC registry has 1 active entry.
+    try testing.expectEqual(@as(u64, 500_000), bc.balances.get(alice).?);
+    try testing.expectEqual(@as(u32, 1), bc.htlc_registry.entry_count);
+    try testing.expectEqual(@as(u32, 1), bc.htlc_registry.activeCount());
+
+    // ── Block 2: Bob's htlc_claim with the preimage ───────────────────────
+    var claim_payload_buf: [tx_payload_mod.HtlcClaimPayload.WIRE_SIZE]u8 = undefined;
+    const claim_p = tx_payload_mod.HtlcClaimPayload{
+        .htlc_id = htlc_mod.computeHtlcId(init_tx_hash),
+        .preimage = pair.preimage,
+    };
+    _ = try claim_p.encode(&claim_payload_buf);
+
+    const claim_tx = Transaction{
+        .id = 2,
+        .from_address = bob,
+        .to_address = alice, // not used by claim logic but required for address validation
+        .amount = 0,
+        .fee = 0,
+        .timestamp = 1700000002,
+        .nonce = 0,
+        .signature = "",
+        .hash = "htlc_claim_tx_hash_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        .tx_type = .htlc_claim,
+        .data = &claim_payload_buf,
+    };
+
+    var b2 = Block{
+        .index = 2,
+        .timestamp = 1700000003,
+        .transactions = array_list.Managed(Transaction).init(testing.allocator),
+        .previous_hash = "htlc_block_1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        .nonce = 0,
+        .hash = "htlc_block_2_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    };
+    try b2.transactions.append(claim_tx);
+
+    bc.mutex.lock();
+    try bc.applyBlock(b2);
+    bc.mutex.unlock();
+
+    // Bob received the 500_000; Alice still at 500_000 (already debited).
+    try testing.expectEqual(@as(u64, 500_000), bc.balances.get(bob).?);
+    try testing.expectEqual(@as(u64, 500_000), bc.balances.get(alice).?);
+    try testing.expectEqual(@as(u32, 0), bc.htlc_registry.activeCount());
+    const final = bc.htlc_registry.get(claim_p.htlc_id).?;
+    try testing.expectEqual(htlc_mod.HTLCState.claimed, final.state);
+    try testing.expect(final.has_preimage);
 }

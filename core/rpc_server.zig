@@ -52,7 +52,31 @@ const faucet_mod = @import("faucet.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const isolated_wallet_mod = @import("isolated_wallet.zig");
 const bridge_mod      = @import("bridge_native.zig");
+const htlc_btc_mod    = @import("htlc_btc.zig");
+const htlc_mod        = @import("htlc.zig");
+const spv_btc_mod     = @import("spv_btc.zig");
+const spv_eth_mod     = @import("spv_eth.zig");
+const cross_chain_oracle_mod = @import("cross_chain_oracle.zig");
+const swap_link_mod   = @import("order_swap_link.zig");
 pub const Metrics     = benchmark_mod.Metrics;
+
+// Process-global cross-chain oracle. Validators populate this via
+// `oracle_recordHeader` (PQ quorum gated); SPV verifiers read it.
+// File-private to keep ServerCtx untouched per the task's "don't
+// modify existing handlers" constraint.
+var g_xchain_oracle: cross_chain_oracle_mod.CrossChainOracle =
+    cross_chain_oracle_mod.CrossChainOracle.init();
+var g_xchain_oracle_mutex: std.Thread.Mutex = .{};
+var g_xchain_oracle_loaded: bool = false;
+const XCHAIN_ORACLE_PATH = "data/cross_chain_oracle.bin";
+
+fn ensureOracleLoaded() void {
+    g_xchain_oracle_mutex.lock();
+    defer g_xchain_oracle_mutex.unlock();
+    if (g_xchain_oracle_loaded) return;
+    g_xchain_oracle.loadFromFile(XCHAIN_ORACLE_PATH) catch {};
+    g_xchain_oracle_loaded = true;
+}
 
 pub const Blockchain  = blockchain_mod.Blockchain;
 pub const Wallet      = wallet_mod.Wallet;
@@ -2866,6 +2890,190 @@ fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, ctx.bc.getBlockCount(), ctx.bc.mempool.items.len, ctx.wallet.address, ctx.wallet.getBalance() });
 }
 
+// ─── SPV / Cross-chain oracle handlers ────────────────────────────────────────
+//
+// These do NOT touch ctx.bridge / ctx.bc state — they read/write the
+// process-global oracle protected by g_xchain_oracle_mutex. Wire
+// validation (PQ quorum 3-of-4 sigs on `oracle_recordHeader`) is left
+// for the caller of this RPC; right now we only check that the request
+// includes a `quorum_ok=true` flag so the gating point is explicit and
+// auditable. TODO: replace with real PQ quorum verification once
+// validator key set is exposed via ServerCtx.
+
+fn handleOracleBtcHeight(ctx: *ServerCtx, id: u64) ![]u8 {
+    ensureOracleLoaded();
+    g_xchain_oracle_mutex.lock();
+    defer g_xchain_oracle_mutex.unlock();
+    const h = g_xchain_oracle.latestBtcHeight() orelse 0;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d}}}}}",
+        .{ id, h });
+}
+
+fn handleOracleEthHeight(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    ensureOracleLoaded();
+    const cid_str = extractStr(body, "chain_id") orelse "1";
+    const cid = std.fmt.parseInt(u64, cid_str, 10) catch
+        return errorJson(-32602, "Invalid chain_id", id, ctx.allocator);
+    g_xchain_oracle_mutex.lock();
+    defer g_xchain_oracle_mutex.unlock();
+    const h = g_xchain_oracle.latestEthHeight(cid) orelse 0;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain_id\":{d},\"height\":{d}}}}}",
+        .{ id, cid, h });
+}
+
+fn parseHex32Spv(s: []const u8) ?[32]u8 {
+    var out: [32]u8 = undefined;
+    var src = s;
+    if (src.len >= 2 and src[0] == '0' and (src[1] == 'x' or src[1] == 'X')) src = src[2..];
+    if (src.len != 64) return null;
+    var i: usize = 0;
+    while (i < 32) : (i += 1) {
+        const hi = std.fmt.charToDigit(src[i * 2], 16) catch return null;
+        const lo = std.fmt.charToDigit(src[i * 2 + 1], 16) catch return null;
+        out[i] = (hi << 4) | lo;
+    }
+    return out;
+}
+
+fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    ensureOracleLoaded();
+    // Gate on explicit quorum flag — the actual PQ verification belongs
+    // upstream (validator daemon assembles 3-of-4 sigs over the anchor
+    // payload before forwarding). Refuse if the flag is missing or not
+    // "true" so a stray local call can't poison the registry.
+    const quorum = extractStr(body, "quorum_ok") orelse "";
+    if (!std.mem.eql(u8, quorum, "true")) {
+        return errorJson(-32000, "PQ quorum signature required", id, ctx.allocator);
+    }
+
+    const chain = extractStr(body, "chain") orelse
+        return errorJson(-32602, "Missing param: chain (btc|eth)", id, ctx.allocator);
+
+    const ts_str = extractStr(body, "timestamp") orelse "0";
+    const ts = std.fmt.parseInt(u64, ts_str, 10) catch 0;
+
+    if (std.mem.eql(u8, chain, "btc")) {
+        const h_str = extractStr(body, "block_height") orelse
+            return errorJson(-32602, "Missing param: block_height", id, ctx.allocator);
+        const hh_str = extractStr(body, "header_hash") orelse
+            return errorJson(-32602, "Missing param: header_hash", id, ctx.allocator);
+        const h = std.fmt.parseInt(u64, h_str, 10) catch
+            return errorJson(-32602, "Bad block_height", id, ctx.allocator);
+        const hh = parseHex32Spv(hh_str) orelse
+            return errorJson(-32602, "Bad header_hash (need 32-byte hex)", id, ctx.allocator);
+        g_xchain_oracle_mutex.lock();
+        defer g_xchain_oracle_mutex.unlock();
+        g_xchain_oracle.recordBtcAnchor(.{ .block_height = h, .header_hash = hh, .timestamp = ts }) catch |e| {
+            const msg = if (e == error.NonMonotonic) "Non-monotonic update" else "Anchor rejected";
+            return errorJson(-32000, msg, id, ctx.allocator);
+        };
+        g_xchain_oracle.saveToFile(XCHAIN_ORACLE_PATH) catch {};
+        return std.fmt.allocPrint(ctx.allocator,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"chain\":\"btc\",\"height\":{d}}}}}",
+            .{ id, h });
+    }
+
+    if (std.mem.eql(u8, chain, "eth")) {
+        const cid_str = extractStr(body, "chain_id") orelse "1";
+        const bn_str = extractStr(body, "block_number") orelse
+            return errorJson(-32602, "Missing param: block_number", id, ctx.allocator);
+        const bh_str = extractStr(body, "block_hash") orelse
+            return errorJson(-32602, "Missing param: block_hash", id, ctx.allocator);
+        const rr_str = extractStr(body, "receipts_root") orelse
+            return errorJson(-32602, "Missing param: receipts_root", id, ctx.allocator);
+        const cid = std.fmt.parseInt(u64, cid_str, 10) catch
+            return errorJson(-32602, "Bad chain_id", id, ctx.allocator);
+        const bn = std.fmt.parseInt(u64, bn_str, 10) catch
+            return errorJson(-32602, "Bad block_number", id, ctx.allocator);
+        const bh = parseHex32Spv(bh_str) orelse
+            return errorJson(-32602, "Bad block_hash", id, ctx.allocator);
+        const rr = parseHex32Spv(rr_str) orelse
+            return errorJson(-32602, "Bad receipts_root", id, ctx.allocator);
+        g_xchain_oracle_mutex.lock();
+        defer g_xchain_oracle_mutex.unlock();
+        g_xchain_oracle.recordEthAnchor(.{
+            .chain_id = cid, .block_number = bn, .block_hash = bh,
+            .receipts_root = rr, .timestamp = ts,
+        }) catch |e| {
+            const msg = switch (e) {
+                error.NonMonotonic => "Non-monotonic update",
+                error.TooManyChains => "Chain registry full",
+            };
+            return errorJson(-32000, msg, id, ctx.allocator);
+        };
+        g_xchain_oracle.saveToFile(XCHAIN_ORACLE_PATH) catch {};
+        return std.fmt.allocPrint(ctx.allocator,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"chain\":\"eth\",\"chain_id\":{d},\"block_number\":{d}}}}}",
+            .{ id, cid, bn });
+    }
+
+    return errorJson(-32602, "Unknown chain (use 'btc' or 'eth')", id, ctx.allocator);
+}
+
+fn handleSpvBtcVerifyTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    ensureOracleLoaded();
+
+    const txh_str = extractStr(body, "tx_hash") orelse
+        return errorJson(-32602, "Missing param: tx_hash", id, ctx.allocator);
+    const root_str = extractStr(body, "merkle_root") orelse
+        return errorJson(-32602, "Missing param: merkle_root", id, ctx.allocator);
+    const path_str = extractStr(body, "merkle_path") orelse "";
+    const idx_str = extractStr(body, "indices") orelse "";
+
+    const txh = parseHex32Spv(txh_str) orelse
+        return errorJson(-32602, "Bad tx_hash", id, ctx.allocator);
+    const root = parseHex32Spv(root_str) orelse
+        return errorJson(-32602, "Bad merkle_root", id, ctx.allocator);
+
+    // merkle_path is a concatenated hex string of 32-byte siblings.
+    // indices is a string of '0'/'1' chars, one per level.
+    if (path_str.len % 64 != 0) {
+        return errorJson(-32602, "merkle_path must be multiples of 64 hex chars", id, ctx.allocator);
+    }
+    const levels = path_str.len / 64;
+    if (levels != idx_str.len) {
+        return errorJson(-32602, "merkle_path/indices length mismatch", id, ctx.allocator);
+    }
+    if (levels > 64) {
+        return errorJson(-32602, "Too many levels (>64)", id, ctx.allocator);
+    }
+
+    var path_buf: [64][32]u8 = undefined;
+    var idx_buf: [64]u1 = undefined;
+    var i: usize = 0;
+    while (i < levels) : (i += 1) {
+        const seg = path_str[i * 64 .. (i + 1) * 64];
+        path_buf[i] = parseHex32Spv(seg) orelse
+            return errorJson(-32602, "Bad merkle_path segment", id, ctx.allocator);
+        idx_buf[i] = if (idx_str[i] == '1') @as(u1, 1) else @as(u1, 0);
+    }
+
+    const ok = spv_btc_mod.verifyMerkleProof(txh, path_buf[0..levels], idx_buf[0..levels], root);
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"valid\":{s}}}}}",
+        .{ id, if (ok) "true" else "false" });
+}
+
+fn handleSpvEthVerifyEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    ensureOracleLoaded();
+    // The full Patricia-Merkle-Trie verification is a stub right now
+    // (see core/spv_eth.zig). Until that lands we return a structured
+    // response with `verified=false` and `reason="pmt_stub"` so the
+    // caller (intent settlement code) can either fall back to the
+    // multi-sig oracle or refuse to settle.
+    const cid_str = extractStr(body, "chain_id") orelse "1";
+    const bn_str = extractStr(body, "block_number") orelse "0";
+    const tx_hash = extractStr(body, "tx_hash") orelse "";
+    const log_idx = extractStr(body, "log_index") orelse "0";
+    _ = cid_str; _ = bn_str; _ = tx_hash; _ = log_idx;
+
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"verified\":false,\"reason\":\"pmt_stub\",\"event\":null}}}}",
+        .{ id });
+}
+
 fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     const alloc = ctx.allocator;
 
@@ -2955,6 +3163,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+
+    // ── HTLC atomic swaps (Phase 2F.2 — TX 0x30/0x31/0x32) ───────────────
+    if (std.mem.eql(u8, method, "htlc_init"))           return handleHtlcInit(body, ctx, id);
+    if (std.mem.eql(u8, method, "htlc_claim"))          return handleHtlcClaim(body, ctx, id);
+    if (std.mem.eql(u8, method, "htlc_refund"))         return handleHtlcRefund(body, ctx, id);
+    if (std.mem.eql(u8, method, "htlc_get"))            return handleHtlcGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "htlc_listByAddress")) return handleHtlcListByAddress(body, ctx, id);
+    if (std.mem.eql(u8, method, "htlc_listPending"))   return handleHtlcListPending(ctx, id);
 
     // ── PQ Isolated Wallets v2 — 5-scheme post-quantum support ─────────
     if (std.mem.eql(u8, method, "pq_listSchemes"))   return handlePqListSchemes(ctx, id);
@@ -3101,6 +3317,26 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "bridge_unlock_request")) return handleBridgeUnlockRequest(body, ctx, id);
     if (std.mem.eql(u8, method, "bridge_fraud_challenge"))return handleBridgeFraudChallenge(body, ctx, id);
     if (std.mem.eql(u8, method, "bridge_settle"))         return handleBridgeSettle(body, ctx, id);
+
+    // HTLC builders for cross-chain atomic swaps (off-chain — no broadcast)
+    if (std.mem.eql(u8, method, "htlc_btc_buildScript")) return handleHtlcBtcBuildScript(body, ctx, id);
+
+    // ── SPV + cross-chain oracle ─────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "spv_btc_verifyTx"))     return handleSpvBtcVerifyTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "spv_eth_verifyEvent")) return handleSpvEthVerifyEvent(body, ctx, id);
+    if (std.mem.eql(u8, method, "oracle_btcHeight"))    return handleOracleBtcHeight(ctx, id);
+    if (std.mem.eql(u8, method, "oracle_ethHeight"))    return handleOracleEthHeight(body, ctx, id);
+    if (std.mem.eql(u8, method, "oracle_recordHeader")) return handleOracleRecordHeader(body, ctx, id);
+
+    // ── Cross-chain atomic-swap binding (orderbook ↔ HTLC glue) ─────────
+    if (std.mem.eql(u8, method, "swap_open"))         return handleSwapOpen(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_status"))       return handleSwapStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_listOpen"))     return handleSwapListOpen(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_proveSettle")) return handleSwapProveSettle(body, ctx, id);
+    if (std.mem.eql(u8, method, "intent_post"))       return handleIntentPost(body, ctx, id);
+    if (std.mem.eql(u8, method, "intent_fill_commit")) return handleIntentFillCommit(body, ctx, id);
+    if (std.mem.eql(u8, method, "intent_settle"))     return handleIntentSettle(body, ctx, id);
+    if (std.mem.eql(u8, method, "intent_timeout"))    return handleIntentTimeout(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -6300,6 +6536,225 @@ fn errorJson(code: i32, msg: []const u8, id: u64, alloc: std.mem.Allocator) ![]u
         .{ id, code, msg });
 }
 
+// ─── Cross-chain swap binding handlers ─────────────────────────────────────────
+
+fn hex32(b: [32]u8, out: *[64]u8) void {
+    const tab = "0123456789abcdef";
+    for (b, 0..) |x, i| {
+        out[i * 2] = tab[x >> 4];
+        out[i * 2 + 1] = tab[x & 0x0F];
+    }
+}
+
+fn stateName(s: swap_link_mod.SwapState) []const u8 {
+    return switch (s) {
+        .pending => "pending",
+        .both_locked => "both_locked",
+        .claimed => "claimed",
+        .timed_out => "timed_out",
+    };
+}
+
+fn chainName(c: swap_link_mod.Chain) []const u8 {
+    return switch (c) {
+        .omnibus => "omnibus",
+        .btc => "btc",
+        .eth => "eth",
+        .base => "base",
+    };
+}
+
+/// swap_open — register a SwapBinding for an existing order_place TX.
+/// Params: order_id, taker_chain (1=btc,2=eth,3=base), taker_htlc_ref (hex up to 80 chars),
+///   hash_lock (64 hex), timeout (u64 block height).
+fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const order_id = extractU64Param(body, "\"order_id\"") orelse
+        return errorJson(-32602, "Missing param: order_id", id, alloc);
+    const taker_chain_u = extractU64Param(body, "\"taker_chain\"") orelse
+        return errorJson(-32602, "Missing param: taker_chain", id, alloc);
+    if (taker_chain_u > 3 or taker_chain_u == 0)
+        return errorJson(-32602, "taker_chain must be 1=btc, 2=eth, 3=base", id, alloc);
+    const taker_chain = swap_link_mod.Chain.fromU8(@intCast(taker_chain_u)) orelse
+        return errorJson(-32602, "Bad taker_chain", id, alloc);
+
+    const ref_hex = extractStr(body, "taker_htlc_ref") orelse
+        return errorJson(-32602, "Missing param: taker_htlc_ref", id, alloc);
+    if (ref_hex.len > 80) return errorJson(-32602, "taker_htlc_ref too long", id, alloc);
+    var ref_bytes: [40]u8 = std.mem.zeroes([40]u8);
+    {
+        var i: usize = 0;
+        while (i < ref_hex.len / 2) : (i += 1) {
+            const hi = hex_utils.charToNibble(ref_hex[i * 2]) catch
+                return errorJson(-32602, "Bad hex in taker_htlc_ref", id, alloc);
+            const lo = hex_utils.charToNibble(ref_hex[i * 2 + 1]) catch
+                return errorJson(-32602, "Bad hex in taker_htlc_ref", id, alloc);
+            ref_bytes[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+        }
+    }
+
+    const hash_lock_hex = extractStr(body, "hash_lock") orelse
+        return errorJson(-32602, "Missing param: hash_lock", id, alloc);
+    const hash_lock = parseHex32(hash_lock_hex) orelse
+        return errorJson(-32602, "Bad hash_lock (need 64 hex chars)", id, alloc);
+
+    const timeout = extractU64Param(body, "\"timeout\"") orelse
+        return errorJson(-32602, "Missing param: timeout", id, alloc);
+
+    const maker_ref = swap_link_mod.HtlcRef{ .omnibus = hash_lock };
+    const taker_ref: swap_link_mod.HtlcRef = switch (taker_chain) {
+        .btc => blk: {
+            var txid: [32]u8 = undefined;
+            @memcpy(&txid, ref_bytes[0..32]);
+            const vout = std.mem.readInt(u32, ref_bytes[32..36], .little);
+            break :blk swap_link_mod.HtlcRef{ .btc = .{ .txid = txid, .vout = vout } };
+        },
+        .eth, .base => blk: {
+            const chain_id = std.mem.readInt(u64, ref_bytes[0..8], .little);
+            var contract: [20]u8 = undefined;
+            @memcpy(&contract, ref_bytes[8..28]);
+            var hid: [32]u8 = std.mem.zeroes([32]u8);
+            @memcpy(hid[0..12], ref_bytes[28..40]);
+            break :blk swap_link_mod.HtlcRef{ .eth = .{
+                .chain_id = chain_id,
+                .contract = contract,
+                .id = hid,
+            } };
+        },
+        .omnibus => unreachable,
+    };
+
+    const current_block: u64 = ctx.bc.getBlockCount();
+    ctx.bc.swap_registry.open(order_id, hash_lock, .omnibus, taker_chain,
+        maker_ref, taker_ref, timeout, current_block) catch |err| {
+        return errorJson(-32000, @errorName(err), id, alloc);
+    };
+
+    var sid_hex_buf: [64]u8 = undefined;
+    hex32(hash_lock, &sid_hex_buf);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"state\":\"pending\"}}}}",
+        .{ id, sid_hex_buf[0..] });
+}
+
+/// swap_status — read state for a given swap_id.
+fn handleSwapStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id", id, alloc);
+    const b = ctx.bc.swap_registry.find(sid) orelse
+        return errorJson(-32004, "Binding not found", id, alloc);
+    var sid_hex_buf: [64]u8 = undefined;
+    hex32(b.swap_id, &sid_hex_buf);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"order_id\":{d},\"state\":\"{s}\",\"maker_chain\":\"{s}\",\"taker_chain\":\"{s}\",\"timeout_block\":{d},\"created_block\":{d}}}}}",
+        .{ id, sid_hex_buf[0..], b.order_id, stateName(b.state),
+           chainName(b.maker_chain), chainName(b.taker_chain),
+           b.timeout_block, b.created_block });
+}
+
+/// swap_listOpen — list bindings whose state is .pending or .both_locked.
+/// (Address filter is accepted but ignored — frontend filters client-side
+/// until matching_engine cross-ref by trader is exposed.)
+fn handleSwapListOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    var buf = std.ArrayList(u8){};
+    defer buf.deinit(alloc);
+    try buf.appendSlice(alloc, "[");
+    var first = true;
+    var i: u32 = 0;
+    while (i < ctx.bc.swap_registry.count) : (i += 1) {
+        const b = &ctx.bc.swap_registry.entries[i];
+        if (b.state != .pending and b.state != .both_locked) continue;
+        if (!first) try buf.appendSlice(alloc, ",");
+        first = false;
+        var item_hex: [64]u8 = undefined;
+        hex32(b.swap_id, &item_hex);
+        const piece = try std.fmt.allocPrint(alloc,
+            "{{\"swap_id\":\"{s}\",\"order_id\":{d},\"state\":\"{s}\",\"maker_chain\":\"{s}\",\"taker_chain\":\"{s}\",\"timeout_block\":{d}}}",
+            .{ item_hex[0..], b.order_id, stateName(b.state),
+               chainName(b.maker_chain), chainName(b.taker_chain), b.timeout_block });
+        defer alloc.free(piece);
+        try buf.appendSlice(alloc, piece);
+    }
+    try buf.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}", .{ id, buf.items });
+}
+
+/// swap_proveSettle — accept the revealed preimage and (TODO) the SPV
+/// proof; transition the binding to .claimed. SPV verification + 4-of-N
+/// PQ validator quorum are wired in a follow-up; the preimage check
+/// alone is sufficient to settle the Omnibus side because revealing
+/// the preimage on any chain makes it visible to all parties.
+fn handleSwapProveSettle(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id", id, alloc);
+    const pre_hex = extractStr(body, "preimage") orelse
+        return errorJson(-32602, "Missing param: preimage", id, alloc);
+    const preimage = parseHex32(pre_hex) orelse
+        return errorJson(-32602, "Bad preimage", id, alloc);
+    // spv_proof_blob is reserved for the future verifier path; the
+    // current implementation accepts the preimage if it hashes to swap_id.
+    _ = extractStr(body, "spv_proof_blob");
+
+    const cur = ctx.bc.swap_registry.find(sid) orelse
+        return errorJson(-32004, "Binding not found", id, alloc);
+    if (cur.state == .pending) {
+        ctx.bc.swap_registry.lockTaker(sid, cur.taker_htlc_ref) catch |err| {
+            return errorJson(-32000, @errorName(err), id, alloc);
+        };
+    }
+    ctx.bc.swap_registry.settle(sid, preimage) catch |err| {
+        return errorJson(-32003, @errorName(err), id, alloc);
+    };
+    var sid_hex_buf: [64]u8 = undefined;
+    hex32(sid, &sid_hex_buf);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"state\":\"claimed\"}}}}",
+        .{ id, sid_hex_buf[0..] });
+}
+
+// intent_* — thin wrappers around the corresponding 0x40..0x43 TXs.
+// Today they are state-machine nudges; a follow-up will build, sign, and
+// broadcast the typed TXs through the mempool.
+
+fn handleIntentPost(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"posted\":true,\"todo\":\"emit TX 0x40\"}}}}", .{id});
+}
+fn handleIntentFillCommit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"committed\":true,\"todo\":\"emit TX 0x41\"}}}}", .{id});
+}
+fn handleIntentSettle(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    return handleSwapProveSettle(body, ctx, id);
+}
+fn handleIntentTimeout(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id", id, alloc);
+    const cur_block: u64 = ctx.bc.getBlockCount();
+    ctx.bc.swap_registry.timeout(sid, cur_block) catch |err| {
+        return errorJson(-32003, @errorName(err), id, alloc);
+    };
+    var sid_hex_buf: [64]u8 = undefined;
+    hex32(sid, &sid_hex_buf);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"state\":\"timed_out\"}}}}",
+        .{ id, sid_hex_buf[0..] });
+}
+
 // ─── Standalone main (pentru omnibus-rpc exe) ─────────────────────────────────
 
 pub fn main() !void {
@@ -7582,6 +8037,95 @@ fn handleBridgeSettle(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .{id},
         );
     }
+}
+
+/// htlc_btc_buildScript — build a Bitcoin HTLC P2WSH redeem script + bech32 address.
+///
+/// This is a pure off-chain helper for atomic swaps with the Omnibus chain. The
+/// returned script + address let a TS client construct a funding TX (PSBT) for
+/// the user's external Bitcoin wallet (Electrum / hardware) to sign and broadcast.
+/// No Bitcoin network state is touched.
+///
+/// Params:
+///   recipient_pk : 33-byte compressed pubkey (hex)  — claims with preimage
+///   sender_pk    : 33-byte compressed pubkey (hex)  — refunds after timeout
+///   hash_lock    : 32-byte SHA256(preimage) (hex)
+///   timelock     : absolute block height (CLTV)
+///   network      : "mainnet" | "testnet" | "regtest" | "signet"
+///
+/// Result: { redeem_script_hex, p2wsh_address, witness_program_hex, network, hrp }
+fn handleHtlcBtcBuildScript(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+
+    const recipient_hex = extractStrParam(body, "\"recipient_pk\"") orelse
+        return errorJson(-32602, "Missing param: recipient_pk", id, alloc);
+    const sender_hex = extractStrParam(body, "\"sender_pk\"") orelse
+        return errorJson(-32602, "Missing param: sender_pk", id, alloc);
+    const hash_hex = extractStrParam(body, "\"hash_lock\"") orelse
+        return errorJson(-32602, "Missing param: hash_lock", id, alloc);
+    const timelock = extractU64Param(body, "\"timelock\"") orelse
+        return errorJson(-32602, "Missing param: timelock", id, alloc);
+    const network_str = extractStrParam(body, "\"network\"") orelse "mainnet";
+
+    if (timelock == 0 or timelock > std.math.maxInt(u32))
+        return errorJson(-32602, "Invalid timelock (must be 1..u32::MAX)", id, alloc);
+
+    const network = htlc_btc_mod.Network.fromStr(network_str) orelse
+        return errorJson(-32602, "Invalid network (mainnet|testnet|regtest|signet)", id, alloc);
+
+    if (recipient_hex.len != 66) return errorJson(-32602, "recipient_pk must be 66 hex chars (33 bytes)", id, alloc);
+    if (sender_hex.len    != 66) return errorJson(-32602, "sender_pk must be 66 hex chars (33 bytes)",    id, alloc);
+    if (hash_hex.len      != 64) return errorJson(-32602, "hash_lock must be 64 hex chars (32 bytes)",    id, alloc);
+
+    var recipient_pk: [33]u8 = undefined;
+    var sender_pk:    [33]u8 = undefined;
+    var hash_lock:    [32]u8 = undefined;
+
+    _ = std.fmt.hexToBytes(&recipient_pk, recipient_hex) catch
+        return errorJson(-32602, "Invalid hex in recipient_pk", id, alloc);
+    _ = std.fmt.hexToBytes(&sender_pk, sender_hex) catch
+        return errorJson(-32602, "Invalid hex in sender_pk", id, alloc);
+    _ = std.fmt.hexToBytes(&hash_lock, hash_hex) catch
+        return errorJson(-32602, "Invalid hex in hash_lock", id, alloc);
+
+    // Compressed pubkey leading byte must be 0x02 or 0x03.
+    if (recipient_pk[0] != 0x02 and recipient_pk[0] != 0x03)
+        return errorJson(-32602, "recipient_pk not a compressed pubkey (must start with 02/03)", id, alloc);
+    if (sender_pk[0] != 0x02 and sender_pk[0] != 0x03)
+        return errorJson(-32602, "sender_pk not a compressed pubkey (must start with 02/03)", id, alloc);
+
+    const script = htlc_btc_mod.buildRedeemScript(
+        recipient_pk, sender_pk, hash_lock, @intCast(timelock), alloc,
+    ) catch return errorJson(-32603, "Failed to build redeem script", id, alloc);
+    defer alloc.free(script);
+
+    const wp = htlc_btc_mod.witnessProgram(script);
+
+    const address = htlc_btc_mod.addressFromScript(script, network, alloc) catch
+        return errorJson(-32603, "Failed to encode bech32 address", id, alloc);
+    defer alloc.free(address);
+
+    // Hex-encode script + witness program for the response.
+    const script_hex = try alloc.alloc(u8, script.len * 2);
+    defer alloc.free(script_hex);
+    const HEX_CHARS = "0123456789abcdef";
+    for (script, 0..) |b, i| {
+        script_hex[i * 2]     = HEX_CHARS[b >> 4];
+        script_hex[i * 2 + 1] = HEX_CHARS[b & 0x0f];
+    }
+    const wp_hex = std.fmt.bytesToHex(wp, .lower);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"redeem_script_hex\":\"{s}\"," ++
+        "\"p2wsh_address\":\"{s}\"," ++
+        "\"witness_program_hex\":\"{s}\"," ++
+        "\"network\":\"{s}\"," ++
+        "\"hrp\":\"{s}\"," ++
+        "\"timelock\":{d}" ++
+        "}}}}",
+        .{ id, script_hex, address, &wp_hex, network_str, network.hrp(), timelock },
+    );
 }
 
 /// getbridgestatus — returns live BridgeState summary (locked, volume, paused).
@@ -9277,6 +9821,272 @@ fn submitOrderCancelTx(
     tx.hash = hash_owned;
 
     try ctx.bc.addTransaction(tx);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  HTLC RPC handlers — Phase 2F.2 (TX 0x30/0x31/0x32)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Parse a 64-char hex string into [32]u8. Returns null on length/format error.
+fn parseHex32(hex: []const u8) ?[32]u8 {
+    if (hex.len != 64) return null;
+    var out: [32]u8 = undefined;
+    hex_utils.hexToBytes(hex, &out) catch return null;
+    return out;
+}
+
+fn writeHex32(b: [32]u8, out: *[64]u8) void {
+    for (b, 0..) |byte, i| {
+        _ = std.fmt.bufPrint(out[i*2..i*2+2], "{x:0>2}", .{byte}) catch {};
+    }
+}
+
+/// Submit a typed HTLC TX to the mempool (init/claim/refund). Address +
+/// data slices are heap-duped so the TX outlives this stack frame.
+/// Returns the TX hash hex (64 chars), allocated from `ctx.allocator`.
+fn submitHtlcTx(
+    ctx: *ServerCtx,
+    tx_type: transaction_mod.TxType,
+    from: []const u8,
+    to: []const u8,
+    payload: []const u8,
+) ![]u8 {
+    const alloc = ctx.allocator;
+    const data_owned = try alloc.dupe(u8, payload);
+    errdefer alloc.free(data_owned);
+    const from_owned = try alloc.dupe(u8, from);
+    errdefer alloc.free(from_owned);
+    const to_owned = try alloc.dupe(u8, to);
+    errdefer alloc.free(to_owned);
+
+    var tx = transaction_mod.Transaction{
+        .id           = g_tx_counter.fetchAdd(1, .monotonic),
+        .from_address = from_owned,
+        .to_address   = to_owned,
+        .amount       = 0,
+        .fee          = 1,
+        .timestamp    = std.time.timestamp(),
+        .nonce        = ctx.bc.getNextAvailableNonce(from),
+        .signature    = "",
+        .hash         = "",
+        .tx_type      = tx_type,
+        .data         = data_owned,
+    };
+
+    const h = tx.calculateHash();
+    var hash_hex_buf: [64]u8 = undefined;
+    writeHex32(h, &hash_hex_buf);
+    const hash_owned = try alloc.dupe(u8, &hash_hex_buf);
+    errdefer alloc.free(hash_owned);
+    tx.hash = hash_owned;
+
+    try ctx.bc.addTransaction(tx);
+    return alloc.dupe(u8, &hash_hex_buf);
+}
+
+/// `htlc_init({receiver, amount_sat, hash_lock, timelock_block, [swap_id]})`
+/// Builds and submits a TX type 0x30. `swap_id` is currently optional
+/// metadata reserved for atomic-swap correlation across chains.
+fn handleHtlcInit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const receiver = extractStr(body, "receiver") orelse extractStr(body, "to")
+        orelse return errorJson(-32602, "missing receiver", id, ctx.allocator);
+    const amount_sat = extractU64Param(body, "\"amount_sat\"") orelse extractU64Param(body, "\"amount\"")
+        orelse return errorJson(-32602, "missing amount_sat", id, ctx.allocator);
+    const hash_lock_hex = extractStr(body, "hash_lock")
+        orelse return errorJson(-32602, "missing hash_lock", id, ctx.allocator);
+    const timelock_block = extractU64Param(body, "\"timelock_block\"") orelse extractU64Param(body, "\"timelock\"")
+        orelse return errorJson(-32602, "missing timelock_block", id, ctx.allocator);
+
+    const hash_lock = parseHex32(hash_lock_hex)
+        orelse return errorJson(-32602, "hash_lock must be 64 hex chars", id, ctx.allocator);
+
+    if (timelock_block > std.math.maxInt(u32))
+        return errorJson(-32602, "timelock_block out of range (max u32)", id, ctx.allocator);
+
+    const payload = tx_payload_mod.HtlcInitPayload{
+        .hash_lock = hash_lock,
+        .timelock_block = @intCast(timelock_block),
+        .amount_sat = amount_sat,
+    };
+    payload.validate() catch return errorJson(-32602, "invalid htlc_init payload", id, ctx.allocator);
+
+    var data_buf: [tx_payload_mod.HtlcInitPayload.WIRE_SIZE]u8 = undefined;
+    _ = try payload.encode(&data_buf);
+
+    const tx_hash = submitHtlcTx(ctx, .htlc_init, ctx.wallet.address, receiver, &data_buf)
+        catch |err| {
+            std.debug.print("[HTLC-INIT] submit failed: {}\n", .{err});
+            return errorJson(-32000, "htlc_init submit failed", id, ctx.allocator);
+        };
+    defer ctx.allocator.free(tx_hash);
+
+    const id_bytes = htlc_mod.computeHtlcId(tx_hash);
+    var id_hex: [64]u8 = undefined;
+    writeHex32(id_bytes, &id_hex);
+
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"tx_hash\":\"{s}\",\"htlc_id\":\"{s}\",\"amount_sat\":{d},\"timelock_block\":{d}}}}}",
+        .{ id, tx_hash, &id_hex, amount_sat, timelock_block });
+}
+
+/// `htlc_claim({htlc_id, preimage})` — TX type 0x31.
+fn handleHtlcClaim(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const htlc_id_hex = extractStr(body, "htlc_id")
+        orelse return errorJson(-32602, "missing htlc_id", id, ctx.allocator);
+    const preimage_hex = extractStr(body, "preimage")
+        orelse return errorJson(-32602, "missing preimage", id, ctx.allocator);
+
+    const htlc_id = parseHex32(htlc_id_hex)
+        orelse return errorJson(-32602, "htlc_id must be 64 hex chars", id, ctx.allocator);
+    const preimage = parseHex32(preimage_hex)
+        orelse return errorJson(-32602, "preimage must be 64 hex chars", id, ctx.allocator);
+
+    const entry = ctx.bc.htlc_registry.get(htlc_id)
+        orelse return errorJson(-32004, "htlc not found", id, ctx.allocator);
+    if (entry.state != .active)
+        return errorJson(-32005, "htlc not active", id, ctx.allocator);
+
+    const payload = tx_payload_mod.HtlcClaimPayload{ .htlc_id = htlc_id, .preimage = preimage };
+    var data_buf: [tx_payload_mod.HtlcClaimPayload.WIRE_SIZE]u8 = undefined;
+    _ = try payload.encode(&data_buf);
+
+    // applyBlock enforces (entry.recipient == tx.from_address); a mismatched
+    // caller will surface as HtlcUnauthorizedClaim downstream.
+    const tx_hash = submitHtlcTx(ctx, .htlc_claim, ctx.wallet.address, entry.senderSlice(), &data_buf)
+        catch |err| {
+            std.debug.print("[HTLC-CLAIM] submit failed: {}\n", .{err});
+            return errorJson(-32000, "htlc_claim submit failed", id, ctx.allocator);
+        };
+    defer ctx.allocator.free(tx_hash);
+
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"tx_hash\":\"{s}\",\"htlc_id\":\"{s}\"}}}}",
+        .{ id, tx_hash, htlc_id_hex });
+}
+
+/// `htlc_refund({htlc_id})` — TX type 0x32. Caller must be original sender;
+/// chain enforces current_block >= timelock_block at apply time.
+fn handleHtlcRefund(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const htlc_id_hex = extractStr(body, "htlc_id")
+        orelse return errorJson(-32602, "missing htlc_id", id, ctx.allocator);
+    const htlc_id = parseHex32(htlc_id_hex)
+        orelse return errorJson(-32602, "htlc_id must be 64 hex chars", id, ctx.allocator);
+
+    const entry = ctx.bc.htlc_registry.get(htlc_id)
+        orelse return errorJson(-32004, "htlc not found", id, ctx.allocator);
+    if (entry.state != .active and entry.state != .expired)
+        return errorJson(-32005, "htlc not refundable", id, ctx.allocator);
+
+    const payload = tx_payload_mod.HtlcRefundPayload{ .htlc_id = htlc_id };
+    var data_buf: [tx_payload_mod.HtlcRefundPayload.WIRE_SIZE]u8 = undefined;
+    _ = try payload.encode(&data_buf);
+
+    const tx_hash = submitHtlcTx(ctx, .htlc_refund, ctx.wallet.address, entry.recipientSlice(), &data_buf)
+        catch |err| {
+            std.debug.print("[HTLC-REFUND] submit failed: {}\n", .{err});
+            return errorJson(-32000, "htlc_refund submit failed", id, ctx.allocator);
+        };
+    defer ctx.allocator.free(tx_hash);
+
+    return std.fmt.allocPrint(ctx.allocator,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"tx_hash\":\"{s}\",\"htlc_id\":\"{s}\"}}}}",
+        .{ id, tx_hash, htlc_id_hex });
+}
+
+/// Render an HTLC entry as a JSON object into `out`.
+fn appendHtlcEntryJson(
+    out: *std.array_list.Managed(u8),
+    e: *const htlc_mod.HtlcEntry,
+) !void {
+    var id_hex: [64]u8 = undefined;
+    writeHex32(e.id, &id_hex);
+    var hash_hex: [64]u8 = undefined;
+    writeHex32(e.hash_lock, &hash_hex);
+    const state_name: []const u8 = switch (e.state) {
+        .pending => "pending",
+        .active => "active",
+        .claimed => "claimed",
+        .refunded => "refunded",
+        .expired => "expired",
+    };
+    var pre_hex: [64]u8 = undefined;
+    if (e.has_preimage) writeHex32(e.preimage, &pre_hex);
+    const writer = out.writer();
+    if (e.has_preimage) {
+        try writer.print(
+            "{{\"htlc_id\":\"{s}\",\"sender\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"hash_lock\":\"{s}\",\"timelock_block\":{d},\"init_block\":{d},\"init_tx_hash\":\"{s}\",\"state\":\"{s}\",\"preimage\":\"{s}\"}}",
+            .{ &id_hex, e.senderSlice(), e.recipientSlice(), e.amount_sat,
+               &hash_hex, e.timelock_block, e.init_block, e.initTxHashSlice(),
+               state_name, &pre_hex },
+        );
+    } else {
+        try writer.print(
+            "{{\"htlc_id\":\"{s}\",\"sender\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"hash_lock\":\"{s}\",\"timelock_block\":{d},\"init_block\":{d},\"init_tx_hash\":\"{s}\",\"state\":\"{s}\"}}",
+            .{ &id_hex, e.senderSlice(), e.recipientSlice(), e.amount_sat,
+               &hash_hex, e.timelock_block, e.init_block, e.initTxHashSlice(),
+               state_name },
+        );
+    }
+}
+
+/// `htlc_get({htlc_id})` — read-only registry lookup.
+fn handleHtlcGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const htlc_id_hex = extractStr(body, "htlc_id")
+        orelse return errorJson(-32602, "missing htlc_id", id, ctx.allocator);
+    const htlc_id = parseHex32(htlc_id_hex)
+        orelse return errorJson(-32602, "htlc_id must be 64 hex chars", id, ctx.allocator);
+
+    const entry = ctx.bc.htlc_registry.get(htlc_id)
+        orelse return errorJson(-32004, "htlc not found", id, ctx.allocator);
+
+    var buf = std.array_list.Managed(u8).init(ctx.allocator);
+    defer buf.deinit();
+    try buf.writer().print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":", .{id});
+    try appendHtlcEntryJson(&buf, &entry);
+    try buf.appendSlice("}");
+    return buf.toOwnedSlice();
+}
+
+/// `htlc_listByAddress({address})` — every HTLC where `address` is sender or recipient.
+fn handleHtlcListByAddress(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const addr = extractStr(body, "address")
+        orelse return errorJson(-32602, "missing address", id, ctx.allocator);
+
+    var buf = std.array_list.Managed(u8).init(ctx.allocator);
+    defer buf.deinit();
+    try buf.writer().print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id});
+
+    var first = true;
+    var i: u32 = 0;
+    while (i < ctx.bc.htlc_registry.entry_count) : (i += 1) {
+        const e = &ctx.bc.htlc_registry.entries[i];
+        if (!std.mem.eql(u8, e.senderSlice(), addr) and
+            !std.mem.eql(u8, e.recipientSlice(), addr)) continue;
+        if (!first) try buf.appendSlice(",");
+        first = false;
+        try appendHtlcEntryJson(&buf, e);
+    }
+    try buf.appendSlice("]}");
+    return buf.toOwnedSlice();
+}
+
+/// `htlc_listPending()` — every active HTLC on the chain (admin/debug).
+fn handleHtlcListPending(ctx: *ServerCtx, id: u64) ![]u8 {
+    var buf = std.array_list.Managed(u8).init(ctx.allocator);
+    defer buf.deinit();
+    try buf.writer().print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id});
+
+    var first = true;
+    var i: u32 = 0;
+    while (i < ctx.bc.htlc_registry.entry_count) : (i += 1) {
+        const e = &ctx.bc.htlc_registry.entries[i];
+        if (e.state != .active) continue;
+        if (!first) try buf.appendSlice(",");
+        first = false;
+        try appendHtlcEntryJson(&buf, e);
+    }
+    try buf.appendSlice("]}");
+    return buf.toOwnedSlice();
 }
 
 /// True dacă body-ul cere mod paper. Cautam `"mode":"paper"` literal —

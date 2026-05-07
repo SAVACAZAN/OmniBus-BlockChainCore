@@ -1417,6 +1417,25 @@ pub fn main() !void {
     // dns_registry.claimByPayment + blockchain.applyBlock for the full flow.
     bc.dns_registry = &dns;
 
+    // ── Init HTLC registry persistence (Phase 2F.2) ─────────────────────────
+    // bc.htlc_registry is already default-initialised inside Blockchain.init.
+    // Load prior state from disk so pending/claimed/refunded HTLCs survive
+    // restarts. Save piggybacks on chain auto-save below + final shutdown.
+    var htlc_persist_path_buf: [256]u8 = undefined;
+    const htlc_persist_path = std.fmt.bufPrint(
+        &htlc_persist_path_buf,
+        "data/{s}/htlc_registry.bin",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/htlc_registry.bin";
+    @import("htlc_persist.zig").loadFromFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
+        std.debug.print("[HTLC] Load from {s} failed: {s} (starting empty)\n",
+            .{ htlc_persist_path, @errorName(err) });
+    };
+    if (bc.htlc_registry.entry_count > 0) {
+        std.debug.print("[HTLC] Loaded {d} entries ({d} active) from {s}\n",
+            .{ bc.htlc_registry.entry_count, bc.htlc_registry.activeCount(), htlc_persist_path });
+    }
+
     // ── Init Guardian System ─────────────────────────────────────────────────
     var guardian = guardian_mod.GuardianEngine.init();
 
@@ -2440,6 +2459,11 @@ pub fn main() !void {
                     std.debug.print("[DNS] Save to {s} failed: {s}\n",
                         .{ dns_persist_path, @errorName(err) });
                 };
+                // HTLC registry persists on the same cadence as DNS.
+                @import("htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
+                    std.debug.print("[HTLC] Save to {s} failed: {s}\n",
+                        .{ htlc_persist_path, @errorName(err) });
+                };
             }
 
             // Record metrics
@@ -2826,6 +2850,10 @@ pub fn main() !void {
     // Save DNS registry too — names registered after last auto-save would be lost otherwise.
     dns.saveToFile(dns_persist_path) catch |err| {
         std.debug.print("[SHUTDOWN] DNS save failed: {s}\n", .{@errorName(err)});
+    };
+    // Save HTLC registry — same reasoning: pending/claimed states must survive.
+    @import("htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
+        std.debug.print("[SHUTDOWN] HTLC save failed: {s}\n", .{@errorName(err)});
     };
     // Save peer ban list so bans survive the restart.
     peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {
