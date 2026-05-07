@@ -9,11 +9,19 @@
 //   data/<chain>/cross_chain_oracle.bin
 //       header: magic(8) "OBXOA001" | version(u32 LE) |
 //               btc_present(u8) | reserved(3) | eth_count(u32 LE)
+//
 //       BtcAnchor (if btc_present == 1):
-//               block_height(u64 LE) | header_hash(32) | timestamp(u64 LE)
-//       EthAnchor[eth_count]:
+//         v1: block_height(u64 LE) | header_hash(32) | timestamp(u64 LE)        — 48 B
+//         v2: block_height(u64 LE) | header_hash(32) | merkle_root(32) |
+//             timestamp(u64 LE)                                                  — 80 B
+//
+//       EthAnchor[eth_count] (unchanged across v1/v2):
 //               chain_id(u64 LE) | block_number(u64 LE) | block_hash(32) |
 //               receipts_root(32) | timestamp(u64 LE)
+//
+// Version handling: v2 is the current write format. Old v1 files load
+// successfully — `merkle_root` defaults to zero. After the first save
+// the file is rewritten in v2 layout and the migration completes.
 
 const std = @import("std");
 
@@ -22,6 +30,12 @@ pub const MAX_ETH_CHAINS: usize = 32;
 pub const BtcAnchor = struct {
     block_height: u64 = 0,
     header_hash: [32]u8 = [_]u8{0} ** 32,
+    /// Bitcoin block merkle root (in internal/wire byte order). Extracted
+    /// from the raw 80-byte header at record time via spv_btc.parseHeader,
+    /// so SPV verifiers don't have to trust caller-supplied roots. Zero
+    /// when this field has never been populated (legacy v1 files, or
+    /// older callers that recorded the anchor without the raw header).
+    merkle_root: [32]u8 = [_]u8{0} ** 32,
     timestamp: u64 = 0,
 };
 
@@ -99,7 +113,17 @@ pub const CrossChainOracle = struct {
     // ── Persistence ──────────────────────────────────────────────────────
 
     const MAGIC: [8]u8 = .{ 'O', 'B', 'X', 'O', 'A', '0', '0', '1' };
-    const VERSION: u32 = 1;
+    /// Current persistence format version. Bumped from 1 → 2 when the
+    /// `merkle_root` field was added to BtcAnchor. v1 files still load
+    /// (with merkle_root defaulted to zero); the next save rewrites in v2.
+    pub const VERSION_V1: u32 = 1;
+    pub const VERSION_V2: u32 = 2;
+    const VERSION: u32 = VERSION_V2;
+
+    /// On-disk size of a v1 BtcAnchor record (legacy — no merkle_root).
+    const BTC_RECORD_V1: usize = 48;
+    /// On-disk size of a v2 BtcAnchor record (current format).
+    const BTC_RECORD_V2: usize = 80;
 
     pub fn saveToFile(self: *const CrossChainOracle, path: []const u8) !void {
         var file = try std.fs.cwd().createFile(path, .{ .truncate = true });
@@ -115,10 +139,12 @@ pub const CrossChainOracle = struct {
         try file.writeAll(&hdr);
 
         if (self.btc) |a| {
-            var b: [48]u8 = undefined;
+            // v2 layout: block_height(8) | header_hash(32) | merkle_root(32) | timestamp(8) = 80
+            var b: [BTC_RECORD_V2]u8 = undefined;
             std.mem.writeInt(u64, b[0..8], a.block_height, .little);
             @memcpy(b[8..40], &a.header_hash);
-            std.mem.writeInt(u64, b[40..48], a.timestamp, .little);
+            @memcpy(b[40..72], &a.merkle_root);
+            std.mem.writeInt(u64, b[72..80], a.timestamp, .little);
             try file.writeAll(&b);
         }
 
@@ -150,7 +176,7 @@ pub const CrossChainOracle = struct {
         if (n < hdr.len) return error.CorruptFile;
         if (!std.mem.eql(u8, hdr[0..8], &MAGIC)) return error.BadMagic;
         const ver = std.mem.readInt(u32, hdr[8..12], .little);
-        if (ver != VERSION) return error.UnsupportedVersion;
+        if (ver != VERSION_V1 and ver != VERSION_V2) return error.UnsupportedVersion;
         const btc_present = hdr[12];
         const eth_count = std.mem.readInt(u32, hdr[16..20], .little);
         if (eth_count > MAX_ETH_CHAINS) return error.TooManyChains;
@@ -158,13 +184,27 @@ pub const CrossChainOracle = struct {
         self.* = CrossChainOracle.init();
 
         if (btc_present == 1) {
-            var b: [48]u8 = undefined;
-            if ((try file.readAll(&b)) < b.len) return error.CorruptFile;
-            self.btc = BtcAnchor{
-                .block_height = std.mem.readInt(u64, b[0..8], .little),
-                .header_hash = b[8..40].*,
-                .timestamp = std.mem.readInt(u64, b[40..48], .little),
-            };
+            if (ver == VERSION_V1) {
+                // v1: 48-byte record, no merkle_root → default to zero.
+                var b: [BTC_RECORD_V1]u8 = undefined;
+                if ((try file.readAll(&b)) < b.len) return error.CorruptFile;
+                self.btc = BtcAnchor{
+                    .block_height = std.mem.readInt(u64, b[0..8], .little),
+                    .header_hash = b[8..40].*,
+                    .merkle_root = [_]u8{0} ** 32,
+                    .timestamp = std.mem.readInt(u64, b[40..48], .little),
+                };
+            } else {
+                // v2: 80-byte record with merkle_root.
+                var b: [BTC_RECORD_V2]u8 = undefined;
+                if ((try file.readAll(&b)) < b.len) return error.CorruptFile;
+                self.btc = BtcAnchor{
+                    .block_height = std.mem.readInt(u64, b[0..8], .little),
+                    .header_hash = b[8..40].*,
+                    .merkle_root = b[40..72].*,
+                    .timestamp = std.mem.readInt(u64, b[72..80], .little),
+                };
+            }
         }
 
         var i: u32 = 0;
@@ -244,4 +284,56 @@ test "load missing file returns empty" {
     try o.loadFromFile(path);
     try std.testing.expect(o.eth_count == 0);
     try std.testing.expect(o.btc == null);
+}
+
+test "v1 file → v2 migration: merkle_root defaults to zero, then resaves as v2" {
+    const path = "test_xchain_oracle_v1_migration.bin";
+    std.fs.cwd().deleteFile(path) catch {};
+    defer std.fs.cwd().deleteFile(path) catch {};
+
+    // Hand-write a legacy v1 file: 20-byte header (version=1) + 48-byte BTC record.
+    {
+        var f = try std.fs.cwd().createFile(path, .{ .truncate = true });
+        defer f.close();
+        const MAGIC_V1: [8]u8 = .{ 'O', 'B', 'X', 'O', 'A', '0', '0', '1' };
+        var hdr: [20]u8 = undefined;
+        @memcpy(hdr[0..8], &MAGIC_V1);
+        std.mem.writeInt(u32, hdr[8..12], 1, .little); // VERSION_V1
+        hdr[12] = 1; // btc_present
+        hdr[13] = 0;
+        hdr[14] = 0;
+        hdr[15] = 0;
+        std.mem.writeInt(u32, hdr[16..20], 0, .little); // eth_count
+        try f.writeAll(&hdr);
+        var b: [48]u8 = undefined;
+        std.mem.writeInt(u64, b[0..8], 800_000, .little);
+        @memcpy(b[8..40], &([_]u8{0xab} ** 32));
+        std.mem.writeInt(u64, b[40..48], 1_700_000_000, .little);
+        try f.writeAll(&b);
+    }
+
+    var o1 = CrossChainOracle.init();
+    try o1.loadFromFile(path);
+    const a = o1.latestBtc().?;
+    try std.testing.expect(a.block_height == 800_000);
+    try std.testing.expectEqualSlices(u8, &([_]u8{0xab} ** 32), &a.header_hash);
+    // v1 file → merkle_root defaults to all-zero.
+    try std.testing.expectEqualSlices(u8, &([_]u8{0} ** 32), &a.merkle_root);
+    try std.testing.expect(a.timestamp == 1_700_000_000);
+
+    // Now simulate a recordBtcAnchor that fills in the merkle_root and resave.
+    try o1.recordBtcAnchor(.{
+        .block_height = 800_001,
+        .header_hash = [_]u8{0xcd} ** 32,
+        .merkle_root = [_]u8{0xef} ** 32,
+        .timestamp = 1_700_000_500,
+    });
+    try o1.saveToFile(path);
+
+    // Reload — must come back as v2 with merkle_root populated.
+    var o2 = CrossChainOracle.init();
+    try o2.loadFromFile(path);
+    const a2 = o2.latestBtc().?;
+    try std.testing.expect(a2.block_height == 800_001);
+    try std.testing.expectEqualSlices(u8, &([_]u8{0xef} ** 32), &a2.merkle_root);
 }

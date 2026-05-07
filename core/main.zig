@@ -893,6 +893,76 @@ fn backfillReputationFromChain(
     );
 }
 
+/// Load the cross-chain oracle quorum pubkey set from a sidecar JSON file
+/// and install it via `rpc_server.setOracleQuorumPubkeys`. Without this,
+/// `oracle_recordHeader` falls through to the legacy dev-mode `quorum_ok`
+/// path (which silently accepts anchors with no real signature check).
+///
+/// File format (data/<chain>/oracle_quorum.json):
+///   { "pubkeys": ["0x02ab...33-byte-compressed-hex...", ...] }
+///
+/// Up to ORACLE_QUORUM_MAX (16) entries; each must be 66 hex chars (with
+/// or without leading "0x"). Returns the count of pubkeys loaded; 0 means
+/// the file was missing or malformed and the registry stays empty.
+fn loadOracleQuorumPubkeys(path: []const u8) usize {
+    var file = std.fs.cwd().openFile(path, .{}) catch |err| {
+        std.debug.print("[ORACLE] Quorum config not found at {s}: {s} — quorum disabled (legacy dev-mode)\n",
+            .{ path, @errorName(err) });
+        return 0;
+    };
+    defer file.close();
+
+    var buf: [4096]u8 = undefined;
+    const n = file.readAll(&buf) catch return 0;
+    const content = buf[0..n];
+
+    // Lightweight extraction: find the first ["..."]-style array of hex
+    // strings. We don't need a full JSON parser here — the format is
+    // controlled by the operator and the only field we read is `pubkeys`.
+    const start = std.mem.indexOf(u8, content, "\"pubkeys\"") orelse return 0;
+    const open = std.mem.indexOfScalarPos(u8, content, start, '[') orelse return 0;
+    const close = std.mem.indexOfScalarPos(u8, content, open + 1, ']') orelse return 0;
+    const slice = content[open + 1 .. close];
+
+    var pubs: [rpc_mod.ORACLE_QUORUM_MAX]rpc_mod.OracleQuorumPubkey = undefined;
+    var count: usize = 0;
+    var i: usize = 0;
+    while (i < slice.len and count < pubs.len) {
+        const q1 = std.mem.indexOfScalarPos(u8, slice, i, '"') orelse break;
+        const q2 = std.mem.indexOfScalarPos(u8, slice, q1 + 1, '"') orelse break;
+        var hex = slice[q1 + 1 .. q2];
+        if (hex.len >= 2 and hex[0] == '0' and (hex[1] == 'x' or hex[1] == 'X')) {
+            hex = hex[2..];
+        }
+        if (hex.len == 66) {
+            var pk: [33]u8 = undefined;
+            const ok = blk: {
+                var k: usize = 0;
+                while (k < 33) : (k += 1) {
+                    const hi = std.fmt.charToDigit(hex[k * 2], 16) catch break :blk false;
+                    const lo = std.fmt.charToDigit(hex[k * 2 + 1], 16) catch break :blk false;
+                    pk[k] = (hi << 4) | lo;
+                }
+                break :blk true;
+            };
+            if (ok and (pk[0] == 0x02 or pk[0] == 0x03)) {
+                pubs[count] = pk;
+                count += 1;
+            } else {
+                std.debug.print("[ORACLE] Quorum: skipping malformed pubkey (must start with 0x02/0x03)\n", .{});
+            }
+        }
+        i = q2 + 1;
+    }
+
+    if (count == 0) return 0;
+    rpc_mod.setOracleQuorumPubkeys(pubs[0..count]) catch |err| {
+        std.debug.print("[ORACLE] setOracleQuorumPubkeys failed: {s}\n", .{@errorName(err)});
+        return 0;
+    };
+    return count;
+}
+
 pub fn main() !void {
     // Initialise the global AtomicClock first — every subsystem started
     // below (RPC, WS, mining) attaches to it. Done at runtime entry
@@ -1452,6 +1522,47 @@ pub fn main() !void {
     if (g_channel_mgr.channel_count > 0) {
         std.debug.print("[CHANNELS] Loaded {d} channels from {s}\n",
             .{ g_channel_mgr.channel_count, channels_path });
+    }
+
+    // ── Init Intent Registry persistence (Phase 2F.7) ───────────────────────
+    // bc.intent_registry tracks bond accounting for cross-chain intents:
+    // maker bond locked at intent_post, taker bond locked at fill_commit,
+    // both refunded on settle, taker slashed → maker on timeout. Loaded
+    // here so pending intents survive a node restart; saved alongside the
+    // other registries on chain auto-save and shutdown.
+    var intent_persist_path_buf: [256]u8 = undefined;
+    const intent_persist_path = std.fmt.bufPrint(
+        &intent_persist_path_buf,
+        "data/{s}/intent_registry.bin",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/intent_registry.bin";
+    bc.intent_registry.loadFromFile(intent_persist_path) catch |err| {
+        std.debug.print("[INTENT] Load from {s} failed: {s} (starting empty)\n",
+            .{ intent_persist_path, @errorName(err) });
+    };
+    if (bc.intent_registry.count > 0) {
+        std.debug.print("[INTENT] Loaded {d} entries from {s}\n",
+            .{ bc.intent_registry.count, intent_persist_path });
+    }
+
+    // ── Init cross-chain oracle quorum pubkey set ───────────────────────────
+    // `oracle_recordHeader` requires ≥ ORACLE_QUORUM_MIN distinct valid
+    // signatures from this set; without it, the handler falls through to
+    // the legacy dev-mode `quorum_ok=true` flag that any caller can spoof.
+    // Operators install the set by writing data/<chain>/oracle_quorum.json
+    // (committed for testnet; mainnet pulls from a hardened genesis ceremony).
+    var quorum_path_buf: [256]u8 = undefined;
+    const quorum_path = std.fmt.bufPrint(
+        &quorum_path_buf,
+        "data/{s}/oracle_quorum.json",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/oracle_quorum.json";
+    const loaded_pubkeys = loadOracleQuorumPubkeys(quorum_path);
+    if (loaded_pubkeys > 0) {
+        std.debug.print("[ORACLE] Quorum: {d} pubkeys loaded, min={d}-of-{d}\n",
+            .{ loaded_pubkeys, rpc_mod.ORACLE_QUORUM_MIN, loaded_pubkeys });
+    } else {
+        std.debug.print("[ORACLE] Quorum: 0 pubkeys loaded — oracle_recordHeader will reject all writes (or fall back to legacy dev-mode if quorum_ok=true)\n", .{});
     }
 
     // ── Init Guardian System ─────────────────────────────────────────────────
@@ -2487,6 +2598,11 @@ pub fn main() !void {
                     std.debug.print("[CHANNELS] Save to {s} failed: {s}\n",
                         .{ channels_path, @errorName(err) });
                 };
+                // Intent registry persists on the same cadence as HTLC.
+                bc.intent_registry.saveToFile(intent_persist_path) catch |err| {
+                    std.debug.print("[INTENT] Save to {s} failed: {s}\n",
+                        .{ intent_persist_path, @errorName(err) });
+                };
             }
 
             // Record metrics
@@ -2881,6 +2997,11 @@ pub fn main() !void {
     // Save payment channels — open channels would otherwise leak locked funds.
     @import("channel_persist.zig").saveToFile(&g_channel_mgr, channels_path) catch |err| {
         std.debug.print("[SHUTDOWN] Channels save failed: {s}\n", .{@errorName(err)});
+    };
+    // Save intent registry — bonds locked at intent_post / fill_commit
+    // must survive restart so they can still be settled / refunded.
+    bc.intent_registry.saveToFile(intent_persist_path) catch |err| {
+        std.debug.print("[SHUTDOWN] Intent registry save failed: {s}\n", .{@errorName(err)});
     };
     // Save peer ban list so bans survive the restart.
     peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {

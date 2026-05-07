@@ -9,6 +9,10 @@
  *      available. If it's not installed, we fall back to returning
  *      raw inputs/outputs so the caller can hand them to an external
  *      wallet (Electrum, Sparrow, Ledger, Trezor, BlueWallet…).
+ *   3. Builds typed `swap_proveSettle` JSON payloads with an SPV
+ *      proof shaped as a proper JSON object (not the legacy flat
+ *      blob). The legacy flat-string form remains accepted by the
+ *      node, but new callers should use `buildBtcSpvProofObject`.
  *
  * No private keys touch this code. No broadcasting either — the user
  * always signs and broadcasts via their own wallet.
@@ -315,4 +319,68 @@ export async function setupBitcoinHtlc(
   client?: OmniBusRpcClient,
 ): Promise<HtlcBtcScriptResult> {
   return buildHtlcScript(params, client);
+}
+
+// ─── 5. swap_proveSettle JSON builder (new structured shape) ─────────────────
+
+/**
+ * BTC SPV proof object as accepted by the new (post-2026-05) shape of
+ * `swap_proveSettle.spv_proof_blob`. The OmniBus node detects this object
+ * shape via JSON parsing and falls back to the legacy flat key=value blob
+ * if the field is a string instead.
+ *
+ * Field semantics:
+ *   * `chain` — must be "btc"
+ *   * `block_height` — Bitcoin block containing the spending TX
+ *   * `tx_hash` — 32-byte hex (with or without 0x prefix)
+ *   * `merkle_proof` — sibling hashes from leaf → root, each 32-byte hex
+ *   * `indices` — one bit per merkle level: 0 = TX is left child, 1 = right
+ *   * `merkle_root` — OPTIONAL. Only used when the node's recorded BTC
+ *                     anchor was stored without a raw header (legacy
+ *                     anchors). Modern anchors carry merkle_root and
+ *                     ignore this field for security.
+ */
+export interface BtcSpvProofObject {
+  chain: "btc";
+  block_height: number;
+  tx_hash: string;
+  merkle_proof: string[];
+  indices: (0 | 1)[];
+  merkle_root?: string;
+}
+
+/** Type-tagged builder. Returns the object shape; callers stringify by passing it as a JSON value. */
+export function buildBtcSpvProofObject(opts: {
+  blockHeight: number;
+  txHash: string;
+  merkleProof: string[];
+  indices: (0 | 1)[];
+  merkleRoot?: string;
+}): BtcSpvProofObject {
+  if (!Number.isInteger(opts.blockHeight) || opts.blockHeight < 0) {
+    throw new Error("block_height must be a non-negative integer");
+  }
+  assertHex("tx_hash", opts.txHash.replace(/^0x/i, ""), 32);
+  if (!Array.isArray(opts.merkleProof)) {
+    throw new Error("merkle_proof must be an array of hex siblings");
+  }
+  for (const sib of opts.merkleProof) assertHex("merkle_proof[i]", sib.replace(/^0x/i, ""), 32);
+  if (opts.indices.length !== opts.merkleProof.length) {
+    throw new Error("indices/merkle_proof length mismatch");
+  }
+  for (const b of opts.indices) {
+    if (b !== 0 && b !== 1) throw new Error("indices must be 0/1");
+  }
+  if (opts.merkleRoot !== undefined) {
+    assertHex("merkle_root", opts.merkleRoot.replace(/^0x/i, ""), 32);
+  }
+  const out: BtcSpvProofObject = {
+    chain: "btc",
+    block_height: opts.blockHeight,
+    tx_hash: opts.txHash,
+    merkle_proof: opts.merkleProof,
+    indices: opts.indices,
+  };
+  if (opts.merkleRoot !== undefined) out.merkle_root = opts.merkleRoot;
+  return out;
 }

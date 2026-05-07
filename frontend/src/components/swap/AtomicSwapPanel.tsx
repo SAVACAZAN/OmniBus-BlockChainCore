@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc-btc";
+import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc-eth";
 
 const rpc = new OmniBusRpcClient();
 
@@ -138,15 +140,41 @@ export function AtomicSwapPanel() {
     }
   };
 
+  /**
+   * Call swap_proveSettle. Uses the new JSON-object shape for
+   * `spv_proof_blob` when a proof object is provided; otherwise
+   * sends preimage-only (the node falls into dev-mode warning path).
+   *
+   * The `spv_proof_blob` field, when present, is sent as a STRUCTURED
+   * JSON object (chain/block_height/tx_hash/merkle_proof/indices/...)
+   * — the OmniBus node's rpc_server.zig now detects this shape via
+   * findJsonObject and verifies via verifySpvProofJson. The legacy
+   * flat-string form remains accepted by the node for backward compat.
+   */
+  const callSwapProveSettle = async (
+    swap_id: string,
+    preimageHex: string,
+    proof?: BtcSpvProofObject | EthSpvProofObject,
+  ) => {
+    const params: Record<string, unknown> = { swap_id, preimage: preimageHex };
+    if (proof !== undefined) params.spv_proof_blob = proof;
+    return rpc.request_raw("swap_proveSettle", [params]);
+  };
+
   const onSettle = async (swap_id: string) => {
     if (!preimage) return setErr("Need the preimage to settle.");
     setBusy(true);
     setErr(null);
     try {
-      const res = await rpc.request_raw("swap_proveSettle", [{
-        swap_id,
-        preimage,
-      }]);
+      // No SPV proof in the dev-mode UI yet. The helpers below show how
+      // to construct a proper proof object for both chains:
+      //   buildBtcSpvProofObject({ blockHeight, txHash, merkleProof, indices })
+      //   buildEthSpvProofObject({ blockHeight, txHash, txIndexRlp,
+      //                            receiptRlp, receiptProof, chainId? })
+      // When the UI exposes proof inputs, pass the result as `proof` here.
+      void buildBtcSpvProofObject; // re-export anchor for tree-shaking guards
+      void buildEthSpvProofObject;
+      const res = await callSwapProveSettle(swap_id, preimage);
       setMsg(`Settled ${swap_id}: ${res?.state ?? "?"}`);
       refreshBindings();
     } catch (e) {

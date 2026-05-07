@@ -3009,27 +3009,54 @@ fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // with a logged warning. This keeps dev/testnet bring-up scripts
     // working while a real validator key set is being set up. Production
     // operators MUST install pubkeys (and then quorum_ok is ignored).
-    const sigs_blob = extractStr(body, "quorum_sigs") orelse "";
+    // `quorum_sigs` may arrive in two shapes:
+    //   * NEW (preferred): JSON array of {"pubkey","sig"} objects
+    //   * LEGACY: a flat string "pk1:sig1,pk2:sig2,..." (comma-sep pairs)
+    // We detect new-format via findJsonArray; on miss we fall back to
+    // extractStr which handles the legacy string. When the legacy form
+    // is used we log a warning (one-shot per request) so operators know
+    // to migrate their callers.
+    const sigs_array_body: ?[]const u8 = findJsonArray(body, "quorum_sigs");
+    const sigs_blob: []const u8 = if (sigs_array_body == null)
+        (extractStr(body, "quorum_sigs") orelse "")
+    else
+        "";
+    if (sigs_array_body == null and sigs_blob.len > 0) {
+        std.debug.print(
+            "[oracle_recordHeader] DEPRECATED: legacy comma-separated quorum_sigs string accepted; clients should migrate to JSON array form.\n",
+            .{},
+        );
+    }
     const legacy_flag = extractStr(body, "quorum_ok") orelse "";
     const have_legacy = std.mem.eql(u8, legacy_flag, "true");
 
     // We need the height + header hash up-front to build the canonical msg.
     // Each chain-specific branch below re-parses these; here we do a
     // pre-pass JUST to assemble the message.
+    //
+    // Field names — accept both new ("height") and legacy ("block_height"
+    // for BTC, "block_number" for ETH) for backward compatibility.
     var height_for_msg: u64 = 0;
     var header_hash_for_msg: [64]u8 = undefined;
     var header_hash_hex_len: usize = 0;
     if (std.mem.eql(u8, chain, "btc")) {
-        const h_str = extractStr(body, "block_height") orelse "0";
+        const h_str = extractStr(body, "height") orelse
+            extractStr(body, "block_height") orelse "0";
         height_for_msg = std.fmt.parseInt(u64, h_str, 10) catch 0;
-        const hh = extractStr(body, "header_hash") orelse "";
+        var hh = extractStr(body, "header_hash") orelse "";
+        if (hh.len >= 2 and hh[0] == '0' and (hh[1] == 'x' or hh[1] == 'X')) hh = hh[2..];
         if (hh.len > 64) return errorJson(-32602, "Bad header_hash", id, ctx.allocator);
         @memcpy(header_hash_for_msg[0..hh.len], hh);
         header_hash_hex_len = hh.len;
     } else if (std.mem.eql(u8, chain, "eth")) {
-        const bn_str = extractStr(body, "block_number") orelse "0";
+        const bn_str = extractStr(body, "height") orelse
+            extractStr(body, "block_number") orelse "0";
         height_for_msg = std.fmt.parseInt(u64, bn_str, 10) catch 0;
-        const bh = extractStr(body, "block_hash") orelse "";
+        // For ETH the canonical message uses block_hash if available,
+        // otherwise fall back to header_hash (the new alias).
+        var bh = extractStr(body, "block_hash") orelse
+            extractStr(body, "header_hash") orelse "";
+        if (bh.len >= 2 and bh[0] == '0' and (bh[1] == 'x' or bh[1] == 'X')) bh = bh[2..];
         if (bh.len > 64) return errorJson(-32602, "Bad block_hash", id, ctx.allocator);
         @memcpy(header_hash_for_msg[0..bh.len], bh);
         header_hash_hex_len = bh.len;
@@ -3044,12 +3071,63 @@ fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var canon_digest: [32]u8 = undefined;
     std.crypto.hash.sha2.Sha256.hash(canon, &canon_digest, .{});
 
-    // Parse `quorum_sigs` as comma-separated `pubkey_hex:sig_hex` pairs.
+    // Verify each pair, dedup signers, count valid.
     // pubkey_hex = 66 chars (compressed secp256k1), sig_hex = 128 chars.
-    // Verify each, dedup signers, count valid.
     var distinct_signers: [ORACLE_QUORUM_MAX][33]u8 = undefined;
     var distinct_count: usize = 0;
-    if (sigs_blob.len > 0) {
+    if (sigs_array_body) |arr_body| {
+        // NEW shape: JSON array of {pubkey, sig} objects. We walk by
+        // brace-counting to slice out each object body, then extract
+        // the two string fields with extractStr (it's scoped to that
+        // sub-slice so name collisions with the outer body are impossible).
+        var i: usize = 1; // skip leading '['
+        const end = arr_body.len - 1; // exclude trailing ']'
+        while (i < end) {
+            // Skip whitespace + commas.
+            while (i < end and (arr_body[i] == ' ' or arr_body[i] == ',' or
+                arr_body[i] == '\t' or arr_body[i] == '\r' or arr_body[i] == '\n')) : (i += 1) {}
+            if (i >= end) break;
+            if (arr_body[i] != '{') break; // malformed — bail safely
+            // Find matching '}'.
+            const obj_start = i;
+            var depth: i32 = 0;
+            var in_str = false;
+            while (i < end) : (i += 1) {
+                const c = arr_body[i];
+                if (in_str) {
+                    if (c == '\\') { i += 1; continue; }
+                    if (c == '"') in_str = false;
+                    continue;
+                }
+                if (c == '"') in_str = true
+                else if (c == '{') depth += 1
+                else if (c == '}') {
+                    depth -= 1;
+                    if (depth == 0) { i += 1; break; }
+                }
+            }
+            const obj = arr_body[obj_start..i];
+            const pk_hex = extractStr(obj, "pubkey") orelse continue;
+            const sig_hex = extractStr(obj, "sig") orelse continue;
+            if (pk_hex.len != 66 or sig_hex.len != 128) continue;
+            var pk_bytes: [33]u8 = undefined;
+            var sig_bytes: [64]u8 = undefined;
+            hex_utils.hexToBytes(pk_hex, &pk_bytes) catch continue;
+            hex_utils.hexToBytes(sig_hex, &sig_bytes) catch continue;
+            if (!isQuorumPubkey(pk_bytes)) continue;
+            var dup = false;
+            var j: usize = 0;
+            while (j < distinct_count) : (j += 1) {
+                if (std.mem.eql(u8, &distinct_signers[j], &pk_bytes)) { dup = true; break; }
+            }
+            if (dup) continue;
+            if (!secp256k1_mod.Secp256k1Crypto.verify(pk_bytes, &canon_digest, sig_bytes)) continue;
+            distinct_signers[distinct_count] = pk_bytes;
+            distinct_count += 1;
+            if (distinct_count >= ORACLE_QUORUM_MAX) break;
+        }
+    } else if (sigs_blob.len > 0) {
+        // LEGACY shape: comma-separated `pubkey_hex:sig_hex` pairs.
         var it = std.mem.splitScalar(u8, sigs_blob, ',');
         while (it.next()) |pair| {
             const colon = std.mem.indexOfScalar(u8, pair, ':') orelse continue;
@@ -3061,7 +3139,6 @@ fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             hex_utils.hexToBytes(pk_hex, &pk_bytes) catch continue;
             hex_utils.hexToBytes(sig_hex, &sig_bytes) catch continue;
             if (!isQuorumPubkey(pk_bytes)) continue;
-            // Dedup against already-counted signers.
             var dup = false;
             var j: usize = 0;
             while (j < distinct_count) : (j += 1) {
@@ -3089,17 +3166,43 @@ fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     if (std.mem.eql(u8, chain, "btc")) {
-        const h_str = extractStr(body, "block_height") orelse
-            return errorJson(-32602, "Missing param: block_height", id, ctx.allocator);
+        // Accept new "height" alongside legacy "block_height".
+        const h_str = extractStr(body, "height") orelse
+            extractStr(body, "block_height") orelse
+            return errorJson(-32602, "Missing param: height (or block_height)", id, ctx.allocator);
         const hh_str = extractStr(body, "header_hash") orelse
             return errorJson(-32602, "Missing param: header_hash", id, ctx.allocator);
         const h = std.fmt.parseInt(u64, h_str, 10) catch
-            return errorJson(-32602, "Bad block_height", id, ctx.allocator);
+            return errorJson(-32602, "Bad height", id, ctx.allocator);
         const hh = parseHex32Spv(hh_str) orelse
             return errorJson(-32602, "Bad header_hash (need 32-byte hex)", id, ctx.allocator);
+
+        // Optional: caller may supply the raw 80-byte block header as hex
+        // (160 chars). When present, we extract merkle_root via parseHeader
+        // and store it on the anchor — defense-in-depth so SPV verifiers
+        // can ignore caller-supplied merkle_root and trust the anchor instead.
+        // Backward-compat: if `raw_header_hex` is absent, merkle_root stays
+        // zero on the anchor and SPV falls back to the legacy blob field.
+        var merkle_root: [32]u8 = [_]u8{0} ** 32;
+        if (extractStr(body, "raw_header_hex")) |raw_hex| {
+            if (raw_hex.len != 160) {
+                return errorJson(-32602, "raw_header_hex must be 160 hex chars (80 bytes)", id, ctx.allocator);
+            }
+            var raw_bytes: [80]u8 = undefined;
+            hex_utils.hexToBytes(raw_hex, &raw_bytes) catch
+                return errorJson(-32602, "Bad raw_header_hex", id, ctx.allocator);
+            const parsed = spv_btc_mod.parseHeader(raw_bytes);
+            merkle_root = parsed.merkle_root;
+        }
+
         g_xchain_oracle_mutex.lock();
         defer g_xchain_oracle_mutex.unlock();
-        g_xchain_oracle.recordBtcAnchor(.{ .block_height = h, .header_hash = hh, .timestamp = ts }) catch |e| {
+        g_xchain_oracle.recordBtcAnchor(.{
+            .block_height = h,
+            .header_hash = hh,
+            .merkle_root = merkle_root,
+            .timestamp = ts,
+        }) catch |e| {
             const msg = if (e == error.NonMonotonic) "Non-monotonic update" else "Anchor rejected";
             return errorJson(-32000, msg, id, ctx.allocator);
         };
@@ -3111,18 +3214,22 @@ fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     if (std.mem.eql(u8, chain, "eth")) {
         const cid_str = extractStr(body, "chain_id") orelse "1";
-        const bn_str = extractStr(body, "block_number") orelse
-            return errorJson(-32602, "Missing param: block_number", id, ctx.allocator);
+        // Accept new "height" alongside legacy "block_number".
+        const bn_str = extractStr(body, "height") orelse
+            extractStr(body, "block_number") orelse
+            return errorJson(-32602, "Missing param: height (or block_number)", id, ctx.allocator);
+        // Accept new "header_hash" alias alongside legacy "block_hash".
         const bh_str = extractStr(body, "block_hash") orelse
-            return errorJson(-32602, "Missing param: block_hash", id, ctx.allocator);
+            extractStr(body, "header_hash") orelse
+            return errorJson(-32602, "Missing param: header_hash (or block_hash)", id, ctx.allocator);
         const rr_str = extractStr(body, "receipts_root") orelse
             return errorJson(-32602, "Missing param: receipts_root", id, ctx.allocator);
         const cid = std.fmt.parseInt(u64, cid_str, 10) catch
             return errorJson(-32602, "Bad chain_id", id, ctx.allocator);
         const bn = std.fmt.parseInt(u64, bn_str, 10) catch
-            return errorJson(-32602, "Bad block_number", id, ctx.allocator);
+            return errorJson(-32602, "Bad height", id, ctx.allocator);
         const bh = parseHex32Spv(bh_str) orelse
-            return errorJson(-32602, "Bad block_hash", id, ctx.allocator);
+            return errorJson(-32602, "Bad header_hash", id, ctx.allocator);
         const rr = parseHex32Spv(rr_str) orelse
             return errorJson(-32602, "Bad receipts_root", id, ctx.allocator);
         g_xchain_oracle_mutex.lock();
@@ -6689,6 +6796,201 @@ fn extractStr(json: []const u8, key: []const u8) ?[]const u8 {
     return null;
 }
 
+// ── Structured JSON helpers (arrays + objects) ────────────────────────────────
+//
+// `extractStr` is scalar-only: it stops at the first `"..."` value it
+// finds for a key. The handlers below need richer shapes:
+//   * arrays of strings  (quorum_sigs, merkle_proof, receipt_proof)
+//   * objects-in-objects (spv_proof_blob)
+//   * arrays of objects  ({pubkey, sig} pairs)
+//
+// All helpers below are slice-into-input — they don't allocate unless
+// stated. The few that do (parseStringArray, parseHexArray) take an
+// allocator and return owned-memory slices; the caller is responsible
+// for freeing.
+
+/// Locate the array body for `"key": [...]`. Returns a slice that starts
+/// at the opening '[' and ends just past the matching ']'. String-aware:
+/// skips brackets that live inside `"..."` strings. Returns null if the
+/// key is missing OR the value isn't an array.
+fn findJsonArray(json: []const u8, key: []const u8) ?[]const u8 {
+    var nbuf: [128]u8 = undefined;
+    if (key.len + 2 > nbuf.len) return null;
+    nbuf[0] = '"';
+    @memcpy(nbuf[1 .. 1 + key.len], key);
+    nbuf[1 + key.len] = '"';
+    const needle = nbuf[0 .. key.len + 2];
+
+    var pos: usize = 0;
+    while (pos + needle.len <= json.len) : (pos += 1) {
+        if (!std.mem.startsWith(u8, json[pos..], needle)) continue;
+        var i = pos + needle.len;
+        while (i < json.len and (json[i] == ' ' or json[i] == ':' or
+            json[i] == '\t' or json[i] == '\r' or json[i] == '\n')) i += 1;
+        if (i >= json.len or json[i] != '[') continue;
+        const start = i;
+        var depth: i32 = 0;
+        var in_str = false;
+        while (i < json.len) : (i += 1) {
+            const c = json[i];
+            if (in_str) {
+                if (c == '\\') { i += 1; continue; }
+                if (c == '"') in_str = false;
+                continue;
+            }
+            switch (c) {
+                '"' => in_str = true,
+                '[' => depth += 1,
+                ']' => {
+                    depth -= 1;
+                    if (depth == 0) return json[start .. i + 1];
+                },
+                else => {},
+            }
+        }
+        return null;
+    }
+    return null;
+}
+
+/// Locate the object body for `"key": {...}`. Same semantics as
+/// findJsonArray but for `{...}`. Returns null on missing key or
+/// non-object value.
+fn findJsonObject(json: []const u8, key: []const u8) ?[]const u8 {
+    var nbuf: [128]u8 = undefined;
+    if (key.len + 2 > nbuf.len) return null;
+    nbuf[0] = '"';
+    @memcpy(nbuf[1 .. 1 + key.len], key);
+    nbuf[1 + key.len] = '"';
+    const needle = nbuf[0 .. key.len + 2];
+
+    var pos: usize = 0;
+    while (pos + needle.len <= json.len) : (pos += 1) {
+        if (!std.mem.startsWith(u8, json[pos..], needle)) continue;
+        var i = pos + needle.len;
+        while (i < json.len and (json[i] == ' ' or json[i] == ':' or
+            json[i] == '\t' or json[i] == '\r' or json[i] == '\n')) i += 1;
+        if (i >= json.len or json[i] != '{') continue;
+        const start = i;
+        var depth: i32 = 0;
+        var in_str = false;
+        while (i < json.len) : (i += 1) {
+            const c = json[i];
+            if (in_str) {
+                if (c == '\\') { i += 1; continue; }
+                if (c == '"') in_str = false;
+                continue;
+            }
+            switch (c) {
+                '"' => in_str = true,
+                '{' => depth += 1,
+                '}' => {
+                    depth -= 1;
+                    if (depth == 0) return json[start .. i + 1];
+                },
+                else => {},
+            }
+        }
+        return null;
+    }
+    return null;
+}
+
+/// Parse a JSON array body (`[ ... ]`) into a slice-of-slices, each
+/// pointing at one string element. The returned outer slice is heap
+/// allocated; inner slices reference the input.
+///
+/// Caller frees the OUTER slice with `alloc.free(returned)`. Inner
+/// strings are NOT owned and must NOT be freed.
+fn parseJsonStringArrayBody(body: []const u8, alloc: std.mem.Allocator) ![][]const u8 {
+    if (body.len < 2 or body[0] != '[' or body[body.len - 1] != ']') return error.InvalidArray;
+    const inner = body[1 .. body.len - 1];
+    // First pass: count elements.
+    var count: usize = 0;
+    {
+        var i: usize = 0;
+        while (i < inner.len) {
+            while (i < inner.len and (inner[i] == ' ' or inner[i] == ',' or
+                inner[i] == '\t' or inner[i] == '\r' or inner[i] == '\n')) : (i += 1) {}
+            if (i >= inner.len) break;
+            if (inner[i] != '"') return error.NonStringInArray;
+            i += 1;
+            while (i < inner.len and inner[i] != '"') : (i += 1) {
+                if (inner[i] == '\\' and i + 1 < inner.len) i += 1;
+            }
+            if (i >= inner.len) return error.UnterminatedString;
+            i += 1; // past closing '"'
+            count += 1;
+        }
+    }
+    const out = try alloc.alloc([]const u8, count);
+    errdefer alloc.free(out);
+    // Second pass: fill.
+    var idx: usize = 0;
+    var i: usize = 0;
+    while (i < inner.len and idx < count) {
+        while (i < inner.len and (inner[i] == ' ' or inner[i] == ',' or
+            inner[i] == '\t' or inner[i] == '\r' or inner[i] == '\n')) : (i += 1) {}
+        if (i >= inner.len) break;
+        if (inner[i] != '"') return error.NonStringInArray;
+        i += 1;
+        const start = i;
+        while (i < inner.len and inner[i] != '"') : (i += 1) {
+            if (inner[i] == '\\' and i + 1 < inner.len) i += 1;
+        }
+        out[idx] = inner[start..i];
+        idx += 1;
+        i += 1;
+    }
+    return out;
+}
+
+/// Public — accepts the parent body (any JSON) plus `key`, returns a
+/// freshly-allocated `[][]const u8` whose contents are slices into
+/// `body`. Caller owns the OUTER slice (free with `alloc.free`).
+fn parseStringArray(body: []const u8, key: []const u8, alloc: std.mem.Allocator) !?[][]const u8 {
+    const arr = findJsonArray(body, key) orelse return null;
+    return try parseJsonStringArrayBody(arr, alloc);
+}
+
+/// Like parseStringArray but each element is treated as hex and decoded
+/// to bytes. Returns a slice-of-slices where each inner slice IS owned
+/// (allocated). Caller must free both:
+///   * each element (alloc.free(returned[i]))
+///   * the outer slice (alloc.free(returned))
+fn parseHexArray(body: []const u8, key: []const u8, alloc: std.mem.Allocator) !?[][]u8 {
+    const arr = findJsonArray(body, key) orelse return null;
+    const strings = try parseJsonStringArrayBody(arr, alloc);
+    defer alloc.free(strings);
+    const out = try alloc.alloc([]u8, strings.len);
+    var allocated_idx: usize = 0;
+    errdefer {
+        var k: usize = 0;
+        while (k < allocated_idx) : (k += 1) alloc.free(out[k]);
+        alloc.free(out);
+    }
+    var i: usize = 0;
+    while (i < strings.len) : (i += 1) {
+        var s = strings[i];
+        if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) s = s[2..];
+        if (s.len % 2 != 0) return error.OddHexLength;
+        const buf = try alloc.alloc(u8, s.len / 2);
+        hex_utils.hexToBytes(s, buf) catch {
+            alloc.free(buf);
+            return error.BadHex;
+        };
+        out[i] = buf;
+        allocated_idx = i + 1;
+    }
+    return out;
+}
+
+/// Free helper for parseHexArray output.
+fn freeHexArray(arr: [][]u8, alloc: std.mem.Allocator) void {
+    for (arr) |a| alloc.free(a);
+    alloc.free(arr);
+}
+
 /// Extrage id-ul numeric din JSON (default 1)
 fn extractId(json: []const u8) u32 {
     const pos = std.mem.indexOf(u8, json, "\"id\"") orelse return 1;
@@ -6896,18 +7198,28 @@ fn verifySpvProofBlob(blob: []const u8) bool {
 
         const txh = parseHex32(tx_hex) orelse return false;
 
-        // We need the BTC merkle_root from the oracle. cross_chain_oracle
-        // stores `header_hash`, not the merkle_root, so without an
-        // explicit merkle_root anchor we can't verify here. Refuse
-        // rather than fake-verify.
+        // Get the BTC anchor from the oracle. The merkle_root is stored on
+        // the anchor itself (extracted from the recorded raw header at
+        // record time via spv_btc.parseHeader). This is the trusted source
+        // — never trust a caller-supplied merkle_root.
         g_xchain_oracle_mutex.lock();
         defer g_xchain_oracle_mutex.unlock();
         const btc = g_xchain_oracle.latestBtc() orelse return false;
-        // For now: BTC SPV requires an explicit merkle_root inside the blob
-        // (the oracle anchor records header_hash, not merkle_root). If the
-        // caller supplies one, verify it; otherwise reject.
-        const root_hex = blobField(blob, "merkle_root") orelse return false;
-        const root = parseHex32(root_hex) orelse return false;
+
+        // Defense-in-depth: prefer the anchor's recorded merkle_root over
+        // any caller-supplied value. If the anchor was loaded from a v1
+        // file (or recorded without a raw header), merkle_root is all-zero;
+        // in that legacy case we fall back to the caller-supplied root so
+        // existing testnet flows keep working until the operator re-records
+        // with a raw header.
+        const anchor_root_zero = blk: {
+            for (btc.merkle_root) |b| if (b != 0) break :blk false;
+            break :blk true;
+        };
+        const root: [32]u8 = if (!anchor_root_zero) btc.merkle_root else root_from_blob: {
+            const root_hex = blobField(blob, "merkle_root") orelse return false;
+            break :root_from_blob (parseHex32(root_hex) orelse return false);
+        };
 
         var path_buf: [64][32]u8 = undefined;
         var idx_buf: [64]u1 = undefined;
@@ -6917,8 +7229,6 @@ fn verifySpvProofBlob(blob: []const u8) bool {
             path_buf[i] = parseHex32(sib_hex) orelse return false;
             idx_buf[i] = if (idx_str[i] == '1') 1 else 0;
         }
-        // Tie to oracle: refuse if header was never recorded.
-        _ = btc;
         return spv_btc_mod.verifyMerkleProof(txh, path_buf[0..levels], idx_buf[0..levels], root);
     }
 
@@ -6975,6 +7285,141 @@ fn verifySpvProofBlob(blob: []const u8) bool {
     return false;
 }
 
+/// Strip an optional `0x` prefix from a hex string.
+fn stripHex0x(s: []const u8) []const u8 {
+    if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) return s[2..];
+    return s;
+}
+
+/// Parse an integer array body (`[0, 1, 0, 1]`) into a fixed-size u1 buffer.
+/// Returns the count of bits parsed; 0 on malformed input. Caller must
+/// pass a buffer of at least 64 entries.
+fn parseIndicesArray(arr_body: []const u8, out: []u1) usize {
+    if (arr_body.len < 2 or arr_body[0] != '[' or arr_body[arr_body.len - 1] != ']') return 0;
+    const inner = arr_body[1 .. arr_body.len - 1];
+    var i: usize = 0;
+    var n: usize = 0;
+    while (i < inner.len and n < out.len) {
+        while (i < inner.len and (inner[i] == ' ' or inner[i] == ',' or
+            inner[i] == '\t' or inner[i] == '\r' or inner[i] == '\n')) : (i += 1) {}
+        if (i >= inner.len) break;
+        if (inner[i] == '0') {
+            out[n] = 0; n += 1; i += 1;
+        } else if (inner[i] == '1') {
+            out[n] = 1; n += 1; i += 1;
+        } else {
+            // Multi-digit integers aren't expected (indices are bits) —
+            // bail rather than misinterpret.
+            return 0;
+        }
+    }
+    return n;
+}
+
+/// Verify an SPV proof supplied as a JSON OBJECT. This is the new shape
+/// (post-task-2) that swap_proveSettle accepts:
+///   {
+///     "chain": "btc"|"eth",
+///     "block_height": ...,
+///     "tx_hash": "0x...",
+///     "merkle_proof": ["0x...", ...],
+///     "indices": [0,1,0,1],
+///     "tx_index_rlp": "...",       // ETH only
+///     "receipt_rlp": "...",        // ETH only
+///     "receipt_proof": ["...", ...] // ETH only
+///   }
+fn verifySpvProofJson(obj: []const u8) bool {
+    ensureOracleLoaded();
+    const chain = extractStr(obj, "chain") orelse return false;
+
+    if (std.mem.eql(u8, chain, "btc")) {
+        const tx_hex = stripHex0x(extractStr(obj, "tx_hash") orelse return false);
+        const txh = parseHex32(tx_hex) orelse return false;
+
+        const proof_arr = findJsonArray(obj, "merkle_proof") orelse return false;
+        const idx_arr = findJsonArray(obj, "indices") orelse return false;
+
+        // Parse merkle_proof array of 32-byte hex strings (with/without 0x).
+        var path_buf: [64][32]u8 = undefined;
+        var levels: usize = 0;
+        {
+            // Walk strings inside proof_arr without allocating.
+            var i: usize = 1; // skip '['
+            const end = proof_arr.len - 1;
+            while (i < end and levels < path_buf.len) {
+                while (i < end and (proof_arr[i] == ' ' or proof_arr[i] == ',' or
+                    proof_arr[i] == '\t' or proof_arr[i] == '\r' or proof_arr[i] == '\n')) : (i += 1) {}
+                if (i >= end) break;
+                if (proof_arr[i] != '"') return false;
+                i += 1;
+                const sstart = i;
+                while (i < end and proof_arr[i] != '"') : (i += 1) {}
+                if (i >= end) return false;
+                const sib_hex = stripHex0x(proof_arr[sstart..i]);
+                if (sib_hex.len != 64) return false;
+                path_buf[levels] = parseHex32(sib_hex) orelse return false;
+                levels += 1;
+                i += 1; // past closing '"'
+            }
+        }
+
+        var idx_buf: [64]u1 = undefined;
+        const idx_count = parseIndicesArray(idx_arr, &idx_buf);
+        if (idx_count != levels) return false;
+
+        // Resolve merkle_root: prefer anchor, fall back to caller blob if anchor zero.
+        g_xchain_oracle_mutex.lock();
+        defer g_xchain_oracle_mutex.unlock();
+        const btc = g_xchain_oracle.latestBtc() orelse return false;
+        const anchor_root_zero = blk: {
+            for (btc.merkle_root) |b| if (b != 0) break :blk false;
+            break :blk true;
+        };
+        const root: [32]u8 = if (!anchor_root_zero) btc.merkle_root else root_from_obj: {
+            const root_hex = stripHex0x(extractStr(obj, "merkle_root") orelse return false);
+            break :root_from_obj (parseHex32(root_hex) orelse return false);
+        };
+        return spv_btc_mod.verifyMerkleProof(txh, path_buf[0..levels], idx_buf[0..levels], root);
+    }
+
+    if (std.mem.eql(u8, chain, "eth")) {
+        const cid_str = extractStr(obj, "chain_id") orelse "1";
+        const cid = std.fmt.parseInt(u64, cid_str, 10) catch return false;
+        g_xchain_oracle_mutex.lock();
+        const eth_anchor = g_xchain_oracle.latestEth(cid);
+        g_xchain_oracle_mutex.unlock();
+        const anchor = eth_anchor orelse return false;
+
+        const tx_index_hex = stripHex0x(extractStr(obj, "tx_index_rlp") orelse return false);
+        const receipt_hex = stripHex0x(extractStr(obj, "receipt_rlp") orelse return false);
+
+        const alloc = std.heap.page_allocator;
+        const key = hexAlloc(alloc, tx_index_hex) orelse return false;
+        defer alloc.free(key);
+        const value = hexAlloc(alloc, receipt_hex) orelse return false;
+        defer alloc.free(value);
+
+        // receipt_proof is a JSON array of hex strings.
+        const nodes_opt = parseHexArray(obj, "receipt_proof", alloc) catch return false;
+        const nodes = nodes_opt orelse return false;
+        defer freeHexArray(nodes, alloc);
+        if (nodes.len == 0 or nodes.len > 64) return false;
+
+        // Build a [][]const u8 view for the verifier.
+        var node_slices: [64][]const u8 = undefined;
+        var k: usize = 0;
+        while (k < nodes.len) : (k += 1) node_slices[k] = nodes[k];
+
+        return spv_eth_mod.verifyReceiptAtIndex(
+            anchor.receipts_root,
+            key,
+            value,
+            node_slices[0..nodes.len],
+        );
+    }
+    return false;
+}
+
 /// swap_proveSettle — accept the revealed preimage AND (when present) an
 /// SPV proof of the remote-chain claim. Verifies:
 ///   1. preimage hashes to swap_id (cheap, always required);
@@ -6982,17 +7427,9 @@ fn verifySpvProofBlob(blob: []const u8) bool {
 ///      against the recorded chain head from the cross-chain oracle;
 ///   3. only when both pass do we transition the binding to .claimed.
 ///
-/// `spv_proof_blob` is a flat string (we don't ship a JSON-array parser
-/// here) with comma-separated key=value fields:
-///   chain={btc|eth}
-///   block_height=<u64>
-///   tx_hash=<64 hex>             (BTC tx hash or ETH tx hash)
-///   merkle_proof_hex=<concat>    (BTC: concatenated 32-byte hex siblings)
-///   indices=<bits>               (BTC: '0'/'1' string per merkle level)
-///   tx_index_rlp_hex=<hex>       (ETH: RLP-encoded tx index = trie key)
-///   receipt_rlp_hex=<hex>        (ETH: RLP-encoded receipt = trie value)
-///   receipt_proof_hex=<hex|hex>  (ETH: pipe-separated RLP nodes)
-///   chain_id=<u64>               (ETH only; default 1)
+/// `spv_proof_blob` accepts TWO shapes:
+///   * NEW (preferred): JSON OBJECT — see verifySpvProofJson above for fields
+///   * LEGACY: flat comma-separated key=value blob — see verifySpvProofBlob
 ///
 /// Empty/absent blob → DEV mode: preimage-only settle is accepted, with
 /// a warning logged. Production validators should require the blob.
@@ -7007,16 +7444,27 @@ fn handleSwapProveSettle(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const preimage = parseHex32(pre_hex) orelse
         return errorJson(-32602, "Bad preimage", id, alloc);
 
-    const blob = extractStr(body, "spv_proof_blob") orelse "";
-    if (blob.len > 0) {
-        if (!verifySpvProofBlob(blob)) {
+    // Detect new (object) vs legacy (string) form for spv_proof_blob.
+    if (findJsonObject(body, "spv_proof_blob")) |obj| {
+        if (!verifySpvProofJson(obj)) {
             return errorJson(-32030, "SPV proof invalid", id, alloc);
         }
     } else {
-        std.debug.print(
-            "[swap_proveSettle] WARNING: dev-mode preimage-only settlement (no spv_proof_blob). DO NOT use on mainnet.\n",
-            .{},
-        );
+        const blob = extractStr(body, "spv_proof_blob") orelse "";
+        if (blob.len > 0) {
+            std.debug.print(
+                "[swap_proveSettle] DEPRECATED: legacy flat spv_proof_blob string accepted; clients should migrate to JSON object form.\n",
+                .{},
+            );
+            if (!verifySpvProofBlob(blob)) {
+                return errorJson(-32030, "SPV proof invalid", id, alloc);
+            }
+        } else {
+            std.debug.print(
+                "[swap_proveSettle] WARNING: dev-mode preimage-only settlement (no spv_proof_blob). DO NOT use on mainnet.\n",
+                .{},
+            );
+        }
     }
 
     const cur = ctx.bc.swap_registry.find(sid) orelse
@@ -9348,6 +9796,124 @@ test "extractStr — field cu spatii in jur" {
 test "extractStr — string gol" {
     const json = "{}";
     try testing.expect(extractStr(json, "anything") == null);
+}
+
+// ── findJsonArray / findJsonObject / parseStringArray / parseHexArray ────────
+
+test "findJsonArray — simple array" {
+    const json =
+        \\{"foo":["a","b","c"]}
+    ;
+    const arr = findJsonArray(json, "foo");
+    try testing.expect(arr != null);
+    try testing.expectEqualStrings("[\"a\",\"b\",\"c\"]", arr.?);
+}
+
+test "findJsonArray — array with nested objects" {
+    const json =
+        \\{"items":[{"k":"v"},{"k":"w"}],"other":1}
+    ;
+    const arr = findJsonArray(json, "items");
+    try testing.expect(arr != null);
+    try testing.expectEqualStrings("[{\"k\":\"v\"},{\"k\":\"w\"}]", arr.?);
+}
+
+test "findJsonArray — missing key returns null" {
+    const json =
+        \\{"a":1}
+    ;
+    try testing.expect(findJsonArray(json, "missing") == null);
+}
+
+test "findJsonArray — value is not array returns null" {
+    const json =
+        \\{"foo":"not-an-array"}
+    ;
+    try testing.expect(findJsonArray(json, "foo") == null);
+}
+
+test "findJsonObject — simple object" {
+    const json =
+        \\{"params":{"chain":"btc","height":42}}
+    ;
+    const obj = findJsonObject(json, "params");
+    try testing.expect(obj != null);
+    try testing.expectEqualStrings("{\"chain\":\"btc\",\"height\":42}", obj.?);
+}
+
+test "findJsonObject — nested objects with brackets in strings" {
+    const json =
+        \\{"x":{"y":"some [string] with brackets","z":1}}
+    ;
+    const obj = findJsonObject(json, "x");
+    try testing.expect(obj != null);
+    try testing.expect(std.mem.indexOf(u8, obj.?, "[string]") != null);
+}
+
+test "parseStringArray — three hex strings" {
+    const json =
+        \\{"proof":["0xaa","0xbb","0xcc"]}
+    ;
+    const r = (try parseStringArray(json, "proof", testing.allocator)) orelse {
+        try testing.expect(false);
+        return;
+    };
+    defer testing.allocator.free(r);
+    try testing.expectEqual(@as(usize, 3), r.len);
+    try testing.expectEqualStrings("0xaa", r[0]);
+    try testing.expectEqualStrings("0xbb", r[1]);
+    try testing.expectEqualStrings("0xcc", r[2]);
+}
+
+test "parseStringArray — empty array" {
+    const json =
+        \\{"proof":[]}
+    ;
+    const r = (try parseStringArray(json, "proof", testing.allocator)) orelse {
+        try testing.expect(false);
+        return;
+    };
+    defer testing.allocator.free(r);
+    try testing.expectEqual(@as(usize, 0), r.len);
+}
+
+test "parseHexArray — decodes 0x-prefixed and bare hex" {
+    const json =
+        \\{"sigs":["0x01ab","cd02"]}
+    ;
+    const r = (try parseHexArray(json, "sigs", testing.allocator)) orelse {
+        try testing.expect(false);
+        return;
+    };
+    defer freeHexArray(r, testing.allocator);
+    try testing.expectEqual(@as(usize, 2), r.len);
+    try testing.expectEqualSlices(u8, &[_]u8{ 0x01, 0xab }, r[0]);
+    try testing.expectEqualSlices(u8, &[_]u8{ 0xcd, 0x02 }, r[1]);
+}
+
+test "parseHexArray — odd hex length errors out" {
+    const json =
+        \\{"sigs":["0x1"]}
+    ;
+    const r = parseHexArray(json, "sigs", testing.allocator);
+    try testing.expectError(error.OddHexLength, r);
+}
+
+test "parseIndicesArray — bit string parses" {
+    var buf: [8]u1 = undefined;
+    const arr_body = "[0,1,1,0,1]";
+    const n = parseIndicesArray(arr_body, &buf);
+    try testing.expectEqual(@as(usize, 5), n);
+    try testing.expectEqual(@as(u1, 0), buf[0]);
+    try testing.expectEqual(@as(u1, 1), buf[1]);
+    try testing.expectEqual(@as(u1, 1), buf[2]);
+    try testing.expectEqual(@as(u1, 0), buf[3]);
+    try testing.expectEqual(@as(u1, 1), buf[4]);
+}
+
+test "parseIndicesArray — empty array" {
+    var buf: [4]u1 = undefined;
+    try testing.expectEqual(@as(usize, 0), parseIndicesArray("[]", &buf));
 }
 
 // ── extractId ────────────────────────────────────────────────────────────────

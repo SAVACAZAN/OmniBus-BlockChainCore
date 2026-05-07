@@ -280,6 +280,7 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "agent-wallet",   "core/agent_wallet.zig",   target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "pair-registry",  "core/pair_registry.zig",  target, optimize).step);
     test_chain_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig", target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -299,6 +300,7 @@ pub fn build(b: *std.Build) void {
     test_net_step.dependOn(&addTest(b, "peer-persist","core/peer_persist.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "spv-btc",    "core/spv_btc.zig",       target, optimize).step);
     test_net_step.dependOn(&addTest(b, "spv-eth",    "core/spv_eth.zig",       target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "spv-eth-tv", "core/spv_eth_test_vectors.zig", target, optimize).step);
     test_net_step.dependOn(&addTest(b, "xchain-oracle","core/cross_chain_oracle.zig", target, optimize).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
@@ -435,6 +437,7 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize).step);
     test_all_step.dependOn(&addTest(b, "matching",      "core/matching_engine.zig",  target, optimize).step);
     test_all_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig",  target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize).step);
     test_all_step.dependOn(&addTest(b, "price-oracle",  "core/price_oracle.zig",     target, optimize).step);
     test_all_step.dependOn(&addTest(b, "pouw",          "core/consensus_pouw.zig",   target, optimize).step);
     test_all_step.dependOn(&addTest(b, "ob-sync",       "core/orderbook_sync.zig",   target, optimize).step);

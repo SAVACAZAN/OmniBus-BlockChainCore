@@ -725,3 +725,192 @@ test "pmt — empty proof rejected" {
     const empty: []const []const u8 = &.{};
     try std.testing.expect(!verifyMerkleProof(root, "k", "v", empty));
 }
+
+// ── Multi-leaf PMT tests using core/spv_eth_test_vectors.zig ────────────
+//
+// Provenance of vectors: hand-built in pure Zig from yellow-paper RLP +
+// hex-prefix + branch/extension grammar. NOT copied from go-ethereum —
+// the builder lives at core/spv_eth_test_vectors.zig. The shape (top-
+// level branch when leaves diverge at first nibble; extension+branch
+// when they share a prefix; embedded child when an inline node is < 32 B)
+// mirrors what go-ethereum's `trie/proof_test.go` exercises.
+
+const test_vectors = @import("spv_eth_test_vectors.zig");
+
+/// Pack an even-length nibble array into the equivalent byte array.
+/// `out` must be at least nibbles.len/2 bytes.
+fn nibblesToBytes(nibbles: []const u8, out: []u8) []const u8 {
+    std.debug.assert(nibbles.len % 2 == 0);
+    var i: usize = 0;
+    while (i < nibbles.len) : (i += 2) {
+        out[i / 2] = (nibbles[i] << 4) | nibbles[i + 1];
+    }
+    return out[0 .. nibbles.len / 2];
+}
+
+test "pmt — 2-leaf branch: membership for both keys" {
+    // Two keys diverge at the first nibble. Root is a branch.
+    const k_a = [_]u8{ 1, 2, 3, 4 };
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 2, 2, 3, 4 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildTwoLeafBranch(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+    );
+
+    var key_buf: [2]u8 = undefined;
+    const ka_bytes = nibblesToBytes(&k_a, &key_buf);
+    try std.testing.expect(verifyMerkleProof(t.root, ka_bytes, v_a, t.nodes));
+
+    var key_buf2: [2]u8 = undefined;
+    const kb_bytes = nibblesToBytes(&k_b, &key_buf2);
+    try std.testing.expect(verifyMerkleProof(t.root, kb_bytes, v_b, t.nodes));
+}
+
+test "pmt — 2-leaf branch: cross-leaf proof must fail" {
+    // Build same trie, then ask the verifier whether key A maps to
+    // value B. Should be false (the leaf for A holds value A).
+    const k_a = [_]u8{ 1, 2, 3, 4 };
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 2, 2, 3, 4 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildTwoLeafBranch(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+    );
+
+    var key_buf: [2]u8 = undefined;
+    const ka_bytes = nibblesToBytes(&k_a, &key_buf);
+    // Wrong value for the right key.
+    try std.testing.expect(!verifyMerkleProof(t.root, ka_bytes, v_b, t.nodes));
+}
+
+test "pmt — 2-leaf extension: shared-prefix path resolves both keys" {
+    // Both keys share nibble prefix [0xa, 0xb], then diverge at index 2.
+    // Trie shape: extension(prefix) → branch → {leaf_A, leaf_B}.
+    const k_a = [_]u8{ 0xa, 0xb, 1, 5, 5, 0 }; // 6 nibbles → 3 bytes
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 0xa, 0xb, 2, 7, 7, 0 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildTwoLeafExtension(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+        2,
+    );
+
+    var key_buf: [3]u8 = undefined;
+    const ka_bytes = nibblesToBytes(&k_a, &key_buf);
+    try std.testing.expect(verifyMerkleProof(t.root, ka_bytes, v_a, t.nodes));
+
+    var key_buf2: [3]u8 = undefined;
+    const kb_bytes = nibblesToBytes(&k_b, &key_buf2);
+    try std.testing.expect(verifyMerkleProof(t.root, kb_bytes, v_b, t.nodes));
+}
+
+test "pmt — 3-leaf embedded child: small leaf inline in branch" {
+    // Three keys diverge at first nibble. Leaf C is small enough that
+    // the branch embeds it inline (RLP < 32 B) instead of using a
+    // 32-byte hash reference. This exercises resolveChild's embedded
+    // sub-list path.
+    const k_a = [_]u8{ 1, 2, 3, 4 };
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 2, 2, 3, 4 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+    // Small leaf: 1-nibble remainder + 1-byte value. RLP form is ~5 B.
+    const k_c = [_]u8{ 3, 0xa };
+    const v_c = [_]u8{0x42};
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildThreeLeafEmbedded(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+        .{ .key_nibbles = &k_c, .value = &v_c },
+    );
+
+    // Lookup the embedded leaf — proof contains only the branch + the
+    // two large leaves; leaf C is embedded inside the branch RLP.
+    var key_buf_c: [1]u8 = undefined;
+    const kc_bytes = nibblesToBytes(&k_c, &key_buf_c);
+    try std.testing.expect(verifyMerkleProof(t.root, kc_bytes, &v_c, t.nodes));
+
+    // Sibling lookups still work too.
+    var key_buf_a: [2]u8 = undefined;
+    const ka_bytes = nibblesToBytes(&k_a, &key_buf_a);
+    try std.testing.expect(verifyMerkleProof(t.root, ka_bytes, v_a, t.nodes));
+}
+
+test "pmt — cross-leaf application: proof for A applied to key B fails" {
+    // Build a 2-leaf branch trie. The proof itself is "complete" for the
+    // whole trie, but if the verifier is given key B + value A, it must
+    // return false: walking key B from the root lands in slot[B[0]] →
+    // leaf B → value B, which does not equal value A.
+    const k_a = [_]u8{ 1, 2, 3, 4 };
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 2, 2, 3, 4 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildTwoLeafBranch(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+    );
+
+    var key_buf: [2]u8 = undefined;
+    const kb_bytes = nibblesToBytes(&k_b, &key_buf);
+    try std.testing.expect(!verifyMerkleProof(t.root, kb_bytes, v_a, t.nodes));
+}
+
+test "pmt — tampered intermediate node hash fails" {
+    // Build a 2-leaf extension trie (so the root references an
+    // intermediate branch by hash). Then corrupt one byte in the branch
+    // node's encoded bytes — the keccak256 mismatch must cause the
+    // walker to fail to find the next node.
+    const k_a = [_]u8{ 0xa, 0xb, 1, 5, 5, 0 };
+    const v_a = "value-A-padded-to-be-over-32-bytes-long";
+    const k_b = [_]u8{ 0xa, 0xb, 2, 7, 7, 0 };
+    const v_b = "value-B-padded-to-be-over-32-bytes-long";
+
+    var st = test_vectors.Storage{};
+    const t = test_vectors.buildTwoLeafExtension(
+        &st,
+        .{ .key_nibbles = &k_a, .value = v_a },
+        .{ .key_nibbles = &k_b, .value = v_b },
+        2,
+    );
+
+    // Sanity: untampered proof verifies.
+    var key_buf: [3]u8 = undefined;
+    const ka_bytes = nibblesToBytes(&k_a, &key_buf);
+    try std.testing.expect(verifyMerkleProof(t.root, ka_bytes, v_a, t.nodes));
+
+    // Find the branch node (longest non-extension list-of-17). For the
+    // extension fixture, t.nodes order is [leafA, leafB, branch, ext].
+    // We mutate the branch's bytes via the storage buffer. Since
+    // Storage.buf is the backing memory and t.nodes are slices into it,
+    // corrupting a byte breaks the proof globally.
+    //
+    // Locate the branch node in storage and flip a byte in it.
+    const branch_node = st.node_slots[2];
+    // Mutating through the const-sliced view requires going through the
+    // backing storage. Compute the offset into st.buf.
+    const branch_off = @intFromPtr(branch_node.ptr) - @intFromPtr(&st.buf);
+    // Corrupt the LAST byte of the branch (a value-bearing slot byte).
+    st.buf[branch_off + branch_node.len - 1] ^= 0x01;
+
+    // The verifier walks ext → look up branch by hash → finds none
+    // (because the on-the-wire bytes no longer hash to what the ext
+    // points at) → returns false.
+    try std.testing.expect(!verifyMerkleProof(t.root, ka_bytes, v_a, t.nodes));
+}

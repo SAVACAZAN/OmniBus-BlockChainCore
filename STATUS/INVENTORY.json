@@ -407,9 +407,9 @@
     "scheme_count": 13
   },
   "modules": {
-    "module_count": 132,
-    "total_loc": 85177,
-    "total_pub_fn": 215,
+    "module_count": 134,
+    "total_loc": 87362,
+    "total_pub_fn": 219,
     "modules": [
       {
         "file": "agent_config.zig",
@@ -478,7 +478,7 @@
       },
       {
         "file": "blockchain.zig",
-        "loc": 4577,
+        "loc": 4762,
         "pub_fn": 5
       },
       {
@@ -553,7 +553,7 @@
       },
       {
         "file": "cross_chain_oracle.zig",
-        "loc": 248,
+        "loc": 340,
         "pub_fn": 0
       },
       {
@@ -677,6 +677,11 @@
         "pub_fn": 0
       },
       {
+        "file": "intent_registry.zig",
+        "loc": 425,
+        "pub_fn": 0
+      },
+      {
         "file": "isolated_wallet.zig",
         "loc": 971,
         "pub_fn": 6
@@ -723,7 +728,7 @@
       },
       {
         "file": "main.zig",
-        "loc": 2893,
+        "loc": 3014,
         "pub_fn": 3
       },
       {
@@ -898,7 +903,7 @@
       },
       {
         "file": "rpc_server.zig",
-        "loc": 14651,
+        "loc": 15217,
         "pub_fn": 6
       },
       {
@@ -943,13 +948,18 @@
       },
       {
         "file": "spv_btc.zig",
-        "loc": 465,
-        "pub_fn": 4
+        "loc": 590,
+        "pub_fn": 5
       },
       {
         "file": "spv_eth.zig",
-        "loc": 728,
+        "loc": 917,
         "pub_fn": 6
+      },
+      {
+        "file": "spv_eth_test_vectors.zig",
+        "loc": 482,
+        "pub_fn": 3
       },
       {
         "file": "staking.zig",

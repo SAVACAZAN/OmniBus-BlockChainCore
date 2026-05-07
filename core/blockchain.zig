@@ -28,6 +28,7 @@ const gov_mod    = @import("governance_onchain.zig");
 const faucet_mod = @import("faucet.zig");
 const htlc_mod   = @import("htlc.zig");
 const swap_link_mod = @import("order_swap_link.zig");
+const intent_reg_mod = @import("intent_registry.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -331,6 +332,13 @@ pub const Blockchain = struct {
     /// Persisted alongside other registries to data/<chain>/swap_bindings.bin
     /// (caller wires the path via main.zig).
     swap_registry: swap_link_mod.SwapBindingRegistry = swap_link_mod.SwapBindingRegistry.init(),
+
+    /// PHASE 2F.7 — bond accounting registry for cross-chain intents.
+    /// applyIntentTx debits maker_bond at intent_post, taker_bond at
+    /// intent_fill_commit, returns both on intent_settle, or slashes
+    /// taker_bond → maker on intent_timeout. State persisted to
+    /// data/<chain>/intent_registry.bin via core/intent_registry.zig.
+    intent_registry: intent_reg_mod.IntentRegistry = intent_reg_mod.IntentRegistry.init(),
 
     /// PHASE 2D — fills produced per block height. Keyed by block.index,
     /// value is a heap-owned slice of Fill records generated when that
@@ -2536,11 +2544,71 @@ pub const Blockchain = struct {
     // surface, (c) a hook for future bond accounting. Errors are logged
     // and the TX is accepted into history regardless — the caller filters.
     fn applyIntentTx(self: *Blockchain, tx: Transaction, block_height: u32) !void {
-        _ = self; // reserved for future bond accounting against bc.balances
         switch (tx.tx_type) {
             .intent_post => {
                 const payload = try tx_payload_mod.IntentPostPayload.decode(tx.data);
                 try payload.validate();
+
+                // Bond accounting: maker locks `maker_amount_sat` worth of
+                // collateral up-front. Without this, a malicious maker can
+                // spam intents that cost them nothing and waste solver
+                // bond bandwidth. We treat `maker_amount_sat` itself as
+                // the maker's locked-bond size — the asset they're offering
+                // — which matches how the matching engine collateralises
+                // the parent order.
+                //
+                // We try the debit but DO NOT abort the TX on insufficient
+                // funds: applyBlock is called for every TX in a block, and
+                // a fork or replay must not panic the chain. If the maker
+                // is broke, we emit a "warning" event and skip registry
+                // entry — the order itself was already validated by mempool
+                // admission, so insufficient funds at apply time means the
+                // maker double-spent during the block window.
+                const maker_bond = payload.maker_amount_sat;
+                self.debitBalanceLocked(tx.from_address, maker_bond) catch |err| {
+                    std.debug.print(
+                        "[INTENT] post: cannot lock maker bond {d} for {s}: {} — entry skipped\n",
+                        .{ maker_bond, tx.from_address[0..@min(20, tx.from_address.len)], err },
+                    );
+                    if (main_mod.g_ws_srv) |ws| {
+                        var iid_hex: [64]u8 = undefined;
+                        for (payload.intent_id, 0..) |b, i| {
+                            _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                        }
+                        var json_buf: [256]u8 = undefined;
+                        const j = std.fmt.bufPrint(&json_buf,
+                            "{{\"type\":\"intent_post_failed\",\"intent_id\":\"{s}\",\"reason\":\"insufficient_bond\"}}",
+                            .{ &iid_hex }) catch null;
+                        if (j) |s| ws.broadcast(s);
+                    }
+                    return;
+                };
+
+                // Build the registry entry. Caller's address slice is owned
+                // by the TX, but we copy into the entry's fixed buffer so
+                // it survives independently.
+                if (tx.from_address.len > intent_reg_mod.MAX_ADDR_LEN) {
+                    // Refund the bond we just took — entry can't be created.
+                    self.creditBalanceLocked(tx.from_address, maker_bond) catch {};
+                    return error.IntentAddressTooLong;
+                }
+                var entry: intent_reg_mod.IntentEntry = .{
+                    .intent_id = payload.intent_id,
+                    .swap_id = payload.swap_id,
+                    .maker_amount_sat = payload.maker_amount_sat,
+                    .taker_min_sat = payload.taker_min_sat,
+                    .maker_bond_locked_sat = maker_bond,
+                    .expiry_block = payload.expiry_block,
+                    .state = .posted,
+                };
+                @memcpy(entry.maker_address[0..tx.from_address.len], tx.from_address);
+                entry.maker_address_len = @intCast(tx.from_address.len);
+                self.intent_registry.addEntry(entry) catch |err| {
+                    // Refund on duplicate/full so book stays balanced.
+                    self.creditBalanceLocked(tx.from_address, maker_bond) catch {};
+                    std.debug.print("[INTENT] post addEntry failed: {} (bond refunded)\n", .{err});
+                    return;
+                };
 
                 if (main_mod.g_ws_srv) |ws| {
                     var iid_hex: [64]u8 = undefined;
@@ -2553,21 +2621,52 @@ pub const Blockchain = struct {
                     }
                     var json_buf: [768]u8 = undefined;
                     const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"intent_posted\",\"intent_id\":\"{s}\",\"swap_id\":\"{s}\",\"maker\":\"{s}\",\"taker_chain\":{d},\"expiry_block\":{d},\"maker_amount_sat\":{d}}}",
+                        "{{\"type\":\"intent_posted\",\"intent_id\":\"{s}\",\"swap_id\":\"{s}\",\"maker\":\"{s}\",\"taker_chain\":{d},\"expiry_block\":{d},\"maker_amount_sat\":{d},\"maker_bond_locked_sat\":{d}}}",
                         .{ &iid_hex, &sid_hex, tx.from_address, payload.taker_chain,
-                           payload.expiry_block, payload.maker_amount_sat }) catch null;
+                           payload.expiry_block, payload.maker_amount_sat, maker_bond }) catch null;
                     if (json) |j| ws.broadcast(j);
                 }
-                // The SwapBinding (if any) was already created by the
-                // matching engine when the maker's order_place TX with a
-                // cross-chain trailer landed. intent_post is a
-                // companion record — it does not call swap_registry.open
-                // here because the binding state machine already starts
-                // at .pending without intent help.
             },
             .intent_fill_commit => {
                 const payload = try tx_payload_mod.IntentFillCommitPayload.decode(tx.data);
                 try payload.validate();
+
+                // Look up the parent intent. If it doesn't exist (rogue
+                // commit, or post was skipped due to insufficient bond), we
+                // skip registry mutation but accept the TX into history so
+                // the address index sees it.
+                const parent_opt = self.intent_registry.findById(payload.intent_id);
+                if (parent_opt == null) {
+                    std.debug.print("[INTENT] fill_commit: unknown intent_id — TX accepted, no bond locked\n", .{});
+                    return;
+                }
+                const parent = parent_opt.?;
+                if (parent.state != .posted) {
+                    std.debug.print("[INTENT] fill_commit: intent in state {} — TX accepted, no bond locked\n",
+                        .{parent.state});
+                    return;
+                }
+
+                // Lock the solver's bond from their on-chain balance.
+                self.debitBalanceLocked(tx.from_address, payload.bond_locked_sat) catch |err| {
+                    std.debug.print(
+                        "[INTENT] fill_commit: cannot lock taker bond {d} for {s}: {} — TX accepted, registry unchanged\n",
+                        .{ payload.bond_locked_sat, tx.from_address[0..@min(20, tx.from_address.len)], err },
+                    );
+                    return;
+                };
+
+                self.intent_registry.commitFill(
+                    payload.intent_id,
+                    tx.from_address,
+                    payload.bond_locked_sat,
+                    payload.commit_block,
+                ) catch |err| {
+                    // Roll back the debit so the taker's balance is consistent.
+                    self.creditBalanceLocked(tx.from_address, payload.bond_locked_sat) catch {};
+                    std.debug.print("[INTENT] commitFill failed: {} (bond refunded)\n", .{err});
+                    return;
+                };
 
                 if (main_mod.g_ws_srv) |ws| {
                     var iid_hex: [64]u8 = undefined;
@@ -2580,15 +2679,56 @@ pub const Blockchain = struct {
                         .{ &iid_hex, tx.from_address, payload.bond_locked_sat, payload.commit_block }) catch null;
                     if (json) |j| ws.broadcast(j);
                 }
-                // Bond accounting is virtual for now — the solver's spendable
-                // balance is unaffected. A future revision will debit
-                // bond_locked_sat from balances and credit it back on settle
-                // (or slash to maker on intent_timeout). Tracked as TODO in
-                // tx_payload.IntentFillCommitPayload.
             },
             .intent_timeout => {
                 const payload = try tx_payload_mod.IntentTimeoutPayload.decode(tx.data);
                 try payload.validate();
+
+                const parent_opt = self.intent_registry.findById(payload.intent_id);
+                if (parent_opt == null) {
+                    std.debug.print("[INTENT] timeout: unknown intent_id — TX accepted, no slash applied\n", .{});
+                    return;
+                }
+                const parent = parent_opt.?;
+
+                // Two valid prior states:
+                //  * .committed → taker bond is slashed to maker (penalty
+                //    for missing the deadline). Maker bond is also returned.
+                //  * .posted    → no taker bond exists; only the maker
+                //    bond is refunded (intent expired before any solver
+                //    committed — no slash, just cleanup).
+                // Any other state (.settled / .timed_out) is a no-op.
+                if (parent.state == .committed) {
+                    const slash_amount = if (payload.slashed_bond_sat == 0)
+                        parent.taker_bond_locked_sat
+                    else
+                        @min(payload.slashed_bond_sat, parent.taker_bond_locked_sat);
+
+                    // Slash → maker.
+                    if (slash_amount > 0 and parent.maker_address_len > 0) {
+                        self.creditBalanceLocked(parent.makerSlice(), slash_amount) catch |err| {
+                            std.debug.print("[INTENT] timeout: slash credit failed: {}\n", .{err});
+                        };
+                    }
+                    // Refund any excess taker bond back to taker (not slashed).
+                    const taker_refund = parent.taker_bond_locked_sat - slash_amount;
+                    if (taker_refund > 0 and parent.taker_address_len > 0) {
+                        self.creditBalanceLocked(parent.takerSlice(), taker_refund) catch {};
+                    }
+                    // Refund maker bond to maker.
+                    if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
+                        self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
+                    }
+                    self.intent_registry.markTimedOut(payload.intent_id) catch {};
+                } else if (parent.state == .posted) {
+                    // Only refund maker bond — no taker exists.
+                    if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
+                        self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
+                    }
+                    self.intent_registry.markTimedOut(payload.intent_id) catch {};
+                } else {
+                    std.debug.print("[INTENT] timeout: state {} — no-op\n", .{parent.state});
+                }
 
                 if (main_mod.g_ws_srv) |ws| {
                     var iid_hex: [64]u8 = undefined;
@@ -2601,7 +2741,52 @@ pub const Blockchain = struct {
                         .{ &iid_hex, payload.slashed_bond_sat, block_height }) catch null;
                     if (json) |j| ws.broadcast(j);
                 }
-                // Symmetric to intent_fill_commit: bond bookkeeping deferred.
+            },
+            .intent_settle => {
+                // Settlement: parse intent_id from the payload (first 32 bytes
+                // after the version byte — same convention as the other
+                // intent payloads). Refund both bonds to their owners.
+                //
+                // We don't have a strict IntentSettlePayload decoder yet
+                // (validatePayload accepts any non-empty bytes for this
+                // type — see tx_payload.zig). The minimal field we need
+                // is intent_id; tx.data layout: [0]=version, [1..33]=intent_id.
+                if (tx.data.len < 33 or tx.data[0] != 1) {
+                    std.debug.print("[INTENT] settle: bad payload — TX accepted, no bond movement\n", .{});
+                    return;
+                }
+                var iid: [32]u8 = undefined;
+                @memcpy(&iid, tx.data[1..33]);
+
+                const parent_opt = self.intent_registry.findById(iid);
+                if (parent_opt == null) {
+                    std.debug.print("[INTENT] settle: unknown intent_id\n", .{});
+                    return;
+                }
+                const parent = parent_opt.?;
+                if (parent.state != .posted and parent.state != .committed) {
+                    return; // already terminal — no-op
+                }
+                // Refund both bonds to their owners.
+                if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
+                    self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
+                }
+                if (parent.taker_bond_locked_sat > 0 and parent.taker_address_len > 0) {
+                    self.creditBalanceLocked(parent.takerSlice(), parent.taker_bond_locked_sat) catch {};
+                }
+                self.intent_registry.markSettled(iid) catch {};
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var iid_hex: [64]u8 = undefined;
+                    for (iid, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    var json_buf: [384]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"intent_settled\",\"intent_id\":\"{s}\",\"maker_bond_refunded\":{d},\"taker_bond_refunded\":{d}}}",
+                        .{ &iid_hex, parent.maker_bond_locked_sat, parent.taker_bond_locked_sat }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
             },
             else => {}, // not an intent TX — caller filtered already
         }

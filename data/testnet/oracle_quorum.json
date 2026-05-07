@@ -1,0 +1,11 @@
+{
+  "_comment": "Cross-chain oracle quorum pubkey set for omnibus-testnet. ≥3 distinct sigs from these compressed secp256k1 pubkeys are required to record a foreign-chain anchor via oracle_recordHeader. Deterministic derivation: sk_i = sha256('OMNIBUS_TESTNET_ORACLE_QUORUM_v1\\n' + label_i) where label_i ∈ {validator-1..4}. Compressed pubkeys are 33-byte (0x02/0x03 prefix + 32-byte X coord), hex-encoded. Mainnet MUST replace with pubkeys from a hardened genesis ceremony.",
+  "scheme": "secp256k1-compressed",
+  "min_signatures": 3,
+  "pubkeys": [
+    "0x02d11d58213081d70f33bd5486ad9b4f7d11a66251c1c94146f41c0c4633d0f39b",
+    "0x02ee9050da051cb1fe34a0a3982b9ed7e38be843bfc5e5df991aea12e627409b6b",
+    "0x028c6495905e40c134f9bf7cbd03f6e419b973d6979462faa998111d6ce93745a6",
+    "0x02b74f7ca84f9c57bc27c3b71e95d0498a4f1ba0e5d4b3434a423dc0d87505076b"
+  ]
+}

@@ -37,6 +37,49 @@ fn sha256d(data: []const u8) [32]u8 {
     return sha256(&a);
 }
 
+/// Decoded Bitcoin block header (80 bytes). Fields are returned in
+/// internal byte order — i.e. exactly as they appear on the wire (little-
+/// endian for u32 fields, raw 32-byte arrays for the two hash fields).
+///
+/// Note: caller-facing utilities like `verifyBlockHeader` already operate
+/// on the internal byte order. Don't byte-reverse `prev_hash`/`merkle_root`
+/// before passing them to those — they expect the raw on-wire layout.
+pub const ParsedHeader = struct {
+    version: u32,
+    prev_hash: [32]u8,
+    merkle_root: [32]u8,
+    timestamp: u32,
+    bits: u32,
+    nonce: u32,
+};
+
+/// Parse a raw 80-byte Bitcoin block header into its constituent fields.
+/// Layout (per Bitcoin Core block.h):
+///   [0..4]    version       u32 LE
+///   [4..36]   prev_block    [32]u8 (internal/wire byte order)
+///   [36..68]  merkle_root   [32]u8 (internal/wire byte order)
+///   [68..72]  timestamp     u32 LE (unix seconds)
+///   [72..76]  bits          u32 LE (compact target / nBits)
+///   [76..80]  nonce         u32 LE
+///
+/// This is a pure parse — no integrity checks are performed (caller may
+/// follow up with `verifyBlockHeader` if PoW + linkage validation is
+/// required). Always succeeds for a fixed-size [80]u8 input.
+pub fn parseHeader(header: [80]u8) ParsedHeader {
+    var prev: [32]u8 = undefined;
+    var root: [32]u8 = undefined;
+    @memcpy(&prev, header[4..36]);
+    @memcpy(&root, header[36..68]);
+    return .{
+        .version = std.mem.readInt(u32, header[0..4], .little),
+        .prev_hash = prev,
+        .merkle_root = root,
+        .timestamp = std.mem.readInt(u32, header[68..72], .little),
+        .bits = std.mem.readInt(u32, header[72..76], .little),
+        .nonce = std.mem.readInt(u32, header[76..80], .little),
+    };
+}
+
 /// Hash two 32-byte halves together, producing one Merkle parent.
 /// Bitcoin Merkle trees use double-SHA-256 over the concatenated halves.
 fn hashPair(left: [32]u8, right: [32]u8) [32]u8 {
@@ -461,4 +504,86 @@ test "expandTarget — sanity for known nBits" {
     try std.testing.expectEqual(@as(u8, 0xff), t[5]);
     try std.testing.expectEqual(@as(u8, 0x00), t[6]);
     try std.testing.expectEqual(@as(u8, 0x00), t[0]);
+}
+
+test "parseHeader — Bitcoin genesis block (height 0)" {
+    // Bitcoin block 0 — the famous Satoshi genesis header. Reference values
+    // (from Bitcoin Core's chainparams.cpp and block 0 RPC):
+    //   version       = 1
+    //   prev_block    = 00 ... 00 (none — genesis)
+    //   merkle_root   = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
+    //                   (DISPLAY/big-endian) → reversed for wire byte order
+    //   timestamp     = 1231006505 (2009-01-03 18:15:05 UTC)
+    //   bits          = 0x1d00ffff
+    //   nonce         = 2083236893
+    //
+    // Header bytes are little-endian on the wire. We hand-assemble them
+    // here so the test does not depend on hex tooling.
+    var hdr: [80]u8 = [_]u8{0} ** 80;
+    // version = 1 LE
+    std.mem.writeInt(u32, hdr[0..4], 1, .little);
+    // prev_block = all-zero (already memset).
+    // merkle_root: bytes in the wire order (reverse of the displayed txid).
+    const merkle_wire = [32]u8{
+        0x3b, 0xa3, 0xed, 0xfd, 0x7a, 0x7b, 0x12, 0xb2,
+        0x7a, 0xc7, 0x2c, 0x3e, 0x67, 0x76, 0x8f, 0x61,
+        0x7f, 0xc8, 0x1b, 0xc3, 0x88, 0x8a, 0x51, 0x32,
+        0x3a, 0x9f, 0xb8, 0xaa, 0x4b, 0x1e, 0x5e, 0x4a,
+    };
+    @memcpy(hdr[36..68], &merkle_wire);
+    std.mem.writeInt(u32, hdr[68..72], 1231006505, .little);
+    std.mem.writeInt(u32, hdr[72..76], 0x1d00ffff, .little);
+    std.mem.writeInt(u32, hdr[76..80], 2083236893, .little);
+
+    const p = parseHeader(hdr);
+    try std.testing.expectEqual(@as(u32, 1), p.version);
+    try std.testing.expectEqual(@as(u32, 1231006505), p.timestamp);
+    try std.testing.expectEqual(@as(u32, 0x1d00ffff), p.bits);
+    try std.testing.expectEqual(@as(u32, 2083236893), p.nonce);
+    const zero32: [32]u8 = [_]u8{0} ** 32;
+    try std.testing.expectEqualSlices(u8, &zero32, &p.prev_hash);
+    try std.testing.expectEqualSlices(u8, &merkle_wire, &p.merkle_root);
+}
+
+test "parseHeader — round-trips arbitrary header" {
+    // Build a deterministic synthetic header, parse, and confirm fields.
+    var hdr: [80]u8 = undefined;
+    std.mem.writeInt(u32, hdr[0..4], 0x20000000, .little);
+    // Fill prev_hash slot (offsets 4..36) and merkle_root slot (36..68).
+    var i: usize = 0;
+    while (i < 32) : (i += 1) hdr[4 + i] = @intCast((i * 7 + 3) & 0xff);
+    var j: usize = 0;
+    while (j < 32) : (j += 1) hdr[36 + j] = @intCast((j * 11 + 5) & 0xff);
+    std.mem.writeInt(u32, hdr[68..72], 1_700_000_000, .little);
+    std.mem.writeInt(u32, hdr[72..76], 0x1a0fffff, .little);
+    std.mem.writeInt(u32, hdr[76..80], 0xdeadbeef, .little);
+
+    const p = parseHeader(hdr);
+    try std.testing.expectEqual(@as(u32, 0x20000000), p.version);
+    try std.testing.expectEqual(@as(u32, 1_700_000_000), p.timestamp);
+    try std.testing.expectEqual(@as(u32, 0x1a0fffff), p.bits);
+    try std.testing.expectEqual(@as(u32, 0xdeadbeef), p.nonce);
+    try std.testing.expectEqualSlices(u8, hdr[4..36], &p.prev_hash);
+    try std.testing.expectEqualSlices(u8, hdr[36..68], &p.merkle_root);
+}
+
+test "parseHeader — extracts merkle_root when used end-to-end with verifyMerkleProof" {
+    // Build a tiny merkle tree with 2 leaves and 1 root. Embed the root
+    // into a header. parseHeader extracts it; verifyMerkleProof confirms
+    // the leaf membership using only the parsed merkle_root — no caller-
+    // supplied merkle_root needed.
+    const left: [32]u8 = [_]u8{0xa1} ** 32;
+    const right: [32]u8 = [_]u8{0xa2} ** 32;
+    const root = hashPair(left, right);
+
+    var hdr: [80]u8 = [_]u8{0} ** 80;
+    std.mem.writeInt(u32, hdr[0..4], 1, .little);
+    @memcpy(hdr[36..68], &root);
+    std.mem.writeInt(u32, hdr[68..72], 1_700_000_000, .little);
+    std.mem.writeInt(u32, hdr[72..76], 0x1d00ffff, .little);
+
+    const parsed = parseHeader(hdr);
+    const path = [_][32]u8{right};
+    const idx = [_]u1{0};
+    try std.testing.expect(verifyMerkleProof(left, &path, &idx, parsed.merkle_root));
 }

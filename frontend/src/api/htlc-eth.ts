@@ -281,3 +281,73 @@ export function currentChainHtlcContract(chainId: number): string | null {
   if (!addr || addr === ZERO_ADDR) return null;
   return addr;
 }
+
+// ---------------------------------------------------------------------------
+// swap_proveSettle JSON builder (new structured shape)
+// ---------------------------------------------------------------------------
+
+/**
+ * ETH SPV proof object as accepted by the new (post-2026-05) shape of
+ * `swap_proveSettle.spv_proof_blob`. The OmniBus node detects this object
+ * shape via JSON parsing and falls back to the legacy flat key=value blob
+ * (with `tx_index_rlp_hex`, `receipt_rlp_hex`, pipe-separated
+ * `receipt_proof_hex`) if the field is a string instead.
+ *
+ * Notes:
+ *   * `tx_index_rlp` is the RLP-encoded transaction index — the trie key
+ *     of the MPT keyed by tx index inside `receiptsRoot`.
+ *   * `receipt_rlp` is the RLP-encoded receipt — the trie value.
+ *   * `receipt_proof` is an ordered list of trie nodes from root → leaf,
+ *     each item is the RLP-encoded node bytes as a hex string.
+ *   * `chain_id` is optional; defaults to "1" (mainnet) on the node.
+ */
+export interface EthSpvProofObject {
+  chain: "eth";
+  chain_id?: string;
+  block_height: number;
+  tx_hash: string;
+  tx_index_rlp: string;
+  receipt_rlp: string;
+  receipt_proof: string[];
+}
+
+const HEX_RE = /^[0-9a-fA-F]+$/;
+
+function ensureHex(label: string, hex: string): void {
+  const stripped = hex.startsWith("0x") || hex.startsWith("0X") ? hex.slice(2) : hex;
+  if (!HEX_RE.test(stripped) || stripped.length === 0 || stripped.length % 2 !== 0) {
+    throw new Error(`${label}: not a valid even-length hex string`);
+  }
+}
+
+export function buildEthSpvProofObject(opts: {
+  chainId?: number | string;
+  blockHeight: number;
+  txHash: string;
+  txIndexRlp: string;
+  receiptRlp: string;
+  receiptProof: string[];
+}): EthSpvProofObject {
+  if (!Number.isInteger(opts.blockHeight) || opts.blockHeight < 0) {
+    throw new Error("block_height must be a non-negative integer");
+  }
+  ensureHex("tx_hash", opts.txHash);
+  ensureHex("tx_index_rlp", opts.txIndexRlp);
+  ensureHex("receipt_rlp", opts.receiptRlp);
+  if (!Array.isArray(opts.receiptProof) || opts.receiptProof.length === 0) {
+    throw new Error("receipt_proof must be a non-empty array of RLP-hex node strings");
+  }
+  for (const n of opts.receiptProof) ensureHex("receipt_proof[i]", n);
+  const out: EthSpvProofObject = {
+    chain: "eth",
+    block_height: opts.blockHeight,
+    tx_hash: opts.txHash,
+    tx_index_rlp: opts.txIndexRlp,
+    receipt_rlp: opts.receiptRlp,
+    receipt_proof: opts.receiptProof,
+  };
+  if (opts.chainId !== undefined) {
+    out.chain_id = typeof opts.chainId === "number" ? String(opts.chainId) : opts.chainId;
+  }
+  return out;
+}
