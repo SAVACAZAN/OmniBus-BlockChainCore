@@ -407,9 +407,9 @@
     "scheme_count": 13
   },
   "modules": {
-    "module_count": 131,
-    "total_loc": 83571,
-    "total_pub_fn": 209,
+    "module_count": 132,
+    "total_loc": 85177,
+    "total_pub_fn": 215,
     "modules": [
       {
         "file": "agent_config.zig",
@@ -478,7 +478,7 @@
       },
       {
         "file": "blockchain.zig",
-        "loc": 4484,
+        "loc": 4577,
         "pub_fn": 5
       },
       {
@@ -520,6 +520,11 @@
         "file": "chain_config.zig",
         "loc": 425,
         "pub_fn": 0
+      },
+      {
+        "file": "channel_persist.zig",
+        "loc": 255,
+        "pub_fn": 2
       },
       {
         "file": "cli.zig",
@@ -718,7 +723,7 @@
       },
       {
         "file": "main.zig",
-        "loc": 2866,
+        "loc": 2893,
         "pub_fn": 3
       },
       {
@@ -893,8 +898,8 @@
       },
       {
         "file": "rpc_server.zig",
-        "loc": 14185,
-        "pub_fn": 4
+        "loc": 14651,
+        "pub_fn": 6
       },
       {
         "file": "schnorr.zig",
@@ -943,8 +948,8 @@
       },
       {
         "file": "spv_eth.zig",
-        "loc": 213,
-        "pub_fn": 4
+        "loc": 728,
+        "pub_fn": 6
       },
       {
         "file": "staking.zig",
@@ -998,7 +1003,7 @@
       },
       {
         "file": "tx_payload.zig",
-        "loc": 669,
+        "loc": 919,
         "pub_fn": 2
       },
       {

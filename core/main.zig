@@ -1436,6 +1436,24 @@ pub fn main() !void {
             .{ bc.htlc_registry.entry_count, bc.htlc_registry.activeCount(), htlc_persist_path });
     }
 
+    // ── Init Payment Channel persistence (Phase 2G.x) ───────────────────────
+    // g_channel_mgr is process-global; load any prior state so open channels
+    // and pending closes survive node restart.
+    var channels_path_buf: [256]u8 = undefined;
+    const channels_path = std.fmt.bufPrint(
+        &channels_path_buf,
+        "data/{s}/channels.dat",
+        .{@tagName(parsed.chain_mode)},
+    ) catch "data/channels.dat";
+    @import("channel_persist.zig").loadFromFile(&g_channel_mgr, channels_path) catch |err| {
+        std.debug.print("[CHANNELS] Load from {s} failed: {s} (starting empty)\n",
+            .{ channels_path, @errorName(err) });
+    };
+    if (g_channel_mgr.channel_count > 0) {
+        std.debug.print("[CHANNELS] Loaded {d} channels from {s}\n",
+            .{ g_channel_mgr.channel_count, channels_path });
+    }
+
     // ── Init Guardian System ─────────────────────────────────────────────────
     var guardian = guardian_mod.GuardianEngine.init();
 
@@ -2464,6 +2482,11 @@ pub fn main() !void {
                     std.debug.print("[HTLC] Save to {s} failed: {s}\n",
                         .{ htlc_persist_path, @errorName(err) });
                 };
+                // Payment channels persist on the same cadence.
+                @import("channel_persist.zig").saveToFile(&g_channel_mgr, channels_path) catch |err| {
+                    std.debug.print("[CHANNELS] Save to {s} failed: {s}\n",
+                        .{ channels_path, @errorName(err) });
+                };
             }
 
             // Record metrics
@@ -2854,6 +2877,10 @@ pub fn main() !void {
     // Save HTLC registry — same reasoning: pending/claimed states must survive.
     @import("htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
         std.debug.print("[SHUTDOWN] HTLC save failed: {s}\n", .{@errorName(err)});
+    };
+    // Save payment channels — open channels would otherwise leak locked funds.
+    @import("channel_persist.zig").saveToFile(&g_channel_mgr, channels_path) catch |err| {
+        std.debug.print("[SHUTDOWN] Channels save failed: {s}\n", .{@errorName(err)});
     };
     // Save peer ban list so bans survive the restart.
     peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {

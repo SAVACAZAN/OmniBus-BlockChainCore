@@ -444,6 +444,170 @@ pub const HtlcRefundPayload = struct {
     }
 };
 
+// ─── 0x40 — IntentPost ─────────────────────────────────────────────────
+
+/// Payload for TxType.intent_post — maker broadcasts a cross-chain intent
+/// ("I want to sell X on Omnibus and receive Y on chain Z"). Solvers/takers
+/// pick this up and commit to fill it via 0x41.
+///
+/// Wire layout (deterministic, fixed-size, 89 bytes):
+///   [0]      version: u8 (1)
+///   [1..33]  intent_id: [32]u8
+///   [33..65] swap_id: [32]u8 (binds the intent to a SwapBinding / hash_lock)
+///   [65..69] expiry_block: u32 LE
+///   [69]     taker_chain: u8 (0=omnibus, 1=btc, 2=eth, 3=base)
+///   [70..78] maker_amount_sat: u64 LE
+///   [78..86] taker_min_sat: u64 LE (slippage bound)
+///   [86..88] reserved: u16 (zero)
+///   [88]     ext_flags: u8 (bit0 = has off-chain trailer; reserved, must be 0 in v1)
+pub const IntentPostPayload = struct {
+    version: u8 = 1,
+    intent_id: [32]u8,
+    swap_id: [32]u8,
+    expiry_block: u32,
+    taker_chain: u8,
+    maker_amount_sat: u64,
+    taker_min_sat: u64,
+    reserved: u16 = 0,
+    ext_flags: u8 = 0,
+
+    pub const WIRE_SIZE: usize = 89;
+
+    pub fn encode(self: IntentPostPayload, buf: []u8) PayloadError!usize {
+        if (buf.len < WIRE_SIZE) return PayloadError.BufferOverflow;
+        buf[0] = self.version;
+        @memcpy(buf[1..33], &self.intent_id);
+        @memcpy(buf[33..65], &self.swap_id);
+        std.mem.writeInt(u32, buf[65..69], self.expiry_block, .little);
+        buf[69] = self.taker_chain;
+        std.mem.writeInt(u64, buf[70..78], self.maker_amount_sat, .little);
+        std.mem.writeInt(u64, buf[78..86], self.taker_min_sat, .little);
+        std.mem.writeInt(u16, buf[86..88], self.reserved, .little);
+        buf[88] = self.ext_flags;
+        return WIRE_SIZE;
+    }
+
+    pub fn decode(data: []const u8) PayloadError!IntentPostPayload {
+        if (data.len < WIRE_SIZE) return PayloadError.PayloadTooShort;
+        if (data[0] != 1) return PayloadError.InvalidVersion;
+        var p = IntentPostPayload{
+            .version = data[0],
+            .intent_id = undefined,
+            .swap_id = undefined,
+            .expiry_block = std.mem.readInt(u32, data[65..69], .little),
+            .taker_chain = data[69],
+            .maker_amount_sat = std.mem.readInt(u64, data[70..78], .little),
+            .taker_min_sat = std.mem.readInt(u64, data[78..86], .little),
+            .reserved = std.mem.readInt(u16, data[86..88], .little),
+            .ext_flags = data[88],
+        };
+        @memcpy(&p.intent_id, data[1..33]);
+        @memcpy(&p.swap_id, data[33..65]);
+        return p;
+    }
+
+    pub fn validate(self: IntentPostPayload) PayloadError!void {
+        if (self.version != 1) return PayloadError.InvalidVersion;
+        if (self.expiry_block == 0) return PayloadError.InvalidExpiry;
+        if (self.taker_chain > 3) return PayloadError.InvalidChainId;
+        if (self.maker_amount_sat == 0) return PayloadError.InvalidAmount;
+        if (self.ext_flags != 0) return PayloadError.InvalidVersion;
+    }
+};
+
+// ─── 0x41 — IntentFillCommit ───────────────────────────────────────────
+
+/// Payload for TxType.intent_fill_commit — solver locks bond, commits to
+/// fill an open intent. The Omnibus chain debits `bond_locked_sat` from
+/// the taker; if the taker fails to deliver before expiry, intent_timeout
+/// (0x43) slashes that bond to the maker.
+///
+/// Wire layout (49 bytes):
+///   [0]      version: u8 (1)
+///   [1..33]  intent_id: [32]u8
+///   [33..41] bond_locked_sat: u64 LE
+///   [41..49] commit_block: u64 LE (Omnibus block at which the commit is
+///                                  expected to be applied; informational —
+///                                  consensus uses block.index, not this.)
+pub const IntentFillCommitPayload = struct {
+    version: u8 = 1,
+    intent_id: [32]u8,
+    bond_locked_sat: u64,
+    commit_block: u64,
+
+    pub const WIRE_SIZE: usize = 49;
+
+    pub fn encode(self: IntentFillCommitPayload, buf: []u8) PayloadError!usize {
+        if (buf.len < WIRE_SIZE) return PayloadError.BufferOverflow;
+        buf[0] = self.version;
+        @memcpy(buf[1..33], &self.intent_id);
+        std.mem.writeInt(u64, buf[33..41], self.bond_locked_sat, .little);
+        std.mem.writeInt(u64, buf[41..49], self.commit_block, .little);
+        return WIRE_SIZE;
+    }
+
+    pub fn decode(data: []const u8) PayloadError!IntentFillCommitPayload {
+        if (data.len < WIRE_SIZE) return PayloadError.PayloadTooShort;
+        if (data[0] != 1) return PayloadError.InvalidVersion;
+        var p = IntentFillCommitPayload{
+            .version = data[0],
+            .intent_id = undefined,
+            .bond_locked_sat = std.mem.readInt(u64, data[33..41], .little),
+            .commit_block = std.mem.readInt(u64, data[41..49], .little),
+        };
+        @memcpy(&p.intent_id, data[1..33]);
+        return p;
+    }
+
+    pub fn validate(self: IntentFillCommitPayload) PayloadError!void {
+        if (self.version != 1) return PayloadError.InvalidVersion;
+        if (self.bond_locked_sat == 0) return PayloadError.InvalidAmount;
+    }
+};
+
+// ─── 0x43 — IntentTimeout ──────────────────────────────────────────────
+
+/// Payload for TxType.intent_timeout — solver missed the deadline; bond
+/// slashed to the maker (or burned, depending on policy). The chain layer
+/// validates that current_block >= expiry stored at commit time.
+///
+/// Wire layout (41 bytes):
+///   [0]      version: u8 (1)
+///   [1..33]  intent_id: [32]u8
+///   [33..41] slashed_bond_sat: u64 LE
+pub const IntentTimeoutPayload = struct {
+    version: u8 = 1,
+    intent_id: [32]u8,
+    slashed_bond_sat: u64,
+
+    pub const WIRE_SIZE: usize = 41;
+
+    pub fn encode(self: IntentTimeoutPayload, buf: []u8) PayloadError!usize {
+        if (buf.len < WIRE_SIZE) return PayloadError.BufferOverflow;
+        buf[0] = self.version;
+        @memcpy(buf[1..33], &self.intent_id);
+        std.mem.writeInt(u64, buf[33..41], self.slashed_bond_sat, .little);
+        return WIRE_SIZE;
+    }
+
+    pub fn decode(data: []const u8) PayloadError!IntentTimeoutPayload {
+        if (data.len < WIRE_SIZE) return PayloadError.PayloadTooShort;
+        if (data[0] != 1) return PayloadError.InvalidVersion;
+        var p = IntentTimeoutPayload{
+            .version = data[0],
+            .intent_id = undefined,
+            .slashed_bond_sat = std.mem.readInt(u64, data[33..41], .little),
+        };
+        @memcpy(&p.intent_id, data[1..33]);
+        return p;
+    }
+
+    pub fn validate(self: IntentTimeoutPayload) PayloadError!void {
+        if (self.version != 1) return PayloadError.InvalidVersion;
+        // slashed_bond_sat = 0 IS valid: the maker may waive the slash.
+    }
+};
+
 // ─── Validation dispatcher ─────────────────────────────────────────────
 
 /// Validates the payload bytes against the declared TxType.
@@ -493,16 +657,25 @@ pub fn validatePayload(tx_type: TxType, data: []const u8) PayloadError!void {
             const p = try HtlcRefundPayload.decode(data);
             try p.validate();
         },
+        .intent_post => {
+            const p = try IntentPostPayload.decode(data);
+            try p.validate();
+        },
+        .intent_fill_commit => {
+            const p = try IntentFillCommitPayload.decode(data);
+            try p.validate();
+        },
+        .intent_timeout => {
+            const p = try IntentTimeoutPayload.decode(data);
+            try p.validate();
+        },
         // Other types are reserved — accept payload bytes but no decoder yet.
         // These will be filled in as their respective phases land.
         .order_modify,
         .bridge_deposit_report,
         .bridge_unlock_sign,
         .bridge_fraud_challenge,
-        .intent_post,
-        .intent_fill_commit,
         .intent_settle,
-        .intent_timeout,
         .tss_dkg_commit,
         .tss_dkg_finalize,
         .tss_vault_rotate,
@@ -665,4 +838,81 @@ test "validatePayload htlc_claim rejects too-short" {
 
 test "validatePayload htlc_refund rejects too-short" {
     try std.testing.expectError(PayloadError.PayloadTooShort, validatePayload(.htlc_refund, &[_]u8{1}));
+}
+
+test "IntentPostPayload round-trip" {
+    var iid: [32]u8 = undefined; @memset(&iid, 0xAB);
+    var sid: [32]u8 = undefined; @memset(&sid, 0xCD);
+    const orig = IntentPostPayload{
+        .intent_id = iid,
+        .swap_id = sid,
+        .expiry_block = 12345,
+        .taker_chain = 2, // eth
+        .maker_amount_sat = 1_000_000_000,
+        .taker_min_sat = 999_000_000,
+    };
+    var buf: [IntentPostPayload.WIRE_SIZE]u8 = undefined;
+    _ = try orig.encode(&buf);
+    const dec = try IntentPostPayload.decode(&buf);
+    try std.testing.expectEqualSlices(u8, &orig.intent_id, &dec.intent_id);
+    try std.testing.expectEqualSlices(u8, &orig.swap_id, &dec.swap_id);
+    try std.testing.expectEqual(orig.expiry_block, dec.expiry_block);
+    try std.testing.expectEqual(orig.taker_chain, dec.taker_chain);
+    try std.testing.expectEqual(orig.maker_amount_sat, dec.maker_amount_sat);
+    try std.testing.expectEqual(orig.taker_min_sat, dec.taker_min_sat);
+    try orig.validate();
+    try validatePayload(.intent_post, &buf);
+}
+
+test "IntentPostPayload rejects invalid taker_chain" {
+    var iid: [32]u8 = undefined; @memset(&iid, 0x01);
+    var sid: [32]u8 = undefined; @memset(&sid, 0x02);
+    const bad = IntentPostPayload{
+        .intent_id = iid, .swap_id = sid,
+        .expiry_block = 1, .taker_chain = 99,
+        .maker_amount_sat = 1, .taker_min_sat = 1,
+    };
+    try std.testing.expectError(PayloadError.InvalidChainId, bad.validate());
+}
+
+test "IntentFillCommitPayload round-trip" {
+    var iid: [32]u8 = undefined; @memset(&iid, 0x44);
+    const orig = IntentFillCommitPayload{
+        .intent_id = iid,
+        .bond_locked_sat = 5_000_000_000,
+        .commit_block = 777,
+    };
+    var buf: [IntentFillCommitPayload.WIRE_SIZE]u8 = undefined;
+    _ = try orig.encode(&buf);
+    const dec = try IntentFillCommitPayload.decode(&buf);
+    try std.testing.expectEqualSlices(u8, &orig.intent_id, &dec.intent_id);
+    try std.testing.expectEqual(orig.bond_locked_sat, dec.bond_locked_sat);
+    try std.testing.expectEqual(orig.commit_block, dec.commit_block);
+    try validatePayload(.intent_fill_commit, &buf);
+}
+
+test "IntentFillCommitPayload rejects zero bond" {
+    var iid: [32]u8 = undefined; @memset(&iid, 0x55);
+    const bad = IntentFillCommitPayload{
+        .intent_id = iid, .bond_locked_sat = 0, .commit_block = 1,
+    };
+    try std.testing.expectError(PayloadError.InvalidAmount, bad.validate());
+}
+
+test "IntentTimeoutPayload round-trip" {
+    var iid: [32]u8 = undefined; @memset(&iid, 0x66);
+    const orig = IntentTimeoutPayload{
+        .intent_id = iid,
+        .slashed_bond_sat = 2_500_000_000,
+    };
+    var buf: [IntentTimeoutPayload.WIRE_SIZE]u8 = undefined;
+    _ = try orig.encode(&buf);
+    const dec = try IntentTimeoutPayload.decode(&buf);
+    try std.testing.expectEqualSlices(u8, &orig.intent_id, &dec.intent_id);
+    try std.testing.expectEqual(orig.slashed_bond_sat, dec.slashed_bond_sat);
+    try validatePayload(.intent_timeout, &buf);
+}
+
+test "validatePayload intent_post rejects too-short" {
+    try std.testing.expectError(PayloadError.PayloadTooShort, validatePayload(.intent_post, &[_]u8{1}));
 }

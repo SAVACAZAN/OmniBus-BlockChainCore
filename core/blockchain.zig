@@ -1986,6 +1986,13 @@ pub const Blockchain = struct {
                     std.debug.print("[HTLC] apply tx {s} type={} failed: {}\n",
                         .{ tx.hash[0..@min(16, tx.hash.len)], tx.tx_type, err });
                 };
+                // Phase 2F.3 — intent TXs (0x40/0x41/0x43). Routes through
+                // applyIntentTx; applyHtlcTx ignored these (else => {}). The
+                // dispatch is by tx_type, so a TX won't be double-applied.
+                self.applyIntentTx(tx, @intCast(block.index)) catch |err| {
+                    std.debug.print("[INTENT] apply tx {s} type={} failed: {}\n",
+                        .{ tx.hash[0..@min(16, tx.hash.len)], tx.tx_type, err });
+                };
                 // Still increment nonce + index TX so listings show it.
                 const cur_nonce = self.nonces.get(tx.from_address) orelse 0;
                 self.nonces.put(tx.from_address, cur_nonce + 1) catch {};
@@ -2511,6 +2518,92 @@ pub const Blockchain = struct {
                 }
             },
             else => {}, // not an HTLC TX — caller filtered already
+        }
+    }
+
+    // ─── PHASE 2F.3: intent TX state transitions ─────────────────────────
+    //
+    // Intent TXs (0x40/0x41/0x43) carry signed off-chain swap commitments
+    // through the chain so every node converges on the same SwapBinding
+    // state. They do NOT move coin directly — bond locking is virtual via
+    // bc.balances; settlement happens through the htlc_claim that the
+    // taker eventually broadcasts on the destination chain. This function
+    // emits WS events so the UI/orderbook can react in real time.
+    //
+    // Intent semantics here are intentionally minimal — the swap_registry
+    // already captures full state via order_swap_link.zig, so applyIntentTx
+    // serves mainly as: (a) on-chain receipt for solvers, (b) WS broadcast
+    // surface, (c) a hook for future bond accounting. Errors are logged
+    // and the TX is accepted into history regardless — the caller filters.
+    fn applyIntentTx(self: *Blockchain, tx: Transaction, block_height: u32) !void {
+        _ = self; // reserved for future bond accounting against bc.balances
+        switch (tx.tx_type) {
+            .intent_post => {
+                const payload = try tx_payload_mod.IntentPostPayload.decode(tx.data);
+                try payload.validate();
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var iid_hex: [64]u8 = undefined;
+                    var sid_hex: [64]u8 = undefined;
+                    for (payload.intent_id, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    for (payload.swap_id, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(sid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    var json_buf: [768]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"intent_posted\",\"intent_id\":\"{s}\",\"swap_id\":\"{s}\",\"maker\":\"{s}\",\"taker_chain\":{d},\"expiry_block\":{d},\"maker_amount_sat\":{d}}}",
+                        .{ &iid_hex, &sid_hex, tx.from_address, payload.taker_chain,
+                           payload.expiry_block, payload.maker_amount_sat }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+                // The SwapBinding (if any) was already created by the
+                // matching engine when the maker's order_place TX with a
+                // cross-chain trailer landed. intent_post is a
+                // companion record — it does not call swap_registry.open
+                // here because the binding state machine already starts
+                // at .pending without intent help.
+            },
+            .intent_fill_commit => {
+                const payload = try tx_payload_mod.IntentFillCommitPayload.decode(tx.data);
+                try payload.validate();
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var iid_hex: [64]u8 = undefined;
+                    for (payload.intent_id, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    var json_buf: [512]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"intent_committed\",\"intent_id\":\"{s}\",\"taker\":\"{s}\",\"bond_locked_sat\":{d},\"commit_block\":{d}}}",
+                        .{ &iid_hex, tx.from_address, payload.bond_locked_sat, payload.commit_block }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+                // Bond accounting is virtual for now — the solver's spendable
+                // balance is unaffected. A future revision will debit
+                // bond_locked_sat from balances and credit it back on settle
+                // (or slash to maker on intent_timeout). Tracked as TODO in
+                // tx_payload.IntentFillCommitPayload.
+            },
+            .intent_timeout => {
+                const payload = try tx_payload_mod.IntentTimeoutPayload.decode(tx.data);
+                try payload.validate();
+
+                if (main_mod.g_ws_srv) |ws| {
+                    var iid_hex: [64]u8 = undefined;
+                    for (payload.intent_id, 0..) |b, i| {
+                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
+                    }
+                    var json_buf: [512]u8 = undefined;
+                    const json = std.fmt.bufPrint(&json_buf,
+                        "{{\"type\":\"intent_timed_out\",\"intent_id\":\"{s}\",\"slashed_bond_sat\":{d},\"block_height\":{d}}}",
+                        .{ &iid_hex, payload.slashed_bond_sat, block_height }) catch null;
+                    if (json) |j| ws.broadcast(j);
+                }
+                // Symmetric to intent_fill_commit: bond bookkeeping deferred.
+            },
+            else => {}, // not an intent TX — caller filtered already
         }
     }
 
