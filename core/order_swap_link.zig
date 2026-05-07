@@ -82,7 +82,11 @@ pub const HtlcRef = union(enum) {
         id: [32]u8,
     };
 
-    pub const WIRE_SIZE: usize = 1 + 56; // 1B tag + 56B payload (max EthRef)
+    // Layout: 1B tag + max(32, 36, 60) body = 61B
+    //   omnibus(0): tag(1) + id(32)           = 33B used, padded to 61
+    //   btc(1):     tag(1) + txid(32) + vout(4) = 37B used, padded to 61
+    //   eth(2):     tag(1) + chain_id(8) + contract(20) + id(32) = 61B exact
+    pub const WIRE_SIZE: usize = 61;
 
     pub fn encode(self: HtlcRef, buf: *[WIRE_SIZE]u8) void {
         @memset(buf, 0);
@@ -100,10 +104,25 @@ pub const HtlcRef = union(enum) {
                 buf[0] = 2;
                 std.mem.writeInt(u64, buf[1..9], r.chain_id, .little);
                 @memcpy(buf[9..29], &r.contract);
-                @memcpy(buf[29..61][0..27], r.id[0..27]); // not enough room for full 32 in 56B body
-                // fix: put id last 27 bytes here, loss is ok since id is hash; but we need full
+                @memcpy(buf[29..61], &r.id);
             },
         }
+    }
+
+    pub fn decode(buf: *const [WIRE_SIZE]u8) ?HtlcRef {
+        return switch (buf[0]) {
+            0 => HtlcRef{ .omnibus = buf[1..33].* },
+            1 => blk: {
+                const vout = std.mem.readInt(u32, buf[33..37], .little);
+                break :blk HtlcRef{ .btc = .{ .txid = buf[1..33].*, .vout = vout } };
+            },
+            2 => HtlcRef{ .eth = .{
+                .chain_id = std.mem.readInt(u64, buf[1..9], .little),
+                .contract = buf[9..29].*,
+                .id = buf[29..61].*,
+            } },
+            else => null,
+        };
     }
 };
 
@@ -265,23 +284,23 @@ pub const SwapBindingRegistry = struct {
 
     // ── Persistence ────────────────────────────────────────────────────
 
-    const MAGIC: [8]u8 = [_]u8{ 'O', 'M', 'N', 'I', 'S', 'W', 'P', '1' };
-    const VERSION: u32 = 1;
+    const MAGIC: [8]u8 = [_]u8{ 'O', 'M', 'N', 'I', 'S', 'W', 'P', '2' };
+    const VERSION: u32 = 2;
     const HEADER_SIZE: usize = 8 + 4 + 4; // magic + version + count
 
-    /// Wire layout per entry (deterministic, fixed-size, 233 B):
-    ///   [0..8]    order_id u64 LE
-    ///   [8..40]   swap_id [32]
-    ///   [40]      maker_chain u8
-    ///   [41]      taker_chain u8
-    ///   [42..99]  maker_htlc_ref (1 tag + 56 body = 57 B)
-    ///   [99..156] taker_htlc_ref (57 B)
-    ///   [156]     state u8
-    ///   [157..165] timeout_block u64 LE
-    ///   [165..173] created_block u64 LE
-    ///   [173..205] revealed_preimage [32]
-    /// total = 205 B
-    const ENTRY_SIZE: usize = 205;
+    /// Wire layout per entry (deterministic, fixed-size):
+    ///   [0..8]     order_id u64 LE
+    ///   [8..40]    swap_id [32]
+    ///   [40]       maker_chain u8
+    ///   [41]       taker_chain u8
+    ///   [42..103]  maker_htlc_ref (HtlcRef.WIRE_SIZE = 61 B)
+    ///   [103..164] taker_htlc_ref (61 B)
+    ///   [164]      state u8
+    ///   [165..173] timeout_block u64 LE
+    ///   [173..181] created_block u64 LE
+    ///   [181..213] revealed_preimage [32]
+    /// total = 213 B
+    const ENTRY_SIZE: usize = 213;
 
     pub fn saveToFile(self: *const Self, path: []const u8) !void {
         var file = try std.fs.cwd().createFile(path, .{ .truncate = true });
@@ -301,12 +320,12 @@ pub const SwapBindingRegistry = struct {
             @memcpy(rec[8..40], &e.swap_id);
             rec[40] = @intFromEnum(e.maker_chain);
             rec[41] = @intFromEnum(e.taker_chain);
-            encodeRef(rec[42..99][0..57], e.maker_htlc_ref);
-            encodeRef(rec[99..156][0..57], e.taker_htlc_ref);
-            rec[156] = @intFromEnum(e.state);
-            std.mem.writeInt(u64, rec[157..165], e.timeout_block, .little);
-            std.mem.writeInt(u64, rec[165..173], e.created_block, .little);
-            @memcpy(rec[173..205], &e.revealed_preimage);
+            e.maker_htlc_ref.encode(rec[42..103][0..61]);
+            e.taker_htlc_ref.encode(rec[103..164][0..61]);
+            rec[164] = @intFromEnum(e.state);
+            std.mem.writeInt(u64, rec[165..173], e.timeout_block, .little);
+            std.mem.writeInt(u64, rec[173..181], e.created_block, .little);
+            @memcpy(rec[181..213], &e.revealed_preimage);
             try file.writeAll(&rec);
         }
     }
@@ -340,111 +359,23 @@ pub const SwapBindingRegistry = struct {
             @memcpy(&e.swap_id, rec[8..40]);
             e.maker_chain = Chain.fromU8(rec[40]) orelse return RegistryError.CorruptFile;
             e.taker_chain = Chain.fromU8(rec[41]) orelse return RegistryError.CorruptFile;
-            e.maker_htlc_ref = decodeRef(rec[42..99][0..57]) orelse return RegistryError.CorruptFile;
-            e.taker_htlc_ref = decodeRef(rec[99..156][0..57]) orelse return RegistryError.CorruptFile;
-            e.state = switch (rec[156]) {
+            e.maker_htlc_ref = HtlcRef.decode(rec[42..103][0..61]) orelse return RegistryError.CorruptFile;
+            e.taker_htlc_ref = HtlcRef.decode(rec[103..164][0..61]) orelse return RegistryError.CorruptFile;
+            e.state = switch (rec[164]) {
                 0 => .pending,
                 1 => .both_locked,
                 2 => .claimed,
                 3 => .timed_out,
                 else => return RegistryError.CorruptFile,
             };
-            e.timeout_block = std.mem.readInt(u64, rec[157..165], .little);
-            e.created_block = std.mem.readInt(u64, rec[165..173], .little);
-            @memcpy(&e.revealed_preimage, rec[173..205]);
+            e.timeout_block = std.mem.readInt(u64, rec[165..173], .little);
+            e.created_block = std.mem.readInt(u64, rec[173..181], .little);
+            @memcpy(&e.revealed_preimage, rec[181..213]);
             self.entries[self.count] = e;
             self.count += 1;
         }
     }
 };
-
-// ─── HtlcRef helpers (private) ─────────────────────────────────────────
-
-/// 57-byte fixed encoding for HtlcRef (1 tag + 56 body).
-/// Body layout per tag:
-///     omnibus(0): [0..32] htlc_id, [32..56] zero
-///     btc(1):     [0..32] txid, [32..36] vout LE, [36..56] zero
-///     eth(2):     [0..8] chain_id LE, [8..28] contract, [28..56] id (28 of 32 bytes — see below)
-///
-/// NB: EthRef.id is 32 bytes but we only have 28 bytes left in the body.
-/// We expand the body to a dedicated 60-byte slot ONLY for eth, but keep
-/// the on-disk record a fixed 57 bytes by storing eth.id in two pieces
-/// using the extra 4 bytes that would otherwise be vout-padding. To keep
-/// the format simple and avoid the lossy shortcut earlier in HtlcRef.encode,
-/// we use a different encoding here in the registry that includes a
-/// second eth-only block in the same slot. Implementation:
-///     eth body (56B): chain_id(8) | contract(20) | id_first28(28)
-///     eth.id_last4 lives in the 4 bytes after vout-position
-///         (rec[33..36] in encodeRef when tag=2).
-/// This is private to the registry; HtlcRef.encode (public) serialises
-/// to a different 57-byte form (see WIRE_SIZE) that may truncate eth.id.
-/// Callers that need full fidelity should use the registry encoding via
-/// the persistence path.
-fn encodeRef(buf: []u8, ref: HtlcRef) void {
-    @memset(buf, 0);
-    switch (ref) {
-        .omnibus => |id| {
-            buf[0] = 0;
-            @memcpy(buf[1..33], &id);
-        },
-        .btc => |r| {
-            buf[0] = 1;
-            @memcpy(buf[1..33], &r.txid);
-            std.mem.writeInt(u32, buf[33..37], r.vout, .little);
-        },
-        .eth => |r| {
-            buf[0] = 2;
-            std.mem.writeInt(u64, buf[1..9], r.chain_id, .little);
-            @memcpy(buf[9..29], &r.contract);
-            @memcpy(buf[29..57], r.id[0..28]);
-            // Last 4 bytes of id stored in [33..37] which would otherwise
-            // be vout for btc; safe because tag is 2 here.
-            // But rec[29..57] already covers indices 29..57 (28 bytes).
-            // We need the remaining 4 bytes (id[28..32]) — store them
-            // at buf[53..57]? But that's already used. Restructure:
-            //   buf[1..9]   chain_id
-            //   buf[9..29]  contract
-            //   buf[29..57] id[0..28]
-            // → only 28 of 32 bytes preserved.
-            //
-            // For full fidelity we extend buf usage: persist of EthRef.id
-            // via the 4-byte slot at buf[53..57] is impossible without
-            // overlap. We accept the 28-byte truncation: callers must hash
-            // their EVM htlc id to fit. Document this in the field.
-            // (Future v2 of the file format can use a wider record.)
-        },
-    }
-}
-
-fn decodeRef(buf: []const u8) ?HtlcRef {
-    return switch (buf[0]) {
-        0 => HtlcRef{ .omnibus = blk: {
-            var x: [32]u8 = undefined;
-            @memcpy(&x, buf[1..33]);
-            break :blk x;
-        } },
-        1 => blk: {
-            var txid: [32]u8 = undefined;
-            @memcpy(&txid, buf[1..33]);
-            const vout = std.mem.readInt(u32, buf[33..37], .little);
-            break :blk HtlcRef{ .btc = .{ .txid = txid, .vout = vout } };
-        },
-        2 => blk: {
-            const chain_id = std.mem.readInt(u64, buf[1..9], .little);
-            var contract: [20]u8 = undefined;
-            @memcpy(&contract, buf[9..29]);
-            var id: [32]u8 = std.mem.zeroes([32]u8);
-            @memcpy(id[0..28], buf[29..57]);
-            // Last 4 bytes of id are zeroed — see encodeRef note above.
-            break :blk HtlcRef{ .eth = .{
-                .chain_id = chain_id,
-                .contract = contract,
-                .id = id,
-            } };
-        },
-        else => null,
-    };
-}
 
 // ─── Cross-chain payload extension to OrderPlacePayload ────────────────
 //
@@ -598,6 +529,26 @@ test "SwapBindingRegistry — persistence round trip" {
     try testing.expectEqual(SwapState.both_locked, got.state);
     try testing.expectEqual(Chain.btc, got.maker_chain);
     try testing.expectEqual(Chain.omnibus, got.taker_chain);
+}
+
+test "HtlcRef.encode/decode — EthRef preserves all 32 bytes of id" {
+    const eth_id = [_]u8{
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+        0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+        0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
+    };
+    const ref = HtlcRef{ .eth = .{
+        .chain_id = 0xDEADBEEFCAFEBABE,
+        .contract = [_]u8{0xFF} ** 20,
+        .id = eth_id,
+    } };
+    var buf: [HtlcRef.WIRE_SIZE]u8 = undefined;
+    ref.encode(&buf);
+    const got = HtlcRef.decode(&buf).?;
+    try testing.expectEqual(ref.eth.chain_id, got.eth.chain_id);
+    try testing.expectEqualSlices(u8, &ref.eth.contract, &got.eth.contract);
+    try testing.expectEqualSlices(u8, &eth_id, &got.eth.id);
 }
 
 test "CrossChainTrailer — encode/decode + chain==0 means legacy" {
