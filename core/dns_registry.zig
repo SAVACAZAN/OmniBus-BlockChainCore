@@ -111,6 +111,38 @@ pub fn feeForRegistration(name: []const u8, tld: []const u8, years: u32) u64 {
     return (base * mul) / 1_000;
 }
 
+/// Anti-Sybil progressive fee multiplier (in milli-units, /1000).
+///
+/// Curve: 1000 + (existing_owner_count * 200)
+///   0 names owned  → 1000  (1.00× — base price)
+///   5 names owned  → 2000  (2.00×)
+///  10 names owned  → 3000  (3.00×)
+///  50 names owned  → 11000 (11.00×)
+/// 100 names owned  → 21000 (21.00×)
+///
+/// Rationale (EXPLOIT_DRILLS #6): the per-owner cap of 10 only applies per
+/// address. A Sybil attacker generates 1000 disposable addresses and squats
+/// 10,000 names cheaply. Linear-scaling fees per registered name make bulk
+/// squatting economically punitive without raising the floor for normal
+/// users. Registrar slot addresses are exempt.
+pub fn sybilFeeMultiplierMilli(existing_owner_count: usize) u64 {
+    return 1000 + @as(u64, @intCast(existing_owner_count)) * 200;
+}
+
+/// Like feeForRegistration but applies the Sybil progressive multiplier
+/// based on how many names the owner already holds.
+/// fee = feeForRegistration(...) * sybilFeeMultiplierMilli(count) / 1000.
+pub fn feeForRegistrationWithOwnerCount(
+    name: []const u8,
+    tld: []const u8,
+    years: u32,
+    existing_owner_count: usize,
+) u64 {
+    const base = feeForRegistration(name, tld, years);
+    const mul = sybilFeeMultiplierMilli(existing_owner_count);
+    return (base * mul) / 1_000;
+}
+
 /// Phase 2 — renewal fee for `additional_years`. Same multiplier curve as
 /// registration: 1y costs base, 100y costs ~55× base instead of 100×.
 /// The renewal pricing intentionally matches registration so the owner
@@ -837,7 +869,14 @@ pub const DnsRegistry = struct {
     /// v2 entry: v1 fields + 8B last_nonce + 8B last_action_block + 8B grace_until_block
     /// = 190 + 24 = 214 bytes per entry.
     const MAGIC: [8]u8 = [_]u8{ 'O', 'M', 'N', 'I', 'D', 'N', 'S', '1' };
-    const VERSION: u32 = 3;
+    /// v4 (2026-05-07, MEDIUM-03 fix): persists `consumed_txids` so fee TXs
+    /// already burnt for registername/renewname cannot be replayed across a
+    /// node restart. Format appends after the entries block:
+    ///   [u32 LE consumed_count][consumed_count × TXID_LEN bytes]
+    /// Backward-compat: if the file is v3 (no consumed section), we treat the
+    /// consumed set as empty and log a warning — replay protection is rebuilt
+    /// fresh from chain replay (bounded by finality, ~1h).
+    const VERSION: u32 = 4;
     const HEADER_SIZE: usize = 8 + 4 + 4;
     const V1_ENTRY_SIZE: usize = 190;
     const V2_ENTRY_SIZE: usize = 214;
@@ -889,6 +928,22 @@ pub const DnsRegistry = struct {
             std.mem.writeInt(u32, rec[off..][0..4], e.registered_years, .little);
             try file.writeAll(&rec);
         }
+
+        // v4 trailer: consumed fee-txids (anti-replay across restart).
+        // Cap at MAX_CONSUMED_TXIDS (4096) is already enforced by consumeTxid;
+        // the array is FIFO, so old entries naturally roll out. Replay window
+        // is bounded by chain finality (~1h), so even if the cap is hit we
+        // remain secure as long as a fee TX older than the cap has already
+        // been finalized.
+        var cnt_buf: [4]u8 = undefined;
+        std.mem.writeInt(u32, &cnt_buf, @intCast(self.consumed_count), .little);
+        try file.writeAll(&cnt_buf);
+        if (self.consumed_count > 0) {
+            // self.consumed_txids is [MAX][TXID_LEN]u8 contiguous; write the
+            // first `consumed_count` rows in one go.
+            const bytes: []const u8 = std.mem.sliceAsBytes(self.consumed_txids[0..self.consumed_count]);
+            try file.writeAll(bytes);
+        }
     }
 
     pub fn loadFromFile(self: *DnsRegistry, path: []const u8) !void {
@@ -909,8 +964,10 @@ pub const DnsRegistry = struct {
         const count = std.mem.readInt(u32, hdr[12..16], .little);
         if (count > MAX_ENTRIES) return error.TooManyEntries;
         self.entry_count = 0;
+        // Reset consumed set; v4 will refill from trailer, v3/v2/v1 leave empty.
+        self.consumed_count = 0;
 
-        if (ver == 3) {
+        if (ver == 4 or ver == 3) {
             var rec: [V3_ENTRY_SIZE]u8 = undefined;
             var i: u32 = 0;
             while (i < count) : (i += 1) {
@@ -1004,6 +1061,28 @@ pub const DnsRegistry = struct {
             }
         } else {
             return error.UnsupportedVersion;
+        }
+
+        // v4 trailer: consumed fee-txids. v3 and older have no trailer — the
+        // consumed set stays empty (rebuilt fresh on next chain replay).
+        if (ver == 4) {
+            var cnt_buf: [4]u8 = undefined;
+            const cn = file.readAll(&cnt_buf) catch 0;
+            if (cn == 4) {
+                const consumed_count = std.mem.readInt(u32, &cnt_buf, .little);
+                if (consumed_count > MAX_CONSUMED_TXIDS) return error.CorruptFile;
+                if (consumed_count > 0) {
+                    const bytes: []u8 = std.mem.sliceAsBytes(self.consumed_txids[0..consumed_count]);
+                    const rb = try file.readAll(bytes);
+                    if (rb < bytes.len) return error.CorruptFile;
+                }
+                self.consumed_count = consumed_count;
+            }
+            // If readAll returned 0 here we treat the file as truncated v3-ish:
+            // leave consumed_count = 0. No hard failure — we already accepted
+            // ver == 4 entries successfully.
+        } else {
+            std.debug.print("[DNS] WARN: legacy v{d} registry file — fee-replay protection rebuilt fresh (consumed_txids = empty)\n", .{ver});
         }
     }
 
@@ -1513,6 +1592,37 @@ test "DnsRegistry — v1 to v2 migration" {
     try testing.expectEqual(@as(u64, 500 + RENEWAL_PERIOD_BLOCKS + GRACE_PERIOD_BLOCKS), reg2.entries[0].grace_until_block);
 }
 
+test "DnsRegistry — consumed_txids persist across save/load (MEDIUM-03)" {
+    var reg = DnsRegistry.init();
+    try reg.registerWithTld("alice", "omnibus", "ob1qaaa", "ob1qaaa", 1000);
+
+    // Mark two distinct fee TXids as consumed.
+    const tx1 = "a" ** TXID_LEN; // 64 'a'
+    const tx2 = "b" ** TXID_LEN; // 64 'b'
+    try reg.consumeTxid(tx1);
+    try reg.consumeTxid(tx2);
+    try testing.expect(reg.isTxidConsumed(tx1));
+    try testing.expect(reg.isTxidConsumed(tx2));
+
+    const tmp_path = "test_dns_consumed_v4.bin";
+    defer std.fs.cwd().deleteFile(tmp_path) catch {};
+    try reg.saveToFile(tmp_path);
+
+    var reg2 = DnsRegistry.init();
+    try reg2.loadFromFile(tmp_path);
+    try testing.expectEqual(@as(usize, 2), reg2.consumed_count);
+    try testing.expect(reg2.isTxidConsumed(tx1));
+    try testing.expect(reg2.isTxidConsumed(tx2));
+
+    // A previously-unseen TXid must NOT match.
+    const tx3 = "c" ** TXID_LEN;
+    try testing.expect(!reg2.isTxidConsumed(tx3));
+
+    // Replay attack simulation: attacker tries to re-consume tx1 after restart.
+    // Without persistence this would have succeeded; with v4 it must fail.
+    try testing.expect(reg2.isTxidConsumed(tx1));
+}
+
 test "DnsRegistry — load from missing file returns empty registry" {
     var reg = DnsRegistry.init();
     try reg.loadFromFile("definitely_does_not_exist_12345.bin");
@@ -1678,6 +1788,27 @@ test "DnsRegistry — feeForRenewal mirrors feeForRegistration curve" {
                             feeForRenewal("alice", "omnibus", 1));
     try testing.expectEqual(feeForRegistration("alice", "omnibus", 100),
                             feeForRenewal("alice", "omnibus", 100));
+}
+
+test "DnsRegistry — sybilFeeMultiplierMilli curve (anti-bulk-squat)" {
+    // 0 names → 1.0×
+    try testing.expectEqual(@as(u64, 1000), sybilFeeMultiplierMilli(0));
+    // 5 names → 2.0×
+    try testing.expectEqual(@as(u64, 2000), sybilFeeMultiplierMilli(5));
+    // 50 names → 11.0×
+    try testing.expectEqual(@as(u64, 11000), sybilFeeMultiplierMilli(50));
+    // 100 names → 21.0×
+    try testing.expectEqual(@as(u64, 21000), sybilFeeMultiplierMilli(100));
+}
+
+test "DnsRegistry — feeForRegistrationWithOwnerCount applies multiplier" {
+    const base = feeForRegistration("alice", "omnibus", 1);
+    // First-time registrant pays exactly the base fee.
+    try testing.expectEqual(base, feeForRegistrationWithOwnerCount("alice", "omnibus", 1, 0));
+    // After 5 prior names, pays 2× the base fee.
+    try testing.expectEqual(base * 2, feeForRegistrationWithOwnerCount("alice", "omnibus", 1, 5));
+    // After 50 prior names, pays 11× — bulk squatting becomes costly.
+    try testing.expectEqual(base * 11, feeForRegistrationWithOwnerCount("alice", "omnibus", 1, 50));
 }
 
 test "DnsRegistry — lookupEntry finds expired but active names" {

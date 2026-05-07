@@ -1,4 +1,5 @@
 const std = @import("std");
+const Ripemd160 = @import("ripemd160.zig").Ripemd160;
 
 /// Cryptographic primitives for OmniBus blockchain
 pub const Crypto = struct {
@@ -38,11 +39,10 @@ pub const Crypto = struct {
     }
 
     /// RIPEMD-160 (for Bitcoin addresses)
-    /// Simplified - returns first 20 bytes of SHA256 for now
+    /// Real RIPEMD-160 implementation — forwards to core/ripemd160.zig
     pub fn ripemd160(data: []const u8) [20]u8 {
-        const hash = sha256(data);
         var result: [20]u8 = undefined;
-        @memcpy(&result, hash[0..20]);
+        Ripemd160.hash(data, &result);
         return result;
     }
 
@@ -176,6 +176,24 @@ test "AES-256-GCM wrong key fails" {
     const bad_key: [32]u8 = @splat(0x99);
     const encrypted = try Crypto.encryptAES256("secret data!!", key);
     try testing.expectError(error.AuthenticationFailed, Crypto.decryptAES256(encrypted, bad_key));
+}
+
+test "RIPEMD-160 known vector — empty string" {
+    // RIPEMD-160("") = 9c1185a5c5e9fc54612808977ee8f548b2258d31
+    const got = Crypto.ripemd160("");
+    const expected = [_]u8{
+        0x9c, 0x11, 0x85, 0xa5, 0xc5, 0xe9, 0xfc, 0x54, 0x61, 0x28,
+        0x08, 0x97, 0x7e, 0xe8, 0xf5, 0x48, 0xb2, 0x25, 0x8d, 0x31,
+    };
+    try testing.expectEqualSlices(u8, &expected, &got);
+}
+
+test "RIPEMD-160 matches direct ripemd160.zig call" {
+    const direct_mod = @import("ripemd160.zig").Ripemd160;
+    var direct: [20]u8 = undefined;
+    direct_mod.hash("OmniBus", &direct);
+    const via_crypto = Crypto.ripemd160("OmniBus");
+    try testing.expectEqualSlices(u8, &direct, &via_crypto);
 }
 
 test "password strength" {

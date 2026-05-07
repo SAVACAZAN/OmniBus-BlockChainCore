@@ -24,7 +24,22 @@ pub const MempoolError = error{
     TxInvalid,
     TxDuplicate,
     FeeTooLow,
+    /// HIGH-05 fix (2026-05-07): Signature verification failed for an incoming
+    /// TX (initial submit OR RBF replacement). Without this guard, an attacker
+    /// who knows a victim's pending (from_address, nonce) could replace the
+    /// victim's TX with a higher-fee variant whose `to_address` is the
+    /// attacker's wallet — the RBF path used to skip sig verification entirely.
+    BadSignature,
 };
+
+/// Verifier callback signature. Returns `true` if the TX's signature is valid
+/// against its declared scheme + public key (for PQ) or registered pubkey
+/// (for ECDSA). The mempool calls this on every `add()` (including the RBF
+/// replacement branch) when `Mempool.verifier` is non-null.
+///
+/// `ctx` is opaque user data (e.g. pointer to Blockchain so the verifier can
+/// look up the ECDSA pubkey registry). Pass `null` ctx if not needed.
+pub const TxVerifierFn = *const fn (ctx: ?*anyopaque, tx: *const Transaction) bool;
 
 /// Intrare in mempool — TX + metadata
 pub const MempoolEntry = struct {
@@ -45,6 +60,13 @@ pub const Mempool = struct {
     /// are currently in the mempool. Used to compute next expected nonce:
     ///   next_nonce = chain_nonce + pending_count
     pending_count: std.StringHashMap(u64) = undefined,
+    /// Optional signature verifier (HIGH-05 fix). When non-null, `add()` calls
+    /// it before accepting any TX — this closes the RBF-without-sig-check
+    /// hole. Production wires this to a closure that consults the blockchain
+    /// pubkey registry; tests/benchmarks leave it null to keep TX builders
+    /// trivial (sig field stays empty).
+    verifier: ?TxVerifierFn = null,
+    verifier_ctx: ?*anyopaque = null,
 
     pub fn init(allocator: std.mem.Allocator) Mempool {
         return .{
@@ -95,6 +117,20 @@ pub const Mempool = struct {
         const hash_key = tx.hash;
         if (hash_key.len > 0 and self.tx_hashes.contains(hash_key)) {
             return MempoolError.TxDuplicate;
+        }
+
+        // 6b. HIGH-05 FIX (2026-05-07): Signature verification gate.
+        //     Runs BEFORE the RBF branch so a replacement TX with a corrupted
+        //     signature is rejected even when its fee is higher. Previously,
+        //     `canBeReplacedBy()` only checked fee delta — an attacker who
+        //     knew a victim's (from_address, nonce) could replace the
+        //     victim's TX with one that pays the attacker. The verifier
+        //     callback consults whatever sig source is appropriate for the
+        //     scheme (registry for ECDSA, embedded pubkey for PQ).
+        if (self.verifier) |v| {
+            if (!v(self.verifier_ctx, &tx)) {
+                return MempoolError.BadSignature;
+            }
         }
 
         // 7. BIP-125 RBF: Check if this TX replaces an existing one
@@ -887,4 +923,108 @@ test "Mempool — OP_RETURN TX with amount=0 accepted" {
     };
     try mp.add(tx);
     try testing.expectEqual(@as(usize, 1), mp.size());
+}
+
+// ─── HIGH-05 — RBF replacement signature verification ─────────────────────────
+//
+// Regression test for the audit finding: if `mempool.add()` does not run sig
+// verification on the replacement TX, an attacker can replace a victim's
+// pending (from, nonce) slot with a higher-fee TX that redirects funds.
+
+const SigGate = struct {
+    const reject_marker: []const u8 = "BAD"; // signatures starting with this fail
+    fn verify(_: ?*anyopaque, tx: *const Transaction) bool {
+        // A real verifier would call tx.verifySignature(...). For the test we
+        // use a stub: any TX whose `signature` field starts with "BAD" is
+        // rejected. This isolates the mempool gate logic from secp256k1 setup.
+        if (tx.signature.len >= reject_marker.len and
+            std.mem.eql(u8, tx.signature[0..reject_marker.len], reject_marker))
+        {
+            return false;
+        }
+        return true;
+    }
+};
+
+test "Mempool — RBF replacement with bad signature rejected (HIGH-05)" {
+    var mp = Mempool.init(testing.allocator);
+    defer mp.deinit();
+    mp.verifier = SigGate.verify;
+
+    const victim_from = "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q";
+    const victim_to   = "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6";
+    const attacker    = "ob1qdactu4tmgr24gxzakg0zkd0hwhd9cuc6g8tcx7";
+
+    // Original TX — RBF-enabled, sig "OK..."
+    const orig = Transaction{
+        .id           = 1,
+        .from_address = victim_from,
+        .to_address   = victim_to,
+        .amount       = 1_000_000,
+        .fee          = 100,
+        .nonce        = 7,
+        .timestamp    = 1_743_000_000,
+        .sequence     = 0xFFFFFFFD, // RBF opt-in
+        .signature    = "OK_valid_sig_placeholder",
+        .hash         = "",
+    };
+    try mp.add(orig);
+    try testing.expectEqual(@as(usize, 1), mp.size());
+
+    // Attacker's malicious replacement — same (from, nonce), higher fee,
+    // CORRUPTED sig (would normally redirect funds to attacker).
+    const attack = Transaction{
+        .id           = 2,
+        .from_address = victim_from,
+        .to_address   = attacker,        // funds would be redirected
+        .amount       = 1_000_000,
+        .fee          = 1_000,            // higher fee → would pass canBeReplacedBy
+        .nonce        = 7,                // same slot
+        .timestamp    = 1_743_000_001,
+        .sequence     = 0xFFFFFFFD,
+        .signature    = "BAD_forged_signature",
+        .hash         = "",
+    };
+    const r1 = mp.add(attack);
+    try testing.expectError(MempoolError.BadSignature, r1);
+    // Original must still be in the mempool, unchanged
+    try testing.expectEqual(@as(usize, 1), mp.size());
+    try testing.expectEqualStrings(victim_to, mp.entries.items[0].tx.to_address);
+
+    // Legitimate replacement (valid sig + higher fee) must still succeed.
+    const legit = Transaction{
+        .id           = 3,
+        .from_address = victim_from,
+        .to_address   = victim_to,
+        .amount       = 1_000_000,
+        .fee          = 500,
+        .nonce        = 7,
+        .timestamp    = 1_743_000_002,
+        .sequence     = 0xFFFFFFFD,
+        .signature    = "OK_legit_replacement",
+        .hash         = "",
+    };
+    try mp.add(legit);
+    try testing.expectEqual(@as(usize, 1), mp.size());
+    try testing.expectEqual(@as(u64, 500), mp.entries.items[0].fee_sat);
+}
+
+test "Mempool — initial submit with bad signature rejected (HIGH-05)" {
+    var mp = Mempool.init(testing.allocator);
+    defer mp.deinit();
+    mp.verifier = SigGate.verify;
+
+    const tx = Transaction{
+        .id           = 1,
+        .from_address = "ob1qwp7k56wu8x22axd7dvw5wqtzlc29grf8uf760q",
+        .to_address   = "ob1qfn5y32ywn22hsl4vj82v6va9uczd6dvlfeu9a6",
+        .amount       = 1_000_000,
+        .fee          = 100,
+        .nonce        = 0,
+        .timestamp    = 1_743_000_000,
+        .signature    = "BAD_forged",
+        .hash         = "",
+    };
+    try testing.expectError(MempoolError.BadSignature, mp.add(tx));
+    try testing.expectEqual(@as(usize, 0), mp.size());
 }

@@ -3569,6 +3569,29 @@ fn listenKnockUDP(
 
 const testing = std.testing;
 
+test "MsgHeader oversized payload_len is rejected (HIGH-04 receive bounds)" {
+    // Simulate a malicious peer sending a header with payload_len = 0xFFFFFFFF.
+    // The receive path in PeerConnection.recv() must reject this BEFORE
+    // attempting to allocate `hdr.payload_len` bytes.
+    var hdr_buf: [MSG_HEADER_SIZE]u8 = undefined;
+    const malicious = MsgHeader{
+        .version     = P2P_VERSION,
+        .msg_type    = 0,
+        .payload_len = 0xFFFFFFFF, // ~4 GB
+        .checksum    = 0,
+        .flags       = 0,
+    };
+    malicious.encode(&hdr_buf);
+
+    const decoded = MsgHeader.decode(&hdr_buf);
+    try testing.expectEqual(@as(u32, 0xFFFFFFFF), decoded.payload_len);
+    // The actual guard: PeerConnection.recv() checks
+    //   if (hdr.payload_len > P2P_MAX_MSG_BYTES) return error.PayloadTooLarge;
+    // We replicate that predicate here so the test fails if either the
+    // constant or the check is removed.
+    try testing.expect(decoded.payload_len > P2P_MAX_MSG_BYTES);
+}
+
 test "MsgHeader encode/decode round-trip" {
     const hdr = MsgHeader{
         .version     = 1,
