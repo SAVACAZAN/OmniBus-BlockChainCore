@@ -499,9 +499,11 @@ pub const PairRoute = struct {
 };
 
 pub const PAIR_ROUTES = [_]PairRoute{
+    .{ .pair_id = 0, .base_asset = "OMNI", .quote_asset = "USDC" },
     .{ .pair_id = 2, .base_asset = "LCX",  .quote_asset = "USDC" },
     .{ .pair_id = 3, .base_asset = "ETH",  .quote_asset = "USDC" },
-    .{ .pair_id = 0, .base_asset = "OMNI", .quote_asset = "USDC" },
+    .{ .pair_id = 5, .base_asset = "OMNI", .quote_asset = "LCX"  },
+    .{ .pair_id = 6, .base_asset = "OMNI", .quote_asset = "ETH"  },
 };
 
 pub fn routeForPair(pair_id: u16) ?*const PairRoute {
