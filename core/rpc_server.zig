@@ -3610,6 +3610,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 
     // ── Cross-chain atomic-swap binding (orderbook ↔ HTLC glue) ─────────
     if (std.mem.eql(u8, method, "swap_open"))         return handleSwapOpen(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_lockMaker"))    return handleSwapLockMaker(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_lockTaker"))    return handleSwapLockTaker(body, ctx, id);
+    if (std.mem.eql(u8, method, "swap_timeout"))      return handleSwapTimeout(body, ctx, id);
     if (std.mem.eql(u8, method, "swap_status"))       return handleSwapStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "swap_listOpen"))     return handleSwapListOpen(body, ctx, id);
     if (std.mem.eql(u8, method, "swap_proveSettle")) return handleSwapProveSettle(body, ctx, id);
@@ -7080,8 +7083,10 @@ fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const ref_hex = extractStr(body, "taker_htlc_ref") orelse
         return errorJson(-32602, "Missing param: taker_htlc_ref", id, alloc);
-    if (ref_hex.len > 80) return errorJson(-32602, "taker_htlc_ref too long", id, alloc);
-    var ref_bytes: [40]u8 = std.mem.zeroes([40]u8);
+    // max 122 hex chars = 61 bytes (full EthRef: 1 tag + 8 chain_id + 20 contract + 32 id)
+    if (ref_hex.len > 122 or ref_hex.len % 2 != 0)
+        return errorJson(-32602, "taker_htlc_ref bad length (max 122 hex chars)", id, alloc);
+    var ref_bytes: [61]u8 = std.mem.zeroes([61]u8);
     {
         var i: usize = 0;
         while (i < ref_hex.len / 2) : (i += 1) {
@@ -7102,6 +7107,7 @@ fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Missing param: timeout", id, alloc);
 
     const maker_ref = swap_link_mod.HtlcRef{ .omnibus = hash_lock };
+    // Decode taker_htlc_ref using HtlcRef wire format (tagged, 61B)
     const taker_ref: swap_link_mod.HtlcRef = switch (taker_chain) {
         .btc => blk: {
             var txid: [32]u8 = undefined;
@@ -7114,7 +7120,7 @@ fn handleSwapOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             var contract: [20]u8 = undefined;
             @memcpy(&contract, ref_bytes[8..28]);
             var hid: [32]u8 = std.mem.zeroes([32]u8);
-            @memcpy(hid[0..12], ref_bytes[28..40]);
+            @memcpy(&hid, ref_bytes[28..60]);
             break :blk swap_link_mod.HtlcRef{ .eth = .{
                 .chain_id = chain_id,
                 .contract = contract,
@@ -7183,6 +7189,77 @@ fn handleSwapListOpen(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try buf.appendSlice(alloc, "]");
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}", .{ id, buf.items });
+}
+
+/// swap_lockMaker — confirm the maker-side HTLC is funded on its chain.
+/// Params: swap_id (64 hex), htlc_ref (122 hex, HtlcRef wire format).
+/// Transitions: pending → pending (sets maker_htlc_ref). Both legs needed
+/// before state moves to both_locked.
+fn handleSwapLockMaker(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id (need 64 hex)", id, alloc);
+    const ref_hex = extractStr(body, "htlc_ref") orelse
+        return errorJson(-32602, "Missing param: htlc_ref", id, alloc);
+    if (ref_hex.len > 122 or ref_hex.len % 2 != 0)
+        return errorJson(-32602, "htlc_ref bad length", id, alloc);
+    var rb: [61]u8 = std.mem.zeroes([61]u8);
+    _ = hex_utils.hexToBytes(ref_hex, rb[0 .. ref_hex.len / 2]) catch
+        return errorJson(-32602, "Bad hex in htlc_ref", id, alloc);
+    const ref = swap_link_mod.HtlcRef.decode(&rb) orelse
+        return errorJson(-32602, "Cannot decode htlc_ref", id, alloc);
+    ctx.bc.swap_registry.lockMaker(sid, ref) catch |err|
+        return errorJson(-32000, @errorName(err), id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"leg\":\"maker\",\"locked\":true}}}}",
+        .{ id, sid_hex });
+}
+
+/// swap_lockTaker — confirm the taker-side HTLC is funded. After both legs
+/// locked the binding transitions to .both_locked.
+/// Params: swap_id (64 hex), htlc_ref (122 hex).
+fn handleSwapLockTaker(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id (need 64 hex)", id, alloc);
+    const ref_hex = extractStr(body, "htlc_ref") orelse
+        return errorJson(-32602, "Missing param: htlc_ref", id, alloc);
+    if (ref_hex.len > 122 or ref_hex.len % 2 != 0)
+        return errorJson(-32602, "htlc_ref bad length", id, alloc);
+    var rb: [61]u8 = std.mem.zeroes([61]u8);
+    _ = hex_utils.hexToBytes(ref_hex, rb[0 .. ref_hex.len / 2]) catch
+        return errorJson(-32602, "Bad hex in htlc_ref", id, alloc);
+    const ref = swap_link_mod.HtlcRef.decode(&rb) orelse
+        return errorJson(-32602, "Cannot decode htlc_ref", id, alloc);
+    ctx.bc.swap_registry.lockTaker(sid, ref) catch |err|
+        return errorJson(-32000, @errorName(err), id, alloc);
+
+    // After lockTaker the binding moves to .both_locked — check and persist.
+    const b = ctx.bc.swap_registry.find(sid);
+    const state_str = if (b) |binding| stateName(binding.state) else "both_locked";
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"leg\":\"taker\",\"locked\":true,\"state\":\"{s}\"}}}}",
+        .{ id, sid_hex, state_str });
+}
+
+/// swap_timeout — mark a binding as timed_out when current block >= timeout_block.
+/// Params: swap_id (64 hex).
+fn handleSwapTimeout(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const sid_hex = extractStr(body, "swap_id") orelse
+        return errorJson(-32602, "Missing param: swap_id", id, alloc);
+    const sid = parseHex32(sid_hex) orelse
+        return errorJson(-32602, "Bad swap_id (need 64 hex)", id, alloc);
+    const current_block: u64 = ctx.bc.getBlockCount();
+    ctx.bc.swap_registry.timeout(sid, current_block) catch |err|
+        return errorJson(-32000, @errorName(err), id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"swap_id\":\"{s}\",\"state\":\"timed_out\",\"current_block\":{d}}}}}",
+        .{ id, sid_hex, current_block });
 }
 
 /// Lookup helper for the flat key=value,... `spv_proof_blob` format.
