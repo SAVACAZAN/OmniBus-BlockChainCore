@@ -12703,12 +12703,20 @@ fn handleExchangeRevokeApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 
         .{ id, key_id });
 }
 
-/// exchange_deposit — credit internal exchange balance. On testnet this
-/// just credits the balance with no on-chain transfer (faked). On mainnet
-/// the user would transfer real OMNI to an exchange escrow address first;
-/// this handler would only credit after seeing the on-chain TX.
+/// exchange_deposit — credit internal exchange balance.
+/// On testnet/regtest: credits directly (no on-chain proof required).
+/// On mainnet (chain_id == 1): requires a `txid` that actually sent OMNI
+/// to the exchange escrow address — use exchange_depositReal instead.
 fn handleExchangeDeposit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
+
+    // Block fake-credit on mainnet — callers must use exchange_depositReal.
+    if (ctx.chain_id == 1) {
+        return errorJson(-32000,
+            "exchange_deposit disabled on mainnet; use exchange_depositReal with a confirmed txid",
+            id, alloc);
+    }
+
     const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: owner", id, alloc);
     const token = extractStr(body, "token") orelse "OMNI";
@@ -12996,13 +13004,11 @@ fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // ── Demo / Real deposit + escrow ─────────────────────────────────────
 
 /// exchange_getEscrowAddress — return the on-chain address users send
-/// real deposits to. On testnet this is the local node's wallet (so the
-/// node can later detect the incoming TX and credit the user). On mainnet
-/// this would be the dedicated `exchange.omnibus` registrar wallet (slot
-/// #1 from the 10-wallet treasury list). Public; no auth required.
+/// real deposits to. Always the canonical exchange.omnibus registrar
+/// wallet (slot #2). Never the local node's wallet.
 fn handleExchangeGetEscrowAddress(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const escrow = ctx.wallet.address;
+    const escrow = registrar_mod.addressOf(.exchange) orelse ctx.wallet.address;
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"note\":\"Send OMNI to this address, then call exchange_depositReal with the txid\"}}}}",
         .{ id, escrow });
