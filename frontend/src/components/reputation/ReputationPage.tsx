@@ -228,7 +228,8 @@ export function ReputationPage() {
             No reputation data yet. Mine some blocks to populate FOOD cup.
           </div>
         ) : top && top.entries.length > 0 ? (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="border-b border-mempool-border bg-mempool-bg/50">
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-12">#</th>
@@ -291,6 +292,7 @@ export function ReputationPage() {
               })}
             </tbody>
           </table>
+          </div>
         ) : null}
       </div>
 

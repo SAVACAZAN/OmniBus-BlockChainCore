@@ -185,7 +185,8 @@ export function RichListPage() {
           </div>
         )}
         {list && list.entries.length > 0 && (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-mempool-border bg-mempool-bg/50">
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim w-12">#</th>
@@ -241,6 +242,7 @@ export function RichListPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

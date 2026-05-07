@@ -102,8 +102,8 @@ export function BlocksPage() {
         </div>
       </div>
 
-      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
-        <table className="w-full text-xs">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-x-auto">
+        <table className="w-full text-xs min-w-[480px]">
           <thead>
             <tr className="text-mempool-text-dim border-b border-mempool-border text-left">
               <th className="px-4 py-3 font-medium">Height</th>

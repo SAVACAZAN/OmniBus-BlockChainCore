@@ -39,8 +39,61 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "roadmap", label: "Roadmap" },
 ];
 
+// Bottom nav: 4 primary tabs + "More" drawer
+const BOTTOM_NAV_PRIMARY: { id: TabId; label: string; icon: React.ReactNode }[] = [
+  {
+    id: "dashboard",
+    label: "Home",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    id: "blocks",
+    label: "Blocks",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="2" y="7" width="20" height="14" rx="2" />
+        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+      </svg>
+    ),
+  },
+  {
+    id: "wallet",
+    label: "Wallet",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+        <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+        <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" />
+      </svg>
+    ),
+  },
+  {
+    id: "exchange",
+    label: "Exchange",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M7 16V4m0 0L3 8m4-4l4 4" />
+        <path d="M17 8v12m0 0l4-4m-4 4l-4-4" />
+      </svg>
+    ),
+  },
+];
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+
+  const handleTabSelect = (tab: TabId) => {
+    setActiveTab(tab);
+    setShowMoreDrawer(false);
+  };
 
   return (
     <WebSocketProvider><PlasmaSlotProvider>
@@ -48,14 +101,14 @@ export default function App() {
       <div className="min-h-screen flex flex-col bg-mempool-bg/40 relative" style={{ zIndex: 1 }}>
         <Header />
 
-        {/* Tab Bar */}
-        <nav className="border-b border-mempool-border bg-mempool-bg-elev backdrop-blur-sm sticky top-[60px] z-40">
-          <div className="max-w-7xl mx-auto px-4 flex gap-1">
+        {/* ── Desktop Tab Bar (sm+) ── */}
+        <nav className="hidden sm:block border-b border-mempool-border bg-mempool-bg-elev backdrop-blur-sm sticky top-[60px] z-40">
+          <div className="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto scrollbar-none">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+                className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex-shrink-0 ${
                   activeTab === tab.id
                     ? "text-mempool-blue"
                     : "text-mempool-text-dim hover:text-mempool-text"
@@ -70,7 +123,9 @@ export default function App() {
           </div>
         </nav>
 
-        <main className="flex-1">
+        {/* ── Main content ── */}
+        {/* pb-16 on mobile so content isn't hidden under bottom nav */}
+        <main className="flex-1 pb-16 sm:pb-0">
           {activeTab === "dashboard" && <Dashboard />}
           {activeTab === "blocks" && <BlocksPage />}
           {activeTab === "wallet" && <WalletPage />}
@@ -94,7 +149,88 @@ export default function App() {
             />
           )}
         </main>
+
         <Footer />
+
+        {/* ── Mobile Bottom Navigation (< sm) ── */}
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-mempool-bg-elev border-t border-mempool-border flex items-stretch">
+          {BOTTOM_NAV_PRIMARY.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleTabSelect(item.id)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 text-[10px] font-medium transition-colors ${
+                activeTab === item.id && !showMoreDrawer
+                  ? "text-mempool-blue"
+                  : "text-mempool-text-dim"
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
+
+          {/* "More" button */}
+          <button
+            onClick={() => setShowMoreDrawer((v) => !v)}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 text-[10px] font-medium transition-colors ${
+              showMoreDrawer ? "text-mempool-blue" : "text-mempool-text-dim"
+            }`}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="5" r="1" fill="currentColor" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" />
+              <circle cx="12" cy="19" r="1" fill="currentColor" />
+            </svg>
+            <span>More</span>
+          </button>
+        </nav>
+
+        {/* ── More Drawer (mobile) ── */}
+        {showMoreDrawer && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="sm:hidden fixed inset-0 z-40 bg-black/60"
+              onClick={() => setShowMoreDrawer(false)}
+            />
+            {/* Sheet */}
+            <div className="sm:hidden fixed bottom-16 left-0 right-0 z-50 bg-mempool-bg-elev border-t border-mempool-border rounded-t-2xl max-h-[60vh] overflow-y-auto">
+              <div className="p-1 pt-3">
+                <div className="w-10 h-1 bg-mempool-border rounded-full mx-auto mb-4" />
+                <div className="grid grid-cols-3 gap-0.5">
+                  {TABS.filter(
+                    (t) => !BOTTOM_NAV_PRIMARY.some((p) => p.id === t.id)
+                  ).map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabSelect(tab.id)}
+                      className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl text-xs font-medium transition-colors ${
+                        activeTab === tab.id
+                          ? "bg-mempool-blue/10 text-mempool-blue"
+                          : "text-mempool-text-dim hover:text-mempool-text hover:bg-mempool-bg-light"
+                      }`}
+                    >
+                      <span className="text-base">
+                        {tab.id === "richlist" ? "🏆" :
+                         tab.id === "reputation" ? "⭐" :
+                         tab.id === "names" ? "🔖" :
+                         tab.id === "bridge" ? "🌉" :
+                         tab.id === "swap" ? "🔄" :
+                         tab.id === "agents" ? "🤖" :
+                         tab.id === "network" ? "🌐" :
+                         tab.id === "faucet" ? "💧" :
+                         tab.id === "zeroday" ? "🛡️" :
+                         tab.id === "api" ? "📡" :
+                         tab.id === "roadmap" ? "🗺️" : "•"}
+                      </span>
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </PlasmaSlotProvider></WebSocketProvider>
   );

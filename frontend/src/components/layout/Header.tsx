@@ -48,7 +48,8 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 bg-mempool-bg-elev backdrop-blur-sm border-b border-mempool-border">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* ── Desktop layout (sm+) ── */}
+        <div className="hidden sm:flex max-w-7xl mx-auto px-4 py-3 items-center justify-between">
           {/* Logo — plasma orb (replaces static SVG) */}
           <div className="flex items-center gap-3">
             <PlasmaLogo size={120} className="drop-shadow -my-8" slotIndex={7} />
@@ -157,6 +158,88 @@ export function Header() {
                 Names / Faucet / Reputation / Exchange all see the same wallet
                 via the wallet-keystore singleton. */}
             <WalletConnectButton />
+          </div>
+        </div>
+
+        {/* ── Mobile layout (< sm) ── */}
+        <div className="flex sm:hidden flex-col">
+          {/* Row 1: logo + title + search + block height */}
+          <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2">
+              <PlasmaLogo size={44} className="drop-shadow -my-2 flex-shrink-0" slotIndex={7} />
+              <div>
+                <h1 className="text-base font-bold leading-tight tracking-tight bg-gradient-to-b from-amber-300 to-orange-500 bg-clip-text text-transparent">
+                  OmniBus
+                </h1>
+                <p className="text-[10px] text-mempool-text-dim leading-none">BlockChain</p>
+              </div>
+            </div>
+
+            {/* Center: block height */}
+            <div className="flex-1 text-center px-2">
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider leading-none">Height</p>
+              <p
+                className={`text-lg font-mono font-bold leading-tight transition-all duration-300 ${
+                  blockPulse
+                    ? "text-mempool-green scale-110 drop-shadow-[0_0_8px_rgba(94,234,212,0.8)]"
+                    : "text-mempool-text"
+                }`}
+              >
+                {state.blockCount.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Right: search + wallet */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setShowSearch(true)}
+                className="flex items-center justify-center bg-mempool-bg border border-mempool-border rounded-lg p-1.5 text-mempool-text-dim hover:text-mempool-text hover:border-mempool-blue transition-colors"
+                title="Search TX"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
+              <WalletConnectButton />
+            </div>
+          </div>
+
+          {/* Row 2: chain switcher + WS status + miners + peers + mining badge */}
+          <div className="flex items-center gap-2 px-3 pb-2 overflow-x-auto scrollbar-none">
+            <select
+              value={activeChain}
+              onChange={(e) => setActiveChain(e.target.value as ChainName)}
+              className="bg-mempool-bg border border-mempool-border rounded px-1.5 py-0.5 text-[10px] text-mempool-text hover:border-mempool-blue cursor-pointer flex-shrink-0"
+              title="Switch chain (reloads page)"
+            >
+              <option value="mainnet">Mainnet</option>
+              <option value="testnet">Testnet</option>
+              <option value="regtest">Regtest</option>
+            </select>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase flex-shrink-0 ${CHAIN_BADGE[activeChain].cls}`}>
+              {CHAIN_BADGE[activeChain].label}
+            </span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <div
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  state.wsConnected ? "bg-mempool-green animate-pulse" : "bg-mempool-red"
+                }`}
+              />
+              <span className="text-[10px] text-mempool-text-dim">{state.wsConnected ? "Live" : "Poll"}</span>
+            </div>
+            <span className="text-[10px] text-mempool-text-dim flex-shrink-0">
+              {state.miners.length}M/{state.peers.length}P
+            </span>
+            <div
+              className={`px-2 py-0.5 rounded-full text-[9px] font-medium flex-shrink-0 ${
+                state.isMining
+                  ? "bg-mempool-green/20 text-mempool-green"
+                  : "bg-mempool-orange/20 text-mempool-orange"
+              }`}
+            >
+              {state.isMining ? "Mining" : "Syncing"}
+            </div>
           </div>
         </div>
       </header>

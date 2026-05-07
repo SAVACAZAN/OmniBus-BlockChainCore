@@ -208,7 +208,8 @@ export function AgentsPage() {
           </div>
         )}
         {agents.length > 0 && (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="border-b border-mempool-border bg-mempool-bg/50">
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Name</th>
@@ -257,6 +258,7 @@ export function AgentsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -268,14 +270,14 @@ export function AgentsPage() {
             Decisions emitted by agents for external venues (LCX, Kraken, Coinbase, ...).
             Picked up by the Python agent client via <code>agent_pending_decisions</code> RPC.
           </p>
-          <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-x-auto">
             {pending.length === 0 ? (
               <div className="p-6 text-center text-mempool-text-dim text-sm">
                 No pending decisions. Either no agents have emitted non-native decisions yet,
                 or the Python client has already picked them all up.
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[600px]">
                 <thead>
                   <tr className="border-b border-mempool-border bg-mempool-bg/50">
                     <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">ID</th>
