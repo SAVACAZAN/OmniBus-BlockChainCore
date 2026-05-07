@@ -3500,6 +3500,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     // ── Governance ────────────────────────────────────────────────────────
     if (std.mem.eql(u8, method, "gov_propose"))      return handleGovPropose(body, ctx, id);
     if (std.mem.eql(u8, method, "gov_vote"))         return handleGovVote(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_execute"))      return handleGovExecute(body, ctx, id);
     if (std.mem.eql(u8, method, "getproposals"))     return handleGetProposals(body, ctx, id);
     if (std.mem.eql(u8, method, "getproposal"))      return handleGetProposal(body, ctx, id);
 
@@ -6260,7 +6261,21 @@ fn handleMinerSt(ctx: *ServerCtx, id: u64) ![]u8 {
     // Serializare JSON — buffer fix 32KB (zero alloc in loop)
     var buf: [32768]u8 = undefined;
     var pos: usize = 0;
-    const header = std.fmt.bufPrint(buf[0..], "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalMiners\":{d},\"chainHeight\":{d},\"miners\":[", .{ id, count, ctx.bc.getBlockCount() -| 1 }) catch return errorJson(-32000, "Buffer overflow", id, alloc);
+    // total_fees_collected is the cumulative network/exchange fees paid to
+    // miners since process start (see Blockchain.total_miner_exchange_fees).
+    // pending_miner_fees is the sat amount accumulated since the last block
+    // and earmarked for the next block's miner.
+    const header = std.fmt.bufPrint(
+        buf[0..],
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"totalMiners\":{d},\"chainHeight\":{d}," ++
+        "\"totalFeesCollected\":{d},\"pendingMinerFees\":{d}," ++
+        "\"miners\":[",
+        .{
+            id, count, ctx.bc.getBlockCount() -| 1,
+            ctx.bc.total_miner_exchange_fees, ctx.bc.pending_miner_fees,
+        },
+    ) catch return errorJson(-32000, "Buffer overflow", id, alloc);
     pos = header.len;
     for (list[0..count], 0..) |e, i| {
         const addr = e.addr[0..e.addr_len];
@@ -6282,7 +6297,18 @@ fn handleMinerInf(ctx: *ServerCtx, id: u64) ![]u8 {
     for (ctx.bc.chain.items) |blk| { if (std.mem.eql(u8, blk.miner_address, ma)) bm += 1; }
     const st: []const u8 = if (ctx.is_idle) "idle" else "active";
     const rs: []const u8 = if (ctx.is_idle) "duplicate_ip_detected" else "";
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"reason\":\"{s}\",\"miner\":\"{s}\",\"blocksMined\":{d},\"balance\":{d},\"height\":{d},\"difficulty\":{d}}}}}", .{ id, st, rs, ma, bm, bal, h, d });
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"status\":\"{s}\",\"reason\":\"{s}\",\"miner\":\"{s}\"," ++
+        "\"blocksMined\":{d},\"balance\":{d},\"height\":{d},\"difficulty\":{d}," ++
+        "\"totalFeesCollected\":{d},\"pendingMinerFees\":{d}," ++
+        "\"routeFeesToMiner\":{}}}}}",
+        .{
+            id, st, rs, ma, bm, bal, h, d,
+            ctx.bc.total_miner_exchange_fees,
+            ctx.bc.pending_miner_fees,
+            ctx.bc.consensus_params.route_fees_to_miner,
+        });
 }
 
 fn handleNodeList(ctx: *ServerCtx, id: u64) ![]u8 {
@@ -11466,8 +11492,10 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     // KYC tier cap: gate per-order notional. `none` blocked, `pro` unlimited.
-    // Skipped in paper mode and when no KYC store is wired (dev/local).
-    if (!is_paper) if (ctx.kyc_store) |ks| {
+    // Skipped in paper mode, when no KYC store is wired (dev/local), and on
+    // testnet/regtest (chain_id != 1) so testers can place orders freely.
+    const is_mainnet = (ctx.chain_id == 1);
+    if (!is_paper and is_mainnet) if (ctx.kyc_store) |ks| {
         const tier: kyc_mod.Level =
             if (ks.highest(trader, std.time.milliTimestamp())) |att| att.level else .none;
         const cap = kycMaxNotionalMicro(tier);
@@ -14433,10 +14461,56 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         "\"note\":\"{s}\",\"status\":\"{s}\"," ++
         "\"yes_weight\":{d},\"no_weight\":{d}," ++
         "\"quorum\":{d},\"voting_end_block\":{d}," ++
-        "\"create_block\":{d},\"vote_count\":{d}}}}}",
+        "\"create_block\":{d},\"vote_count\":{d}," ++
+        "\"executed\":{},\"executed_block\":{d}," ++
+        "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}}}}}",
         .{ id, p.id, p.getProposer(), p.getTitleHash(), p.getNote(),
            p.statusStr(), p.yes_weight, p.no_weight,
-           p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count });
+           p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count,
+           p.executed, p.executed_block,
+           @intFromEnum(p.action.kind), p.action.u64_value, p.action.bool_value });
+}
+
+// ── gov_execute ───────────────────────────────────────────────────────────────
+// Manually trigger execution of a passed-but-unexecuted proposal. Auto-exec
+// runs every block via applyBlock, so this RPC is a fallback for nodes that
+// have route_fees_to_miner=false governance scenarios where a stuck proposal
+// needs an explicit nudge.
+//
+// { "proposal_id": <u64> }
+// → result.success / result.applied / result.error
+fn handleGovExecute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc       = ctx.allocator;
+    const proposal_id = extractParamObjectU64(body, "proposal_id");
+    if (proposal_id == 0) return errorJson(-32602, "Missing or invalid proposal_id", id, alloc);
+
+    const current_block = ctx.bc.getBlockCount();
+    ctx.bc.executeProposal(proposal_id, @intCast(current_block)) catch |err| {
+        const msg = switch (err) {
+            error.ProposalNotFound  => "Proposal not found",
+            error.ProposalNotPassed => "Proposal status is not 'passed' (still voting, rejected, expired, or already executed)",
+            error.AlreadyExecuted   => "Proposal already executed",
+        };
+        return errorJson(-32001, msg, id, alloc);
+    };
+
+    const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
+        return errorJson(-32603, "Proposal vanished mid-execute", id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"proposal_id\":{d},\"executed_block\":{d}," ++
+        "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}," ++
+        "\"status\":\"{s}\"}}}}",
+        .{
+            id,
+            p.id,
+            p.executed_block,
+            @intFromEnum(p.action.kind),
+            p.action.u64_value,
+            p.action.bool_value,
+            p.statusStr(),
+        });
 }
 
 // ── getidentity — Identity Hub aggregator ────────────────────────────────────
