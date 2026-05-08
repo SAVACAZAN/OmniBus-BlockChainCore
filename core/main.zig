@@ -122,6 +122,7 @@ const agent_config_mod   = @import("agent_config.zig");
 const agent_executor_mod = @import("agent_executor.zig");
 const agent_manager_mod  = @import("agent_manager.zig");
 const bridge_mod         = @import("bridge_native.zig");
+const grid_mod           = @import("grid_engine.zig");
 
 // Single-source-of-time module — feeds slot/sub_block/stabilizer/ws
 // timers from one AtomicClock so cross-component latencies are real
@@ -476,6 +477,10 @@ const RPCThreadArgs = struct {
     kyc_issuer_address: ?[]const u8,
     /// Cross-chain bridge state. Allocated once, shared with RPC thread.
     bridge: ?*bridge_mod.BridgeState,
+    /// Grid trading registry. Allocated once at startup, shared with RPC thread.
+    grid_registry: ?*grid_mod.GridRegistry,
+    /// Path to grid_registry.bin for persistence. Null = in-memory only.
+    grid_path: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -501,6 +506,8 @@ fn rpcThread(args: RPCThreadArgs) void {
         .kyc_path = args.kyc_path,
         .kyc_issuer_address = args.kyc_issuer_address,
         .bridge = args.bridge,
+        .grid_registry = args.grid_registry,
+        .grid_path = args.grid_path,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -1789,6 +1796,20 @@ pub fn main() !void {
         std.debug.print("[BRIDGE] Native cross-chain bridge initialized\n", .{});
     }
 
+    // Grid trading registry — heap-allocated, persisted in data/<chain>/grid_registry.bin.
+    const chain_subdir_grid: []const u8 = if (config.testnet) "testnet"
+        else if (config.regtest) "regtest" else "mainnet";
+    const grid_registry_ptr = allocator.create(grid_mod.GridRegistry) catch null;
+    const grid_path_owned = std.fmt.allocPrint(allocator, "data/{s}/grid_registry.bin", .{chain_subdir_grid}) catch null;
+    if (grid_registry_ptr) |gr| {
+        gr.* = grid_mod.GridRegistry.init();
+        if (grid_path_owned) |p| {
+            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
+            gr.loadFromFile(p) catch {};
+            std.debug.print("[GRID] Grid engine ON — registry: {s} ({d} grids loaded)\n", .{ p, gr.count });
+        }
+    }
+
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
         .wallet   = &wallet,
@@ -1814,6 +1835,8 @@ pub fn main() !void {
         .kyc_path = kyc_path_owned,
         .kyc_issuer_address = kyc_issuer_owned,
         .bridge = bridge_state_ptr,
+        .grid_registry = grid_registry_ptr,
+        .grid_path = grid_path_owned,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

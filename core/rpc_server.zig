@@ -261,6 +261,9 @@ const ServerCtx = struct {
     /// Grid trading registry — heap-allocated, persisted in data/<chain>/grid_registry.bin.
     grid_registry: ?*grid_mod.GridRegistry = null,
     grid_mutex: std.Thread.Mutex = .{},
+    /// Path to grid_registry.bin — set from main.zig via HTTPConfig.
+    grid_path_buf: [256]u8 = undefined,
+    grid_path_len: usize = 0,
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -428,6 +431,11 @@ pub const HTTPConfig = struct {
     /// Cross-chain bridge state. When null, bridge RPC methods return
     /// "Bridge not initialized". Pass pointer to g_bridge_state from main.
     bridge: ?*bridge_mod.BridgeState = null,
+    /// Grid trading registry. When null, grid_* RPC methods return
+    /// "Grid engine not initialized". Heap-allocated by main, shared here.
+    grid_registry: ?*grid_mod.GridRegistry = null,
+    /// Path to persist grid_registry.bin. Null = in-memory only.
+    grid_path: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -463,6 +471,12 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.exchange = cfg.exchange;
     ctx.exchange_paper = cfg.exchange_paper;
     ctx.bridge = cfg.bridge;
+    ctx.grid_registry = cfg.grid_registry;
+    if (cfg.grid_path) |p| {
+        const n = @min(p.len, ctx.grid_path_buf.len);
+        @memcpy(ctx.grid_path_buf[0..n], p[0..n]);
+        ctx.grid_path_len = n;
+    }
     ctx.reg_mutex = .{};
     ctx.exchange_mutex = .{};
 
@@ -10666,6 +10680,11 @@ fn ordersPathSlice(ctx: *ServerCtx) ?[]const u8 {
     return ctx.orders_path_buf[0..ctx.orders_path_len];
 }
 
+fn gridPathSlice(ctx: *ServerCtx) ?[]const u8 {
+    if (ctx.grid_path_len == 0) return null;
+    return ctx.grid_path_buf[0..ctx.grid_path_len];
+}
+
 /// Scrie o intrare in jurnalul append-only orders.jsonl.
 /// `kind` = "place" sau "cancel". Ignoram erorile de I/O — jurnalul e
 /// best-effort; in-memory state e adevarul curent.
@@ -13090,17 +13109,15 @@ fn handleGridCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.grid_mutex.lock();
     defer ctx.grid_mutex.unlock();
 
-    var reg_storage = grid_mod.GridRegistry.init();
-    const reg = if (ctx.grid_registry) |r| r else blk: {
-        ctx.grid_registry = &reg_storage;
-        break :blk ctx.grid_registry.?;
-    };
+    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
 
     const current_block: u64 = ctx.bc.getBlockCount();
     const grid_id = reg.create(
         owner, @intCast(pair_id_u), price_low, price_high,
         @intCast(levels_u), total_base, total_quote, current_block,
     ) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
+
+    if (gridPathSlice(ctx)) |p| reg.saveToFile(p) catch {};
 
     const g = reg.find(grid_id).?;
     return std.fmt.allocPrint(alloc,
@@ -13194,6 +13211,8 @@ fn handleGridCancel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
     reg.cancel(grid_id, owner) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
+
+    if (gridPathSlice(ctx)) |p| reg.saveToFile(p) catch {};
 
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"grid_id\":{d},\"cancelled\":true}}}}",
