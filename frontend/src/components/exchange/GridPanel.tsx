@@ -1,0 +1,398 @@
+import { useEffect, useState } from "react";
+import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
+
+const rpc = new OmniBusRpcClient();
+
+const MICRO = 1_000_000;
+const SAT   = 1_000_000_000;
+
+type Pair = { id: number; base: string; quote: string; label: string };
+
+function fmtPrice(p: number, quote: string) {
+  const v = p / MICRO;
+  return quote === "USDC" ? `$${v.toFixed(4)}` : `${v.toFixed(6)} ${quote}`;
+}
+
+function fmtBase(a: number, base: string) {
+  return `${(a / SAT).toFixed(4)} ${base}`;
+}
+
+function CreateGridModal({
+  pairs,
+  owner,
+  onClose,
+  onCreated,
+}: {
+  pairs: Pair[];
+  owner: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [pairId, setPairId] = useState(0);
+  const [priceLow, setPriceLow] = useState("");
+  const [priceHigh, setPriceHigh] = useState("");
+  const [levels, setLevels] = useState("10");
+  const [totalBase, setTotalBase] = useState("");
+  const [totalQuote, setTotalQuote] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const pair = pairs.find((p) => p.id === pairId) ?? pairs[0];
+
+  async function submit() {
+    setError("");
+    const pl = parseFloat(priceLow);
+    const ph = parseFloat(priceHigh);
+    const lv = parseInt(levels);
+    const tb = parseFloat(totalBase);
+    const tq = parseFloat(totalQuote);
+    if (!pl || !ph || !lv || !tb || !tq) { setError("Fill all fields"); return; }
+    if (ph <= pl) { setError("price_high must be > price_low"); return; }
+    if (lv < 1 || lv > 100) { setError("Levels: 1–100"); return; }
+    setLoading(true);
+    try {
+      await rpc.gridCreate({
+        pair_id: pairId,
+        price_low: Math.round(pl * MICRO),
+        price_high: Math.round(ph * MICRO),
+        levels: lv,
+        total_base: Math.round(tb * SAT),
+        total_quote: Math.round(tq * MICRO),
+        owner,
+      });
+      onCreated();
+      onClose();
+    } catch (e: any) {
+      setError(e?.message ?? "Error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-mempool-text uppercase tracking-wider">Create Grid</h2>
+          <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-lg leading-none">×</button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Pair</label>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {pairs.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setPairId(p.id)}
+                  className={`px-2 py-1 text-xs rounded ${p.id === pairId ? "bg-mempool-blue text-white" : "bg-mempool-bg text-mempool-text-dim hover:text-mempool-text"}`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                Price Low ({pair?.quote ?? "USDC"})
+              </label>
+              <input
+                value={priceLow}
+                onChange={(e) => setPriceLow(e.target.value)}
+                placeholder="0.10"
+                className="w-full mt-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                Price High ({pair?.quote ?? "USDC"})
+              </label>
+              <input
+                value={priceHigh}
+                onChange={(e) => setPriceHigh(e.target.value)}
+                placeholder="0.20"
+                className="w-full mt-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Levels per side (1–100)</label>
+            <input
+              value={levels}
+              onChange={(e) => setLevels(e.target.value)}
+              placeholder="10"
+              className="w-full mt-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                Total {pair?.base ?? "OMNI"}
+              </label>
+              <input
+                value={totalBase}
+                onChange={(e) => setTotalBase(e.target.value)}
+                placeholder="500"
+                className="w-full mt-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                Total {pair?.quote ?? "USDC"}
+              </label>
+              <input
+                value={totalQuote}
+                onChange={(e) => setTotalQuote(e.target.value)}
+                placeholder="500"
+                className="w-full mt-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              />
+            </div>
+          </div>
+
+          <p className="text-[10px] text-mempool-text-dim bg-mempool-bg rounded p-2">
+            Grid generates {levels || "N"} buy + {levels || "N"} sell orders automatically.
+            HTLC is created only at fill time — funds stay in your wallet until then.
+          </p>
+
+          {error && <p className="text-orange-400 text-xs">{error}</p>}
+        </div>
+
+        <button
+          onClick={submit}
+          disabled={loading || !owner}
+          className="w-full py-2 bg-mempool-blue hover:bg-blue-600 text-white text-xs font-semibold rounded transition-colors disabled:opacity-50"
+        >
+          {loading ? "Creating…" : owner ? "Create Grid" : "Connect wallet first"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: Pair[]; onClose: () => void }) {
+  const [status, setStatus] = useState<GridStatus | null>(null);
+
+  useEffect(() => {
+    rpc.gridStatus(grid_id).then(setStatus);
+  }, [grid_id]);
+
+  const pair = pairs.find((p) => status && p.id === status.pair_id);
+  const quote = pair?.quote ?? "USDC";
+  const base = pair?.base ?? "OMNI";
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-mempool-text uppercase tracking-wider">Grid #{grid_id} Levels</h2>
+          <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-lg">×</button>
+        </div>
+        {!status ? (
+          <p className="text-mempool-text-dim text-sm text-center py-8">Loading…</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 text-[10px] text-mempool-text-dim">
+              <span>Range: {fmtPrice(status.price_low, quote)} – {fmtPrice(status.price_high, quote)}</span>
+              <span className="text-center">Fills: {status.filled_count}</span>
+              <span className="text-right">Profit: {(status.profit_quote / MICRO).toFixed(4)} {quote}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-green-400 mb-1">Buy ({status.buy_levels.length})</p>
+                {status.buy_levels.map((l) => (
+                  <div key={l.level} className="flex justify-between text-xs font-mono py-0.5">
+                    <span className="text-green-400">{fmtPrice(l.price, quote)}</span>
+                    <span className="text-mempool-text-dim">{fmtBase(l.amount, base)}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-orange-400 mb-1">Sell ({status.sell_levels.length})</p>
+                {status.sell_levels.map((l) => (
+                  <div key={l.level} className="flex justify-between text-xs font-mono py-0.5">
+                    <span className="text-orange-400">{fmtPrice(l.price, quote)}</span>
+                    <span className="text-mempool-text-dim">{fmtBase(l.amount, base)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddress: string }) {
+  const [grids, setGrids] = useState<GridConfig[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [detailGridId, setDetailGridId] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState<number | null>(null);
+  const [filterOwn, setFilterOwn] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    const list = await rpc.gridList();
+    setGrids(list);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function cancel(g: GridConfig) {
+    if (!walletAddress) return;
+    setCancelling(g.grid_id);
+    try {
+      await rpc.gridCancel(g.grid_id, walletAddress);
+      await load();
+    } catch (e: any) {
+      alert(e?.message ?? "Cancel failed");
+    } finally {
+      setCancelling(null);
+    }
+  }
+
+  const displayed = filterOwn && walletAddress
+    ? grids.filter((g) => g.owner === walletAddress)
+    : grids;
+
+  const activeCount = grids.filter((g) => g.active).length;
+
+  return (
+    <div className="space-y-4">
+      {showCreate && (
+        <CreateGridModal
+          pairs={pairs}
+          owner={walletAddress}
+          onClose={() => setShowCreate(false)}
+          onCreated={load}
+        />
+      )}
+      {detailGridId !== null && (
+        <GridLevelsModal
+          grid_id={detailGridId}
+          pairs={pairs}
+          onClose={() => setDetailGridId(null)}
+        />
+      )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+            Grid Trading
+          </h2>
+          <span className="text-[10px] text-mempool-text-dim">
+            {activeCount} active / {grids.length} total
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {walletAddress && (
+            <label className="flex items-center gap-1 text-[11px] text-mempool-text-dim cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filterOwn}
+                onChange={(e) => setFilterOwn(e.target.checked)}
+                className="accent-mempool-blue"
+              />
+              My grids
+            </label>
+          )}
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-3 py-1.5 bg-mempool-blue hover:bg-blue-600 text-white text-xs rounded transition-colors"
+          >
+            + New Grid
+          </button>
+        </div>
+      </div>
+
+      <div className="text-[10px] text-mempool-text-dim bg-mempool-bg-elev rounded-lg p-3 border border-mempool-border">
+        Grid = automated market making. Set price range + levels once — chain trades automatically using oracle prices.
+        Funds stay in your wallet. <strong className="text-mempool-text">1 HTLC per fill</strong>, not per order.
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-mempool-text-dim text-sm">Loading grids…</div>
+      ) : displayed.length === 0 ? (
+        <div className="text-center py-12 text-mempool-text-dim text-sm">
+          {filterOwn ? "You have no grids." : "No grids yet."}{" "}
+          <button onClick={() => setShowCreate(true)} className="text-mempool-blue hover:underline">Create one</button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-mempool-border text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                <th className="text-left pb-2 pr-3">ID</th>
+                <th className="text-left pb-2 pr-3">Pair</th>
+                <th className="text-left pb-2 pr-3">Range</th>
+                <th className="text-right pb-2 pr-3">Levels</th>
+                <th className="text-right pb-2 pr-3">Fills</th>
+                <th className="text-right pb-2 pr-3">Profit</th>
+                <th className="text-center pb-2 pr-3">Status</th>
+                <th className="text-right pb-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayed.map((g) => {
+                const pair = pairs.find((p) => p.id === g.pair_id);
+                const quote = pair?.quote ?? "USDC";
+                const isOwner = walletAddress && g.owner === walletAddress;
+                return (
+                  <tr key={g.grid_id} className="border-b border-mempool-border/40 hover:bg-mempool-bg/30">
+                    <td className="py-2 pr-3 font-mono text-mempool-text-dim">#{g.grid_id}</td>
+                    <td className="py-2 pr-3 font-semibold text-mempool-text">{pair?.label ?? `pair_${g.pair_id}`}</td>
+                    <td className="py-2 pr-3 font-mono text-mempool-text-dim">
+                      {fmtPrice(g.price_low, quote)} – {fmtPrice(g.price_high, quote)}
+                    </td>
+                    <td className="py-2 pr-3 text-right text-mempool-text">{g.levels}×2</td>
+                    <td className="py-2 pr-3 text-right text-mempool-text">{g.filled_count}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-green-400">
+                      {g.profit_quote >= 0 ? "+" : ""}{(g.profit_quote / MICRO).toFixed(4)} {quote}
+                    </td>
+                    <td className="py-2 pr-3 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${g.active ? "bg-green-500/20 text-green-400" : "bg-mempool-bg text-mempool-text-dim"}`}>
+                        {g.active ? "active" : "stopped"}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => setDetailGridId(g.grid_id)}
+                          className="px-2 py-1 text-[10px] rounded bg-mempool-bg hover:bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text transition-colors"
+                        >
+                          Levels
+                        </button>
+                        {isOwner && g.active && (
+                          <button
+                            onClick={() => cancel(g)}
+                            disabled={cancelling === g.grid_id}
+                            className="px-2 py-1 text-[10px] rounded bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 transition-colors disabled:opacity-50"
+                          >
+                            {cancelling === g.grid_id ? "…" : "Cancel"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {displayed.length > 0 && (
+        <p className="text-[10px] text-mempool-text-dim">
+          Grid fills use oracle price from price_oracle.zig · 1 HTLC per fill · funds move directly wallet→wallet via atomic swap
+        </p>
+      )}
+    </div>
+  );
+}

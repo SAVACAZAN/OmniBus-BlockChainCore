@@ -705,6 +705,82 @@ export class OmniBusRpcClient {
   }): Promise<{ address: string; level: number; label: string; issuer: string; issued: number; expires: number }> {
     return this.request("kyc_attest", [payload]);
   }
+
+  // ── Grid trading engine ────────────────────────────────────────────
+  async gridCreate(params: {
+    pair_id: number;
+    price_low: number;
+    price_high: number;
+    levels: number;
+    total_base: number;
+    total_quote: number;
+    owner: string;
+  }): Promise<{ grid_id: number; levels_generated: number; buy_orders: number; sell_orders: number; price_step: number }> {
+    return this.request("grid_create", [params]);
+  }
+
+  async gridList(owner?: string): Promise<GridConfig[]> {
+    try {
+      return (await this.request("grid_list", [owner ? { owner } : {}])) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async gridStatus(grid_id: number): Promise<GridStatus | null> {
+    try {
+      return await this.request("grid_status", [{ grid_id }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async gridCancel(grid_id: number, owner: string): Promise<{ grid_id: number; cancelled: boolean }> {
+    return this.request("grid_cancel", [{ grid_id, owner }]);
+  }
+
+  async exchangePairInfo(pair_id: number): Promise<PairInfo | null> {
+    try {
+      return await this.request("exchange_pairInfo", [{ pair_id }]);
+    } catch {
+      return null;
+    }
+  }
+}
+
+export interface GridConfig {
+  grid_id: number;
+  pair_id: number;
+  owner: string;
+  price_low: number;
+  price_high: number;
+  levels: number;
+  total_base: number;
+  total_quote: number;
+  filled_count: number;
+  profit_quote: number;
+  active: boolean;
+  created_block: number;
+}
+
+export interface GridStatus extends GridConfig {
+  buy_levels: Array<{ level: number; price: number; amount: number }>;
+  sell_levels: Array<{ level: number; price: number; amount: number }>;
+}
+
+export interface PairChain {
+  chain: string;
+  chain_id: number;
+  contract: string;
+}
+
+export interface PairInfo {
+  pair_id: number;
+  base: string;
+  quote: string;
+  label: string;
+  maker_chains: PairChain[];
+  taker_chains: PairChain[];
 }
 
 export interface ApiKeyInfo {

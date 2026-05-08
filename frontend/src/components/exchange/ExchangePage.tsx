@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import OmniBusRpcClient, {
   OrderbookLevel,
+  PairInfo,
   TradeFill,
 } from "../../api/rpc-client";
 import { PlaceOrderForm } from "./PlaceOrderForm";
@@ -10,6 +11,7 @@ import { BalancesPanel } from "./BalancesPanel";
 import { IdentityPanel } from "./IdentityPanel";
 import { KycPanel } from "./KycPanel";
 import { TraderModeToggle, useTraderMode } from "./TraderModeToggle";
+import { GridPanel } from "./GridPanel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -19,13 +21,14 @@ const MICRO_PER_USD = 1_000_000;
 type Pair = { id: number; base: string; quote: string; label: string };
 
 const FALLBACK_PAIRS: Pair[] = [
-  { id: 0, base: "OMNI", quote: "USD", label: "OMNI/USD" },
-  { id: 1, base: "BTC", quote: "USD", label: "BTC/USD" },
-  { id: 2, base: "LCX", quote: "USD", label: "LCX/USD" },
-  { id: 3, base: "ETH", quote: "USD", label: "ETH/USD" },
+  { id: 0, base: "OMNI", quote: "USDC", label: "OMNI/USDC" },
+  { id: 2, base: "LCX",  quote: "USDC", label: "LCX/USDC" },
+  { id: 3, base: "ETH",  quote: "USDC", label: "ETH/USDC" },
+  { id: 5, base: "OMNI", quote: "LCX",  label: "OMNI/LCX" },
+  { id: 6, base: "OMNI", quote: "ETH",  label: "OMNI/ETH" },
 ];
 
-type Tab = "trade" | "account";
+type Tab = "trade" | "grid" | "account";
 type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
 
 export function ExchangePage() {
@@ -42,15 +45,30 @@ export function ExchangePage() {
   const [loading, setLoading] = useState(true);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [methodMissing, setMethodMissing] = useState(false);
+  const [pairInfo, setPairInfo] = useState<PairInfo | null>(null);
+  const walletAddress: string = (typeof localStorage !== "undefined" && localStorage.getItem("omnibus.wallet_address")) ?? "";
 
   // Pull pair list once. Falls back to a hardcoded list if the node is too old.
   useEffect(() => {
     let cancelled = false;
     rpc.exchangeListPairs().then((list) => {
-      if (!cancelled && list.length > 0) setPairs(list);
+      if (!cancelled && list.length > 0) {
+        // Filter out BTC pairs (reserved, no liquidity yet)
+        setPairs(list.filter((p) => p.id !== 1 && p.id !== 4));
+      }
     });
     return () => { cancelled = true; };
   }, []);
+
+  // Fetch pair chain info (maker/taker chains) on pair change
+  useEffect(() => {
+    let cancelled = false;
+    setPairInfo(null);
+    rpc.exchangePairInfo(pairId).then((info) => {
+      if (!cancelled) setPairInfo(info);
+    });
+    return () => { cancelled = true; };
+  }, [pairId]);
 
   // Poll orderbook + trades. Mode-aware — switches engine on toggle.
   useEffect(() => {
@@ -127,17 +145,21 @@ export function ExchangePage() {
 
       {/* Top-level tabs */}
       <div className="flex gap-1 border-b border-mempool-border">
-        {(["trade", "account"] as Tab[]).map((t) => (
+        {([
+          { id: "trade", label: "Trade" },
+          { id: "grid",  label: "Grid" },
+          { id: "account", label: "Account" },
+        ] as { id: Tab; label: string }[]).map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
-              tab === t
+              tab === t.id
                 ? "border-b-2 border-mempool-blue text-mempool-text font-semibold"
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "trade" ? "Trade" : "Account"}
+            {t.label}
           </button>
         ))}
       </div>
@@ -175,6 +197,10 @@ export function ExchangePage() {
         </div>
       )}
 
+      {tab === "grid" && (
+        <GridPanel pairs={pairs} walletAddress={walletAddress} />
+      )}
+
       {tab === "trade" && (
       <>
       {/* Real/Paper trader mode toggle — top of Trade so users always see */}
@@ -203,7 +229,7 @@ export function ExchangePage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Orderbook */}
         <div className="lg:col-span-6 rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
               Order book — {pairLabel}
             </h2>
@@ -211,6 +237,22 @@ export function ExchangePage() {
               {bids.length}b / {asks.length}a
             </span>
           </div>
+          {pairInfo && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Maker:</span>
+                {pairInfo.maker_chains.map((c) => (
+                  <span key={c.chain} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-mono">{c.chain}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Taker:</span>
+                {pairInfo.taker_chains.map((c) => (
+                  <span key={c.chain} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded text-[9px] font-mono">{c.chain}</span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {loading && bids.length === 0 && asks.length === 0 ? (
             <div className="p-8 text-center text-mempool-text-dim text-sm">Loading…</div>
@@ -314,7 +356,7 @@ export function ExchangePage() {
       <UserOrdersPanel pairId={pairId} refreshKey={refreshNonce} />
 
       <div className="text-[11px] text-mempool-text-dim">
-        Poll: 3s · Prices in USD (oracle medianed) · Amounts in OMNI (1 OMNI = 10⁹ SAT)
+        Poll: 3s · Prices in {activePair?.quote ?? "USDC"} (oracle) · Amounts in {activePair?.base ?? "base"} (1 unit = 10⁹ SAT) · Matching on-chain in Zig
       </div>
       </>
       )}
