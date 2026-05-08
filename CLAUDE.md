@@ -108,6 +108,98 @@ Co-Authored-By: Perplexity AI <support@perplexity.ai>
 Co-Authored-By: Ollama <hello@ollama.com>
 ```
 
+## DEX Grid Trading — Reguli fixe (nu se rediscută)
+
+### Arhitectura DEX
+
+OmniBus chain = matching engine + notary. NU stochează fondurile userilor.
+Fondurile stau mereu pe chain-ul lor (OMNI pe OmniBus, USDC pe Base/Sepolia, LCX pe Liberty).
+
+**Diferența față de Hyperliquid/Binance:**
+- Nu există deposit/withdraw — fondurile merg direct din wallet în HTLC la fill
+- Matching on-chain în Zig (nu server centralizat)
+- Settlement atomic cross-chain via HTLC
+- Grid rulează autonom pe chain — persistă chiar dacă frontentul e offline
+
+### Perechi active (pair_id fix — nu se reordonează niciodată)
+
+| pair_id | Pereche | Maker chain | Taker chains |
+|---------|---------|-------------|--------------|
+| 0 | OMNI/USDC | OmniBus (htlc_init RPC) | Base Sepolia + Sepolia |
+| 2 | LCX/USDC | LCX Liberty | Base Sepolia + Sepolia |
+| 3 | ETH/USDC | Sepolia + Base Sepolia | Base Sepolia + Sepolia |
+| 5 | OMNI/LCX | OmniBus (htlc_init RPC) | LCX Liberty |
+| 6 | OMNI/ETH | OmniBus (htlc_init RPC) | Sepolia + Base Sepolia |
+
+Pair_id 1 (BTC/USDC) și 4 (OMNI/BTC) rezervate pentru viitor.
+
+### HTLC — reguli fixe
+
+- **preimage generat în Zig backend** (nu în frontend/browser)
+- preimage stocat în `swap_registry` (memorie + `swap_bindings.bin`)
+- preimage NU se trimite niciodată la user — user primește doar `hash_lock`
+- HTLC se creează DOAR la momentul fill-ului (nu la plasarea order-ului)
+- Order în orderbook = "rezervat" intern, fără fonduri locked încă
+- La fill → HTLC automat → preimage revelat automat → settlement atomic
+
+### Grid Trading — reguli fixe
+
+Grid = mecanism automat de market making. Un user setează o dată, chain-ul tranzacționează automat.
+
+**Surse de preț (în ordine de prioritate):**
+1. Trade intern — doi useri se întâlnesc în orderbook → preț rezultat
+2. Oracle extern — `price_oracle.zig` fetches preț real (Chainlink/Pyth/CoinGecko)
+
+**Flow grid:**
+```
+grid_create { pair_id, price_low, price_high, levels, total_base, total_quote }
+  → Zig generează N buy orders + N sell orders virtuale în range
+  → orders vizibile în orderbook ca "open"
+  → fondurile NU sunt locked încă
+
+Oracle/trade atinge nivelul unui order
+  → fill automat
+  → HTLC generat pentru acel fill specific
+  → settlement atomic
+  → automat plasează order opus (sell filled → plasează buy cu un nivel mai jos)
+  → gridul se menține mereu plin
+
+grid_cancel
+  → oprește grid
+  → fonduri rămân în walletul userului (nu au fost locked niciodată dacă nu e fill)
+```
+
+**Capital efficiency:**
+- Un singur HTLC activ per fill (nu N HTLC-uri pentru N orders)
+- Userul nu plătește fee la plasarea fiecărui order — doar la fill
+- Cu 2 useri care pun câte un grid pe același pair → lichiditate imediată
+
+**Fișiere relevante:**
+- `core/grid_engine.zig` — engine grid (de implementat)
+- `core/matching_engine.zig` — matching existent, grid e wrapper
+- `core/price_oracle.zig` — oracle preț existent
+- `core/order_swap_link.zig` — HTLC routing + ASSET_CHAINS
+- `core/rpc_server.zig` — RPC: `grid_create`, `grid_list`, `grid_cancel`, `grid_status`
+
+**RPC-uri grid:**
+```
+grid_create  { pair_id, price_low, price_high, levels, total_base, total_quote, owner }
+grid_list    { owner? }   → array grid-uri active cu status
+grid_cancel  { grid_id }  → oprește grid
+grid_status  { grid_id }  → fills făcute, profit, orders active
+```
+
+### Comparație DEX-uri
+
+| | Hyperliquid | Uniswap | OmniBus DEX |
+|--|--|--|--|
+| Custody | Smart contract | Smart contract | User wallet mereu |
+| Deposit | DA | DA | NU |
+| Matching | L1 propriu off-chain | AMM (x*y=k) | OmniBus chain Zig |
+| Grid | Off-chain, dispare la crash | NU există | On-chain, persistent |
+| Cross-chain | NU (bridge separat) | NU | DA nativ (HTLC) |
+| Preț | Order book | Curve matematică | Order book + Oracle |
+
 ## Ecosystem Context
 
 This repo is one of 8+ repos in `C:\Kits work\limaje de programare\` — the OmniBus financial platform ecosystem. See the parent `CLAUDE.md` for cross-repo architecture. Key siblings: OmniBus (bare-metal OS), Zig-toolz-Assembly (HFT), TorNetworkExchange (DEX), OmnibusSidebar (desktop wallet).
