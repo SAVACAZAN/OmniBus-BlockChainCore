@@ -58,6 +58,7 @@ const spv_btc_mod     = @import("spv_btc.zig");
 const spv_eth_mod     = @import("spv_eth.zig");
 const cross_chain_oracle_mod = @import("cross_chain_oracle.zig");
 const swap_link_mod   = @import("order_swap_link.zig");
+const grid_mod        = @import("grid_engine.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -257,6 +258,9 @@ const ServerCtx = struct {
     /// When null, bridge RPC methods return a "bridge not initialized" error.
     bridge: ?*bridge_mod.BridgeState = null,
     bridge_mutex: std.Thread.Mutex = .{},
+    /// Grid trading registry — heap-allocated, persisted in data/<chain>/grid_registry.bin.
+    grid_registry: ?*grid_mod.GridRegistry = null,
+    grid_mutex: std.Thread.Mutex = .{},
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -3443,6 +3447,12 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+
+    // ── Grid trading engine ────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "grid_create"))  return handleGridCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_list"))    return handleGridList(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_status"))  return handleGridStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_cancel"))  return handleGridCancel(body, ctx, id);
 
     // ── HTLC atomic swaps (Phase 2F.2 — TX 0x30/0x31/0x32) ───────────────
     if (std.mem.eql(u8, method, "htlc_init"))           return handleHtlcInit(body, ctx, id);
@@ -13060,6 +13070,135 @@ fn handleExchangeGetEscrowAddress(ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, escrow });
 }
 
+
+// ── Grid trading RPC handlers ─────────────────────────────────────────────
+
+/// grid_create — pornește un grid nou pentru un owner pe o pereche.
+/// Params: { pair_id, price_low, price_high, levels, total_base, total_quote, owner }
+fn handleGridCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const pair_id_u   = extractU64Param(body, "\"pair_id\"")    orelse return errorJson(-32602, "Missing pair_id", id, alloc);
+    const price_low   = extractU64Param(body, "\"price_low\"")  orelse return errorJson(-32602, "Missing price_low", id, alloc);
+    const price_high  = extractU64Param(body, "\"price_high\"") orelse return errorJson(-32602, "Missing price_high", id, alloc);
+    const levels_u    = extractU64Param(body, "\"levels\"")     orelse return errorJson(-32602, "Missing levels", id, alloc);
+    const total_base  = extractU64Param(body, "\"total_base\"") orelse return errorJson(-32602, "Missing total_base", id, alloc);
+    const total_quote = extractU64Param(body, "\"total_quote\"") orelse return errorJson(-32602, "Missing total_quote", id, alloc);
+    const owner      = extractStr(body, "owner") orelse return errorJson(-32602, "Missing owner", id, alloc);
+
+    if (levels_u > grid_mod.MAX_LEVELS) return errorJson(-32602, "levels too large (max 100)", id, alloc);
+
+    ctx.grid_mutex.lock();
+    defer ctx.grid_mutex.unlock();
+
+    var reg_storage = grid_mod.GridRegistry.init();
+    const reg = if (ctx.grid_registry) |r| r else blk: {
+        ctx.grid_registry = &reg_storage;
+        break :blk ctx.grid_registry.?;
+    };
+
+    const current_block: u64 = ctx.bc.getBlockCount();
+    const grid_id = reg.create(
+        owner, @intCast(pair_id_u), price_low, price_high,
+        @intCast(levels_u), total_base, total_quote, current_block,
+    ) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
+
+    const g = reg.find(grid_id).?;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"grid_id\":{d},\"pair_id\":{d},\"levels_generated\":{d}," ++
+        "\"buy_orders\":{d},\"sell_orders\":{d},\"price_step\":{d}}}}}",
+        .{ id, grid_id, pair_id_u, @as(u32, g.levels) * 2,
+           g.levels, g.levels, g.priceStep() });
+}
+
+/// grid_list — listează grid-urile active (opțional filtrate după owner).
+/// Params: { owner? }
+fn handleGridList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const filter_owner = extractStr(body, "owner");
+
+    ctx.grid_mutex.lock();
+    defer ctx.grid_mutex.unlock();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try std.fmt.format(out.writer(alloc), "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id});
+
+    var first = true;
+    if (ctx.grid_registry) |reg| {
+        var i: u32 = 0;
+        while (i < reg.count) : (i += 1) {
+            const g = &reg.grids[i];
+            if (filter_owner) |fo| {
+                if (!std.mem.eql(u8, g.owner[0..g.owner_len], fo)) continue;
+            }
+            if (!first) try out.appendSlice(alloc, ",");
+            first = false;
+            try grid_mod.writeGridJson(g, &out, alloc);
+        }
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// grid_status — detalii complete pentru un grid (inclusiv levels calculate).
+/// Params: { grid_id }
+fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const grid_id = extractU64Param(body, "\"grid_id\"") orelse
+        return errorJson(-32602, "Missing grid_id", id, alloc);
+
+    ctx.grid_mutex.lock();
+    defer ctx.grid_mutex.unlock();
+
+    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
+    const g = reg.find(grid_id) orelse return errorJson(-32602, "Grid not found", id, alloc);
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try std.fmt.format(out.writer(alloc), "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":", .{id});
+    try grid_mod.writeGridJson(g, &out, alloc);
+
+    // Adaugă levels calculate
+    try out.appendSlice(alloc, ",\"buy_levels\":[");
+    var lvl: u16 = 0;
+    while (lvl < g.levels) : (lvl += 1) {
+        if (lvl > 0) try out.appendSlice(alloc, ",");
+        try std.fmt.format(out.writer(alloc),
+            "{{\"level\":{d},\"price\":{d},\"amount\":{d}}}",
+            .{ lvl, g.buyPrice(lvl), g.basePerLevel() });
+    }
+    try out.appendSlice(alloc, "],\"sell_levels\":[");
+    lvl = 0;
+    while (lvl < g.levels) : (lvl += 1) {
+        if (lvl > 0) try out.appendSlice(alloc, ",");
+        try std.fmt.format(out.writer(alloc),
+            "{{\"level\":{d},\"price\":{d},\"amount\":{d}}}",
+            .{ lvl, g.sellPrice(lvl), g.basePerLevel() });
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// grid_cancel — oprește un grid activ.
+/// Params: { grid_id, owner }
+fn handleGridCancel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const grid_id = extractU64Param(body, "\"grid_id\"") orelse
+        return errorJson(-32602, "Missing grid_id", id, alloc);
+    const owner = extractStr(body, "owner") orelse
+        return errorJson(-32602, "Missing owner", id, alloc);
+
+    ctx.grid_mutex.lock();
+    defer ctx.grid_mutex.unlock();
+
+    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
+    reg.cancel(grid_id, owner) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"grid_id\":{d},\"cancelled\":true}}}}",
+        .{ id, grid_id });
+}
 
 fn demoQuotaLookup(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
     var i: u16 = 0;
