@@ -71,9 +71,12 @@ fn addEvm(step: *std.Build.Step.Compile, enable: bool) void {
     }
 }
 
-/// Adauga un test fara dependinte externe (fara liboqs)
+/// Adauga un test fara dependinte externe (fara liboqs).
+/// Injecteaza build_options (oqs_enabled/evm_enabled) in toate modulele de test
+/// ca sa nu apara erori "module not found" in fisiere precum pq_crypto.zig.
 fn addTest(b: *std.Build, name: []const u8, path: []const u8,
-           target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Run {
+           target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode,
+           opts: *std.Build.Step.Options) *std.Build.Step.Run {
     const t = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path(path),
@@ -82,6 +85,7 @@ fn addTest(b: *std.Build, name: []const u8, path: []const u8,
         }),
     });
     _ = name;
+    t.root_module.addOptions("build_options", opts);
     return b.addRunArtifact(t);
 }
 
@@ -91,13 +95,13 @@ pub fn build(b: *std.Build) void {
     const use_oqs  = b.option(bool, "oqs", "Link liboqs for PQ crypto (default: auto-detect)") orelse true;
     const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse true;
 
-    // build_options module — exposes the use_evm flag to Zig code so we can
-    // compile-out the EVM FFI declarations and stub the eth_* RPC handlers
-    // when EVM is disabled. Without this, evm_ffi.zig still declares
-    // `extern "c" fn omnibus_evm_*` and the linker complains about undefined
-    // symbols even with -Devm=false.
+    // build_options module — exposes feature flags to Zig code so we can
+    // compile-out FFI declarations and stub handlers when a dependency is
+    // disabled. Without this, ffi files still declare `extern "c" fn ...`
+    // and the linker complains about undefined symbols even with -Dfoo=false.
     const build_options = b.addOptions();
     build_options.addOption(bool, "evm_enabled", use_evm);
+    build_options.addOption(bool, "oqs_enabled", use_oqs);
 
     // ── Executabile ───────────────────────────────────────────────────────────
 
@@ -147,6 +151,22 @@ pub fn build(b: *std.Build) void {
     });
     oracle_exe.root_module.link_libc = true;
     b.installArtifact(oracle_exe);
+
+    // ── omnibus-cli ───────────────────────────────────────────────────────────
+    // Standalone audit tool. Connects to a running node via JSON-RPC and prints
+    // balance / stake / reputation / daily-breakdown / verify reports — same
+    // data the React DailyAuditPage shows, but no browser required.
+    // Pure stdlib + libc (no liboqs, no EVM). Build: `zig build install`.
+    const cli_exe = b.addExecutable(.{
+        .name = "omnibus-cli",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/cli_audit.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    cli_exe.linkLibC();
+    b.installArtifact(cli_exe);
 
     // ── omnibus-agents ───────────────────────────────────────────────────────
     // Stub binary — same multi-process pattern as omnibus-oracle. The chain
@@ -222,134 +242,144 @@ pub fn build(b: *std.Build) void {
 
     // ── Tests: crypto (fara PQ, fara liboqs) ─────────────────────────────────
     const test_crypto_step = b.step("test-crypto", "Test secp256k1 + BIP32 + crypto");
-    test_crypto_step.dependOn(&addTest(b, "secp256k1",  "core/secp256k1.zig",  target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "bip32",      "core/bip32_wallet.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "crypto",     "core/crypto.zig",     target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "ripemd160",  "core/ripemd160.zig",  target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "schnorr",    "core/schnorr.zig",    target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "multisig",   "core/multisig.zig",   target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "peer-score", "core/peer_scoring.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "chain-cfg",  "core/chain_config.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "bls",        "core/bls_signatures.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "staking",    "core/staking.zig",      target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "tx-receipt", "core/tx_receipt.zig",   target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "dns",        "core/dns_registry.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "guardian",   "core/guardian.zig",     target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "compact-blk","core/compact_blocks.zig", target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "kademlia",   "core/kademlia_dht.zig", target, optimize).step);
+    test_crypto_step.dependOn(&addTest(b, "secp256k1",  "core/secp256k1.zig",  target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "bip32",      "core/bip32_wallet.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "crypto",     "core/crypto.zig",     target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "ripemd160",  "core/ripemd160.zig",  target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "schnorr",    "core/schnorr.zig",    target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "multisig",   "core/multisig.zig",   target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "peer-score", "core/peer_scoring.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "chain-cfg",  "core/chain_config.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "bls",        "core/bls_signatures.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "staking",    "core/staking.zig",      target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "tx-receipt", "core/tx_receipt.zig",   target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "dns",        "core/dns_registry.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "guardian",   "core/guardian.zig",     target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "compact-blk","core/compact_blocks.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "kademlia",   "core/kademlia_dht.zig", target, optimize, build_options).step);
 
     // New v0.2.0 modules
-    test_crypto_step.dependOn(&addTest(b, "bech32",       "core/bech32.zig",       target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "encrypted-p2p","core/encrypted_p2p.zig",target, optimize).step);
-    test_crypto_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize).step);
+    test_crypto_step.dependOn(&addTest(b, "bech32",       "core/bech32.zig",       target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "encrypted-p2p","core/encrypted_p2p.zig",target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize, build_options).step);
 
     // ── Tests: blockchain core ────────────────────────────────────────────────
     const test_chain_step = b.step("test-chain", "Test blockchain + genesis + consensus");
-    test_chain_step.dependOn(&addTest(b, "block",       "core/block.zig",       target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "finality",    "core/finality.zig",    target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "governance",  "core/governance.zig",  target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "transaction", "core/transaction.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "blockchain",  "core/blockchain.zig",  target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "genesis",     "core/genesis.zig",     target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "mempool",     "core/mempool.zig",     target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "consensus",   "core/consensus.zig",   target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "database",    "core/database.zig",    target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "miner-genesis", "core/miner_genesis.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "script",       "core/script.zig",       target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "miner-wallet", "core/miner_wallet.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "payment-ch",  "core/payment_channel.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "metachain",   "core/metachain.zig",      target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "shard-coord", "core/shard_coordinator.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "oracle",      "core/oracle.zig",         target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "spark-inv",   "core/spark_invariants.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "utxo",        "core/utxo.zig",           target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "psbt",        "core/psbt.zig",           target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "htlc",        "core/htlc.zig",           target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "htlc-btc",    "core/htlc_btc.zig",       target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "lightning",   "core/lightning.zig",       target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "block-filter","core/block_filter.zig",    target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "matching",   "core/matching_engine.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "price-oracle","core/price_oracle.zig",   target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "pouw",       "core/consensus_pouw.zig",  target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "oracle-fetcher", "core/oracle_fetcher.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "agent-tier",     "core/agent_tier.zig",     target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "agent-config",   "core/agent_config.zig",   target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "agent-executor", "core/agent_executor.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "agent-manager",  "core/agent_manager.zig",  target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "agent-wallet",   "core/agent_wallet.zig",   target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "pair-registry",  "core/pair_registry.zig",  target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize).step);
-    test_chain_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",     target, optimize).step);
+    test_chain_step.dependOn(&addTest(b, "block",       "core/block.zig",       target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "finality",    "core/finality.zig",    target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "governance",  "core/governance.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "transaction", "core/transaction.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "blockchain",  "core/blockchain.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "genesis",     "core/genesis.zig",     target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "mempool",     "core/mempool.zig",     target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "consensus",   "core/consensus.zig",   target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "database",    "core/database.zig",    target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "miner-genesis", "core/miner_genesis.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "script",       "core/script.zig",       target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "miner-wallet", "core/miner_wallet.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "payment-ch",  "core/payment_channel.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "metachain",   "core/metachain.zig",      target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "shard-coord", "core/shard_coordinator.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "oracle",      "core/oracle.zig",         target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "spark-inv",   "core/spark_invariants.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "utxo",        "core/utxo.zig",           target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "psbt",        "core/psbt.zig",           target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "htlc",        "core/htlc.zig",           target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "htlc-btc",    "core/htlc_btc.zig",       target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "lightning",   "core/lightning.zig",       target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "block-filter","core/block_filter.zig",    target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "matching",   "core/matching_engine.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "price-oracle","core/price_oracle.zig",   target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "pouw",       "core/consensus_pouw.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "oracle-fetcher", "core/oracle_fetcher.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "agent-tier",     "core/agent_tier.zig",     target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "agent-config",   "core/agent_config.zig",   target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "agent-executor", "core/agent_executor.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "agent-manager",  "core/agent_manager.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "agent-wallet",   "core/agent_wallet.zig",   target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "pair-registry",  "core/pair_registry.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",     target, optimize, build_options).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
-    test_net_step.dependOn(&addTest(b, "rpc",     "core/rpc_server.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "p2p",     "core/p2p.zig",     target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "sync",    "core/sync.zig",    target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "network", "core/network.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "node-launcher", "core/node_launcher.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "bootstrap", "core/bootstrap.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "ws-server",    "core/ws_server.zig",    target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "tor-proxy",    "core/tor_proxy.zig",    target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "ob-sync",     "core/orderbook_sync.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "br-listener", "core/bridge_listener.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "settlement",  "core/settlement_submitter.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "peer-persist","core/peer_persist.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "spv-btc",    "core/spv_btc.zig",       target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "spv-eth",    "core/spv_eth.zig",       target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "spv-eth-tv", "core/spv_eth_test_vectors.zig", target, optimize).step);
-    test_net_step.dependOn(&addTest(b, "xchain-oracle","core/cross_chain_oracle.zig", target, optimize).step);
+    test_net_step.dependOn(&addTest(b, "rpc",     "core/rpc_server.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "p2p",     "core/p2p.zig",     target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "sync",    "core/sync.zig",    target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "network", "core/network.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "node-launcher", "core/node_launcher.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "bootstrap", "core/bootstrap.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "ws-server",    "core/ws_server.zig",    target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "tor-proxy",    "core/tor_proxy.zig",    target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "ob-sync",     "core/orderbook_sync.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "br-listener", "core/bridge_listener.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "settlement",  "core/settlement_submitter.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "peer-persist","core/peer_persist.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "spv-btc",    "core/spv_btc.zig",       target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "spv-eth",    "core/spv_eth.zig",       target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "spv-eth-tv", "core/spv_eth_test_vectors.zig", target, optimize, build_options).step);
+    test_net_step.dependOn(&addTest(b, "xchain-oracle","core/cross_chain_oracle.zig", target, optimize, build_options).step);
 
     // ── Tests: sub-blocks + sharding ─────────────────────────────────────────
     const test_shard_step = b.step("test-shard", "Test sub-blocks + sharding");
-    test_shard_step.dependOn(&addTest(b, "sub-block",   "core/sub_block.zig",   target, optimize).step);
-    test_shard_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize).step);
-    test_shard_step.dependOn(&addTest(b, "blockchain-v2", "core/blockchain_v2.zig", target, optimize).step);
+    test_shard_step.dependOn(&addTest(b, "sub-block",   "core/sub_block.zig",   target, optimize, build_options).step);
+    test_shard_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize, build_options).step);
+    test_shard_step.dependOn(&addTest(b, "blockchain-v2", "core/blockchain_v2.zig", target, optimize, build_options).step);
 
     // ── Tests: storage + binary + archive ────────────────────────────────────
     const test_storage_step = b.step("test-storage", "Test storage + binary codec");
-    test_storage_step.dependOn(&addTest(b, "storage",        "core/storage.zig",          target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "binary-codec",   "core/binary_codec.zig",     target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "archive",        "core/archive_manager.zig",  target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "prune-config",   "core/prune_config.zig",     target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "state-trie",     "core/state_trie.zig",       target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "compact-tx",     "core/compact_transaction.zig", target, optimize).step);
-    test_storage_step.dependOn(&addTest(b, "witness",        "core/witness_data.zig",     target, optimize).step);
+    test_storage_step.dependOn(&addTest(b, "storage",        "core/storage.zig",          target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "binary-codec",   "core/binary_codec.zig",     target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "archive",        "core/archive_manager.zig",  target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "prune-config",   "core/prune_config.zig",     target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "state-trie",     "core/state_trie.zig",       target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "compact-tx",     "core/compact_transaction.zig", target, optimize, build_options).step);
+    test_storage_step.dependOn(&addTest(b, "witness",        "core/witness_data.zig",     target, optimize, build_options).step);
 
     // ── Tests: light client + miner ───────────────────────────────────────────
     const test_light_step = b.step("test-light", "Test light client + light miner");
-    test_light_step.dependOn(&addTest(b, "light-client", "core/light_client.zig", target, optimize).step);
-    test_light_step.dependOn(&addTest(b, "light-miner",  "core/light_miner.zig",  target, optimize).step);
-    test_light_step.dependOn(&addTest(b, "mining-pool",  "core/mining_pool.zig",  target, optimize).step);
-    test_light_step.dependOn(&addTest(b, "key-encryption", "core/key_encryption.zig", target, optimize).step);
+    test_light_step.dependOn(&addTest(b, "light-client", "core/light_client.zig", target, optimize, build_options).step);
+    test_light_step.dependOn(&addTest(b, "light-miner",  "core/light_miner.zig",  target, optimize, build_options).step);
+    test_light_step.dependOn(&addTest(b, "mining-pool",  "core/mining_pool.zig",  target, optimize, build_options).step);
+    test_light_step.dependOn(&addTest(b, "key-encryption", "core/key_encryption.zig", target, optimize, build_options).step);
 
     // ── Tests: economic + ecosystem ──────────────────────────────────────────
     const test_econ_step = b.step("test-econ", "Test economic modules (UBI, bread, bridge, vault, domain, brain)");
-    test_econ_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize).step);
-    test_econ_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize).step);
+    test_econ_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize, build_options).step);
+    test_econ_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize, build_options).step);
 
     // ── Tests: benchmark + metrics ──────────────────────────────────────────
     const test_bench_step = b.step("test-bench", "Test benchmark + metrics");
-    test_bench_step.dependOn(&addTest(b, "benchmark", "core/benchmark.zig", target, optimize).step);
+    test_bench_step.dependOn(&addTest(b, "benchmark", "core/benchmark.zig", target, optimize, build_options).step);
+
+    // ── Tests: OmniBus ID (identity layer) ──────────────────────────────────
+    // The test runner lives at core/ (NOT inside core/identity/) because Zig
+    // 0.15.2 forbids `@import("../...")` from a test root file. No liboqs
+    // required — all crypto goes through std.crypto.sha2.
+    const test_id_step = b.step("test-id", "Test OmniBus ID layer (DID, manifest, OBM, disclosure)");
+    test_id_step.dependOn(&addTest(b, "identity",
+        "core/identity_test_runner.zig", target, optimize, build_options).step);
 
     // ── Tests: PQ crypto cu liboqs ───────────────────────────────────────────
-    // pq_crypto.zig cheama liboqs C bindings via @cImport — necesita link
+    // pq_crypto.zig cheama liboqs C bindings via @cImport — necesita link.
+    // build_options (oqs_enabled) injected ca sa poate gate-ui @cImport comptime.
     const test_pq_crypto = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("core/pq_crypto.zig"),
             .target = target, .optimize = optimize,
         }),
     });
+    test_pq_crypto.root_module.addOptions("build_options", build_options);
     addOqs(test_pq_crypto, use_oqs);
     test_pq_crypto.root_module.link_libc = true;
     const test_pq_step = b.step("test-pq", "Test PQ crypto cu liboqs (real FIPS 203/204/205/206)");
@@ -362,90 +392,91 @@ pub fn build(b: *std.Build) void {
             .target = target, .optimize = optimize,
         }),
     });
+    test_pq_wallet.root_module.addOptions("build_options", build_options);
     addOqs(test_pq_wallet, use_oqs);
     const test_wallet_step = b.step("test-wallet", "Test wallet (necesita liboqs)");
     test_wallet_step.dependOn(&b.addRunArtifact(test_pq_wallet).step);
 
     // ── test (toate fara PQ) ──────────────────────────────────────────────────
     const test_all_step = b.step("test", "Run all tests (fara liboqs)");
-    test_all_step.dependOn(&addTest(b, "secp256k1",    "core/secp256k1.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "bip32",        "core/bip32_wallet.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "crypto",       "core/crypto.zig",       target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "ripemd160",    "core/ripemd160.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "block",        "core/block.zig",        target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "blockchain",   "core/blockchain.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "transaction",  "core/transaction.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "genesis",      "core/genesis.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "mempool",      "core/mempool.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "consensus",    "core/consensus.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "database",     "core/database.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "miner-genesis","core/miner_genesis.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "rpc",          "core/rpc_server.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "p2p",          "core/p2p.zig",          target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "sync",         "core/sync.zig",         target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "network",      "core/network.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "node-launcher","core/node_launcher.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "bootstrap",    "core/bootstrap.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "sub-block",    "core/sub_block.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "blockchain-v2","core/blockchain_v2.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "storage",      "core/storage.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "binary-codec", "core/binary_codec.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "archive",      "core/archive_manager.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "prune-config", "core/prune_config.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "state-trie",   "core/state_trie.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "compact-tx",   "core/compact_transaction.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "witness",      "core/witness_data.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "light-client", "core/light_client.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "light-miner",  "core/light_miner.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "mining-pool",  "core/mining_pool.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "key-encryption","core/key_encryption.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "pq-crypto",    "core/pq_crypto.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "schnorr",      "core/schnorr.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "multisig",     "core/multisig.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "finality",     "core/finality.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "governance",   "core/governance.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "peer-score",   "core/peer_scoring.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "peer-persist", "core/peer_persist.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "chain-cfg",    "core/chain_config.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "bls",          "core/bls_signatures.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "staking",      "core/staking.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "tx-receipt",   "core/tx_receipt.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "dns",          "core/dns_registry.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "guardian",     "core/guardian.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "compact-blk", "core/compact_blocks.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "kademlia",    "core/kademlia_dht.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "hex-utils",   "core/hex_utils.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "script",      "core/script.zig",       target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "miner-wallet","core/miner_wallet.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "payment-ch", "core/payment_channel.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "benchmark",  "core/benchmark.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "metachain",     "core/metachain.zig",        target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "oracle",        "core/oracle.zig",           target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "shard-coord",   "core/shard_coordinator.zig",target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "spark-inv",     "core/spark_invariants.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "matching",      "core/matching_engine.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",      target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "price-oracle",  "core/price_oracle.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "pouw",          "core/consensus_pouw.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "ob-sync",       "core/orderbook_sync.zig",   target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "br-listener",   "core/bridge_listener.zig",  target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "settlement",    "core/settlement_submitter.zig", target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "integration",   "core/integration_test.zig",     target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "oracle-fetcher","core/oracle_fetcher.zig",       target, optimize).step);
-    test_all_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize).step);
+    test_all_step.dependOn(&addTest(b, "secp256k1",    "core/secp256k1.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "bip32",        "core/bip32_wallet.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "crypto",       "core/crypto.zig",       target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "ripemd160",    "core/ripemd160.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "block",        "core/block.zig",        target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "blockchain",   "core/blockchain.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "transaction",  "core/transaction.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "genesis",      "core/genesis.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "mempool",      "core/mempool.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "consensus",    "core/consensus.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "database",     "core/database.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "miner-genesis","core/miner_genesis.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "rpc",          "core/rpc_server.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "p2p",          "core/p2p.zig",          target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "sync",         "core/sync.zig",         target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "network",      "core/network.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "node-launcher","core/node_launcher.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "bootstrap",    "core/bootstrap.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "cli",          "core/cli.zig",          target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "vault-reader", "core/vault_reader.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "sub-block",    "core/sub_block.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "blockchain-v2","core/blockchain_v2.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "storage",      "core/storage.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "binary-codec", "core/binary_codec.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "archive",      "core/archive_manager.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "prune-config", "core/prune_config.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "state-trie",   "core/state_trie.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "compact-tx",   "core/compact_transaction.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "witness",      "core/witness_data.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "light-client", "core/light_client.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "light-miner",  "core/light_miner.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "mining-pool",  "core/mining_pool.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "key-encryption","core/key_encryption.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "pq-crypto",    "core/pq_crypto.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "schnorr",      "core/schnorr.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "multisig",     "core/multisig.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "finality",     "core/finality.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "governance",   "core/governance.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "peer-score",   "core/peer_scoring.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "peer-persist", "core/peer_persist.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "chain-cfg",    "core/chain_config.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "bls",          "core/bls_signatures.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "staking",      "core/staking.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "tx-receipt",   "core/tx_receipt.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "dns",          "core/dns_registry.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "guardian",     "core/guardian.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "compact-blk", "core/compact_blocks.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "kademlia",    "core/kademlia_dht.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "hex-utils",   "core/hex_utils.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "script",      "core/script.zig",       target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "miner-wallet","core/miner_wallet.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "payment-ch", "core/payment_channel.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "benchmark",  "core/benchmark.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "bread-ledger",  "core/bread_ledger.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "bridge-relay",  "core/bridge_relay.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "domain-minter", "core/domain_minter.zig",    target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "metachain",     "core/metachain.zig",        target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "omni-brain",    "core/omni_brain.zig",       target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "oracle",        "core/oracle.zig",           target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "os-mode",       "core/os_mode.zig",          target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "shard-coord",   "core/shard_coordinator.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "spark-inv",     "core/spark_invariants.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "synapse-prio",  "core/synapse_priority.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "ubi-dist",      "core/ubi_distributor.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "matching",      "core/matching_engine.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "price-oracle",  "core/price_oracle.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "pouw",          "core/consensus_pouw.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "ob-sync",       "core/orderbook_sync.zig",   target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "br-listener",   "core/bridge_listener.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "settlement",    "core/settlement_submitter.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "integration",   "core/integration_test.zig",     target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "oracle-fetcher","core/oracle_fetcher.zig",       target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize, build_options).step);
 }
