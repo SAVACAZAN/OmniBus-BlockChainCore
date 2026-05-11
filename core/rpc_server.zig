@@ -268,6 +268,11 @@ const ServerCtx = struct {
     /// Path to grid_registry.bin — set from main.zig via HTTPConfig.
     grid_path_buf: [256]u8 = undefined,
     grid_path_len: usize = 0,
+    /// Path to `data/<chain>/profiles.jsonl`. Append-only log of profile_init /
+    /// profile_update events. Replayed at startup so identity profiles survive
+    /// node restarts. Empty = in-memory only.
+    profiles_path_buf: [256]u8 = undefined,
+    profiles_path_len: usize = 0,
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -440,6 +445,10 @@ pub const HTTPConfig = struct {
     grid_registry: ?*grid_mod.GridRegistry = null,
     /// Path to persist grid_registry.bin. Null = in-memory only.
     grid_path: ?[]const u8 = null,
+    /// Path to `data/<chain>/profiles.jsonl`. Append-only journal of
+    /// profile_init / profile_update events. Replayed at startup so
+    /// identity profiles survive node restarts. Null = in-memory only.
+    profiles_path: ?[]const u8 = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -480,6 +489,16 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
         const n = @min(p.len, ctx.grid_path_buf.len);
         @memcpy(ctx.grid_path_buf[0..n], p[0..n]);
         ctx.grid_path_len = n;
+    }
+    if (cfg.profiles_path) |p| {
+        const n = @min(p.len, ctx.profiles_path_buf.len);
+        @memcpy(ctx.profiles_path_buf[0..n], p[0..n]);
+        ctx.profiles_path_len = n;
+        std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
+        replayProfilesJournal(ctx) catch |err| {
+            std.debug.print("[PROFILE] profiles.jsonl replay failed: {s}\n", .{@errorName(err)});
+        };
+        std.debug.print("[PROFILE] journal: {s}\n", .{p});
     }
     ctx.reg_mutex = .{};
     ctx.exchange_mutex = .{};
@@ -14116,10 +14135,28 @@ fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     var out = std.ArrayList(u8){};
     defer out.deinit(alloc);
-    try std.fmt.format(out.writer(alloc), "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":", .{id});
-    try grid_mod.writeGridJson(g, &out, alloc);
+    // Open the JSON-RPC envelope and result object inline so we can append
+    // buy_levels/sell_levels INSIDE the same result object.
+    // We do NOT call writeGridJson here because that emits a complete {...} object
+    // and appending after its closing brace produces invalid JSON.
+    try std.fmt.format(out.writer(alloc),
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+        "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"{s}\"," ++
+        "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
+        "\"total_base\":{d},\"total_quote\":{d}," ++
+        "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
+        "\"created_block\":{d}",
+        .{
+            id,
+            g.id, g.pair_id, g.owner[0..g.owner_len],
+            g.price_low, g.price_high, g.levels,
+            g.total_base, g.total_quote,
+            g.filled_count, g.profit_quote,
+            if (g.active) "true" else "false",
+            g.created_block,
+        });
 
-    // Adaugă levels calculate
+    // Adaugă levels calculate (still inside the result object)
     try out.appendSlice(alloc, ",\"buy_levels\":[");
     var lvl: u16 = 0;
     while (lvl < g.levels) : (lvl += 1) {
@@ -14136,7 +14173,8 @@ fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"level\":{d},\"price\":{d},\"amount\":{d}}}",
             .{ lvl, g.sellPrice(lvl), g.basePerLevel() });
     }
-    try out.appendSlice(alloc, "]}");
+    // Close: sell_levels array "]", result object "}", envelope "}"
+    try out.appendSlice(alloc, "]}}");
     return alloc.dupe(u8, out.items);
 }
 
@@ -16688,11 +16726,120 @@ fn computeFacetRoot(facet: *const FacetStore, alloc: std.mem.Allocator) ![32]u8 
     return out;
 }
 
-/// Append one event to profiles.jsonl. Best-effort (ignore I/O errors —
-/// in-memory state is the source of truth for now).
-fn appendProfileLog(alloc: std.mem.Allocator, line: []const u8) void {
-    _ = alloc;
-    const file = std.fs.cwd().createFile("profiles.jsonl", .{ .truncate = false }) catch return;
+/// Replay `data/<chain>/profiles.jsonl` into the in-memory ProfileStore.
+/// Called once at startup from startHTTPEx before the RPC listener opens.
+/// A missing file is silently ignored (first-run).
+fn replayProfilesJournal(ctx: *ServerCtx) !void {
+    if (ctx.profiles_path_len == 0) return;
+    const path = ctx.profiles_path_buf[0..ctx.profiles_path_len];
+    const alloc = ctx.allocator;
+
+    const file = std.fs.cwd().openFile(path, .{}) catch |err| {
+        if (err == error.FileNotFound) return;
+        return err;
+    };
+    defer file.close();
+
+    const store = getProfileStore(alloc);
+
+    var read_buf: [4096]u8 = undefined;
+    var line_buf = std.array_list.Managed(u8).init(alloc);
+    defer line_buf.deinit();
+
+    var total: usize = 0;
+    var replayed: usize = 0;
+
+    outer: while (true) {
+        const n = file.read(&read_buf) catch break;
+        if (n == 0) break;
+        for (read_buf[0..n]) |ch| {
+            if (ch == '\n') {
+                const trimmed = std.mem.trim(u8, line_buf.items, " \r\t");
+                if (trimmed.len > 0) {
+                    total += 1;
+                    replayProfileLine(store, alloc, trimmed) catch {};
+                    replayed += 1;
+                }
+                line_buf.clearRetainingCapacity();
+            } else {
+                line_buf.append(ch) catch break :outer;
+            }
+        }
+    }
+    // flush any trailing line without a final newline
+    {
+        const trimmed = std.mem.trim(u8, line_buf.items, " \r\t");
+        if (trimmed.len > 0) {
+            total += 1;
+            replayProfileLine(store, alloc, trimmed) catch {};
+            replayed += 1;
+        }
+    }
+    std.debug.print("[PROFILE] replayed {d}/{d} events from {s}\n", .{ replayed, total, path });
+}
+
+/// Apply one JSONL line to the in-memory ProfileStore.
+fn replayProfileLine(store: *ProfileStore, alloc: std.mem.Allocator, line: []const u8) !void {
+    const op = extractJsonStrInline(line, "op") orelse return;
+
+    if (std.mem.eql(u8, op, "init")) {
+        const addr = extractJsonStrInline(line, "addr") orelse return;
+        const h160 = addrToH160(addr, alloc) catch return;
+        store.mutex.lock();
+        defer store.mutex.unlock();
+        _ = try store.getOrCreate(h160);
+
+    } else if (std.mem.eql(u8, op, "update")) {
+        const addr        = extractJsonStrInline(line, "addr")      orelse return;
+        const facet_name  = extractJsonStrInline(line, "facet")     orelse return;
+        const field_name  = extractJsonStrInline(line, "field")     orelse return;
+        const value       = extractJsonStrInline(line, "value")     orelse return;
+        const is_pub_str  = extractJsonStrInline(line, "is_public") orelse "false";
+        const is_public   = std.mem.eql(u8, is_pub_str, "true");
+
+        const fidx = facetIndex(facet_name) orelse return;
+        const h160 = addrToH160(addr, alloc) catch return;
+
+        store.mutex.lock();
+        defer store.mutex.unlock();
+        const entry = try store.getOrCreate(h160);
+        var facet = &entry.facets[fidx];
+
+        if (facet.fields.fetchRemove(field_name)) |old| {
+            store.allocator.free(old.key);
+            store.allocator.free(old.value.value);
+        }
+        const key_dup = try store.allocator.dupe(u8, field_name);
+        const val_dup = try store.allocator.dupe(u8, value);
+        try facet.fields.put(key_dup, .{ .value = val_dup, .is_public = is_public });
+    }
+    // unknown op → skip (forward-compat)
+}
+
+/// Extract the string value of `key` from a flat JSON object.
+/// Returns a slice into the original `json` — no allocation.
+fn extractJsonStrInline(json: []const u8, key: []const u8) ?[]const u8 {
+    var needle_buf: [128]u8 = undefined;
+    if (key.len + 5 > needle_buf.len) return null;
+    const needle = std.fmt.bufPrint(&needle_buf, "\"{s}\":\"", .{key}) catch return null;
+    const start_idx = std.mem.indexOf(u8, json, needle) orelse return null;
+    const val_start = start_idx + needle.len;
+    if (val_start >= json.len) return null;
+    var i: usize = val_start;
+    while (i < json.len) : (i += 1) {
+        if (json[i] == '\\') { i += 1; continue; }
+        if (json[i] == '"') break;
+    }
+    if (i >= json.len) return null;
+    return json[val_start..i];
+}
+
+/// Append one event to `data/<chain>/profiles.jsonl`. Best-effort —
+/// I/O errors are silently dropped so callers never fail on disk issues.
+fn appendProfileLog(ctx: *ServerCtx, line: []const u8) void {
+    if (ctx.profiles_path_len == 0) return;
+    const path = ctx.profiles_path_buf[0..ctx.profiles_path_len];
+    const file = std.fs.cwd().createFile(path, .{ .truncate = false }) catch return;
     defer file.close();
     file.seekFromEnd(0) catch return;
     _ = file.writeAll(line) catch return;
@@ -16701,7 +16848,7 @@ fn appendProfileLog(alloc: std.mem.Allocator, line: []const u8) void {
 
 /// RPC `profile_init <addr>` — idempotent. Generates the DID, returns an
 /// empty Manifest skeleton (all 10 leaves zero) and a fresh salt (returned
-/// only this once — no on-disk persistence yet).
+/// only this once). Appends an `op=init` line to profiles.jsonl.
 fn handleProfileInit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
@@ -16717,6 +16864,18 @@ fn handleProfileInit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     store.mutex.lock();
     defer store.mutex.unlock();
     _ = try store.getOrCreate(h160);
+
+    // Best-effort JSONL append — init event so replay can recreate the entry.
+    {
+        const ts = std.time.timestamp();
+        const init_line = std.fmt.allocPrint(alloc,
+            "{{\"op\":\"init\",\"addr\":\"{s}\",\"did\":\"{s}\",\"ts\":{d}}}",
+            .{ addr, did, ts }) catch null;
+        if (init_line) |l| {
+            defer alloc.free(l);
+            appendProfileLog(ctx, l);
+        }
+    }
 
     // Empty manifest skeleton — all leaves zero. Use the same Manifest type
     // so the root we report matches what an off-chain anchor would produce
@@ -16790,12 +16949,13 @@ fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const root_hex = try hexEncode(alloc, &new_root);
     defer alloc.free(root_hex);
 
-    // Best-effort JSONL append (durability without consensus).
+    // Best-effort JSONL append — update event with all fields needed for replay.
+    const ts = std.time.timestamp();
     const log_line = try std.fmt.allocPrint(alloc,
-        "{{\"addr\":\"{s}\",\"facet\":\"{s}\",\"field\":\"{s}\",\"is_public\":{},\"root\":\"{s}\"}}",
-        .{ addr, facet_name, field_name, is_public, root_hex });
+        "{{\"op\":\"update\",\"addr\":\"{s}\",\"facet\":\"{s}\",\"field\":\"{s}\",\"value\":\"{s}\",\"is_public\":\"{}\",\"ts\":{d}}}",
+        .{ addr, facet_name, field_name, value, is_public, ts });
     defer alloc.free(log_line);
-    appendProfileLog(alloc, log_line);
+    appendProfileLog(ctx, log_line);
 
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"facet\":\"{s}\",\"new_facet_root\":\"{s}\"}}}}",

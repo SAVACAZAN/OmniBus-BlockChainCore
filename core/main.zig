@@ -406,6 +406,29 @@ pub var g_slot_calendar: orchestrator_mod.SlotCalendar =
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
 
+// ── Global StakingEngine pointer — set in main() after init ────────────────
+// Allows rpc_server handlers (handleStake / handleGetStakers / handleGetValidatorsV2)
+// and the per-block reputation reward loop to read validator state without
+// passing the engine through every call site.
+pub var g_staking_engine: ?*staking_mod.StakingEngine = null;
+
+// ── Oracle Bridge — pulls prices from standalone omnibus-oracle on :28100 ──
+// When OMNIBUS_EXTERNAL_ORACLE=1, the chain process does NOT run the 3 WS
+// workers (Coinbase/Kraken/LCX). Instead this bridge thread polls the
+// standalone oracle every 10s via JSON-RPC and feeds g_ws_feed using
+// upsertPriceExternal(). Downstream RPCs (omnibus_getallprices etc.) and
+// ArbitrageEngine read g_ws_feed identically — they don't know the source.
+pub var g_oracle_bridge_run: std.atomic.Value(bool) = std.atomic.Value(bool).init(false);
+pub var g_oracle_bridge_thread: ?std.Thread = null;
+
+// ── Process-wide context for hooks that fire from background threads ──────
+// Set once in main() after wallet derivation; read by oracle bridge tick
+// for FOOD reputation credit. Null on RPC-only / non-mining nodes.
+pub var g_local_miner_address: ?[]const u8 = null;
+// Atomic block height for thread-safe reads from oracle bridge / agents.
+// Updated each iteration of the mining loop.
+pub var g_current_block_height: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+
 // ── Global WS Server pointer — set after WsServer.start() in main() ──────────
 // Used by chain hot paths (blockchain.addTransaction, dns_registry handlers,
 // p2p connect/disconnect) to push real-time events to frontend without needing
@@ -481,6 +504,10 @@ const RPCThreadArgs = struct {
     grid_registry: ?*grid_mod.GridRegistry,
     /// Path to grid_registry.bin for persistence. Null = in-memory only.
     grid_path: ?[]const u8,
+    /// Path to `data/<chain>/profiles.jsonl`. Append-only journal of
+    /// profile_init / profile_update events. Replayed at startup so
+    /// identity profiles survive node restarts. Null = in-memory only.
+    profiles_path: ?[]const u8,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -508,6 +535,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .bridge = args.bridge,
         .grid_registry = args.grid_registry,
         .grid_path = args.grid_path,
+        .profiles_path = args.profiles_path,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -834,9 +862,24 @@ fn agentTickAll(bc: *Blockchain, block_height: u64) void {
                 },
             );
             // Submit TX automat dacă agentul are wallet propriu și kind-ul cere TX.
-            submitNativeTx(bc, slot, decision) catch |err| {
-                std.debug.print("[AGENT-NATIVE] {s} TX skip: {s}\n", .{ slot.config.getName(), @errorName(err) });
+            const tx_ok = blk: {
+                submitNativeTx(bc, slot, decision) catch |err| {
+                    std.debug.print("[AGENT-NATIVE] {s} TX skip: {s}\n", .{ slot.config.getName(), @errorName(err) });
+                    break :blk false;
+                };
+                break :blk true;
             };
+            // FOOD reputation credit la fiecare decizie reusita (creditAgentDecision).
+            if (tx_ok) {
+                if (g_reputation) |*rep_mgr| {
+                    if (slot.canSign()) {
+                        rep_mgr.creditAgentDecision(
+                            slot.wallet.?.getAddress(),
+                            block_height,
+                        );
+                    }
+                }
+            }
         } else {
             const decision_id = g_agent_manager.queueDecision(slot.config.wallet_index, block_height, decision);
             std.debug.print(
@@ -968,6 +1011,168 @@ fn loadOracleQuorumPubkeys(path: []const u8) usize {
         return 0;
     };
     return count;
+}
+
+// ─── Oracle Bridge implementation ───────────────────────────────────────────
+//
+// Pulls oracle_getAllPairs from omnibus-oracle (127.0.0.1:28100) on a 10 s
+// cadence and replays each entry into g_ws_feed via upsertPriceExternal.
+// The standalone oracle is the only network endpoint that touches Coinbase
+// REST + WS, Kraken WS v2, LCX WS — chain process stays clean.
+//
+// Errors are swallowed (oracle may be restarting); next tick retries.
+fn startOracleBridge(allocator: std.mem.Allocator) !void {
+    if (g_oracle_bridge_run.load(.acquire)) return;
+    g_oracle_bridge_run.store(true, .release);
+    g_oracle_bridge_thread = try std.Thread.spawn(.{}, oracleBridgeLoop, .{allocator});
+}
+
+fn stopOracleBridge() void {
+    g_oracle_bridge_run.store(false, .release);
+    if (g_oracle_bridge_thread) |t| {
+        t.join();
+        g_oracle_bridge_thread = null;
+    }
+}
+
+fn oracleBridgeLoop(allocator: std.mem.Allocator) void {
+    const POLL_INTERVAL_MS: i64 = 10_000;
+    const SLEEP_CHUNK_NS: u64 = 250 * std.time.ns_per_ms;
+
+    // First fetch immediately so the dashboard isn't empty for the first 10s.
+    oracleBridgeTick(allocator);
+
+    while (g_oracle_bridge_run.load(.acquire)) {
+        // Sleep in chunks so stop() reacts within ~250 ms.
+        var slept_ms: i64 = 0;
+        while (slept_ms < POLL_INTERVAL_MS and g_oracle_bridge_run.load(.acquire)) {
+            std.Thread.sleep(SLEEP_CHUNK_NS);
+            slept_ms += 250;
+        }
+        if (!g_oracle_bridge_run.load(.acquire)) break;
+        oracleBridgeTick(allocator);
+    }
+    std.debug.print("[ORACLE-BRIDGE] worker exited\n", .{});
+}
+
+fn oracleBridgeTick(allocator: std.mem.Allocator) void {
+    const body = fetchOracleAllPairs(allocator) catch |err| {
+        std.debug.print("[ORACLE-BRIDGE] fetch failed: {s}\n", .{@errorName(err)});
+        return;
+    };
+    defer allocator.free(body);
+
+    // Inject into the local WS feed. Shape from oracle_getAllPairs:
+    //   {"jsonrpc":"2.0","id":1,"result":{"count":N,"prices":[
+    //     {"exchange":"Coinbase","pair":"BTC-USD","bid":80782650000,
+    //      "ask":80782660000,"timestamp_ms":...}, ...
+    //   ]}}
+    const inserted = parseAndInjectPrices(body);
+    if (inserted > 0) {
+        std.debug.print("[ORACLE-BRIDGE] injected {d} prices from :28100\n", .{inserted});
+        // FOOD reputation credit: this node is acting as oracle relay.
+        // creditOraclePush la fiecare tick reusit = 0.01 FOOD per 10s.
+        if (g_reputation) |*rep_mgr| {
+            if (g_local_miner_address) |addr| {
+                rep_mgr.creditOraclePush(addr, g_current_block_height.load(.acquire));
+            }
+        }
+    }
+}
+
+/// HTTP POST 127.0.0.1:28100 with body {"jsonrpc":"2.0","id":1,"method":"oracle_getAllPairs"}.
+/// Returns the raw response body (caller frees). Hand-rolled — no dependency
+/// on std.http.Client (it's heavyweight + has had Zig-version churn).
+fn fetchOracleAllPairs(allocator: std.mem.Allocator) ![]u8 {
+    const addr = try std.net.Address.parseIp4("127.0.0.1", 28100);
+    var stream = try std.net.tcpConnectToAddress(addr);
+    defer stream.close();
+
+    const req =
+        "POST / HTTP/1.1\r\n" ++
+        "Host: 127.0.0.1:28100\r\n" ++
+        "Content-Type: application/json\r\n" ++
+        "Content-Length: 53\r\n" ++
+        "Connection: close\r\n\r\n" ++
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"oracle_getAllPairs\"}";
+
+    _ = try stream.writeAll(req);
+
+    // Read response — bounded, single-shot. ~700 entries × 150 B ≈ 100 KiB.
+    var resp = std.array_list.Managed(u8).init(allocator);
+    defer resp.deinit();
+
+    var buf: [8192]u8 = undefined;
+    while (true) {
+        const n = stream.read(&buf) catch |err| switch (err) {
+            error.ConnectionResetByPeer => break,
+            else => return err,
+        };
+        if (n == 0) break; // EOF — server sent Connection: close after body.
+        try resp.appendSlice(buf[0..n]);
+        if (resp.items.len > 512 * 1024) break; // hard cap to prevent runaway
+    }
+
+    // Strip HTTP headers — body starts after \r\n\r\n.
+    const sep = std.mem.indexOf(u8, resp.items, "\r\n\r\n") orelse return error.MalformedResponse;
+    const body_start = sep + 4;
+    return allocator.dupe(u8, resp.items[body_start..]);
+}
+
+/// Tiny JSON walker — looks for "prices":[...] then for each {...} object
+/// extracts exchange / pair / bid / ask and calls upsertPriceExternal.
+/// Returns count injected. Tolerant of unknown fields, key order, whitespace.
+fn parseAndInjectPrices(body: []const u8) usize {
+    if (g_ws_feed == null) return 0;
+    const feed = &g_ws_feed.?;
+
+    // Find "prices":[
+    const arr_marker = "\"prices\":[";
+    const arr_idx = std.mem.indexOf(u8, body, arr_marker) orelse return 0;
+    var i = arr_idx + arr_marker.len;
+    var injected: usize = 0;
+
+    while (i < body.len and body[i] != ']') {
+        // Skip whitespace + commas between objects.
+        while (i < body.len and (body[i] == ' ' or body[i] == ',' or body[i] == '\n' or body[i] == '\r' or body[i] == '\t')) : (i += 1) {}
+        if (i >= body.len or body[i] != '{') break;
+
+        // Find object end. Naive — assumes no nested {} (oracle output never has).
+        const obj_start = i;
+        const obj_end_rel = std.mem.indexOfScalar(u8, body[obj_start..], '}') orelse break;
+        const obj = body[obj_start .. obj_start + obj_end_rel + 1];
+        i = obj_start + obj_end_rel + 1;
+
+        const exchange = extractStringField(obj, "exchange") orelse continue;
+        const pair = extractStringField(obj, "pair") orelse continue;
+        const bid = extractU64Field(obj, "bid") orelse continue;
+        const ask = extractU64Field(obj, "ask") orelse continue;
+
+        feed.upsertPriceExternal(exchange, pair, bid, ask);
+        injected += 1;
+    }
+    return injected;
+}
+
+fn extractStringField(obj: []const u8, key: []const u8) ?[]const u8 {
+    var key_buf: [64]u8 = undefined;
+    const k = std.fmt.bufPrint(&key_buf, "\"{s}\":\"", .{key}) catch return null;
+    const start = std.mem.indexOf(u8, obj, k) orelse return null;
+    const val_start = start + k.len;
+    const close = std.mem.indexOfScalarPos(u8, obj, val_start, '"') orelse return null;
+    return obj[val_start..close];
+}
+
+fn extractU64Field(obj: []const u8, key: []const u8) ?u64 {
+    var key_buf: [64]u8 = undefined;
+    const k = std.fmt.bufPrint(&key_buf, "\"{s}\":", .{key}) catch return null;
+    const start = std.mem.indexOf(u8, obj, k) orelse return null;
+    var p = start + k.len;
+    while (p < obj.len and (obj[p] == ' ' or obj[p] == '\t')) : (p += 1) {}
+    var end = p;
+    while (end < obj.len and obj[end] >= '0' and obj[end] <= '9') : (end += 1) {}
+    if (end == p) return null;
+    return std.fmt.parseInt(u64, obj[p..end], 10) catch null;
 }
 
 pub fn main() !void {
@@ -1310,6 +1515,8 @@ pub fn main() !void {
         std.debug.print("[MINER] Reward address (from --miner-address): {s}\n", .{effective_miner_addr});
         std.debug.print("[MINER] (mnemonic-derived wallet {s} stays unused for rewards)\n\n", .{wallet.address});
     }
+    // Expose miner address to background threads (oracle bridge → FOOD credit).
+    g_local_miner_address = effective_miner_addr;
 
     // Inregistreaza adresa minerului efectiv ca primul miner in pool.
     //
@@ -1397,6 +1604,7 @@ pub fn main() !void {
 
     // ── Init Staking Engine ──────────────────────────────────────────────────
     var staking = staking_mod.StakingEngine.init();
+    g_staking_engine = &staking;
     std.debug.print("[STAKING] Engine init | min stake: {d} SAT | unbonding: {d} blocks\n",
         .{ staking_mod.VALIDATOR_MIN_STAKE, staking_mod.UNBONDING_PERIOD });
 
@@ -1758,6 +1966,7 @@ pub fn main() !void {
     var users_path_owned: ?[]u8 = null;
     var identities_path_owned: ?[]u8 = null;
     var kyc_path_owned: ?[]u8 = null;
+    var profiles_path_owned: ?[]u8 = null;
     {
         const chain_subdir: []const u8 = if (config.testnet) "testnet"
             else if (config.regtest) "regtest" else "mainnet";
@@ -1768,8 +1977,10 @@ pub fn main() !void {
         }
         identities_path_owned = std.fmt.allocPrint(allocator, "data/{s}/identities.jsonl", .{chain_subdir}) catch null;
         kyc_path_owned = std.fmt.allocPrint(allocator, "data/{s}/kyc-attestations.jsonl", .{chain_subdir}) catch null;
+        profiles_path_owned = std.fmt.allocPrint(allocator, "data/{s}/profiles.jsonl", .{chain_subdir}) catch null;
         if (identities_path_owned) |p| std.debug.print("[IDENTITY] journal: {s}\n", .{p});
         if (kyc_path_owned) |p| std.debug.print("[KYC] journal: {s}\n", .{p});
+        // profiles journal — makePath done inside startHTTPEx via replayProfilesJournal
     }
 
     // KYC issuer address: the wallet at registrar slot 4 (`kyc.omnibus`).
@@ -1837,6 +2048,7 @@ pub fn main() !void {
         .bridge = bridge_state_ptr,
         .grid_registry = grid_registry_ptr,
         .grid_path = grid_path_owned,
+        .profiles_path = profiles_path_owned,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{
@@ -1902,8 +2114,15 @@ pub fn main() !void {
         p2p.syncHeaders();
 
         while (!g_shutdown.load(.monotonic)) {
-            // Periodically request new headers (every 10s = 1 block time)
-            std.Thread.sleep(10 * std.time.ns_per_s);
+            // Periodically request new headers (every 10s = 1 block time).
+            // Sleep in 250ms chunks so SIGTERM unblocks within 250ms instead
+            // of forcing systemd to SIGKILL after 30s timeout (Bug B7).
+            var slept_ms: u64 = 0;
+            while (slept_ms < 10_000 and !g_shutdown.load(.monotonic)) {
+                std.Thread.sleep(250 * std.time.ns_per_ms);
+                slept_ms += 250;
+            }
+            if (g_shutdown.load(.monotonic)) break;
             p2p.syncHeaders();
 
             const height = light_client.getHeight();
@@ -1980,7 +2199,19 @@ pub fn main() !void {
     if (use_external) {
         std.debug.print(
             "[WS-FEED] external oracle enabled (OMNIBUS_EXTERNAL_ORACLE=1) " ++
-            "— in-process feed disabled. Expect omnibus-oracle on :28100\n", .{});
+            "— in-process WS feed disabled. Bridging from omnibus-oracle on :28100\n", .{});
+        // Initialize an EMPTY feed (no WS workers) — the poll thread fills it
+        // via upsertPriceExternal from the standalone oracle's snapshot. All
+        // downstream RPCs (omnibus_getallprices / getexchangefeed / getarbitrage)
+        // and ArbitrageEngine read from g_ws_feed exactly as if WS were live.
+        g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
+        if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
+        g_ws_feed.?.setClock(&g_clock);
+        // Spawn the bridge poll thread. Idempotent — joins on shutdown via
+        // g_oracle_bridge_run atomic flag.
+        startOracleBridge(allocator) catch |err| {
+            std.debug.print("[ORACLE-BRIDGE] spawn failed: {} — feed will stay empty\n", .{err});
+        };
     } else {
         g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
         if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
@@ -2198,22 +2429,37 @@ pub fn main() !void {
                 // The yield-to-active-peer check below covers the dual-
                 // online case once at least one node has bootstrapped.
                 const peers_connected = p2p.peers.items.len;
-                if (bc.validator_set.items.len == 0 and my_addr.len > 0) {
+                // Treat the validator_set as "effectively empty" when it
+                // contains ONLY the genesis placeholder ("…replaceformainnet")
+                // and no real wallet has been promoted yet. Without this gate,
+                // the slot-leader check below ALWAYS rejects me (placeholder
+                // address never matches a real wallet) → mining spins forever
+                // without producing blocks. See validator_registry.zig:63-69
+                // for the placeholder seed.
+                var has_real_validator = false;
+                for (bc.validator_set.items) |v| {
+                    if (std.mem.indexOf(u8, v.address, "replaceformainnet") == null and
+                        std.mem.indexOf(u8, v.address, "bootstrapvalidator") == null) {
+                        has_real_validator = true;
+                        break;
+                    }
+                }
+                if (!has_real_validator and my_addr.len > 0) {
                     const PEER_ACTIVE_BOOT_S: i64 = 2;
                     const peer_active_ts = p2p.lastPeerActivityTs();
                     const peer_recently_active =
                         peer_active_ts > 0 and (now_s - peer_active_ts) <= PEER_ACTIVE_BOOT_S;
                     if (peers_connected > 0 and peer_recently_active) {
                         std.debug.print(
-                            "[BOOTSTRAP] Validator set empty but peer active {d}s ago — yielding to let them seed\n",
+                            "[BOOTSTRAP] Validator set placeholder-only but peer active {d}s ago — yielding to let them seed\n",
                             .{now_s - peer_active_ts},
                         );
                         break :blk false;
                     }
                     if (block_count % 30 == 0) {
                         std.debug.print(
-                            "[BOOTSTRAP] No validators yet ({d} blocks, {d} peers) — producing slot {d}\n",
-                            .{ bc.chain.items.len, peers_connected, slot_id },
+                            "[BOOTSTRAP] No real validators yet ({d} blocks, {d} peers, set_size={d}) — producing slot {d}\n",
+                            .{ bc.chain.items.len, peers_connected, bc.validator_set.items.len, slot_id },
                         );
                     }
                     break :blk true;
@@ -2394,6 +2640,8 @@ pub fn main() !void {
             }
 
             block_count += 1;
+            // Publish height for background threads (oracle bridge etc.)
+            g_current_block_height.store(@as(u64, block_count), .release);
             last_block_produced_ms = g_clock.nowMs();
 
             // Rebuild slot calendar every 10 blocks (≈ every 10 seconds at
@@ -2563,11 +2811,84 @@ pub fn main() !void {
                 }
             }
 
-            // ── Reputation: credit FOOD pentru miner-ul efectiv al acestui bloc.
-            // Pe testnet ne uitam la `miner_addr` (rotat round-robin de pool).
-            // VACATION + LOVE se acorda separat (per-day tick mai jos in loop).
+            // ── Reputation: credit pentru toate cele 4 domenii ─────────────────
+            //
+            // FOOD = work (mining + oracle push + agent decisions)
+            // RENT = capital (stake + hold per-block)
+            // VACATION = longevity (per-day tick at 8640 blocks)
+            // LOVE = uptime (per-block heartbeat for active miners)
+            //
+            // Hooks for oracle push + agent decisions are wired separately at
+            // their call sites (oracle bridge tick, submitNativeTx success).
             if (g_reputation) |*rep_mgr| {
+                // FOOD — block mined credit
                 rep_mgr.creditMinedBlock(miner_addr, @as(u64, block_count));
+
+                // LOVE — uptime credit pentru miner activ. La 1s/block, 60 blocs
+                // = 1 minut online. Acordat la fiecare 60 blocuri (creditUptimeMinutes
+                // trateaza 1 minut = LOVE_PER_MINUTE_ONLINE points).
+                if (block_count > 0 and block_count % 60 == 0) {
+                    rep_mgr.creditUptimeMinutes(miner_addr, 1, @as(u64, block_count));
+                }
+                // LOVE bonus — daily streak (la fiecare 8640 blocuri = 1 zi).
+                if (block_count > 0 and block_count % 8640 == 0) {
+                    rep_mgr.creditDailyStreak(miner_addr, @as(u64, block_count));
+                }
+
+                // RENT — credit per-block pentru stakeri activi.
+                // Iteram primii `validator_count` din slot-ul fix de 128.
+                // Stake e in SAT (1e9 SAT = 1 OMNI), creditStakePerBlock asteapta OMNI.
+                if (g_staking_engine) |se| {
+                    var vi: usize = 0;
+                    while (vi < se.validator_count) : (vi += 1) {
+                        const val = &se.validators[vi];
+                        if (val.status != .active) continue;
+                        const omni_staked = val.total_stake / 1_000_000_000;
+                        if (omni_staked == 0) continue;
+                        rep_mgr.creditStakePerBlock(
+                            val.address[0..val.addr_len],
+                            omni_staked,
+                            @as(u64, block_count),
+                        );
+                    }
+                }
+
+                // VACATION — daily tick. 1 day = 8640 blocks @ 10s.
+                // Fix B1 deadlock: previously took rep_mgr.lock() then called
+                // creditVacationDay which re-locks the same mutex (non-reentrant
+                // std.Thread.Mutex panics → mainnet wedge for ~12 min until
+                // systemd respawn). Solution: collect the addresses first under
+                // a brief lock, then iterate the OWNED list calling
+                // creditVacationDay (which will lock once, briefly, per addr).
+                if (block_count > 0 and block_count % 8640 == 0) {
+                    const total_days: u64 = @as(u64, block_count) / 8640;
+                    // Snapshot keys under lock to avoid concurrent-modify panic.
+                    var addr_list = std.array_list.Managed([]const u8).init(allocator);
+                    defer {
+                        for (addr_list.items) |a| allocator.free(a);
+                        addr_list.deinit();
+                    }
+                    {
+                        rep_mgr.lock();
+                        defer rep_mgr.unlock();
+                        var iter = rep_mgr.iterate();
+                        while (iter.next()) |entry| {
+                            const owned = allocator.dupe(u8, entry.key_ptr.*) catch continue;
+                            addr_list.append(owned) catch {
+                                allocator.free(owned);
+                                break;
+                            };
+                        }
+                    }
+                    // Now lock-free — each call takes the mutex briefly.
+                    for (addr_list.items) |addr| {
+                        rep_mgr.creditVacationDay(
+                            addr,
+                            total_days,
+                            @as(u64, block_count),
+                        );
+                    }
+                }
             }
 
             // Auto-save: track blocks and TXs since last save
