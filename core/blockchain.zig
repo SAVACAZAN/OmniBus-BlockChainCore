@@ -15,6 +15,7 @@ pub const Validator = validator_mod.Validator;
 // translation unit to pull in the full main.zig graph. Zig resolves these
 // imports lazily — they only matter when the corresponding fields are touched.
 const main_mod = @import("main.zig");
+const staking_mod = @import("staking.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const dns_mod = @import("dns_registry.zig");
 const registrar_mod = @import("registrar_addresses.zig");
@@ -29,6 +30,10 @@ const faucet_mod = @import("faucet.zig");
 const htlc_mod   = @import("htlc.zig");
 const swap_link_mod = @import("order_swap_link.zig");
 const intent_reg_mod = @import("intent_registry.zig");
+const cold_wallet_mod = @import("cold_wallet.zig");
+const timelock_mod    = @import("timelock_vault.zig");
+const covenant_mod    = @import("covenant.zig");
+const treasury_multi_mod = @import("treasury_multi.zig");
 const array_list = std.array_list;
 
 pub const Block = block_mod.Block;
@@ -352,6 +357,18 @@ pub const Blockchain = struct {
     /// On-chain governance (propose / vote).
     gov_registry: gov_mod.GovernanceRegistry,
 
+    /// Cold wallet (watch-only) registry.
+    cold_wallet_store: cold_wallet_mod.ColdWalletStore,
+
+    /// Pure CLTV timelock vault registry.
+    timelock_store: timelock_mod.TimelockStore,
+
+    /// Destination-whitelist covenant registry.
+    covenant_store: covenant_mod.CovenantStore,
+
+    /// Treasury auto-distribution registry.
+    treasury_multi_store: treasury_multi_mod.TreasuryStore,
+
     /// Native cross-chain bridge state. Tracks locks, pending unlocks,
     /// processed nonces, daily volume cap (defense-in-depth from Ronin/
     /// Wormhole/Nomad/Kelp DAO post-mortems). Defined in bridge_native.zig.
@@ -447,6 +464,10 @@ pub const Blockchain = struct {
             .social_graph      = social_mod.SocialGraph.init(allocator),
             .poap_registry     = poap_mod.PoapRegistry.init(allocator),
             .gov_registry      = gov_mod.GovernanceRegistry.init(allocator),
+            .cold_wallet_store      = cold_wallet_mod.ColdWalletStore.init(allocator),
+            .timelock_store         = timelock_mod.TimelockStore.init(allocator),
+            .covenant_store         = covenant_mod.CovenantStore.init(allocator),
+            .treasury_multi_store   = treasury_multi_mod.TreasuryStore.init(allocator),
         };
         return bc;
     }
@@ -514,6 +535,10 @@ pub const Blockchain = struct {
         self.social_graph.deinit();
         self.poap_registry.deinit();
         self.gov_registry.deinit();
+        self.cold_wallet_store.deinit();
+        self.timelock_store.deinit();
+        self.covenant_store.deinit();
+        self.treasury_multi_store.deinit();
         // Clean up address TX index (lists of TX hash pointers — no owned memory)
         {
             var ati_it = self.address_tx_index.iterator();
@@ -666,10 +691,34 @@ pub const Blockchain = struct {
 
     /// Returns the list of TX hashes associated with an address (both sent and received).
     /// Returns null if address has no history.
+    /// CALLER must hold self.mutex — this is the unlocked read path used by
+    /// applyBlock + RPC handlers that already hold the lock.
     pub fn getAddressHistory(self: *const Blockchain, address: []const u8) ?[]const []const u8 {
         const list = self.address_tx_index.get(address) orelse return null;
         if (list.items.len == 0) return null;
         return list.items;
+    }
+
+    /// Thread-safe version of getAddressHistory: takes the chain mutex
+    /// briefly, returns an allocator-owned COPY of the hash list. Caller
+    /// must `allocator.free` the returned slice.
+    /// Fix B4: RPC handlers calling the unlocked variant concurrently with
+    /// applyBlock's writes triggered hashmap rehash → "incorrect alignment"
+    /// panic. This wrapper eliminates the race by returning a snapshot.
+    pub fn getAddressHistoryLocked(
+        self: *Blockchain,
+        allocator: std.mem.Allocator,
+        address: []const u8,
+    ) !?[][]const u8 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        const list = self.address_tx_index.get(address) orelse return null;
+        if (list.items.len == 0) return null;
+        const copy = try allocator.alloc([]const u8, list.items.len);
+        for (list.items, 0..) |hash, i| {
+            copy[i] = try allocator.dupe(u8, hash);
+        }
+        return copy;
     }
 
     /// Adauga reward la balanta minerului.
@@ -1059,6 +1108,20 @@ pub const Blockchain = struct {
             if (tx.amount > faucet_mod.FAUCET_AMOUNT_SAT) {
                 std.debug.print("[VALIDATE] FAIL: faucet TX amount {d} > max {d}\n",
                     .{tx.amount, faucet_mod.FAUCET_AMOUNT_SAT});
+                return false;
+            }
+        }
+
+        // 5c-covenant. Covenant whitelist check: if the sender has an active
+        //   destination-whitelist covenant, the TX.to_address must be allowed
+        //   and amount must not exceed per-TX cap.
+        {
+            const current_block: u64 = @intCast(self.chain.items.len);
+            if (!self.covenant_store.checkTx(tx.from_address, tx.to_address, tx.amount, current_block)) {
+                std.debug.print("[VALIDATE] FAIL: covenant violation from={s} to={s} amt={d}\n",
+                    .{ tx.from_address[0..@min(20, tx.from_address.len)],
+                       tx.to_address[0..@min(20, tx.to_address.len)],
+                       tx.amount });
                 return false;
             }
         }
@@ -1816,6 +1879,18 @@ pub const Blockchain = struct {
     fn applyOpReturnRoles(self: *Blockchain, tx: Transaction) void {
         if (tx.op_return.len == 0 or tx.from_address.len == 0) return;
         if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
+            // Cap stake at the user's actual balance. Without this we'd
+            // accept stake > balance which would later make unstake credit
+            // back funds the user never owned.
+            const cur_bal = self.balances.get(tx.from_address) orelse 0;
+            const effective = @min(tx.amount, cur_bal);
+            if (effective == 0) return;
+
+            // Debit balance (lock funds). Caller (applyBlock) already holds
+            // the chain mutex AND has set in_apply_block=true, so the
+            // phantom-write detector is happy.
+            self.debitBalanceLocked(tx.from_address, effective) catch return;
+
             const owned = self.allocator.dupe(u8, tx.from_address) catch return;
             const gop = self.stake_amounts.getOrPut(owned) catch {
                 self.allocator.free(owned);
@@ -1826,8 +1901,39 @@ pub const Blockchain = struct {
             } else {
                 gop.value_ptr.* = 0;
             }
-            gop.value_ptr.* +|= tx.amount; // saturating add
+            gop.value_ptr.* +|= effective; // saturating add
+
+            // Auto-promote to validator when total stake >= VALIDATOR_MIN_STAKE
+            // (100 OMNI). Reads main_mod.g_staking_engine which is set in
+            // main.zig at init. Idempotent: existing validators just have
+            // their total_stake updated; new ones are registered + activated.
+            if (main_mod.g_staking_engine) |se| {
+                if (gop.value_ptr.* >= staking_mod.VALIDATOR_MIN_STAKE) {
+                    const block_h = self.chain.items.len;
+                    if (se.findValidatorIndex(tx.from_address)) |idx| {
+                        // Already registered — update stake amount
+                        se.validators[idx].total_stake = gop.value_ptr.*;
+                        se.validators[idx].self_stake = gop.value_ptr.*;
+                    } else if (se.registerValidator(
+                        tx.from_address,
+                        gop.value_ptr.*,
+                        @intCast(block_h),
+                    )) |new_idx| {
+                        se.activateValidator(new_idx) catch {};
+                    } else |_| {
+                        // ValidatorSetFull or AlreadyRegistered — silent skip
+                    }
+                }
+            }
         } else if (std.mem.startsWith(u8, tx.op_return, "unstake:")) {
+            // Unstake: credit back the user's full stake to their balance.
+            // (Future: parse partial unstake amount from op_return; for now
+            // we unstake everything stored under this address.)
+            const cur_stake = self.stake_amounts.get(tx.from_address) orelse 0;
+            if (cur_stake == 0) return;
+
+            self.creditBalanceLocked(tx.from_address, cur_stake) catch return;
+
             const owned = self.allocator.dupe(u8, tx.from_address) catch return;
             const gop = self.stake_amounts.getOrPut(owned) catch {
                 self.allocator.free(owned);
@@ -1835,10 +1941,8 @@ pub const Blockchain = struct {
             };
             if (gop.found_existing) {
                 self.allocator.free(owned);
-            } else {
-                gop.value_ptr.* = 0;
             }
-            gop.value_ptr.* -|= tx.amount; // saturating sub
+            gop.value_ptr.* = 0; // clear stake
         } else if (std.mem.startsWith(u8, tx.op_return, "agent:register")) {
             const owned = self.allocator.dupe(u8, tx.from_address) catch return;
             const gop = self.registered_agents.getOrPut(owned) catch {
@@ -2223,6 +2327,8 @@ pub const Blockchain = struct {
             // through utxo_set.getBalance per Phase B).
             self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
             self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
+            // Cold wallet incoming-receive hook
+            self.cold_wallet_store.onReceive(tx.to_address, tx.amount);
             total_fees += tx.fee;
             const current_nonce = self.nonces.get(tx.from_address) orelse 0;
             self.nonces.put(tx.from_address, current_nonce + 1) catch {};
@@ -2367,6 +2473,41 @@ pub const Blockchain = struct {
                 std.debug.print("[SUB-EXEC] id={d} from={s} to={s} amount={d}\n",
                     .{ sub_id, sub.fromSlice()[0..@min(16, sub.fromSlice().len)],
                        sub.toSlice()[0..@min(16, sub.toSlice().len)], sub.amount_sat });
+            }
+        }
+
+        // ── Treasury auto-distribution hook ─────────────────────────────────
+        // Check all active treasuries; if balance >= trigger_amount_sat,
+        // auto-distribute to destinations (split by share_bps).
+        // NOTE: Treasury structs are large (~8.7 KB each); use heap to avoid
+        // stack overflow on every block apply.
+        {
+            const treas_buf = try self.allocator.alloc(treasury_multi_mod.Treasury, 64);
+            defer self.allocator.free(treas_buf);
+            const n_treas = self.treasury_multi_store.listAll(treas_buf[0..64]);
+            for (treas_buf[0..n_treas]) |treas| {
+                if (treas.trigger_amount_sat == 0) continue; // manual-only
+                const bal = self.balances.get(treas.treasurySlice()) orelse 0;
+                if (bal < treas.trigger_amount_sat) continue;
+                var distributed: u64 = 0;
+                var di: usize = 0;
+                while (di < treas.dest_count) : (di += 1) {
+                    const dest_amt = treas.destAmount(di, bal);
+                    if (dest_amt == 0) continue;
+                    if (bal < distributed + dest_amt) break;
+                    distributed += dest_amt;
+                    const to_bal = self.balances.get(treas.destinations[di].addressSlice()) orelse 0;
+                    self.balances.put(treas.destinations[di].addressSlice(), to_bal + dest_amt) catch {};
+                }
+                if (distributed > 0) {
+                    const from_bal = self.balances.get(treas.treasurySlice()) orelse 0;
+                    self.balances.put(treas.treasurySlice(), from_bal -| distributed) catch {};
+                    self.treasury_multi_store.recordDistribute(
+                        treas.id[0..treasury_multi_mod.ID_HEX_LEN], distributed, @intCast(block.index),
+                    );
+                    std.debug.print("[TREASURY] auto-distribute {d} sat from {s}\n",
+                        .{ distributed, treas.treasurySlice()[0..@min(20, treas.treasurySlice().len)] });
+                }
             }
         }
 
@@ -2672,6 +2813,15 @@ pub const Blockchain = struct {
     pub fn getBlockCount(self: *Blockchain) u32 {
         self.mutex.lock();
         defer self.mutex.unlock();
+        return @intCast(self.chain.items.len);
+    }
+
+    /// Lock-free variant of getBlockCount for callers that already hold
+    /// self.mutex (non-reentrant std.Thread.Mutex panics on double-lock)
+    /// or for read-only contexts where an off-by-one stale value is fine.
+    /// Use this in RPC handlers that took the chain mutex earlier in the
+    /// same function.
+    pub fn getBlockCountUnlocked(self: *const Blockchain) u32 {
         return @intCast(self.chain.items.len);
     }
 

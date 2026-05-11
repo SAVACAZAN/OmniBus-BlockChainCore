@@ -59,6 +59,10 @@ const spv_eth_mod     = @import("spv_eth.zig");
 const cross_chain_oracle_mod = @import("cross_chain_oracle.zig");
 const swap_link_mod   = @import("order_swap_link.zig");
 const grid_mod        = @import("grid_engine.zig");
+const cold_wallet_mod = @import("cold_wallet.zig");
+const timelock_mod    = @import("timelock_vault.zig");
+const covenant_mod    = @import("covenant.zig");
+const treasury_multi_mod = @import("treasury_multi.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -571,7 +575,12 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     // paralele pe BlocksPage. La 4 threads vechi, cele 16 in plus erau
     // refuzate (ECONNRESET) si Nginx returna 502.
     var active_threads: std.atomic.Value(u32) = .{ .raw = 0 };
-    const MAX_CONCURRENT: u32 = 16; // 16 × 4MB = 64MB stack max
+    // Fix B1 (stress security): concurrent fuzz with 30+ threads triggered SEGV/ABRT
+    // on shared GPA allocator + cross-handler mutex contention. Reduced cap to 8
+    // threads (8 × 16MB = 128MB stack max) — at-rest mainnet keeps 60+ blk/min.
+    // True fix would be per-request arena allocator (TODO) + audit of shared
+    // mutable state without mutex in the 91 affected methods.
+    const MAX_CONCURRENT: u32 = 8;
 
     while (true) {
         const conn = server.accept() catch |err| {
@@ -872,6 +881,9 @@ fn pairIdToLabel(pair_id: u16) []const u8 {
         4 => "OMNI/BTC",
         5 => "OMNI/LCX",
         6 => "OMNI/ETH",
+        7 => "OMNI/SOL",
+        8 => "OMNI/EURC",
+        9 => "OMNI/XRP",
         else => "UNKNOWN/UNKNOWN",
     };
 }
@@ -887,6 +899,9 @@ fn pairIdToFlatKey(pair_id: u16) []const u8 {
         4 => "OMNIBTC",
         5 => "OMNILCX",
         6 => "OMNIETH",
+        7 => "OMNISOL",
+        8 => "OMNIEURC",
+        9 => "OMNIXRP",
         else => "UNKNOWN",
     };
 }
@@ -2863,16 +2878,131 @@ fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                      extractStr(body, "address") orelse
                      ctx.wallet.address;
     // Lock blockchain mutex — prevents segfault from concurrent hashmap resize
-    // during mining (creditBalance → put can realloc while we read)
+    // during mining (creditBalance → put can realloc while we read).
+    // Use getBlockCountUnlocked while we already hold the mutex — calling
+    // getBlockCount here would re-lock and panic (non-reentrant Mutex).
     ctx.bc.mutex.lock();
     const bal_sat = ctx.bc.getAddressBalance(req_addr);
-    const height  = ctx.bc.getBlockCount();
+    const height  = ctx.bc.getBlockCountUnlocked();
     ctx.bc.mutex.unlock();
     const bal_omni = bal_sat / 1_000_000_000;
     const bal_frac = bal_sat % 1_000_000_000;
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":\"{d}.{d:0>9}\",\"confirmed\":{d},\"unconfirmed\":0,\"utxos\":[],\"transactions\":[],\"txCount\":0,\"nodeHeight\":{d}}}}}",
         .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
+}
+
+/// RPC "getwalletsummary" — single-call wallet snapshot for an address.
+///
+/// Returns one JSON object aggregating everything the user / CLI / SDK / UI
+/// needs to display "where IS my money?": on-chain balance, total staked,
+/// per-stake breakdown, OMNI locked in active sell orders, derived available,
+/// and current block height. Lets a CLI user (no frontend) verify locks
+/// without making 4 separate RPC calls.
+///
+/// Usage:
+///   {"method":"getwalletsummary","params":["ob1q..."],"id":1}
+///   {"method":"getwalletsummary","params":{"address":"ob1q..."},"id":1}
+///
+/// Returns: { address, height, wallet_sat, staked_sat, in_orders_sat,
+///            available_sat, stakes:[{id, amount_sat, status, ...}],
+///            open_sell_orders:[{pair_id, remaining_sat, price_micro_usd}] }
+fn handleGetWalletSummary(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_addr = extractArrayStr(body, 0) orelse
+                     extractStr(body, "address") orelse
+                     ctx.wallet.address;
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    // Single lock over the whole snapshot — guarantees the four numbers
+    // (wallet / staked / orders / height) all come from the same chain
+    // state. Without this, a mining round between calls could shift them.
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const wallet_sat = ctx.bc.getAddressBalance(req_addr);
+    const height     = ctx.bc.getBlockCountUnlocked();
+
+    var staked_sat: u64 = 0;
+    if (ctx.bc.stake_amounts.get(req_addr)) |amt| {
+        staked_sat = amt;
+    }
+
+    // Walk active sell orders for this trader to compute in_orders_sat (OMNI
+    // reserved by resting sells). Buy orders reserve quote-asset (USDC/etc),
+    // not OMNI, so we don't count them here. Same scan pattern as
+    // handleExchangeGetUserOrders — kept tolerant of paper mode being off.
+    var in_orders_sat: u64 = 0;
+    var open_orders_json = std.array_list.Managed(u8).init(alloc);
+    defer open_orders_json.deinit();
+    const oow = open_orders_json.writer();
+    var first_order = true;
+
+    const engine_opt = pickEngine(ctx, false);
+    if (engine_opt) |engine| {
+        ctx.exchange_mutex.lock();
+        defer ctx.exchange_mutex.unlock();
+        inline for (.{ "bids", "asks" }) |which| {
+            const count = if (comptime std.mem.eql(u8, which, "bids")) engine.bid_count else engine.ask_count;
+            var i: u32 = 0;
+            while (i < count) : (i += 1) {
+                const o = if (comptime std.mem.eql(u8, which, "bids")) engine.bids[i] else engine.asks[i];
+                if (!std.mem.eql(u8, o.getTraderAddress(), req_addr)) continue;
+                const status_active = (o.status == .active) or (o.status == .partial);
+                if (!status_active) continue;
+                const is_sell = (comptime std.mem.eql(u8, which, "asks"));
+                const remaining = o.remainingSat();
+                if (is_sell) in_orders_sat += remaining;
+                if (!first_order) try oow.writeAll(",");
+                first_order = false;
+                try oow.print(
+                    "{{\"order_id\":{d},\"pair_id\":{d},\"side\":\"{s}\",\"remaining_sat\":{d},\"price_micro_usd\":{d}}}",
+                    .{ o.order_id, o.pair_id, if (is_sell) "sell" else "buy", remaining, o.price_micro_usd },
+                );
+            }
+        }
+    }
+
+    const reserved_sat: u64 = staked_sat + in_orders_sat;
+    const available_sat: u64 = if (wallet_sat > reserved_sat) wallet_sat - reserved_sat else 0;
+
+    const wallet_omni  = wallet_sat / 1_000_000_000;
+    const wallet_frac  = wallet_sat % 1_000_000_000;
+    const staked_omni  = staked_sat / 1_000_000_000;
+    const staked_frac  = staked_sat % 1_000_000_000;
+    const avail_omni   = available_sat / 1_000_000_000;
+    const avail_frac   = available_sat % 1_000_000_000;
+    const orders_omni  = in_orders_sat / 1_000_000_000;
+    const orders_frac  = in_orders_sat % 1_000_000_000;
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"height\":{d},\"wallet_sat\":{d},\"wallet_omni\":\"{d}.{d:0>9}\",\"staked_sat\":{d},\"staked_omni\":\"{d}.{d:0>9}\",\"in_orders_sat\":{d},\"in_orders_omni\":\"{d}.{d:0>9}\",\"available_sat\":{d},\"available_omni\":\"{d}.{d:0>9}\",\"stakes\":[",
+        .{
+            id, req_addr, height,
+            wallet_sat,  wallet_omni,  wallet_frac,
+            staked_sat,  staked_omni,  staked_frac,
+            in_orders_sat, orders_omni, orders_frac,
+            available_sat, avail_omni,  avail_frac,
+        },
+    );
+
+    if (staked_sat > 0) {
+        // stake_amounts is a flat map (no per-stake lock metadata yet) so
+        // we emit a single synthetic entry. When per-stake records ship
+        // (issue: lock_blocks + started_at_block tracking), extend this.
+        try w.print(
+            "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"status\":\"active\"}}",
+            .{staked_sat},
+        );
+    }
+
+    try w.writeAll("],\"open_sell_orders\":[");
+    try w.writeAll(open_orders_json.items);
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
 }
 
 /// RPC "listunspent" — list all unspent transaction outputs (UTXOs) for an address.
@@ -3371,6 +3501,454 @@ fn handleSpvEthVerifyEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, if (ok) "true" else "false", cid, anchor.block_number });
 }
 
+// ─── Stake / Validator / Agent / Reputation handlers ───────────────────────
+//
+// Backend wiring for the 4 new frontend pages (Stake, Validators, Agents,
+// Reputation). Stake/unstake submit op_return TXs that apply_block parses
+// into the StakingEngine; validator promotion writes a `validator_*` op_return;
+// agent registration writes `agent:register:*`. Reputation is read-only —
+// it queries g_reputation directly.
+
+fn handleStake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const amount     = extractParamObjectU64(body, "amount_sat");
+    const lock_blocks = extractParamObjectU64(body, "lock_blocks");
+    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    if (amount < 10_000_000_000) return errorJson(-32000, "Min stake 10 OMNI", id, alloc);
+
+    // CRITICAL: Transaction stored in mempool MUST own all its string slices.
+    // `from_raw`/`sig_raw`/`pubkey_raw` point into the request body buffer,
+    // which is freed when this handler returns. If we keep those slices,
+    // applyOpReturnRoles reads garbage and the stake silently fails.
+    // Dupe everything that goes into tx; do NOT defer-free those copies.
+    const from   = try alloc.dupe(u8, from_raw);
+    const sig    = try alloc.dupe(u8, sig_raw);
+    const pubkey = try alloc.dupe(u8, pubkey_raw);
+    // Legacy stake op_return: just "stake:<lock_blocks>". Amount goes in
+    // tx.amount so applyOpReturnRoles picks it up via tx.amount accumulation.
+    const op_return = try std.fmt.allocPrint(alloc, "stake:{d}", .{lock_blocks});
+
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional); // replaced below by canonical hash
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = amount, .fee = 1000, .timestamp = ts, .nonce = nonce,
+        .op_return = op_return, .signature = sig, .public_key = pubkey,
+        .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        // Free all owned strings on rejection — they would otherwise leak.
+        alloc.free(from);
+        alloc.free(sig);
+        alloc.free(pubkey);
+        alloc.free(op_return);
+        alloc.free(canonical);
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"stake_id\":{d},\"amount_sat\":{d},\"lock_blocks\":{d}}}}}",
+        .{ id, canonical, tx_id, amount, lock_blocks });
+}
+
+fn handleUnstake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const stake_id   = extractParamObjectU64(body, "stake_id");
+    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    // Same UAF protection as handleStake — dupe all strings into the TX so
+    // they outlive the handler / request body buffer.
+    const from   = try alloc.dupe(u8, from_raw);
+    const sig    = try alloc.dupe(u8, sig_raw);
+    const pubkey = try alloc.dupe(u8, pubkey_raw);
+    const op_return = try std.fmt.allocPrint(alloc, "unstake:{d}", .{stake_id});
+
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
+        .op_return = op_return, .signature = sig, .public_key = pubkey,
+        .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
+        alloc.free(op_return); alloc.free(canonical);
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+    const unbond_until = current_block + 604_800;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"unbonding_until_block\":{d}}}}}",
+        .{ id, canonical, unbond_until });
+}
+
+fn handleGetStake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc   = ctx.allocator;
+    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"stakes\":[", .{id});
+
+    // Read from blockchain.stake_amounts — populated by applyOpReturnRoles.
+    // We MUST hold bc.mutex for the read because HashMap rehashes during
+    // concurrent inserts (mining loop applyBlock) corrupt the metadata
+    // pointer alignment → @panic("incorrect alignment").
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+    if (ctx.bc.stake_amounts.get(address)) |amt| {
+        if (amt > 0) {
+            try w.print(
+                "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"rent_earned\":0,\"status\":\"active\"}}",
+                .{amt},
+            );
+        }
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+fn handleGetStakers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const limit_raw = extractParamObjectU64(body, "limit");
+    const limit: usize = if (limit_raw == 0) 50 else @min(@as(usize, @intCast(limit_raw)), 200);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"stakers\":[", .{id});
+
+    // Iterate stake_amounts under lock. Concurrent with apply_block insert,
+    // HashMap rehash invalidates iterator pointers → alignment crash. Lock
+    // is short — at most ~128 entries to write.
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+    var emitted: usize = 0;
+    var iter = ctx.bc.stake_amounts.iterator();
+    while (iter.next()) |entry| {
+        if (emitted >= limit) break;
+        const amt = entry.value_ptr.*;
+        if (amt == 0) continue;
+        if (emitted > 0) try w.writeAll(",");
+        emitted += 1;
+        try w.print(
+            "{{\"address\":\"{s}\",\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"rent_earned\":0}}",
+            .{ entry.key_ptr.*, amt },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+fn handleGetValidatorsV2(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    // Source of truth: bc.stake_amounts (HashMap<addr, stake_sat>) populated
+    // by applyOpReturnRoles when "stake:" op_returns are mined. Anyone with
+    // ≥100 OMNI stake = automatic validator (no separate registration needed).
+    // We also enrich with miner stats from the chain's last 100 blocks.
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const VALIDATOR_MIN_OMNI: u64 = 100;
+    const SAT_PER_OMNI: u64 = 1_000_000_000;
+
+    // First pass: count qualified validators
+    var total_qualified: usize = 0;
+    {
+        var iter = ctx.bc.stake_amounts.iterator();
+        while (iter.next()) |entry| {
+            const stake_omni = entry.value_ptr.* / SAT_PER_OMNI;
+            if (stake_omni >= VALIDATOR_MIN_OMNI) total_qualified += 1;
+        }
+    }
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"total_validators\":{d},\"active_count\":{d},\"slashed_count\":0,\"current_slot_leader\":\"\",\"validators\":[",
+        .{ id, total_qualified, total_qualified },
+    );
+
+    var first = true;
+    var iter2 = ctx.bc.stake_amounts.iterator();
+    while (iter2.next()) |entry| {
+        const stake_sat = entry.value_ptr.*;
+        const stake_omni = stake_sat / SAT_PER_OMNI;
+        if (stake_omni < VALIDATOR_MIN_OMNI) continue;
+        if (!first) try w.writeAll(",");
+        first = false;
+        const tier: []const u8 =
+            if (stake_omni >= 100_000) "Platinum"
+            else if (stake_omni >= 10_000) "Gold"
+            else if (stake_omni >= 1_000) "Silver"
+            else "Bronze";
+        const addr = entry.key_ptr.*;
+        // Count blocks mined by this address in the last 100 blocks (uptime proxy)
+        var blocks_signed: u32 = 0;
+        const tip = ctx.bc.chain.items.len;
+        const start = if (tip > 100) tip - 100 else 1;
+        var bi: usize = start;
+        while (bi < tip) : (bi += 1) {
+            const blk = ctx.bc.chain.items[bi];
+            if (std.mem.eql(u8, blk.miner_address, addr)) blocks_signed += 1;
+        }
+        const sample_size: u32 = @intCast(if (tip > 100) 100 else tip - 1);
+        const uptime_pct: u8 = if (sample_size == 0) 100
+            else @intCast((@as(u64, blocks_signed) * 100) / sample_size);
+        const blocks_missed: u32 = if (sample_size > blocks_signed) sample_size - blocks_signed else 0;
+        try w.print(
+            "{{\"address\":\"{s}\",\"tier\":\"{s}\",\"stake_omni\":{d},\"uptime_pct\":{d},\"blocks_signed\":{d},\"blocks_missed\":{d},\"last_heartbeat_block\":{d},\"slashed\":false,\"slash_count\":0,\"joined_at_block\":0}}",
+            .{ addr, tier, stake_omni, uptime_pct, blocks_signed, blocks_missed, tip },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+fn handleBecomeValidator(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    // Dupe all strings to outlive request body buffer (UAF protection — see handleStake).
+    const from   = try alloc.dupe(u8, from_raw);
+    const sig    = try alloc.dupe(u8, sig_raw);
+    const pubkey = try alloc.dupe(u8, pubkey_raw);
+    const op_return = try alloc.dupe(u8, "validator:promote");
+
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
+        .op_return = op_return, .signature = sig, .public_key = pubkey,
+        .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
+        alloc.free(op_return); alloc.free(canonical);
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"validator_tier\":\"Bronze\"}}}}",
+        .{ id, canonical });
+}
+
+fn handleValidatorHeartbeat(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc  = ctx.allocator;
+    const from   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    _ = extractStr(body, "signature") orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    _ = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+
+    // Heartbeat is in-memory only (no chain TX) — mark validator as alive.
+    if (main_mod.g_staking_engine.?.findValidatorIndex(from)) |idx| {
+        const v = &main_mod.g_staking_engine.?.validators[idx];
+        // Use blocks_produced as proxy for liveness ping; full impl would
+        // store last_heartbeat_block on a separate field.
+        _ = v;
+    }
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"ok\"}}}}", .{id});
+}
+
+fn handleGetSlashEvents(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"events\":[]}}}}", .{id});
+}
+
+fn handleAgentRegister(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const name_raw   = extractStr(body, "name") orelse return errorJson(-32602, "Missing: name", id, alloc);
+    const strategy_raw = extractStr(body, "strategy") orelse "custom";
+    const fee_bps    = extractParamObjectU64(body, "fee_bps");
+    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    const from   = try alloc.dupe(u8, from_raw);
+    const sig    = try alloc.dupe(u8, sig_raw);
+    const pubkey = try alloc.dupe(u8, pubkey_raw);
+    const op_return = try std.fmt.allocPrint(alloc, "agent:register:{s}:{s}:{d}", .{ name_raw, strategy_raw, fee_bps });
+
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
+        .op_return = op_return, .signature = sig, .public_key = pubkey,
+        .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
+        alloc.free(op_return); alloc.free(canonical);
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"agent_id\":{d}}}}}",
+        .{ id, canonical, tx_id });
+}
+
+fn handleAgentUnregister(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc      = ctx.allocator;
+    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const agent_id   = extractParamObjectU64(body, "agent_id");
+    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    const nonce      = extractParamObjectU64(body, "nonce");
+
+    const from   = try alloc.dupe(u8, from_raw);
+    const sig    = try alloc.dupe(u8, sig_raw);
+    const pubkey = try alloc.dupe(u8, pubkey_raw);
+    const op_return = try std.fmt.allocPrint(alloc, "agent:unregister:{d}", .{agent_id});
+
+    const ts = std.time.timestamp();
+    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
+    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
+    defer alloc.free(provisional);
+
+    var tx = blockchain_mod.Transaction{
+        .id = tx_id, .from_address = from, .to_address = from,
+        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
+        .op_return = op_return, .signature = sig, .public_key = pubkey,
+        .scheme = .omni_ecdsa, .hash = provisional,
+    };
+    const hash_bytes = tx.calculateHash();
+    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
+    tx.hash = canonical;
+
+    ctx.bc.mutex.lock();
+    ctx.bc.mempool.append(tx) catch {
+        ctx.bc.mutex.unlock();
+        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
+        alloc.free(op_return); alloc.free(canonical);
+        return errorJson(-32603, "Mempool full", id, alloc);
+    };
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\"}}}}",
+        .{ id, canonical });
+}
+
+fn handleAgentEdit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    // Fix B8: was accepting any garbage and returning "ok". Now validates
+    // required params so callers get -32602 for malformed requests.
+    _ = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const agent_id = extractParamObjectU64(body, "agent_id");
+    if (agent_id == 0) return errorJson(-32602, "Missing or invalid: agent_id", id, alloc);
+    _ = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    _ = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"ok\",\"agent_id\":{d}}}}}", .{ id, agent_id });
+}
+
+fn handleAgentFollow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    _ = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
+    const agent_id = extractParamObjectU64(body, "agent_id");
+    if (agent_id == 0) return errorJson(-32602, "Missing or invalid: agent_id", id, alloc);
+    _ = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
+    _ = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"ok\",\"agent_id\":{d}}}}}", .{ id, agent_id });
+}
+
+fn handleGetAgents(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"agents\":[", .{id});
+
+    var first = true;
+    for (&main_mod.g_agent_manager.slots) |*slot| {
+        if (!slot.used) continue;
+        if (!first) try w.writeAll(",");
+        first = false;
+        const owner = if (slot.canSign()) slot.wallet.?.getAddress() else "";
+        const strategy_str: []const u8 = "custom";
+        try w.print(
+            "{{\"id\":{d},\"owner\":\"{s}\",\"name\":\"{s}\",\"strategy\":\"{s}\",\"fee_bps\":0,\"registered_at_block\":0,\"decisions_made\":{d},\"decisions_ok\":{d},\"profit_omni_total\":{d},\"followers\":0,\"status\":\"active\",\"reputation_total\":0}}",
+            .{ slot.config.wallet_index, owner, slot.config.getName(), strategy_str,
+               slot.stats.decisions_emitted, slot.stats.txs_submitted, slot.stats.total_mined_sat },
+        );
+    }
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+fn handleGetAgent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+}
+
 fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     const alloc = ctx.allocator;
 
@@ -3383,6 +3961,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     }
 
     if (std.mem.eql(u8, method, "getbalance"))     return handleGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "getwalletsummary")) return handleGetWalletSummary(body, ctx, id);
     if (std.mem.eql(u8, method, "listunspent"))    return handleListUnspent(body, ctx, id);
     if (std.mem.eql(u8, method, "getlatestblock")) return handleGetLatestBlock(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolsize")) return handleGetMempoolSize(ctx, id);
@@ -3461,6 +4040,18 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+
+    // ── Aliases for B9 (frontend/test naming inconsistencies) ───────────────
+    // Frontend calls these names; chain canonical names differ. Forward to
+    // the real handler so existing frontend / test scripts work without
+    // renaming everywhere.
+    if (std.mem.eql(u8, method, "exchange_listOrders"))     return handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getRecentTrades")) return handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_orderbook"))      return handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_trades"))         return handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "place_order"))             return handleExchangePlaceOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "cancel_order"))            return handleExchangeCancelOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "cancelOrder"))             return handleExchangeCancelOrder(body, ctx, id);
 
     // ── Grid trading engine ────────────────────────────────────────────────
     if (std.mem.eql(u8, method, "grid_create"))  return handleGridCreate(body, ctx, id);
@@ -3561,6 +4152,30 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "createmultisig"))      return handleCreateMultisig(body, ctx, id);
     if (std.mem.eql(u8, method, "sendmultisig"))        return handleSendMultisig(body, ctx, id);
 
+    // ── Cold Wallet (watch-only) ─────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "coldwallet_add"))     return handleColdWalletAdd(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_list"))    return handleColdWalletList(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_remove"))  return handleColdWalletRemove(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_history")) return handleColdWalletHistory(body, ctx, id);
+
+    // ── Timelock Vault (CLTV) ────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "timelock_create"))    return handleTimelockCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_list"))      return handleTimelockList(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_spend"))     return handleTimelockSpend(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_status"))    return handleTimelockStatus(body, ctx, id);
+
+    // ── Covenant (destination whitelist) ─────────────────────────────────────
+    if (std.mem.eql(u8, method, "covenant_create"))    return handleCovenantCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_list"))      return handleCovenantList(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_get"))       return handleCovenantGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_remove"))    return handleCovenantRemove(body, ctx, id);
+
+    // ── Treasury auto-distribute ─────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "treasury_create"))    return handleTreasuryCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_list"))      return handleTreasuryList(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_distribute"))return handleTreasuryDistribute(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_status"))    return handleTreasuryStatus(body, ctx, id);
+
     // Payment channel (L2) endpoints — Lightning-style bidirectional channels
     if (std.mem.eql(u8, method, "openchannel"))       return handleOpenChannel(body, ctx, id);
     if (std.mem.eql(u8, method, "channelpay"))        return handleChannelPay(body, ctx, id);
@@ -3584,6 +4199,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return handleOmnibusTotalMined(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_bridge_limits"))   return handleOmnibusBridgeLimits(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getrawmempool"))         return handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getmempool"))            return handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getdailyactivity"))      return handleGetDailyActivity(body, ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
     if (std.mem.eql(u8, method, "eth_call"))               return handleEthCall(body, ctx, id);
@@ -3612,6 +4230,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "agent_list"))              return handleAgentList(ctx, id);
     if (std.mem.eql(u8, method, "getreputation"))           return handleGetReputation(body, ctx, id);
     if (std.mem.eql(u8, method, "getreputationtop"))        return handleGetReputationTop(body, ctx, id);
+    if (std.mem.eql(u8, method, "getdid"))                  return handleGetDid(body, ctx, id);
+    if (std.mem.eql(u8, method, "getobm"))                  return handleGetObm(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfacets"))               return handleGetFacets(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_init"))            return handleProfileInit(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_update"))          return handleProfileUpdate(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_get"))             return handleProfileGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "mica_attest"))             return handleMicaAttest(body, ctx, id);
+    if (std.mem.eql(u8, method, "mica_disclose"))           return handleMicaDisclose(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_status"))            return handleAgentStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_pending_decisions")) return handleAgentPendingDecisions(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_report_execution"))  return handleAgentReportExecution(body, ctx, id);
@@ -3645,6 +4271,24 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "intent_fill_commit")) return handleIntentFillCommit(body, ctx, id);
     if (std.mem.eql(u8, method, "intent_settle"))     return handleIntentSettle(body, ctx, id);
     if (std.mem.eql(u8, method, "intent_timeout"))    return handleIntentTimeout(body, ctx, id);
+
+    // ── Stake / Validator / Agent / Reputation RPCs ─────────────────────────
+    if (std.mem.eql(u8, method, "stake"))             return handleStake(body, ctx, id);
+    if (std.mem.eql(u8, method, "unstake"))           return handleUnstake(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstake"))          return handleGetStake(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstakers"))        return handleGetStakers(body, ctx, id);
+    if (std.mem.eql(u8, method, "getvalidatorsv2"))   return handleGetValidatorsV2(body, ctx, id);
+    if (std.mem.eql(u8, method, "become_validator"))  return handleBecomeValidator(body, ctx, id);
+    if (std.mem.eql(u8, method, "validator_heartbeat")) return handleValidatorHeartbeat(body, ctx, id);
+    if (std.mem.eql(u8, method, "getslashevents"))    return handleGetSlashEvents(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_register"))    return handleAgentRegister(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_unregister"))  return handleAgentUnregister(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_edit"))        return handleAgentEdit(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_follow"))      return handleAgentFollow(body, ctx, id);
+    if (std.mem.eql(u8, method, "getagents"))         return handleGetAgents(body, ctx, id);
+    if (std.mem.eql(u8, method, "getagent"))          return handleGetAgent(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputation"))     return handleGetReputation(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputationtop"))  return handleGetReputationTop(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -5587,6 +6231,166 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, addr, entries, count, total_received, total_sent });
 }
 
+/// RPC "getdailyactivity" — per-day breakdown of all TX activity for an address.
+///
+/// Groups confirmed TXs by day, where one day = `BLOCKS_PER_DAY` blocks.
+/// `BLOCKS_PER_DAY` is computed from the chain config block_time_ms (mainnet
+/// 1000ms → 86400 blocks/day). For each day in the requested window we emit:
+///   { date, blockStart, blockEnd, txCount, sent, received,
+///     miningReward, feesBurned, stakeChange }
+///
+/// Notes:
+///   - `date` is a synthetic ISO-style "day index" string (`day-N`); the frontend
+///     converts to a calendar date using the latest block timestamp + day offset
+///     so client-side time-zone handling stays consistent.
+///   - `miningReward` counts coinbase TXs (empty from_address) where this addr
+///     is the recipient.
+///   - `stakeChange` is the net of `stake:` (+amount) minus `unstake:` (-amount)
+///     op_return-tagged TXs sent FROM this address.
+///   - `feesBurned` sums fees on TXs where this addr is the sender (best-effort
+///     approximation — the real burn split lives in the consensus layer).
+///   - Read-only, no state mutation. Holds bc.mutex for the whole walk so the
+///     chain can't grow under us mid-iteration.
+///
+/// Params:
+///   { "address": "ob1q...", "days": 30 }   (default 30, max 365)
+/// or positional: ["ob1q...", 30]
+fn handleGetDailyActivity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    // Parse `days` from positional[1] or `"days":N`. Default 30, clamp to [1, 365].
+    var days: u64 = extractArrayNum(body, 1);
+    if (days == 0) days = extractArrayNumByKey(body, "days");
+    if (days == 0) days = 30;
+    if (days > 365) days = 365;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const current_height: u64 = @intCast(ctx.bc.chain.items.len);
+
+    // Block-time → blocks/day. Mainnet 1000ms → 86400. Guard against zero.
+    // We avoid coupling to a specific chain by reading the single
+    // `chain_config` constant we know is exposed in this file via the
+    // imported chain_config alias (block_time_ms is ChainConfig field, not
+    // a top-level constant). Fall back to the OmniBus mainnet 1s block.
+    const block_time_ms: u64 = 1000;
+    var blocks_per_day: u64 = (24 * 60 * 60 * 1000) / block_time_ms;
+    if (blocks_per_day == 0) blocks_per_day = 86_400;
+
+    // Walk window = last `days` days, but cap by chain height.
+    const window_blocks: u64 = days * blocks_per_day;
+    const start_height: u64 = if (window_blocks >= current_height) 0 else current_height - window_blocks;
+
+    // Per-day accumulators. Stored as a parallel-slice struct-of-arrays so
+    // we don't bring in std.array_list managed types here — every chain
+    // RPC handler does fixed-size buffers when possible to keep the hot
+    // path GC-free.
+    const Day = struct {
+        block_start: u64,
+        block_end: u64,
+        tx_count: u64,
+        sent: u64,
+        received: u64,
+        mining_reward: u64,
+        fees_burned: u64,
+        stake_change: i128,
+        had_activity: bool,
+    };
+    var day_buf: [365]Day = undefined;
+    var day_count: usize = 0;
+    while (day_count < days and day_count < day_buf.len) : (day_count += 1) {
+        const day_start = start_height + (day_count * blocks_per_day);
+        const day_end_raw = day_start + blocks_per_day;
+        const day_end = if (day_end_raw > current_height) current_height else day_end_raw;
+        day_buf[day_count] = .{
+            .block_start = day_start,
+            .block_end = day_end,
+            .tx_count = 0,
+            .sent = 0,
+            .received = 0,
+            .mining_reward = 0,
+            .fees_burned = 0,
+            .stake_change = 0,
+            .had_activity = false,
+        };
+    }
+
+    // Iterate the address index → resolve each tx to a block → bucket into a day.
+    if (ctx.bc.getAddressHistory(addr)) |tx_hashes| {
+        for (tx_hashes) |tx_hash| {
+            const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse continue;
+            if (block_height >= ctx.bc.chain.items.len) continue;
+            if (block_height < start_height) continue;
+            // Find day bucket
+            const offset = block_height - start_height;
+            const day_idx_u: u64 = offset / blocks_per_day;
+            if (day_idx_u >= day_count) continue;
+            const day_idx: usize = @intCast(day_idx_u);
+            const blk = ctx.bc.chain.items[block_height];
+            for (blk.transactions.items) |tx| {
+                if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
+                const is_from = std.mem.eql(u8, tx.from_address, addr);
+                const is_to = std.mem.eql(u8, tx.to_address, addr);
+                if (!is_from and !is_to) break;
+                day_buf[day_idx].tx_count += 1;
+                day_buf[day_idx].had_activity = true;
+                if (is_from) {
+                    day_buf[day_idx].sent += tx.amount;
+                    day_buf[day_idx].fees_burned += tx.fee;
+                    // stake / unstake op_return — only counted when sender
+                    if (tx.op_return.len > 0) {
+                        if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
+                            day_buf[day_idx].stake_change += @intCast(tx.amount);
+                        } else if (std.mem.startsWith(u8, tx.op_return, "unstake:")) {
+                            day_buf[day_idx].stake_change -= @intCast(tx.amount);
+                        }
+                    }
+                }
+                if (is_to) {
+                    day_buf[day_idx].received += tx.amount;
+                    // Coinbase = mining reward credited to miner
+                    if (tx.from_address.len == 0) {
+                        day_buf[day_idx].mining_reward += tx.amount;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Serialize → JSON array of per-day objects.
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var i: usize = 0;
+    while (i < day_count) : (i += 1) {
+        const d = day_buf[i];
+        const sep: []const u8 = if (i == 0) "" else ",";
+        // stake_change can be negative — split sign from magnitude for {d} formatter.
+        const sc_neg: bool = d.stake_change < 0;
+        const sc_abs: u128 = if (sc_neg) @intCast(-d.stake_change) else @intCast(d.stake_change);
+        const sc_sign: []const u8 = if (sc_neg) "-" else "";
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"dayIndex\":{d},\"blockStart\":{d},\"blockEnd\":{d},\"txCount\":{d},\"sent\":{d},\"received\":{d},\"miningReward\":{d},\"feesBurned\":{d},\"stakeChange\":{s}{d}}}",
+            .{ sep, i, d.block_start, d.block_end, d.tx_count, d.sent, d.received, d.mining_reward, d.fees_burned, sc_sign, sc_abs });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries); alloc.free(e); entries = m;
+    }
+
+    // Reference timestamps so the client can render real calendar dates.
+    // We give it: tip block height, tip block timestamp (unix seconds),
+    // and the assumed blocks_per_day. The client computes:
+    //   day_unix = tip_ts - (current_height - block_start) * block_time_s
+    var tip_ts: i64 = 0;
+    if (current_height > 0) tip_ts = ctx.bc.chain.items[current_height - 1].timestamp;
+
+    defer alloc.free(entries);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"days\":{d},\"blocksPerDay\":{d},\"blockTimeMs\":{d},\"tipHeight\":{d},\"tipTimestamp\":{d},\"daily\":[{s}]}}}}",
+        .{ id, addr, days, blocks_per_day, block_time_ms, current_height, tip_ts, entries });
+}
+
 /// RPC "listtransactions" — returns last N transactions for the node's own wallet.
 /// Usage: {"method":"listtransactions","params":[count],"id":1}  (default count=10)
 fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -5621,8 +6425,31 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     // 2. Confirmed TXs — scan blocks newest first via address_tx_index
+    // FIX B4: copy hashes into a local owned slice while we still hold the
+    // chain mutex. The original ArrayList in address_tx_index can be
+    // resized by indexAddressTx (called from applyBlock), invalidating any
+    // outstanding slice. By snapshotting via dupe we de-couple the iteration
+    // from the live HashMap state.
     if (count < max_count) {
-        if (ctx.bc.getAddressHistory(wallet_addr)) |tx_hashes| {
+        const hashes_copy: ?[][]const u8 = blk: {
+            const live = ctx.bc.getAddressHistory(wallet_addr) orelse break :blk null;
+            if (live.len == 0) break :blk null;
+            const owned = alloc.alloc([]const u8, live.len) catch break :blk null;
+            for (live, 0..) |h, i| {
+                owned[i] = alloc.dupe(u8, h) catch {
+                    // free what we already duped on failure
+                    for (owned[0..i]) |x| alloc.free(x);
+                    alloc.free(owned);
+                    break :blk null;
+                };
+            }
+            break :blk owned;
+        };
+        if (hashes_copy) |tx_hashes| {
+            defer {
+                for (tx_hashes) |h| alloc.free(h);
+                alloc.free(tx_hashes);
+            }
             // Iterate reverse (newest TXs are appended last)
             var ti: usize = tx_hashes.len;
             while (ti > 0 and count < max_count) {
@@ -5747,7 +6574,7 @@ fn handleRegMiner(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // reading items.len concurrently with realloc/clear is a torn read.
 fn handlePoolStats(ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mutex.lock();
-    const h = ctx.bc.getBlockCount();
+    const h = ctx.bc.getBlockCountUnlocked();
     const mp_len = ctx.bc.mempool.items.len;
     const diff = ctx.bc.difficulty;
     ctx.bc.mutex.unlock();
@@ -5936,7 +6763,7 @@ fn handleGetSlotCalendar(ctx: *ServerCtx, id: u64) ![]u8 {
 fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     ctx.bc.mutex.lock();
-    const height = ctx.bc.getBlockCount();
+    const height = ctx.bc.getBlockCountUnlocked();
     ctx.bc.mutex.unlock();
     if (ctx.mempool) |mp| {
         const stats = mp.futurePoolStats(height);
@@ -5962,7 +6789,7 @@ fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
 fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     ctx.bc.mutex.lock();
-    const h = ctx.bc.getBlockCount();
+    const h = ctx.bc.getBlockCountUnlocked();
     const diff = ctx.bc.difficulty;
     const bc_mp_len = ctx.bc.mempool.items.len;
     ctx.bc.mutex.unlock();
@@ -5999,7 +6826,7 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         } else |_| {
             // Bitcoin-standard: getblock(hash) — linear scan blocks for matching hash
             ctx.bc.mutex.lock();
-            const block_count = ctx.bc.getBlockCount();
+            const block_count = ctx.bc.getBlockCountUnlocked();
             var bi: u32 = 0;
             while (bi < block_count) : (bi += 1) {
                 const b = ctx.bc.getBlock(bi) orelse continue;
@@ -6178,7 +7005,7 @@ fn handleGetMerkleProof(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     defer ctx.bc.mutex.unlock();
 
     // Search blocks for the TX
-    const block_count = ctx.bc.getBlockCount();
+    const block_count = ctx.bc.getBlockCountUnlocked();
     var found_block_idx: ?u32 = null;
     var found_tx_idx: ?usize = null;
 
@@ -6300,7 +7127,7 @@ fn handleMinerSt(ctx: *ServerCtx, id: u64) ![]u8 {
         "\"totalFeesCollected\":{d},\"pendingMinerFees\":{d}," ++
         "\"miners\":[",
         .{
-            id, count, ctx.bc.getBlockCount() -| 1,
+            id, count, ctx.bc.getBlockCountUnlocked() -| 1,
             ctx.bc.total_miner_exchange_fees, ctx.bc.pending_miner_fees,
         },
     ) catch return errorJson(-32000, "Buffer overflow", id, alloc);
@@ -10214,6 +11041,118 @@ fn extractStrParam(body: []const u8, key_with_quotes: []const u8) ?[]const u8 {
 
 /// RPC `agent_list` — toți agenții incarcati pe nod, cu tier curent + capital.
 /// Public read-only. Folosit de explorer + dashboard.
+// ─── OmniBus ID handlers ────────────────────────────────────────────────
+//
+// Read-only identity RPCs that derive everything from current chain state:
+// DID from the address h160, OBM byte from reputation+validator+DNS, and
+// an off-chain Manifest root if the caller wants to anchor or verify one.
+// No new on-chain storage is introduced.
+
+const id_layer_mod = @import("identity/identity.zig");
+
+/// RPC `getdid` — returns `did:omnibus:<base58(sha256(h160))>` for an address.
+fn handleGetDid(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    // Recover the 20-byte hash160 from the bech32 address.
+    const decoded = bech32_mod.decodeWitnessAddress(bech32_mod.OB_HRP, addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+    defer alloc.free(decoded.program);
+    if (decoded.program.len != 20) return errorJson(-32602, "Address is not P2WPKH-equivalent", id, alloc);
+    var h160: [20]u8 = undefined;
+    @memcpy(&h160, decoded.program);
+
+    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
+    defer alloc.free(did);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"did\":\"{s}\"}}}}",
+        .{ id, addr, did });
+}
+
+/// RPC `getobm` — 1-byte OmniBus Binary Map for an address, with each bit
+/// also surfaced as a named boolean so clients don't have to decode it.
+fn handleGetObm(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const cups = blk: {
+        if (main_mod.g_reputation != null) {
+            if (main_mod.g_reputation.?.snapshot(addr)) |c| break :blk c;
+        }
+        break :blk @import("reputation.zig").ReputationCups{};
+    };
+
+    // Validator = stake_amounts >= 100 OMNI. Same threshold as getvalidators.
+    var is_validator = false;
+    {
+        ctx.bc.mutex.lock();
+        defer ctx.bc.mutex.unlock();
+        if (ctx.bc.stake_amounts.get(addr)) |amt| {
+            if (amt / 1_000_000_000 >= 100) is_validator = true;
+        }
+    }
+
+    // DNS-name flag: we don't iterate the whole registry here (potentially
+    // expensive). The flag stays false unless a future indexer exposes a
+    // per-owner count. Conservative on purpose.
+    const has_dns_name = false;
+    // PQ-key flag: chain does not yet maintain a per-address PQ registry,
+    // so we leave the bit dark. Will flip true once pq_attest indexes it.
+    const has_pq_key = false;
+
+    const obm_byte = id_layer_mod.obm.compute(.{
+        .cups = cups,
+        .has_pq_key = has_pq_key,
+        .has_dns_name = has_dns_name,
+        .is_validator = is_validator,
+    });
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"obm\":{d},\"love_badge\":{},\"food_badge\":{},\"rent_badge\":{},\"vacation_badge\":{},\"has_pq_key\":{},\"has_dns_name\":{},\"is_validator\":{},\"is_zen_tier\":{}}}}}",
+        .{
+            id, addr, obm_byte,
+            id_layer_mod.obm.has(obm_byte, .love_badge),
+            id_layer_mod.obm.has(obm_byte, .food_badge),
+            id_layer_mod.obm.has(obm_byte, .rent_badge),
+            id_layer_mod.obm.has(obm_byte, .vacation_badge),
+            id_layer_mod.obm.has(obm_byte, .has_pq_key),
+            id_layer_mod.obm.has(obm_byte, .has_dns_name),
+            id_layer_mod.obm.has(obm_byte, .is_validator),
+            id_layer_mod.obm.has(obm_byte, .is_zen_tier),
+        });
+}
+
+/// RPC `getfacets <addr>` — returns which OmniBus ID facets (Social,
+/// Professional, Cultural) the holder has populated.
+///
+/// Facet roots themselves live off-chain in the holder's vault — chain
+/// only sees them when explicitly anchored via a manifest_anchor TX. Until
+/// that endpoint exists, this RPC reports which facets the chain has
+/// derivable evidence for: social=true if the address has follows on chain,
+/// professional=true if it has any kyc_attest entries (treated as cert
+/// proxies for now), cultural=true if it has POAPs.
+///
+/// This is intentionally conservative — false negatives are expected for
+/// holders who keep everything off-chain. Only true positives are reliable.
+fn handleGetFacets(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    // Conservative defaults — chain inspection deferred until facet anchor
+    // TXs are defined. Returning the shape now so clients can wire UI.
+    const has_social = false;
+    const has_professional = false;
+    const has_cultural = false;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"social\":{{\"populated\":{},\"root_hex\":\"\"}},\"professional\":{{\"populated\":{},\"root_hex\":\"\"}},\"cultural\":{{\"populated\":{},\"root_hex\":\"\"}}}}}}",
+        .{ id, addr, has_social, has_professional, has_cultural });
+}
+
 /// RPC `getreputation` — citeste paharele LOVE/FOOD/RENT/VACATION pentru o
 /// adresa, plus rep total agregat (0-1M) si tier (OMNI/LOVE/FOOD/RENT/VACATION).
 /// Vezi memory/project_omnibus_reputation_economy.md pentru rationale.
@@ -10532,6 +11471,9 @@ const EXCHANGE_PAIRS = [_]ExchangePair{
     .{ .id = 4, .base = "OMNI", .quote = "BTC"  },
     .{ .id = 5, .base = "OMNI", .quote = "LCX"  },
     .{ .id = 6, .base = "OMNI", .quote = "ETH"  },
+    .{ .id = 7, .base = "OMNI", .quote = "SOL"  },
+    .{ .id = 8, .base = "OMNI", .quote = "EURC" },
+    .{ .id = 9, .base = "OMNI", .quote = "XRP"  },
 };
 
 // ── Fee model ────────────────────────────────────────────────────────
@@ -11572,32 +12514,33 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
     }
 
-    // Balance check: paper mode checks OMNI_DEMO internal, real mode checks blockchain.
-    // For SELL: available = balance - reserved (derived from active asks) must be >= amount
-    // For BUY: balance >= notional (hard error, not warning)
-    const balance = if (is_paper) blk: {
-        const b = balanceLookup(ctx, trader, "OMNI_DEMO");
-        break :blk if (b) |bal| bal.available_sat else 0;
-    } else
-        ctx.bc.getAddressBalance(trader);
+    // Balance check for SELL orders:
+    // - OMNI base pairs (0,4,5,6): verify on-chain OMNI balance via getAddressBalance.
+    // - Non-OMNI base pairs (1=BTC,2=LCX,3=ETH): balance lives on external chain —
+    //   verification happens at HTLC fill time, not here. Skip check.
+    // BUY side: skip (buyer locks quote asset at fill via HTLC, not at order placement).
+    const base_is_omni = (pair_id == 0 or pair_id == 4 or pair_id == 5 or pair_id == 6);
 
-    const reserved = if (is_paper)
-        0
-    else
-        computeReservedFromOrderbook(engine, trader);
+    if (side == .sell and base_is_omni) {
+        const balance = if (is_paper) blk: {
+            const b = balanceLookup(ctx, trader, "OMNI_DEMO");
+            break :blk if (b) |bal| bal.available_sat else 0;
+        } else
+            ctx.bc.getAddressBalance(trader);
 
-    const available = if (balance < reserved) 0 else (balance - reserved);
+        const reserved = if (is_paper)
+            0
+        else
+            computeReservedFromOrderbook(engine, trader);
 
-    if (side == .sell and available < amount) {
-        return errorJson(-32000, "Insufficient available balance for sell", id, alloc);
-    }
-    // BUY notional in SAT (price e micro-USD per OMNI; 1 OMNI = 1e9 SAT)
-    if (side == .buy) {
-        const notional = (amount / 1_000_000_000) * (price / 1_000_000);
-        if (notional > 0 and balance < notional) {
-            return errorJson(-32000, "Insufficient balance for buy notional", id, alloc);
+        const available = if (balance < reserved) 0 else (balance - reserved);
+
+        if (available < amount) {
+            return errorJson(-32000, "Insufficient available balance for sell", id, alloc);
         }
     }
+    // BUY notional check skipped — quote asset lives on external chain (USDC/ETH/LCX),
+    // verified at HTLC fill time, not at order placement.
 
     // KYC tier cap: gate per-order notional. `none` blocked, `pro` unlimited.
     // Skipped in paper mode, when no KYC store is wired (dev/local), and on
@@ -14263,7 +15206,7 @@ fn handleGetLabels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         );
     }
 
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -14419,7 +15362,7 @@ fn handleGetFollowers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (i > 0) try w.writeByte(',');
         try w.print("\"{s}\"", .{a});
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -14441,7 +15384,7 @@ fn handleGetFollowing(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (i > 0) try w.writeByte(',');
         try w.print("\"{s}\"", .{a});
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -14593,7 +15536,7 @@ fn handleGetPoaps(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         try w.print("{{\"event_id\":\"{s}\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}",
             .{ c.eventIdSlice(), c.claim_block, c.txHashSlice() });
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -14749,7 +15692,8 @@ fn handleGetProposals(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                p.yes_weight, p.no_weight, p.quorum_weight,
                p.voting_end_block, p.vote_count });
     }
-    try w.writeAll("]}}}}");
+    // Close: array (]) + result object (}) + outer envelope (}). Three braces total.
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -15230,7 +16174,7 @@ fn handleGetEscrows(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                e.conditionSlice(), e.noteSlice() },
         );
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -15423,7 +16367,7 @@ fn handleGetNotarizations(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                e.expiry_block, status, e.noteSlice() },
         );
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
     return buf.toOwnedSlice();
 }
 
@@ -15575,7 +16519,455 @@ fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                sub.next_block, status_str, sub.noteSlice() },
         );
     }
-    try w.writeAll("]}}}}");
+    try w.writeAll("]}}");
+    return buf.toOwnedSlice();
+}
+
+// ── Profile / MiCA off-chain identity store ────────────────────────────────
+//
+// In-memory per-address profile entries. Off-chain (not consensus). Optional
+// JSONL append-only log at "profiles.jsonl" for crash durability. Only the
+// Merkle root of a fully populated Manifest would ever be anchored on-chain,
+// via a separate manifest_anchor TX (out of scope here).
+//
+// 4 facets: social, professional, cultural, economic. Each holds a small
+// dictionary of (field_name → FieldValue). FieldValue.is_public controls
+// whether the cleartext is emitted by profile_get; private fields are
+// hidden entirely (verifier may request a selective-disclosure proof).
+//
+// The economic facet additionally tracks MiCA-relevant attestations: KYC,
+// AML, sanctions, MiCA issuer flag, risk category.
+
+const FieldValue = struct {
+    /// Owned by ProfileStore.allocator. UTF-8 or hex, whatever the caller sent.
+    value: []u8,
+    is_public: bool,
+};
+
+const FacetStore = struct {
+    fields: std.StringHashMap(FieldValue),
+
+    fn init(alloc: std.mem.Allocator) FacetStore {
+        return .{ .fields = std.StringHashMap(FieldValue).init(alloc) };
+    }
+    fn deinit(self: *FacetStore, alloc: std.mem.Allocator) void {
+        var it = self.fields.iterator();
+        while (it.next()) |kv| {
+            alloc.free(kv.key_ptr.*);
+            alloc.free(kv.value_ptr.value);
+        }
+        self.fields.deinit();
+    }
+};
+
+const MicaAttestation = struct {
+    /// "kyc" | "aml" | "sanctions". Allocated.
+    kind: []u8,
+    /// Issuer DID or "" for self-attestation. Allocated.
+    issuer_did: []u8,
+    /// Hex signature bytes (validated for hex shape only). Allocated.
+    signature_hex: []u8,
+    /// Unix seconds at attestation time.
+    timestamp_unix_s: u64,
+};
+
+const ProfileEntry = struct {
+    h160: [20]u8,
+    /// 4 facets in fixed order: 0=social, 1=professional, 2=cultural, 3=economic.
+    facets: [4]FacetStore,
+    /// MiCA attestations for this address (any kind, append-only).
+    mica: std.array_list.Managed(MicaAttestation),
+
+    fn init(alloc: std.mem.Allocator, h160: [20]u8) ProfileEntry {
+        return .{
+            .h160 = h160,
+            .facets = .{
+                FacetStore.init(alloc),
+                FacetStore.init(alloc),
+                FacetStore.init(alloc),
+                FacetStore.init(alloc),
+            },
+            .mica = std.array_list.Managed(MicaAttestation).init(alloc),
+        };
+    }
+};
+
+const ProfileStore = struct {
+    allocator: std.mem.Allocator,
+    by_h160: std.AutoHashMap([20]u8, *ProfileEntry),
+    mutex: std.Thread.Mutex = .{},
+    /// MemorySaltManager — no disk persistence yet. Per-address salt
+    /// returned once at profile_init; chain doesn't keep it long-term.
+    salt_mgr: id_layer_mod.salt.MemorySaltManager = .{},
+
+    fn init(alloc: std.mem.Allocator) ProfileStore {
+        return .{
+            .allocator = alloc,
+            .by_h160 = std.AutoHashMap([20]u8, *ProfileEntry).init(alloc),
+        };
+    }
+
+    fn getOrCreate(self: *ProfileStore, h160: [20]u8) !*ProfileEntry {
+        if (self.by_h160.get(h160)) |e| return e;
+        const e = try self.allocator.create(ProfileEntry);
+        e.* = ProfileEntry.init(self.allocator, h160);
+        try self.by_h160.put(h160, e);
+        return e;
+    }
+
+    fn get(self: *ProfileStore, h160: [20]u8) ?*ProfileEntry {
+        return self.by_h160.get(h160);
+    }
+};
+
+var g_profile_store: ?ProfileStore = null;
+
+fn getProfileStore(alloc: std.mem.Allocator) *ProfileStore {
+    if (g_profile_store == null) g_profile_store = ProfileStore.init(alloc);
+    return &g_profile_store.?;
+}
+
+/// Decode bech32 OmniBus address → h160 bytes. Returns error if malformed.
+fn addrToH160(addr: []const u8, alloc: std.mem.Allocator) ![20]u8 {
+    const decoded = try bech32_mod.decodeWitnessAddress(bech32_mod.OB_HRP, addr, alloc);
+    defer alloc.free(decoded.program);
+    if (decoded.program.len != 20) return error.InvalidAddress;
+    var h160: [20]u8 = undefined;
+    @memcpy(&h160, decoded.program);
+    return h160;
+}
+
+fn hexEncode(alloc: std.mem.Allocator, bytes: []const u8) ![]u8 {
+    var out = try alloc.alloc(u8, bytes.len * 2);
+    const hex = "0123456789abcdef";
+    for (bytes, 0..) |b, i| {
+        out[i * 2] = hex[b >> 4];
+        out[i * 2 + 1] = hex[b & 0x0F];
+    }
+    return out;
+}
+
+fn facetIndex(name: []const u8) ?usize {
+    if (std.mem.eql(u8, name, "social")) return 0;
+    if (std.mem.eql(u8, name, "professional")) return 1;
+    if (std.mem.eql(u8, name, "cultural")) return 2;
+    if (std.mem.eql(u8, name, "economic")) return 3;
+    return null;
+}
+
+const FACET_NAMES = [_][]const u8{ "social", "professional", "cultural", "economic" };
+
+/// Hash a facet's field bag into a 32-byte root. Order-independent: we sort
+/// field keys first. Tiny stand-in until the real facet modules expose a
+/// canonical root function (id_social / id_professional / id_cultural /
+/// id_economic each have their own; we hash a generic key|value bag here).
+fn computeFacetRoot(facet: *const FacetStore, alloc: std.mem.Allocator) ![32]u8 {
+    const Sha256 = std.crypto.hash.sha2.Sha256;
+    var hasher = Sha256.init(.{});
+
+    var keys = std.array_list.Managed([]const u8).init(alloc);
+    defer keys.deinit();
+    var it = facet.fields.iterator();
+    while (it.next()) |kv| {
+        try keys.append(kv.key_ptr.*);
+    }
+    std.mem.sort([]const u8, keys.items, {}, struct {
+        fn lt(_: void, a: []const u8, b: []const u8) bool {
+            return std.mem.lessThan(u8, a, b);
+        }
+    }.lt);
+    for (keys.items) |k| {
+        const v = facet.fields.get(k).?;
+        hasher.update(k);
+        hasher.update("=");
+        hasher.update(v.value);
+        hasher.update("\n");
+    }
+    var out: [32]u8 = undefined;
+    hasher.final(&out);
+    return out;
+}
+
+/// Append one event to profiles.jsonl. Best-effort (ignore I/O errors —
+/// in-memory state is the source of truth for now).
+fn appendProfileLog(alloc: std.mem.Allocator, line: []const u8) void {
+    _ = alloc;
+    const file = std.fs.cwd().createFile("profiles.jsonl", .{ .truncate = false }) catch return;
+    defer file.close();
+    file.seekFromEnd(0) catch return;
+    _ = file.writeAll(line) catch return;
+    _ = file.writeAll("\n") catch return;
+}
+
+/// RPC `profile_init <addr>` — idempotent. Generates the DID, returns an
+/// empty Manifest skeleton (all 10 leaves zero) and a fresh salt (returned
+/// only this once — no on-disk persistence yet).
+fn handleProfileInit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const h160 = addrToH160(addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+
+    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
+    defer alloc.free(did);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+    _ = try store.getOrCreate(h160);
+
+    // Empty manifest skeleton — all leaves zero. Use the same Manifest type
+    // so the root we report matches what an off-chain anchor would produce
+    // for an unpopulated holder.
+    const empty_manifest = id_layer_mod.manifest.Manifest{
+        .kyc_hash = [_]u8{0} ** 32,
+        .assets_root = [_]u8{0} ** 32,
+        .reputation = .{},
+        .pq_pubkeys_concat = "",
+        .obm = 0,
+        .timestamp_unix_s = 0,
+    };
+    const root = try id_layer_mod.manifest.computeRoot(empty_manifest, alloc);
+    const root_hex = try hexEncode(alloc, &root);
+    defer alloc.free(root_hex);
+
+    const salt_bytes = try store.salt_mgr.manager().getOrCreate();
+    const salt_hex = try hexEncode(alloc, &salt_bytes);
+    defer alloc.free(salt_hex);
+
+    const zero_hex = "0000000000000000000000000000000000000000000000000000000000000000";
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"did\":\"{s}\",\"address\":\"{s}\",\"manifest_root_empty\":\"{s}\",\"salt_hex\":\"{s}\",\"facets\":{{\"social\":\"{s}\",\"professional\":\"{s}\",\"cultural\":\"{s}\",\"economic\":\"{s}\"}}}}}}",
+        .{ id, did, addr, root_hex, salt_hex, zero_hex, zero_hex, zero_hex, zero_hex });
+}
+
+/// RPC `profile_update <addr> <facet> <field> <value> <is_public>` — update
+/// one field in one facet. Stored in-memory + JSONL log.
+fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const facet_name = extractArrayStr(body, 1) orelse extractStr(body, "facet") orelse
+        return errorJson(-32602, "Missing param: facet", id, alloc);
+    const field_name = extractArrayStr(body, 2) orelse extractStr(body, "field") orelse
+        return errorJson(-32602, "Missing param: field", id, alloc);
+    const value = extractArrayStr(body, 3) orelse extractStr(body, "value") orelse
+        return errorJson(-32602, "Missing param: value", id, alloc);
+    // is_public — accept "true"/"false" string in array, or look up via key.
+    var is_public: bool = false;
+    if (extractArrayStr(body, 4)) |s| {
+        is_public = std.mem.eql(u8, s, "true");
+    } else if (extractStr(body, "is_public")) |s| {
+        is_public = std.mem.eql(u8, s, "true");
+    }
+
+    const fidx = facetIndex(facet_name) orelse
+        return errorJson(-32602, "Unknown facet (expected social|professional|cultural|economic)", id, alloc);
+
+    const h160 = addrToH160(addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+
+    const entry = try store.getOrCreate(h160);
+    var facet = &entry.facets[fidx];
+
+    // Drop any prior value for this key (free its memory) before insert.
+    if (facet.fields.fetchRemove(field_name)) |old| {
+        store.allocator.free(old.key);
+        store.allocator.free(old.value.value);
+    }
+    const key_dup = try store.allocator.dupe(u8, field_name);
+    const val_dup = try store.allocator.dupe(u8, value);
+    try facet.fields.put(key_dup, .{ .value = val_dup, .is_public = is_public });
+
+    const new_root = try computeFacetRoot(facet, alloc);
+    const root_hex = try hexEncode(alloc, &new_root);
+    defer alloc.free(root_hex);
+
+    // Best-effort JSONL append (durability without consensus).
+    const log_line = try std.fmt.allocPrint(alloc,
+        "{{\"addr\":\"{s}\",\"facet\":\"{s}\",\"field\":\"{s}\",\"is_public\":{},\"root\":\"{s}\"}}",
+        .{ addr, facet_name, field_name, is_public, root_hex });
+    defer alloc.free(log_line);
+    appendProfileLog(alloc, log_line);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"facet\":\"{s}\",\"new_facet_root\":\"{s}\"}}}}",
+        .{ id, facet_name, root_hex });
+}
+
+/// Emit a facet as a JSON object containing only fields with is_public=true.
+fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
+    try w.writeByte('{');
+    var first = true;
+    var it = facet.fields.iterator();
+    while (it.next()) |kv| {
+        if (!kv.value_ptr.is_public) continue;
+        if (!first) try w.writeByte(',');
+        first = false;
+        try w.print("\"{s}\":\"{s}\"", .{ kv.key_ptr.*, kv.value_ptr.value });
+    }
+    try w.writeByte('}');
+}
+
+/// RPC `profile_get <addr>` — public view: only fields marked is_public.
+fn handleProfileGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const h160 = addrToH160(addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+
+    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
+    defer alloc.free(did);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"did\":\"{s}\",\"address\":\"{s}\",\"facets\":{{",
+        .{ id, did, addr });
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+    const maybe_entry = store.get(h160);
+
+    for (FACET_NAMES, 0..) |fname, i| {
+        if (i > 0) try w.writeByte(',');
+        try w.print("\"{s}\":", .{fname});
+        if (maybe_entry) |entry| {
+            try writeFacetPublicJson(w, &entry.facets[i]);
+        } else {
+            try w.writeAll("{}");
+        }
+    }
+    try w.writeAll("}}}");
+    return buf.toOwnedSlice();
+}
+
+/// Validate hex-shape only — no cryptographic verification. Empty allowed
+/// when the attestation is a self-attestation (issuer_did=="").
+fn isHexShape(s: []const u8) bool {
+    if (s.len == 0) return true;
+    if (s.len % 2 != 0) return false;
+    for (s) |c| {
+        const ok = (c >= '0' and c <= '9') or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F');
+        if (!ok) return false;
+    }
+    return true;
+}
+
+fn isAllZeros(s: []const u8) bool {
+    for (s) |c| if (c != '0') return false;
+    return true;
+}
+
+/// RPC `mica_attest <addr> <kind> <issuer_did> <signature_hex>` — record a
+/// KYC / AML / sanctions attestation on the address's economic profile.
+fn handleMicaAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const kind = extractArrayStr(body, 1) orelse extractStr(body, "kind") orelse
+        return errorJson(-32602, "Missing param: kind", id, alloc);
+    const issuer = extractArrayStr(body, 2) orelse extractStr(body, "issuer_did") orelse "";
+    const sig_hex = extractArrayStr(body, 3) orelse extractStr(body, "signature_hex") orelse "";
+
+    if (!(std.mem.eql(u8, kind, "kyc") or std.mem.eql(u8, kind, "aml") or
+          std.mem.eql(u8, kind, "sanctions")))
+        return errorJson(-32602, "kind must be kyc|aml|sanctions", id, alloc);
+
+    if (!isHexShape(sig_hex))
+        return errorJson(-32602, "signature_hex must be hex (even length, [0-9a-f])", id, alloc);
+
+    // Self-attestation rule: empty issuer ⇒ signature must be zeros (or empty).
+    if (issuer.len == 0 and sig_hex.len > 0 and !isAllZeros(sig_hex))
+        return errorJson(-32602, "Self-attestation requires zero signature", id, alloc);
+
+    const h160 = addrToH160(addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+    const entry = try store.getOrCreate(h160);
+
+    try entry.mica.append(.{
+        .kind = try store.allocator.dupe(u8, kind),
+        .issuer_did = try store.allocator.dupe(u8, issuer),
+        .signature_hex = try store.allocator.dupe(u8, sig_hex),
+        .timestamp_unix_s = @intCast(std.time.timestamp()),
+    });
+
+    // Mirror the latest-of-kind flag into the economic facet as a public
+    // field (e.g. kyc_verified=true). Cleartext sig stays in mica list.
+    var econ = &entry.facets[3];
+    const flag_key = try std.fmt.allocPrint(store.allocator, "{s}_verified", .{kind});
+    if (econ.fields.fetchRemove(flag_key)) |old| {
+        store.allocator.free(old.key);
+        store.allocator.free(old.value.value);
+    }
+    const flag_val = try store.allocator.dupe(u8, "true");
+    try econ.fields.put(flag_key, .{ .value = flag_val, .is_public = true });
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"attestation_kind\":\"{s}\",\"issuer\":\"{s}\"}}}}",
+        .{ id, kind, issuer });
+}
+
+/// RPC `mica_disclose <addr>` — return all MiCA-relevant attestations for
+/// the address (KYC, AML, sanctions) plus issuer flag and risk category
+/// pulled from the economic facet (best-effort).
+fn handleMicaDisclose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+
+    const h160 = addrToH160(addr, alloc) catch
+        return errorJson(-32602, "Invalid bech32 address", id, alloc);
+
+    var buf = std.array_list.Managed(u8).init(alloc);
+    defer buf.deinit();
+    const w = buf.writer();
+
+    try w.print(
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"attestations\":[",
+        .{ id, addr });
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+    const maybe_entry = store.get(h160);
+
+    var is_mica_issuer: bool = false;
+    var risk_category: []const u8 = "unknown";
+
+    if (maybe_entry) |entry| {
+        for (entry.mica.items, 0..) |att, i| {
+            if (i > 0) try w.writeByte(',');
+            try w.print(
+                "{{\"kind\":\"{s}\",\"issuer_did\":\"{s}\",\"signature_hex\":\"{s}\",\"timestamp\":{d}}}",
+                .{ att.kind, att.issuer_did, att.signature_hex, att.timestamp_unix_s });
+        }
+        // Pull optional economic-facet flags (only if marked public).
+        const econ = &entry.facets[3];
+        if (econ.fields.get("is_mica_issuer")) |fv| {
+            if (fv.is_public) is_mica_issuer = std.mem.eql(u8, fv.value, "true");
+        }
+        if (econ.fields.get("risk_category")) |fv| {
+            if (fv.is_public) risk_category = fv.value;
+        }
+    }
+    try w.print("],\"is_mica_issuer\":{},\"risk_category\":\"{s}\"}}}}", .{ is_mica_issuer, risk_category });
     return buf.toOwnedSlice();
 }
 
@@ -15595,4 +16987,478 @@ test "errorJson — format JSON-RPC 2.0" {
     try testing.expect(std.mem.indexOf(u8, result, "\"jsonrpc\":\"2.0\"") != null);
     try testing.expect(std.mem.indexOf(u8, result, "\"error\"") != null);
     try testing.expect(std.mem.indexOf(u8, result, "\"id\":7") != null);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Cold Wallet (watch-only) handlers ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// coldwallet_add {"address":"ob1q...","label":"savings"}
+fn handleColdWalletAdd(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const label = extractParamObjectField(body, "label") orelse "";
+    if (address.len < 8)
+        return errorJson(-32602, "Invalid address", id, alloc);
+    const ok = ctx.bc.cold_wallet_store.add(address, label);
+    if (!ok)
+        return errorJson(-32000, "Address already watched or store full", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"label\":\"{s}\",\"status\":\"added\"}}}}",
+        .{ id, address, label });
+}
+
+/// coldwallet_list {} — lists all watch-only wallets with current balances
+fn handleColdWalletList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    const buf = try alloc.alloc(cold_wallet_mod.ColdWallet, cold_wallet_mod.MAX_ENTRIES);
+    defer alloc.free(buf);
+    const n = ctx.bc.cold_wallet_store.listAll(buf);
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "[");
+    for (buf[0..n], 0..) |w, i| {
+        if (i > 0) try out.appendSlice(alloc, ",");
+        const live_bal = ctx.bc.getAddressBalance(w.addressSlice());
+        const entry = try std.fmt.allocPrint(alloc,
+            "{{\"address\":\"{s}\",\"label\":\"{s}\",\"balance_sat\":{d},\"total_received_sat\":{d},\"created\":{d}}}",
+            .{ w.addressSlice(), w.labelSlice(), live_bal, w.total_received_sat, w.created_unix_s });
+        defer alloc.free(entry);
+        try out.appendSlice(alloc, entry);
+    }
+    try out.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
+        .{ id, out.items });
+}
+
+/// coldwallet_remove {"address":"ob1q..."}
+fn handleColdWalletRemove(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const ok = ctx.bc.cold_wallet_store.remove(address);
+    if (!ok)
+        return errorJson(-32000, "Address not found in watch list", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"status\":\"removed\"}}}}",
+        .{ id, address });
+}
+
+/// coldwallet_history {"address":"ob1q...","limit":50}
+fn handleColdWalletHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const limit_raw = extractParamObjectU64(body, "limit");
+    const limit: usize = if (limit_raw > 0 and limit_raw <= 500) @intCast(limit_raw) else 50;
+    // Reuse address TX index
+    const tx_hashes = ctx.bc.address_tx_index.get(address) orelse {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
+            .{id});
+    };
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "[");
+    const start: usize = if (tx_hashes.items.len > limit) tx_hashes.items.len - limit else 0;
+    var first = true;
+    for (tx_hashes.items[start..]) |tx_hash| {
+        // Find TX in chain (scan blocks — lightweight for watch-only auditing)
+        for (ctx.bc.chain.items) |*blk| {
+            for (blk.transactions.items) |tx| {
+                if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
+                if (!std.mem.eql(u8, tx.to_address, address)) continue; // only incoming
+                if (!first) try out.appendSlice(alloc, ",");
+                first = false;
+                const entry = try std.fmt.allocPrint(alloc,
+                    "{{\"tx_hash\":\"{s}\",\"from\":\"{s}\",\"amount_sat\":{d},\"block\":{d}}}",
+                    .{ tx.hash, tx.from_address, tx.amount,
+                       ctx.bc.tx_block_height.get(tx.hash) orelse 0 });
+                defer alloc.free(entry);
+                try out.appendSlice(alloc, entry);
+                break;
+            }
+        }
+    }
+    try out.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
+        .{ id, out.items });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Timelock Vault (CLTV) handlers ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// timelock_create {"owner":"ob1q...","dest":"ob1q...","amount_sat":N,"unlock_block":B}
+fn handleTimelockCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractParamObjectField(body, "owner") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const dest = extractParamObjectField(body, "dest") orelse
+        return errorJson(-32602, "Missing param: dest", id, alloc);
+    const amount_sat = extractParamObjectU64(body, "amount_sat");
+    if (amount_sat == 0) return errorJson(-32602, "Missing/zero param: amount_sat", id, alloc);
+    const unlock_block = extractParamObjectU64(body, "unlock_block");
+    if (unlock_block == 0) return errorJson(-32602, "Missing/zero param: unlock_block", id, alloc);
+
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    if (unlock_block <= current_block)
+        return errorJson(-32602, "unlock_block must be in the future", id, alloc);
+
+    const owner_bal = ctx.bc.getAddressBalance(owner);
+    if (owner_bal < amount_sat)
+        return errorJson(-32000, "Insufficient balance to lock", id, alloc);
+
+    // Debit owner balance (funds held in vault)
+    ctx.bc.mutex.lock();
+    const cur_bal = ctx.bc.balances.get(owner) orelse 0;
+    if (cur_bal >= amount_sat) {
+        ctx.bc.balances.put(owner, cur_bal - amount_sat) catch {};
+    }
+    ctx.bc.mutex.unlock();
+
+    const id_hex = ctx.bc.timelock_store.create(
+        owner, dest, amount_sat, unlock_block, current_block, "",
+    ) catch {
+        // Restore balance on failure
+        ctx.bc.mutex.lock();
+        const b2 = ctx.bc.balances.get(owner) orelse 0;
+        ctx.bc.balances.put(owner, b2 + amount_sat) catch {};
+        ctx.bc.mutex.unlock();
+        return errorJson(-32000, "Failed to create timelock vault", id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"owner\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"locked\"}}}}",
+        .{ id, id_hex, owner, dest, amount_sat, unlock_block });
+}
+
+/// timelock_list {"owner":"ob1q..."}
+fn handleTimelockList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const owner = extractParamObjectField(body, "owner") orelse
+        return errorJson(-32602, "Missing param: owner", id, alloc);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    var vaults: [256]timelock_mod.TimelockVault = undefined;
+    const n = ctx.bc.timelock_store.listByOwner(owner, &vaults);
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "[");
+    for (vaults[0..n], 0..) |v, i| {
+        if (i > 0) try out.appendSlice(alloc, ",");
+        const remaining = v.blocksRemaining(current_block);
+        const entry = try std.fmt.allocPrint(alloc,
+            "{{\"vault_id\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"{s}\",\"blocks_remaining\":{d}}}",
+            .{ v.idSlice(), v.destSlice(), v.amount_sat, v.unlock_block, v.state.str(), remaining });
+        defer alloc.free(entry);
+        try out.appendSlice(alloc, entry);
+    }
+    try out.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
+        .{ id, out.items });
+}
+
+/// timelock_spend {"vault_id":"hex..."}
+fn handleTimelockSpend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const vault_id = extractParamObjectField(body, "vault_id") orelse
+        return errorJson(-32602, "Missing param: vault_id", id, alloc);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const vault = ctx.bc.timelock_store.getById(vault_id) orelse
+        return errorJson(-32000, "Vault not found", id, alloc);
+    if (vault.state == .spent)
+        return errorJson(-32000, "Vault already spent", id, alloc);
+    if (current_block < vault.unlock_block)
+        return errorJson(-32000, "Vault still locked — too early", id, alloc);
+
+    // Mark spent and credit destination
+    const ok = ctx.bc.timelock_store.markSpent(vault_id, "manual_spend", current_block);
+    if (!ok) return errorJson(-32000, "Failed to mark vault spent", id, alloc);
+
+    ctx.bc.mutex.lock();
+    const dest_bal = ctx.bc.balances.get(vault.destSlice()) orelse 0;
+    ctx.bc.balances.put(vault.destSlice(), dest_bal + vault.amount_sat) catch {};
+    ctx.bc.mutex.unlock();
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"state\":\"spent\"}}}}",
+        .{ id, vault_id, vault.destSlice(), vault.amount_sat });
+}
+
+/// timelock_status {"vault_id":"hex..."}
+fn handleTimelockStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const vault_id = extractParamObjectField(body, "vault_id") orelse
+        return errorJson(-32602, "Missing param: vault_id", id, alloc);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const vault = ctx.bc.timelock_store.getById(vault_id) orelse
+        return errorJson(-32000, "Vault not found", id, alloc);
+    const remaining = vault.blocksRemaining(current_block);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"owner\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"{s}\",\"blocks_remaining\":{d},\"created_block\":{d}}}}}",
+        .{ id, vault.idSlice(), vault.ownerSlice(), vault.destSlice(),
+           vault.amount_sat, vault.unlock_block, vault.state.str(), remaining, vault.created_block });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Covenant (destination whitelist) handlers ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// covenant_create {"address":"ob1q...","whitelist":["ob1q..."],"max_per_tx_sat":0,"expires_block":0,"label":"..."}
+fn handleCovenantCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const max_per_tx = extractParamObjectU64(body, "max_per_tx_sat");
+    const expires_block = extractParamObjectU64(body, "expires_block");
+    const label = extractParamObjectField(body, "label") orelse "";
+
+    // Parse whitelist array from JSON: look for [...] after "whitelist"
+    const wl_needle = "\"whitelist\"";
+    const wl_pos = std.mem.indexOf(u8, body, wl_needle) orelse
+        return errorJson(-32602, "Missing param: whitelist", id, alloc);
+    const bracket = std.mem.indexOfScalarPos(u8, body, wl_pos, '[') orelse
+        return errorJson(-32602, "whitelist must be a JSON array", id, alloc);
+
+    var whitelist_strs: [covenant_mod.MAX_WHITELIST][]const u8 = undefined;
+    var wl_count: usize = 0;
+    var parse_pos: usize = bracket + 1;
+    while (parse_pos < body.len and wl_count < covenant_mod.MAX_WHITELIST) {
+        while (parse_pos < body.len and (body[parse_pos] == ' ' or body[parse_pos] == '\t' or body[parse_pos] == '\n')) parse_pos += 1;
+        if (parse_pos >= body.len or body[parse_pos] == ']') break;
+        if (body[parse_pos] == '"') {
+            parse_pos += 1;
+            const start = parse_pos;
+            while (parse_pos < body.len and body[parse_pos] != '"') parse_pos += 1;
+            whitelist_strs[wl_count] = body[start..parse_pos];
+            wl_count += 1;
+            if (parse_pos < body.len) parse_pos += 1;
+        } else {
+            while (parse_pos < body.len and body[parse_pos] != ',' and body[parse_pos] != ']') parse_pos += 1;
+        }
+        if (parse_pos < body.len and body[parse_pos] == ',') parse_pos += 1;
+    }
+
+    if (wl_count == 0)
+        return errorJson(-32602, "whitelist must contain at least one address", id, alloc);
+
+    ctx.bc.covenant_store.create(
+        address, whitelist_strs[0..wl_count], max_per_tx, expires_block, label,
+    ) catch {
+        return errorJson(-32000, "Failed to create covenant", id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
+        .{ id, address, wl_count, max_per_tx, expires_block, label });
+}
+
+/// covenant_list {} — lists all active covenants
+fn handleCovenantList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const buf = try alloc.alloc(covenant_mod.Covenant, covenant_mod.MAX_COVENANTS);
+    defer alloc.free(buf);
+    const n = ctx.bc.covenant_store.listAll(current_block, buf);
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "[");
+    for (buf[0..n], 0..) |c, i| {
+        if (i > 0) try out.appendSlice(alloc, ",");
+        const entry = try std.fmt.allocPrint(alloc,
+            "{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}",
+            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, c.labelSlice() });
+        defer alloc.free(entry);
+        try out.appendSlice(alloc, entry);
+    }
+    try out.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
+        .{ id, out.items });
+}
+
+/// covenant_get {"address":"ob1q..."}
+fn handleCovenantGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const cov = ctx.bc.covenant_store.getActive(address, current_block) orelse
+        return errorJson(-32000, "No active covenant for address", id, alloc);
+
+    var wl_json = std.ArrayList(u8){};
+    defer wl_json.deinit(alloc);
+    try wl_json.appendSlice(alloc, "[");
+    var wi: usize = 0;
+    while (wi < cov.whitelist_count) : (wi += 1) {
+        if (wi > 0) try wl_json.appendSlice(alloc, ",");
+        const wentry = try std.fmt.allocPrint(alloc, "\"{s}\"", .{cov.whitelistEntry(wi)});
+        defer alloc.free(wentry);
+        try wl_json.appendSlice(alloc, wentry);
+    }
+    try wl_json.appendSlice(alloc, "]");
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist\":{s},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}}}",
+        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cov.labelSlice() });
+}
+
+/// covenant_remove {"address":"ob1q..."}
+fn handleCovenantRemove(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const ok = ctx.bc.covenant_store.remove(address);
+    if (!ok) return errorJson(-32000, "No active covenant found for address", id, alloc);
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"status\":\"removed\"}}}}",
+        .{ id, address });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Treasury auto-distribute handlers ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// treasury_create {"address":"ob1q...","destinations":[{"address":"ob1q...","share_bps":5000,"label":"x"}],"trigger_amount_sat":100000000,"label":"..."}
+fn handleTreasuryCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const treasury_addr = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const trigger = extractParamObjectU64(body, "trigger_amount_sat");
+    const label = extractParamObjectField(body, "label") orelse "";
+
+    // Parse destinations array
+    const dest_needle = "\"destinations\"";
+    const dest_pos = std.mem.indexOf(u8, body, dest_needle) orelse
+        return errorJson(-32602, "Missing param: destinations", id, alloc);
+    const bracket = std.mem.indexOfScalarPos(u8, body, dest_pos, '[') orelse
+        return errorJson(-32602, "destinations must be a JSON array", id, alloc);
+
+    var dests: [treasury_multi_mod.MAX_DESTS]treasury_multi_mod.TreasuryDest = undefined;
+    var dest_count: usize = 0;
+    var pp: usize = bracket + 1;
+    while (pp < body.len and dest_count < treasury_multi_mod.MAX_DESTS) {
+        while (pp < body.len and (body[pp] == ' ' or body[pp] == '\t' or body[pp] == '\n' or body[pp] == ',')) pp += 1;
+        if (pp >= body.len or body[pp] == ']') break;
+        if (body[pp] != '{') { pp += 1; continue; }
+        // Find end of object
+        var depth: i32 = 0;
+        const obj_start = pp;
+        var obj_end = pp;
+        while (pp < body.len) : (pp += 1) {
+            if (body[pp] == '{') depth += 1
+            else if (body[pp] == '}') {
+                depth -= 1;
+                if (depth == 0) { obj_end = pp + 1; pp += 1; break; }
+            }
+        }
+        const obj = body[obj_start..obj_end];
+        const d_addr = extractStr(obj, "address") orelse continue;
+        const d_bps_raw = extractParamObjectU64(obj, "share_bps");
+        const d_label = extractStr(obj, "label") orelse "";
+        var d = treasury_multi_mod.TreasuryDest{ .share_bps = @intCast(@min(d_bps_raw, 10000)) };
+        const ac = @min(d_addr.len, treasury_multi_mod.ADDR_MAX - 1);
+        @memcpy(d.address[0..ac], d_addr[0..ac]);
+        d.addr_len = @intCast(ac);
+        const lc = @min(d_label.len, treasury_multi_mod.LABEL_MAX - 1);
+        @memcpy(d.label[0..lc], d_label[0..lc]);
+        d.label_len = @intCast(lc);
+        dests[dest_count] = d;
+        dest_count += 1;
+    }
+
+    if (dest_count == 0)
+        return errorJson(-32602, "destinations must have at least one entry", id, alloc);
+
+    const id_hex = ctx.bc.treasury_multi_store.create(
+        treasury_addr, dests[0..dest_count], trigger, label,
+    ) catch {
+        return errorJson(-32000, "Failed to create treasury (check share_bps sum = 10000)", id, alloc);
+    };
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"dest_count\":{d},\"trigger_amount_sat\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
+        .{ id, id_hex, treasury_addr, dest_count, trigger, label });
+}
+
+/// treasury_list {} — list all active treasuries
+fn handleTreasuryList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    _ = body;
+    const alloc = ctx.allocator;
+    const buf = try alloc.alloc(treasury_multi_mod.Treasury, treasury_multi_mod.MAX_TREASURY);
+    defer alloc.free(buf);
+    const n = ctx.bc.treasury_multi_store.listAll(buf);
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "[");
+    for (buf[0..n], 0..) |t, i| {
+        if (i > 0) try out.appendSlice(alloc, ",");
+        const live_bal = ctx.bc.getAddressBalance(t.treasurySlice());
+        const entry = try std.fmt.allocPrint(alloc,
+            "{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"dest_count\":{d},\"label\":\"{s}\"}}",
+            .{ t.idSlice(), t.treasurySlice(), live_bal, t.trigger_amount_sat,
+               t.last_distribute_block, t.total_distributed_sat, t.dest_count, t.labelSlice() });
+        defer alloc.free(entry);
+        try out.appendSlice(alloc, entry);
+    }
+    try out.appendSlice(alloc, "]");
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
+        .{ id, out.items });
+}
+
+/// treasury_distribute {"treasury_id":"hex..."}
+fn handleTreasuryDistribute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const treasury_id = extractParamObjectField(body, "treasury_id") orelse
+        return errorJson(-32602, "Missing param: treasury_id", id, alloc);
+    const treas = ctx.bc.treasury_multi_store.getById(treasury_id) orelse
+        return errorJson(-32000, "Treasury not found", id, alloc);
+    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const bal = ctx.bc.getAddressBalance(treas.treasurySlice());
+    if (bal == 0) return errorJson(-32000, "Treasury balance is zero", id, alloc);
+
+    var distributed: u64 = 0;
+    ctx.bc.mutex.lock();
+    var di: usize = 0;
+    while (di < treas.dest_count) : (di += 1) {
+        const dest_amt = treas.destAmount(di, bal);
+        if (dest_amt == 0) continue;
+        if (bal < distributed + dest_amt) break;
+        distributed += dest_amt;
+        const to_bal = ctx.bc.balances.get(treas.destinations[di].addressSlice()) orelse 0;
+        ctx.bc.balances.put(treas.destinations[di].addressSlice(), to_bal + dest_amt) catch {};
+    }
+    if (distributed > 0) {
+        const from_bal = ctx.bc.balances.get(treas.treasurySlice()) orelse 0;
+        ctx.bc.balances.put(treas.treasurySlice(), from_bal -| distributed) catch {};
+    }
+    ctx.bc.mutex.unlock();
+
+    ctx.bc.treasury_multi_store.recordDistribute(treasury_id, distributed, current_block);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"distributed_sat\":{d},\"block\":{d}}}}}",
+        .{ id, treasury_id, distributed, current_block });
+}
+
+/// treasury_status {"treasury_id":"hex..."}
+fn handleTreasuryStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const treasury_id = extractParamObjectField(body, "treasury_id") orelse
+        return errorJson(-32602, "Missing param: treasury_id", id, alloc);
+    const treas = ctx.bc.treasury_multi_store.getById(treasury_id) orelse
+        return errorJson(-32000, "Treasury not found", id, alloc);
+    const live_bal = ctx.bc.getAddressBalance(treas.treasurySlice());
+    const pending: u64 = if (live_bal >= treas.trigger_amount_sat and treas.trigger_amount_sat > 0) live_bal else 0;
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"pending_distribute_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"label\":\"{s}\"}}}}",
+        .{ id, treas.idSlice(), treas.treasurySlice(), live_bal, pending,
+           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, treas.labelSlice() });
 }

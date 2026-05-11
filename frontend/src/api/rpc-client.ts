@@ -29,13 +29,6 @@ const CHAIN_WS_PORT: Record<ChainName, number> = {
 export function getActiveChain(): ChainName {
   if (typeof localStorage === "undefined") return "mainnet";
   const v = localStorage.getItem(CHAIN_KEY);
-  // VPS only runs mainnet (single-instance lock blocks multi-chain).
-  // If localStorage has stale "testnet"/"regtest", auto-correct to mainnet
-  // to avoid "RPC unreachable" errors. User can re-select after we deploy more chains.
-  if (v === "testnet" || v === "regtest") {
-    localStorage.setItem(CHAIN_KEY, "mainnet");
-    return "mainnet";
-  }
   return (VALID_CHAINS.includes(v as ChainName) ? v : "mainnet") as ChainName;
 }
 
@@ -84,16 +77,18 @@ interface JsonRpcResponse {
 }
 
 export class OmniBusRpcClient {
-  private baseUrl: string;
+  private fixedUrl: string | null;
   private requestId: number = 1;
 
   constructor(baseUrl?: string) {
-    if (baseUrl) {
-      this.baseUrl = baseUrl;
-    } else {
-      // Auto-pick URL based on chain + page protocol (HTTPS vs HTTP).
-      this.baseUrl = rpcUrlFor(getActiveChain());
-    }
+    // If explicit URL given, pin it. Otherwise read chain from localStorage
+    // at every request so a chain-switch (setActiveChain) is picked up
+    // without needing to recreate the client.
+    this.fixedUrl = baseUrl ?? null;
+  }
+
+  private get baseUrl(): string {
+    return this.fixedUrl ?? rpcUrlFor(getActiveChain());
   }
 
   private async request(method: string, params: any[] = []): Promise<any> {
@@ -746,6 +741,270 @@ export class OmniBusRpcClient {
       return null;
     }
   }
+
+  // ── Identity profiles (4-facet, MiCA-compliant) ───────────────────────
+  // `profile_init` is fire-and-forget right after mnemonic confirm. Returns
+  // a server-allocated salt for selective disclosure. Idempotent: calling
+  // again on an address that already has a profile returns the existing salt
+  // (chain enforces "first init wins").
+  async profileInit(address: string): Promise<ProfileInitResult | null> {
+    try {
+      return await this.request("profile_init", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async profileGet(address: string): Promise<ProfileFull | null> {
+    try {
+      return await this.request("profile_get", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async profileUpdate(payload: {
+    address: string;
+    facet: ProfileFacet;
+    fields: Record<string, unknown>;
+    visibility_mask: Record<string, "public" | "private">;
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<{ address: string; facet: string; updated: boolean }> {
+    return this.request("profile_update", [payload]);
+  }
+
+  async micaAttest(payload: {
+    address: string;
+    kind: "kyc" | "aml" | "sanctions" | "issuer";
+    valid_until?: number;
+    white_paper_hash?: string;
+    risk_category?: "low" | "medium" | "high";
+    nonce: number;
+    signature: string;
+    publicKey: string;
+  }): Promise<MicaAttestation> {
+    return this.request("mica_attest", [payload]);
+  }
+
+  async micaDisclose(address: string): Promise<MicaDisclosure | null> {
+    try {
+      return await this.request("mica_disclose", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Cold Wallet (watch-only) ──────────────────────────────────────────────
+
+  async coldwalletAdd(address: string, label: string): Promise<{ added: boolean }> {
+    return this.request("coldwallet_add", [{ address, label }]);
+  }
+
+  async coldwalletList(): Promise<ColdWalletListResult> {
+    try {
+      return (await this.request("coldwallet_list", [{}])) ?? { addresses: [] };
+    } catch {
+      return { addresses: [] };
+    }
+  }
+
+  async coldwalletRemove(address: string): Promise<{ removed: boolean }> {
+    return this.request("coldwallet_remove", [{ address }]);
+  }
+
+  async coldwalletHistory(address: string, limit = 50): Promise<ColdWalletHistoryResult> {
+    try {
+      return (await this.request("coldwallet_history", [{ address, limit }])) ?? { transactions: [] };
+    } catch {
+      return { transactions: [] };
+    }
+  }
+
+  // ── Timelock (CLTV) ───────────────────────────────────────────────────────
+
+  async timelockCreate(params: {
+    owner: string;
+    dest: string;
+    amount_sat: number;
+    unlock_block: number;
+  }): Promise<TimelockCreateResult> {
+    return this.request("timelock_create", [params]);
+  }
+
+  async timelockList(owner?: string): Promise<TimelockListResult> {
+    try {
+      return (await this.request("timelock_list", [owner ? { owner } : {}])) ?? { vaults: [] };
+    } catch {
+      return { vaults: [] };
+    }
+  }
+
+  async timelockSpend(vault_id: string): Promise<{ vault_id: string; txid: string; spent: boolean }> {
+    return this.request("timelock_spend", [{ vault_id }]);
+  }
+
+  async timelockStatus(vault_id: string): Promise<TimelockVault | null> {
+    try {
+      return await this.request("timelock_status", [{ vault_id }]);
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Covenant ──────────────────────────────────────────────────────────────
+
+  async covenantCreate(params: {
+    address: string;
+    whitelist: string[];
+    max_per_tx_sat?: number;
+    expires_block?: number;
+    label: string;
+  }): Promise<{ address: string; created: boolean }> {
+    return this.request("covenant_create", [params]);
+  }
+
+  async covenantList(): Promise<CovenantListResult> {
+    try {
+      return (await this.request("covenant_list", [{}])) ?? { covenants: [] };
+    } catch {
+      return { covenants: [] };
+    }
+  }
+
+  async covenantGet(address: string): Promise<CovenantEntry | null> {
+    try {
+      return await this.request("covenant_get", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async covenantRemove(address: string): Promise<{ address: string; removed: boolean }> {
+    return this.request("covenant_remove", [{ address }]);
+  }
+
+  // ── Treasury ──────────────────────────────────────────────────────────────
+
+  async treasuryCreate(params: {
+    address: string;
+    destinations: TreasuryDest[];
+    trigger_sat: number;
+    label: string;
+  }): Promise<{ treasury_id: string; created: boolean }> {
+    return this.request("treasury_create", [params]);
+  }
+
+  async treasuryList(): Promise<TreasuryListResult> {
+    try {
+      return (await this.request("treasury_list", [{}])) ?? { treasuries: [] };
+    } catch {
+      return { treasuries: [] };
+    }
+  }
+
+  async treasuryDistribute(treasury_id: string): Promise<TreasuryDistributeResult> {
+    return this.request("treasury_distribute", [{ treasury_id }]);
+  }
+
+  async treasuryStatus(treasury_id: string): Promise<TreasuryEntry | null> {
+    try {
+      return await this.request("treasury_status", [{ treasury_id }]);
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Multisig ──────────────────────────────────────────────────────────────
+
+  async createMultisig(m: number, pubkeys: string[]): Promise<MultisigCreateResult> {
+    return this.request("createmultisig", [{ m, pubkeys }]);
+  }
+
+  async sendMultisig(params: {
+    from: string;
+    to: string;
+    amount_sat: number;
+    fee_sat: number;
+    privkeys: string[];
+  }): Promise<{ txid: string; sent: boolean }> {
+    return this.request("sendmultisig", [params]);
+  }
+}
+
+export type ProfileFacet = "social" | "professional" | "cultural" | "economic";
+
+export interface ProfileInitResult {
+  address: string;
+  did: string;
+  salt: string;
+  created: number;
+}
+
+export interface ProfileSocial {
+  handle?: string;
+  bio?: string;
+  avatar?: string;
+  links?: Array<{ label: string; url: string }>;
+}
+
+export interface ProfileProfessional {
+  certifications?: Array<{ issuer: string; title: string; year?: number }>;
+  work_history?: Array<{ org: string; role: string; start?: string; end?: string }>;
+  skills?: string[];
+}
+
+export interface ProfileCultural {
+  poaps?: Array<{ event: string; date?: string; proof?: string }>;
+  notarized_works?: Array<{ title: string; hash: string; year?: number }>;
+  languages?: string[];
+  badges?: string[];
+}
+
+export interface ProfileEconomic {
+  addresses?: Array<{ chain: string; address: string }>;
+  donations?: Array<{ to: string; amount: number; ts?: number }>;
+  total_volume?: number;
+  mica_issuer?: boolean;
+  white_paper_hash?: string;
+  risk_category?: "low" | "medium" | "high";
+}
+
+export interface ProfileFull {
+  address: string;
+  did: string;
+  created: number;
+  updated: number;
+  obm?: {
+    love: number;
+    food: number;
+    rent: number;
+    vacation: number;
+    reputation: number;
+  };
+  social?: ProfileSocial;
+  professional?: ProfileProfessional;
+  cultural?: ProfileCultural;
+  economic?: ProfileEconomic;
+  visibility_mask?: Record<string, "public" | "private">;
+}
+
+export interface MicaAttestation {
+  address: string;
+  kind: string;
+  issuer: string;
+  issued: number;
+  valid_until?: number;
+  status: "valid" | "expired" | "revoked";
+}
+
+export interface MicaDisclosure {
+  address: string;
+  kyc?: MicaAttestation;
+  aml?: MicaAttestation;
+  sanctions?: MicaAttestation;
+  issuer?: MicaAttestation & { white_paper_hash?: string; risk_category?: string };
 }
 
 export interface GridConfig {
@@ -829,6 +1088,108 @@ export interface TradeFill {
   buyOrderId: number;
   sellOrderId: number;
   ts: number;
+}
+
+// ── Cold Wallet types ─────────────────────────────────────────────────────
+
+export interface ColdWalletEntry {
+  address: string;
+  label: string;
+  balance_sat: number;
+  added_at?: number;
+}
+
+export interface ColdWalletTx {
+  txid: string;
+  amount_sat: number;
+  block_height: number | null;
+  direction: "received" | "sent";
+  ts?: number;
+}
+
+export interface ColdWalletListResult {
+  addresses: ColdWalletEntry[];
+}
+
+export interface ColdWalletHistoryResult {
+  transactions: ColdWalletTx[];
+}
+
+// ── Timelock types ────────────────────────────────────────────────────────
+
+export type TimelockVaultState = "locked" | "unlocked" | "spent";
+
+export interface TimelockVault {
+  vault_id: string;
+  owner: string;
+  dest: string;
+  amount_sat: number;
+  unlock_block: number;
+  created_block: number;
+  state: TimelockVaultState;
+}
+
+export interface TimelockCreateResult {
+  vault_id: string;
+  created: boolean;
+}
+
+export interface TimelockListResult {
+  vaults: TimelockVault[];
+}
+
+// ── Covenant types ────────────────────────────────────────────────────────
+
+export interface CovenantEntry {
+  address: string;
+  label: string;
+  whitelist: string[];
+  max_per_tx_sat?: number;
+  expires_block?: number;
+  created_block?: number;
+}
+
+export interface CovenantListResult {
+  covenants: CovenantEntry[];
+}
+
+// ── Treasury types ────────────────────────────────────────────────────────
+
+export interface TreasuryDest {
+  address: string;
+  percent: number;
+  label: string;
+}
+
+export interface TreasuryEntry {
+  treasury_id: string;
+  address: string;
+  label: string;
+  balance_sat: number;
+  trigger_sat: number;
+  destinations: TreasuryDest[];
+  last_distribute_block?: number;
+  last_distribute_ts?: number;
+}
+
+export interface TreasuryListResult {
+  treasuries: TreasuryEntry[];
+}
+
+export interface TreasuryDistributeResult {
+  treasury_id: string;
+  distributed: boolean;
+  total_sat: number;
+  splits: Array<{ address: string; amount_sat: number }>;
+}
+
+// ── Multisig types ────────────────────────────────────────────────────────
+
+export interface MultisigCreateResult {
+  address: string;
+  redeemScript: string;
+  m: number;
+  n: number;
 }
 
 export default OmniBusRpcClient;

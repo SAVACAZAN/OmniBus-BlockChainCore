@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WebSocketProvider } from "./stores/WebSocketProvider";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
@@ -10,6 +10,9 @@ import { FaucetPage } from "./components/faucet/FaucetPage";
 import { RichListPage } from "./components/richlist/RichListPage";
 import { AgentsPage } from "./components/agents/AgentsPage";
 import { ReputationPage } from "./components/reputation/ReputationPage";
+import { StakePage } from "./components/stake/StakePage";
+import { DailyAuditPage } from "./components/audit/DailyAuditPage";
+import { ValidatorsPage } from "./components/validators/ValidatorsPage";
 import { NamesPage } from "./components/names/NamesPage";
 import { ExchangePage } from "./components/exchange/ExchangePage";
 import { ZeroDayPage } from "./components/zeroday/ZeroDayPage";
@@ -18,25 +21,35 @@ import { BridgePage } from "./components/bridge/BridgePage";
 import { AtomicSwapPanel } from "./components/swap/AtomicSwapPanel";
 import { MatrixBackground } from "./components/effects/MatrixBackground";
 import { PlasmaSlotProvider } from "./components/effects/PlasmaSlotContext";
+import { ProfilePage } from "./components/profile/ProfilePage";
+import { ProfileInitToast } from "./components/profile/ProfileInitToast";
+import { DocsPage } from "./components/docs/DocsPage";
+import { VaultPage } from "./components/vault/VaultPage";
 
-export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "roadmap";
+export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "blocks", label: "Blocks" },
   { id: "richlist", label: "Rich List" },
   { id: "reputation", label: "Reputation" },
+  { id: "stake", label: "Stake" },
+  { id: "audit", label: "Audit" },
+  { id: "validators", label: "Validators" },
   { id: "names", label: ".omnibus" },
   { id: "exchange", label: "Exchange" },
   { id: "bridge", label: "Bridge" },
   { id: "swap", label: "Swap" },
   { id: "agents", label: "Agents" },
+  { id: "profile", label: "Profile" },
   { id: "wallet", label: "Wallet" },
   { id: "network", label: "Network" },
   { id: "faucet", label: "Faucet" },
   { id: "zeroday", label: "0day" },
   { id: "api", label: "API" },
+  { id: "docs", label: "Docs" },
   { id: "roadmap", label: "Roadmap" },
+  { id: "vault", label: "🔐 Vault" },
 ];
 
 // Bottom nav: 4 primary tabs + "More" drawer
@@ -89,11 +102,29 @@ const BOTTOM_NAV_PRIMARY: { id: TabId; label: string; icon: React.ReactNode }[] 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+  // Lightweight hash-based deep link for #/profile/<addr> without pulling in
+  // react-router. Other tabs ignore this state.
+  const [profileAddressOverride, setProfileAddressOverride] = useState<string | undefined>(undefined);
 
   const handleTabSelect = (tab: TabId) => {
     setActiveTab(tab);
     setShowMoreDrawer(false);
+    if (tab !== "profile") setProfileAddressOverride(undefined);
   };
+
+  useEffect(() => {
+    const parseHash = () => {
+      const h = window.location.hash || "";
+      const m = h.match(/^#\/profile\/([A-Za-z0-9_]+)/);
+      if (m) {
+        setProfileAddressOverride(m[1]);
+        setActiveTab("profile");
+      }
+    };
+    parseHash();
+    window.addEventListener("hashchange", parseHash);
+    return () => window.removeEventListener("hashchange", parseHash);
+  }, []);
 
   return (
     <WebSocketProvider><PlasmaSlotProvider>
@@ -135,11 +166,17 @@ export default function App() {
           {activeTab === "richlist" && <RichListPage />}
           {activeTab === "agents" && <AgentsPage />}
           {activeTab === "reputation" && <ReputationPage />}
+          {activeTab === "stake" && <StakePage />}
+          {activeTab === "audit" && <DailyAuditPage />}
+          {activeTab === "validators" && <ValidatorsPage />}
           {activeTab === "names" && <NamesPage />}
           {activeTab === "exchange" && <ExchangePage />}
           {activeTab === "bridge" && <BridgePage />}
           {activeTab === "swap" && <AtomicSwapPanel />}
           {activeTab === "api" && <ApiDocsPage />}
+          {activeTab === "docs" && <DocsPage />}
+          {activeTab === "profile" && <ProfilePage address={profileAddressOverride} />}
+          {activeTab === "vault" && <VaultPage />}
           {activeTab === "roadmap" && (
             <iframe
               src="/roadmap-flow.html"
@@ -213,6 +250,7 @@ export default function App() {
                       <span className="text-base">
                         {tab.id === "richlist" ? "🏆" :
                          tab.id === "reputation" ? "⭐" :
+                         tab.id === "audit" ? "📋" :
                          tab.id === "names" ? "🔖" :
                          tab.id === "bridge" ? "🌉" :
                          tab.id === "swap" ? "🔄" :
@@ -221,7 +259,10 @@ export default function App() {
                          tab.id === "faucet" ? "💧" :
                          tab.id === "zeroday" ? "🛡️" :
                          tab.id === "api" ? "📡" :
-                         tab.id === "roadmap" ? "🗺️" : "•"}
+                         tab.id === "profile" ? "🪪" :
+                         tab.id === "docs" ? "📚" :
+                         tab.id === "roadmap" ? "🗺️" :
+                         tab.id === "vault" ? "🔐" : "•"}
                       </span>
                       {tab.label}
                     </button>
@@ -231,6 +272,13 @@ export default function App() {
             </div>
           </>
         )}
+
+        <ProfileInitToast
+          onOpenProfile={(addr) => {
+            setProfileAddressOverride(addr);
+            setActiveTab("profile");
+          }}
+        />
       </div>
     </PlasmaSlotProvider></WebSocketProvider>
   );
