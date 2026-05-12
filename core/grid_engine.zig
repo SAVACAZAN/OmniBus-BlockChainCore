@@ -16,6 +16,7 @@
 //! Capital efficiency: 1 HTLC activ per fill, nu per order.
 
 const std = @import("std");
+const matching_mod = @import("matching_engine.zig");
 
 // ─── Constante ────────────────────────────────────────────────────────────
 
@@ -171,6 +172,57 @@ pub const GridRegistry = struct {
         if (!std.mem.eql(u8, g.owner[0..g.owner_len], owner)) return GridError.NotOwner;
         if (!g.active) return GridError.AlreadyInactive;
         g.active = false;
+    }
+
+    /// Plasează N buy + N sell orders în matching engine pentru un grid nou.
+    /// Apelat imediat după create(). engine poate fi null (paper mode / test).
+    pub fn placeLevelOrders(
+        self:   *Self,
+        grid_id: u64,
+        engine: *matching_mod.MatchingEngine,
+    ) void {
+        const g = self.findMut(grid_id) orelse return;
+        if (!g.active or g.levels == 0) return;
+
+        const base_per = g.basePerLevel();
+        const quote_per = g.quotePerLevel();
+        const now_ms = std.time.milliTimestamp();
+
+        // N buy orders: price_low .. mid (crescător)
+        var i: u16 = 0;
+        while (i < g.levels) : (i += 1) {
+            var order = matching_mod.Order.empty();
+            order.order_id        = g.id * 10_000 + @as(u64, i);
+            order.pair_id         = g.pair_id;
+            order.side            = .buy;
+            order.price_micro_usd = g.buyPrice(i);
+            order.amount_sat      = if (order.price_micro_usd > 0)
+                quote_per * 1_000_000 / order.price_micro_usd
+                else base_per;
+            order.timestamp_ms    = now_ms;
+            order.status          = .active;
+            const alen = @min(g.owner_len, 64);
+            @memcpy(order.trader_address[0..alen], g.owner[0..alen]);
+            order.trader_addr_len = @intCast(alen);
+            engine.placeOrder(order) catch {};
+        }
+
+        // N sell orders: mid .. price_high (crescător)
+        i = 0;
+        while (i < g.levels) : (i += 1) {
+            var order = matching_mod.Order.empty();
+            order.order_id        = g.id * 10_000 + @as(u64, g.levels) + @as(u64, i);
+            order.pair_id         = g.pair_id;
+            order.side            = .sell;
+            order.price_micro_usd = g.sellPrice(i);
+            order.amount_sat      = base_per;
+            order.timestamp_ms    = now_ms;
+            order.status          = .active;
+            const alen = @min(g.owner_len, 64);
+            @memcpy(order.trader_address[0..alen], g.owner[0..alen]);
+            order.trader_addr_len = @intCast(alen);
+            engine.placeOrder(order) catch {};
+        }
     }
 
     /// Înregistrează un fill pe un grid și actualizează profitul.

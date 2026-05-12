@@ -4257,6 +4257,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "profile_get"))             return handleProfileGet(body, ctx, id);
     if (std.mem.eql(u8, method, "mica_attest"))             return handleMicaAttest(body, ctx, id);
     if (std.mem.eql(u8, method, "mica_disclose"))           return handleMicaDisclose(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_post"))           return handleDisclosePost(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_cert"))           return handleDiscloseCert(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_work"))           return handleDiscloseWork(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_status"))            return handleAgentStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_pending_decisions")) return handleAgentPendingDecisions(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_report_execution"))  return handleAgentReportExecution(body, ctx, id);
@@ -7556,6 +7559,37 @@ fn extractArrayStr(json: []const u8, index: usize) ?[]const u8 {
         } else {
             // sari non-string element
             while (pos < json.len and json[pos] != ',' and json[pos] != ']') pos += 1;
+            current += 1;
+        }
+        if (pos < json.len and json[pos] == ',') pos += 1;
+    }
+    return null;
+}
+
+/// Extrage al N-lea token brut din params array (string SAU literal: true/false/number).
+/// Pentru string-uri returneaza continutul fara ghilimele; pentru literali ca `true`
+/// returneaza textul ca atare. Folosit pentru a citi booleeni JSON din params.
+fn extractArrayToken(json: []const u8, index: usize) ?[]const u8 {
+    const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
+    const bracket = std.mem.indexOf(u8, json[params_pos..], "[") orelse return null;
+    var pos = params_pos + bracket + 1;
+    var current: usize = 0;
+    while (pos < json.len) {
+        while (pos < json.len and (json[pos] == ' ' or json[pos] == '\t')) pos += 1;
+        if (pos >= json.len or json[pos] == ']') break;
+        if (json[pos] == '"') {
+            // quoted string — return content without quotes
+            pos += 1;
+            const start = pos;
+            while (pos < json.len and json[pos] != '"') pos += 1;
+            if (current == index) return json[start..pos];
+            current += 1;
+            pos += 1; // skip closing "
+        } else {
+            // bare literal (true/false/null/number)
+            const start = pos;
+            while (pos < json.len and json[pos] != ',' and json[pos] != ']' and json[pos] != ' ') pos += 1;
+            if (current == index) return json[start..pos];
             current += 1;
         }
         if (pos < json.len and json[pos] == ',') pos += 1;
@@ -11161,15 +11195,56 @@ fn handleGetFacets(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: address", id, alloc);
 
-    // Conservative defaults — chain inspection deferred until facet anchor
-    // TXs are defined. Returning the shape now so clients can wire UI.
-    const has_social = false;
-    const has_professional = false;
-    const has_cultural = false;
+    // Resolve h160 so we can look up the ProfileStore entry.
+    const h160_opt: ?[20]u8 = addrToH160(addr, alloc) catch null;
+
+    // Per-facet results: populated flag + root hex string (64 hex chars or empty).
+    const FacetResult = struct {
+        populated: bool,
+        root_hex: [64]u8,
+        root_hex_len: usize,
+    };
+    var results: [4]FacetResult = .{
+        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
+        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
+        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
+        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
+    };
+
+    if (h160_opt) |h160| {
+        const store = getProfileStore(alloc);
+        store.mutex.lock();
+        defer store.mutex.unlock();
+        if (store.get(h160)) |entry| {
+            for (&results, 0..) |*r, i| {
+                const facet = &entry.facets[i];
+                if (facet.fields.count() > 0) {
+                    const root = computeFacetRoot(facet, alloc) catch continue;
+                    const hex_chars = "0123456789abcdef";
+                    for (root, 0..) |b, bi| {
+                        r.root_hex[bi * 2]     = hex_chars[b >> 4];
+                        r.root_hex[bi * 2 + 1] = hex_chars[b & 0x0f];
+                    }
+                    r.root_hex_len = 64;
+                    r.populated = true;
+                }
+            }
+        }
+    }
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"social\":{{\"populated\":{},\"root_hex\":\"\"}},\"professional\":{{\"populated\":{},\"root_hex\":\"\"}},\"cultural\":{{\"populated\":{},\"root_hex\":\"\"}}}}}}",
-        .{ id, addr, has_social, has_professional, has_cultural });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\"," ++
+        "\"social\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
+        "\"professional\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
+        "\"cultural\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
+        "\"economic\":{{\"populated\":{},\"root_hex\":\"{s}\"}}}}}}",
+        .{
+            id, addr,
+            results[0].populated, results[0].root_hex[0..results[0].root_hex_len],
+            results[1].populated, results[1].root_hex[0..results[1].root_hex_len],
+            results[2].populated, results[2].root_hex[0..results[2].root_hex_len],
+            results[3].populated, results[3].root_hex[0..results[3].root_hex_len],
+        });
 }
 
 /// RPC `getreputation` — citeste paharele LOVE/FOOD/RENT/VACATION pentru o
@@ -14079,6 +14154,9 @@ fn handleGridCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         @intCast(levels_u), total_base, total_quote, current_block,
     ) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
 
+    // Wire grid orders into the matching engine so they appear in the orderbook.
+    if (ctx.exchange) |eng| reg.placeLevelOrders(grid_id, eng);
+
     if (gridPathSlice(ctx)) |p| reg.saveToFile(p) catch {};
 
     const g = reg.find(grid_id).?;
@@ -16915,9 +16993,10 @@ fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Missing param: field", id, alloc);
     const value = extractArrayStr(body, 3) orelse extractStr(body, "value") orelse
         return errorJson(-32602, "Missing param: value", id, alloc);
-    // is_public — accept "true"/"false" string in array, or look up via key.
+    // is_public — accept "true"/"false" string OR bare JSON boolean true/false in
+    // array position 4, or the "is_public" named key. extractArrayToken handles both.
     var is_public: bool = false;
-    if (extractArrayStr(body, 4)) |s| {
+    if (extractArrayToken(body, 4)) |s| {
         is_public = std.mem.eql(u8, s, "true");
     } else if (extractStr(body, "is_public")) |s| {
         is_public = std.mem.eql(u8, s, "true");
@@ -17129,6 +17208,171 @@ fn handleMicaDisclose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     try w.print("],\"is_mica_issuer\":{},\"risk_category\":\"{s}\"}}}}", .{ is_mica_issuer, risk_category });
     return buf.toOwnedSlice();
+}
+
+/// RPC `disclose_post` — prove a specific social post from facet[0].
+/// Request:  {"method":"disclose_post","params":{"address":"ob1q...","post_index":0}}
+/// Response: {"post_hash":"hex...","timestamp":N,"is_public":true,"proof":["hex..."]}
+fn handleDisclosePost(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const post_idx = extractParamObjectU64(body, "post_index");
+
+    const h160 = addrToH160(address, alloc) catch
+        return errorJson(-32602, "Invalid address", id, alloc);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+
+    const entry = store.get(h160) orelse
+        return errorJson(-32000, "Profile not found", id, alloc);
+
+    const facet = &entry.facets[0]; // social
+
+    // Build key names for this post index (max fits in 32 bytes).
+    var hash_key_buf: [32]u8 = undefined;
+    var ts_key_buf:   [32]u8 = undefined;
+    var pub_key_buf:  [32]u8 = undefined;
+
+    const hash_key = std.fmt.bufPrint(&hash_key_buf, "post_{d}_hash",   .{post_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const ts_key   = std.fmt.bufPrint(&ts_key_buf,   "post_{d}_ts",     .{post_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const pub_key  = std.fmt.bufPrint(&pub_key_buf,  "post_{d}_public", .{post_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+
+    const hash_val = (facet.fields.get(hash_key) orelse
+        return errorJson(-32000, "Post not found at index", id, alloc)).value;
+
+    const ts_val  = if (facet.fields.get(ts_key))  |fv| fv.value else "0";
+    const pub_val = if (facet.fields.get(pub_key)) |fv| fv.value else "false";
+    const is_pub  = std.mem.eql(u8, pub_val, "true");
+
+    // Proof = facet root (commits to all items in this facet).
+    const facet_root = try computeFacetRoot(facet, alloc);
+    const root_hex   = try hexEncode(alloc, &facet_root);
+    defer alloc.free(root_hex);
+
+    const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"post_hash\":\"{s}\",\"timestamp\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
+        .{ id, hash_val, ts_num, is_pub, root_hex });
+}
+
+/// RPC `disclose_cert` — prove a specific professional certification from facet[1].
+/// Request:  {"method":"disclose_cert","params":{"address":"ob1q...","cert_index":0}}
+/// Response: {"issuer_did":"did:...","credential_kind":"engineering","valid_from":N,"valid_until":N,"hash":"hex...","proof":["hex..."]}
+fn handleDiscloseCert(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const cert_idx = extractParamObjectU64(body, "cert_index");
+
+    const h160 = addrToH160(address, alloc) catch
+        return errorJson(-32602, "Invalid address", id, alloc);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+
+    const entry = store.get(h160) orelse
+        return errorJson(-32000, "Profile not found", id, alloc);
+
+    const facet = &entry.facets[1]; // professional
+
+    var issuer_key_buf:  [32]u8 = undefined;
+    var kind_key_buf:    [32]u8 = undefined;
+    var from_key_buf:    [32]u8 = undefined;
+    var until_key_buf:   [32]u8 = undefined;
+    var hash_key_buf:    [32]u8 = undefined;
+
+    const issuer_key = std.fmt.bufPrint(&issuer_key_buf, "cert_{d}_issuer",      .{cert_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const kind_key   = std.fmt.bufPrint(&kind_key_buf,   "cert_{d}_kind",        .{cert_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const from_key   = std.fmt.bufPrint(&from_key_buf,   "cert_{d}_valid_from",  .{cert_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const until_key  = std.fmt.bufPrint(&until_key_buf,  "cert_{d}_valid_until", .{cert_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const hash_key   = std.fmt.bufPrint(&hash_key_buf,   "cert_{d}_hash",        .{cert_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+
+    // issuer or hash must exist — use issuer as the required sentinel.
+    const issuer_val = (facet.fields.get(issuer_key) orelse
+        return errorJson(-32000, "Cert not found at index", id, alloc)).value;
+
+    const kind_val  = if (facet.fields.get(kind_key))  |fv| fv.value else "";
+    const from_val  = if (facet.fields.get(from_key))  |fv| fv.value else "0";
+    const until_val = if (facet.fields.get(until_key)) |fv| fv.value else "0";
+    const hash_val  = if (facet.fields.get(hash_key))  |fv| fv.value else "";
+
+    const facet_root = try computeFacetRoot(facet, alloc);
+    const root_hex   = try hexEncode(alloc, &facet_root);
+    defer alloc.free(root_hex);
+
+    const from_num  = std.fmt.parseInt(u64, from_val,  10) catch 0;
+    const until_num = std.fmt.parseInt(u64, until_val, 10) catch 0;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"issuer_did\":\"{s}\",\"credential_kind\":\"{s}\",\"valid_from\":{d},\"valid_until\":{d},\"hash\":\"{s}\",\"proof\":[\"{s}\"]}}}}",
+        .{ id, issuer_val, kind_val, from_num, until_num, hash_val, root_hex });
+}
+
+/// RPC `disclose_work` — prove a specific notarized work from facet[2] (cultural).
+/// Request:  {"method":"disclose_work","params":{"address":"ob1q...","work_index":0}}
+/// Response: {"content_hash":"hex...","work_kind":"code","notarized_at":N,"is_public":bool,"proof":["hex..."]}
+fn handleDiscloseWork(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const address = extractParamObjectField(body, "address") orelse
+        return errorJson(-32602, "Missing param: address", id, alloc);
+    const work_idx = extractParamObjectU64(body, "work_index");
+
+    const h160 = addrToH160(address, alloc) catch
+        return errorJson(-32602, "Invalid address", id, alloc);
+
+    const store = getProfileStore(alloc);
+    store.mutex.lock();
+    defer store.mutex.unlock();
+
+    const entry = store.get(h160) orelse
+        return errorJson(-32000, "Profile not found", id, alloc);
+
+    const facet = &entry.facets[2]; // cultural
+
+    var hash_key_buf: [32]u8 = undefined;
+    var kind_key_buf: [32]u8 = undefined;
+    var ts_key_buf:   [32]u8 = undefined;
+    var pub_key_buf:  [32]u8 = undefined;
+
+    const hash_key = std.fmt.bufPrint(&hash_key_buf, "work_{d}_hash",   .{work_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const kind_key = std.fmt.bufPrint(&kind_key_buf, "work_{d}_kind",   .{work_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const ts_key   = std.fmt.bufPrint(&ts_key_buf,   "work_{d}_ts",     .{work_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+    const pub_key  = std.fmt.bufPrint(&pub_key_buf,  "work_{d}_public", .{work_idx}) catch
+        return errorJson(-32000, "Index too large", id, alloc);
+
+    const hash_val = (facet.fields.get(hash_key) orelse
+        return errorJson(-32000, "Work not found at index", id, alloc)).value;
+
+    const kind_val = if (facet.fields.get(kind_key)) |fv| fv.value else "";
+    const ts_val   = if (facet.fields.get(ts_key))   |fv| fv.value else "0";
+    const pub_val  = if (facet.fields.get(pub_key))  |fv| fv.value else "false";
+    const is_pub   = std.mem.eql(u8, pub_val, "true");
+
+    const facet_root = try computeFacetRoot(facet, alloc);
+    const root_hex   = try hexEncode(alloc, &facet_root);
+    defer alloc.free(root_hex);
+
+    const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"content_hash\":\"{s}\",\"work_kind\":\"{s}\",\"notarized_at\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
+        .{ id, hash_val, kind_val, ts_num, is_pub, root_hex });
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────
