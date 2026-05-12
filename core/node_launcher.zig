@@ -159,9 +159,9 @@ pub const NodeLauncher = struct {
         }
     }
 
-    /// Minimum peers/miners required before mining can start
-    /// Blockchain-ul nu porneste mining fara o retea reala
-    pub const MIN_PEERS_FOR_MINING: usize = 10;
+    /// Minimum peers/miners required before mining can start.
+    /// Bootstrap phase: 1 (solo VPS miner). Raise to 10+ when community joins.
+    pub const MIN_PEERS_FOR_MINING: usize = 1;
 
     /// Transition to mining when ready (requires MIN_PEERS_FOR_MINING connected)
     pub fn readyForMining(self: *NodeLauncher) bool {
