@@ -66,3 +66,8 @@ data/tx_log.json
 node_modules/
 dist/
 *.lock
+
+# Chain data directories — never delete on git clean
+data/mainnet/
+data/testnet/
+data/regtest/
