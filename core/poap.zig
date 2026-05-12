@@ -227,15 +227,15 @@ pub const PoapRegistry = struct {
         // Verify event exists
         const ev_ptr = self.events.getPtr(event_id) orelse return error.EventNotFound;
 
-        // Verify event is open
-        if (!ev_ptr.isOpen()) return error.EventClosed;
-
         // Build dedup key "event_id:holder"
         var dedup_buf: [EVENT_ID_MAX + 1 + ADDR_MAX]u8 = undefined;
         const dedup_key = try std.fmt.bufPrint(&dedup_buf, "{s}:{s}", .{ event_id, holder });
 
-        // Check not already claimed
+        // Check not already claimed (before isOpen — AlreadyClaimed takes priority)
         if (self.event_claims.contains(dedup_key)) return error.AlreadyClaimed;
+
+        // Verify event is open
+        if (!ev_ptr.isOpen()) return error.EventClosed;
 
         // Build claim struct
         var claim = PoapClaim{

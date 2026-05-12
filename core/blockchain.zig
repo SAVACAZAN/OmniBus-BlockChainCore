@@ -1784,7 +1784,17 @@ pub const Blockchain = struct {
     /// which on a real mesh is faster than re-reading a multi-GB .dat
     /// file. Save now happens only on graceful shutdown (signal handler).
     pub fn checkAutoSave(self: *Blockchain) void {
-        _ = self;
+        const BLOCK_THRESHOLD: u32 = 100;
+        const TX_THRESHOLD: u32 = 1000;
+        if (self.blocks_since_save >= BLOCK_THRESHOLD or self.txs_since_save >= TX_THRESHOLD) {
+            if (self.persistent_db != null) {
+                self.saveToDisc() catch |err| {
+                    std.debug.print("[AUTOSAVE] saveToDisc failed: {}\n", .{err});
+                };
+            }
+            self.blocks_since_save = 0;
+            self.txs_since_save = 0;
+        }
     }
 
     /// Convenience method: save full blockchain state to disc via PersistentBlockchain.
@@ -3370,7 +3380,7 @@ pub const Blockchain = struct {
                         const vout = std.mem.readInt(u32, t.cross_chain_htlc_ref[32..36], .little);
                         break :blk swap_link_mod.HtlcRef{ .btc = .{ .txid = txid, .vout = vout } };
                     },
-                    .eth, .base => blk: {
+                    .eth, .base, .liberty => blk: {
                         const chain_id = std.mem.readInt(u64, t.cross_chain_htlc_ref[0..8], .little);
                         var contract: [20]u8 = undefined;
                         @memcpy(&contract, t.cross_chain_htlc_ref[8..28]);

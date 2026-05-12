@@ -174,11 +174,11 @@ test "E2E — doua tranzactii in acelasi bloc" {
 
     const tx1 = Transaction{
         .id = 1, .from_address = ALICE_ADDR, .to_address = MINER_ADDR,
-        .amount = 100_000, .fee = bc_mod.TX_MIN_FEE, .timestamp = 0, .signature = "", .hash = "",
+        .amount = 100_000, .fee = bc_mod.TX_MIN_FEE, .timestamp = 0, .signature = "", .hash = "tx1hash",
     };
     const tx2 = Transaction{
         .id = 2, .from_address = BOB_ADDR, .to_address = MINER_ADDR,
-        .amount = 200_000, .fee = bc_mod.TX_MIN_FEE, .timestamp = 0, .signature = "", .hash = "",
+        .amount = 200_000, .fee = bc_mod.TX_MIN_FEE, .timestamp = 0, .signature = "", .hash = "tx2hash",
     };
     try bc.addTransaction(tx1);
     try bc.addTransaction(tx2);

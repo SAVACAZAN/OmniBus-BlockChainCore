@@ -1424,15 +1424,15 @@ test "Kraken ticker parse — multiple symbols, no pre-filter" {
         \\{"channel":"ticker","type":"update","data":[
         \\{"symbol":"BTC/USD","bid":65234.1,"ask":65235.0,"last":65234.5},
         \\{"symbol":"ETH/USD","bid":3200.1,"ask":3201.0,"last":3200.5},
-        \\{"symbol":"DOGE/USD","bid":0.075,"ask":0.076,"last":0.0755}]}
+        \\{"symbol":"SOL/USD","bid":150.25,"ask":150.30,"last":150.27}]}
     ;
     parseKrakenMessage(&feed, frame);
     try std.testing.expectEqual(@as(usize, 3), feed.count());
 
     const btc = feed.getPrice("Kraken", "BTC/USD").?;
     try std.testing.expectEqual(@as(u64, 65_234_100_000), btc.bid_micro_usd);
-    const doge = feed.getPrice("Kraken", "DOGE/USD").?;
-    try std.testing.expectEqual(@as(u64, 75_000), doge.bid_micro_usd);
+    const sol = feed.getPrice("Kraken", "SOL/USD").?;
+    try std.testing.expectEqual(@as(u64, 150_250_000), sol.bid_micro_usd);
 }
 
 test "Kraken parser ignores heartbeat / status frames" {
