@@ -39,24 +39,62 @@ async function fetchBlockchairBalance(chain: string, address: string): Promise<C
   }
 }
 
-// ── EVM (ETH + L2s) ──────────────────────────────────────────────────────────
-// Uses public RPC endpoints. eth_getBalance returns wei.
+// ── EVM (ETH + L2s + testnets + Liberty) ─────────────────────────────────────
+// RPC URLs from aweb3/src/config/chains.ts (single source of truth).
 
 const EVM_RPC: Record<string, string> = {
-  ETH:       "https://eth.llamarpc.com",
-  ARBITRUM:  "https://arb1.arbitrum.io/rpc",
-  OPTIMISM:  "https://mainnet.optimism.io",
-  POLYGON:   "https://polygon-rpc.com",
-  BASE:      "https://mainnet.base.org",
-  BSC:       "https://bsc-dataseed.binance.org",
-  AVAX:      "https://api.avax.network/ext/bc/C/rpc",
+  ETH:           "https://eth.llamarpc.com",
+  ARBITRUM:      "https://arb1.arbitrum.io/rpc",
+  OPTIMISM:      "https://mainnet.optimism.io",
+  POLYGON:       "https://polygon-rpc.com",
+  BASE:          "https://base.drpc.org",
+  BSC:           "https://bsc-dataseed.binance.org",
+  AVAX:          "https://api.avax.network/ext/bc/C/rpc",
+  SEPOLIA:       "https://sepolia.drpc.org",
+  BASE_SEPOLIA:  "https://sepolia.base.org",
+  LIBERTY:       "https://testnet-rpc.lcx.com",   // LCX Liberty testnet, chainId 76847801
+  // Circle USDC testnet chains
+  ARB_SEPOLIA:   "https://sepolia-rollup.arbitrum.io/rpc",
+  OP_SEPOLIA:    "https://sepolia.optimism.io",
+  POLYGON_AMOY:  "https://rpc-amoy.polygon.technology",
+  AVAX_FUJI:     "https://api.avax-test.network/ext/bc/C/rpc",
 };
 
-async function fetchEvmBalance(chain: string, address: string): Promise<ChainBalance | null> {
-  const rpc = EVM_RPC[chain];
-  if (!rpc) return null;
+// USDC contract addresses (Circle official only — no bridged variants)
+// Mainnet
+const USDC_CONTRACT: Record<string, string> = {
+  ETH:           "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  BASE:          "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  ARBITRUM:      "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+  POLYGON:       "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+  // Testnets — Circle faucet.circle.com supports all of these
+  SEPOLIA:       "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  BASE_SEPOLIA:  "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  ARB_SEPOLIA:   "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  OP_SEPOLIA:    "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
+  POLYGON_AMOY:  "0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582",
+  AVAX_FUJI:     "0x5425890298aed601595a70AB815c96711a31Bc65",
+};
+
+// EURC — Circle official + Liberty chain
+const EURC_CONTRACT: Record<string, string> = {
+  ETH:          "0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c",
+  BASE:         "0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42",
+  SEPOLIA:      "0x08210F9170F89Ab7658F0b5e3fF39b0E03C594d4", // Circle EURC on Sepolia testnet
+  BASE_SEPOLIA: "0x808456652fdb597867f38412077A9182bf77359F", // Circle EURC on Base Sepolia testnet
+  LIBERTY:      "0x86f36F210586B3bB4C6570F83C682396141427e4", // Euro Coin on LCX Liberty
+};
+
+// LCX — native on Liberty chain, ERC-20 on ETH mainnet
+const LCX_CONTRACT: Record<string, string> = {
+  ETH: "0x037A54AaB062628C9Bbae1FDB1583c195585fe41",
+};
+
+export async function fetchEvmBalance(chain: string, address: string): Promise<ChainBalance | null> {
+  const rpcUrl = EVM_RPC[chain];
+  if (!rpcUrl) return null;
   try {
-    const r = await fetch(rpc, {
+    const r = await fetch(rpcUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,10 +107,8 @@ async function fetchEvmBalance(chain: string, address: string): Promise<ChainBal
     const j = await r.json();
     if (!j?.result) return null;
     const wei = BigInt(j.result);
-    // ETH has 18 decimals — show 6 fractional digits
     const eth = Number(wei) / 1e18;
-    const symbol = chain === "ETH" ? "ETH"
-      : chain === "POLYGON" ? "MATIC"
+    const symbol = chain === "POLYGON" ? "MATIC"
       : chain === "BSC" ? "BNB"
       : chain === "AVAX" ? "AVAX"
       : "ETH";
@@ -82,11 +118,104 @@ async function fetchEvmBalance(chain: string, address: string): Promise<ChainBal
   }
 }
 
+// ERC-20 balanceOf via eth_call
+async function fetchErc20Balance(
+  chain: string,
+  tokenAddress: string,
+  walletAddress: string,
+  decimals: number,
+  symbol: string,
+): Promise<ChainBalance | null> {
+  const rpcUrl = EVM_RPC[chain];
+  if (!rpcUrl) return null;
+  try {
+    // balanceOf(address) = 0x70a08231 + padded address
+    const data = "0x70a08231" + walletAddress.replace("0x", "").toLowerCase().padStart(64, "0");
+    const r = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{ to: tokenAddress, data }, "latest"],
+        id: 1,
+      }),
+    });
+    const j = await r.json();
+    if (!j?.result || j.result === "0x") return null;
+    const raw = BigInt(j.result);
+    const amount = Number(raw) / Math.pow(10, decimals);
+    return { native: amount.toFixed(decimals === 6 ? 4 : 6), symbol, raw: String(raw) };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUsdcBalance(chain: string, address: string): Promise<ChainBalance | null> {
+  const contract = USDC_CONTRACT[chain];
+  if (!contract) return null;
+  return fetchErc20Balance(chain, contract, address, 6, "USDC");
+}
+
+export async function fetchEurcBalance(chain: string, address: string): Promise<ChainBalance | null> {
+  const contract = EURC_CONTRACT[chain];
+  if (!contract) return null;
+  return fetchErc20Balance(chain, contract, address, 6, "EURC");
+}
+
+export async function fetchLcxBalance(chain: string, address: string): Promise<ChainBalance | null> {
+  // On Liberty chain, LCX is the native currency (like ETH on Ethereum)
+  if (chain === "LIBERTY") return fetchEvmBalance("LIBERTY", address);
+  const contract = LCX_CONTRACT[chain];
+  if (!contract) return null;
+  return fetchErc20Balance(chain, contract, address, 18, "LCX");
+}
+
+// Fetch all relevant balances for a given EVM address across all DEX chains
+// Returns map: chain+token → ChainBalance
+export async function fetchAllEvmBalances(address: string): Promise<Record<string, ChainBalance | null>> {
+  const [
+    ethSep, usdcSep, eurcSep,
+    lcxLib, usdcLib, eurcLib,
+    ethBase, usdcBase, eurcBase,
+  ] = await Promise.allSettled([
+    fetchEvmBalance("SEPOLIA", address),
+    fetchUsdcBalance("SEPOLIA", address),
+    fetchEurcBalance("SEPOLIA", address),
+    fetchLcxBalance("LIBERTY", address),
+    fetchUsdcBalance("LIBERTY", address),
+    fetchEurcBalance("LIBERTY", address),
+    fetchEvmBalance("BASE_SEPOLIA", address),
+    fetchUsdcBalance("BASE_SEPOLIA", address),
+    fetchEurcBalance("BASE_SEPOLIA", address),
+  ]);
+  const get = (r: PromiseSettledResult<ChainBalance | null>) =>
+    r.status === "fulfilled" ? r.value : null;
+  return {
+    ETH_SEP:   get(ethSep),
+    USDC_SEP:  get(usdcSep),
+    EURC_SEP:  get(eurcSep),
+    LCX_LIB:   get(lcxLib),
+    USDC_LIB:  get(usdcLib),
+    EURC_LIB:  get(eurcLib),
+    ETH_BASE:  get(ethBase),
+    USDC_BASE: get(usdcBase),
+    EURC_BASE: get(eurcBase),
+  };
+}
+
 // ── Solana ───────────────────────────────────────────────────────────────────
 
-async function fetchSolanaBalance(address: string): Promise<ChainBalance | null> {
+// Circle USDC on Solana (SPL token mint address)
+const USDC_SOL_MINT: Record<string, string> = {
+  devnet:  "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // Circle USDC devnet
+  mainnet: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // Circle USDC mainnet
+};
+
+export async function fetchSolanaBalance(address: string, cluster: "devnet" | "mainnet" = "devnet"): Promise<ChainBalance | null> {
+  const rpc = cluster === "devnet" ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
   try {
-    const r = await fetch("https://api.mainnet-beta.solana.com", {
+    const r = await fetch(rpc, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -100,6 +229,56 @@ async function fetchSolanaBalance(address: string): Promise<ChainBalance | null>
     const lamports: number = j?.result?.value ?? 0;
     const sol = lamports / 1e9;
     return { native: sol.toFixed(6), symbol: "SOL", raw: String(lamports) };
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch USDC SPL token balance on Solana devnet/mainnet. */
+export async function fetchSolanaUsdcBalance(address: string, cluster: "devnet" | "mainnet" = "devnet"): Promise<ChainBalance | null> {
+  const rpcUrl = cluster === "devnet" ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+  const mint = USDC_SOL_MINT[cluster];
+  try {
+    const r = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "getTokenAccountsByOwner",
+        params: [address, { mint }, { encoding: "jsonParsed" }],
+        id: 1,
+      }),
+    });
+    const j = await r.json();
+    const accounts: any[] = j?.result?.value ?? [];
+    if (!accounts.length) return null;
+    const uiAmount: number = accounts[0]?.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0;
+    const rawAmount: string = accounts[0]?.account?.data?.parsed?.info?.tokenAmount?.amount ?? "0";
+    return { native: uiAmount.toFixed(6), symbol: "USDC", raw: rawAmount };
+  } catch {
+    return null;
+  }
+}
+
+// ── XRP ──────────────────────────────────────────────────────────────────────
+
+export async function fetchXrpBalance(address: string, network: "testnet" | "mainnet" = "testnet"): Promise<ChainBalance | null> {
+  const rpcUrl = network === "testnet"
+    ? "https://omnibusblockchain.cc:8443/xrp-testnet/"
+    : "https://xrplcluster.com";
+  try {
+    const r = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        method: "account_info",
+        params: [{ account: address, ledger_index: "current" }],
+      }),
+    });
+    const j = await r.json();
+    const drops: string = j?.result?.account_data?.Balance ?? "0";
+    const xrp = Number(drops) / 1_000_000;
+    return { native: xrp.toFixed(6), symbol: "XRP", raw: drops };
   } catch {
     return null;
   }
@@ -157,6 +336,10 @@ export async function fetchChainBalance(chain: string, address: string): Promise
     case "AVAX":
     case "AVALANCHE":
       return fetchEvmBalance("AVAX", address);
+    case "SEPOLIA":
+      return fetchEvmBalance("SEPOLIA", address);
+    case "BASE_SEPOLIA":
+      return fetchEvmBalance("BASE_SEPOLIA", address);
 
     // Other
     case "SOL":

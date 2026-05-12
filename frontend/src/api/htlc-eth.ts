@@ -23,14 +23,12 @@ import {
 // ---------------------------------------------------------------------------
 
 export const HTLC_CONTRACTS: Record<number, string> = {
-  1: "0x0000000000000000000000000000000000000000",      // Ethereum mainnet — TBD
-  8453: "0x0000000000000000000000000000000000000000",   // Base mainnet — TBD
-  84532: "0x8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6",  // Base Sepolia — deployed
-  11155111: "0x270D74dDAccd7a4ABf668DA6F9b238c042353739", // Sepolia — deployed
-  56: "0x0000000000000000000000000000000000000000",     // BNB Chain — TBD
-  137: "0x0000000000000000000000000000000000000000",    // Polygon — TBD
-  // LCX Liberty chain (chain_id TBD — uses same contract shape)
-  // 0xa4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb
+  1:        "0x0000000000000000000000000000000000000000", // Ethereum mainnet — TBD
+  8453:     "0x0000000000000000000000000000000000000000", // Base mainnet — TBD
+  84532:    "0x0000000000000000000000000000000000000000", // Base Sepolia — no ETH for deploy
+  11155111: "0xC95cAED3179B8D2899acAC193411CC65759cEC81", // Sepolia — deployed 2026-05-09
+  56:       "0x0000000000000000000000000000000000000000", // BNB Chain — TBD
+  137:      "0x0000000000000000000000000000000000000000", // Polygon — TBD
 };
 
 // ---------------------------------------------------------------------------

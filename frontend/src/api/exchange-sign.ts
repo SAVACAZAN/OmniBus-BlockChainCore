@@ -167,6 +167,74 @@ export function signKycAttestation(args: {
 }
 
 /**
+ * Sign a `profile_update` payload. Canonical:
+ *   "PROFILE_UPDATE_V1\n<address>\n<facet>\n<fields_hash>\n<mask_hash>\n<nonce>"
+ * where `fields_hash` and `mask_hash` are SHA256d hex of the JSON-stable
+ * stringification of the respective objects. Server recomputes the same
+ * hashes to validate.
+ */
+export function signProfileUpdatePayload(args: {
+  privateKeyHex: string;
+  address: string;
+  facet: "social" | "professional" | "cultural" | "economic";
+  fieldsHashHex: string;
+  maskHashHex: string;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg =
+    `PROFILE_UPDATE_V1\n${args.address}\n${args.facet}\n${args.fieldsHashHex}\n` +
+    `${args.maskHashHex}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+/**
+ * Sign a `mica_attest` payload. Canonical:
+ *   "MICA_ATTEST_V1\n<address>\n<kind>\n<valid_until>\n<extra>\n<nonce>"
+ * `extra` is the white_paper_hash for issuer kind, empty string otherwise.
+ */
+export function signMicaAttestPayload(args: {
+  privateKeyHex: string;
+  address: string;
+  kind: "kyc" | "aml" | "sanctions" | "issuer";
+  validUntil: number;
+  extra: string;
+  nonce: number;
+}): { signature: string; publicKey: string } {
+  const msg =
+    `MICA_ATTEST_V1\n${args.address}\n${args.kind}\n${args.validUntil}\n` +
+    `${args.extra}\n${args.nonce}`;
+  return signMessage(args.privateKeyHex, msg);
+}
+
+/** SHA256d (double SHA-256) of a UTF-8 string, returned as hex. Used to
+ *  pre-hash profile JSON payloads before signing so the on-chain check
+ *  doesn't need to parse the whole structure. */
+export function sha256dHex(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  return bytesToHex(sha256(sha256(bytes)));
+}
+
+/** Stable JSON stringify (sorted keys) — required so that the
+ *  client-side hash matches whatever the server recomputes. */
+export function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return "[" + value.map(stableStringify).join(",") + "]";
+  }
+  const keys = Object.keys(value as Record<string, unknown>).sort();
+  return (
+    "{" +
+    keys
+      .map(
+        (k) =>
+          JSON.stringify(k) + ":" + stableStringify((value as Record<string, unknown>)[k]),
+      )
+      .join(",") +
+    "}"
+  );
+}
+
+/**
  * ECDSA secp256k1 signer — the chain verify path uses
  * `EcdsaSecp256k1Sha256oSha256` which prehashes with SHA256d. We pre-hash
  * here too and pass `prehash:false` so noble does not double-hash.

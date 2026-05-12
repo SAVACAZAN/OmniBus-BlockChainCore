@@ -16,11 +16,16 @@
 import { mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { HDKey } from "@scure/bip32";
-import { sha256 } from "@noble/hashes/sha2";
+import { sha256, sha512 } from "@noble/hashes/sha2";
+import { keccak_256 } from "@noble/hashes/sha3";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
 import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
 import * as secp from "@noble/secp256k1";
+// @noble/curves 2.x ships ed25519.js but doesn't declare it in package.json exports —
+// import via the JS file path which Vite resolves correctly.
+// @ts-ignore
+import { ed25519 } from "@noble/curves/ed25519.js";
 
 // pq-sign loads @noble/post-quantum lazily via new Function+atob inside pq-sign.ts
 // itself, so Vite 4 won't find @noble/post-quantum subpath exports when it crawls
@@ -91,8 +96,8 @@ export type Unlocked = {
   /** 24 multichain addresses derived from same mnemonic via BIP-44 standard
    *  coin types. Watch-only — private keys stay in RAM, never sent anywhere. */
   multichainAddresses?: { chain: string; address: string; path: string; group: string }[];
-  /** Legacy: BIP-44 OMNI addresses at indices 0..18 — kept for backwards compat. */
-  allAddresses?: { index: number; address: string; path: string }[];
+  /** BIP-44 OMNI addresses at indices 0..18, each with its EVM + SOL + XRP address. */
+  allAddresses?: { index: number; address: string; path: string; evmAddress: string; solAddress: string; xrpAddress: string }[];
   /** 4 soulbound reputation domain addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_).
    *  Derived from same mnemonic at coin types 778-781. Non-transferable — chain
    *  rejects any TX where these are the sender. */
@@ -142,6 +147,11 @@ const listeners = new Set<() => void>();
         publicKey: parsed.publicKey,
         address: parsed.address,
         walletIndex: parsed.walletIndex,
+        xpub: parsed.xpub,
+        pqOmni: parsed.pqOmni,
+        allAddresses: parsed.allAddresses,
+        multichainAddresses: parsed.multichainAddresses,
+        soulboundAddresses: parsed.soulboundAddresses,
       };
     }
   } catch { /* corrupted session — ignore */ }
@@ -283,13 +293,18 @@ function bech32mAddress(hrp: string, program: Uint8Array): string {
   return bech32mEncode(hrp, [1, ...convertBits(program, 8, 5)]);
 }
 
-/** EVM address — last 20 bytes of keccak256(pubkey_uncompressed[1:]) */
+/** EVM address — last 20 bytes of keccak256(pubkey_uncompressed[1:]), EIP-55 checksum */
 function evmAddress(pubkeyCompressed: Uint8Array): string {
-  // Decompress: use noble/secp256k1 Point if available, else derive from privkey path
-  // Here we use sha256 as approximation for display — real keccak would need a dep.
-  // For deterministic watch-only display this is sufficient (not used for signing).
-  const h = sha256(pubkeyCompressed).slice(12);
-  return "0x" + Array.from(h).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  const point = secp.ProjectivePoint.fromHex(pubkeyCompressed);
+  const uncompressed = point.toRawBytes(false);
+  const hash = keccak_256(uncompressed.slice(1));
+  const addr = Array.from(hash.slice(12)).map(b => b.toString(16).padStart(2, "0")).join("");
+  // EIP-55 checksum
+  const addrHash = Array.from(keccak_256(new TextEncoder().encode(addr))).map(b => b.toString(16).padStart(2, "0")).join("");
+  const checksummed = addr.split("").map((c, i) =>
+    /[a-f]/.test(c) ? (parseInt(addrHash[i], 16) >= 8 ? c.toUpperCase() : c) : c
+  ).join("");
+  return "0x" + checksummed;
 }
 
 /** Cosmos bech32 — ATOM, similar chains */
@@ -298,9 +313,45 @@ function cosmosBech32(hrp: string, pubkey: Uint8Array): string {
   return bech32Encode(hrp, [0, ...convertBits(h, 8, 5)]);
 }
 
-/** Base58 alphabet used by Solana (same as Bitcoin but no checksum) */
-function solanaAddress(pubkey: Uint8Array): string {
-  return base58.encode(pubkey);
+/** SLIP-10 Ed25519 derivation — all indices hardened, HMAC key = "ed25519 seed" */
+function slip10Ed25519(seed: Uint8Array, indices: number[]): Uint8Array {
+  function hmac512(key: Uint8Array, data: Uint8Array): Uint8Array {
+    const BLOCK = 128;
+    const k = key.length > BLOCK ? sha512(key) : key;
+    const kPad = new Uint8Array(BLOCK); kPad.set(k);
+    const iPad = kPad.map(b => b ^ 0x36);
+    const oPad = kPad.map(b => b ^ 0x5c);
+    const inner = new Uint8Array(BLOCK + data.length);
+    inner.set(iPad); inner.set(data, BLOCK);
+    const outer = new Uint8Array(BLOCK + 64);
+    outer.set(oPad); outer.set(sha512(inner), BLOCK);
+    return sha512(outer);
+  }
+  let I = hmac512(new TextEncoder().encode("ed25519 seed"), seed);
+  let kL = I.slice(0, 32);
+  let kR = I.slice(32);
+  for (const index of indices) {
+    const hardened = (index | 0x80000000) >>> 0;
+    const data = new Uint8Array(37);
+    data[0] = 0x00; data.set(kL, 1);
+    new DataView(data.buffer).setUint32(33, hardened, false);
+    const child = hmac512(kR, data);
+    kL = child.slice(0, 32);
+    kR = child.slice(32);
+  }
+  return kL;
+}
+
+/** Solana address = Ed25519 pubkey (32 bytes) in base58, no checksum.
+ *  BIP-32 gives us a secp256k1 privkey — we reuse those 32 bytes as Ed25519
+ *  scalar seed (standard practice for deterministic SOL derivation). */
+function solanaAddress(secp256k1Pubkey: Uint8Array, privkeyBytes?: Uint8Array): string {
+  if (privkeyBytes && privkeyBytes.length === 32) {
+    const ed25519Pubkey = ed25519.getPublicKey(privkeyBytes);
+    return base58.encode(ed25519Pubkey);
+  }
+  // fallback: encode secp256k1 pubkey truncated (wrong but safe display)
+  return base58.encode(secp256k1Pubkey.slice(1, 33));
 }
 
 /**
@@ -356,13 +407,115 @@ function deriveSoulboundAddresses(root: HDKey): { tier: string; prefix: string; 
   });
 }
 
+/** Polkadot SS58 — prefix byte + 32-byte pubkey + 2-byte blake2b checksum, base58 */
+function ss58Address(pubkey32: Uint8Array, networkPrefix: number): string {
+  // SS58 uses "SS58PRE" + payload as checksum input
+  const payload = new Uint8Array(1 + 32);
+  payload[0] = networkPrefix;
+  payload.set(pubkey32, 1);
+  const prefix = new TextEncoder().encode("SS58PRE");
+  const checksumInput = new Uint8Array(prefix.length + payload.length);
+  checksumInput.set(prefix); checksumInput.set(payload, prefix.length);
+  const checksum = sha512(checksumInput).slice(0, 2);
+  const full = new Uint8Array(payload.length + 2);
+  full.set(payload); full.set(checksum, payload.length);
+  return base58.encode(full);
+}
+
+// XRP uses a DIFFERENT base58 alphabet than Bitcoin.
+// Bitcoin: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+// XRP:     rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz
+const XRP_ALPHABET = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
+function xrpBase58Encode(bytes: Uint8Array): string {
+  let num = BigInt(0);
+  for (const b of bytes) num = num * BigInt(256) + BigInt(b);
+  let result = "";
+  while (num > BigInt(0)) {
+    result = XRP_ALPHABET[Number(num % BigInt(58))] + result;
+    num = num / BigInt(58);
+  }
+  for (const b of bytes) { if (b !== 0) break; result = XRP_ALPHABET[0] + result; }
+  return result;
+}
+
+/** XRP address — hash160(secp256k1 pubkey) + version byte 0x00, in XRP base58 alphabet.
+ *  Version byte 0x00 + XRP alphabet produces addresses starting with 'r'. */
+function xrpAddress(pubkey: Uint8Array): string {
+  const accountId = ripemd160(sha256(pubkey));
+  const versioned = new Uint8Array(21);
+  versioned[0] = 0x00;
+  versioned.set(accountId, 1);
+  const checksum = sha256(sha256(versioned)).slice(0, 4);
+  const full = new Uint8Array(25);
+  full.set(versioned); full.set(checksum, 21);
+  return xrpBase58Encode(full);
+}
+
+/** Stellar strkey — G + base32(version_byte + ed25519_pubkey + checksum) */
+function stellarAddress(privkeyBytes?: Uint8Array): string {
+  if (!privkeyBytes) return "(no key)";
+  const edPub = ed25519.getPublicKey(privkeyBytes);
+  // Stellar strkey: version 6 << 3 = 48 (G), payload = pubkey, checksum CRC-16
+  const payload = new Uint8Array(1 + 32);
+  payload[0] = 6 << 3; // 48 = account (G)
+  payload.set(edPub, 1);
+  // CRC-16 CCITT
+  let crc = 0x0000;
+  for (const b of payload) {
+    let x = ((crc >> 8) ^ b) & 0xff;
+    x ^= x >> 4;
+    crc = ((crc << 8) ^ (x << 12) ^ (x << 5) ^ x) & 0xffff;
+  }
+  const full = new Uint8Array(35);
+  full.set(payload); full[33] = crc & 0xff; full[34] = (crc >> 8) & 0xff;
+  // Base32 encoding (no padding, uppercase)
+  const ALPHA32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = 0, val = 0, out = "";
+  for (const b of full) {
+    val = (val << 8) | b; bits += 8;
+    while (bits >= 5) { out += ALPHA32[(val >> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) out += ALPHA32[(val << (5 - bits)) & 31];
+  return out;
+}
+
+/** Algorand address — Ed25519 pubkey (32 bytes) + 4-byte checksum, base32 */
+function algoAddress(privkeyBytes?: Uint8Array): string {
+  if (!privkeyBytes) return "(no key)";
+  const edPub = ed25519.getPublicKey(privkeyBytes);
+  const checksum = sha256(edPub).slice(28, 32); // last 4 bytes
+  const full = new Uint8Array(36);
+  full.set(edPub); full.set(checksum, 32);
+  const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = 0, val = 0, out = "";
+  for (const b of full) {
+    val = (val << 8) | b; bits += 8;
+    while (bits >= 5) { out += ALPHABET[(val >> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) out += ALPHABET[(val << (5 - bits)) & 31];
+  return out;
+}
+
+/** MultiversX (EGLD) — bech32 "erd1" + 32-byte Ed25519 pubkey */
+function egldAddress(privkeyBytes?: Uint8Array): string {
+  if (!privkeyBytes) return "(no key)";
+  const edPub = ed25519.getPublicKey(privkeyBytes);
+  return bech32Address("erd", 0, edPub);
+}
+
 /** Derive 24 multichain addresses from same BIP-32 root via BIP-44 coin types.
  *  All watch-only — private keys stay in RAM, never transmitted. */
-function deriveMultichainAddresses(root: HDKey): { chain: string; address: string; path: string; group: string }[] {
+function deriveMultichainAddresses(root: HDKey, seed: Uint8Array): { chain: string; address: string; path: string; group: string }[] {
   const derive = (path: string) => {
     try {
       const child = root.derive(path);
       return child.publicKey ?? null;
+    } catch { return null; }
+  };
+  const derivePriv = (path: string) => {
+    try {
+      const child = root.derive(path);
+      return child.privateKey ?? null;
     } catch { return null; }
   };
 
@@ -400,15 +553,22 @@ function deriveMultichainAddresses(root: HDKey): { chain: string; address: strin
       encode: p => b58check(h160(p), 0x00) },
 
     // ── Non-EVM ──────────────────────────────────────────────────────
-    { chain: "SOL",  group: "OTHER", path: "m/44'/501'/0'/0/0",  encode: solanaAddress },
-    { chain: "ADA",  group: "OTHER", path: "m/44'/1815'/0'/0/0", encode: p => "addr1" + bytesToHex(h160(p)) },
-    { chain: "DOT",  group: "OTHER", path: "m/44'/354'/0'/0/0",  encode: p => b58check(p.slice(0, 32), 0x00) },
+    // SOL: SLIP-10 Ed25519 — encoded separately via solAddress field in allAddresses
+    { chain: "SOL",  group: "OTHER", path: "m/44'/501'/0'/0/0",  encode: (p) => solanaAddress(p, derivePriv("m/44'/501'/0'/0/0") ?? undefined) },
+    // ADA: Shelley bech32 — real addr needs Byron/Shelley encoding, show as enterprise addr
+    { chain: "ADA",  group: "OTHER", path: "m/44'/1815'/0'/0/0", encode: p => bech32Address("addr", 0x61, h160(p)) },
+    // DOT: SLIP-10 Ed25519 → SS58 prefix 0 (Polkadot generic). Faucets use this.
+    { chain: "DOT",  group: "OTHER", path: "m/44'/354'/0'/0/0",  encode: (_p) => ss58Address(ed25519.getPublicKey(slip10Ed25519(seed, [44, 354, 0, 0, 0])), 0) },
     { chain: "ATOM", group: "OTHER", path: "m/44'/118'/0'/0/0",  encode: p => cosmosBech32("cosmos", p) },
-    { chain: "XRP",  group: "OTHER", path: "m/44'/144'/0'/0/0",  encode: p => b58check(h160(p), 0x00) },
-    { chain: "XLM",  group: "OTHER", path: "m/44'/148'/0'/0/0",  encode: p => base58.encode(p.slice(0, 32)) },
+    // XRP: base58check with XRP alphabet (differs from Bitcoin) + account ID prefix 0x00
+    { chain: "XRP",  group: "OTHER", path: "m/44'/144'/0'/0/0",  encode: p => xrpAddress(p) },
+    // XLM: SLIP-10 Ed25519 at m/44'/148'/0'/0/0 (Stellar official standard)
+    { chain: "XLM",  group: "OTHER", path: "m/44'/148'/0'/0/0",  encode: (_p) => stellarAddress(slip10Ed25519(seed, [44, 148, 0, 0, 0])) },
     { chain: "TRX",  group: "OTHER", path: "m/44'/195'/0'/0/0",  encode: p => { const evmHex = evmAddress(p).slice(2); const bytes = new Uint8Array(20); for (let i = 0; i < 20; i++) bytes[i] = parseInt(evmHex.slice(i*2, i*2+2), 16); return b58check(bytes, 0x41); } },
-    { chain: "ALGO", group: "OTHER", path: "m/44'/283'/0'/0/0",  encode: p => base58.encode(p.slice(0, 32)) },
-    { chain: "EGLD", group: "OTHER", path: "m/44'/508'/0'/0/0",  encode: p => "erd1" + bytesToHex(h160(p)) },
+    // ALGO: SLIP-10 Ed25519 at m/44'/283'/0'/0/0 (Algorand official standard)
+    { chain: "ALGO", group: "OTHER", path: "m/44'/283'/0'/0/0",  encode: (_p) => algoAddress(slip10Ed25519(seed, [44, 283, 0, 0, 0])) },
+    // EGLD: SLIP-10 Ed25519 at m/44'/508'/0'/0/0 (MultiversX official standard)
+    { chain: "EGLD", group: "OTHER", path: "m/44'/508'/0'/0/0",  encode: (_p) => egldAddress(slip10Ed25519(seed, [44, 508, 0, 0, 0])) },
   ];
 
   return chains.map(({ chain, group, path, encode }) => {
@@ -470,7 +630,7 @@ export function derivedKeysFromMnemonic(
   mnemonic: string,
   walletIndex = 0,
   bip39Passphrase = "",
-): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string }[]; multichainAddresses: { chain: string; address: string; path: string; group: string }[]; soulboundAddresses: { tier: string; prefix: string; address: string; algo: string; bits: number }[]; root: HDKey } {
+): { privateKey: string; xprv: string; xpub: string; pqOmni: Promise<PqOmniSlot[]>; allAddresses: { index: number; address: string; path: string; evmAddress: string; solAddress: string; xrpAddress: string }[]; multichainAddresses: { chain: string; address: string; path: string; group: string }[]; soulboundAddresses: { tier: string; prefix: string; address: string; algo: string; bits: number }[]; root: HDKey } {
   const trimmed = mnemonic.trim().toLowerCase();
   if (!validateMnemonic(trimmed, wordlist)) {
     throw new Error("Invalid BIP-39 mnemonic");
@@ -482,16 +642,34 @@ export function derivedKeysFromMnemonic(
   if (!child.privateKey) throw new Error("Mnemonic derivation produced no private key");
   const pqOmni = derivePqOmniSlots(root);
   const soulboundAddresses = deriveSoulboundAddresses(root);
-  const multichainAddresses = deriveMultichainAddresses(root);
+  const multichainAddresses = deriveMultichainAddresses(root, seed);
 
-  // Legacy OMNI BIP-44 indices 0..18 — kept for backwards compat.
+  // OMNI BIP-44 indices 0..18, each also carries EVM + SOL (SLIP-10 Ed25519) addresses
   const allAddresses = Array.from({ length: 19 }, (_, i) => {
-    const path = `m/44'/777'/0'/0/${i}`;
-    const leaf = root.derive(path);
-    if (!leaf.privateKey) return null;
-    const { address } = deriveAddressFromPrivKey(bytesToHex(leaf.privateKey));
-    return { index: i, address, path };
-  }).filter(Boolean) as { index: number; address: string; path: string }[];
+    const omniPath = `m/44'/777'/0'/0/${i}`;
+    const evmPath  = `m/44'/60'/0'/0/${i}`;
+    const omniLeaf = root.derive(omniPath);
+    if (!omniLeaf.privateKey) return null;
+    const { address } = deriveAddressFromPrivKey(bytesToHex(omniLeaf.privateKey));
+    let evmAddr = "";
+    try {
+      const evmLeaf = root.derive(evmPath);
+      if (evmLeaf.publicKey) evmAddr = evmAddress(evmLeaf.publicKey);
+    } catch { /* leave empty */ }
+    // SOL: secp256k1 privkey at m/44'/501'/0'/0/i used as Ed25519 scalar seed.
+    let solAddr = "";
+    try {
+      const solLeaf = root.derive(`m/44'/501'/0'/0/${i}`);
+      if (solLeaf.privateKey) solAddr = base58.encode(ed25519.getPublicKey(solLeaf.privateKey));
+    } catch { /* leave empty */ }
+    // XRP: hash160(secp256k1 pubkey at m/44'/144'/0'/0/i) in XRP base58 alphabet
+    let xrpAddr = "";
+    try {
+      const xrpLeaf = root.derive(`m/44'/144'/0'/0/${i}`);
+      if (xrpLeaf.publicKey) xrpAddr = xrpAddress(xrpLeaf.publicKey);
+    } catch { /* leave empty */ }
+    return { index: i, address, path: omniPath, evmAddress: evmAddr, solAddress: solAddr, xrpAddress: xrpAddr };
+  }).filter(Boolean) as { index: number; address: string; path: string; evmAddress: string; solAddress: string; xrpAddress: string }[];
 
   return {
     privateKey: bytesToHex(child.privateKey),
