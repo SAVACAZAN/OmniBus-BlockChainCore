@@ -115,6 +115,22 @@ pub const ReputationManager = struct {
         cups.creditVacationDay(total_days_active, block_height);
     }
 
+    /// LOVE credit — uptime in minute (called from mining loop every 6 blocks).
+    pub fn creditUptimeMinutes(self: *ReputationManager, address: []const u8, minutes: u32, block_height: u64) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        const cups = self.getOrCreatePtr(address) catch return;
+        cups.creditUptimeMinutes(minutes, block_height);
+    }
+
+    /// LOVE bonus pentru o zi consecutiva online (called daily).
+    pub fn creditDailyStreak(self: *ReputationManager, address: []const u8, block_height: u64) void {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+        const cups = self.getOrCreatePtr(address) catch return;
+        cups.creditDailyStreak(block_height);
+    }
+
     pub fn applyViolation(self: *ReputationManager, address: []const u8) void {
         self.mutex.lock();
         defer self.mutex.unlock();
