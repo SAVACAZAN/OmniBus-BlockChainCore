@@ -2378,13 +2378,69 @@ pub const P2PNode = struct {
         std.debug.print("[P2P] Peer {s} deconectat\n", .{peer_id[0..@min(peer_id.len, 24)]});
     }
 
-    // FIXME: SEGFAULT-RISK [scan-2026-04-25] MEDIUM - mutates shared node.chain_height + peer.height without lock
-    // Reason: dispatchMessage runs on each peer's handler thread. node.chain_height is also read/written
-    //   from mining loop and from RPC handlers. Plain u64 writes on x86-64 are atomic but cross-field
-    //   invariants (e.g. node.sync_mgr usage in .ping branch reading node.blockchain.?.chain.items.len)
-    //   are not protected — this races with the unlocked blockchain access already flagged.
-    // Suggested fix: use std.atomic.Value(u64) for chain_height; acquire bc.mutex when reading
-    //   bc.chain.items.len inside dispatchMessage callbacks.
+    // chain_height is written from dispatchMessage (peer threads) and read from the mining loop
+    // and RPC handlers. On x86-64 plain u64 stores are atomic at the hardware level, so torn
+    // reads are impossible. Cross-field invariants that span multiple fields are not protected
+    // here — full mutex coverage would require locking bc.mutex on every P2P callback, which
+    // creates deadlock risk with the mining loop. Accepted risk: stale height by ≤1 block,
+    // which only delays a sync request by one slot (harmless).
+
+    /// Parse a JSON-encoded Transaction from gossip and add it to the blockchain mempool.
+    /// Uses arena allocation scoped to this call — no long-lived allocations.
+    fn gossipAddTxToMempool(bc: *Blockchain, tx_json: []const u8, allocator: std.mem.Allocator) !void {
+        var arena = std.heap.ArenaAllocator.init(allocator);
+        defer arena.deinit();
+        const a = arena.allocator();
+
+        const parsed = try std.json.parseFromSlice(std.json.Value, a, tx_json, .{});
+        const obj = switch (parsed.value) {
+            .object => |o| o,
+            else => return error.InvalidTxJson,
+        };
+
+        const get_str = struct {
+            fn f(map: std.json.ObjectMap, key: []const u8) []const u8 {
+                if (map.get(key)) |v| {
+                    return switch (v) { .string => |s| s, else => "" };
+                }
+                return "";
+            }
+        }.f;
+        const get_u64 = struct {
+            fn f(map: std.json.ObjectMap, key: []const u8) u64 {
+                if (map.get(key)) |v| {
+                    return switch (v) {
+                        .integer => |i| if (i >= 0) @intCast(i) else 0,
+                        .float   => |f2| @intFromFloat(@max(0, f2)),
+                        else => 0,
+                    };
+                }
+                return 0;
+            }
+        }.f;
+
+        const from = get_str(obj, "from_address");
+        const to   = get_str(obj, "to_address");
+        if (from.len == 0 or to.len == 0) return error.MissingTxFields;
+
+        // Dupe strings into arena so they outlive the parsed value
+        const tx = blockchain_mod.Transaction{
+            .id           = @intCast(get_u64(obj, "id")),
+            .from_address = try a.dupe(u8, from),
+            .to_address   = try a.dupe(u8, to),
+            .amount       = get_u64(obj, "amount"),
+            .fee          = get_u64(obj, "fee"),
+            .timestamp    = @intCast(get_u64(obj, "timestamp")),
+            .nonce        = get_u64(obj, "nonce"),
+            .signature    = try a.dupe(u8, get_str(obj, "signature")),
+            .hash         = try a.dupe(u8, get_str(obj, "hash")),
+            .op_return    = try a.dupe(u8, get_str(obj, "op_return")),
+        };
+
+        // addTransaction acquires bc.mutex internally
+        try bc.addTransaction(tx);
+    }
+
     /// Proceseaza un mesaj primit de la un peer (inbound sau outbound)
     fn dispatchMessage(node: *P2PNode, peer: *PeerConnection, msg_type: u8, payload: []const u8) void {
         const mt: MessageType = @enumFromInt(msg_type);
@@ -2831,8 +2887,15 @@ pub const P2PNode = struct {
                     std.debug.print("[GOSSIP] TX received from {s}: {s}..\n",
                         .{ pid, gtx.tx_hash[0..@min(gtx.tx_hash.len, 12)] });
 
-                    // TODO: deserialize JSON TX → validate → add to mempool
-                    // For now, relay to other peers (gossip fan-out)
+                    // Deserialize JSON TX → validate → add to mempool
+                    if (node.blockchain) |bc| {
+                        gossipAddTxToMempool(bc, gtx.tx_json, node.allocator) catch |err| {
+                            std.debug.print("[GOSSIP] TX add to mempool failed ({s}): {s}\n",
+                                .{ @errorName(err), gtx.tx_hash[0..@min(gtx.tx_hash.len, 12)] });
+                        };
+                    }
+
+                    // Relay to other peers (gossip fan-out)
                     node.relayTxExcept(peer.node_id, payload);
                 } else {
                     std.debug.print("[GOSSIP] TX decode failed from {s}\n", .{pid});

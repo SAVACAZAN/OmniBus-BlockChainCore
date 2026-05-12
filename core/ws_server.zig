@@ -45,7 +45,10 @@ fn wsSend(stream: std.net.Stream, data: []const u8) !void {
             sent += @intCast(n);
         }
     } else {
-        try stream.writeAll(data);
+        // Fix B2: stream.writeAll can panic with BADF when client
+        // disconnects mid-write (Linux); convert to soft error so caller
+        // (broadcast loop) can prune the dead client without crashing.
+        stream.writeAll(data) catch return error.ConnectionClosed;
     }
 }
 
@@ -276,10 +279,11 @@ pub const WsServer = struct {
     // Suggested fix: take srv.mutex FIRST; then close stream + remove from list + destroy under lock.
     //   Or use atomic flag + epoch-based reclamation.
     fn removeClient(srv: *WsServer, client: *WsClient) void {
-        client.stream.close();
-        client.connected = false;
+        // Take lock first so broadcast() cannot dereference a half-closed stream.
         srv.mutex.lock();
         defer srv.mutex.unlock();
+        client.connected = false;
+        client.stream.close();
         for (srv.clients.items, 0..) |c, i| {
             if (c == client) {
                 _ = srv.clients.swapRemove(i);
