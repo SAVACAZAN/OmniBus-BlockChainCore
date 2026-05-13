@@ -22,12 +22,31 @@
 
 const std = @import("std");
 const orchestrator = @import("orchestrator.zig");
+const chain_client_mod = @import("chain_rpc_client.zig");
 
 const EXPLORER_RPC_PORT: u16 = 28300;
 const HTTP_BUF_SIZE: usize = 8 * 1024;
+const POLL_INTERVAL_MS: u64 = 1000;
 
 var g_clock: orchestrator.AtomicClock = undefined;
 var g_running: std.atomic.Value(bool) = std.atomic.Value(bool).init(true);
+var g_chain_height: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_polls: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_errors: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+
+fn chainPollerLoop(allocator: std.mem.Allocator) void {
+    var client = chain_client_mod.ChainClient.init(allocator);
+    defer client.deinit();
+    while (g_running.load(.acquire)) {
+        if (client.getBlockCount()) |h| {
+            g_chain_height.store(h, .release);
+            _ = g_chain_polls.fetchAdd(1, .monotonic);
+        } else |_| {
+            _ = g_chain_errors.fetchAdd(1, .monotonic);
+        }
+        std.Thread.sleep(POLL_INTERVAL_MS * std.time.ns_per_ms);
+    }
+}
 
 fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
     const method_key = "\"method\"";
@@ -56,8 +75,19 @@ fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
         return std.fmt.allocPrint(allocator,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"uptime_ms\":{d},\"running\":true,\"rdtsc\":{d}," ++
-            "\"status\":\"stub\"}}}}",
-            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles() });
+            "\"chain_height\":{d},\"chain_polls\":{d}," ++
+            "\"chain_errors\":{d},\"status\":\"bridged\"}}}}",
+            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles(),
+               g_chain_height.load(.acquire),
+               g_chain_polls.load(.monotonic),
+               g_chain_errors.load(.monotonic) });
+    }
+
+    // explorer_tip: returnează ultimul height știut (cache local)
+    if (std.mem.eql(u8, method, "explorer_tip")) {
+        return std.fmt.allocPrint(allocator,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d}}}}}",
+            .{ id, g_chain_height.load(.acquire) });
     }
 
     return std.fmt.allocPrint(allocator,
@@ -90,8 +120,7 @@ fn handleConnection(conn: std.net.Server.Connection, allocator: std.mem.Allocato
 }
 
 pub fn main() !void {
-    std.debug.print("[EXPLORER] omnibus-explorer starting (STUB) on port {d}\n", .{EXPLORER_RPC_PORT});
-    std.debug.print("[EXPLORER] Note: stub — frontend/WS broadcast migration pending.\n", .{});
+    std.debug.print("[EXPLORER] omnibus-explorer starting on port {d}\n", .{EXPLORER_RPC_PORT});
 
     g_clock = orchestrator.AtomicClock.initReal();
     const tsc = orchestrator.calibrateTscPerSec(100);
@@ -102,11 +131,15 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
+    const poller = try std.Thread.spawn(.{}, chainPollerLoop, .{allocator});
+    poller.detach();
+
     const addr = try std.net.Address.parseIp4("127.0.0.1", EXPLORER_RPC_PORT);
     var server = try addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
     std.debug.print("[EXPLORER] listening on http://127.0.0.1:{d}\n", .{EXPLORER_RPC_PORT});
+    std.debug.print("[EXPLORER] polling chain tip every {d}ms via JSON-RPC\n", .{POLL_INTERVAL_MS});
 
     while (g_running.load(.acquire)) {
         const conn = server.accept() catch |err| {

@@ -27,12 +27,35 @@
 
 const std = @import("std");
 const orchestrator = @import("orchestrator.zig");
+const chain_client_mod = @import("chain_rpc_client.zig");
 
 const AGENTS_RPC_PORT: u16 = 28200;
 const HTTP_BUF_SIZE: usize = 8 * 1024;
+const POLL_INTERVAL_MS: u64 = 2000;
 
 var g_clock: orchestrator.AtomicClock = undefined;
 var g_running: std.atomic.Value(bool) = std.atomic.Value(bool).init(true);
+var g_chain_height: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_polls: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_errors: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+
+/// Background poller: every POLL_INTERVAL_MS asks the chain for its
+/// current height and stores it in g_chain_height. Health endpoint
+/// surfaces these counters so operators can see the bridge is alive.
+fn chainPollerLoop(allocator: std.mem.Allocator) void {
+    var client = chain_client_mod.ChainClient.init(allocator);
+    defer client.deinit();
+
+    while (g_running.load(.acquire)) {
+        if (client.getBlockCount()) |h| {
+            g_chain_height.store(h, .release);
+            _ = g_chain_polls.fetchAdd(1, .monotonic);
+        } else |_| {
+            _ = g_chain_errors.fetchAdd(1, .monotonic);
+        }
+        std.Thread.sleep(POLL_INTERVAL_MS * std.time.ns_per_ms);
+    }
+}
 
 fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
     const method_key = "\"method\"";
@@ -61,8 +84,13 @@ fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
         return std.fmt.allocPrint(allocator,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"uptime_ms\":{d},\"running\":true,\"rdtsc\":{d}," ++
-            "\"agents_loaded\":0,\"status\":\"stub\"}}}}",
-            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles() });
+            "\"agents_loaded\":0,\"chain_height\":{d}," ++
+            "\"chain_polls\":{d},\"chain_errors\":{d}," ++
+            "\"status\":\"bridged\"}}}}",
+            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles(),
+               g_chain_height.load(.acquire),
+               g_chain_polls.load(.monotonic),
+               g_chain_errors.load(.monotonic) });
     }
 
     return std.fmt.allocPrint(allocator,
@@ -95,10 +123,7 @@ fn handleConnection(conn: std.net.Server.Connection, allocator: std.mem.Allocato
 }
 
 pub fn main() !void {
-    std.debug.print("[AGENTS] omnibus-agents starting (STUB) on port {d}\n", .{AGENTS_RPC_PORT});
-    std.debug.print("[AGENTS] Note: this is a placeholder process. Real agent_executor\n" ++
-                    "[AGENTS] integration follows the same RPC bridge pattern as\n" ++
-                    "[AGENTS] omnibus-oracle. See agents_main.zig docstring.\n", .{});
+    std.debug.print("[AGENTS] omnibus-agents starting on port {d}\n", .{AGENTS_RPC_PORT});
 
     g_clock = orchestrator.AtomicClock.initReal();
     const tsc = orchestrator.calibrateTscPerSec(100);
@@ -109,11 +134,16 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
+    // Start chain poller thread — bridges this daemon to omnibus-node via RPC
+    const poller = try std.Thread.spawn(.{}, chainPollerLoop, .{allocator});
+    poller.detach();
+
     const addr = try std.net.Address.parseIp4("127.0.0.1", AGENTS_RPC_PORT);
     var server = try addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
     std.debug.print("[AGENTS] listening on http://127.0.0.1:{d}\n", .{AGENTS_RPC_PORT});
+    std.debug.print("[AGENTS] polling chain every {d}ms via JSON-RPC\n", .{POLL_INTERVAL_MS});
 
     while (g_running.load(.acquire)) {
         const conn = server.accept() catch |err| {
