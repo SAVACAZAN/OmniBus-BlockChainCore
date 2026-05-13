@@ -185,9 +185,9 @@ export function AtomicSwapPanel() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6">
       <header>
-        <h1 className="text-xl font-semibold text-mempool-text">Atomic Swap (cross-chain)</h1>
+        <h1 className="text-lg sm:text-xl font-semibold text-mempool-text">Atomic Swap (cross-chain)</h1>
         <p className="text-sm text-mempool-text-dim">
           Bind an Omnibus orderbook entry to a Bitcoin / Ethereum / Base HTLC.
           The Omnibus order is placed normally; the binding tracks the remote
@@ -199,9 +199,9 @@ export function AtomicSwapPanel() {
         <div className="text-mempool-orange text-sm">Unlock a wallet to create a swap.</div>
       )}
 
-      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-4 space-y-3">
+      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
         <h2 className="text-mempool-text font-medium">1 — New swap</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <label className="flex flex-col">
             <span className="text-mempool-text-dim">Base</span>
             <input className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text"
@@ -226,7 +226,7 @@ export function AtomicSwapPanel() {
             <input className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text"
                    value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.0" />
           </label>
-          <label className="flex flex-col col-span-2">
+          <label className="flex flex-col sm:col-span-2">
             <span className="text-mempool-text-dim">Expiry (Omnibus block height)</span>
             <input className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text"
                    value={expiryBlock} onChange={(e) => setExpiryBlock(e.target.value)} placeholder="e.g. 200000" />
@@ -254,7 +254,7 @@ export function AtomicSwapPanel() {
         )}
       </section>
 
-      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-4 space-y-3">
+      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
         <h2 className="text-mempool-text font-medium">2 — Bind on-chain</h2>
         <p className="text-xs text-mempool-text-dim">
           After your order_place TX is mined, the matching engine assigns it
@@ -281,12 +281,13 @@ export function AtomicSwapPanel() {
         </button>
       </section>
 
-      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-4 space-y-3">
+      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-mempool-text font-medium">3 — Open swaps</h2>
           <button onClick={refreshBindings} className="text-xs text-mempool-blue hover:underline">refresh</button>
         </div>
-        <table className="w-full text-xs">
+        <div className="overflow-x-auto -mx-3 sm:mx-0">
+        <table className="w-full text-xs min-w-[560px]">
           <thead className="text-mempool-text-dim">
             <tr>
               <th className="text-left py-1">swap_id</th>
@@ -321,6 +322,7 @@ export function AtomicSwapPanel() {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
 
       {msg && <div className="text-mempool-green text-sm">{msg}</div>}

@@ -128,12 +128,12 @@ export function ApiDocsPage() {
   const prefix = mode === "real" ? "/exchange/0/" : "/paper/0/";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       <div className="mb-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-mempool-text">Exchange API Docs</h1>
-            <p className="text-sm text-mempool-text-dim mt-1">
+        <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-mempool-text">Exchange API Docs</h1>
+            <p className="text-xs sm:text-sm text-mempool-text-dim mt-1 break-all">
               Kraken-compatible Spot REST API for the OmniBus native DEX.
               Base URL: <code className="text-mempool-blue font-mono">{baseUrl}{prefix}…</code>
             </p>
@@ -177,8 +177,8 @@ export function ApiDocsPage() {
           </span>
         </div>
       </div>
-      <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
-        <div id="swagger-ui-container" ref={containerRef} style={{ minHeight: 800 }} />
+      <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-x-auto">
+        <div id="swagger-ui-container" ref={containerRef} style={{ minHeight: 800 }} className="min-w-[640px]" />
       </div>
     </div>
   );

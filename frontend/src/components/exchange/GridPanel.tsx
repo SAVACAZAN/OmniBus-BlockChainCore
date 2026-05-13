@@ -70,8 +70,8 @@ function CreateGridModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-md p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-md p-4 sm:p-6 space-y-4 my-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-mempool-text uppercase tracking-wider">Create Grid</h2>
           <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-lg leading-none">×</button>
@@ -185,8 +185,8 @@ function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: 
   const base = pair?.base ?? "OMNI";
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-lg p-6">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl w-full max-w-lg p-4 sm:p-6 my-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-mempool-text uppercase tracking-wider">Grid #{grid_id} Levels</h2>
           <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-lg">×</button>
@@ -282,7 +282,7 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
             Grid Trading
@@ -291,7 +291,7 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
             {activeCount} active / {grids.length} total
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {walletAddress && (
             <label className="flex items-center gap-1 text-[11px] text-mempool-text-dim cursor-pointer">
               <input
@@ -325,8 +325,8 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
           <button onClick={() => setShowCreate(true)} className="text-mempool-blue hover:underline">Create one</button>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="overflow-x-auto -mx-3 sm:mx-0">
+          <table className="w-full text-xs min-w-[640px]">
             <thead>
               <tr className="border-b border-mempool-border text-[10px] uppercase tracking-wider text-mempool-text-dim">
                 <th className="text-left pb-2 pr-3">ID</th>

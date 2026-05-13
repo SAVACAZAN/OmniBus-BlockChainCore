@@ -7,11 +7,11 @@ export function NetworkPage() {
   const { state } = useBlockchain();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <h2 className="text-lg font-bold text-mempool-text">Network Overview</h2>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <h2 className="text-base sm:text-lg font-bold text-mempool-text">Network Overview</h2>
 
       {/* Connection status */}
-      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5">
+      <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 sm:p-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-[10px] text-mempool-text-dim uppercase">WebSocket</p>
@@ -50,16 +50,16 @@ export function NetworkPage() {
           </h3>
         </div>
         {state.peers.length === 0 ? (
-          <div className="px-5 py-6 text-center text-sm text-mempool-text-dim">
+          <div className="px-4 sm:px-5 py-6 text-center text-sm text-mempool-text-dim">
             No peers connected (solo mining mode)
           </div>
         ) : (
           <div className="divide-y divide-mempool-border/30">
             {state.peers.map((p) => (
-              <div key={p.id} className="px-5 py-2.5 flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${p.alive ? "bg-mempool-green" : "bg-mempool-red"}`} />
-                <span className="text-xs font-mono text-mempool-text">{p.id}</span>
-                <span className="text-xs text-mempool-text-dim">{p.host}:{p.port}</span>
+              <div key={p.id} className="px-4 sm:px-5 py-2.5 flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${p.alive ? "bg-mempool-green" : "bg-mempool-red"}`} />
+                <span className="text-xs font-mono text-mempool-text break-all">{p.id}</span>
+                <span className="text-xs text-mempool-text-dim break-all">{p.host}:{p.port}</span>
               </div>
             ))}
           </div>

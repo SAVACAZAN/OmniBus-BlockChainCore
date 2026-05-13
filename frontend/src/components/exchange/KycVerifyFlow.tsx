@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { signKycAttestation } from "../../api/exchange-sign";
-import { getUnlocked } from "../../api/wallet-keystore";
+import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
@@ -39,7 +39,10 @@ type Step =
  *   - the attestation: {address, level, issuer, issued, expires, sig}
  */
 export function KycVerifyFlow({ tier, onClose, onAttested }: Props) {
-  const u = getUnlocked();
+  // Subscribe to the global keystore — if the user disconnects mid-flow the
+  // component re-renders and the submit step bails out instead of trying to
+  // sign with a stale snapshot.
+  const u = useWallet();
   const [step, setStep] = useState<Step>({ kind: "personal" });
   const [err, setErr] = useState<string | null>(null);
 

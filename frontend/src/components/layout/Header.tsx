@@ -8,6 +8,7 @@ import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
 import { ElectricOrganism } from "../effects/ElectricOrganism";
 import { MatrixRain } from "../effects/MatrixRain";
 import { WalletConnectButton } from "./WalletConnectButton";
+import { GlobalBalancePill } from "./GlobalBalancePill";
 
 declare global {
   interface Window { __openTx?: (txid: string) => void }
@@ -157,6 +158,7 @@ export function Header() {
             {/* Global wallet connect — visible on every tab. One login →
                 Names / Faucet / Reputation / Exchange all see the same wallet
                 via the wallet-keystore singleton. */}
+            <GlobalBalancePill />
             <WalletConnectButton />
           </div>
         </div>

@@ -428,8 +428,8 @@ export function NamesPage() {
   const feeOmni = (sat: number) => sat / 1_000_000_000;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-mempool-text mb-2">
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <h1 className="text-lg sm:text-2xl font-bold text-mempool-text mb-2">
         OmniNS — <span className="text-mempool-blue">.omnibus</span> Names
       </h1>
       <p className="text-mempool-text-dim text-sm mb-2">
@@ -789,7 +789,7 @@ export function NamesPage() {
             </div>
           )}
 
-          <div className="flex gap-2 items-center mb-3">
+          <div className="flex flex-wrap gap-2 items-center mb-3">
             <span className="text-xs text-mempool-text-dim">TLD:</span>
             {TLDS.map((t) => (
               <button
@@ -901,7 +901,8 @@ export function NamesPage() {
             <span className="text-mempool-blue font-mono">yourname.omnibus</span> above.
           </div>
         ) : list && list.entries.length > 0 ? (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="bg-mempool-bg/50 border-b border-mempool-border">
                 <th className="text-left px-3 py-2 text-xs uppercase tracking-wider text-mempool-text-dim">Name</th>
@@ -968,6 +969,7 @@ export function NamesPage() {
               })}
             </tbody>
           </table>
+          </div>
         ) : null}
       </div>
 
@@ -1198,8 +1200,8 @@ function RenewModal({ entry, ensFee, tldList, yearTiers, onClose, onRenewed }: R
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl shadow-2xl max-w-md w-full p-5 space-y-3">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl shadow-2xl max-w-md w-full p-4 sm:p-5 space-y-3 my-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-mempool-text">
             Renew <span className={TLD_INFO[tld]?.color ?? "text-mempool-blue"}>

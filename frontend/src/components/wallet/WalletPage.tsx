@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES, buildPqAttestPayload, nextNonce } from "../../api/wallet-keystore";
 import {
   useNamesOwnedBy,
@@ -54,30 +55,34 @@ function classifyTx(tx: any, myAddress: string): {
   badgeClass: string;
   isCredit: boolean;
 } {
+  // Backend (rpc_server.zig handleGetAddressHistory + listtransactions) sets
+  // tx.kind based on op_return prefix detection. Prefer that if present;
+  // fall back to op_return string for older RPC responses.
+  const kind = (tx.kind || "").toLowerCase();
   const memo = (tx.op_return || "").toLowerCase();
   const isFromMe = tx.from && tx.from === myAddress;
 
-  if (memo.startsWith("ns_claim:")) {
-    return { label: "NS Claim", badgeClass: "bg-purple-500/20 text-purple-300", isCredit: false };
-  }
-  if (memo.startsWith("deposit:")) {
-    return { label: "DEX Deposit", badgeClass: "bg-cyan-500/20 text-cyan-300", isCredit: !isFromMe };
-  }
-  if (memo.startsWith("withdraw:")) {
-    return { label: "DEX Withdraw", badgeClass: "bg-cyan-500/20 text-cyan-300", isCredit: !isFromMe };
-  }
-  if (memo.startsWith("open_order:") || memo.startsWith("place_order:")) {
-    return { label: "Open Order", badgeClass: "bg-blue-500/20 text-blue-300", isCredit: false };
-  }
-  if (memo.startsWith("close_order:") || memo.startsWith("cancel_order:")) {
-    return { label: "Cancel Order", badgeClass: "bg-blue-500/20 text-blue-300", isCredit: true };
-  }
-  if (memo.startsWith("stake:") || memo.startsWith("delegate:")) {
-    return { label: "Stake", badgeClass: "bg-amber-500/20 text-amber-300", isCredit: false };
-  }
-  if (memo.startsWith("unstake:") || memo.startsWith("undelegate:")) {
-    return { label: "Unstake", badgeClass: "bg-amber-500/20 text-amber-300", isCredit: true };
-  }
+  // Match either kind (preferred) or memo prefix
+  const isStake   = kind === "stake"      || memo.startsWith("stake:")    || memo.startsWith("delegate:");
+  const isUnstake = kind === "unstake"    || memo.startsWith("unstake:")  || memo.startsWith("undelegate:");
+  const isOpenOrder  = kind === "place_order"  || memo.startsWith("open_order:") || memo.startsWith("place_order:");
+  const isCancelOrder= kind === "cancel_order" || memo.startsWith("close_order:")|| memo.startsWith("cancel_order:");
+  const isDeposit  = kind === "deposit"  || memo.startsWith("deposit:");
+  const isWithdraw = kind === "withdraw" || memo.startsWith("withdraw:");
+  const isNsClaim  = kind === "ns_claim" || memo.startsWith("ns_claim:");
+  const isAgentReg = kind === "agent_register" || memo.startsWith("agent:register");
+  const isNotarize = kind === "notarize"  || memo.startsWith("notarize:");
+
+  if (isNsClaim)      return { label: "NS Claim",      badgeClass: "bg-purple-500/20 text-purple-300", isCredit: false };
+  if (isDeposit)      return { label: "DEX Deposit",   badgeClass: "bg-cyan-500/20 text-cyan-300",     isCredit: !isFromMe };
+  if (isWithdraw)     return { label: "DEX Withdraw",  badgeClass: "bg-cyan-500/20 text-cyan-300",     isCredit: !isFromMe };
+  if (isOpenOrder)    return { label: "Open Order",    badgeClass: "bg-blue-500/20 text-blue-300",     isCredit: false };
+  if (isCancelOrder)  return { label: "Cancel Order",  badgeClass: "bg-blue-500/20 text-blue-300",     isCredit: true };
+  if (isStake)        return { label: "Stake",         badgeClass: "bg-amber-500/20 text-amber-300",   isCredit: false };
+  if (isUnstake)      return { label: "Unstake",       badgeClass: "bg-amber-500/20 text-amber-300",   isCredit: true };
+  if (isAgentReg)     return { label: "Agent Register",badgeClass: "bg-indigo-500/20 text-indigo-300", isCredit: false };
+  if (isNotarize)     return { label: "Notarize",      badgeClass: "bg-pink-500/20 text-pink-300",     isCredit: false };
+
   // Coinbase: from address is all-zeros (or special "coinbase" marker).
   if (!tx.from || tx.from === "" || /^0+$/.test(tx.from) || tx.from === "coinbase") {
     return { label: "Mining Reward", badgeClass: "bg-mempool-green/20 text-mempool-green", isCredit: true };
@@ -92,6 +97,9 @@ export function WalletPage() {
   const { state: chainState } = useBlockchain();
   const unlocked = useWallet(); // null when locked, { address, privateKey, publicKey, walletIndex } when unlocked
   const myName = useNameForAddress(unlocked?.address); // e.g. "savacazan.omnibus"
+  // Atomic snapshot of wallet/staked/in_orders/available shared with Exchange
+  // and Stake pages — single source of truth so the four numbers don't drift.
+  const globalBal = useGlobalBalance();
   const [balance, setBalance] = useState({ sat: 0, omni: "0.0000" });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [sendTo, setSendTo] = useState("");
@@ -365,8 +373,8 @@ export function WalletPage() {
   // the user unlocks there, this whole page lights up — same singleton.
   if (!unlocked) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
-        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-6 text-center space-y-4">
+      <div className="max-w-lg mx-auto px-3 sm:px-4 py-8 sm:py-12">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 sm:p-6 text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-full bg-mempool-bg flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-mempool-blue">
               <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
@@ -411,16 +419,16 @@ export function WalletPage() {
 
   // ── WALLET DASHBOARD ──────────────────────────────────────────────────
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Header with logout */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-mempool-text">My Wallet</h2>
+          <h2 className="text-base sm:text-lg font-bold text-mempool-text">My Wallet</h2>
           {myName && (
             <p className="text-xs text-mempool-blue font-semibold mt-0.5">{myName}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleLogout}
             className="text-xs text-mempool-text-dim hover:text-mempool-red transition-colors px-3 py-1.5 rounded border border-mempool-border hover:border-mempool-red"
@@ -442,33 +450,65 @@ export function WalletPage() {
 
       {/* Balance + quick stats — single full-width gradient card */}
       <div className="bg-gradient-to-br from-mempool-card via-mempool-bg-elev to-mempool-bg-light rounded-2xl border border-mempool-border overflow-hidden">
-        <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div className="col-span-2 sm:col-span-2">
             <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Total Balance</p>
-            <p className="text-4xl font-mono font-bold text-mempool-green tracking-tight">{balance.omni}</p>
+            <p className="text-2xl sm:text-4xl font-mono font-bold text-mempool-green tracking-tight break-all">{balance.omni}</p>
             <p className="text-xs text-mempool-text-dim mt-1">
               OMNI · {balance.sat.toLocaleString()} SAT
             </p>
           </div>
           <div>
             <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Nonce</p>
-            <p className="text-2xl font-mono text-mempool-blue">{walletNonce ?? "—"}</p>
+            <p className="text-lg sm:text-2xl font-mono text-mempool-blue">{walletNonce ?? "—"}</p>
             <p className="text-[10px] text-mempool-text-dim/60 mt-1">UTXO: {utxos.length}</p>
           </div>
           <div>
             <p className="text-[10px] text-mempool-text-dim uppercase tracking-widest mb-1">Tier</p>
-            <p className={`text-2xl font-bold ${reputation?.satoshi_badge ? "text-mempool-orange" : "text-mempool-text"}`}>
+            <p className={`text-lg sm:text-2xl font-bold ${reputation?.satoshi_badge ? "text-mempool-orange" : "text-mempool-text"}`}>
               {reputation?.tier ?? "OMNI"}
             </p>
             {reputation?.satoshi_badge && <p className="text-[10px] text-mempool-orange mt-1">★ Satoshi</p>}
           </div>
         </div>
+        {/* Balance breakdown — same singleton as Exchange + Stake tabs. We
+            always show the four cells so the user can see "0 staked" and
+            "0 in orders" explicitly instead of wondering why a number is
+            missing. Refreshes every 8 s via useGlobalBalance hook. */}
+        {globalBal.address === unlocked.address && (
+          <div className="border-t border-mempool-border bg-mempool-bg/30 px-4 sm:px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">Available</p>
+              <p className="font-mono font-semibold text-mempool-green">{formatOmni(globalBal.available_sat)}</p>
+              <p className="text-[9px] text-mempool-text-dim/70">spendable now</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">Staked</p>
+              <p className="font-mono font-semibold text-mempool-purple">{formatOmni(globalBal.staked_sat)}</p>
+              <p className="text-[9px] text-mempool-text-dim/70">
+                {globalBal.stakes.length > 0 ? `${globalBal.stakes.length} lock${globalBal.stakes.length > 1 ? "s" : ""}` : "no locks"}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">In Orders</p>
+              <p className="font-mono font-semibold text-mempool-blue">{formatOmni(globalBal.in_orders_sat)}</p>
+              <p className="text-[9px] text-mempool-text-dim/70">resting sells</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">On Chain</p>
+              <p className="font-mono font-semibold text-mempool-text">{formatOmni(globalBal.wallet_sat)}</p>
+              <p className="text-[9px] text-mempool-text-dim/70">
+                {globalBal.fetched_at > 0 ? `block #${globalBal.block_height}` : "loading…"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Two columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Send Transaction */}
-        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-4">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-3 sm:p-5 space-y-4">
           <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
             Send OMNI
           </h3>
@@ -606,7 +646,7 @@ export function WalletPage() {
         </div>
 
         {/* Addresses */}
-        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-4">
+        <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-3 sm:p-5 space-y-4">
           <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
             Addresses
           </h3>
@@ -734,14 +774,14 @@ export function WalletPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Transaction History — 2/3 width */}
       <div className="lg:col-span-2 bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
-        <div className="px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
+        <div className="px-3 sm:px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
           <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
             Transaction History
           </h3>
           {/* Type filter pills — driven by classifyTx() result. "All" shows
               everything, including types that may not be present yet. */}
           <div className="flex flex-wrap gap-1">
-            {["All", "Sent", "Received", "Mining Reward", "NS Claim", "DEX Deposit", "DEX Withdraw", "Open Order", "Cancel Order", "Stake", "Unstake"].map((type) => {
+            {["All", "Sent", "Received", "Mining Reward", "Stake", "Unstake", "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw", "NS Claim", "Agent Register", "Notarize"].map((type) => {
               const count = type === "All"
                 ? transactions.length
                 : transactions.filter((t) => classifyTx(t, unlocked.address).label === type).length;
@@ -764,7 +804,7 @@ export function WalletPage() {
         </div>
         <div className="divide-y divide-mempool-border/30 max-h-96 overflow-y-auto">
           {transactions.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm text-mempool-text-dim">
+            <div className="px-3 sm:px-5 py-8 text-center text-sm text-mempool-text-dim">
               No transactions yet. Mine blocks or receive OMNI to see history.
             </div>
           ) : (
@@ -773,7 +813,7 @@ export function WalletPage() {
               .map((tx: any, i: number) => {
                 const cls = classifyTx(tx, unlocked.address);
                 return (
-              <div key={tx.txid || i} className="px-5 py-3 flex items-center gap-3">
+              <div key={tx.txid || i} className="px-3 sm:px-5 py-3 flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   cls.isCredit ? "bg-mempool-green" : "bg-mempool-orange"
                 }`} />
@@ -905,7 +945,7 @@ function MyNamesPanel({ address }: { address: string }) {
   }, [address]);
 
   return (
-    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-5 space-y-3">
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-3 sm:p-5 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
           My .omnibus names
@@ -1239,9 +1279,9 @@ function SoulboundHero({
   const isZen = !!satoshi;
 
   return (
-    <div className={`rounded-2xl border ${isZen ? "border-mempool-orange/60 shadow-[0_0_40px_rgba(249,115,22,0.15)]" : "border-mempool-border"} bg-mempool-bg-elev p-5`}>
+    <div className={`rounded-2xl border ${isZen ? "border-mempool-orange/60 shadow-[0_0_40px_rgba(249,115,22,0.15)]" : "border-mempool-border"} bg-mempool-bg-elev p-3 sm:p-5`}>
       {/* Header strip — tier + total + Zen badge */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div>
           <p className="text-[10px] uppercase tracking-widest text-mempool-text-dim">Soulbound Identity</p>
           <p className="text-sm text-mempool-text mt-0.5">
@@ -1254,7 +1294,7 @@ function SoulboundHero({
         </div>
         <div className="text-right">
           <p className="text-[10px] uppercase tracking-widest text-mempool-text-dim">Reputation</p>
-          <p className={`text-2xl font-mono font-bold ${isZen ? "text-mempool-orange" : "text-mempool-text"}`}>
+          <p className={`text-lg sm:text-2xl font-mono font-bold ${isZen ? "text-mempool-orange" : "text-mempool-text"}`}>
             {Math.round(totalRep).toLocaleString()}
             <span className="text-xs text-mempool-text-dim ml-1">/ 1M</span>
           </p>
@@ -1290,7 +1330,7 @@ function SoulboundHero({
 
               {/* Big animated value */}
               <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-3xl font-mono font-bold text-mempool-text tabular-nums">
+                <span className="text-xl sm:text-3xl font-mono font-bold text-mempool-text tabular-nums">
                   {val.toFixed(2)}
                 </span>
                 <span className="text-xs text-mempool-text-dim">/ 100</span>
@@ -2047,7 +2087,7 @@ function WalletMetadataPanel({
 
   return (
     <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
-      <div className="px-5 py-3 border-b border-mempool-border flex items-center justify-between">
+      <div className="px-3 sm:px-5 py-3 border-b border-mempool-border flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
           Wallet metadata
           <span className="ml-2 text-[10px] text-mempool-text-dim normal-case tracking-normal">
@@ -2075,7 +2115,7 @@ function WalletMetadataPanel({
       {expanded && (
         <div>
           {/* Backup secrets — explicit reveal with red warning */}
-          <div className="px-5 py-3 bg-red-500/5 border-b border-red-500/20">
+          <div className="px-3 sm:px-5 py-3 bg-red-500/5 border-b border-red-500/20">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <p className="text-[11px] font-semibold text-red-300">

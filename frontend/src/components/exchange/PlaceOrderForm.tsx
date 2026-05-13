@@ -1,27 +1,68 @@
-import { useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { useState, useEffect } from "react";
+import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
-import { useEffect } from "react";
 import { useTraderMode } from "./TraderModeToggle";
+import { TradePairBalances } from "./TradePairBalances";
+import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
-
-interface Props {
-  pairId: number;
-  pairLabel: string;
-  /// Called after a successful place so parent can refresh user orders.
-  onPlaced?: () => void;
-}
 
 const SAT_PER_OMNI = 1_000_000_000;
 const MICRO_PER_USD = 1_000_000;
 
-/**
- * BUY/SELL form. Inputs are human-friendly (OMNI + USD); we convert to
- * the chain's u64 native units (SAT, micro-USD) before signing.
- */
-export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
+// All taker chains where quote asset can come from
+// quote = USDC → EVM chains; quote = ETH → Sepolia/Base; quote = LCX → Liberty
+interface TakerChain {
+  key: string;
+  label: string;
+  chainId: number;
+  rpc: string;
+  symbol: string;
+  isUsdc?: boolean;
+  isEurc?: boolean;
+  isSol?: boolean;
+  isXrp?: boolean;
+}
+
+const TAKER_CHAINS_FOR: Record<string, TakerChain[]> = {
+  USDC: [
+    { key: "SEPOLIA",      label: "Sepolia",     chainId: 11155111, rpc: "https://sepolia.drpc.org",                       symbol: "USDC", isUsdc: true },
+    { key: "BASE_SEPOLIA", label: "Base Sep",    chainId: 84532,    rpc: "https://sepolia.base.org",                       symbol: "USDC", isUsdc: true },
+    { key: "ARB_SEPOLIA",  label: "Arb Sep",     chainId: 421614,   rpc: "https://sepolia-rollup.arbitrum.io/rpc",         symbol: "USDC", isUsdc: true },
+    { key: "OP_SEPOLIA",   label: "OP Sep",      chainId: 11155420, rpc: "https://sepolia.optimism.io",                    symbol: "USDC", isUsdc: true },
+    { key: "POLYGON_AMOY", label: "Amoy",        chainId: 80002,    rpc: "https://rpc-amoy.polygon.technology",            symbol: "USDC", isUsdc: true },
+    { key: "AVAX_FUJI",    label: "Fuji",        chainId: 43113,    rpc: "https://api.avax-test.network/ext/bc/C/rpc",     symbol: "USDC", isUsdc: true },
+  ],
+  EURC: [
+    { key: "SEPOLIA",      label: "Sepolia",     chainId: 11155111, rpc: "https://sepolia.drpc.org",   symbol: "EURC", isEurc: true },
+    { key: "BASE_SEPOLIA", label: "Base Sep",    chainId: 84532,    rpc: "https://sepolia.base.org",   symbol: "EURC", isEurc: true },
+  ],
+  ETH: [
+    { key: "SEPOLIA",      label: "Sepolia",     chainId: 11155111, rpc: "https://sepolia.drpc.org",   symbol: "ETH" },
+    { key: "BASE_SEPOLIA", label: "Base Sep",    chainId: 84532,    rpc: "https://sepolia.base.org",   symbol: "ETH" },
+  ],
+  LCX: [
+    { key: "LIBERTY",      label: "LCX Liberty", chainId: 76847801, rpc: "https://rpc.testnet.lcx.com", symbol: "LCX" },
+  ],
+  SOL: [
+    { key: "SOL_DEVNET",   label: "Sol Devnet",  chainId: 0,        rpc: "https://api.devnet.solana.com", symbol: "SOL", isSol: true },
+  ],
+  XRP: [
+    { key: "XRP_TESTNET",  label: "XRP Testnet", chainId: 0,        rpc: "https://omnibusblockchain.cc:8443/xrp-testnet/", symbol: "XRP", isXrp: true },
+  ],
+};
+
+interface Props {
+  pairId: number;
+  pairLabel: string;
+  base: string;
+  quote: string;
+  exchBalances: ExchangeBalance[];
+  onPlaced?: () => void;
+}
+
+export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, onPlaced }: Props) {
   const [, force] = useState(0);
   useEffect(() => subscribeWallet(() => force((n) => n + 1)), []);
   const [traderMode] = useTraderMode();
@@ -33,28 +74,66 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  // Taker chain selection (for BUY — user pays quote asset from chosen chain)
+  const takerChains = TAKER_CHAINS_FOR[quote] ?? [];
+  const [selectedChainKey, setSelectedChainKey] = useState<string>(takerChains[0]?.key ?? "");
+  const [chainBalances, setChainBalances] = useState<Record<string, string>>({});
+
   const u = getUnlocked();
+  const evmAddr = u?.allAddresses?.[0]?.evmAddress
+    ?? u?.multichainAddresses?.find(a => a.chain === "ETH")?.address ?? "";
+  const solAddr = u?.multichainAddresses?.find(a => a.chain === "SOL")?.address ?? "";
+  const xrpAddr = u?.multichainAddresses?.find(a => a.chain === "XRP")?.address ?? "";
+
+  // Fetch balances for all taker chains
+  useEffect(() => {
+    if (takerChains.length === 0) return;
+    let cancelled = false;
+    for (const c of takerChains) {
+      let fetchPromise: Promise<{ native: string } | null>;
+      if (c.isSol) {
+        if (!solAddr) { setChainBalances(prev => ({ ...prev, [c.key]: "0" })); continue; }
+        fetchPromise = fetchSolanaBalance(solAddr, "devnet");
+      } else if (c.isXrp) {
+        if (!xrpAddr) { setChainBalances(prev => ({ ...prev, [c.key]: "0" })); continue; }
+        fetchPromise = fetchXrpBalance(xrpAddr, "testnet");
+      } else if (c.isEurc) {
+        if (!evmAddr) { setChainBalances(prev => ({ ...prev, [c.key]: "0" })); continue; }
+        fetchPromise = fetchEurcBalance(c.key, evmAddr);
+      } else if (c.isUsdc) {
+        if (!evmAddr) { setChainBalances(prev => ({ ...prev, [c.key]: "0" })); continue; }
+        fetchPromise = fetchUsdcBalance(c.key, evmAddr);
+      } else {
+        if (!evmAddr) { setChainBalances(prev => ({ ...prev, [c.key]: "0" })); continue; }
+        fetchPromise = fetchEvmBalance(c.key, evmAddr);
+      }
+      fetchPromise.then(b => {
+        if (!cancelled) setChainBalances(prev => ({
+          ...prev,
+          [c.key]: b ? Number(b.native).toFixed(c.isUsdc || c.isEurc ? 2 : 4) : "0",
+        }));
+      });
+    }
+    return () => { cancelled = true; };
+  }, [evmAddr, solAddr, xrpAddr, quote]);
+
+  // Reset chain selection when quote changes
+  useEffect(() => {
+    setSelectedChainKey(takerChains[0]?.key ?? "");
+  }, [quote]);
 
   const submit = async () => {
     setMsg(null);
     setErr(null);
-    if (!u) {
-      setErr("Unlock the wallet first");
-      return;
-    }
-    const priceUsd = Number(priceStr);
+    if (!u) { setErr("Unlock the wallet first"); return; }
+    const priceUsd   = Number(priceStr);
     const amountOmni = Number(amountStr);
-    if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
-      setErr("Price must be > 0");
-      return;
-    }
-    if (!Number.isFinite(amountOmni) || amountOmni <= 0) {
-      setErr("Amount must be > 0");
-      return;
-    }
+    if (!Number.isFinite(priceUsd)   || priceUsd   <= 0) { setErr("Price must be > 0");  return; }
+    if (!Number.isFinite(amountOmni) || amountOmni <= 0) { setErr("Amount must be > 0"); return; }
+
     const priceMicroUsd = Math.round(priceUsd * MICRO_PER_USD);
-    const amountSat = Math.round(amountOmni * SAT_PER_OMNI);
-    const nonce = nextNonce();
+    const amountSat     = Math.round(amountOmni * SAT_PER_OMNI);
+    const nonce         = nextNonce();
     const { signature, publicKey } = signPlaceOrderPayload({
       privateKeyHex: u.privateKey,
       trader: u.address,
@@ -64,6 +143,7 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
       amountSat,
       nonce,
     });
+
     setBusy(true);
     try {
       const res = await rpc.exchangePlaceOrder({
@@ -76,11 +156,13 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
         signature,
         publicKey,
         mode: traderMode,
-      });
+        // Pass preferred taker chain so backend can route HTLC
+        taker_chain: side === "buy" ? selectedChainKey : undefined,
+      } as any);
       setMsg(
         `${res.status.toUpperCase()} — order #${res.orderId}, filled ${
           res.filled / SAT_PER_OMNI
-        } / ${res.amount / SAT_PER_OMNI} OMNI`,
+        } / ${res.amount / SAT_PER_OMNI} ${base}`,
       );
       setPriceStr("");
       setAmountStr("");
@@ -99,90 +181,119 @@ export function PlaceOrderForm({ pairId, pairLabel, onPlaced }: Props) {
     return p * a;
   })();
 
+  const selectedChain = takerChains.find(c => c.key === selectedChainKey);
+
   return (
-    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3 sm:p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
           Place order — {pairLabel}
         </h3>
-        <span
-          className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-            traderMode === "real"
-              ? "bg-mempool-green/20 text-mempool-green"
-              : "bg-yellow-500/20 text-yellow-300"
-          }`}
-        >
+        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+          traderMode === "real"
+            ? "bg-mempool-green/20 text-mempool-green"
+            : "bg-yellow-500/20 text-yellow-300"
+        }`}>
           {traderMode === "real" ? "💰 Real" : "🎮 Paper"}
         </span>
       </div>
 
+      {/* Wallet balance — Free / In orders / Total */}
+      <TradePairBalances base={base} quote={quote} exchBalances={exchBalances} />
+
       {/* Side toggle */}
       <div className="grid grid-cols-2 gap-1 mb-3 bg-mempool-bg rounded p-0.5">
-        <button
-          onClick={() => setSide("buy")}
+        <button onClick={() => setSide("buy")}
           className={`py-1.5 text-xs font-semibold rounded transition-colors ${
-            side === "buy"
-              ? "bg-green-500/30 text-green-200"
-              : "text-mempool-text-dim hover:text-mempool-text"
-          }`}
-        >
-          BUY
+            side === "buy" ? "bg-green-500/30 text-green-200" : "text-mempool-text-dim hover:text-mempool-text"
+          }`}>
+          BUY {base}
         </button>
-        <button
-          onClick={() => setSide("sell")}
+        <button onClick={() => setSide("sell")}
           className={`py-1.5 text-xs font-semibold rounded transition-colors ${
-            side === "sell"
-              ? "bg-orange-500/30 text-orange-200"
-              : "text-mempool-text-dim hover:text-mempool-text"
-          }`}
-        >
-          SELL
+            side === "sell" ? "bg-orange-500/30 text-orange-200" : "text-mempool-text-dim hover:text-mempool-text"
+          }`}>
+          SELL {base}
         </button>
       </div>
 
-      <label className="block text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">
-        Price (USD)
+      {/* Pay with chain selector — only for BUY */}
+      {side === "buy" && takerChains.length > 0 && (
+        <div className="mb-3">
+          <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1.5">
+            Pay {quote} from chain
+          </label>
+          <div className="flex flex-wrap gap-1">
+            {takerChains.map(c => {
+              const bal = chainBalances[c.key];
+              const hasFunds = bal && Number(bal) > 0;
+              const isSelected = selectedChainKey === c.key;
+              return (
+                <button key={c.key}
+                  onClick={() => setSelectedChainKey(c.key)}
+                  className={`flex flex-col items-center px-2 py-1 rounded text-[9px] border transition-all ${
+                    isSelected
+                      ? "border-mempool-blue bg-mempool-blue/20 text-mempool-blue"
+                      : hasFunds
+                        ? "border-green-500/40 bg-green-500/10 text-mempool-text hover:border-green-500/70"
+                        : "border-mempool-border/40 text-mempool-text-dim/50 hover:border-mempool-border"
+                  }`}>
+                  <span className="font-semibold">{c.label}</span>
+                  <span className={`font-mono ${hasFunds ? "text-green-400" : "text-mempool-text-dim/40"}`}>
+                    {bal === undefined ? "…" : `${bal} ${c.symbol}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {selectedChain && (
+            <p className="text-[9px] text-mempool-text-dim mt-1">
+              Settlement: {quote} moves from <span className="text-mempool-text">{selectedChain.label}</span> via HTLC → {base} moves on OmniBus chain
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Price */}
+      <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
+        Price ({quote})
       </label>
-      <input
-        type="number"
-        step="any"
-        value={priceStr}
+      <input type="number" step="any" value={priceStr}
         onChange={(e) => setPriceStr(e.target.value)}
         placeholder="0.10"
-        className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue"
-      />
+        className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />
 
-      <label className="block text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">
-        Amount (OMNI)
+      {/* Amount */}
+      <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
+        Amount ({base})
       </label>
-      <input
-        type="number"
-        step="any"
-        value={amountStr}
+      <input type="number" step="any" value={amountStr}
         onChange={(e) => setAmountStr(e.target.value)}
-        placeholder="100"
-        className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue"
-      />
+        placeholder="1.0"
+        className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />
 
+      {/* Notional */}
       <div className="flex justify-between text-[11px] text-mempool-text-dim mb-3">
-        <span>Notional</span>
+        <span>Total {quote}</span>
         <span className="font-mono text-mempool-text">
-          ${notional > 0 && notional < 0.01
-            ? notional.toFixed(6)
-            : notional.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+          {notional > 0
+            ? notional.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+            : "—"} {quote}
         </span>
       </div>
 
-      <button
-        onClick={submit}
-        disabled={busy || !u}
+      {/* Submit */}
+      <button onClick={submit} disabled={busy || !u}
         className={`w-full py-2 text-sm font-semibold rounded transition-colors ${
           side === "buy"
             ? "bg-green-500/80 hover:bg-green-500 disabled:bg-mempool-bg-elev disabled:text-mempool-text-dim text-white"
             : "bg-orange-500/80 hover:bg-orange-500 disabled:bg-mempool-bg-elev disabled:text-mempool-text-dim text-white"
-        }`}
-      >
-        {busy ? "Signing & sending…" : !u ? "Unlock wallet first" : `Place ${side.toUpperCase()}`}
+        }`}>
+        {busy ? "Signing & sending…"
+          : !u ? "Unlock wallet first"
+          : side === "buy"
+            ? `Place BUY — pay via ${selectedChain?.label ?? quote}`
+            : `Place SELL — receive ${quote}`}
       </button>
 
       {msg && (

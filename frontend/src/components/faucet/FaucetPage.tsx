@@ -85,8 +85,8 @@ export function FaucetPage() {
   const canClaim = !!wallet && !!status?.enabled && (status.balance >= status.grantPerClaim);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-mempool-text mb-2">OmniBus Onboarding Faucet</h1>
+    <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <h1 className="text-lg sm:text-2xl font-bold text-mempool-text mb-2">OmniBus Onboarding Faucet</h1>
       <p className="text-mempool-text-dim text-sm mb-6">
         Get {status ? omniFmt(status.grantPerClaim) : "0.001"} OMNI to activate your address on-chain.
         After claiming, complete <code>pq_attest</code> to unlock full ecosystem access
@@ -175,19 +175,21 @@ export function FaucetPage() {
           className="w-full bg-mempool-bg/50 border border-mempool-border rounded px-3 py-2 text-mempool-text-dim font-mono text-sm mb-3 cursor-not-allowed select-all"
           spellCheck={false}
         />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <button
           onClick={claim}
           disabled={claiming || !canClaim}
-          className="px-4 py-2 bg-mempool-blue hover:bg-blue-600 disabled:bg-mempool-bg disabled:text-mempool-text-dim disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
+          className="w-full sm:w-auto px-4 py-2 bg-mempool-blue hover:bg-blue-600 disabled:bg-mempool-bg disabled:text-mempool-text-dim disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
         >
           {claiming ? "Signing declaration…" : "Claim & sign declaration"}
         </button>
         {status?.enabled && status.balance < status.grantPerClaim && (
-          <span className="ml-3 text-xs text-yellow-400">Faucet drained — wait for refill</span>
+          <span className="text-xs text-yellow-400">Faucet drained — wait for refill</span>
         )}
         {!wallet && (
-          <span className="ml-3 text-xs text-mempool-text-dim">Connect wallet to claim</span>
+          <span className="text-xs text-mempool-text-dim">Connect wallet to claim</span>
         )}
+        </div>
       </div>
 
       {/* Result */}

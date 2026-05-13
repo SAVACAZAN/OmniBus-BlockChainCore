@@ -774,8 +774,8 @@ export function ZeroDayPage() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-mempool-text mb-2">0day — Evolution Flow</h1>
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <h1 className="text-lg sm:text-2xl font-bold text-mempool-text mb-2">0day — Evolution Flow</h1>
       <p className="text-mempool-text-dim text-sm mb-6">
         Visual origin story: a yellow seed awakens into orange plasma, a colored spark splits and
         converges, forging the OmniBus hybrid. Each cycle generates a new color mutation.
