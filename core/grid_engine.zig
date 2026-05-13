@@ -184,21 +184,29 @@ pub const GridRegistry = struct {
         const g = self.findMut(grid_id) orelse return;
         if (!g.active or g.levels == 0) return;
 
-        const base_per = g.basePerLevel();
-        const quote_per = g.quotePerLevel();
-        const now_ms = std.time.milliTimestamp();
+        const base_per  = g.basePerLevel();   // base SAT per sell level
+        const quote_per = g.quotePerLevel();  // quote micro-USD per buy level
+        const now_ms    = std.time.milliTimestamp();
 
-        // N buy orders: price_low .. mid (crescător)
+        // Paritate: fiecare buy level cheltuie `quote_per` quote → amount_sat
+        // = quote_per / price (în base). Fiecare sell level oferă `base_per`
+        // base → valoare în quote = base_per * price / 1_000_000. Cele două
+        // sunt echivalente la prețul mid când total_base * mid = total_quote.
+        // User-ul setează capitalul; noi distribuim uniform pe fiecare nivel.
+
+        // N buy orders: price_low .. mid-1 (crescător)
         var i: u16 = 0;
         while (i < g.levels) : (i += 1) {
+            const price = g.buyPrice(i);
+            if (price == 0) continue;
+            const amount_sat = quote_per * 1_000_000 / price;
+            if (amount_sat == 0) continue;
             var order = matching_mod.Order.empty();
             order.order_id        = g.id * 10_000 + @as(u64, i);
             order.pair_id         = g.pair_id;
             order.side            = .buy;
-            order.price_micro_usd = g.buyPrice(i);
-            order.amount_sat      = if (order.price_micro_usd > 0)
-                quote_per * 1_000_000 / order.price_micro_usd
-                else base_per;
+            order.price_micro_usd = price;
+            order.amount_sat      = amount_sat;
             order.timestamp_ms    = now_ms;
             order.status          = .active;
             const alen = @min(g.owner_len, 64);
@@ -208,8 +216,10 @@ pub const GridRegistry = struct {
         }
 
         // N sell orders: mid .. price_high (crescător)
+        // amount_sat = base_per (base SAT la preț de piață)
         i = 0;
         while (i < g.levels) : (i += 1) {
+            if (base_per == 0) continue;
             var order = matching_mod.Order.empty();
             order.order_id        = g.id * 10_000 + @as(u64, g.levels) + @as(u64, i);
             order.pair_id         = g.pair_id;
