@@ -768,8 +768,10 @@ pub const Blockchain = struct {
         // observed live 2026-04-26 at blockchain.zig:334.
         // The dupe-first approach trades a tiny extra alloc on found_existing
         // for guaranteed-valid keys throughout HashMap lifetime.
-        std.debug.print("[CREDIT] addr_len={d} amount={d} hashmap_count={d}\n",
-            .{ address.len, amount, self.balances.count() });
+        // Debug print removed — was firing once per credit (~1/block) and
+        // spammed several MB of log during 143k-block replay on testnet,
+        // preventing the RPC server from starting before TimeoutStartSec=300.
+        // Re-enable only behind an env var if you need it for forensics.
         if (address.len == 0) return; // skip empty addresses (no miner)
 
         const owned = try self.allocator.dupe(u8, address);
