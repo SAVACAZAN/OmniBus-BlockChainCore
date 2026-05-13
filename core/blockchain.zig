@@ -212,6 +212,27 @@ pub const PqIdentity = struct {
     pub fn attestTxSlice(self: *const PqIdentity) []const u8 { return self.attest_tx[0..self.attest_tx_len]; }
 };
 
+/// Lock metadata for a single address's stake. Updated when a new
+/// `stake:<amt>[:<lock_blocks>]` TX lands. On partial top-up we keep
+/// the EARLIEST started_at_block (so the lock started when the
+/// first OMNI was staked) and the MAX lock_blocks across top-ups
+/// (the stake is now bound to the longest period the user committed).
+pub const StakeMeta = struct {
+    /// Block height at which the current stake started accumulating.
+    /// 0 means "unknown" (legacy stakes loaded from older chain.dat).
+    started_at_block: u64,
+    /// Number of blocks the user committed to lock for. 0 = no lock
+    /// (immediate unstake allowed, like the old behaviour).
+    lock_blocks: u64,
+
+    /// Returns the block height at which the lock expires. Caller
+    /// compares with `chain.items.len`; if >= unlock_at, unstake is
+    /// allowed.
+    pub fn unlockAtBlock(self: StakeMeta) u64 {
+        return self.started_at_block + self.lock_blocks;
+    }
+};
+
 pub const Blockchain = struct {
     chain: array_list.Managed(Block),
     mempool: array_list.Managed(Transaction),
@@ -264,6 +285,14 @@ pub const Blockchain = struct {
     /// Persisted to chain.dat v2 so VALIDATOR roles survive node restart even
     /// though full TX data isn't serialised (see database.zig stake_state section).
     stake_amounts: std.StringHashMap(u64),
+    /// Per-address lock metadata for the current stake. Parallel to
+    /// `stake_amounts` so DB persistence stays backward-compatible: old
+    /// chain.dat files load with stake_amounts populated and stake_meta
+    /// backfilled to `.{ .started_at_block = chain.len, .lock_blocks = 0 }`
+    /// (no lock period for legacy stakes). New stakes set started_at_block
+    /// to the block height at the time of the op_return TX, and parse an
+    /// optional `:<lock_blocks>` suffix from "stake:<amt>:<lock_blocks>".
+    stake_meta: std.StringHashMap(StakeMeta),
     /// Set of addresses that have registered as agents (`op_return` prefix
     /// "agent:register"). Persisted to chain.dat v2 (agent_state section) so
     /// AGENT roles survive restart.
@@ -449,6 +478,7 @@ pub const Blockchain = struct {
             .pubkey_registry = std.StringHashMap([]const u8).init(allocator),
             .tx_block_height = std.StringHashMap(u64).init(allocator),
             .stake_amounts = std.StringHashMap(u64).init(allocator),
+            .stake_meta = std.StringHashMap(StakeMeta).init(allocator),
             .registered_agents = std.StringHashMap(void).init(allocator),
             .orphan_blocks = array_list.Managed(Block).init(allocator),
             .address_tx_index = std.StringHashMap(std.ArrayList([]const u8)).init(allocator),
@@ -525,6 +555,14 @@ pub const Blockchain = struct {
         self.nonces.deinit();
         self.pubkey_registry.deinit();
         self.tx_block_height.deinit();
+        // stake_meta is keyed by the same addresses as stake_amounts but
+        // owns its own duplicated keys so it can outlive a partial
+        // dealloc race. Free the keys before tearing down the map.
+        var meta_it = self.stake_meta.iterator();
+        while (meta_it.next()) |entry| {
+            self.allocator.free(entry.key_ptr.*);
+        }
+        self.stake_meta.deinit();
         self.stake_amounts.deinit();
         self.registered_agents.deinit();
         self.pq_identity_map.deinit();
@@ -1898,6 +1936,17 @@ pub const Blockchain = struct {
             const effective = @min(tx.amount, cur_bal);
             if (effective == 0) return;
 
+            // Parse optional lock_blocks suffix: "stake:<amt>:<lock_blocks>".
+            // The colon-amt segment is informational (we use tx.amount as the
+            // source of truth for SAT) but `lock_blocks` after a second colon
+            // is the user's commitment. Older clients send "stake:<amt>" with
+            // no second colon → lock_blocks = 0 (immediate unstake allowed).
+            var lock_blocks: u64 = 0;
+            if (std.mem.indexOfScalarPos(u8, tx.op_return, "stake:".len, ':')) |second_colon| {
+                const lock_str = tx.op_return[second_colon + 1 ..];
+                lock_blocks = std.fmt.parseInt(u64, lock_str, 10) catch 0;
+            }
+
             // Debit balance (lock funds). Caller (applyBlock) already holds
             // the chain mutex AND has set in_apply_block=true, so the
             // phantom-write detector is happy.
@@ -1914,6 +1963,30 @@ pub const Blockchain = struct {
                 gop.value_ptr.* = 0;
             }
             gop.value_ptr.* +|= effective; // saturating add
+
+            // Update stake_meta. On top-up: keep the EARLIEST started_at
+            // (so the lock countdown starts from the first stake) and the
+            // MAX lock_blocks (longest commitment wins). Fresh stake gets
+            // both fields populated from current block height + parsed
+            // lock_blocks.
+            const meta_key = self.allocator.dupe(u8, tx.from_address) catch return;
+            const meta_gop = self.stake_meta.getOrPut(meta_key) catch {
+                self.allocator.free(meta_key);
+                return;
+            };
+            const current_block: u64 = @intCast(self.chain.items.len);
+            if (meta_gop.found_existing) {
+                self.allocator.free(meta_key);
+                // Keep earliest start; pick max of existing and new lock.
+                if (lock_blocks > meta_gop.value_ptr.lock_blocks) {
+                    meta_gop.value_ptr.lock_blocks = lock_blocks;
+                }
+            } else {
+                meta_gop.value_ptr.* = .{
+                    .started_at_block = current_block,
+                    .lock_blocks = lock_blocks,
+                };
+            }
 
             // Auto-promote to validator when total stake >= VALIDATOR_MIN_STAKE
             // (100 OMNI). Reads main_mod.g_staking_engine which is set in
@@ -1944,6 +2017,20 @@ pub const Blockchain = struct {
             const cur_stake = self.stake_amounts.get(tx.from_address) orelse 0;
             if (cur_stake == 0) return;
 
+            // Enforce lock period if metadata says so. Older stakes with
+            // lock_blocks=0 (legacy or explicit no-lock) bypass this check.
+            if (self.stake_meta.get(tx.from_address)) |meta| {
+                if (meta.lock_blocks > 0) {
+                    const current_block: u64 = @intCast(self.chain.items.len);
+                    const unlock_at = meta.unlockAtBlock();
+                    if (current_block < unlock_at) {
+                        // Lock not yet expired — drop unstake silently
+                        // (no-op for non-failure path; user keeps stake).
+                        return;
+                    }
+                }
+            }
+
             self.creditBalanceLocked(tx.from_address, cur_stake) catch return;
 
             const owned = self.allocator.dupe(u8, tx.from_address) catch return;
@@ -1955,6 +2042,11 @@ pub const Blockchain = struct {
                 self.allocator.free(owned);
             }
             gop.value_ptr.* = 0; // clear stake
+
+            // Clean up stake_meta — entry no longer applies.
+            if (self.stake_meta.fetchRemove(tx.from_address)) |kv| {
+                self.allocator.free(kv.key);
+            }
         } else if (std.mem.startsWith(u8, tx.op_return, "agent:register")) {
             const owned = self.allocator.dupe(u8, tx.from_address) catch return;
             const gop = self.registered_agents.getOrPut(owned) catch {
@@ -2581,6 +2673,12 @@ pub const Blockchain = struct {
         self.nonces.clearRetainingCapacity();
         self.tx_block_height.clearRetainingCapacity();
         self.stake_amounts.clearRetainingCapacity();
+        // Free meta keys before clearing — same pattern as deinit().
+        var meta_it_clear = self.stake_meta.iterator();
+        while (meta_it_clear.next()) |entry| {
+            self.allocator.free(entry.key_ptr.*);
+        }
+        self.stake_meta.clearRetainingCapacity();
         self.registered_agents.clearRetainingCapacity();
         // Clear and rebuild UTXO set from chain
         self.utxo_set.deinit();

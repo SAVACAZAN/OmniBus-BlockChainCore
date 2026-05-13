@@ -3006,12 +3006,19 @@ fn handleGetWalletSummary(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     );
 
     if (staked_sat > 0) {
-        // stake_amounts is a flat map (no per-stake lock metadata yet) so
-        // we emit a single synthetic entry. When per-stake records ship
-        // (issue: lock_blocks + started_at_block tracking), extend this.
+        // Real lock metadata from stake_meta (populated by
+        // applyOpReturnRoles when "stake:<amt>[:<lock_blocks>]" lands).
+        // Legacy stakes from older chain.dat fall back to zeros.
+        var started_at: u64 = 0;
+        var lock_blk: u64 = 0;
+        if (ctx.bc.stake_meta.get(req_addr)) |meta| {
+            started_at = meta.started_at_block;
+            lock_blk = meta.lock_blocks;
+        }
+        const days_locked: u64 = lock_blk / 86_400;
         try w.print(
-            "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"status\":\"active\"}}",
-            .{staked_sat},
+            "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"status\":\"active\"}}",
+            .{ staked_sat, lock_blk, started_at, days_locked },
         );
     }
 
@@ -3644,9 +3651,22 @@ fn handleGetStake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     defer ctx.bc.mutex.unlock();
     if (ctx.bc.stake_amounts.get(address)) |amt| {
         if (amt > 0) {
+            // Look up real lock metadata. Legacy stakes loaded from older
+            // chain.dat may not have an entry — fall back to zeros so the
+            // UI can render them as "no lock period" instead of crashing.
+            var started_at: u64 = 0;
+            var lock_blk: u64 = 0;
+            if (ctx.bc.stake_meta.get(address)) |meta| {
+                started_at = meta.started_at_block;
+                lock_blk = meta.lock_blocks;
+            }
+            // days_locked: lock_blocks × 1s block time → seconds → days.
+            // Block time is 1s (CLAUDE.md: blockTimeMs=1000), so 86400
+            // blocks = 1 day.
+            const days_locked: u64 = lock_blk / 86_400;
             try w.print(
-                "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"rent_earned\":0,\"status\":\"active\"}}",
-                .{amt},
+                "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"rent_earned\":0,\"status\":\"active\"}}",
+                .{ amt, lock_blk, started_at, days_locked },
             );
         }
     }
@@ -3677,9 +3697,16 @@ fn handleGetStakers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (amt == 0) continue;
         if (emitted > 0) try w.writeAll(",");
         emitted += 1;
+        var started_at: u64 = 0;
+        var lock_blk: u64 = 0;
+        if (ctx.bc.stake_meta.get(entry.key_ptr.*)) |meta| {
+            started_at = meta.started_at_block;
+            lock_blk = meta.lock_blocks;
+        }
+        const days_locked: u64 = lock_blk / 86_400;
         try w.print(
-            "{{\"address\":\"{s}\",\"amount_sat\":{d},\"lock_blocks\":0,\"started_at_block\":0,\"days_locked\":0,\"rent_earned\":0}}",
-            .{ entry.key_ptr.*, amt },
+            "{{\"address\":\"{s}\",\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"rent_earned\":0}}",
+            .{ entry.key_ptr.*, amt, lock_blk, started_at, days_locked },
         );
     }
     try w.writeAll("]}}");
