@@ -196,28 +196,23 @@ pub fn estimateGas(
     return gas;
 }
 
-// ─── Price Oracle Precompile (TODO) ─────────────────────────────────────────
+// ─── Price Oracle Precompile (RPC-only path, by design) ─────────────────────
 //
-// Solidity-compatible read endpoint at the magic precompile address
-// `0x00000000000000000000000000000000000001ee` (1ee = "price oracle"). Calling
-// this address from a contract should return the current per-pair / per-
-// exchange bid/ask snapshot encoded as ABI uint256 fields.
+// Reserved address `0x00000000000000000000000000000000000001ee` for a future
+// in-EVM precompile that reads chain prices. Today the canonical read path
+// is the `omnibus_getblockprices [height]` JSON-RPC method, which returns
+// the on-chain `Block.prices` array — same data a precompile would expose,
+// but routed through the chain RPC instead of the EVM call layer.
 //
-// Proposed calldata layout (single uint256 input, packed):
-//   bytes 0..30 : 0
-//   byte  31    : (pair_index << 2) | exchange_index
-//                  pair_index    in 0..6 (BTC/USD, ETH/USD, ..., LCX/USD)
-//                  exchange_index in 0..2 (Coinbase, Kraken, LCX)
+// Smart contracts that need oracle prices must either:
+//   1. read off-chain via JSON-RPC and inject the value at call time, or
+//   2. wait for the revm-side precompile registration (separate Rust work).
 //
-// Proposed return data: a single ABI-encoded `(uint256 bid_micro_usd,
-// uint256 ask_micro_usd, uint256 timestamp_ms, uint256 success_flag)`.
-//
-// Implementing this requires hooking into the revm executor on the Rust
-// side (a custom precompile registered at address 0x...01ee that calls back
-// into Zig to read from `g_ws_feed.snapshot()` or the latest block's prices).
-// That work belongs to the EVM bridge agent — for now the on-chain
-// `Block.prices` array (queried via `omnibus_getblockprices`) is the
-// authoritative read path, so this stub is intentionally a no-op.
+// Calldata layout (one byte packed in the low byte of a uint256):
+//   (pair_index << 2) | exchange_index
+//     pair_index    ∈ 0..6 (BTC/USD, ETH/USD, ..., LCX/USD)
+//     exchange_index ∈ 0..2 (Coinbase, Kraken, LCX)
+// Return data: ABI-encoded (bid_micro_usd, ask_micro_usd, ts_ms, success).
 pub const PRICE_ORACLE_PRECOMPILE_ADDR: [42]u8 =
     "0x00000000000000000000000000000000000001ee".*;
 

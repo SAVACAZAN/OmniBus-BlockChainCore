@@ -10536,35 +10536,18 @@ fn handleEthCall(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// eth_sendRawTransaction — accept signed RLP-encoded TX hex.
 ///
-/// Full RLP+ECDSA decode is deferred to a later patch; this stub keeps the
-/// JSON-RPC surface alive so wallets stop erroring on unknown method, and
-/// returns a deterministic placeholder hash derived from the input. State is
-/// **not** mutated. Once tx_pool integration lands, replace this body.
+/// OmniBus chain does not yet decode RLP-signed Ethereum TXs. Returning
+/// a fake hash would mislead wallets into thinking the transfer succeeded
+/// when it did not — explicit rejection is safer. Native TXs use the
+/// `sendrawtransaction` (lowercase) and `sendTransaction` RPCs.
 fn handleEthSendRawTransaction(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const raw = extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "eth_sendRawTransaction: missing raw tx", id, alloc);
-    if (raw.len < 4) return errorJson(-32602, "eth_sendRawTransaction: tx too short", id, alloc);
-
-    // Hash the raw payload with a Keccak-substitute (SHA-256 prefix) so the
-    // response is at least deterministic. Real Keccak-256 lands with full
-    // RLP decoding.
-    var sha = std.crypto.hash.sha2.Sha256.init(.{});
-    sha.update(raw);
-    var digest: [32]u8 = undefined;
-    sha.final(&digest);
-
-    var hex_buf: [66]u8 = undefined;
-    hex_buf[0] = '0';
-    hex_buf[1] = 'x';
-    const hex = "0123456789abcdef";
-    for (digest, 0..) |b, i| {
-        hex_buf[2 + i * 2]     = hex[b >> 4];
-        hex_buf[2 + i * 2 + 1] = hex[b & 0x0f];
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, hex_buf[0..] });
+    _ = body;
+    return errorJson(
+        -32004,
+        "eth_sendRawTransaction not supported on OmniBus chain — use sendrawtransaction (native TX format)",
+        id,
+        ctx.allocator,
+    );
 }
 
 /// eth_getCode — return deployed bytecode at address.
@@ -10649,11 +10632,12 @@ fn handleEthGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (addr_no_0x.len != 40) {
         return errorJson(-32602, "eth_getBalance: address must be 20 bytes hex", id, alloc);
     }
-    // Convert EVM hex address to ob1q... bech32 form OR query by raw bytes.
-    // We don't have an EVM address registry yet, so for V1 return 0 for any
-    // address that doesn't map to a known wallet. This is enough for ethers.js
-    // pre-flight checks (it just wants a non-error response).
-    // TODO(future): map EVM address -> bech32 ob1q via chain state.
+    // EVM addresses are last 20 bytes of keccak256(pubkey); OmniBus addresses
+    // are bech32(hash160(pubkey)). These are DIFFERENT derivations — no
+    // deterministic bidirectional mapping is possible without a registry.
+    // Wallets that want to read OmniBus balances should use the native
+    // `getaddressbalance` RPC with the ob1q... address. Returning 0 here
+    // keeps ethers.js pre-flight checks happy without lying about balance.
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x0\"}}",
         .{id});
@@ -10687,8 +10671,9 @@ fn handleNetVersion(ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// eth_getLogs — return matching logs. Params: `[{address, topics, fromBlock, toBlock}]`.
-/// V1 stub: returns empty array. Once the EVM executor wires up event
-/// emission to chain state, this will scan the actual event log.
+/// Chain does not run EVM bytecode, so contract event logs do not exist.
+/// We return an empty array (valid result for any filter) — clients
+/// receive a well-formed response instead of an error.
 fn handleEthGetLogs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     _ = body;
     return std.fmt.allocPrint(ctx.allocator,
@@ -10697,12 +10682,78 @@ fn handleEthGetLogs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// eth_getTransactionReceipt — receipt for a tx hash.
-/// V1 stub: returns null until EVM tx execution writes receipts to chain.
+/// Looks up the TX in the OmniBus chain (mined blocks only — pending TXs
+/// have no receipt in Ethereum semantics) and returns an EIP-1474 receipt
+/// shaped for ethers.js/web3 compatibility. status=0x1 for any TX that
+/// reached a block (OmniBus does not have TX-level revert semantics yet).
 fn handleEthGetTransactionReceipt(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}",
-        .{id});
+    const alloc = ctx.allocator;
+    const tx_hash_raw = extractStringFromArrayParams(body, 0) orelse
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+
+    // Strip 0x prefix if present so we match the bare hex stored on chain.
+    var tx_hash = tx_hash_raw;
+    if (tx_hash.len >= 2 and tx_hash[0] == '0' and (tx_hash[1] == 'x' or tx_hash[1] == 'X'))
+        tx_hash = tx_hash[2..];
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse {
+        // Fallback: linear scan (TX not yet indexed)
+        for (ctx.bc.chain.items) |blk| {
+            for (blk.transactions.items) |tx| {
+                if (std.mem.eql(u8, tx.hash, tx_hash)) {
+                    return ethReceiptJson(alloc, id, tx.hash, blk.hash, @intCast(blk.index), tx.from_address, tx.to_address);
+                }
+            }
+        }
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+    };
+
+    if (block_height >= ctx.bc.chain.items.len) {
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+    }
+    const blk = ctx.bc.chain.items[block_height];
+    for (blk.transactions.items) |tx| {
+        if (std.mem.eql(u8, tx.hash, tx_hash)) {
+            return ethReceiptJson(alloc, id, tx.hash, blk.hash, block_height, tx.from_address, tx.to_address);
+        }
+    }
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
+}
+
+/// Render an EIP-1474 receipt JSON. Address fields are ob-bech32, which
+/// is non-standard for Ethereum tooling — clients that need 0x addresses
+/// should resolve them via a separate name service. Logs always empty
+/// because chain doesn't run EVM bytecode.
+fn ethReceiptJson(
+    alloc: std.mem.Allocator,
+    id: u64,
+    tx_hash: []const u8,
+    block_hash: []const u8,
+    block_height: u64,
+    from: []const u8,
+    to: []const u8,
+) ![]u8 {
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"transactionHash\":\"0x{s}\",\"transactionIndex\":\"0x0\"," ++
+            "\"blockHash\":\"0x{s}\",\"blockNumber\":\"0x{x}\"," ++
+            "\"from\":\"{s}\",\"to\":\"{s}\"," ++
+            "\"cumulativeGasUsed\":\"0x5208\",\"gasUsed\":\"0x5208\"," ++
+            "\"contractAddress\":null,\"logs\":[],\"logsBloom\":\"0x" ++
+            "0000000000000000000000000000000000000000000000000000000000000000" ++
+            "0000000000000000000000000000000000000000000000000000000000000000" ++
+            "0000000000000000000000000000000000000000000000000000000000000000" ++
+            "0000000000000000000000000000000000000000000000000000000000000000\"," ++
+            "\"status\":\"0x1\",\"type\":\"0x0\",\"effectiveGasPrice\":\"0x0\"" ++
+        "}}}}",
+        .{ id, tx_hash, block_hash, block_height, from, to });
 }
 
 /// eth_getBlockByNumber — block by tag/hex. V1 minimal: returns block info
