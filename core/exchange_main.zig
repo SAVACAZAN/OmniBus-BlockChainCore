@@ -25,12 +25,31 @@
 
 const std = @import("std");
 const orchestrator = @import("orchestrator.zig");
+const chain_client_mod = @import("chain_rpc_client.zig");
 
 const EXCHANGE_RPC_PORT: u16 = 28400;
 const HTTP_BUF_SIZE: usize = 8 * 1024;
+const POLL_INTERVAL_MS: u64 = 1000;
 
 var g_clock: orchestrator.AtomicClock = undefined;
 var g_running: std.atomic.Value(bool) = std.atomic.Value(bool).init(true);
+var g_chain_height: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_polls: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+var g_chain_errors: std.atomic.Value(u64) = std.atomic.Value(u64).init(0);
+
+fn chainPollerLoop(allocator: std.mem.Allocator) void {
+    var client = chain_client_mod.ChainClient.init(allocator);
+    defer client.deinit();
+    while (g_running.load(.acquire)) {
+        if (client.getBlockCount()) |h| {
+            g_chain_height.store(h, .release);
+            _ = g_chain_polls.fetchAdd(1, .monotonic);
+        } else |_| {
+            _ = g_chain_errors.fetchAdd(1, .monotonic);
+        }
+        std.Thread.sleep(POLL_INTERVAL_MS * std.time.ns_per_ms);
+    }
+}
 
 fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
     const method_key = "\"method\"";
@@ -59,8 +78,13 @@ fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {
         return std.fmt.allocPrint(allocator,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"uptime_ms\":{d},\"running\":true,\"rdtsc\":{d}," ++
-            "\"status\":\"stub\",\"engines\":[]}}}}",
-            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles() });
+            "\"chain_height\":{d},\"chain_polls\":{d}," ++
+            "\"chain_errors\":{d},\"status\":\"bridged\"," ++
+            "\"engines\":[\"chain-proxy\"]}}}}",
+            .{ id, g_clock.uptimeMs(), orchestrator.nowCycles(),
+               g_chain_height.load(.acquire),
+               g_chain_polls.load(.monotonic),
+               g_chain_errors.load(.monotonic) });
     }
 
     return std.fmt.allocPrint(allocator,
@@ -93,9 +117,8 @@ fn handleConnection(conn: std.net.Server.Connection, allocator: std.mem.Allocato
 }
 
 pub fn main() !void {
-    std.debug.print("[EXCHANGE] omnibus-exchange starting (STUB) on port {d}\n", .{EXCHANGE_RPC_PORT});
-    std.debug.print("[EXCHANGE] Note: stub — matching engine extraction pending.\n" ++
-                    "[EXCHANGE] Sensitive component, scheduled for dedicated session.\n", .{});
+    std.debug.print("[EXCHANGE] omnibus-exchange starting on port {d}\n", .{EXCHANGE_RPC_PORT});
+    std.debug.print("[EXCHANGE] Mode: chain-proxy (matching engine stays in chain process).\n", .{});
 
     g_clock = orchestrator.AtomicClock.initReal();
     const tsc = orchestrator.calibrateTscPerSec(100);
@@ -106,11 +129,15 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
+    const poller = try std.Thread.spawn(.{}, chainPollerLoop, .{allocator});
+    poller.detach();
+
     const addr = try std.net.Address.parseIp4("127.0.0.1", EXCHANGE_RPC_PORT);
     var server = try addr.listen(.{ .reuse_address = true });
     defer server.deinit();
 
     std.debug.print("[EXCHANGE] listening on http://127.0.0.1:{d}\n", .{EXCHANGE_RPC_PORT});
+    std.debug.print("[EXCHANGE] polling chain tip every {d}ms via JSON-RPC\n", .{POLL_INTERVAL_MS});
 
     while (g_running.load(.acquire)) {
         const conn = server.accept() catch |err| {
