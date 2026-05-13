@@ -762,55 +762,74 @@ var g_agent_tx_id_counter: u32 = 5_000_000;
 ///   - kind nu cere TX (mine/halt/none — log-only)
 ///   - createSignedTx esueaza (privkey corupt)
 ///   - mempool respinge (insufficient funds, nonce conflict, etc.)
-/// MVP: doar `claim_faucet` (transfer din faucet) si stake-mock (transfer self).
-/// Stake/unstake real necesita staking_engine API extins — TODO.
+///
+/// Routing per decision.kind:
+///   - .stake / .unstake → TX self-transfer cu op_return "stake:<amt>" /
+///     "unstake:<amt>". Chain-ul aplica via applyOpReturnRoles in
+///     blockchain.zig (linia 1889). Agentul devine validator atunci.
+///   - .claim_faucet → log-only (faucet real prin handshake RPC).
+///   - .mine / .halt / .none → log-only.
+///   - .buy / .sell / .provide_liquidity / .withdraw_liquidity → transfer
+///     self demo (până când LP module e wired).
 fn submitNativeTx(bc: *Blockchain, slot: *agent_manager_mod.AgentSlot, decision: agent_executor_mod.Decision) !void {
     if (!slot.canSign()) return error.NoWallet;
     const w = &slot.wallet.?;
 
-    // Pentru MVP, mapăm doar kind-urile care produc TX simple ON-CHAIN:
-    //   - claim_faucet: agent emite intent, dar faucet-ul real se face prin
-    //     RPC `claimFaucet` (handshake) — aici doar logăm intentul.
-    //   - stake / unstake: necesită staking RPC dedicat (TODO).
-    //   - mine / halt / none: nu produc TX.
-    // Acum implementăm doar transfer-self ca demo (agentul își trimite 1 SAT
-    // la el însuși ca să probeze că semnarea funcționează end-to-end).
+    const op_return_text: ?[]u8 = switch (decision.kind) {
+        .stake => try std.fmt.allocPrint(bc.allocator, "stake:{d}", .{decision.amount_sat}),
+        .unstake => try std.fmt.allocPrint(bc.allocator, "unstake:{d}", .{decision.amount_sat}),
+        .claim_faucet, .mine, .halt, .none => null,
+        .buy, .sell, .provide_liquidity, .withdraw_liquidity => null,
+    };
+
     const should_emit_tx = switch (decision.kind) {
-        .stake, .unstake => false, // TODO: staking_engine API
-        .claim_faucet => false, // RPC handshake separat
-        .mine, .halt, .none => false,
-        // Pentru transfer/buy/sell/lp pe venue native, generăm un transfer demo
-        // (până când staking_engine + LP module sunt wired). În producție, aici
-        // se construiește TX-ul real cu logica corespunzătoare kind-ului.
+        .stake, .unstake => true,
+        .claim_faucet, .mine, .halt, .none => false,
         .buy, .sell, .provide_liquidity, .withdraw_liquidity => true,
     };
     if (!should_emit_tx) return;
 
     const balance = bc.getAddressBalance(w.getAddress());
-    const reserve: u64 = 1_000; // 1000 SAT minim pentru fee
+    const reserve: u64 = 1_000;
     if (balance <= reserve) return error.InsufficientFunds;
 
-    const amount = @min(decision.amount_sat, balance - reserve);
-    if (amount == 0) return error.AmountZero;
+    // Pentru stake: muta `amount` din balance in stake (TX self-transfer cu
+    // op_return). Pentru unstake: amount poate fi 0 (chain-ul aplica
+    // unstake-ul total din applyOpReturnRoles), dar lasam amount_sat ca
+    // hint. Pentru trade demo: cap la balance-reserve.
+    const amount: u64 = switch (decision.kind) {
+        .stake => @min(decision.amount_sat, balance - reserve),
+        .unstake => 0, // self-transfer 0, op_return face treaba
+        else => @min(decision.amount_sat, balance - reserve),
+    };
+    if (decision.kind != .unstake and amount == 0) return error.AmountZero;
 
     const fee: u64 = 1;
     const nonce = bc.getNextAvailableNonce(w.getAddress());
     g_agent_tx_id_counter += 1;
     const tx_id = g_agent_tx_id_counter;
 
-    // Transfer self ca demo. Producția: routare după kind.
     var tx = try w.createSignedTx(w.getAddress(), amount, tx_id, nonce, fee, bc.allocator);
-    _ = &tx;
+    if (op_return_text) |opr| {
+        tx.op_return = opr;
+        // Re-sign cu op_return inclus in hash-ul TX-ului, altfel signature
+        // nu valideaza op_return-ul si applyOpReturnRoles vede un payload
+        // care nu a fost autorizat de wallet.
+        try tx.sign(w.private_key, bc.allocator);
+    }
 
-    // Înregistrează pubkey-ul agentului pe chain pt validare semnătură
-    // (idempotent — daca există deja, e no-op).
     bc.registerPubkey(w.getAddress(), &w.public_key_hex) catch {};
 
     try bc.addTransaction(tx);
     slot.stats.txs_submitted += 1;
     std.debug.print(
-        "[AGENT-TX] {s} signed tx_id={d} amount={d} nonce={d}\n",
-        .{ slot.config.getName(), tx_id, amount, nonce },
+        "[AGENT-TX] {s} kind={s} tx_id={d} amount={d} nonce={d}{s}\n",
+        .{
+            slot.config.getName(),
+            @tagName(decision.kind),
+            tx_id, amount, nonce,
+            if (op_return_text) |_| " (op_return wired)" else "",
+        },
     );
 }
 
@@ -832,8 +851,17 @@ fn agentTickAll(bc: *Blockchain, block_height: u64) void {
         if (!slot.used) continue;
 
         const balance = bc.getAddressBalance(slot.getAddress());
-        // TODO: track stake + LP locked per agent (necesita staking API extins).
-        slot.executor.updateBalance(balance, 0, 0, 0);
+        // Live stake lookup: agent.address e validator daca a emis stake:<amt>
+        // op_return — findValidatorIndex + getValidatorInfo intorc starea
+        // curenta (incluziv stake + status). LP locked ramane 0 pana cand
+        // modulul LP per-agent e wired (separate de DEX grid trading).
+        var staked: u64 = 0;
+        if (g_staking_engine) |se| {
+            if (se.getValidatorInfo(slot.getAddress())) |vi| {
+                staked = vi.total_stake;
+            }
+        }
+        slot.executor.updateBalance(balance, staked, 0, 0);
 
         const decision = g_agent_manager.tickOne(idx, oracle, block_height) orelse continue;
         if (decision.kind == .none) continue;
@@ -1659,9 +1687,8 @@ pub fn main() !void {
             std.debug.print("[DNS] Auto-migrated {d} legacy entries to Phase 2 (category from TLD)\n", .{migrated});
         }
         // Phase 2 lifecycle — drop entries whose grace period has fully
-        // elapsed. This is a one-shot at startup; for steady-state cleanup
-        // during long runs, call dns.pruneExpiredNames(currentBlock) every
-        // ~1000 blocks from the mining loop. (TODO: hook into mining loop.)
+        // elapsed. One-shot at startup; steady-state cleanup is hooked into
+        // the mining loop below (every 1000 blocks).
         const startup_block: u64 = @intCast(bc.chain.items.len);
         const pruned = dns.pruneExpiredNames(startup_block);
         if (pruned > 0) {
@@ -2652,6 +2679,18 @@ pub fn main() !void {
             // long as validator_set + tip hash haven't changed, and an
             // out-of-date calendar self-corrects via refreshStates() and
             // isStale() checks at consume time.
+            // Steady-state DNS prune: every 1000 blocks (~16 min at 1s/block)
+            // drop names whose grace period elapsed. Cheap — linear scan of
+            // registry, swap-remove. Skip on testnet where blocks tick fast
+            // and we may not want lifecycle churn during stress tests.
+            if (block_count % 1000 == 0 and parsed.chain_mode == .mainnet) {
+                const pruned = dns.pruneExpiredNames(@intCast(block_count));
+                if (pruned > 0) {
+                    std.debug.print("[DNS] Pruned {d} expired names at block {d}\n",
+                        .{ pruned, block_count });
+                }
+            }
+
             if (block_count % 10 == 0) {
                 g_slot_calendar.rebuild(
                     validator_mod.Validator,

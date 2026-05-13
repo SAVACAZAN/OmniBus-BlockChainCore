@@ -613,13 +613,10 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
             continue;
         }
 
-        // FIXME: SEGFAULT-RISK [scan-2026-04-25] LOW - high-concurrency allocator stress
-        // Reason: parent allocator from main.zig is GeneralPurposeAllocator(.{}){} — Zig 0.15.2
-        //   defaults `thread_safe = !single_threaded` so it IS guarded by mutex. However heavy
-        //   contention (4 RPC threads + mining + WS broadcast all allocPrint'ing per request) can
-        //   serialize and amplify any latent UB elsewhere. Not the prime crash cause, but
-        //   noisy mutex traffic masks ordering bugs.
-        // Suggested fix: switch hot RPC path to per-request arena allocator (reset per request).
+        // Note: parent allocator is GPA which is mutex-guarded (thread_safe = true
+        // in Zig 0.15.2 when not single-threaded). Per-request arena allocator was
+        // considered (P4-2) but deferred until profiling shows actual contention —
+        // the 8-thread MAX_CONCURRENT cap above bounds the worst case.
         const thread_ctx = try allocator.create(ConnCtx);
         thread_ctx.* = .{ .conn = conn, .server_ctx = ctx, .active_counter = &active_threads };
         _ = active_threads.fetchAdd(1, .monotonic);

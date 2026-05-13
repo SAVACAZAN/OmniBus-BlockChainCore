@@ -97,6 +97,38 @@ fn handleRpc(
         return out.toOwnedSlice();
     }
 
+    // oracle_getAllPairs — full unbounded dump of every (exchange, pair) live
+    // entry the feed holds. Used by chain nodes (OMNIBUS_EXTERNAL_ORACLE=1)
+    // to populate their local g_ws_feed for downstream RPCs:
+    // omnibus_getallprices / omnibus_getexchangefeed / omnibus_getarbitrage.
+    if (std.mem.eql(u8, method, "oracle_getAllPairs")) {
+        const all = g_feed.getAllPrices(allocator) catch |err| {
+            return std.fmt.allocPrint(allocator,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32603," ++
+                "\"message\":\"getAllPrices failed: {s}\"}}}}", .{ id, @errorName(err) });
+        };
+        defer allocator.free(all);
+
+        var out = std.array_list.Managed(u8).init(allocator);
+        defer out.deinit();
+        const w = out.writer();
+        try w.print(
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"prices\":[",
+            .{ id, all.len });
+        var first = true;
+        for (all) |p| {
+            if (!p.success) continue;
+            if (!first) try w.writeAll(",");
+            first = false;
+            try w.print(
+                "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bid\":{d}," ++
+                "\"ask\":{d},\"timestamp_ms\":{d}}}",
+                .{ p.exchange, p.pair, p.bid_micro_usd, p.ask_micro_usd, p.timestamp_ms });
+        }
+        try w.writeAll("]}}");
+        return out.toOwnedSlice();
+    }
+
     return std.fmt.allocPrint(allocator,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32601," ++
         "\"message\":\"method not found\"}}}}", .{id});

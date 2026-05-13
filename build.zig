@@ -93,7 +93,10 @@ pub fn build(b: *std.Build) void {
     const target   = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const use_oqs  = b.option(bool, "oqs", "Link liboqs for PQ crypto (default: auto-detect)") orelse true;
-    const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse true;
+    // EVM (revm) is OFF by default — the Rust crate at evm/ is optional and many
+    // build hosts (VPS, CI) don't have the Rust toolchain. Opt in with `-Devm=true`
+    // after building the crate: `cd evm && cargo build --release`.
+    const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse false;
 
     // build_options module — exposes feature flags to Zig code so we can
     // compile-out FFI declarations and stub handlers when a dependency is

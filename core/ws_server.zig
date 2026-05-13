@@ -269,15 +269,9 @@ pub const WsServer = struct {
         removeClient(srv, client);
     }
 
-    // FIXME: SEGFAULT-RISK [scan-2026-04-25] MEDIUM - close() + connected=false performed BEFORE taking lock
-    // Reason: broadcast() iterates srv.clients.items under srv.mutex and dereferences each client's
-    //   stream. If handleClient thread calls removeClient just BEFORE broadcast acquires the lock,
-    //   the stream handle is already closed — broadcast's send-on-closed-stream is recoverable via
-    //   the catch, but if the client struct gets destroyed AFTER broadcast snapshots the pointer but
-    //   BEFORE its sendText call, we get use-after-free. Mining loop calls broadcast each block
-    //   while RPC stress can disconnect WS clients aggressively.
-    // Suggested fix: take srv.mutex FIRST; then close stream + remove from list + destroy under lock.
-    //   Or use atomic flag + epoch-based reclamation.
+    // Lock-first close: prevents UAF where broadcast() holds a pointer to a
+    // client whose stream we're closing concurrently. Fixed during P0 audit
+    // (commit 1530486).
     fn removeClient(srv: *WsServer, client: *WsClient) void {
         // Take lock first so broadcast() cannot dereference a half-closed stream.
         srv.mutex.lock();
