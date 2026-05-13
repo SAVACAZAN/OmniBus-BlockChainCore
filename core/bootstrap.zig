@@ -524,9 +524,11 @@ pub const BootstrapNode = struct {
         std.debug.print("[BOOTSTRAP] Status changed to: {any}\n", .{status});
     }
 
-    /// Check if ready to start mining
-    /// Minimum miners required before mining starts (need real network)
-    pub const MIN_MINERS_FOR_MINING: usize = 10;
+    /// Check if ready to start mining.
+    /// Bootstrap phase: 1 (solo VPS seed mines without external miners).
+    /// Raise to 10+ when community joins. Mirror of
+    /// NodeLauncher.MIN_PEERS_FOR_MINING — keep both in sync.
+    pub const MIN_MINERS_FOR_MINING: usize = 1;
 
     /// Extern: set by RPC server when miners register
     pub var registered_miner_count: u16 = 0;
