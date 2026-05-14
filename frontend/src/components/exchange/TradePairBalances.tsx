@@ -127,24 +127,20 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
 
   if (!u) return null;
 
-  // Compute locked from orders (most reliable source)
+  // Compute locked from chain orders. This is the SINGLE source of truth.
+  // We used to fall back to `exchBalances.locked` (paper-mode sub-ledger)
+  // when ordersLocked was 0, but that surfaced stale paper-trading balances
+  // as "in orders" — e.g. user has 25.70 USDC on Sepolia, no buy order open,
+  // yet the panel showed "USDC: free 0.00 / in orders 25.70 / total 25.70".
+  // Paper-mode balances belong to a different ledger and should never count
+  // against the real wallet's "available" calculation.
   const ordersLocked = computeLockedFromOrders(userOrders, base, quote);
 
-  // Also try exchBalances.locked as fallback (in case orders RPC unavailable)
-  const ebLocked = (token: string) => {
-    const eb = exchBalances.find(b => b.token === token);
-    if (!eb || !eb.locked) return 0;
-    if (token === "OMNI") return eb.locked / SAT;
-    if (token === "ETH")  return eb.locked / 1e18;
-    return eb.locked / MU;
-  };
-
-  // Use orders-derived locked if > 0, else fall back to exchBalances.locked
-  const inOrders = (token: string) => {
-    const fromOrders = ordersLocked[token] ?? 0;
-    if (fromOrders > 0) return fromOrders;
-    return ebLocked(token);
-  };
+  const inOrders = (token: string): number => ordersLocked[token] ?? 0;
+  // exchBalances kept in scope for the paper-mode debug strip below (no
+  // longer wired into the live `in orders` math). We mark it as used so
+  // TypeScript doesn't complain about the prop being dropped.
+  void exchBalances;
 
   const assets = Array.from(new Set([base, quote]));
 
@@ -161,53 +157,31 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
         )}
       </div>
 
-      {/* OMNI breakdown banner (wallet / staked / orders / available) so user
-          can see the full split right here in the trade panel, not only on
-          stake page. Sourced from useGlobalBalance — same numbers as Header. */}
-      {gb.address && (
-        <div className="mb-2 p-2 rounded border border-mempool-border/50 bg-mempool-bg-elev text-[10px] font-mono leading-snug">
-          <div className="grid grid-cols-4 gap-2">
-            <div title="On-chain wallet balance (getbalance)">
-              <div className="text-[8px] uppercase tracking-wider text-mempool-text-dim">Wallet</div>
-              <div className="text-mempool-text">{formatOmni(gb.wallet_sat)} OMNI</div>
-            </div>
-            <div title={gb.stakes.length > 0
-              ? gb.stakes.map(s => `#${s.id}: ${formatOmni(s.amount_sat)} OMNI, lock ${s.lock_blocks}b (started @${s.started_at_block}, ${s.days_locked}d, ${s.status})${s.unbonding_until ? `, unlock @${s.unbonding_until}` : ""}`).join("\n")
-              : "No active stakes"}>
-              <div className="text-[8px] uppercase tracking-wider text-mempool-text-dim">Staked 🔒</div>
-              <div className="text-mempool-purple">{formatOmni(gb.staked_sat)} OMNI</div>
-            </div>
-            <div title="OMNI locked in active sell orders on the DEX">
-              <div className="text-[8px] uppercase tracking-wider text-mempool-text-dim">In Orders</div>
-              <div className="text-yellow-400">{formatOmni(gb.in_orders_sat)} OMNI</div>
-            </div>
-            <div title="wallet − staked − in_orders. Spendable right now.">
-              <div className="text-[8px] uppercase tracking-wider text-mempool-text-dim">Available ✓</div>
-              <div className="text-green-400">{formatOmni(gb.available_sat)} OMNI</div>
-            </div>
-          </div>
-          {gb.stakes.length > 0 && (
-            <div className="mt-1.5 pt-1.5 border-t border-mempool-border/40 text-[9px] text-mempool-text-dim">
-              Locks:{" "}
-              {gb.stakes.map((s) => {
-                const unlock = s.started_at_block + s.lock_blocks;
-                const remaining = Math.max(0, unlock - gb.block_height);
-                return (
-                  <span key={s.id} className="mr-2">
-                    #{s.id} → {formatOmni(s.amount_sat)} until block {unlock}
-                    {" "}({remaining > 0 ? `${remaining} blocks left` : "unlocked"})
-                  </span>
-                );
-              })}
-            </div>
-          )}
+      {/* Lock details (only when there are active stakes) — kept here for
+          context; the per-token row below already exposes Free/Staked/Orders/
+          Total so we don't need a separate breakdown banner anymore. The
+          earlier 4-column strip was duplicating exactly what the table below
+          shows and confused users. */}
+      {gb.address && gb.stakes.length > 0 && (
+        <div className="mb-2 text-[9px] text-mempool-text-dim font-mono">
+          Locks:{" "}
+          {gb.stakes.map((s) => {
+            const unlock = s.started_at_block + s.lock_blocks;
+            const remaining = Math.max(0, unlock - gb.block_height);
+            return (
+              <span key={s.id} className="mr-2">
+                #{s.id} → {formatOmni(s.amount_sat)} OMNI until block {unlock}
+                {" "}({remaining > 0 ? `${remaining} blocks left` : "unlocked"})
+              </span>
+            );
+          })}
         </div>
       )}
 
       {/* Header */}
       <div className="grid grid-cols-4 text-[8px] uppercase tracking-wider text-mempool-text-dim mb-1 px-0.5">
         <span></span>
-        <span className="text-center text-green-500/70">Free</span>
+        <span className="text-center text-green-500/70">Free / Staked</span>
         <span className="text-center text-yellow-500/70">In Orders</span>
         <span className="text-center">Total</span>
       </div>
@@ -220,14 +194,25 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
           // So:
           //   total = on-chain wallet balance (single source of truth)
           //   in_orders = portion of wallet reserved by active sell orders
-          //   free = total - in_orders (what can still be moved/spent)
-          // Adding `locked` to `onChain` would double-count — it's the same
-          // funds, just earmarked.
-          const onChain   = walletAmt[token] ?? 0;
-          const locked    = Math.min(inOrders(token), onChain); // cap at total
+          //   staked = portion locked in stake (only relevant for OMNI)
+          //   free = total - in_orders - staked (what can still be spent)
+          //
+          // For OMNI we reuse the global snapshot (wallet_sat / staked_sat /
+          // in_orders_sat / available_sat) so this row stays in sync with
+          // the strip above and the Header pill. For non-OMNI tokens the
+          // chain doesn't track staking, so the legacy on-chain-balance
+          // path is fine.
+          const isOmni    = token === "OMNI";
+          const omniLive  = isOmni && gb.address === omniAddr && gb.fetched_at > 0;
+          const onChain   = omniLive ? gb.wallet_sat / SAT : (walletAmt[token] ?? 0);
+          const stakedHere = omniLive ? gb.staked_sat / SAT : 0;
+          const lockedFromOrders = omniLive ? gb.in_orders_sat / SAT : Math.min(inOrders(token), onChain);
+          const free      = omniLive
+            ? gb.available_sat / SAT
+            : Math.max(0, onChain - lockedFromOrders);
           const total     = onChain;
-          const free      = Math.max(0, onChain - locked);
-          const loading   = fetching[token] ?? true;
+          const locked    = lockedFromOrders;
+          const loading   = !omniLive && (fetching[token] ?? true);
 
           return (
             <div key={token} className="grid grid-cols-4 items-center font-mono">
@@ -240,6 +225,11 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
                     <span className={`text-[11px] ${free > 0 ? "text-green-400" : "text-mempool-text-dim"}`}>
                       {free.toFixed(d)}
                     </span>
+                    {stakedHere > 0 && (
+                      <div className="text-[8px] text-mempool-purple/80" title={`Staked: ${stakedHere.toFixed(d)} ${token}`}>
+                        🔒 {stakedHere.toFixed(d)}
+                      </div>
+                    )}
                   </div>
                   <div className="text-center">
                     <span className={`text-[11px] ${locked > 0 ? "text-yellow-400" : "text-mempool-text-dim"}`}>
