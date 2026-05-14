@@ -215,6 +215,10 @@ export function deriveSlotKey(slot: number): {
   publicKey: string;
   address: string;
   evmAddress: string;
+  /** EVM private key hex (no 0x prefix) — used to sign DEX buyOrder /
+   *  approve / cancel txs from the same slot the OMNI side belongs to.
+   *  Empty string when m/44'/60' derivation fails. */
+  evmPrivateKey: string;
 } | null {
   if (!unlocked?.mnemonic) return null;
   if (!Number.isFinite(slot) || slot < 0 || slot > 18) return null;
@@ -226,18 +230,21 @@ export function deriveSlotKey(slot: number): {
     const privHex = bytesToHex(omniLeaf.privateKey);
     const { publicKey, address } = deriveAddressFromPrivKey(privHex);
 
-    // EVM sibling at m/44'/60'/0'/0/<slot> — needed for HTLC counter-leg.
+    // EVM sibling at m/44'/60'/0'/0/<slot> — needed for HTLC counter-leg
+    // AND for OmnibusDEX.placeBuyOrder() / cancelOrder() from this slot.
     let evmAddress = "";
+    let evmPrivateKey = "";
     try {
       const evmLeaf = root.derive(`m/44'/60'/0'/0/${slot}`);
+      if (evmLeaf.privateKey) {
+        evmPrivateKey = bytesToHex(evmLeaf.privateKey);
+      }
       if (evmLeaf.publicKey) {
-        // evmAddress helper is local to this module — duplicate the logic
-        // here to avoid pulling in keccak machinery at the wrong layer.
         evmAddress = (unlocked.allAddresses?.find((a) => a.index === slot)?.evmAddress) ?? "";
       }
     } catch { /* leave empty */ }
 
-    return { privateKey: privHex, publicKey, address, evmAddress };
+    return { privateKey: privHex, publicKey, address, evmAddress, evmPrivateKey };
   } catch {
     return null;
   }

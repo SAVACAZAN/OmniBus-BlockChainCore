@@ -62,6 +62,9 @@ export type ChainEntry = {
   /** HTLC contract address on this chain (EVM only). Empty for non-EVM
       or undeployed; the contract address registry below resolves it. */
   htlcContract?: string;
+  /** OmnibusDEX (escrow) contract address on this chain. Used by the
+      Buy flow on the native DEX — empty until deployed. */
+  dexContract?: string;
   /** Tailwind text color for visual accent. */
   color: string;
   /** Is the bridge/swap path live for this chain? false = "coming soon". */
