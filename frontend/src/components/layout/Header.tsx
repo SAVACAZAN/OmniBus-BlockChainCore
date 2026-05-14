@@ -9,6 +9,9 @@ import { ElectricOrganism } from "../effects/ElectricOrganism";
 import { MatrixRain } from "../effects/MatrixRain";
 import { WalletConnectButton } from "./WalletConnectButton";
 import { GlobalBalancePill } from "./GlobalBalancePill";
+import { useActiveSlot, setActiveSlot, SLOT_COUNT } from "../../api/use-active-slot";
+import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
+import { useWallet } from "../../api/use-wallet";
 
 declare global {
   interface Window { __openTx?: (txid: string) => void }
@@ -97,6 +100,10 @@ export function Header() {
 
           {/* Status Indicators */}
           <div className="flex items-center gap-4">
+            {/* Active-slot selector + 19-slot total. Only renders when a wallet
+                is connected (otherwise nothing to switch between). */}
+            <ActiveSlotSelector />
+
             {/* Chain switcher — saves to localStorage and reloads */}
             <div className="flex items-center gap-2">
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${CHAIN_BADGE[activeChain].cls}`}>
@@ -254,5 +261,56 @@ export function Header() {
         />
       )}
     </>
+  );
+}
+
+/**
+ * ActiveSlotSelector — header dropdown to switch the BIP-44 OMNI slot that
+ * every page (Trade / Wallet / Stake / Send) reads from. Also shows the
+ * total OMNI across all 19 slots so the user always sees the wallet's full
+ * picture even when MultiWalletBalances isn't open.
+ *
+ * No-op (hidden) when no wallet is connected.
+ */
+function ActiveSlotSelector() {
+  const wallet = useWallet();
+  const activeSlot = useActiveSlot();
+  const all = useAllSlotsBalance();
+
+  if (!wallet) return null;
+  const slotsCount = wallet.allAddresses?.length ?? SLOT_COUNT;
+
+  // Find OMNI on the active slot for the inline chip; fall back to the
+  // unlocked wallet's primary balance when the snapshot hasn't loaded yet.
+  const activeRow = all.slots.find((s) => s.index === activeSlot);
+  const activeOmni = activeRow ? activeRow.wallet_sat / 1e9 : 0;
+  const totalOmni = all.total_wallet_sat / 1e9;
+
+  return (
+    <div className="hidden md:flex items-center gap-2 px-2 py-1 rounded-lg bg-mempool-bg-elev border border-mempool-border">
+      <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Slot</span>
+      <select
+        value={activeSlot}
+        onChange={(e) => setActiveSlot(Number(e.target.value))}
+        className="bg-mempool-bg border border-mempool-border rounded px-1.5 py-0.5 text-xs text-mempool-text hover:border-mempool-blue cursor-pointer font-mono"
+        title="Active BIP-44 slot — Trade / Send / Stake use this index"
+      >
+        {Array.from({ length: slotsCount }, (_, i) => {
+          const row = all.slots.find((s) => s.index === i);
+          const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+          return (
+            <option key={i} value={i}>
+              #{i} · {bal}
+            </option>
+          );
+        })}
+      </select>
+      <span className="text-[10px] text-mempool-text-dim border-l border-mempool-border pl-2">
+        <span className="text-mempool-text font-mono">{activeOmni.toFixed(2)}</span> OMNI
+      </span>
+      <span className="text-[10px] text-mempool-text-dim/70" title="Total OMNI across all 19 BIP-44 slots">
+        all: <span className="text-mempool-green font-mono">{totalOmni.toFixed(2)}</span>
+      </span>
+    </div>
   );
 }

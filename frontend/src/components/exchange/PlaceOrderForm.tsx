@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
-import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
+import { useActiveSlot } from "../../api/use-active-slot";
 import { useTraderMode } from "./TraderModeToggle";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
@@ -80,10 +81,19 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
   const [chainBalances, setChainBalances] = useState<Record<string, string>>({});
 
   const u = getUnlocked();
-  const evmAddr = u?.allAddresses?.[0]?.evmAddress
+  // Active slot driven by the global Header dropdown — the user can switch
+  // between BIP-44 indices 0..18 and every page (Trade / Stake / Wallet)
+  // reads from the same singleton (see use-active-slot.ts). Old code
+  // hardcoded [0] which meant every trade used slot 0 regardless of what
+  // MultiWalletBalances showed as the user's selection.
+  const activeSlot = useActiveSlot();
+  const activeRow = u?.allAddresses?.[activeSlot] ?? u?.allAddresses?.[0];
+  const evmAddr = activeRow?.evmAddress
     ?? u?.multichainAddresses?.find(a => a.chain === "ETH")?.address ?? "";
-  const solAddr = u?.multichainAddresses?.find(a => a.chain === "SOL")?.address ?? "";
-  const xrpAddr = u?.multichainAddresses?.find(a => a.chain === "XRP")?.address ?? "";
+  const solAddr = activeRow?.solAddress
+    ?? u?.multichainAddresses?.find(a => a.chain === "SOL")?.address ?? "";
+  const xrpAddr = activeRow?.xrpAddress
+    ?? u?.multichainAddresses?.find(a => a.chain === "XRP")?.address ?? "";
 
   // Fetch balances for all taker chains
   useEffect(() => {
@@ -131,12 +141,25 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     if (!Number.isFinite(priceUsd)   || priceUsd   <= 0) { setErr("Price must be > 0");  return; }
     if (!Number.isFinite(amountOmni) || amountOmni <= 0) { setErr("Amount must be > 0"); return; }
 
+    // Resolve which slot to trade FROM. Header dropdown sets active slot via
+    // use-active-slot. If user unlocked from mnemonic we can derive any
+    // slot's key on the fly; otherwise fall back to the unlocked wallet's
+    // own key (active slot must match walletIndex in that case).
+    const slotKey = activeSlot === u.walletIndex
+      ? { privateKey: u.privateKey, publicKey: "", address: u.address }
+      : deriveSlotKey(activeSlot);
+    if (!slotKey) {
+      setErr(`Slot #${activeSlot} requires re-unlocking with the mnemonic to sign — current unlock is for slot #${u.walletIndex} only.`);
+      return;
+    }
+    const traderAddr = slotKey.address;
+
     const priceMicroUsd = Math.round(priceUsd * MICRO_PER_USD);
     const amountSat     = Math.round(amountOmni * SAT_PER_OMNI);
     const nonce         = nextNonce();
     const { signature, publicKey } = signPlaceOrderPayload({
-      privateKeyHex: u.privateKey,
-      trader: u.address,
+      privateKeyHex: slotKey.privateKey,
+      trader: traderAddr,
       side,
       pairId,
       priceMicroUsd,
@@ -147,7 +170,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     setBusy(true);
     try {
       const res = await rpc.exchangePlaceOrder({
-        trader: u.address,
+        trader: traderAddr,
         side,
         pairId,
         price: priceMicroUsd,

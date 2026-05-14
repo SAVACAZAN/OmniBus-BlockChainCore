@@ -3,6 +3,8 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
+import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
+import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
 import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES, buildPqAttestPayload, nextNonce } from "../../api/wallet-keystore";
 import {
   useNamesOwnedBy,
@@ -100,6 +102,11 @@ export function WalletPage() {
   // Atomic snapshot of wallet/staked/in_orders/available shared with Exchange
   // and Stake pages — single source of truth so the four numbers don't drift.
   const globalBal = useGlobalBalance();
+  // Aggregate snapshot across all 19 BIP-44 slots so the user sees the
+  // wallet's full picture (mainnet often spreads balance across slots
+  // when the user has been mining + staking + parking).
+  const allSlots = useAllSlotsBalance();
+  const activeSlot = useActiveSlot();
   const [balance, setBalance] = useState({ sat: 0, omni: "0.0000" });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [sendTo, setSendTo] = useState("");
@@ -504,6 +511,74 @@ export function WalletPage() {
           </div>
         )}
       </div>
+
+      {/* All 19 BIP-44 slots — aggregate + per-slot drill-down. Useful when
+          the user has spread balance across multiple slots (mining rewards
+          land on slot 0; staking from another; trading from a third). */}
+      {allSlots.slots.length > 0 && (
+        <div className="bg-mempool-bg-elev rounded-2xl border border-mempool-border overflow-hidden">
+          <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-b border-mempool-border bg-gradient-to-r from-mempool-bg-elev to-mempool-bg-light">
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">All-slot total</p>
+              <p className="font-mono font-bold text-lg sm:text-xl text-mempool-green">{formatOmni(allSlots.total_wallet_sat)}</p>
+              <p className="text-[9px] text-mempool-text-dim/70">OMNI across {allSlots.slots.length} slots</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">Staked</p>
+              <p className="font-mono font-semibold text-mempool-purple">{formatOmni(allSlots.total_staked_sat)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">In Orders</p>
+              <p className="font-mono font-semibold text-mempool-blue">{formatOmni(allSlots.total_in_orders_sat)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">Available</p>
+              <p className="font-mono font-semibold text-mempool-text">{formatOmni(allSlots.total_available_sat)}</p>
+            </div>
+          </div>
+          <div className="max-h-72 overflow-y-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-mempool-bg/40 text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                <tr>
+                  <th className="text-left px-3 py-1.5">Slot</th>
+                  <th className="text-left px-3 py-1.5">Address</th>
+                  <th className="text-right px-3 py-1.5">Wallet</th>
+                  <th className="text-right px-3 py-1.5">Staked</th>
+                  <th className="text-right px-3 py-1.5">Orders</th>
+                  <th className="text-right px-3 py-1.5">Available</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allSlots.slots.map((s) => {
+                  const isActive = s.index === activeSlot;
+                  return (
+                    <tr
+                      key={s.index}
+                      onClick={() => setActiveSlot(s.index)}
+                      className={`border-t border-mempool-border/30 cursor-pointer hover:bg-mempool-bg/40 ${isActive ? "bg-mempool-blue/10" : ""}`}
+                      title="Click to make this the active slot for Trade / Send / Stake"
+                    >
+                      <td className="px-3 py-1.5 font-mono text-mempool-text-dim">
+                        {isActive ? <span className="text-mempool-blue font-semibold">▶ #{s.index}</span> : `#${s.index}`}
+                      </td>
+                      <td className="px-3 py-1.5 font-mono text-[10px] text-mempool-text-dim truncate max-w-[200px]" title={s.address}>
+                        {s.address.slice(0, 10)}…{s.address.slice(-6)}
+                      </td>
+                      <td className="px-3 py-1.5 text-right font-mono">{formatOmni(s.wallet_sat)}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-mempool-purple/80">{formatOmni(s.staked_sat)}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-mempool-blue/80">{formatOmni(s.in_orders_sat)}</td>
+                      <td className="px-3 py-1.5 text-right font-mono">{formatOmni(s.available_sat)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {allSlots.fetched_at === 0 && (
+            <p className="text-[10px] text-mempool-text-dim/70 text-center py-2">Loading per-slot balances…</p>
+          )}
+        </div>
+      )}
 
       {/* Two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
