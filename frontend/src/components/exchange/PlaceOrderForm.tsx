@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
-import { useActiveSlot } from "../../api/use-active-slot";
+import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
+import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
@@ -87,7 +88,9 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
   // hardcoded [0] which meant every trade used slot 0 regardless of what
   // MultiWalletBalances showed as the user's selection.
   const activeSlot = useActiveSlot();
+  const allSlots   = useAllSlotsBalance(); // for showing OMNI balance next to each slot in the inline picker
   const activeRow = u?.allAddresses?.[activeSlot] ?? u?.allAddresses?.[0];
+  const omniAddr   = activeRow?.address ?? u?.address ?? "";
   const evmAddr = activeRow?.evmAddress
     ?? u?.multichainAddresses?.find(a => a.chain === "ETH")?.address ?? "";
   const solAddr = activeRow?.solAddress
@@ -182,10 +185,15 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
         // Pass preferred taker chain so backend can route HTLC
         taker_chain: side === "buy" ? selectedChainKey : undefined,
       } as any);
+      // Include the slot index + truncated OMNI address so the user can
+      // tell exactly which derived child key signed this order — matters
+      // when they have 19 slots with different balances and want to audit
+      // the trade in their wallet history.
+      const traderShort = `${traderAddr.slice(0, 8)}…${traderAddr.slice(-4)}`;
       setMsg(
         `${res.status.toUpperCase()} — order #${res.orderId}, filled ${
           res.filled / SAT_PER_OMNI
-        } / ${res.amount / SAT_PER_OMNI} ${base}`,
+        } / ${res.amount / SAT_PER_OMNI} ${base} · from slot #${activeSlot} (${traderShort})`,
       );
       setPriceStr("");
       setAmountStr("");
@@ -220,6 +228,43 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
           {traderMode === "real" ? "💰 Real" : "🎮 Paper"}
         </span>
       </div>
+
+      {/* From-slot picker — the BIP-44 OMNI slot the order will be signed
+          from. Mirrors the Header dropdown but in-context so users see
+          exactly which address gets debited at fill. Changing here also
+          updates the global active slot (same singleton). */}
+      {u && (u.allAddresses?.length ?? 0) > 1 && (
+        <div className="mb-2 p-2 rounded border border-mempool-border/50 bg-mempool-bg text-[11px]">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">From slot</span>
+            <select
+              value={activeSlot}
+              onChange={(e) => setActiveSlot(Number(e.target.value))}
+              className="bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-[11px] text-mempool-text hover:border-mempool-blue cursor-pointer font-mono"
+            >
+              {(u.allAddresses ?? []).map((a) => {
+                const row = allSlots.slots.find((s) => s.index === a.index);
+                const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+                return (
+                  <option key={a.index} value={a.index}>
+                    #{a.index} · {bal} OMNI
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div className="flex items-center gap-1 font-mono text-[10px] text-mempool-text-dim truncate">
+            <span className="text-mempool-blue">OMNI</span>
+            <span className="truncate" title={omniAddr}>{omniAddr}</span>
+          </div>
+          {evmAddr && (
+            <div className="flex items-center gap-1 font-mono text-[10px] text-mempool-text-dim truncate">
+              <span className="text-mempool-purple">EVM</span>
+              <span className="truncate" title={evmAddr}>{evmAddr}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Wallet balance — Free / In orders / Total */}
       <TradePairBalances base={base} quote={quote} exchBalances={exchBalances} />

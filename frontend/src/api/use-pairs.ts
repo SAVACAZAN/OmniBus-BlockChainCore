@@ -22,10 +22,11 @@ export interface ChainPair {
   info: PairInfo | null;
 }
 
-// pair_ids that exist on chain but have no liquidity yet.
-const RESERVED_IDS = new Set([1, 4]);
-
-// All pair IDs the chain defines (matches EXCHANGE_PAIRS in rpc_server.zig).
+// IDs the UI tries to query. If the chain returns "Unknown pair_id" for
+// any of these (e.g. on testnet where only a subset is wired), we DROP
+// them entirely instead of showing them as "pair_4" placeholders that
+// confuse the user. The display list ends up being whatever the chain
+// actually supports, in numerical order.
 const ALL_PAIR_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 // Singleton cache so multiple consumers don't issue duplicate RPC fans.
@@ -42,29 +43,29 @@ async function fetchAllPairs(rpc: OmniBusRpcClient): Promise<ChainPair[]> {
       ALL_PAIR_IDS.map((id) => rpc.exchangePairInfo(id))
     );
 
-    const pairs: ChainPair[] = results.map((r, idx) => {
+    const pairs: ChainPair[] = [];
+    results.forEach((r, idx) => {
       const id = ALL_PAIR_IDS[idx];
-      if (r.status === "fulfilled" && r.value) {
-        const info = r.value;
-        return {
-          id,
-          base: info.base,
-          quote: info.quote,
-          label: `${info.base}/${info.quote}`,
-          reserved: RESERVED_IDS.has(id),
-          info,
-        };
+      if (r.status !== "fulfilled" || !r.value) {
+        // Chain doesn't know about this id — skip it instead of showing
+        // an empty "pair_<id>" placeholder. Old behaviour confused users
+        // who would click pair_4 and the order panel would render with
+        // empty base/quote.
+        return;
       }
-      // Pair ID not found on this node version — produce a placeholder so the
-      // UI can still render it as "Coming soon" rather than silently hiding it.
-      return {
+      const info = r.value;
+      pairs.push({
         id,
-        base: "?",
-        quote: "?",
-        label: `pair_${id}`,
-        reserved: true,
-        info: null,
-      };
+        base: info.base,
+        quote: info.quote,
+        label: `${info.base}/${info.quote}`,
+        // A pair is "reserved" if it has no maker/taker chain liquidity
+        // wired up yet — keep it visible but greyed out so the user sees
+        // the roadmap. Anything the chain replied to with full info is
+        // considered live.
+        reserved: false,
+        info,
+      });
     });
 
     _cachedPairs = pairs;
