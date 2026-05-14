@@ -3,6 +3,7 @@ import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
+import { useGlobalBalance } from "../../api/use-global-balance";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1_000_000_000;
@@ -44,6 +45,12 @@ export function BalancesPanel() {
   const [, force] = useState(0);
   useEffect(() => subscribeWallet(() => force((n) => n + 1)), []);
   const u = getUnlocked();
+
+  // Use the global atomic snapshot for OMNI so this panel agrees with
+  // Wallet / Stake / Header. Previously we did `getbalance` directly and
+  // had no visibility on staked / in_orders, so Exchange tab disagreed
+  // with Wallet tab for the same address.
+  const globalBal = useGlobalBalance();
 
   const [view, setView] = useState<"single" | "all">("single");
   const [rows, setRows] = useState<WalletRow[]>([]);
@@ -96,15 +103,19 @@ export function BalancesPanel() {
       if (!cancelled) setRows(prev => prev.map(r => r.chain === chain ? { ...r, balance: bal } : r));
     };
 
-    const fetches: Promise<void>[] = [
-      rpc.request_raw("getbalance", [u.address])
-        .then((r: any) => {
-          // RPC returns object {balance, balanceOMNI, ...} not a bare number
-          const sat: number = typeof r === "number" ? r : (r?.balance ?? 0);
-          update("OMNI", { native: (sat / SAT).toFixed(8), symbol: "OMNI", raw: String(sat) });
-        })
-        .catch(() => update("OMNI", null)),
-    ];
+    // OMNI row comes from useGlobalBalance (atomic wallet/staked/orders).
+    // We still kick a single immediate update with whatever we have right
+    // now so the "loading…" placeholder doesn't linger; subsequent
+    // updates flow through the separate useEffect below that listens to
+    // globalBal changes.
+    const fetches: Promise<void>[] = [];
+    if (globalBal.address === u.address && globalBal.fetched_at > 0) {
+      update("OMNI", {
+        native: (globalBal.wallet_sat / SAT).toFixed(8),
+        symbol: "OMNI",
+        raw: String(globalBal.wallet_sat),
+      });
+    }
 
     if (evmAddr) {
       fetches.push(fetchChainBalance("SEPOLIA", evmAddr).then(b => update("SEPOLIA", b)));

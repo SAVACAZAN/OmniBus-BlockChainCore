@@ -31,6 +31,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
 
 const rpc = new OmniBusRpcClient();
 
@@ -490,31 +491,18 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
   const wallet = useWallet();
   const [amountStr, setAmountStr] = useState<string>("");
   const [days, setDays] = useState<number>(30);
-  const [balanceSat, setBalanceSat] = useState<number | null>(null);
-  const [stakedSat, setStakedSat] = useState<number>(0);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Use the global atomic snapshot so this tab agrees with Wallet / Exchange /
+  // Header pill. Previously we did dual-fetch (getbalance + getstake) and
+  // computed available manually — that worked but ignored in_orders, so
+  // open sell orders ate into "available" without showing it. Now the same
+  // singleton sources every page.
+  const globalBal = useGlobalBalance();
   const refreshBalance = useCallback(async () => {
-    if (!wallet) { setBalanceSat(null); setStakedSat(0); return; }
-    try {
-      // Pull both balance and active stake in parallel so the UI shows
-      // "available = wallet balance - already staked" — prevents over-stake
-      // attempts and gives a true picture of spendable funds.
-      const [balRes, stakeRes] = await Promise.all([
-        rpc.request_raw("getbalance", [wallet.address]) as Promise<number | { balance?: number } | null>,
-        rpc.request_raw("getstake", [{ address: wallet.address }]) as Promise<{ stakes?: StakeEntry[] } | null>,
-      ]);
-      const sat = typeof balRes === "number" ? balRes : (balRes?.balance ?? 0);
-      setBalanceSat(sat);
-      const stakedTotal = (stakeRes?.stakes ?? [])
-        .filter(s => s.status === "active" || s.status === "unbonding")
-        .reduce((acc, s) => acc + (s.amount_sat ?? 0), 0);
-      setStakedSat(stakedTotal);
-    } catch { /* keep stale */ }
-  }, [wallet]);
-
-  useEffect(() => { void refreshBalance(); }, [refreshBalance]);
+    refreshGlobalBalance();
+  }, []);
 
   const amountOmni = parseFloat(amountStr) || 0;
   const amountSat = Math.floor(amountOmni * SAT_PER_OMNI);
@@ -524,11 +512,13 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
   const estRentPerDay = BASE_RENT_PER_OMNI_PER_DAY * amountOmni * tier * durationMult;
   const estRentTotal = estRentPerDay * days;
 
-  // Available = wallet balance minus already-staked (locked) amount.
-  // Pre-stake snapshot done client-side: UI reflects that staking moves
-  // funds from "available" to "staked" pool even if the chain debit hasn't
-  // settled yet (e.g. TX still in mempool).
-  const availableSat = balanceSat !== null ? Math.max(0, balanceSat - stakedSat) : null;
+  // Same address-gated view as the rest of the UI: the snapshot only applies
+  // to the connected wallet. Cast to null when wallet not yet propagated so
+  // the existing null checks below keep working.
+  const isLive = !!wallet && globalBal.address === wallet.address && globalBal.fetched_at > 0;
+  const balanceSat = isLive ? globalBal.wallet_sat : null;
+  const stakedSat = isLive ? globalBal.staked_sat : 0;
+  const availableSat = isLive ? globalBal.available_sat : null;
 
   const canSubmit = !!wallet && amountSat > 0 && !busy
     && (availableSat === null || amountSat <= availableSat);

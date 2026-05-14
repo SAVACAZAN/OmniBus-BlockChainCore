@@ -87,20 +87,66 @@ function emit(next: GlobalBalance) {
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let activeAddress = "";
 
+type WalletSummaryRpc = {
+  address: string;
+  height?: number;
+  wallet_sat?: number;
+  staked_sat?: number;
+  in_orders_sat?: number;
+  available_sat?: number;
+  stakes?: StakeLockEntry[];
+};
+
 async function refreshOnce(address: string): Promise<void> {
   if (!address) return;
   try {
-    const [balRaw, stakeRaw, exchRaw, heightRaw, openOrdersRaw] = await Promise.all([
-      rpc.getBalance().catch(() => 0),
-      rpc.request_raw("getstake", [{ address }]).catch(() => null),
-      rpc.exchangeGetBalances(address).catch(() => []),
-      rpc.getBlockCount().catch(() => 0),
-      rpc.request_raw("exchange_getUserOrders", [{ trader: address }]).catch(() => []),
-    ]);
+    // One atomic RPC: getwalletsummary returns wallet / staked / in_orders /
+    // available + per-stake list under a single chain mutex. Replaces the
+    // previous 5-RPC fan-out (getBalance + getstake + exchange_getBalances
+    // + getBlockCount + exchange_getUserOrders) that suffered from two bugs:
+    //   1) rpc.getBalance() called WITHOUT an address argument returned the
+    //      balance for the unlocked wallet's primary address (slot 0), not
+    //      the requested `address`. So the snapshot returned 0 wallet_sat
+    //      for any non-zero slot while staked/orders still showed correctly.
+    //   2) Five independent RPCs could observe different chain states if a
+    //      block landed mid-fetch — caller saw "wallet=0 staked=212" for a
+    //      single tick which the UI rendered as a glaring inconsistency.
+    const summary = (await rpc
+      .request_raw("getwalletsummary", [{ address }])
+      .catch(() => null)) as WalletSummaryRpc | null;
 
-    const wallet_sat = Number(balRaw) || 0;
-    const stakesRaw = (stakeRaw as { stakes?: StakeLockEntry[] } | null)?.stakes ?? [];
-    const stakes: StakeLockEntry[] = stakesRaw
+    if (!summary) {
+      // Fall through to legacy fan-out only if the new RPC isn't reachable.
+      // Old nodes (pre 2026-05-13) don't ship getwalletsummary.
+      const balRaw = await rpc
+        .request_raw("getbalance", [address])
+        .catch(() => null);
+      const wallet_sat = typeof balRaw === "number"
+        ? balRaw
+        : Number((balRaw as { balance?: number } | null)?.balance ?? 0);
+      emit({
+        address,
+        wallet_sat,
+        staked_sat: 0,
+        in_orders_sat: 0,
+        available_sat: wallet_sat,
+        stakes: [],
+        block_height: 0,
+        fetched_at: Date.now(),
+        loading: false,
+        error: "getwalletsummary unavailable (legacy node?)",
+      });
+      return;
+    }
+
+    const wallet_sat    = Number(summary.wallet_sat    ?? 0);
+    const staked_sat    = Number(summary.staked_sat    ?? 0);
+    const in_orders_sat = Number(summary.in_orders_sat ?? 0);
+    const available_sat = Number(
+      summary.available_sat ?? Math.max(0, wallet_sat - staked_sat - in_orders_sat),
+    );
+
+    const stakes: StakeLockEntry[] = (summary.stakes ?? [])
       .filter((s) => s.status === "active" || s.status === "unbonding")
       .map((s) => ({
         id: Number(s.id) || 0,
@@ -111,26 +157,6 @@ async function refreshOnce(address: string): Promise<void> {
         status: s.status,
         unbonding_until: s.unbonding_until ? Number(s.unbonding_until) : undefined,
       }));
-    const staked_sat = stakes.reduce((s, e) => s + e.amount_sat, 0);
-
-    // Prefer chain-derived "locked in active OMNI sell orders" because the
-    // internal exchange sub-ledger (`exchange_getBalances.locked`) only counts
-    // funds that were deposited-into-exchange, not on-chain reservations.
-    const openOrders = Array.isArray(openOrdersRaw) ? openOrdersRaw : [];
-    let in_orders_sat = 0;
-    for (const o of openOrders as Array<{ side?: string; remaining?: number; status?: string }>) {
-      const status = String(o.status ?? "");
-      if (status !== "active" && status !== "partial") continue;
-      if (String(o.side ?? "") === "sell") {
-        in_orders_sat += Number(o.remaining) || 0;
-      }
-    }
-    if (in_orders_sat === 0) {
-      const omniRow = (exchRaw || []).find((b) => b.token === "OMNI");
-      in_orders_sat = Number(omniRow?.locked ?? 0) || 0;
-    }
-
-    const available_sat = Math.max(0, wallet_sat - staked_sat - in_orders_sat);
 
     emit({
       address,
@@ -139,7 +165,7 @@ async function refreshOnce(address: string): Promise<void> {
       in_orders_sat,
       available_sat,
       stakes,
-      block_height: Number(heightRaw) || 0,
+      block_height: Number(summary.height ?? 0),
       fetched_at: Date.now(),
       loading: false,
       error: null,

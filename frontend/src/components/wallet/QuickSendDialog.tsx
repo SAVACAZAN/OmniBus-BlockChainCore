@@ -17,6 +17,7 @@
 import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { useGlobalBalance } from "../../api/use-global-balance";
 import type { FeeEstimate } from "../../types";
 
 const rpc = new OmniBusRpcClient();
@@ -31,7 +32,16 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
   const [amount, setAmount] = useState("");
   const [tier, setTier] = useState<FeeTier>("normal");
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
-  const [balanceSat, setBalanceSat] = useState(0);
+  // Use the global atomic snapshot — Send must reflect AVAILABLE (= wallet -
+  // staked - in_orders), not raw wallet balance. Previous version called
+  // getBalance() which returned wallet total and let users overdraft into
+  // their staked / locked-in-orders funds → chain rejected the TX after
+  // sign, leaving the user confused.
+  const globalBal = useGlobalBalance();
+  const isLive = globalBal.address === wallet?.address && globalBal.fetched_at > 0;
+  const balanceSat = isLive ? globalBal.available_sat : 0;
+  const stakedSat = isLive ? globalBal.staked_sat : 0;
+  const inOrdersSat = isLive ? globalBal.in_orders_sat : 0;
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string; txid?: string } | null>(null);
@@ -52,16 +62,14 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // Fetch fee estimate + balance once on mount.
+  // Fetch fee estimate once on mount. Balance comes from useGlobalBalance,
+  // which polls every 8 s and broadcasts to all subscribers (Wallet / Stake
+  // / Header pill all stay in sync with this dialog).
   useEffect(() => {
     (async () => {
       try {
         const fee = await rpc.estimateFee();
         if (fee) setFeeEstimate(fee);
-      } catch {}
-      try {
-        const bal: any = await rpc.getBalance();
-        setBalanceSat(bal?.balance || 0);
       } catch {}
     })();
   }, []);
@@ -169,11 +177,27 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
             </span>
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-mempool-text-dim">Balance</span>
+            <span className="text-mempool-text-dim">Available</span>
             <span className="font-mono text-mempool-green">
               {(balanceSat / 1e9).toFixed(4)} OMNI
             </span>
           </div>
+          {(stakedSat > 0 || inOrdersSat > 0) && (
+            <div className="text-[10px] text-mempool-text-dim/70 mt-1 space-y-0.5">
+              {stakedSat > 0 && (
+                <div className="flex justify-between">
+                  <span>· staked (locked)</span>
+                  <span className="font-mono">{(stakedSat / 1e9).toFixed(4)}</span>
+                </div>
+              )}
+              {inOrdersSat > 0 && (
+                <div className="flex justify-between">
+                  <span>· in open orders</span>
+                  <span className="font-mono">{(inOrdersSat / 1e9).toFixed(4)}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div>
