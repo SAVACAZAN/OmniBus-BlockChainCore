@@ -14,13 +14,19 @@ import {
 const rpc = new OmniBusRpcClient();
 const SAT = 1_000_000_000;
 
-const WALLET_NAMES: Record<number, string> = {
-  0: "savacazan.omnibus",  1: "admin.omnibus",
-  2: "exchange.omnibus",   3: "ens.omnibus",
-  4: "sava.omnibus",       5: "blockchain.omnibus",
-  6: "tornetwork.omnibus", 7: "faucet.omnibus",
-  8: "cazan.omnibus",      9: "database.omnibus",
-};
+// IMPORTANT: this table no longer hardcodes "savacazan.omnibus / admin.omnibus
+// / exchange.omnibus / …" against slot indices 0..9.
+//
+// Those 10 names are the canonical registrar slots (see
+// memory/project_omnibus_registrar_addresses.md) which exist on-chain at fixed
+// addresses derived from the FOUNDER mnemonic. They are NOT user wallets —
+// they are public treasury slots (ens, faucet, exchange treasury, etc.).
+// Labelling every connecting user's slot 0 as "savacazan.omnibus" was a bug
+// that made every wallet look identical to Alex's wallet and replicated the
+// same balance across rows (especially XRP).
+//
+// Per-row label resolution now: primary NS name registered for this wallet's
+// OMNI address (via getprimaryname / use-names) → fallback "Slot #i".
 
 // Columns in display order — Circle faucet.circle.com supported testnets + our chains
 const COLS = [
@@ -59,6 +65,7 @@ type WRow = {
   omniAddr: string;
   evmAddr: string;
   solAddr: string;
+  xrpAddr: string;
   omni: BalVal;
   solDev: BalVal;
   usdcSol: BalVal;
@@ -118,23 +125,31 @@ export function MultiWalletBalances() {
     cancelRef.current = false;
     setFetching(true);
 
-    const addrs = u.allAddresses.slice(0, 10);
-    const skeleton: WRow[] = addrs.map(({ index, address, evmAddress, solAddress }) => ({
-      index, omniAddr: address, evmAddr: evmAddress ?? "", solAddr: solAddress ?? "",
-      ...blank(),
-    }));
-    // XRP address for wallet #0 (same path m/44'/144'/0'/0/0 for all users)
-    const xrpAddr0 = (u.allAddresses[0] as any)?.xrpAddress as string | undefined;
+    // Show ALL derived addresses (19 by default per BIP-44 indices 0..18).
+    // Old code did .slice(0, 10) which hid 9 wallets and matched the now-
+    // removed registrar-name hardcoded table 0..9. With per-slot derivation
+    // each address has its own EVM / SOL / XRP child key so balances differ.
+    const addrs = u.allAddresses;
+    const skeleton: WRow[] = addrs.map((entry) => {
+      const xrpAddress = (entry as { xrpAddress?: string }).xrpAddress ?? "";
+      return {
+        index: entry.index,
+        omniAddr: entry.address,
+        evmAddr: entry.evmAddress ?? "",
+        solAddr: entry.solAddress ?? "",
+        xrpAddr: xrpAddress,
+        ...blank(),
+      };
+    });
     setRows(skeleton);
 
     const setVal = (index: number, key: ColKey, val: BalVal) => {
       if (cancelRef.current) return;
       setRows(prev => prev.map(r => r.index === index ? { ...r, [key]: val } : r));
     };
-    const setAllEvm = (key: ColKey, val: BalVal) => {
-      if (cancelRef.current) return;
-      setRows(prev => prev.map(r => ({ ...r, [key]: val })));
-    };
+    // setAllEvm removed — was a broadcast that overwrote every row with the
+    // same balance when allSame=true. Now we always emit per-slot updates so
+    // each derived EVM child key shows its own balance.
 
     const fetches: Promise<void>[] = [];
 
@@ -177,13 +192,13 @@ export function MultiWalletBalances() {
       if (!evmGroups.has(evmAddress)) evmGroups.set(evmAddress, []);
       evmGroups.get(evmAddress)!.push(index);
     }
-    const allSame = evmGroups.size === 1;
-
+    // Each unique EVM address gets its own fetch; result applies to ALL slots
+    // sharing that address (in BIP-44 every slot has a distinct address so
+    // typically indices.length === 1).
     for (const [evmAddr, indices] of evmGroups) {
       const upd = (key: ColKey, val: BalVal) => {
         if (cancelRef.current) return;
-        if (allSame) setAllEvm(key, val);
-        else indices.forEach(i => setVal(i, key, val));
+        indices.forEach(i => setVal(i, key, val));
       };
 
       // Ethereum Sepolia
@@ -207,16 +222,21 @@ export function MultiWalletBalances() {
       fetches.push(fetchLcxBalance("LIBERTY", evmAddr).then(b => upd("lcxLib", b ? Number(b.native) : null)).catch(() => upd("lcxLib", null)));
     }
 
-    // XRP testnet — adresa din allAddresses[0].xrpAddress (salvată în session)
-    const xrpFetchAddr = xrpAddr0 || u.multichainAddresses?.find(a => a.chain === "XRP")?.address;
-    if (xrpFetchAddr && !xrpFetchAddr.includes("failed")) {
+    // XRP testnet — per-slot fetch (each BIP-44 m/44'/144'/0'/0/i derives a
+    // distinct XRP address). The OLD code fetched only slot #0 and then
+    // setRows(prev => prev.map(r => ({...r, xrpTest}))) applied the SAME
+    // balance to every row, which is exactly the "1700.77 on every wallet"
+    // bug the user reported. Now each row gets its own balance.
+    for (const { index, xrpAddress } of addrs) {
+      if (!xrpAddress || xrpAddress.includes("failed")) {
+        setVal(index, "xrpTest", null);
+        continue;
+      }
       fetches.push(
-        fetchXrpBalance(xrpFetchAddr, "testnet")
-          .then(b => { if (!cancelRef.current) setRows(prev => prev.map(r => ({ ...r, xrpTest: b ? Number(b.native) : null }))); })
-          .catch(() => { if (!cancelRef.current) setRows(prev => prev.map(r => ({ ...r, xrpTest: null }))); })
+        fetchXrpBalance(xrpAddress, "testnet")
+          .then(b => setVal(index, "xrpTest", b ? Number(b.native) : null))
+          .catch(() => setVal(index, "xrpTest", null))
       );
-    } else {
-      setRows(prev => prev.map(r => ({ ...r, xrpTest: null })));
     }
 
     Promise.all(fetches).finally(() => { if (!cancelRef.current) setFetching(false); });
@@ -278,7 +298,7 @@ export function MultiWalletBalances() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-mono text-mempool-text-dim bg-mempool-bg px-1.5 py-0.5 rounded">#{row.index}</span>
-                      <span className="text-xs font-semibold text-mempool-text">@ {WALLET_NAMES[row.index]}</span>
+                      <span className="text-xs font-semibold text-mempool-text">Slot #{row.index}</span>
                     </div>
                     <div className="space-y-0.5">
                       {row.evmAddr && (
@@ -355,7 +375,7 @@ export function MultiWalletBalances() {
                 <tr key={row.index} className="border-t border-mempool-border/20 hover:bg-mempool-bg/50">
                   <td className="py-1 px-1 text-mempool-text-dim font-mono">{row.index}</td>
                   <td className="py-1 px-1">
-                    <div className="text-mempool-text font-semibold truncate" style={{ fontSize: "8px" }}>{WALLET_NAMES[row.index].split(".")[0]}</div>
+                    <div className="text-mempool-text font-semibold truncate" style={{ fontSize: "8px" }}>Slot #{row.index}</div>
                     <div className="font-mono text-mempool-text-dim truncate" style={{ fontSize: "7px" }} title={row.evmAddr}>
                       {row.evmAddr ? `${row.evmAddr.slice(0,6)}…${row.evmAddr.slice(-3)}` : ""}
                     </div>
