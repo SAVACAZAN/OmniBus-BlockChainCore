@@ -98,7 +98,6 @@ function classifyTx(tx: any, myAddress: string): {
 export function WalletPage() {
   const { state: chainState } = useBlockchain();
   const unlocked = useWallet(); // null when locked, { address, privateKey, publicKey, walletIndex } when unlocked
-  const myName = useNameForAddress(unlocked?.address); // e.g. "savacazan.omnibus"
   // Atomic snapshot of wallet/staked/in_orders/available shared with Exchange
   // and Stake pages — single source of truth so the four numbers don't drift.
   const globalBal = useGlobalBalance();
@@ -107,6 +106,25 @@ export function WalletPage() {
   // when the user has been mining + staking + parking).
   const allSlots = useAllSlotsBalance();
   const activeSlot = useActiveSlot();
+
+  // === SLOT-AWARE ANCHORS =================================================
+  // The entire WalletPage used to render against `unlocked.address` — the
+  // BIP-44 slot the user originally unlocked with (default slot 0). When the
+  // user changed slot via the Header dropdown, nothing on this page updated.
+  //
+  // `activeAddress` is the OMNI address derived for the currently selected
+  // BIP-44 slot. Use it as the canonical "this is the wallet view" address
+  // for: balance breakdowns, TX history, nonce, reputation, send-from,
+  // primary name lookup, on-chain PQ identity, address QR / detail card.
+  //
+  // `unlocked.address` should only survive in two places:
+  //   1. The session-anchor for unlock state (wallet keystore lifecycle).
+  //   2. UI strings that say "you connected as ob1q..." (rare; usually we
+  //      want activeAddress there too).
+  const activeRow = unlocked?.allAddresses?.find(a => a.index === activeSlot)
+    ?? unlocked?.allAddresses?.[0];
+  const activeAddress = activeRow?.address ?? unlocked?.address ?? "";
+  const myName = useNameForAddress(activeAddress); // primary NS name for the SELECTED slot
   const [balance, setBalance] = useState({ sat: 0, omni: "0.0000" });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [sendTo, setSendTo] = useState("");
@@ -146,22 +164,17 @@ export function WalletPage() {
     }
     const refresh = async () => {
       try {
-        const bal: any = await rpc.getBalance();
-        setBalance({
-          sat: bal?.balance || 0,
-          omni: bal?.balanceOMNI || "0.0000",
-        });
+        // Use getaddressbalance for the SELECTED slot, not getBalance() which
+        // hits the unlocked-session primary address. Old code rendered slot
+        // 0 balance regardless of Header slot selector.
+        const balRes: any = await rpc.request_raw("getaddressbalance", [activeAddress]);
+        const sat = typeof balRes === "number" ? balRes : (balRes?.balance ?? 0);
+        const omni = (sat / 1e9).toFixed(4);
+        setBalance({ sat, omni });
       } catch {}
 
-      // Use getaddresshistory(unlocked.address) instead of listtransactions —
-      // listtransactions filters by ctx.wallet.address (the node's own miner
-      // wallet), which is NOT the user's connected address. Worse, even when
-      // the node IS the user, it only surfaced *sent* TXs in the legacy path.
-      // getaddresshistory walks address_tx_index for the *connected* address
-      // and includes BOTH directions (sent + received) plus mempool pending.
-      // classifyTx() reads tx.from/tx.to/tx.direction → already compatible.
       try {
-        const histResult = await rpc.getAddressHistory(unlocked.address);
+        const histResult = await rpc.getAddressHistory(activeAddress);
         setTransactions(histResult?.transactions || []);
       } catch {
         try {
@@ -181,7 +194,7 @@ export function WalletPage() {
       } catch {}
 
       try {
-        const nonceResult = await rpc.getNonce(unlocked.address);
+        const nonceResult = await rpc.getNonce(activeAddress);
         if (nonceResult && typeof nonceResult.nonce === "number") {
           setWalletNonce(nonceResult.nonce);
         } else if (typeof nonceResult === "number") {
@@ -189,23 +202,25 @@ export function WalletPage() {
         }
       } catch {}
 
-      // Reputation cups for the OMNI address (love / food / rent / vacation).
+      // Reputation cups for the SELECTED slot.
       try {
-        const rep: any = await rpc.request_raw("getreputation", [unlocked.address]);
+        const rep: any = await rpc.request_raw("getreputation", [activeAddress]);
         if (rep) setReputation(rep);
       } catch {}
 
-      // UTXO list — Bitcoin-style "unspent outputs" the wallet can spend.
-      // getbalance includes utxos[] in our chain (see core/rpc_server handlers).
+      // UTXO list — use listunspent on the SELECTED slot. The old getBalance()
+      // path returned utxos[] for the unlock-session address only, leaving
+      // the UTXO column empty whenever the user switched slots.
       try {
-        const bal: any = await rpc.getBalance();
-        if (bal?.utxos) setUtxos(bal.utxos);
+        const ulist: any = await rpc.request_raw("listunspent", [activeAddress]);
+        if (Array.isArray(ulist?.utxos)) setUtxos(ulist.utxos);
+        else if (Array.isArray(ulist)) setUtxos(ulist);
       } catch {}
     };
     refresh();
     const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
-  }, [unlocked]);
+  }, [unlocked, activeAddress]);
 
   const handleLogout = () => {
     // Disconnect the global session — every subscriber (this page, Exchange,
@@ -482,7 +497,7 @@ export function WalletPage() {
             always show the four cells so the user can see "0 staked" and
             "0 in orders" explicitly instead of wondering why a number is
             missing. Refreshes every 8 s via useGlobalBalance hook. */}
-        {globalBal.address === unlocked.address && (
+        {globalBal.address === activeAddress && (
           <div className="border-t border-mempool-border bg-mempool-bg/30 px-4 sm:px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-0.5">Available</p>
@@ -597,7 +612,7 @@ export function WalletPage() {
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue mt-1"
               >
                 <option value="omni_ecdsa">
-                  🔑 OMNI Primary (ECDSA) — {unlocked.address.slice(0, 14)}…{unlocked.address.slice(-6)}
+                  🔑 OMNI Slot #{activeSlot} (ECDSA) — {activeAddress.slice(0, 14)}…{activeAddress.slice(-6)}
                 </option>
                 {unlocked.pqOmni && unlocked.pqOmni.map((slot) => (
                   <option key={slot.scheme} value={slot.scheme}>
@@ -726,19 +741,21 @@ export function WalletPage() {
             Addresses
           </h3>
 
-          {/* ── 1. OMNI Primary (secp256k1) ── */}
+          {/* ── 1. OMNI Slot #N (secp256k1) ── */}
           <div>
-            <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">🔑 OMNI Primary — secp256k1 ECDSA (Bitcoin-compatible)</p>
+            <p className="text-[9px] uppercase tracking-wider text-mempool-text-dim/60 mb-1.5">
+              🔑 OMNI Slot #{activeSlot} — secp256k1 ECDSA (Bitcoin-compatible)
+            </p>
             <PrimaryAddressCard
-              address={unlocked.address}
+              address={activeAddress}
               name={myName}
               balance={balance}
               utxos={utxos}
               nonce={walletNonce}
-              copied={copied === unlocked.address}
-              onCopy={() => copyAddr(unlocked.address)}
+              copied={copied === activeAddress}
+              onCopy={() => copyAddr(activeAddress)}
             />
-            {copied === unlocked.address && (
+            {copied === activeAddress && (
               <span className="text-[10px] text-mempool-green pl-1">Copied!</span>
             )}
           </div>
@@ -823,10 +840,10 @@ export function WalletPage() {
           (RAM-only, never persisted). On reload they're gone — the user
           re-pastes if they need to see them again. */}
       <WalletMetadataPanel
-        address={unlocked.address}
+        address={activeAddress}
         publicKey={unlocked.publicKey}
         privateKey={unlocked.privateKey}
-        walletIndex={unlocked.walletIndex}
+        walletIndex={activeSlot}
         mnemonic={unlocked.mnemonic}
         xprv={unlocked.xprv}
         xpub={unlocked.xpub}
@@ -840,10 +857,10 @@ export function WalletPage() {
       />
 
       {/* My .omnibus names — pick which one represents me globally */}
-      <MyNamesPanel address={unlocked.address} />
+      <MyNamesPanel address={activeAddress} />
 
       {/* Phase 2 NS: per-name management (PQ slots, category badge, preferred slot) */}
-      <OwnedNameManageWrapper ownerAddress={unlocked.address} />
+      <OwnedNameManageWrapper ownerAddress={activeAddress} />
 
       {/* Bottom split: 2/3 transaction history, 1/3 rewards legend (sticky) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -859,7 +876,7 @@ export function WalletPage() {
             {["All", "Sent", "Received", "Mining Reward", "Stake", "Unstake", "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw", "NS Claim", "Agent Register", "Notarize"].map((type) => {
               const count = type === "All"
                 ? transactions.length
-                : transactions.filter((t) => classifyTx(t, unlocked.address).label === type).length;
+                : transactions.filter((t) => classifyTx(t, activeAddress).label === type).length;
               if (type !== "All" && count === 0) return null; // hide empty filters
               return (
                 <button
@@ -884,9 +901,9 @@ export function WalletPage() {
             </div>
           ) : (
             transactions
-              .filter((tx) => txFilter === "All" || classifyTx(tx, unlocked.address).label === txFilter)
+              .filter((tx) => txFilter === "All" || classifyTx(tx, activeAddress).label === txFilter)
               .map((tx: any, i: number) => {
-                const cls = classifyTx(tx, unlocked.address);
+                const cls = classifyTx(tx, activeAddress);
                 return (
               <div key={tx.txid || i} className="px-3 sm:px-5 py-3 flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${

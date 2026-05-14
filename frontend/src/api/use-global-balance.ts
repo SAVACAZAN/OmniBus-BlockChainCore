@@ -25,6 +25,7 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "./rpc-client";
 import { useWallet } from "./use-wallet";
+import { useActiveSlot } from "./use-active-slot";
 
 const rpc = new OmniBusRpcClient();
 const POLL_MS = 8_000;
@@ -205,7 +206,14 @@ function stopPolling() {
  */
 export function useGlobalBalance(): GlobalBalance {
   const wallet = useWallet();
-  const address = wallet?.address ?? "";
+  const slot = useActiveSlot();
+  // Resolve the address for the SELECTED BIP-44 slot rather than the
+  // unlock-session primary. When the user picks slot #7 in the Header
+  // dropdown, this hook now switches its polling to that address so
+  // every page that subscribes (Wallet / Stake / Trade / Header pill)
+  // immediately reflects slot #7's balance.
+  const slotRow = wallet?.allAddresses?.find((a) => a.index === slot);
+  const address = slotRow?.address ?? wallet?.address ?? "";
   const [snap, setSnap] = useState<GlobalBalance>(current);
 
   useEffect(() => {
