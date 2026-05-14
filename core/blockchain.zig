@@ -604,6 +604,31 @@ pub const Blockchain = struct {
         return self.utxo_set.getBalance(address);
     }
 
+    /// Returns the OMNI amount this address has locked in resting SELL orders
+    /// on the native DEX. Funds remain in the wallet (UTXO) but are "soft
+    /// escrowed" — validateTransaction subtracts this from spendable balance
+    /// so the user cannot double-spend OMNI that's already promised to a fill.
+    ///
+    /// Mirrors `computeReservedFromOrderbook` in rpc_server.zig but lives on
+    /// Blockchain so the validation path (which has no rpc context) can use it.
+    pub fn getReservedFromOrders(self: *const Blockchain, address: []const u8) u64 {
+        const eng = self.exchange_engine orelse return 0;
+        var total: u64 = 0;
+        var i: u32 = 0;
+        while (i < eng.ask_count) : (i += 1) {
+            const o = &eng.asks[i];
+            if (o.status != .active and o.status != .partial) continue;
+            // Only OMNI-base pairs lock real OMNI from the wallet. Pairs
+            // where OMNI is the quote (none today) or base lives off-chain
+            // (BTC/LCX/ETH) don't tie up native balance.
+            const omni_base = (o.pair_id == 0 or o.pair_id == 4 or o.pair_id == 5 or o.pair_id == 6);
+            if (!omni_base) continue;
+            if (!std.mem.eql(u8, o.getTraderAddress(), address)) continue;
+            total +%= o.remainingSat();
+        }
+        return total;
+    }
+
     /// Returneaza balanta matura (doar UTXO-uri cu >=100 confirmari).
     /// Coinbase-urile necesita 100 blocuri inainte de a fi cheltuibile.
     pub fn getMatureBalance(self: *const Blockchain, address: []const u8) u64 {
@@ -1121,11 +1146,16 @@ pub const Blockchain = struct {
                 return false;
             }
         } else {
-            // v1 backward-compat: classic balance + pending check.
+            // v1 backward-compat: classic balance + pending check + DEX escrow.
+            // OMNI locked in resting sell orders is real escrow — debit it
+            // from spendable so a user cannot send away OMNI promised to a
+            // pending fill. Cancelling the order releases the lock immediately.
             const sender_balance = self.getAddressBalance(tx.from_address);
             const pending_out = self.getPendingOutgoing(tx.from_address);
-            const available = if (sender_balance > pending_out) sender_balance - pending_out else 0;
-            if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, available, tx.amount + tx.fee}); return false; }
+            const reserved_in_orders = self.getReservedFromOrders(tx.from_address);
+            const debits = pending_out +| reserved_in_orders;
+            const available = if (sender_balance > debits) sender_balance - debits else 0;
+            if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} - reserved {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, reserved_in_orders, available, tx.amount + tx.fee}); return false; }
         }
 
         // 5b-faucet. Faucet address restriction: TX from FAUCET_ADDR may only go
