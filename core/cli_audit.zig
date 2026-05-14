@@ -2092,6 +2092,35 @@ fn cmdHtlcStatus(allocator: std.mem.Allocator, ep: Endpoint, args: Args) !u8 {
     return 0;
 }
 
+// ─── dex-settler-status ──────────────────────────────────────────────────
+// Read the on-disk cursor file (last fill_id the DEX settler thread
+// submitted to an EVM chain). Purely local — no RPC. Useful for verifying
+// the settler is making progress when the node looks healthy but tx aren't
+// appearing on Sepolia.
+fn cmdDexSettlerStatus(allocator: std.mem.Allocator, args: Args) !u8 {
+    _ = allocator;
+    const path: []const u8 = if (args.pos.len > 0) args.pos[0] else "dex_settler_cursor.bin";
+    const out = stdout();
+    const f = std.fs.cwd().openFile(path, .{}) catch {
+        try out.print("dex_settler_cursor: (no cursor file at {s} — settler hasn't run yet)\n", .{path});
+        return 0;
+    };
+    defer f.close();
+    var buf: [8]u8 = undefined;
+    const n = f.readAll(&buf) catch 0;
+    if (n != 8) {
+        try out.print("dex_settler_cursor: (cursor file at {s} is corrupt, len={d})\n", .{ path, n });
+        return 1;
+    }
+    const fill_id = std.mem.readInt(u64, &buf, .little);
+    if (args.json) {
+        try out.print("{{\"path\":\"{s}\",\"last_settled_fill_id\":{d}}}\n", .{ path, fill_id });
+    } else {
+        try out.print("dex_settler cursor: last_settled_fill_id={d}\n  path: {s}\n", .{ fill_id, path });
+    }
+    return 0;
+}
+
 // ─── htlc-init / claim / refund ──────────────────────────────────────────
 fn cmdHtlcInit(allocator: std.mem.Allocator, ep: Endpoint, args: Args) !u8 {
     if (args.pos.len < 5) return writeMissing(
@@ -5700,6 +5729,11 @@ pub fn main() !void {
         }
         if (std.mem.eql(u8, args.cmd, "grid-status")) {
             break :blk try cmdGridStatus(allocator, ep, args);
+        }
+        if (std.mem.eql(u8, args.cmd, "dex-settler-status")) {
+            // Local-only command: reads the settler's cursor file off disk,
+            // no RPC needed. Optional positional = override default path.
+            break :blk try cmdDexSettlerStatus(allocator, args);
         }
 
         // ── write-side: the address must come first ──────────────────────
