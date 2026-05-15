@@ -299,29 +299,30 @@ fn parseLogs(self: *Watcher, json: []const u8) !void {
             };
             const data_hex = json[d_q1 + 1 .. d_q2];
             std.debug.print("[parseLogs] data_hex len={d}\n", .{data_hex.len});
-            if (data_hex.len >= 2 + 256) {
-                var data_bytes: [128]u8 = undefined;
-                hexDecode(data_hex[2..258], &data_bytes) catch {
+            // 3 indexed args (orderId, owner, token) → in topics. data has
+            // the 3 non-indexed: amount, omniRecipient, expiresAt =
+            // 3 * 32 = 96 bytes = 192 hex chars + "0x" = 194.
+            if (data_hex.len >= 2 + 192) {
+                var data_bytes: [96]u8 = undefined;
+                hexDecode(data_hex[2..194], &data_bytes) catch {
+                    std.debug.print("[parseLogs] hexDecode data failed\n", .{});
                     idx = arr_end + 1; continue;
                 };
-                // token: bytes 12..32 (last 20 of word 0)
-                var token: [20]u8 = undefined;
-                @memcpy(&token, data_bytes[12..32]);
-                // amount: word 1 (treat as u256, store the low 128 in EvmEscrow)
+                // word 0 = amount (uint256)
                 var amount_bytes: [32]u8 = undefined;
-                @memcpy(&amount_bytes, data_bytes[32..64]);
-                // omniRecipient: word 2 (full 32)
+                @memcpy(&amount_bytes, data_bytes[0..32]);
+                // word 1 = omniRecipient (bytes32)
                 var omni_rec: [32]u8 = undefined;
-                @memcpy(&omni_rec, data_bytes[64..96]);
-                // expiresAt: low 8 bytes of word 3
-                const expires_at = std.mem.readInt(u64, data_bytes[120..128], .big);
+                @memcpy(&omni_rec, data_bytes[32..64]);
+                // word 2 = expiresAt — low 8 bytes
+                const expires_at = std.mem.readInt(u64, data_bytes[88..96], .big);
 
-                // owner: topic[2] indexed (we don't need it for matching engine,
-                // skip parsing for now).
+                // token comes from topics[3] (skip parsing for now; not used
+                // by the matching engine — it just needs the orderId match).
                 const escrow = EvmEscrow{
                     .order_id = std.mem.readInt(u256, &t1_bytes, .big),
                     .owner_evm = [_]u8{0} ** 20,
-                    .token = token,
+                    .token = [_]u8{0} ** 20,
                     .amount = std.mem.readInt(u256, &amount_bytes, .big),
                     .omni_recipient = omni_rec,
                     .expires_at = expires_at,
