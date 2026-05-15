@@ -2089,12 +2089,17 @@ pub fn main() !void {
     // Add more chains (Base, Optimism, Liberty) by extending watcher_bindings.
     var evm_watcher_handle: ?*evm_escrow_mod.Watcher = null;
     {
-        const bindings = allocator.alloc(evm_escrow_mod.Binding, 1) catch null;
+        const bindings = allocator.alloc(evm_escrow_mod.Binding, 2) catch null;
         if (bindings) |bs| {
             bs[0] = .{
                 .chain_id = 11155111,
                 .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
                 .contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
+            };
+            bs[1] = .{
+                .chain_id = 84532,
+                .rpc_url = "https://sepolia.base.org",
+                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
             };
             const w = allocator.create(evm_escrow_mod.Watcher) catch null;
             if (w) |watcher_ptr| {
@@ -2154,21 +2159,36 @@ pub fn main() !void {
             .address = op_addr20,
         };
 
-        // Sepolia bindings: OmnibusDEX at 0xC21fD92e5f568a7981d16b9008E3C190842818aE
-        // accepts both USDC escrows (pair_id=0) and native-ETH escrows (pair_id=6).
-        // Same contract, same operator — only the pair_id routing differs.
-        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 2) catch break :blk_dex;
+        // Multi-chain bindings. Same logical pair_id can settle on more
+        // than one chain — the settler picks the binding whose chain_id
+        // matches the escrow seen by evm_escrow_watcher. Sepolia (11155111)
+        // is primary; Base Sepolia (84532) was added 2026-05-16.
+        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 4) catch break :blk_dex;
+        // Sepolia — OmnibusDEX 0xC21fD92e5f568a7981d16b9008E3C190842818aE
         bindings[0] = .{
-            .pair_id = 0, // OMNI/USDC per CLAUDE.md fixed pair table
+            .pair_id = 0, // OMNI/USDC
             .chain_id = 11155111,
             .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
             .dex_contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
         };
         bindings[1] = .{
-            .pair_id = 6, // OMNI/ETH
+            .pair_id = 6, // OMNI/ETH (native)
             .chain_id = 11155111,
             .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
             .dex_contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
+        };
+        // Base Sepolia — OmnibusDEX 0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB
+        bindings[2] = .{
+            .pair_id = 0, // OMNI/USDC on Base
+            .chain_id = 84532,
+            .rpc_url = "https://sepolia.base.org",
+            .dex_contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+        };
+        bindings[3] = .{
+            .pair_id = 6, // OMNI/ETH on Base
+            .chain_id = 84532,
+            .rpc_url = "https://sepolia.base.org",
+            .dex_contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
         };
 
         const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;
@@ -2180,6 +2200,7 @@ pub fn main() !void {
                 .poll_ms = 2_000,
                 .cursor_path = "data/dex_settler_cursor.bin",
                 .fills_log = fills_log_handle,
+                .escrow_watcher = evm_watcher_handle,
             },
             engine,
         );

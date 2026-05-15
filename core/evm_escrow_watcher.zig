@@ -289,8 +289,25 @@ fn parseLogs(self: *Watcher, json: []const u8, chain_id: u64) !void {
             // OrderPlaced: pull `data` (non-indexed fields: token, amount,
             // omniRecipient, expiresAt — owner is indexed, in topics[2]).
             // Layout of data: 4 × 32 bytes = 128 bytes hex = "0x" + 256 chars.
-            const data_key = std.mem.indexOfPos(u8, json, arr_end, "\"data\":\"") orelse {
-                std.debug.print("[parseLogs] no data key from arr_end={d}\n", .{arr_end});
+            //
+            // Different RPC providers order JSON fields differently. Sepolia's
+            // dRPC puts `data` AFTER `topics` so a forward scan from arr_end
+            // works. Base Sepolia's RPC puts `data` BEFORE `topics`, so we
+            // also need to scan backwards from `tk` (the start of "topics").
+            // First locate the bounds of the current log object — { ... } —
+            // so the scan stays within this log entry.
+            // Walk backward from tk to find the matching '{'.
+            var obj_start: usize = tk;
+            while (obj_start > 0 and json[obj_start] != '{') : (obj_start -= 1) {}
+            const data_key_fwd = std.mem.indexOfPos(u8, json, arr_end, "\"data\":\"");
+            const data_key_bwd = if (data_key_fwd == null)
+                std.mem.indexOfPos(u8, json[obj_start..tk], 0, "\"data\":\"")
+            else
+                null;
+            const data_key = blk: {
+                if (data_key_fwd) |dk| break :blk dk;
+                if (data_key_bwd) |off| break :blk obj_start + off;
+                std.debug.print("[parseLogs] no data key (fwd or bwd) for log @ obj_start={d}\n", .{obj_start});
                 idx = arr_end + 1; continue;
             };
             // data_key points at the `"` of `"data"`. The value starts at

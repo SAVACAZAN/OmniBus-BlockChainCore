@@ -18,6 +18,15 @@
     "note": "ERC20 HTLC for USDC — not yet deployed. Use ETH HTLC for now."
   },
   "OmnibusDEX": {
+    "84532": {
+      "network": "baseSepolia",
+      "address": "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0x2c2cacdd964c6f27e7b969e712b62682392a39e408ddfbd9223c95e669791401",
+      "deployed": "2026-05-15",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
+    },
     "11155111": {
       "network": "sepolia",
       "address": "0xC21fD92e5f568a7981d16b9008E3C190842818aE",

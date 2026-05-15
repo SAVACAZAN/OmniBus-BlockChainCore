@@ -29,6 +29,7 @@ const matching_mod  = @import("matching_engine.zig");
 const evm_rpc       = @import("evm_rpc_client.zig");
 const evm_signer    = @import("evm_signer.zig");
 const fills_log_mod = @import("fills_log.zig");
+const evm_escrow_mod = @import("evm_escrow_watcher.zig");
 
 /// Per-pair config — where this pair's OmnibusDEX contract lives and how
 /// to reach the buyer's chain over RPC.
@@ -59,6 +60,12 @@ pub const Config = struct {
     /// settle() call appends a (fill_id, evm_tx_hash, chain_id) record so
     /// exchange_getUserTrades can surface the EVM leg in "My Trades".
     fills_log: ?*fills_log_mod.FillsLog = null,
+    /// Optional handle to the EVM escrow watcher. When set, settler uses
+    /// it to look up the chain_id of each escrow at settle time — so it
+    /// picks the right binding (Sepolia vs Base Sepolia) when the same
+    /// pair_id has bindings on multiple chains. Without this it falls
+    /// back to the first binding for that pair_id.
+    escrow_watcher: ?*evm_escrow_mod.Watcher = null,
 };
 
 /// Internal handle. Owned by the spawner.
@@ -126,7 +133,17 @@ fn scanOnce(self: *Settler) !void {
         const fill = &self.engine.fills[i];
         if (fill.fill_id <= self.last_settled_fill_id) continue;
 
-        const binding = findBinding(self.cfg.bindings, fill.pair_id) orelse {
+        // Look up the escrow's chain_id so we pick the right binding when
+        // a pair_id has bindings on more than one chain. Falls back to the
+        // first matching binding when no watcher / no escrow record is
+        // available (single-chain deployments keep working unchanged).
+        var target_chain_id: u64 = 0;
+        if (self.cfg.escrow_watcher) |w| {
+            if (w.getOpen(fill.evm_order_id)) |esc| {
+                target_chain_id = esc.chain_id;
+            }
+        }
+        const binding = findBindingForChain(self.cfg.bindings, fill.pair_id, target_chain_id) orelse {
             // No EVM leg for this pair — nothing to settle on-chain. Mark
             // as processed so we don't re-scan it forever.
             self.last_settled_fill_id = fill.fill_id;
@@ -186,6 +203,18 @@ fn findBinding(bindings: []const PairBinding, pair_id: u16) ?PairBinding {
         if (b.pair_id == pair_id) return b;
     }
     return null;
+}
+
+/// Prefer a binding whose chain_id matches `target_chain_id`. When zero
+/// (escrow not in watcher map) fall through to the first binding for
+/// that pair_id so legacy single-chain setups still work.
+fn findBindingForChain(bindings: []const PairBinding, pair_id: u16, target_chain_id: u64) ?PairBinding {
+    if (target_chain_id != 0) {
+        for (bindings) |b| {
+            if (b.pair_id == pair_id and b.chain_id == target_chain_id) return b;
+        }
+    }
+    return findBinding(bindings, pair_id);
 }
 
 // ── settle() call construction ────────────────────────────────────────────
