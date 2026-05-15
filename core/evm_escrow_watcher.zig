@@ -140,7 +140,10 @@ fn scanOnce(self: *Watcher) !void {
 }
 
 fn scanBinding(self: *Watcher, b: *Binding) !void {
-    const head = try evm_rpc.blockNumber(self.allocator, b.rpc_url);
+    const head = evm_rpc.blockNumber(self.allocator, b.rpc_url) catch |err| {
+        std.debug.print("[evm_escrow_watcher] blockNumber err: {s}\n", .{@errorName(err)});
+        return err;
+    };
 
     // First boot: start at head-1000 so we don't replay the entire chain.
     if (b.from_block == 0) {
