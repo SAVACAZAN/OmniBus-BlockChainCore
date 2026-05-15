@@ -140,6 +140,15 @@ fn scanOnce(self: *Watcher) !void {
 }
 
 fn scanBinding(self: *Watcher, b: *Binding) !void {
+    // Quick raw test — fetch and dump for diagnosis.
+    {
+        var resp = evm_rpc.call(self.allocator, b.rpc_url, "eth_blockNumber", "[]") catch |err| {
+            std.debug.print("[evm_escrow_watcher] raw call err: {s}\n", .{@errorName(err)});
+            return err;
+        };
+        defer resp.deinit(self.allocator);
+        std.debug.print("[evm_escrow_watcher] raw blockNumber result='{s}'\n", .{resp.result});
+    }
     const head = evm_rpc.blockNumber(self.allocator, b.rpc_url) catch |err| {
         std.debug.print("[evm_escrow_watcher] blockNumber err: {s}\n", .{@errorName(err)});
         return err;
