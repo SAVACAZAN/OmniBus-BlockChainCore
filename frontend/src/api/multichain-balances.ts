@@ -62,7 +62,7 @@ const EVM_RPC: Record<string, string> = {
 
 // USDC contract addresses (Circle official only — no bridged variants)
 // Mainnet
-const USDC_CONTRACT: Record<string, string> = {
+export const USDC_CONTRACT: Record<string, string> = {
   ETH:           "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   BASE:          "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   ARBITRUM:      "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",

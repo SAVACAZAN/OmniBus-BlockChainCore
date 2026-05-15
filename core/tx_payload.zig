@@ -209,6 +209,87 @@ pub const OrderCancelPayload = struct {
     }
 };
 
+// ─── 0x13 — TradeFill ──────────────────────────────────────────────────
+
+/// Payload for TxType.trade_fill — chain-synthesized receipt when two
+/// orders match in the matching engine. Emitted once per fill so each
+/// participant has a permanent, queryable record in their wallet TX list.
+///
+/// `from_address` on the parent Transaction is the SELLER (debited OMNI);
+/// `to_address` is the BUYER (credited OMNI). `amount` is the OMNI base
+/// in SAT. The counterparty is derivable from from/to so we don't repeat
+/// it here — instead the payload carries pair/price/quote-side metadata.
+///
+/// Wire layout (deterministic, fixed):
+///   [0]      version: u8 (1)
+///   [1-2]    pair_id: u16 LE
+///   [3]      taker_side: u8 (0=buy taker, 1=sell taker)
+///   [4-11]   price_micro_usd: u64 LE
+///   [12-19]  amount_sat: u64 LE             (= parent TX amount, kept for audit)
+///   [20-27]  fill_id: u64 LE                (matching engine internal id)
+///   [28-35]  buy_order_id: u64 LE
+///   [36-43]  sell_order_id: u64 LE
+///   [44-51]  evm_chain_id: u64 LE           (0 = OMNI-only fill, no EVM leg)
+///   [52-83]  evm_settle_tx_hash: [32]u8     (zero until settler confirms)
+///   total: 84 bytes
+pub const TradeFillPayload = struct {
+    version: u8 = 1,
+    pair_id: u16,
+    taker_side: Side,
+    price_micro_usd: u64,
+    amount_sat: u64,
+    fill_id: u64,
+    buy_order_id: u64,
+    sell_order_id: u64,
+    evm_chain_id: u64 = 0,
+    evm_settle_tx_hash: [32]u8 = [_]u8{0} ** 32,
+
+    pub const WIRE_SIZE: usize = 84;
+
+    pub fn encode(self: TradeFillPayload, buf: []u8) PayloadError!usize {
+        if (buf.len < WIRE_SIZE) return PayloadError.BufferOverflow;
+        buf[0] = self.version;
+        std.mem.writeInt(u16, buf[1..3], self.pair_id, .little);
+        buf[3] = @intFromEnum(self.taker_side);
+        std.mem.writeInt(u64, buf[4..12], self.price_micro_usd, .little);
+        std.mem.writeInt(u64, buf[12..20], self.amount_sat, .little);
+        std.mem.writeInt(u64, buf[20..28], self.fill_id, .little);
+        std.mem.writeInt(u64, buf[28..36], self.buy_order_id, .little);
+        std.mem.writeInt(u64, buf[36..44], self.sell_order_id, .little);
+        std.mem.writeInt(u64, buf[44..52], self.evm_chain_id, .little);
+        @memcpy(buf[52..84], &self.evm_settle_tx_hash);
+        return WIRE_SIZE;
+    }
+
+    pub fn decode(data: []const u8) PayloadError!TradeFillPayload {
+        if (data.len < WIRE_SIZE) return PayloadError.PayloadTooShort;
+        if (data[0] != 1) return PayloadError.InvalidVersion;
+        const side_byte = data[3];
+        if (side_byte > 1) return PayloadError.InvalidSide;
+        var out = TradeFillPayload{
+            .version = data[0],
+            .pair_id = std.mem.readInt(u16, data[1..3], .little),
+            .taker_side = @enumFromInt(side_byte),
+            .price_micro_usd = std.mem.readInt(u64, data[4..12], .little),
+            .amount_sat = std.mem.readInt(u64, data[12..20], .little),
+            .fill_id = std.mem.readInt(u64, data[20..28], .little),
+            .buy_order_id = std.mem.readInt(u64, data[28..36], .little),
+            .sell_order_id = std.mem.readInt(u64, data[36..44], .little),
+            .evm_chain_id = std.mem.readInt(u64, data[44..52], .little),
+            .evm_settle_tx_hash = undefined,
+        };
+        @memcpy(&out.evm_settle_tx_hash, data[52..84]);
+        return out;
+    }
+
+    pub fn validate(self: TradeFillPayload) PayloadError!void {
+        if (self.version != 1) return PayloadError.InvalidVersion;
+        if (self.amount_sat == 0) return PayloadError.InvalidAmount;
+        if (self.fill_id == 0) return PayloadError.InvalidAmount;
+        if (self.buy_order_id == 0 or self.sell_order_id == 0) return PayloadError.InvalidAmount;
+    }
+};
+
 // ─── 0x20 — BridgeLock ─────────────────────────────────────────────────
 
 /// Payload for TxType.bridge_lock — user locks OMNI on this chain,
@@ -635,6 +716,10 @@ pub fn validatePayload(tx_type: TxType, data: []const u8) PayloadError!void {
         },
         .order_cancel => {
             const p = try OrderCancelPayload.decode(data);
+            try p.validate();
+        },
+        .trade_fill => {
+            const p = try TradeFillPayload.decode(data);
             try p.validate();
         },
         .bridge_lock => {

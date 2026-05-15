@@ -9,6 +9,7 @@ import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { DexBuyPanel } from "./DexBuyPanel";
 import { UserOrdersPanel } from "./UserOrdersPanel";
+import { MyTradesPanel } from "./MyTradesPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { BalancesPanel } from "./BalancesPanel";
 import { IdentityPanel } from "./IdentityPanel";
@@ -460,6 +461,8 @@ export function ExchangePage() {
       </div>
 
       <UserOrdersPanel pairId={pairId} refreshKey={refreshNonce} />
+
+      <MyTradesPanel pairId={pairId} refreshKey={refreshNonce} />
 
       <div className="text-[11px] text-mempool-text-dim">
         Poll: 3s · Prices in {activePair?.quote ?? "USDC"} (oracle) · Amounts in {activePair?.base ?? "base"} (1 unit = 10⁹ SAT) · Matching on-chain in Zig

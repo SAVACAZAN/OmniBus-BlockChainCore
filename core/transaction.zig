@@ -73,6 +73,13 @@ pub const TxType = enum(u8) {
     /// 0x12 — Modify an existing order (replace price/qty atomically).
     /// `data` = OrderModifyPayload.
     order_modify = 0x12,
+    /// 0x13 — Fill receipt synthesized by the chain when two orders match.
+    /// `data` = TradeFillPayload (pair_id, price, amount, fill_id,
+    /// counterparty info, optional EVM settle tx hash). `from_address` is
+    /// the seller, `to_address` is the buyer, `amount` = OMNI base amount.
+    /// `signature`/`public_key` are signed by the producing miner so the
+    /// receipt is provable even after replay (similar to coinbase TXs).
+    trade_fill = 0x13,
 
     // ─── Bridge: custodial + observation (Phase 2F) ───────────────────
     /// 0x20 — User locks OMNI in vault, requests release on dest chain.

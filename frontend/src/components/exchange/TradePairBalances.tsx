@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { getUnlocked, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { fetchUsdcBalance, fetchEvmBalance } from "../../api/multichain-balances";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
+import { useActiveSlot } from "../../api/use-active-slot";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1_000_000_000;
@@ -84,10 +85,18 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
   const [, tick] = useState(0);
   useEffect(() => subscribeWallet(() => tick(n => n + 1)), []);
   const gb = useGlobalBalance();
+  const activeSlot = useActiveSlot();
 
   const u = getUnlocked();
-  const omniAddr = u?.address ?? "";
-  const evmAddr  = u?.allAddresses?.[0]?.evmAddress
+  // Use the SELECTED slot address (matches what the order will sign with),
+  // not the unlock-session primary. Previously omniAddr = u.address always
+  // pointed at slot #0 even when the user picked slot #7 — so getwalletsummary
+  // polled slot #0 while the order signed from #7, making "In Orders" empty.
+  const slotRow = u?.allAddresses?.find(a => a.index === activeSlot);
+  const omniAddr = slotRow?.address ?? u?.address ?? "";
+  const evmAddr  = slotRow?.evmAddress
+    ?? deriveSlotKey(activeSlot)?.evmAddress
+    ?? u?.allAddresses?.[0]?.evmAddress
     ?? u?.multichainAddresses?.find(a => a.chain === "ETH")?.address
     ?? "";
 

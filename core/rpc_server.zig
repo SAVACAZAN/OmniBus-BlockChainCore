@@ -26,6 +26,8 @@ const staking_mod     = @import("staking.zig");
 const payment_mod     = @import("payment_channel.zig");
 const matching_mod     = @import("matching_engine.zig");
 const evm_escrow_mod   = @import("evm_escrow_watcher.zig");
+const fills_log_mod    = @import("fills_log.zig");
+const token_whitelist  = @import("token_whitelist.zig");
 const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
@@ -279,6 +281,11 @@ const ServerCtx = struct {
     /// node restarts. Empty = in-memory only.
     profiles_path_buf: [256]u8 = undefined,
     profiles_path_len: usize = 0,
+    /// Append-only binary log of executed trade fills. Populated on every
+    /// fill from the matching engine; queried by exchange_getUserTrades so
+    /// the frontend's "My Trades" panel can show on-chain history that
+    /// survives restart.
+    fills_log: ?*fills_log_mod.FillsLog = null,
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -458,6 +465,10 @@ pub const HTTPConfig = struct {
     /// profile_init / profile_update events. Replayed at startup so
     /// identity profiles survive node restarts. Null = in-memory only.
     profiles_path: ?[]const u8 = null,
+    /// Append-only binary log of executed trade fills. When set, every
+    /// fill produced by the matching engine is mirrored here so the
+    /// frontend's "My Trades" panel can list on-chain history.
+    fills_log: ?*fills_log_mod.FillsLog = null,
 };
 
 /// Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
@@ -493,6 +504,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.exchange = cfg.exchange;
     ctx.exchange_paper = cfg.exchange_paper;
     ctx.evm_escrow_watcher = cfg.evm_escrow_watcher;
+    ctx.fills_log = cfg.fills_log;
     ctx.bridge = cfg.bridge;
     ctx.grid_registry = cfg.grid_registry;
     if (cfg.grid_path) |p| {
@@ -4077,6 +4089,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "exchange_cancelOrder"))   return handleExchangeCancelOrder(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getOrderbook")) return handleExchangeGetOrderbook(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getUserOrders"))return handleExchangeGetUserOrders(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getUserTrades"))return handleExchangeGetUserTrades(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_getTrades"))     return handleExchangeGetTrades(body, ctx, id);
     if (std.mem.eql(u8, method, "exchange_listPairs"))     return handleExchangeListPairs(ctx, id);
     if (std.mem.eql(u8, method, "exchange_pairInfo"))      return handleExchangePairInfo(body, ctx, id);
@@ -12796,6 +12809,38 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 if (esc.amount == 0) {
                     return errorJson(-32000, "Escrow amount is zero", id, alloc);
                 }
+                // SECURITY: refuse escrows that lock a token not on the
+                // hard-coded whitelist for this pair_id + chain. Without
+                // this gate, a malicious buyer could deploy a fake-USDC
+                // contract and lock 5 units of it to claim 5 OMNI of real
+                // liquidity. The whitelist binds (pair_id, chain_id, token)
+                // tuples to Circle's official USDC, native ETH, etc.
+                if (token_whitelist.check(pair_id, esc.chain_id, esc.token)) |label| {
+                    std.debug.print(
+                        "[token_whitelist] OK pair={d} chain={d} token={s}\n",
+                        .{ pair_id, esc.chain_id, label },
+                    );
+                } else {
+                    var token_hex_buf: [42]u8 = undefined;
+                    token_hex_buf[0] = '0';
+                    token_hex_buf[1] = 'x';
+                    const hex_chars = "0123456789abcdef";
+                    for (esc.token, 0..) |b, bi| {
+                        token_hex_buf[2 + bi * 2] = hex_chars[b >> 4];
+                        token_hex_buf[2 + bi * 2 + 1] = hex_chars[b & 0x0F];
+                    }
+                    std.debug.print(
+                        "[token_whitelist] REJECT pair={d} chain={d} token={s}\n",
+                        .{ pair_id, esc.chain_id, &token_hex_buf },
+                    );
+                    const msg = std.fmt.allocPrint(alloc,
+                        "Escrow token not whitelisted for this pair (chain={d} token={s}). " ++
+                        "Only Circle USDC / native ETH on supported chains are accepted.",
+                        .{ esc.chain_id, &token_hex_buf },
+                    ) catch return errorJson(-32000, "Escrow token not whitelisted", id, alloc);
+                    defer alloc.free(msg);
+                    return errorJson(-32000, msg, id, alloc);
+                }
             } else {
                 // Watcher disabled → refuse to be safe.
                 return errorJson(-32000,
@@ -12872,6 +12917,22 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             ) catch |err| {
                 std.debug.print(
                     "[EXCHANGE-FEE] settlement failed for fill {d}: {} — fees not collected on this fill\n",
+                    .{ f.fill_id, err },
+                );
+            };
+        }
+
+        // Persist fill receipt for "My Trades" UI + audit. Local to this
+        // node; not propagated through P2P. Failure here is non-fatal —
+        // the fill itself already succeeded.
+        if (ctx.fills_log) |flog| {
+            const taker_side_byte: u8 = if (side == .buy) 0 else 1;
+            // pair_id 0 (USDC), 6 (ETH) cross-chain to Sepolia (11155111).
+            // pair_id 5 (LCX) lands on Liberty (8888) — wire when binding lands.
+            const evm_chain_id: u64 = if (f.pair_id == 0 or f.pair_id == 6) 11155111 else 0;
+            flog.append(f, taker_side_byte, block_height_now, evm_chain_id) catch |err| {
+                std.debug.print(
+                    "[FILLS-LOG] append failed for fill {d}: {} — entry skipped\n",
                     .{ f.fill_id, err },
                 );
             };
@@ -13198,6 +13259,94 @@ fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
                    switch (o.status) { .active => "active", .partial => "partial", .filled => "filled", .cancelled => "cancelled" },
                    o.timestamp_ms });
         }
+    }
+    try out.appendSlice(alloc, "]}");
+    return alloc.dupe(u8, out.items);
+}
+
+/// exchange_getUserTrades — istoricul on-chain de fills al unui trader.
+///
+/// Spre deosebire de exchange_getUserOrders care arata doar ordinele active in
+/// matching engine, asta citeste fills_log.bin persistent. Astfel restart-ul
+/// nodului nu pierde istoricul. Apare in "My Trades" panel pentru ambii
+/// participanti (buyer + seller).
+///
+/// Params: trader (omni address required). Optional: limit (default 100,
+/// max 500), pairId/pair (filtru).
+///
+/// Result: [
+///   { fillId, pairId, side: "buy"|"sell" (rolul traderului in trade),
+///     counterparty, price, amount, blockHeight, ts, fillId,
+///     evmChainId (0 if no EVM leg), evmSettleTxHash (null pana la settle) },
+///   ...
+/// ]
+fn handleExchangeGetUserTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const flog = ctx.fills_log orelse
+        return errorJson(-32601, "Fills log not enabled on this node", id, alloc);
+    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
+        return errorJson(-32602, "Missing param: trader", id, alloc);
+
+    var filter_pair: ?u16 = null;
+    const pair_id_u = extractArrayNumByKey(body, "pairId");
+    if (pair_id_u > 0) {
+        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
+    } else if (extractStr(body, "pair")) |label| {
+        filter_pair = exchangePairLookup(label);
+    }
+    const limit_raw = extractArrayNumByKey(body, "limit");
+    const limit: usize = if (limit_raw == 0) 100 else @intCast(@min(limit_raw, 500));
+
+    const recs = flog.readForTrader(alloc, trader, 0) catch &.{};
+    defer if (recs.len > 0) alloc.free(recs);
+
+    // Merge settle map so we can attach EVM tx hash where available.
+    var settle_map = flog.loadSettleMap() catch fills_log_mod.SettleMap.init(alloc);
+    defer settle_map.deinit();
+
+    var out = std.ArrayList(u8){};
+    defer out.deinit(alloc);
+    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
+    try std.fmt.format(out.writer(alloc), "{d}", .{id});
+    try out.appendSlice(alloc, ",\"result\":[");
+
+    // Walk newest-first so the UI shows latest trade at the top.
+    var emitted: usize = 0;
+    var idx: usize = recs.len;
+    while (idx > 0 and emitted < limit) {
+        idx -= 1;
+        const r = &recs[idx];
+        if (filter_pair) |fp| if (r.pair_id != fp) continue;
+
+        const is_buyer = std.mem.eql(u8, r.buyerAddrSlice(), trader);
+        // Trader's perspective of the trade — if they're the buyer they
+        // "bought" base; otherwise they "sold" it.
+        const role = if (is_buyer) "buy" else "sell";
+        const counterparty = if (is_buyer) r.sellerAddrSlice() else r.buyerAddrSlice();
+
+        if (emitted > 0) try out.appendSlice(alloc, ",");
+        emitted += 1;
+
+        try std.fmt.format(out.writer(alloc),
+            "{{\"fillId\":{d},\"pairId\":{d},\"side\":\"{s}\",\"counterparty\":\"{s}\"," ++
+            "\"price\":{d},\"amount\":{d},\"buyOrderId\":{d},\"sellOrderId\":{d}," ++
+            "\"blockHeight\":{d},\"ts\":{d},\"evmChainId\":{d}",
+            .{
+                r.fill_id, r.pair_id, role, counterparty,
+                r.price_micro_usd, r.amount_sat, r.buy_order_id, r.sell_order_id,
+                r.block_height, r.timestamp_ms, r.evm_chain_id,
+            },
+        );
+
+        if (settle_map.get(r.fill_id)) |s| {
+            try out.appendSlice(alloc, ",\"evmSettleTxHash\":\"0x");
+            for (s.tx_hash) |b| try std.fmt.format(out.writer(alloc), "{x:0>2}", .{b});
+            try out.appendSlice(alloc, "\"");
+        } else {
+            try out.appendSlice(alloc, ",\"evmSettleTxHash\":null");
+        }
+
+        try out.appendSlice(alloc, "}");
     }
     try out.appendSlice(alloc, "]}");
     return alloc.dupe(u8, out.items);

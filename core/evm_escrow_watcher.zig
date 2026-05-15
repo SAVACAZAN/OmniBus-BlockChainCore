@@ -46,6 +46,9 @@ pub const EvmEscrow = struct {
     expires_at: u64,
     /// 1 = open, 2 = settled, 3 = cancelled.
     state: u8,
+    /// Chain id where this escrow lives. Required so the matching engine can
+    /// run the token whitelist (allowlist is keyed by chain_id + token addr).
+    chain_id: u64 = 0,
 };
 
 /// One watcher binding — chain id, RPC URL, contract address, and the
@@ -187,7 +190,7 @@ fn scanBinding(self: *Watcher, b: *Binding) !void {
     std.debug.print("[evm_escrow_watcher] getLogs result[0..{d}]='{s}'\n",
         .{ preview_len, resp.result[0..preview_len] });
 
-    parseLogs(self, resp.result) catch |err| {
+    parseLogs(self, resp.result, b.chain_id) catch |err| {
         std.debug.print("[evm_escrow_watcher] parse err: {s}\n", .{@errorName(err)});
     };
 
@@ -227,7 +230,7 @@ fn topicsForCancelled() [32]u8 {
 
 // ── JSON log parser ───────────────────────────────────────────────────────
 
-fn parseLogs(self: *Watcher, json: []const u8) !void {
+fn parseLogs(self: *Watcher, json: []const u8, chain_id: u64) !void {
     // Minimal stateful walk: find each `{...}` log object, extract
     // topics + data, dispatch. This avoids pulling in a JSON DOM lib.
     var idx: usize = 0;
@@ -317,16 +320,46 @@ fn parseLogs(self: *Watcher, json: []const u8) !void {
                 // word 2 = expiresAt — low 8 bytes
                 const expires_at = std.mem.readInt(u64, data_bytes[88..96], .big);
 
-                // token comes from topics[3] (skip parsing for now; not used
-                // by the matching engine — it just needs the orderId match).
+                // Parse topic[2] (owner address) and topic[3] (token address)
+                // out of the topics array — both are indexed in the Solidity
+                // OrderPlaced event so they sit in topics, not in data. The
+                // token is critical: without it we can't tell if the buyer
+                // locked real USDC or a fake-USDC contract they deployed.
+                var owner_evm: [20]u8 = [_]u8{0} ** 20;
+                var token_evm: [20]u8 = [_]u8{0} ** 20;
+
+                // topic[2] = owner. Walk topics_arr past the t1_end quote.
+                if (std.mem.indexOfScalarPos(u8, topics_arr, t1_end + 1, '"')) |t2_start| {
+                    if (std.mem.indexOfScalarPos(u8, topics_arr, t2_start + 1, '"')) |t2_end| {
+                        const t2_hex = topics_arr[t2_start + 1 .. t2_end];
+                        if (t2_hex.len == 66 and t2_hex[0] == '0' and (t2_hex[1] == 'x' or t2_hex[1] == 'X')) {
+                            var t2_bytes: [32]u8 = undefined;
+                            hexDecode(t2_hex[2..], &t2_bytes) catch {};
+                            @memcpy(&owner_evm, t2_bytes[12..32]);
+                        }
+                        // topic[3] = token (also 32-byte left-padded address).
+                        if (std.mem.indexOfScalarPos(u8, topics_arr, t2_end + 1, '"')) |t3_start| {
+                            if (std.mem.indexOfScalarPos(u8, topics_arr, t3_start + 1, '"')) |t3_end| {
+                                const t3_hex = topics_arr[t3_start + 1 .. t3_end];
+                                if (t3_hex.len == 66 and t3_hex[0] == '0' and (t3_hex[1] == 'x' or t3_hex[1] == 'X')) {
+                                    var t3_bytes: [32]u8 = undefined;
+                                    hexDecode(t3_hex[2..], &t3_bytes) catch {};
+                                    @memcpy(&token_evm, t3_bytes[12..32]);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 const escrow = EvmEscrow{
                     .order_id = std.mem.readInt(u256, &t1_bytes, .big),
-                    .owner_evm = [_]u8{0} ** 20,
-                    .token = [_]u8{0} ** 20,
+                    .owner_evm = owner_evm,
+                    .token = token_evm,
                     .amount = std.mem.readInt(u256, &amount_bytes, .big),
                     .omni_recipient = omni_rec,
                     .expires_at = expires_at,
                     .state = 1,
+                    .chain_id = chain_id,
                 };
                 self.escrows_mutex.lock();
                 defer self.escrows_mutex.unlock();

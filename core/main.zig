@@ -92,6 +92,7 @@ const registrar_mod    = @import("registrar_addresses.zig");
 const dex_settler_mod  = @import("dex_settler.zig");
 const evm_signer_mod   = @import("evm_signer.zig");
 const evm_escrow_mod   = @import("evm_escrow_watcher.zig");
+const fills_log_mod    = @import("fills_log.zig");
 const peer_scoring_mod = @import("peer_scoring.zig");
 const peer_persist_mod = @import("peer_persist.zig");
 const compact_mod      = @import("compact_blocks.zig");
@@ -513,6 +514,9 @@ const RPCThreadArgs = struct {
     /// profile_init / profile_update events. Replayed at startup so
     /// identity profiles survive node restarts. Null = in-memory only.
     profiles_path: ?[]const u8,
+    /// Append-only binary trade fills log. Persistent across restarts;
+    /// queried by exchange_getUserTrades. Local to this node only.
+    fills_log: ?*fills_log_mod.FillsLog,
 };
 
 fn rpcThread(args: RPCThreadArgs) void {
@@ -542,6 +546,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .grid_registry = args.grid_registry,
         .grid_path = args.grid_path,
         .profiles_path = args.profiles_path,
+        .fills_log = args.fills_log,
     }) catch |err| {
         std.debug.print("[RPC] startHTTP error: {}\n", .{err});
     };
@@ -2016,6 +2021,26 @@ pub fn main() !void {
         // profiles journal — makePath done inside startHTTPEx via replayProfilesJournal
     }
 
+    // Trade fills log — append-only binary journal of every executed fill.
+    // Lives alongside the other per-chain data so a node restart preserves
+    // the user's trade history. Heap-allocated so the RPC thread can keep
+    // a stable pointer for the process lifetime.
+    var fills_log_handle: ?*fills_log_mod.FillsLog = null;
+    blk_fills: {
+        const chain_subdir: []const u8 = if (config.testnet) "testnet"
+            else if (config.regtest) "regtest" else "mainnet";
+        const dir = std.fmt.allocPrint(allocator, "data/{s}", .{chain_subdir}) catch break :blk_fills;
+        defer allocator.free(dir);
+        const log_ptr = allocator.create(fills_log_mod.FillsLog) catch break :blk_fills;
+        const inited = fills_log_mod.FillsLog.init(allocator, dir) catch {
+            allocator.destroy(log_ptr);
+            break :blk_fills;
+        };
+        log_ptr.* = inited;
+        fills_log_handle = log_ptr;
+        std.debug.print("[FILLS-LOG] persistent log at {s}/fills_log.bin\n", .{dir});
+    }
+
     // KYC issuer address: the wallet at registrar slot 4 (`kyc.omnibus`).
     // We re-derive from the same mnemonic the local wallet was built from.
     // On testnet that's enough; mainnet would also cross-check against the
@@ -2154,6 +2179,7 @@ pub fn main() !void {
                 .bindings = bindings,
                 .poll_ms = 2_000,
                 .cursor_path = "data/dex_settler_cursor.bin",
+                .fills_log = fills_log_handle,
             },
             engine,
         );
@@ -2202,6 +2228,7 @@ pub fn main() !void {
         .grid_registry = grid_registry_ptr,
         .grid_path = grid_path_owned,
         .profiles_path = profiles_path_owned,
+        .fills_log = fills_log_handle,
     }});
     t.detach();
     std.debug.print("[RPC] Server pornit pe port {d} ({s}) bind={s} auth={s}\n\n", .{

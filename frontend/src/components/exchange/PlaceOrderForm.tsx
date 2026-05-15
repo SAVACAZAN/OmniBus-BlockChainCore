@@ -8,7 +8,8 @@ import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
-import { placeBuyOrderNativeOnDex, dexContractFor } from "../../api/omnibus-dex";
+import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance, dexContractFor } from "../../api/omnibus-dex";
+import { USDC_CONTRACT } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
 
@@ -163,12 +164,18 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     const amountSat     = Math.round(amountOmni * SAT_PER_OMNI);
     const nonce         = nextNonce();
 
-    // For OMNI/<EVM-token> pairs (currently pair_id 6 OMNI/ETH on Sepolia),
-    // BUY must lock funds on the EVM contract BEFORE the matching engine
-    // accepts the order. We do this automatically here so the user only
-    // sees ONE button "Buy" instead of two-step flow. Same for SELL: we
-    // attach sellerEvm so the dex_settler can pay out on fill.
-    const isOmniEvm = pairId === 6;
+    // For OMNI/<EVM-token> pairs, BUY must lock funds on the EVM
+    // contract BEFORE the matching engine accepts the order. We do this
+    // automatically so the user sees ONE button "Buy" instead of a
+    // two-step flow. For SELL we just attach the seller's EVM address so
+    // dex_settler can pay out the quote leg at fill time.
+    //
+    // Supported cross-chain pairs:
+    //   pair_id 0  → OMNI/USDC on Sepolia (ERC-20 approve + placeBuyOrder)
+    //   pair_id 6  → OMNI/ETH  on Sepolia (placeBuyOrderNative, msg.value)
+    const isOmniUsdc = pairId === 0;
+    const isOmniEth  = pairId === 6;
+    const isOmniEvm  = isOmniUsdc || isOmniEth;
     let evmOrderId: bigint = 0n;
     let sellerEvm: string | undefined;
     let extraPayload: Record<string, unknown> = {};
@@ -176,30 +183,61 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     setBusy(true);
     try {
       if (isOmniEvm && side === "buy") {
-        // 1. Auto-lock ETH on Sepolia. ETH amount = price * amount in wei
-        //    (price is micro-USD which for OMNI/ETH testnet we treat as
-        //    micro-ETH for simplicity — TODO: real oracle conversion).
-        const ethSpend = parseEther(((priceUsd * amountOmni)).toFixed(18));
+        // Resolve the slot's EVM private key so we can sign the escrow tx.
+        const sk = deriveSlotKey(activeSlot);
+        const evmPriv = sk?.evmPrivateKey;
+        if (!evmPriv) {
+          setErr("Cannot derive EVM private key for this slot — re-unlock with mnemonic.");
+          setBusy(false);
+          return;
+        }
         const omniCommit = keccak256(toUtf8Bytes(traderAddr));
         evmOrderId = BigInt(Date.now()) * 1000n + BigInt(Math.floor(Math.random() * 1000));
         const expiresAt = Math.floor(Date.now() / 1000) + 24 * 3600;
-        setMsg("Locking ETH on Sepolia… (waits ~12s for confirmation)");
-        const txHash = await placeBuyOrderNativeOnDex({
-          chainId: 11155111,
-          amountWei: ethSpend,
-          orderId: evmOrderId,
-          omniRecipientHex32: omniCommit as `0x${string}`,
-          expiresAt,
-          signerPrivKey: slotKey.privateKey === u.privateKey
-            ? (deriveSlotKey(activeSlot)?.evmPrivateKey ?? "")
-            : (deriveSlotKey(activeSlot)?.evmPrivateKey ?? ""),
-        });
-        setMsg(`ETH locked (tx ${txHash.slice(0,10)}…). Now placing matching engine BID…`);
+
+        if (isOmniEth) {
+          // Native ETH escrow. quote leg = price * amount in ETH wei.
+          const ethSpend = parseEther((priceUsd * amountOmni).toFixed(18));
+          setMsg("Locking ETH on Sepolia… (~12s)");
+          const txHash = await placeBuyOrderNativeOnDex({
+            chainId: 11155111,
+            amountWei: ethSpend,
+            orderId: evmOrderId,
+            omniRecipientHex32: omniCommit as `0x${string}`,
+            expiresAt,
+            signerPrivKey: evmPriv,
+          });
+          setMsg(`ETH locked (tx ${txHash.slice(0, 10)}…). Placing BID…`);
+        } else {
+          // USDC (ERC-20) escrow on Sepolia. quote = price * amount in USDC
+          // 6-decimals smallest unit.
+          const usdcAddr = USDC_CONTRACT.SEPOLIA as `0x${string}`;
+          // amount in USDC-smallest-units (6 dec). Round to avoid float drift.
+          const usdcAmount = BigInt(Math.round(priceUsd * amountOmni * 1_000_000));
+          setMsg("Approving USDC allowance on Sepolia…");
+          await ensureAllowance({
+            chainId: 11155111,
+            token: usdcAddr,
+            amountWei: usdcAmount,
+            signerPrivKey: evmPriv,
+          });
+          setMsg("Locking USDC on Sepolia… (~12s)");
+          const txHash = await placeBuyOrderOnDex({
+            chainId: 11155111,
+            token: usdcAddr,
+            amountWei: usdcAmount,
+            orderId: evmOrderId,
+            omniRecipientHex32: omniCommit as `0x${string}`,
+            expiresAt,
+            signerPrivKey: evmPriv,
+          });
+          setMsg(`USDC locked (tx ${txHash.slice(0, 10)}…). Placing BID…`);
+        }
         extraPayload.evmOrderId = evmOrderId.toString();
       } else if (isOmniEvm && side === "sell") {
         // For SELL we just attach the seller's EVM address so settler
-        // can deliver ETH on fill. No tx required, the user has nothing
-        // to lock — the OMNI is debited from chain side at match.
+        // can deliver the quote leg on fill. No tx required — the OMNI
+        // is debited on the chain side at match time.
         const sk = deriveSlotKey(activeSlot);
         sellerEvm = sk?.evmAddress;
         if (!sellerEvm) {

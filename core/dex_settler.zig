@@ -28,6 +28,7 @@ const std = @import("std");
 const matching_mod  = @import("matching_engine.zig");
 const evm_rpc       = @import("evm_rpc_client.zig");
 const evm_signer    = @import("evm_signer.zig");
+const fills_log_mod = @import("fills_log.zig");
 
 /// Per-pair config — where this pair's OmnibusDEX contract lives and how
 /// to reach the buyer's chain over RPC.
@@ -54,6 +55,10 @@ pub const Config = struct {
     /// at startup and written after each successful settle so a restart
     /// doesn't re-submit identical txs.
     cursor_path: []const u8 = "dex_settler_cursor.bin",
+    /// Optional handle to the trade fills log. When set, every successful
+    /// settle() call appends a (fill_id, evm_tx_hash, chain_id) record so
+    /// exchange_getUserTrades can surface the EVM leg in "My Trades".
+    fills_log: ?*fills_log_mod.FillsLog = null,
 };
 
 /// Internal handle. Owned by the spawner.
@@ -163,7 +168,7 @@ fn scanOnce(self: *Settler) !void {
             saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
             continue;
         }
-        submitSettle(self, binding, fill.evm_order_id, seller_hex) catch |err| {
+        submitSettle(self, binding, fill.evm_order_id, fill.fill_id, seller_hex) catch |err| {
             std.debug.print(
                 "[dex_settler] fill {d} settle failed: {s} — will retry next tick\n",
                 .{ fill.fill_id, @errorName(err) },
@@ -199,6 +204,7 @@ fn submitSettle(
     self: *Settler,
     binding: PairBinding,
     order_id: u64,
+    fill_id: u64,
     seller_0x: []const u8,
 ) !void {
     const alloc = self.allocator;
@@ -268,6 +274,26 @@ fn submitSettle(
         .{ order_id, seller_0x, binding.chain_id, hash_a },
     );
     _ = calldata_hex; // calldata_hex retained for future audit log; not used now
+
+    // Persist (fill_id, evm_tx_hash) pair so exchange_getUserTrades can
+    // surface the EVM leg in the trader's history. Failure is non-fatal —
+    // the settle itself already landed; we just lose a UI hint.
+    if (self.cfg.fills_log) |flog| {
+        var tx_hash_bytes: [32]u8 = [_]u8{0} ** 32;
+        // hash_a is "0x" + 64 hex chars. Skip the prefix when decoding.
+        const hex_body = if (hash_a.len >= 66 and hash_a[0] == '0' and (hash_a[1] == 'x' or hash_a[1] == 'X'))
+            hash_a[2..66]
+        else
+            hash_a;
+        _ = std.fmt.hexToBytes(&tx_hash_bytes, hex_body) catch &.{};
+        const chain_id_u32: u32 = @intCast(@min(binding.chain_id, std.math.maxInt(u32)));
+        flog.recordSettle(fill_id, tx_hash_bytes, chain_id_u32) catch |err| {
+            std.debug.print(
+                "[dex_settler] fills_log.recordSettle fill={d} err={s} — UI may miss this tx\n",
+                .{ fill_id, @errorName(err) },
+            );
+        };
+    }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
