@@ -908,6 +908,38 @@ pub const Blockchain = struct {
     ///
     /// Switching back to the old behaviour is a single governance proposal
     /// (action set_route_fees_to_miner=false) — no code change required.
+    /// Settle the base-asset leg of an OMNI-base fill: debit seller, credit
+    /// buyer by `amount_sat`. Only applicable for pairs where OMNI is the
+    /// base asset (pair_id 0,4,5,6 — see CLAUDE.md). For non-OMNI bases the
+    /// transfer happens on the foreign chain via the dex_settler thread.
+    ///
+    /// Quote leg: for OMNI/USDC, OMNI/USD etc. the quote is off-chain. For
+    /// OMNI/BTC and OMNI/ETH, the EVM-side settler moves the quote token
+    /// from contract escrow to the seller. We do NOT touch quote balances
+    /// here — that lives on Sepolia/Base.
+    pub fn applyFillTransferOmniBase(
+        self: *Blockchain,
+        buyer_addr: []const u8,
+        seller_addr: []const u8,
+        amount_sat: u64,
+    ) !void {
+        if (amount_sat == 0) return;
+
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
+        // Pre-check seller balance so we never partial-mutate.
+        const seller_bal = self.balances.get(seller_addr) orelse 0;
+        if (seller_bal < amount_sat) return error.InsufficientBalance;
+
+        const was_in_apply = self.in_apply_block;
+        self.in_apply_block = true;
+        defer self.in_apply_block = was_in_apply;
+
+        try self.debitBalanceLocked(seller_addr, amount_sat);
+        try self.creditBalanceLocked(buyer_addr, amount_sat);
+    }
+
     pub fn applyExchangeFees(
         self: *Blockchain,
         taker_addr: []const u8,

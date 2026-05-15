@@ -12786,6 +12786,22 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const taker_addr = if (side == .buy) buyer_addr else seller_addr;
         const maker_addr = if (side == .buy) seller_addr else buyer_addr;
         if (!is_paper) {
+            // For OMNI-base pairs (0=OMNI/USDC, 4=OMNI/BTC, 5=OMNI/LCX,
+            // 6=OMNI/ETH) we move OMNI on-chain from seller → buyer at
+            // fill time. Quote leg lives on a foreign chain (USDC/BTC/
+            // LCX/ETH) and is handled by dex_settler.zig if/when needed.
+            const omni_base_fill = (f.pair_id == 0 or f.pair_id == 4 or f.pair_id == 5 or f.pair_id == 6);
+            if (omni_base_fill) {
+                ctx.bc.applyFillTransferOmniBase(
+                    buyer_addr, seller_addr, f.amount_sat,
+                ) catch |err| {
+                    std.debug.print(
+                        "[FILL-TRANSFER] OMNI debit/credit failed for fill {d}: {} — buyer not credited!\n",
+                        .{ f.fill_id, err },
+                    );
+                };
+            }
+
             ctx.bc.applyExchangeFees(
                 taker_addr, maker_addr, taker_fee, maker_fee, FILL_NETWORK_FEE_SAT,
             ) catch |err| {

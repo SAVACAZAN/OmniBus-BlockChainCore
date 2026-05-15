@@ -188,7 +188,7 @@ export const CHAINS: readonly ChainEntry[] = [
   {
     id: "sepolia", label: "Sepolia (ETH testnet)", family: "EVM",
     chainId: 11155111, coinType: 60, symbol: "ETH",
-    rpc: "https://sepolia.drpc.org",
+    rpc: "https://ethereum-sepolia-rpc.publicnode.com",
     explorerTx: "https://sepolia.etherscan.io/tx/",
     placeholder: "0x… (40-char hex)",
     addrPattern: /^0x[0-9a-fA-F]{40}$/,
