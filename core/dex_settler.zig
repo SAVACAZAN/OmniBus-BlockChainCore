@@ -151,8 +151,19 @@ fn scanOnce(self: *Settler) !void {
         }
         const seller_hex = seller_hex_buf[0..];
 
-        // Build + sign + submit settle(buy_order_id, sellerEvm).
-        submitSettle(self, binding, fill.buy_order_id, seller_hex) catch |err| {
+        // settle(evm_order_id, sellerEvm) — evm_order_id is the orderId
+        // the buyer used when locking funds in OmnibusDEX, NOT the
+        // matching engine's internal buy_order_id (those are different
+        // namespaces). The watcher seeded this field at order placement
+        // by cross-checking the on-chain escrow exists.
+        if (fill.evm_order_id == 0) {
+            // No EVM order id propagated — buyer didn't lock funds.
+            // Skip to avoid trying to settle a non-existent escrow.
+            self.last_settled_fill_id = fill.fill_id;
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        }
+        submitSettle(self, binding, fill.evm_order_id, seller_hex) catch |err| {
             std.debug.print(
                 "[dex_settler] fill {d} settle failed: {s} — will retry next tick\n",
                 .{ fill.fill_id, @errorName(err) },

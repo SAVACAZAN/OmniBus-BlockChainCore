@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseEther, keccak256, toUtf8Bytes } from "ethers";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
@@ -7,6 +8,7 @@ import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
+import { placeBuyOrderNativeOnDex, dexContractFor } from "../../api/omnibus-dex";
 
 const rpc = new OmniBusRpcClient();
 
@@ -160,18 +162,64 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     const priceMicroUsd = Math.round(priceUsd * MICRO_PER_USD);
     const amountSat     = Math.round(amountOmni * SAT_PER_OMNI);
     const nonce         = nextNonce();
-    const { signature, publicKey } = signPlaceOrderPayload({
-      privateKeyHex: slotKey.privateKey,
-      trader: traderAddr,
-      side,
-      pairId,
-      priceMicroUsd,
-      amountSat,
-      nonce,
-    });
+
+    // For OMNI/<EVM-token> pairs (currently pair_id 6 OMNI/ETH on Sepolia),
+    // BUY must lock funds on the EVM contract BEFORE the matching engine
+    // accepts the order. We do this automatically here so the user only
+    // sees ONE button "Buy" instead of two-step flow. Same for SELL: we
+    // attach sellerEvm so the dex_settler can pay out on fill.
+    const isOmniEvm = pairId === 6;
+    let evmOrderId: bigint = 0n;
+    let sellerEvm: string | undefined;
+    let extraPayload: Record<string, unknown> = {};
 
     setBusy(true);
     try {
+      if (isOmniEvm && side === "buy") {
+        // 1. Auto-lock ETH on Sepolia. ETH amount = price * amount in wei
+        //    (price is micro-USD which for OMNI/ETH testnet we treat as
+        //    micro-ETH for simplicity — TODO: real oracle conversion).
+        const ethSpend = parseEther(((priceUsd * amountOmni)).toFixed(18));
+        const omniCommit = keccak256(toUtf8Bytes(traderAddr));
+        evmOrderId = BigInt(Date.now()) * 1000n + BigInt(Math.floor(Math.random() * 1000));
+        const expiresAt = Math.floor(Date.now() / 1000) + 24 * 3600;
+        setMsg("Locking ETH on Sepolia… (waits ~12s for confirmation)");
+        const txHash = await placeBuyOrderNativeOnDex({
+          chainId: 11155111,
+          amountWei: ethSpend,
+          orderId: evmOrderId,
+          omniRecipientHex32: omniCommit as `0x${string}`,
+          expiresAt,
+          signerPrivKey: slotKey.privateKey === u.privateKey
+            ? (deriveSlotKey(activeSlot)?.evmPrivateKey ?? "")
+            : (deriveSlotKey(activeSlot)?.evmPrivateKey ?? ""),
+        });
+        setMsg(`ETH locked (tx ${txHash.slice(0,10)}…). Now placing matching engine BID…`);
+        extraPayload.evmOrderId = evmOrderId.toString();
+      } else if (isOmniEvm && side === "sell") {
+        // For SELL we just attach the seller's EVM address so settler
+        // can deliver ETH on fill. No tx required, the user has nothing
+        // to lock — the OMNI is debited from chain side at match.
+        const sk = deriveSlotKey(activeSlot);
+        sellerEvm = sk?.evmAddress;
+        if (!sellerEvm) {
+          setErr("Cannot derive EVM address — re-unlock with mnemonic.");
+          setBusy(false);
+          return;
+        }
+        extraPayload.sellerEvm = sellerEvm;
+      }
+
+      const { signature, publicKey } = signPlaceOrderPayload({
+        privateKeyHex: slotKey.privateKey,
+        trader: traderAddr,
+        side,
+        pairId,
+        priceMicroUsd,
+        amountSat,
+        nonce,
+      });
+
       const res = await rpc.exchangePlaceOrder({
         trader: traderAddr,
         side,
@@ -184,6 +232,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
         mode: traderMode,
         // Pass preferred taker chain so backend can route HTLC
         taker_chain: side === "buy" ? selectedChainKey : undefined,
+        ...extraPayload,
       } as any);
       // Include the slot index + truncated OMNI address so the user can
       // tell exactly which derived child key signed this order — matters

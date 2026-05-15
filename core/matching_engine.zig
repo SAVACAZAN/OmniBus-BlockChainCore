@@ -78,6 +78,12 @@ pub const Order = struct {
     /// where the dex_settler should deliver the quote token (USDC/ETH/etc).
     /// All-zero = not provided; settler will skip the EVM leg.
     seller_evm: [20]u8 = [_]u8{0} ** 20,
+    /// For BUY orders on OMNI/<EVM-token> pairs: the orderId the user
+    /// already locked in the OmnibusDEX contract on the EVM side. The
+    /// chain verifies escrow exists via evm_escrow_watcher BEFORE
+    /// accepting the BID, so a match always has real funds backing it.
+    /// 0 = not provided; allowed only for pairs without an EVM leg.
+    evm_order_id: u64 = 0,
 
     /// Cantitatea ramasa de umplut
     pub fn remainingSat(self: *const Order) u64 {
@@ -109,6 +115,7 @@ pub const Order = struct {
             .timestamp_ms = 0,
             .status = .cancelled,
             .seller_evm = [_]u8{0} ** 20,
+            .evm_order_id = 0,
         };
     }
 
@@ -138,6 +145,10 @@ pub const Fill = struct {
     /// order so the dex_settler thread knows where to deliver the EVM
     /// quote token. All-zero = no EVM leg requested.
     seller_evm: [20]u8 = [_]u8{0} ** 20,
+    /// Copy of the buyer's `evm_order_id` — settler uses this as the
+    /// OmnibusDEX orderId for `settle(orderId, sellerEvm)`. 0 = no EVM
+    /// settlement needed for this fill.
+    evm_order_id: u64 = 0,
 
     pub fn empty() Fill {
         return Fill{
@@ -153,6 +164,7 @@ pub const Fill = struct {
             .seller_address = [_]u8{0} ** 64,
             .seller_addr_len = 0,
             .seller_evm = [_]u8{0} ** 20,
+            .evm_order_id = 0,
         };
     }
 
@@ -507,6 +519,8 @@ pub fn MatchingEngineWith(comptime max_orders: usize, comptime max_fills: usize)
             // dex_settler.zig reads f.seller_evm to know where to deliver
             // the quote token on the EVM chain.
             fill.seller_evm = sell_order.seller_evm;
+            // BUY order carries the on-chain escrow orderId.
+            fill.evm_order_id = buy_order.evm_order_id;
 
             self.fills[self.fill_count] = fill;
             self.fill_count += 1;

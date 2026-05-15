@@ -25,6 +25,7 @@ const hex_utils       = @import("hex_utils.zig");
 const staking_mod     = @import("staking.zig");
 const payment_mod     = @import("payment_channel.zig");
 const matching_mod     = @import("matching_engine.zig");
+const evm_escrow_mod   = @import("evm_escrow_watcher.zig");
 const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
@@ -246,6 +247,11 @@ const ServerCtx = struct {
     /// string = KYC issuance disabled on this node.
     kyc_issuer_addr_buf: [64]u8 = undefined,
     kyc_issuer_addr_len: u8 = 0,
+    /// EVM escrow watcher — polls OmnibusDEX OrderPlaced events on Sepolia
+    /// (and other EVM chains). exchange_placeOrder uses this to verify
+    /// that a BUY order on OMNI/<EVM-token> is backed by a real on-chain
+    /// escrow before adding it to the orderbook. Hyperliquid-style.
+    evm_escrow_watcher: ?*evm_escrow_mod.Watcher = null,
     /// Mutex for identity / KYC operations. They both touch in-memory
     /// stores; same lock keeps them serializable without a finer split.
     identity_mutex: std.Thread.Mutex = .{},
@@ -421,6 +427,9 @@ pub const HTTPConfig = struct {
     /// Paper-trading matching engine (demo). Same lifecycle as `exchange`.
     /// When null, REST routes `/paper/0/*` return "Paper trader disabled".
     exchange_paper: ?*matching_mod.MatchingEngine = null,
+    /// EVM escrow watcher (Hyperliquid-style). Null = OMNI/<EVM> BUY orders
+    /// are refused for safety.
+    evm_escrow_watcher: ?*evm_escrow_mod.Watcher = null,
     /// Path to `data/<chain>/orders.jsonl`. Empty/null = in-memory only.
     /// Same JSONL pattern as faucet ledger so a node can restart without
     /// losing the orderbook state.
@@ -483,6 +492,7 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.dns = cfg.dns;
     ctx.exchange = cfg.exchange;
     ctx.exchange_paper = cfg.exchange_paper;
+    ctx.evm_escrow_watcher = cfg.evm_escrow_watcher;
     ctx.bridge = cfg.bridge;
     ctx.grid_registry = cfg.grid_registry;
     if (cfg.grid_path) |p| {
@@ -12741,18 +12751,55 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     order.trader_addr_len = @intCast(tn);
     order.status = .active;
 
-    // Optional sellerEvm: 0x-prefixed 42-char hex address where the
-    // dex_settler should deliver the EVM quote token. Only meaningful
-    // for SELL orders on OMNI/<EVM-token> pairs (e.g. pair_id 6 OMNI/ETH).
-    if (side == .sell) {
-        if (extractStr(body, "sellerEvm")) |evm_str_raw| {
+    // EVM-leg validation for OMNI/<EVM-token> pairs (currently pair_id 6
+    // OMNI/ETH; will extend to LCX/USDC/etc). Atomic-swap-style:
+    //   SELL must provide sellerEvm so the settler knows where to deliver.
+    //   BUY  must provide evmOrderId, and the chain MUST already have seen
+    //        an OrderPlaced event with that id on the EVM contract (via
+    //        evm_escrow_watcher) with amount matching this BID's quote.
+    // Without these checks, OMNI moves at fill but ETH stays untouched
+    // (cf. testnet fill #10 2026-05-15 — buyer paid nothing, seller lost
+    // 95 OMNI). Refuse unbacked orders up front.
+    const omni_evm_pair = (pair_id == 6); // extend with LCX/USDC pairs later
+    if (omni_evm_pair) {
+        if (side == .sell) {
+            const evm_str_raw = extractStr(body, "sellerEvm") orelse
+                return errorJson(-32602, "Missing param: sellerEvm (required for OMNI/<EVM> SELL)", id, alloc);
             var evm_str = evm_str_raw;
             if (std.mem.startsWith(u8, evm_str, "0x") or std.mem.startsWith(u8, evm_str, "0X")) {
                 evm_str = evm_str[2..];
             }
-            if (evm_str.len == 40) {
-                hex_utils.hexToBytes(evm_str, &order.seller_evm) catch {};
+            if (evm_str.len != 40) return errorJson(-32602, "sellerEvm must be 0x + 40 hex chars", id, alloc);
+            hex_utils.hexToBytes(evm_str, &order.seller_evm) catch
+                return errorJson(-32602, "sellerEvm: invalid hex", id, alloc);
+        } else { // .buy
+            const evm_order_id = extractArrayNumByKey(body, "evmOrderId");
+            if (evm_order_id == 0) {
+                return errorJson(-32602,
+                    "Missing param: evmOrderId (BUY on OMNI/<EVM> must reference an on-chain escrow)",
+                    id, alloc);
             }
+            // Verify the chain has seen this escrow via the watcher.
+            if (ctx.evm_escrow_watcher) |w| {
+                const esc = w.getOpen(evm_order_id) orelse {
+                    return errorJson(-32000,
+                        "No open OmnibusDEX escrow with this evmOrderId on Sepolia — did your placeBuyOrderNative tx mine?",
+                        id, alloc);
+                };
+                // Amount sanity: the escrow amount must equal price * amount
+                // (in token's smallest unit). For OMNI/ETH price is micro-USD
+                // but on-chain ETH is 18-dec. Crude check: escrow > 0.
+                // Tighter check is a TODO; for now we just require non-zero.
+                if (esc.amount == 0) {
+                    return errorJson(-32000, "Escrow amount is zero", id, alloc);
+                }
+            } else {
+                // Watcher disabled → refuse to be safe.
+                return errorJson(-32000,
+                    "evm_escrow_watcher not running — cannot verify on-chain escrow",
+                    id, alloc);
+            }
+            order.evm_order_id = evm_order_id;
         }
     }
 

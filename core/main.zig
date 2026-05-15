@@ -91,6 +91,7 @@ const dns_mod          = @import("dns_registry.zig");
 const registrar_mod    = @import("registrar_addresses.zig");
 const dex_settler_mod  = @import("dex_settler.zig");
 const evm_signer_mod   = @import("evm_signer.zig");
+const evm_escrow_mod   = @import("evm_escrow_watcher.zig");
 const peer_scoring_mod = @import("peer_scoring.zig");
 const peer_persist_mod = @import("peer_persist.zig");
 const compact_mod      = @import("compact_blocks.zig");
@@ -488,6 +489,8 @@ const RPCThreadArgs = struct {
     /// Paper-trading matching engine (separate from real-money). Same lock,
     /// different state. Null when paper trader is disabled.
     exchange_paper: ?*matching_mod.MatchingEngine,
+    /// EVM escrow watcher — verifies BIDs on OMNI/<EVM> pairs are backed.
+    evm_escrow_watcher: ?*evm_escrow_mod.Watcher,
     /// Path to `data/<chain>/orders.jsonl`. Empty = in-memory only (regtest).
     orders_path: ?[]const u8,
     /// Path to `data/<chain>/exchange-users.jsonl`. Stores apikeys + balances.
@@ -529,6 +532,7 @@ fn rpcThread(args: RPCThreadArgs) void {
         .dns = args.dns,
         .exchange = args.exchange,
         .exchange_paper = args.exchange_paper,
+        .evm_escrow_watcher = args.evm_escrow_watcher,
         .orders_path = args.orders_path,
         .users_path = args.users_path,
         .identities_path = args.identities_path,
@@ -2050,6 +2054,41 @@ pub fn main() !void {
         }
     }
 
+    // ── EVM escrow watcher — verify on-chain escrow before accepting BIDs ──
+    //
+    // Polls OmnibusDEX OrderPlaced events on each bound EVM chain and
+    // maintains an `evm_escrows` map. exchange_placeOrder for OMNI/<EVM>
+    // BUY checks this map and refuses BIDs not backed by an on-chain
+    // escrow (Hyperliquid-style — no atomic swap, just verified escrow).
+    //
+    // Add more chains (Base, Optimism, Liberty) by extending watcher_bindings.
+    var evm_watcher_handle: ?*evm_escrow_mod.Watcher = null;
+    {
+        const bindings = allocator.alloc(evm_escrow_mod.Binding, 1) catch null;
+        if (bindings) |bs| {
+            bs[0] = .{
+                .chain_id = 11155111,
+                .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
+                .contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
+            };
+            const w = allocator.create(evm_escrow_mod.Watcher) catch null;
+            if (w) |watcher_ptr| {
+                watcher_ptr.* = evm_escrow_mod.Watcher.init(
+                    allocator,
+                    .{
+                        .bindings = bs,
+                        .poll_ms = 5_000,
+                        .cursor_path = "data/evm_escrow_cursor.bin",
+                    },
+                );
+                watcher_ptr.start() catch {};
+                evm_watcher_handle = watcher_ptr;
+                std.debug.print("[EVM_ESCROW] ON — watching {d} chain(s) for OrderPlaced events\n",
+                    .{bs.len});
+            }
+        }
+    }
+
     // ── DEX settler — auto-submit settle() to EVM at fill time ────────────
     //
     // Spawns ONE background thread that watches the matching engine fills
@@ -2148,6 +2187,7 @@ pub fn main() !void {
         .dns = &dns,
         .exchange = exchange_engine,
         .exchange_paper = exchange_paper_engine,
+        .evm_escrow_watcher = evm_watcher_handle,
         .orders_path = orders_path_owned,
         .users_path = users_path_owned,
         .identities_path = identities_path_owned,
