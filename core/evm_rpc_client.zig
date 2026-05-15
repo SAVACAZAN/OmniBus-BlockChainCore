@@ -239,10 +239,16 @@ pub fn getReceipt(
 // ── Parsing helpers ───────────────────────────────────────────────────────
 
 /// Parse a hex string like `"0x1a2b"` into u64. Tolerates the leading
-/// quotation marks emitted by RPC responses.
+/// quotation marks emitted by RPC responses, AND trailing fields like
+/// `,"id":1` that the lazy `call()` slicer hands us along with the value.
 fn parseHexU64FromQuotedField(s: []const u8) !u64 {
-    const trimmed = std.mem.trim(u8, s, " \t\"\n");
-    var hex = trimmed;
+    // Find the actual hex value: starts after first `"` (or at byte 0 if
+    // no quote), ends at next `"` or `,` or end of slice.
+    var start: usize = 0;
+    while (start < s.len and (s[start] == ' ' or s[start] == '\t' or s[start] == '\n' or s[start] == '"')) : (start += 1) {}
+    var end: usize = start;
+    while (end < s.len and s[end] != '"' and s[end] != ',' and s[end] != '}' and s[end] != ' ' and s[end] != '\n') : (end += 1) {}
+    var hex = s[start..end];
     if (std.mem.startsWith(u8, hex, "0x") or std.mem.startsWith(u8, hex, "0X")) {
         hex = hex[2..];
     }
