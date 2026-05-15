@@ -45,6 +45,17 @@ export const OMNIBUS_DEX_ABI = [
     outputs: [],
   },
   {
+    name: "placeBuyOrderNative",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [
+      { name: "orderId",       type: "uint256" },
+      { name: "omniRecipient", type: "bytes32" },
+      { name: "expiresAt",     type: "uint64"  },
+    ],
+    outputs: [],
+  },
+  {
     name: "cancelOrder",
     type: "function",
     stateMutability: "nonpayable",
@@ -201,6 +212,35 @@ export async function placeBuyOrderOnDex(args: PlaceBuyOrderArgs): Promise<strin
   );
   const r = await tx.wait();
   if (!r) throw new Error("placeBuyOrder: no receipt");
+  return r.hash;
+}
+
+/**
+ * Native-ETH buy order: skips the approve/transferFrom dance and sends
+ * ETH directly via msg.value. Only works on EVM chains where ETH is the
+ * native gas asset (Sepolia, Base, mainnet, etc.) — not on Liberty/LCX.
+ */
+export async function placeBuyOrderNativeOnDex(args: {
+  chainId: number;
+  amountWei: bigint;
+  orderId: bigint;
+  omniRecipientHex32: `0x${string}`;
+  expiresAt: number;
+  signerPrivKey: string;
+}): Promise<string> {
+  const dex = dexContractFor(args.chainId);
+  if (!dex) throw new Error(`OmnibusDEX not deployed on chain ${args.chainId}`);
+  const provider = providerForChain(args.chainId);
+  const wallet = new Wallet(args.signerPrivKey.startsWith("0x") ? args.signerPrivKey : "0x" + args.signerPrivKey, provider);
+  const c = new Contract(dex, OMNIBUS_DEX_ABI, wallet);
+  const tx = await c.placeBuyOrderNative(
+    args.orderId,
+    args.omniRecipientHex32,
+    args.expiresAt,
+    { value: args.amountWei },
+  );
+  const r = await tx.wait();
+  if (!r) throw new Error("placeBuyOrderNative: no receipt");
   return r.hash;
 }
 

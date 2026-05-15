@@ -2099,7 +2099,7 @@ pub fn main() !void {
             .pair_id = 6, // OMNI/ETH per CLAUDE.md fixed pair table
             .chain_id = 11155111,
             .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
-            .dex_contract = "0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d",
+            .dex_contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
         };
 
         const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;

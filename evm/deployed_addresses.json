@@ -20,10 +20,10 @@
   "OmnibusDEX": {
     "11155111": {
       "network": "sepolia",
-      "address": "0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d",
+      "address": "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
       "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
       "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
-      "tx": "0x32bee832159680c3bccb255fa628d64bc94089c9c2cdba27742f94b355a0a24f",
+      "tx": "0x43c03dc4954f4872d56c20bc11dff60597188f13e6eccb0b2b33d7eae7fc8025",
       "deployed": "2026-05-15",
       "compiler": "solc 0.8.24 optimizer 200 runs"
     }

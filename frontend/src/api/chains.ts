@@ -193,7 +193,7 @@ export const CHAINS: readonly ChainEntry[] = [
     placeholder: "0x… (40-char hex)",
     addrPattern: /^0x[0-9a-fA-F]{40}$/,
     htlcContract: "0xC95cAED3179B8D2899acAC193411CC65759cEC81",
-    dexContract:  "0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d",
+    dexContract:  "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
     color: "text-blue-300", enabled: true, testnet: true,
   },
   {
