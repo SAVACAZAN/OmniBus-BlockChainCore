@@ -238,25 +238,33 @@ pub fn getReceipt(
 
 // ── Parsing helpers ───────────────────────────────────────────────────────
 
-/// Parse a hex string like `"0x1a2b"` into u64. Tolerates the leading
-/// quotation marks emitted by RPC responses, AND trailing fields like
-/// `,"id":1` that the lazy `call()` slicer hands us along with the value.
+/// Parse a hex string like `"0x1a2b"` into u64. Tolerates noise around it
+/// (quotes, trailing `,"id":1` fragments). Scans char-by-char, accumulating
+/// hex digits after a `0x` marker — bullet-proof against the various JSON
+/// fragments the lazy `call()` slicer hands us.
 fn parseHexU64FromQuotedField(s: []const u8) !u64 {
-    // Find the actual hex value: starts after first `"` (or at byte 0 if
-    // no quote), ends at next `"` or `,` or end of slice.
-    var start: usize = 0;
-    while (start < s.len and (s[start] == ' ' or s[start] == '\t' or s[start] == '\n' or s[start] == '"')) : (start += 1) {}
-    var end: usize = start;
-    while (end < s.len and s[end] != '"' and s[end] != ',' and s[end] != '}' and s[end] != ' ' and s[end] != '\n') : (end += 1) {}
-    var hex = s[start..end];
-    if (std.mem.startsWith(u8, hex, "0x") or std.mem.startsWith(u8, hex, "0X")) {
-        hex = hex[2..];
+    var i: usize = 0;
+    // Find `0x` or `0X` prefix.
+    while (i + 1 < s.len) : (i += 1) {
+        if (s[i] == '0' and (s[i + 1] == 'x' or s[i + 1] == 'X')) {
+            i += 2;
+            break;
+        }
     }
-    if (hex.len == 0) return 0;
-    return std.fmt.parseInt(u64, hex, 16) catch |err| {
-        std.debug.print("[evm_rpc] parseHex failed on input='{s}' extracted='{s}'\n", .{ s, hex });
-        return err;
-    };
+    if (i >= s.len) return 0;
+
+    var value: u64 = 0;
+    while (i < s.len) : (i += 1) {
+        const c = s[i];
+        const nib: u8 = switch (c) {
+            '0'...'9' => c - '0',
+            'a'...'f' => c - 'a' + 10,
+            'A'...'F' => c - 'A' + 10,
+            else => break, // stop at first non-hex char
+        };
+        value = (value << 4) | nib;
+    }
+    return value;
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────
