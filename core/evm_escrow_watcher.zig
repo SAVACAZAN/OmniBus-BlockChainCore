@@ -286,19 +286,19 @@ fn parseLogs(self: *Watcher, json: []const u8) !void {
             // OrderPlaced: pull `data` (non-indexed fields: token, amount,
             // omniRecipient, expiresAt — owner is indexed, in topics[2]).
             // Layout of data: 4 × 32 bytes = 128 bytes hex = "0x" + 256 chars.
-            const data_key = std.mem.indexOfPos(u8, json, arr_end, "\"data\"") orelse {
+            const data_key = std.mem.indexOfPos(u8, json, arr_end, "\"data\":\"") orelse {
+                std.debug.print("[parseLogs] no data key from arr_end={d}\n", .{arr_end});
                 idx = arr_end + 1; continue;
             };
-            const d_start = std.mem.indexOfScalarPos(u8, json, data_key, '"') orelse {
-                idx = arr_end + 1; continue;
-            };
-            const d_q1 = std.mem.indexOfScalarPos(u8, json, d_start + 1, '"') orelse {
-                idx = arr_end + 1; continue;
-            };
+            // data_key points at the `"` of `"data"`. The value starts at
+            // `data_key + 8` (after `"data":"`).
+            const d_q1 = data_key + 7; // index of `"` opening the value
             const d_q2 = std.mem.indexOfScalarPos(u8, json, d_q1 + 1, '"') orelse {
+                std.debug.print("[parseLogs] no closing quote on data\n", .{});
                 idx = arr_end + 1; continue;
             };
             const data_hex = json[d_q1 + 1 .. d_q2];
+            std.debug.print("[parseLogs] data_hex len={d}\n", .{data_hex.len});
             if (data_hex.len >= 2 + 256) {
                 var data_bytes: [128]u8 = undefined;
                 hexDecode(data_hex[2..258], &data_bytes) catch {
