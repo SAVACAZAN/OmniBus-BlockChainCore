@@ -675,11 +675,39 @@ export class OmniBusRpcClient {
     issued?: number;
     expires?: number;
   }> {
+    // Read BOTH the legacy kyc_getStatus (issuer-signed levels 0-3) and
+    // the newer mica_disclose (MiCA-style kind tags). The chain has two
+    // parallel attestation paths and any single one being set should
+    // unlock the UI — otherwise users who self-attested via mica_attest
+    // see "level 0" even though their attestation is on-chain.
+    let legacy = { address, level: 0 as 0 | 1 | 2 | 3, label: "none" };
     try {
-      return await this.request("kyc_getStatus", [{ address }]);
-    } catch {
-      return { address, level: 0, label: "none" };
-    }
+      legacy = await this.request("kyc_getStatus", [{ address }]);
+    } catch { /* fall back to mica below */ }
+    if (legacy.level > 0) return legacy;
+
+    // Map MiCA kinds → tier: kyc → 1, aml → 2, sanctions → 3.
+    try {
+      const m = await this.request("mica_disclose", [{ address }]);
+      const kinds = new Set<string>(
+        (m?.attestations ?? []).map((a: { kind: string }) => a.kind),
+      );
+      let level: 0 | 1 | 2 | 3 = 0;
+      if (kinds.has("kyc")) level = 1;
+      if (kinds.has("aml")) level = 2;
+      if (kinds.has("sanctions")) level = 3;
+      if (level > 0) {
+        return {
+          address,
+          level,
+          label: level === 1 ? "tier-1" : level === 2 ? "tier-2" : "tier-3",
+          issuer: m?.attestations?.[0]?.issuer_did,
+          issued: m?.attestations?.[0]?.timestamp,
+        };
+      }
+    } catch { /* both paths empty → level 0 */ }
+
+    return legacy;
   }
 
   async kycListIssuers(): Promise<Array<{ address: string; role: string; slot: number }>> {
