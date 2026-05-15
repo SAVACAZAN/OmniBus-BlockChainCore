@@ -66,7 +66,8 @@ pub const REGISTRAR_ADDRESSES = [_]RegistrarSlot{
     .{ .index = 2, .address = "ob1qpjt7gngkj79663a298schx6dkjxqf37hwfggw2", .role = "exchange",   .reserved_name = "exchange.omnibus",
        // DEX operator key. Set as `operator` arg to OmnibusDEX.sol at deploy;
        // chain signs settle() with the privkey derived at m/44'/60'/0'/0/2.
-       .evm_address = "0x2680Cf2201300F4eCF3fd8a592D9aA760122C3E0" },
+       // Verified 2026-05-15 against live Sepolia balance (0.002 ETH).
+       .evm_address = "0xA66235662c363e9915b6353f79df309F67D146A6" },
     .{ .index = 3, .address = "ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa", .role = "ens",        .reserved_name = "ens.omnibus" },
     .{ .index = 4, .address = "ob1q5stczt5xxxphedadlqej09f5hww22qhvrj2nln", .role = "sava",       .reserved_name = "sava.omnibus" },
     .{ .index = 5, .address = "ob1quax5e9hyyzmft2m2lzn735asswsw9gh4gtgess", .role = "blockchain", .reserved_name = "blockchain.omnibus" },
@@ -147,7 +148,7 @@ test "evmAddressOf returns 0x-prefixed sepolia addresses for slots with EVM keys
     // — see project_omnibus_registrar_addresses memory.
     const exch = evmAddressOf(.exchange) orelse return error.MissingEvmAddress;
     try std.testing.expectEqualStrings(
-        "0x2680Cf2201300F4eCF3fd8a592D9aA760122C3E0",
+        "0xA66235662c363e9915b6353f79df309F67D146A6",
         exch,
     );
     const torn = evmAddressOf(.tornetwork) orelse return error.MissingEvmAddress;

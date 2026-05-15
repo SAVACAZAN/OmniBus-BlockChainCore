@@ -33,10 +33,12 @@ const config: HardhatUserConfig = {
     },
   },
 
-  // Point at the contracts folder one level up so we don't duplicate the
-  // .sol files — single source of truth in evm/contracts/.
+  // Contracts live in evm/contracts/. Hardhat refuses sources outside its
+  // project root, so we keep a mirror in evm/deploy/contracts/. The
+  // canonical source is still evm/contracts/OmnibusDEX.sol — copy on
+  // change or use a pre-deploy step to sync.
   paths: {
-    sources: "../contracts",
+    sources: "./contracts",
     artifacts: "./artifacts",
     cache: "./cache",
   },

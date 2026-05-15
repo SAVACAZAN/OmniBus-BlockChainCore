@@ -1,0 +1,31 @@
+{
+  "OmnibusHTLC": {
+    "84532": {
+      "network": "Base Sepolia",
+      "address": null,
+      "note": "No ETH on deployer — pending"
+    },
+    "11155111": {
+      "network": "Sepolia",
+      "address": "0xC95cAED3179B8D2899acAC193411CC65759cEC81",
+      "deployer": "0x58096A6921774938760a4b00062B92983c1Ca8C7",
+      "tx": "0x8aa912bf52f4242ddb20036a4725ad4cc783633bc9779ab83e47380fa41e4974",
+      "deployed": "2026-05-09",
+      "compiler": "solc 0.8.35 optimizer 200 runs"
+    }
+  },
+  "OmnibusUSDC_HTLC": {
+    "note": "ERC20 HTLC for USDC — not yet deployed. Use ETH HTLC for now."
+  },
+  "OmnibusDEX": {
+    "11155111": {
+      "network": "sepolia",
+      "address": "0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0x32bee832159680c3bccb255fa628d64bc94089c9c2cdba27742f94b355a0a24f",
+      "deployed": "2026-05-15",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
+    }
+  }
+}

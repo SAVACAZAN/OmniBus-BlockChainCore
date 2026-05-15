@@ -1,4 +1,5 @@
 .env
+.mnemonic
 node_modules/
 artifacts/
 cache/
