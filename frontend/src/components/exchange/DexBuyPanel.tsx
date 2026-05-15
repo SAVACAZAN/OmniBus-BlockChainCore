@@ -22,7 +22,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { keccak256, toUtf8Bytes, parseEther } from "ethers";
+import { keccak256, toUtf8Bytes, parseEther, formatEther, Contract, Wallet } from "ethers";
 import {
   ensureAllowance,
   placeBuyOrderOnDex,
@@ -33,6 +33,14 @@ import {
 } from "../../api/omnibus-dex";
 import { getUnlocked, deriveSlotKey } from "../../api/wallet-keystore";
 import { useActiveSlot } from "../../api/use-active-slot";
+
+// Minimal WETH9 ABI — deposit() to wrap ETH, withdraw(amount) to unwrap,
+// balanceOf for read-only display.
+const WETH_ABI = [
+  { name: "deposit",  type: "function", stateMutability: "payable",    inputs: [],                                               outputs: [] },
+  { name: "withdraw", type: "function", stateMutability: "nonpayable", inputs: [{ name: "wad", type: "uint256" }],               outputs: [] },
+  { name: "balanceOf", type: "function", stateMutability: "view",       inputs: [{ name: "who", type: "address" }],               outputs: [{ name: "", type: "uint256" }] },
+] as const;
 
 // ── Pair config —────────────────────────────────────────────────────────
 //
@@ -98,28 +106,74 @@ export function DexBuyPanel() {
 
   const [amountStr, setAmountStr] = useState<string>("");
   const [expiryHours, setExpiryHours] = useState<number>(24);
-  const [busy, setBusy] = useState<"idle" | "approve" | "place" | "cancel">("idle");
+  const [busy, setBusy] = useState<"idle" | "approve" | "place" | "cancel" | "wrap">("idle");
   const [log, setLog] = useState<string[]>([]);
   const [lastOrderId, setLastOrderId] = useState<bigint | null>(null);
   const [escrowedBalance, setEscrowedBalance] = useState<string>("—");
+  // ETH + WETH balances for the active slot so the user can see whether
+  // they have enough to wrap and place an order without leaving the panel.
+  const [ethBal, setEthBal] = useState<string>("—");
+  const [wethBal, setWethBal] = useState<string>("—");
+  const [wrapAmount, setWrapAmount] = useState<string>("0.01");
 
   const pushLog = (s: string) => setLog((l) => [...l, `${new Date().toISOString().slice(11, 19)} ${s}`]);
 
   // Pull the deployer's view of the contract operator, mostly so the
   // user can sanity-check we're talking to the right deployment.
+  // Also fetch the active slot's ETH + WETH balance so the user sees at
+  // a glance whether they have funds to wrap/trade.
   useEffect(() => {
-    if (!dexAddress) return;
+    if (!dexAddress || !evmAddress) return;
+    let cancelled = false;
     (async () => {
       try {
         const p = providerForChain(pair.chainId);
-        const bal = await p.getBalance(dexAddress);
-        // ETH locked in the DEX = escrow total. Crude but useful.
-        setEscrowedBalance(`${(Number(bal) / 1e18).toFixed(6)} ETH`);
+        const [escrowBal, userEth, weth] = await Promise.all([
+          p.getBalance(dexAddress),
+          p.getBalance(evmAddress),
+          (async () => {
+            try {
+              const c = new Contract(pair.tokenAddr, WETH_ABI, p);
+              return await c.balanceOf(evmAddress) as bigint;
+            } catch { return 0n; }
+          })(),
+        ]);
+        if (cancelled) return;
+        setEscrowedBalance(`${formatEther(escrowBal)} ETH`);
+        setEthBal(formatEther(userEth));
+        setWethBal(formatEther(weth));
       } catch {
+        if (cancelled) return;
         setEscrowedBalance("?");
       }
     })();
-  }, [dexAddress, pair.chainId]);
+    return () => { cancelled = true; };
+  }, [dexAddress, evmAddress, pair.chainId, pair.tokenAddr, busy, lastOrderId]);
+
+  // ── Wrap ETH→WETH ─────────────────────────────────────────────────────
+  async function handleWrap() {
+    if (!unlocked) { pushLog("Wallet locked."); return; }
+    if (!wrapAmount || Number(wrapAmount) <= 0) { pushLog("Enter wrap amount > 0"); return; }
+    const slotKey = deriveSlotKey(activeSlot);
+    if (!slotKey?.evmPrivateKey) { pushLog("Cannot derive EVM privkey."); return; }
+    try {
+      setBusy("wrap");
+      pushLog(`Wrapping ${wrapAmount} ETH → WETH…`);
+      const provider = providerForChain(pair.chainId);
+      const w = new Wallet("0x" + slotKey.evmPrivateKey.replace(/^0x/, ""), provider);
+      const weth = new Contract(pair.tokenAddr, WETH_ABI, w);
+      // WETH9 deposit is `deposit() payable` — call with value = wrapAmount.
+      const tx = await weth.deposit({ value: parseEther(wrapAmount) });
+      pushLog(`  tx: ${tx.hash}`);
+      await tx.wait();
+      pushLog(`  ✓ wrapped — refreshing balances`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      pushLog(`✗ wrap failed: ${msg}`);
+    } finally {
+      setBusy("idle");
+    }
+  }
 
   // ── Submit ────────────────────────────────────────────────────────────
 
@@ -220,6 +274,35 @@ export function DexBuyPanel() {
           <div className="text-[11px] text-mempool-text-dim mb-3 space-y-0.5">
             <div>Contract: <span className="font-mono text-mempool-text">{dexAddress.slice(0, 8)}…{dexAddress.slice(-6)}</span></div>
             <div>Total ETH escrowed: <span className="text-mempool-green">{escrowedBalance}</span></div>
+            <div className="pt-1 mt-1 border-t border-mempool-border/60">
+              Your slot — ETH: <span className="text-mempool-text">{ethBal}</span>{"  "}
+              WETH: <span className="text-mempool-text">{wethBal}</span>
+            </div>
+          </div>
+
+          {/* Wrap ETH → WETH (Sepolia WETH9 deposit()). The DEX contract
+              only escrows ERC-20, so users need WETH before placeBuyOrder. */}
+          <div className="flex items-end gap-2 mb-3 p-2 rounded bg-mempool-bg/60 border border-mempool-border">
+            <div className="flex-1">
+              <label className="text-[10px] uppercase tracking-wider text-mempool-text-dim block mb-1">
+                Wrap ETH → WETH
+              </label>
+              <input
+                type="number"
+                step="0.001"
+                min="0"
+                value={wrapAmount}
+                onChange={(e) => setWrapAmount(e.target.value)}
+                className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              />
+            </div>
+            <button
+              onClick={handleWrap}
+              disabled={busy !== "idle" || !wrapAmount}
+              className="px-3 py-1.5 rounded text-xs uppercase tracking-wider font-semibold border border-blue-500/40 text-blue-300 hover:bg-blue-950/20 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {busy === "wrap" ? "Wrapping…" : "Wrap"}
+            </button>
           </div>
 
           <div className="space-y-2">
