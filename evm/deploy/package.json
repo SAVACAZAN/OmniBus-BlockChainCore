@@ -1,0 +1,21 @@
+{
+  "name": "omnibus-dex-deploy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hardhat deploy harness for OmnibusDEX.sol. Reads DEPLOYER_PRIVKEY from .env (chmod 600) — never committed.",
+  "scripts": {
+    "deploy:sepolia": "hardhat run scripts/deploy-omnibus-dex.ts --network sepolia",
+    "deploy:base-sepolia": "hardhat run scripts/deploy-omnibus-dex.ts --network baseSepolia",
+    "deploy:liberty": "hardhat run scripts/deploy-omnibus-dex.ts --network liberty",
+    "compile": "hardhat compile",
+    "verify:sepolia": "hardhat verify --network sepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.0",
+    "hardhat": "^2.22.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  }
+}
