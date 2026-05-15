@@ -143,6 +143,33 @@ contract OmnibusDEX {
         emit OrderPlaced(orderId, msg.sender, token, amount, omniRecipient, expiresAt);
     }
 
+    /// @notice Native-ETH variant of placeBuyOrder. User sends ETH along
+    ///         with the call (msg.value = amount). Stored as token=address(0)
+    ///         to signal "native". Used for OMNI/ETH pair where the buyer
+    ///         wants to pay with chain-native ETH instead of wrapping into
+    ///         WETH first. settle() / cancelOrder() / expireRefund() check
+    ///         token == address(0) and send ETH back via .call instead of
+    ///         IERC20.transfer.
+    function placeBuyOrderNative(
+        uint256 orderId,
+        bytes32 omniRecipient,
+        uint64  expiresAt
+    ) external payable {
+        if (msg.value == 0) revert AmountZero();
+        if (orders[orderId].state != 0) revert AlreadyExists();
+
+        orders[orderId] = Order({
+            owner:         msg.sender,
+            token:         address(0),     // sentinel: native ETH
+            amount:        msg.value,
+            omniRecipient: omniRecipient,
+            expiresAt:     expiresAt,
+            state:         1 // open
+        });
+
+        emit OrderPlaced(orderId, msg.sender, address(0), msg.value, omniRecipient, expiresAt);
+    }
+
     /// @notice Order owner cancels and gets escrow back. Allowed any time the
     ///         order is still open, even before expiresAt — the OmniBus
     ///         orderbook treats the cancel event as authoritative once seen.
@@ -152,8 +179,7 @@ contract OmnibusDEX {
         if (msg.sender != O.owner) revert NotOwner();
 
         O.state = 3; // cancelled
-        bool ok = IERC20(O.token).transfer(O.owner, O.amount);
-        if (!ok) revert TransferFailed();
+        _payout(O.owner, O.token, O.amount);
         emit OrderCancelled(orderId, O.owner, O.amount);
     }
 
@@ -175,8 +201,7 @@ contract OmnibusDEX {
         if (O.state != 1) revert NotOpen();
 
         O.state = 2; // settled
-        bool ok = IERC20(O.token).transfer(seller, O.amount);
-        if (!ok) revert TransferFailed();
+        _payout(seller, O.token, O.amount);
         emit OrderSettled(orderId, seller, O.amount);
     }
 
@@ -192,9 +217,23 @@ contract OmnibusDEX {
         if (block.timestamp < O.expiresAt) revert TooEarly();
 
         O.state = 3; // cancelled
-        bool ok = IERC20(O.token).transfer(O.owner, O.amount);
-        if (!ok) revert TransferFailed();
+        _payout(O.owner, O.token, O.amount);
         emit OrderCancelled(orderId, O.owner, O.amount);
+    }
+
+    // ── Internal payout helper ─────────────────────────────────────────────
+    //
+    // Dispatches the actual asset move: native ETH via .call when token =
+    // address(0), ERC-20 via IERC20.transfer otherwise. Reverts on failure
+    // so the surrounding state mutation gets rolled back atomically.
+    function _payout(address to, address token, uint256 amount) internal {
+        if (token == address(0)) {
+            (bool sent, ) = payable(to).call{value: amount}("");
+            if (!sent) revert TransferFailed();
+        } else {
+            bool ok = IERC20(token).transfer(to, amount);
+            if (!ok) revert TransferFailed();
+        }
     }
 
     // ── View ───────────────────────────────────────────────────────────────

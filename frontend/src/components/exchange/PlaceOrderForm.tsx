@@ -190,11 +190,15 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       // when they have 19 slots with different balances and want to audit
       // the trade in their wallet history.
       const traderShort = `${traderAddr.slice(0, 8)}…${traderAddr.slice(-4)}`;
-      setMsg(
-        `${res.status.toUpperCase()} — order #${res.orderId}, filled ${
-          res.filled / SAT_PER_OMNI
-        } / ${res.amount / SAT_PER_OMNI} ${base} · from slot #${activeSlot} (${traderShort})`,
-      );
+      if (!res) {
+        setErr("Order submitted but no response — check the orderbook for your order");
+      } else {
+        setMsg(
+          `${(res.status ?? "submitted").toString().toUpperCase()} — order #${res.orderId ?? "?"}, filled ${
+            (res.filled ?? 0) / SAT_PER_OMNI
+          } / ${(res.amount ?? amountSat) / SAT_PER_OMNI} ${base} · from slot #${activeSlot} (${traderShort})`,
+        );
+      }
       setPriceStr("");
       setAmountStr("");
       onPlaced?.();

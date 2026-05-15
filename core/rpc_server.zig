@@ -12741,6 +12741,21 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     order.trader_addr_len = @intCast(tn);
     order.status = .active;
 
+    // Optional sellerEvm: 0x-prefixed 42-char hex address where the
+    // dex_settler should deliver the EVM quote token. Only meaningful
+    // for SELL orders on OMNI/<EVM-token> pairs (e.g. pair_id 6 OMNI/ETH).
+    if (side == .sell) {
+        if (extractStr(body, "sellerEvm")) |evm_str_raw| {
+            var evm_str = evm_str_raw;
+            if (std.mem.startsWith(u8, evm_str, "0x") or std.mem.startsWith(u8, evm_str, "0X")) {
+                evm_str = evm_str[2..];
+            }
+            if (evm_str.len == 40) {
+                hex_utils.hexToBytes(evm_str, &order.seller_evm) catch {};
+            }
+        }
+    }
+
     const fills_before = engine.fill_count;
     engine.placeOrder(order) catch |err| {
         return errorJson(-32000, switch (err) {

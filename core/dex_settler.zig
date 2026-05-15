@@ -129,22 +129,30 @@ fn scanOnce(self: *Settler) !void {
             continue;
         };
 
-        // Best-effort: extract seller EVM address from seller_address slot.
-        // The fill carries the OmniBus address; in the cross-chain flow the
-        // seller registers an EVM address alongside their order. For now we
-        // require the seller to have used a 0x-prefixed address; otherwise
-        // skip (can't settle to a bech32 on EVM).
-        const seller = fill.getSellerAddress();
-        if (!std.mem.startsWith(u8, seller, "0x") or seller.len != 42) {
-            // OmniBus-only seller — chain credits OMNI internally; nothing
-            // to do on EVM side.
+        // The sell order carries seller_evm — the 20-byte EVM address where
+        // the buyer's escrowed quote token should be delivered. If unset
+        // (all-zero), the seller didn't request an EVM payout; skip.
+        var all_zero = true;
+        for (fill.seller_evm) |b| { if (b != 0) { all_zero = false; break; } }
+        if (all_zero) {
             self.last_settled_fill_id = fill.fill_id;
             saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
             continue;
         }
 
-        // Build + sign + submit settle(buy_order_id, seller).
-        submitSettle(self, binding, fill.buy_order_id, seller) catch |err| {
+        // Format as 0x-prefixed hex.
+        var seller_hex_buf: [42]u8 = undefined;
+        seller_hex_buf[0] = '0';
+        seller_hex_buf[1] = 'x';
+        const hex_chars = "0123456789abcdef";
+        for (fill.seller_evm, 0..) |b, idx| {
+            seller_hex_buf[2 + idx * 2] = hex_chars[b >> 4];
+            seller_hex_buf[2 + idx * 2 + 1] = hex_chars[b & 0x0F];
+        }
+        const seller_hex = seller_hex_buf[0..];
+
+        // Build + sign + submit settle(buy_order_id, sellerEvm).
+        submitSettle(self, binding, fill.buy_order_id, seller_hex) catch |err| {
             std.debug.print(
                 "[dex_settler] fill {d} settle failed: {s} — will retry next tick\n",
                 .{ fill.fill_id, @errorName(err) },

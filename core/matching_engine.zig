@@ -74,6 +74,10 @@ pub const Order = struct {
     filled_sat: u64, // cat a fost deja umplut
     timestamp_ms: i64, // cand a fost plasata ordinea
     status: OrderStatus,
+    /// For SELL orders on OMNI/<EVM-token> pairs: the seller's EVM address
+    /// where the dex_settler should deliver the quote token (USDC/ETH/etc).
+    /// All-zero = not provided; settler will skip the EVM leg.
+    seller_evm: [20]u8 = [_]u8{0} ** 20,
 
     /// Cantitatea ramasa de umplut
     pub fn remainingSat(self: *const Order) u64 {
@@ -104,6 +108,7 @@ pub const Order = struct {
             .filled_sat = 0,
             .timestamp_ms = 0,
             .status = .cancelled,
+            .seller_evm = [_]u8{0} ** 20,
         };
     }
 
@@ -129,6 +134,10 @@ pub const Fill = struct {
     buyer_addr_len: u8,
     seller_address: [64]u8,
     seller_addr_len: u8,
+    /// Copy of the seller's `seller_evm` field — propagated from the SELL
+    /// order so the dex_settler thread knows where to deliver the EVM
+    /// quote token. All-zero = no EVM leg requested.
+    seller_evm: [20]u8 = [_]u8{0} ** 20,
 
     pub fn empty() Fill {
         return Fill{
@@ -143,6 +152,7 @@ pub const Fill = struct {
             .buyer_addr_len = 0,
             .seller_address = [_]u8{0} ** 64,
             .seller_addr_len = 0,
+            .seller_evm = [_]u8{0} ** 20,
         };
     }
 
@@ -492,6 +502,11 @@ pub fn MatchingEngineWith(comptime max_orders: usize, comptime max_fills: usize)
 
             fill.seller_addr_len = sell_order.trader_addr_len;
             @memcpy(fill.seller_address[0..sell_order.trader_addr_len], sell_order.trader_address[0..sell_order.trader_addr_len]);
+
+            // Propagate the seller's EVM target (zero if not provided).
+            // dex_settler.zig reads f.seller_evm to know where to deliver
+            // the quote token on the EVM chain.
+            fill.seller_evm = sell_order.seller_evm;
 
             self.fills[self.fill_count] = fill;
             self.fill_count += 1;
