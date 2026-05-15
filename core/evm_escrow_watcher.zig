@@ -237,7 +237,11 @@ fn parseLogs(self: *Watcher, json: []const u8) !void {
 
     while (idx < json.len) {
         // Find the next "topics" key.
-        const tk = std.mem.indexOfPos(u8, json, idx, "\"topics\"") orelse return;
+        const tk = std.mem.indexOfPos(u8, json, idx, "\"topics\"") orelse {
+            std.debug.print("[parseLogs] no more topics from idx={d} (json len={d})\n", .{ idx, json.len });
+            return;
+        };
+        std.debug.print("[parseLogs] found topics at {d}, t0_match_placed?={}\n", .{ tk, false });
         // Find the array bracket after it.
         const arr_start = std.mem.indexOfPos(u8, json, tk, "[") orelse return;
         const arr_end = std.mem.indexOfPos(u8, json, arr_start, "]") orelse return;
