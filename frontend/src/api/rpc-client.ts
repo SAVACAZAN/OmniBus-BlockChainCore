@@ -781,9 +781,16 @@ export class OmniBusRpcClient {
     valid_until?: number;
     white_paper_hash?: string;
     risk_category?: "low" | "medium" | "high";
-    nonce: number;
-    signature: string;
-    publicKey: string;
+    /** Optional — only required when the chain enforces issuer signatures.
+     *  When `self: true` is set, the chain accepts the call without
+     *  a signature (testnet self-attest path). */
+    nonce?: number;
+    signature?: string;
+    publicKey?: string;
+    /** Testnet shortcut — when true, the chain records the attestation
+     *  without verifying the issuer signature. Used by the KYC UI for
+     *  self-attestation when no real issuer service is wired up. */
+    self?: boolean;
   }): Promise<MicaAttestation> {
     return this.request("mica_attest", [payload]);
   }

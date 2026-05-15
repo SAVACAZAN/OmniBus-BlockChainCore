@@ -124,56 +124,36 @@ export function KycVerifyFlow({ tier, onClose, onAttested }: Props) {
     setErr(null);
     setStep({ kind: "submitting" });
     try {
-      // Issuer key on the founder's testnet node = the local wallet's
-      // mnemonic-derived slot 4 key. The frontend doesn't have access
-      // to that wallet — but the founder unlocked with the same
-      // mnemonic, so we can re-derive slot 4 here as a demo. NOTE: this
-      // self-signed flow is testnet-only. On mainnet the user's wallet
-      // doesn't have the issuer key and would call out to a real KYC
-      // provider instead.
-      const issuers = await rpc.kycListIssuers();
-      const issuer = issuers[0];
-      if (!issuer) throw new Error("No KYC issuer registered on this node");
+      // Use mica_attest with self:true — the chain records the
+      // attestation without checking issuer signatures (testnet path).
+      // On mainnet, a real KYC provider would call mica_attest with
+      // its own issuer signature instead of self:true.
+      //
+      // Tier maps to MiCA kind:
+      //   1 → kyc      (basic identity)
+      //   2 → aml      (anti-money-laundering screening)
+      //   3 → sanctions (sanctions list clearance)
+      const tierKind: "kyc" | "aml" | "sanctions" =
+        tier === 1 ? "kyc" : tier === 2 ? "aml" : "sanctions";
 
-      const issuedMs = Date.now();
-      const expiresMs = issuedMs + 365 * 24 * 60 * 60 * 1000; // 1 year
-
-      // The trick for testnet: the demo issuer key is the SAME mnemonic
-      // the user unlocked with. So we already have the privkey for slot
-      // 0 (the mining wallet). The chain expects slot 4. The founder's
-      // local node would normally do this in a CLI tool that has access
-      // to the mnemonic. As a frontend demo we self-sign with whatever
-      // privkey is unlocked — the chain rejects this if the address
-      // doesn't match the issuer, which is the right behavior.
-      const { signature, publicKey } = signKycAttestation({
-        issuerPrivateKeyHex: u.privateKey,
-        subjectAddress: u.address,
-        level: tier,
-        issuerAddress: issuer.address,
-        issuedMs,
-        expiresMs,
-      });
-
-      await rpc.kycAttest({
+      await rpc.micaAttest({
         address: u.address,
-        level: tier,
-        issued: issuedMs,
-        expires: expiresMs,
-        signature,
-        publicKey,
+        kind: tierKind,
+        self: true,
+        risk_category: "low",
       });
+
+      // Hide the legacy signKycAttestation import warning — the
+      // helper is still useful when a real issuer service comes
+      // online and the frontend signs on its behalf.
+      void signKycAttestation;
+      void rpc.kycAttest;
+      void rpc.kycListIssuers;
 
       setStep({ kind: "done", level: tier });
       onAttested();
     } catch (e: any) {
-      setErr(
-        e?.message?.includes("not the registered KYC issuer")
-          ? "Self-attestation failed — your wallet is not the KYC issuer (slot 4 = kyc.omnibus). " +
-              "On testnet, ask the operator to run this command from a machine that has the founder mnemonic:\n\n" +
-              `  omnibus-cli mica attest kyc --self --address ${u.address} --yes\n\n` +
-              "On mainnet, a separate verification service holds the issuer key and issues attestations."
-          : e?.message || "Attestation failed",
-      );
+      setErr(e?.message || "Attestation failed");
       setStep({ kind: "review" });
     }
   };
