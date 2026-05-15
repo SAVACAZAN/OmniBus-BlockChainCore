@@ -12742,6 +12742,8 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     order.status = .active;
 
     const fills_before = engine.fill_count;
+    std.debug.print("[DEX-TRACE] placeOrder side={s} pair={d} price={d} amount={d} fills_before={d} is_paper={}\n",
+        .{ side_canon, pair_id, price, amount, fills_before, is_paper });
     engine.placeOrder(order) catch |err| {
         return errorJson(-32000, switch (err) {
             error.OrderbookFull => "Orderbook full",
@@ -12765,8 +12767,10 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var total_maker_fee_micro: u64 = 0;
     const block_height_now: u64 = ctx.bc.chain.items.len;
     var fi = fills_before;
+    std.debug.print("[DEX-TRACE] fill loop: fills_before={d} fill_count={d}\n", .{ fills_before, engine.fill_count });
     while (fi < engine.fill_count) : (fi += 1) {
         const f = engine.fills[fi];
+        std.debug.print("[DEX-TRACE] processing fill_id={d} pair={d} amount={d}\n", .{ f.fill_id, f.pair_id, f.amount_sat });
         tradeLogPush(ctx, f, is_paper);
 
         const taker_fee = computeExchangeFeeMicro(
