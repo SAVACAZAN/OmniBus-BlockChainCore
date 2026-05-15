@@ -12751,16 +12751,19 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     order.trader_addr_len = @intCast(tn);
     order.status = .active;
 
-    // EVM-leg validation for OMNI/<EVM-token> pairs (currently pair_id 6
-    // OMNI/ETH; will extend to LCX/USDC/etc). Atomic-swap-style:
+    // EVM-leg validation for OMNI/<EVM-token> pairs. Atomic-swap-style:
     //   SELL must provide sellerEvm so the settler knows where to deliver.
     //   BUY  must provide evmOrderId, and the chain MUST already have seen
     //        an OrderPlaced event with that id on the EVM contract (via
     //        evm_escrow_watcher) with amount matching this BID's quote.
-    // Without these checks, OMNI moves at fill but ETH stays untouched
+    // Without these checks, OMNI moves at fill but the quote stays untouched
     // (cf. testnet fill #10 2026-05-15 — buyer paid nothing, seller lost
     // 95 OMNI). Refuse unbacked orders up front.
-    const omni_evm_pair = (pair_id == 6); // extend with LCX/USDC pairs later
+    //
+    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH — both settle on Sepolia (and any
+    // other EVM chain where OmnibusDEX is deployed). Add more pair_ids
+    // here when LCX Liberty / Base / etc come online.
+    const omni_evm_pair = (pair_id == 0 or pair_id == 6);
     if (omni_evm_pair) {
         if (side == .sell) {
             const evm_str_raw = extractStr(body, "sellerEvm") orelse
