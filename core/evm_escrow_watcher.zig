@@ -261,7 +261,12 @@ fn parseLogs(self: *Watcher, json: []const u8) !void {
             idx = arr_end + 1; continue;
         }
         var t0_bytes: [32]u8 = undefined;
-        hexDecode(t0_hex[2..], &t0_bytes) catch { idx = arr_end + 1; continue; };
+        hexDecode(t0_hex[2..], &t0_bytes) catch {
+            std.debug.print("[parseLogs] hexDecode failed on t0_hex='{s}'\n", .{t0_hex});
+            idx = arr_end + 1; continue;
+        };
+        const placed_match = std.mem.eql(u8, &t0_bytes, &placed_topic);
+        std.debug.print("[parseLogs] t0_hex={s} placed_match={}\n", .{ t0_hex, placed_match });
 
         // Decode topic[1] (orderId, indexed uint256).
         const t1_start = std.mem.indexOfScalarPos(u8, topics_arr, t0_end + 1, '"') orelse {
