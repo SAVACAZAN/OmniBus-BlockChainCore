@@ -123,6 +123,9 @@ pub fn build(b: *std.Build) void {
     // Link it unconditionally so -Doqs=false still builds
     // Zig 0.16: link_libc is a Module field, set via assignment.
     blockchain_exe.root_module.link_libc = true;
+    // Windows default exe stack is 1MB; Blockchain struct + genesis arrays overflow it.
+    // Match Linux thread stack (LimitSTACK=infinity workaround on VPS).
+    blockchain_exe.stack_size = 64 * 1024 * 1024;
     b.installArtifact(blockchain_exe);
 
     const rpc_exe = b.addExecutable(.{

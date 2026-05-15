@@ -2129,13 +2129,18 @@ pub fn main() !void {
             .address = op_addr20,
         };
 
-        // Single Sepolia binding: OmnibusDEX at 0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d.
-        // Currently the matching engine has no pair that bridges to this
-        // contract on its own — the binding is here so when the cross-chain
-        // pair lands, the settler is ready. pair_id 6 = OMNI/ETH (Sepolia).
-        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 1) catch break :blk_dex;
+        // Sepolia bindings: OmnibusDEX at 0xC21fD92e5f568a7981d16b9008E3C190842818aE
+        // accepts both USDC escrows (pair_id=0) and native-ETH escrows (pair_id=6).
+        // Same contract, same operator — only the pair_id routing differs.
+        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 2) catch break :blk_dex;
         bindings[0] = .{
-            .pair_id = 6, // OMNI/ETH per CLAUDE.md fixed pair table
+            .pair_id = 0, // OMNI/USDC per CLAUDE.md fixed pair table
+            .chain_id = 11155111,
+            .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
+            .dex_contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
+        };
+        bindings[1] = .{
+            .pair_id = 6, // OMNI/ETH
             .chain_id = 11155111,
             .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
             .dex_contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
