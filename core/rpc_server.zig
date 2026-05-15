@@ -12742,8 +12742,6 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     order.status = .active;
 
     const fills_before = engine.fill_count;
-    std.debug.print("[DEX-TRACE] placeOrder side={s} pair={d} price={d} amount={d} fills_before={d} is_paper={}\n",
-        .{ side_canon, pair_id, price, amount, fills_before, is_paper });
     engine.placeOrder(order) catch |err| {
         return errorJson(-32000, switch (err) {
             error.OrderbookFull => "Orderbook full",
@@ -12767,10 +12765,8 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var total_maker_fee_micro: u64 = 0;
     const block_height_now: u64 = ctx.bc.chain.items.len;
     var fi = fills_before;
-    std.debug.print("[DEX-TRACE] fill loop: fills_before={d} fill_count={d}\n", .{ fills_before, engine.fill_count });
     while (fi < engine.fill_count) : (fi += 1) {
         const f = engine.fills[fi];
-        std.debug.print("[DEX-TRACE] processing fill_id={d} pair={d} amount={d}\n", .{ f.fill_id, f.pair_id, f.amount_sat });
         tradeLogPush(ctx, f, is_paper);
 
         const taker_fee = computeExchangeFeeMicro(
@@ -12789,17 +12785,13 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const seller_addr = f.getSellerAddress();
         const taker_addr = if (side == .buy) buyer_addr else seller_addr;
         const maker_addr = if (side == .buy) seller_addr else buyer_addr;
-        std.debug.print("[DEX-TRACE] is_paper={} entering settlement block\n", .{is_paper});
         if (!is_paper) {
             // For OMNI-base pairs (0=OMNI/USDC, 4=OMNI/BTC, 5=OMNI/LCX,
             // 6=OMNI/ETH) we move OMNI on-chain from seller → buyer at
             // fill time. Quote leg lives on a foreign chain (USDC/BTC/
             // LCX/ETH) and is handled by dex_settler.zig if/when needed.
             const omni_base_fill = (f.pair_id == 0 or f.pair_id == 4 or f.pair_id == 5 or f.pair_id == 6);
-            std.debug.print("[DEX-TRACE] omni_base_fill={} pair_id={d}\n", .{ omni_base_fill, f.pair_id });
             if (omni_base_fill) {
-                std.debug.print("[FILL-TRANSFER] attempting transfer: buyer={s} seller={s} amount={d}\n",
-                    .{ buyer_addr, seller_addr, f.amount_sat });
                 ctx.bc.applyFillTransferOmniBase(
                     buyer_addr, seller_addr, f.amount_sat, f.fill_id,
                 ) catch |err| {
@@ -12808,7 +12800,6 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                         .{ f.fill_id, err },
                     );
                 };
-                std.debug.print("[FILL-TRANSFER] complete for fill {d}\n", .{f.fill_id});
             }
 
             ctx.bc.applyExchangeFees(
