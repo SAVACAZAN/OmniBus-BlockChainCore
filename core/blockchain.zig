@@ -908,36 +908,80 @@ pub const Blockchain = struct {
     ///
     /// Switching back to the old behaviour is a single governance proposal
     /// (action set_route_fees_to_miner=false) — no code change required.
-    /// Settle the base-asset leg of an OMNI-base fill: debit seller, credit
-    /// buyer by `amount_sat`. Only applicable for pairs where OMNI is the
-    /// base asset (pair_id 0,4,5,6 — see CLAUDE.md). For non-OMNI bases the
-    /// transfer happens on the foreign chain via the dex_settler thread.
+    /// Settle the base-asset leg of an OMNI-base fill: spend a UTXO from
+    /// seller and create one for buyer (+ change to seller if leftover).
+    /// Source of truth in this chain is the UTXO set, so updating the
+    /// in-RAM `balances` cache is not enough — getAddressBalance reads
+    /// UTXO directly.
     ///
-    /// Quote leg: for OMNI/USDC, OMNI/USD etc. the quote is off-chain. For
-    /// OMNI/BTC and OMNI/ETH, the EVM-side settler moves the quote token
-    /// from contract escrow to the seller. We do NOT touch quote balances
-    /// here — that lives on Sepolia/Base.
+    /// We synthesize a virtual "fill" tx hash unique per fill so the
+    /// outpoint key doesn't collide with real transactions.
     pub fn applyFillTransferOmniBase(
         self: *Blockchain,
         buyer_addr: []const u8,
         seller_addr: []const u8,
         amount_sat: u64,
+        fill_id: u64,
     ) !void {
         if (amount_sat == 0) return;
 
         self.mutex.lock();
         defer self.mutex.unlock();
 
-        // Pre-check seller balance so we never partial-mutate.
-        const seller_bal = self.balances.get(seller_addr) orelse 0;
-        if (seller_bal < amount_sat) return error.InsufficientBalance;
+        // Find a seller UTXO large enough to cover the fill. If none single
+        // UTXO is sufficient, we'd need to merge — for now reject.
+        const outpoint_keys = self.utxo_set.getUTXOsForAddress(seller_addr);
+        if (outpoint_keys.len == 0) return error.NoUTXO;
 
+        var chosen_idx: usize = 0;
+        var chosen_amount: u64 = 0;
+        var found = false;
+        for (outpoint_keys, 0..) |key, i| {
+            const u = self.utxo_set.utxos.get(key) orelse continue;
+            if (u.amount >= amount_sat and (!found or u.amount < chosen_amount)) {
+                chosen_idx = i;
+                chosen_amount = u.amount;
+                found = true;
+            }
+        }
+        if (!found) return error.InsufficientBalance;
+
+        const chosen_key = outpoint_keys[chosen_idx];
+        const chosen = self.utxo_set.utxos.get(chosen_key) orelse return error.NoUTXO;
+
+        // Parse the outpoint key "tx_hash:output_index" so we can call spendUTXO.
+        const colon = std.mem.lastIndexOfScalar(u8, chosen_key, ':') orelse return error.BadOutpointKey;
+        const src_tx_hash = chosen_key[0..colon];
+        const src_idx = std.fmt.parseInt(u32, chosen_key[colon + 1 ..], 10) catch return error.BadOutpointKey;
+
+        // Synthesize a fill tx hash: "fill:<fill_id>" — unique forever.
+        const fill_tx_hash = try std.fmt.allocPrint(self.allocator, "fill:{d}", .{fill_id});
+        // Buyer gets output 0; if there's change, seller gets output 1.
+        const change = chosen.amount - amount_sat;
+        const block_height: u64 = if (self.chain.items.len == 0) 0 else self.chain.items.len - 1;
+
+        // Spend the seller UTXO. spendUTXO removes it from the set + index.
+        _ = self.utxo_set.spendUTXO(src_tx_hash, src_idx) catch return error.SpendFailed;
+
+        const buyer_addr_owned = try self.allocator.dupe(u8, buyer_addr);
+        try self.utxo_set.addUTXO(
+            fill_tx_hash, 0, buyer_addr_owned, amount_sat, block_height, "", false,
+        );
+
+        if (change > 0) {
+            const seller_addr_owned = try self.allocator.dupe(u8, seller_addr);
+            try self.utxo_set.addUTXO(
+                fill_tx_hash, 1, seller_addr_owned, change, block_height, "", false,
+            );
+        }
+
+        // Also keep the RAM cache in sync so any reader using `balances`
+        // sees the right number until next UTXO sync.
         const was_in_apply = self.in_apply_block;
         self.in_apply_block = true;
         defer self.in_apply_block = was_in_apply;
-
-        try self.debitBalanceLocked(seller_addr, amount_sat);
-        try self.creditBalanceLocked(buyer_addr, amount_sat);
+        self.debitBalanceLocked(seller_addr, amount_sat) catch {};
+        self.creditBalanceLocked(buyer_addr, amount_sat) catch {};
     }
 
     pub fn applyExchangeFees(

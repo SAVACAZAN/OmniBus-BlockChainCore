@@ -12801,7 +12801,7 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 std.debug.print("[FILL-TRANSFER] attempting transfer: buyer={s} seller={s} amount={d}\n",
                     .{ buyer_addr, seller_addr, f.amount_sat });
                 ctx.bc.applyFillTransferOmniBase(
-                    buyer_addr, seller_addr, f.amount_sat,
+                    buyer_addr, seller_addr, f.amount_sat, f.fill_id,
                 ) catch |err| {
                     std.debug.print(
                         "[FILL-TRANSFER] OMNI debit/credit failed for fill {d}: {} — buyer not credited!\n",
