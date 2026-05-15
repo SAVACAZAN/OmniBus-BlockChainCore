@@ -253,7 +253,10 @@ fn parseHexU64FromQuotedField(s: []const u8) !u64 {
         hex = hex[2..];
     }
     if (hex.len == 0) return 0;
-    return std.fmt.parseInt(u64, hex, 16);
+    return std.fmt.parseInt(u64, hex, 16) catch |err| {
+        std.debug.print("[evm_rpc] parseHex failed on input='{s}' extracted='{s}'\n", .{ s, hex });
+        return err;
+    };
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────
