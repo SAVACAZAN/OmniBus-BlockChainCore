@@ -7,6 +7,7 @@ import OmniBusRpcClient, {
 } from "../../api/rpc-client";
 import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
+import { DexBuyPanel } from "./DexBuyPanel";
 import { UserOrdersPanel } from "./UserOrdersPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { BalancesPanel } from "./BalancesPanel";
@@ -415,7 +416,7 @@ export function ExchangePage() {
         </div>
 
         {/* Place order */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 space-y-3">
           <PlaceOrderForm
             pairId={pairId}
             pairLabel={pairLabel}
@@ -424,6 +425,10 @@ export function ExchangePage() {
             exchBalances={exchBalances}
             onPlaced={() => setRefreshNonce((n) => n + 1)}
           />
+          {/* On-chain DEX escrow flow — live on Sepolia for OMNI/ETH.
+              Renders unconditionally so users can discover it; the panel
+              itself shows a "not deployed" notice for unsupported chains. */}
+          <DexBuyPanel />
         </div>
 
         {/* Trades */}
