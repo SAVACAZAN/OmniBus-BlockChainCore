@@ -928,40 +928,46 @@ pub const Blockchain = struct {
         self.mutex.lock();
         defer self.mutex.unlock();
 
-        // Find a seller UTXO large enough to cover the fill. If none single
-        // UTXO is sufficient, we'd need to merge — for now reject.
-        const outpoint_keys = self.utxo_set.getUTXOsForAddress(seller_addr);
-        if (outpoint_keys.len == 0) return error.NoUTXO;
+        // Collect seller UTXOs until we cover amount_sat. Spend them all,
+        // create one buyer output, and one change output back to seller.
+        // Snapshot the keys first (spendUTXO mutates the index list).
+        const outpoint_keys_live = self.utxo_set.getUTXOsForAddress(seller_addr);
+        if (outpoint_keys_live.len == 0) return error.NoUTXO;
+        var outpoint_keys_snap = try self.allocator.alloc([]const u8, outpoint_keys_live.len);
+        defer self.allocator.free(outpoint_keys_snap);
+        for (outpoint_keys_live, 0..) |k, i| outpoint_keys_snap[i] = k;
 
-        var chosen_idx: usize = 0;
-        var chosen_amount: u64 = 0;
-        var found = false;
-        for (outpoint_keys, 0..) |key, i| {
+        var collected: u64 = 0;
+        var spent: usize = 0;
+        for (outpoint_keys_snap) |key| {
+            if (collected >= amount_sat) break;
             const u = self.utxo_set.utxos.get(key) orelse continue;
-            if (u.amount >= amount_sat and (!found or u.amount < chosen_amount)) {
-                chosen_idx = i;
-                chosen_amount = u.amount;
-                found = true;
-            }
+            collected += u.amount;
+            spent += 1;
         }
-        if (!found) return error.InsufficientBalance;
+        if (collected < amount_sat) return error.InsufficientBalance;
 
-        const chosen_key = outpoint_keys[chosen_idx];
-        const chosen = self.utxo_set.utxos.get(chosen_key) orelse return error.NoUTXO;
+        // Actually spend them. We need to make owned copies of the keys
+        // because spendUTXO frees the original (it lives in address_index
+        // which spendUTXO mutates).
+        const to_spend_keys = try self.allocator.alloc([]u8, spent);
+        defer {
+            for (to_spend_keys) |k| self.allocator.free(k);
+            self.allocator.free(to_spend_keys);
+        }
+        for (outpoint_keys_snap[0..spent], 0..) |key, i| {
+            to_spend_keys[i] = try self.allocator.dupe(u8, key);
+        }
+        for (to_spend_keys) |key| {
+            const colon = std.mem.lastIndexOfScalar(u8, key, ':') orelse return error.BadOutpointKey;
+            const src_tx_hash = key[0..colon];
+            const src_idx = std.fmt.parseInt(u32, key[colon + 1 ..], 10) catch return error.BadOutpointKey;
+            _ = self.utxo_set.spendUTXO(src_tx_hash, src_idx) catch return error.SpendFailed;
+        }
 
-        // Parse the outpoint key "tx_hash:output_index" so we can call spendUTXO.
-        const colon = std.mem.lastIndexOfScalar(u8, chosen_key, ':') orelse return error.BadOutpointKey;
-        const src_tx_hash = chosen_key[0..colon];
-        const src_idx = std.fmt.parseInt(u32, chosen_key[colon + 1 ..], 10) catch return error.BadOutpointKey;
-
-        // Synthesize a fill tx hash: "fill:<fill_id>" — unique forever.
         const fill_tx_hash = try std.fmt.allocPrint(self.allocator, "fill:{d}", .{fill_id});
-        // Buyer gets output 0; if there's change, seller gets output 1.
-        const change = chosen.amount - amount_sat;
+        const change = collected - amount_sat;
         const block_height: u64 = if (self.chain.items.len == 0) 0 else self.chain.items.len - 1;
-
-        // Spend the seller UTXO. spendUTXO removes it from the set + index.
-        _ = self.utxo_set.spendUTXO(src_tx_hash, src_idx) catch return error.SpendFailed;
 
         const buyer_addr_owned = try self.allocator.dupe(u8, buyer_addr);
         try self.utxo_set.addUTXO(
