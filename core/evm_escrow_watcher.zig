@@ -176,12 +176,17 @@ fn scanBinding(self: *Watcher, b: *Binding) !void {
         .{ b.contract, from_hex, to_hex },
     );
 
-    var resp = evm_rpc.call(self.allocator, b.rpc_url, "eth_getLogs", params_buf.items) catch return;
+    var resp = evm_rpc.call(self.allocator, b.rpc_url, "eth_getLogs", params_buf.items) catch |err| {
+        std.debug.print("[evm_escrow_watcher] getLogs call err: {s}\n", .{@errorName(err)});
+        return;
+    };
     defer resp.deinit(self.allocator);
 
-    // resp.result is a JSON array of log objects. Parse minimally —
-    // we only need topics[0], topics[1] (orderId), and `data` for the
-    // remaining fields (token, amount, omniRecipient, expiresAt).
+    // Log first 200 chars so we can see what we got back.
+    const preview_len = @min(resp.result.len, 200);
+    std.debug.print("[evm_escrow_watcher] getLogs result[0..{d}]='{s}'\n",
+        .{ preview_len, resp.result[0..preview_len] });
+
     parseLogs(self, resp.result) catch |err| {
         std.debug.print("[evm_escrow_watcher] parse err: {s}\n", .{@errorName(err)});
     };
