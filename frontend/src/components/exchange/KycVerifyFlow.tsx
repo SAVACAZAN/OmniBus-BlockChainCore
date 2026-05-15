@@ -168,11 +168,10 @@ export function KycVerifyFlow({ tier, onClose, onAttested }: Props) {
     } catch (e: any) {
       setErr(
         e?.message?.includes("not the registered KYC issuer")
-          ? "Self-attestation failed — your wallet is not the issuer. On a real deployment a separate verification service issues the attestation. For testnet, run the CLI: `omnibus-cli kyc attest --address " +
-              u.address +
-              " --level " +
-              tier +
-              "` from the operator's machine."
+          ? "Self-attestation failed — your wallet is not the KYC issuer (slot 4 = kyc.omnibus). " +
+              "On testnet, ask the operator to run this command from a machine that has the founder mnemonic:\n\n" +
+              `  omnibus-cli mica attest kyc --self --address ${u.address} --yes\n\n` +
+              "On mainnet, a separate verification service holds the issuer key and issues attestations."
           : e?.message || "Attestation failed",
       );
       setStep({ kind: "review" });
@@ -466,7 +465,7 @@ export function KycVerifyFlow({ tier, onClose, onAttested }: Props) {
       )}
 
       {err && (
-        <div className="p-2 rounded bg-red-500/10 border border-red-500/30 text-[11px] text-red-300 break-words">
+        <div className="p-2 rounded bg-red-500/10 border border-red-500/30 text-[11px] text-red-300 break-words whitespace-pre-wrap font-mono">
           {err}
         </div>
       )}
