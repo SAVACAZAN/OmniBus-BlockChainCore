@@ -219,7 +219,7 @@ fn submitSettle(
 
     const to_bytes = try evm_signer.hex0xToBytes(20, binding.dex_contract);
 
-    const tx = evm_signer.LegacyTx{
+    const tx = evm_signer.TxInput{
         .nonce       = nonce,
         .gas_price   = gp_bumped,
         .gas_limit   = 120_000, // ERC-20 transfer + sstore ≈ 60-90k; 120k = comfortable

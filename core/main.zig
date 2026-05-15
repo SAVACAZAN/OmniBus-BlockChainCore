@@ -89,6 +89,8 @@ const tx_receipt_mod   = @import("tx_receipt.zig");
 const guardian_mod     = @import("guardian.zig");
 const dns_mod          = @import("dns_registry.zig");
 const registrar_mod    = @import("registrar_addresses.zig");
+const dex_settler_mod  = @import("dex_settler.zig");
+const evm_signer_mod   = @import("evm_signer.zig");
 const peer_scoring_mod = @import("peer_scoring.zig");
 const peer_persist_mod = @import("peer_persist.zig");
 const compact_mod      = @import("compact_blocks.zig");
@@ -2047,6 +2049,85 @@ pub fn main() !void {
             std.debug.print("[GRID] Grid engine ON — registry: {s} ({d} grids loaded)\n", .{ p, gr.count });
         }
     }
+
+    // ── DEX settler — auto-submit settle() to EVM at fill time ────────────
+    //
+    // Spawns ONE background thread that watches the matching engine fills
+    // for OMNI/<EVM-token> pairs and submits OmnibusDEX.settle(orderId,
+    // sellerEvm) on the appropriate EVM chain. Skips fills with no EVM
+    // counterparty (pure OmniBus settle handled by the matching engine).
+    //
+    // Operator key = slot 2 (exchange.omnibus) derived at runtime from the
+    // founder mnemonic at m/44'/60'/0'/0/2 — never written to disk.
+    //
+    // Bindings are read from `evm/deployed_addresses.json` indirectly: we
+    // hardcode the Sepolia binding here (the only live deployment as of
+    // 2026-05-15). When OmnibusDEX is deployed on more chains, add entries
+    // to the `dex_bindings` slice below.
+    var dex_settler_handle: ?*dex_settler_mod.Settler = null;
+    if (bc.exchange_engine) |engine| blk_dex: {
+        var bip32_dex = bip32_wallet_mod.BIP32Wallet.initFromMnemonic(mnemonic, allocator) catch |e| {
+            std.debug.print("[DEX_SETTLER] cannot derive operator key: {s} — settler not spawned\n", .{@errorName(e)});
+            break :blk_dex;
+        };
+        const op_priv = bip32_dex.deriveChildKeyForPath(44, 60, 2) catch |e| {
+            std.debug.print("[DEX_SETTLER] derive(44,60,2) failed: {s}\n", .{@errorName(e)});
+            break :blk_dex;
+        };
+        // Derive operator EVM address from the privkey so the settler can
+        // log it / cross-check against the contract's `operator` storage.
+        const Ecdsa = std.crypto.sign.ecdsa.EcdsaSecp256k1Sha256;
+        const sk = Ecdsa.SecretKey.fromBytes(op_priv) catch break :blk_dex;
+        const kp = Ecdsa.KeyPair.fromSecretKey(sk) catch break :blk_dex;
+        const pub_unc = kp.public_key.toUncompressedSec1();
+        var keccak_buf: [32]u8 = undefined;
+        std.crypto.hash.sha3.Keccak256.hash(pub_unc[1..65], &keccak_buf, .{});
+        var op_addr20: [20]u8 = undefined;
+        @memcpy(&op_addr20, keccak_buf[12..32]);
+
+        const operator_key = evm_signer_mod.SigningKey{
+            .private_key = op_priv,
+            .address = op_addr20,
+        };
+
+        // Single Sepolia binding: OmnibusDEX at 0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d.
+        // Currently the matching engine has no pair that bridges to this
+        // contract on its own — the binding is here so when the cross-chain
+        // pair lands, the settler is ready. pair_id 6 = OMNI/ETH (Sepolia).
+        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 1) catch break :blk_dex;
+        bindings[0] = .{
+            .pair_id = 6, // OMNI/ETH per CLAUDE.md fixed pair table
+            .chain_id = 11155111,
+            .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
+            .dex_contract = "0xa7B3E0Abd3501265C2275DB7dC26CB64b824589d",
+        };
+
+        const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;
+        settler.* = dex_settler_mod.Settler.init(
+            allocator,
+            .{
+                .operator_key = operator_key,
+                .bindings = bindings,
+                .poll_ms = 2_000,
+                .cursor_path = "data/dex_settler_cursor.bin",
+            },
+            engine,
+        );
+        settler.start() catch |e| {
+            std.debug.print("[DEX_SETTLER] start failed: {s}\n", .{@errorName(e)});
+            break :blk_dex;
+        };
+        dex_settler_handle = settler;
+
+        // Print the operator address using same hex format as on the contract.
+        std.debug.print("[DEX_SETTLER] ON — operator 0x", .{});
+        for (op_addr20) |b| std.debug.print("{x:0>2}", .{b});
+        std.debug.print(" watches engine, sepolia binding active\n", .{});
+    } else {
+        std.debug.print("[DEX_SETTLER] exchange_engine not enabled — settler skipped\n", .{});
+    }
+    // dex_settler_handle is intentionally kept alive for the lifetime of
+    // the process; shutdown signal handling is best-effort in mainnet.
 
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
