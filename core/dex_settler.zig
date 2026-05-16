@@ -185,6 +185,10 @@ fn scanOnce(self: *Settler) !void {
             saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
             continue;
         }
+        std.debug.print(
+            "[dex_settler] processing fill {d} pair={d} target_chain={d} binding_chain={d}\n",
+            .{ fill.fill_id, fill.pair_id, target_chain_id, binding.chain_id },
+        );
         submitSettle(self, binding, fill.evm_order_id, fill.fill_id, seller_hex) catch |err| {
             std.debug.print(
                 "[dex_settler] fill {d} settle failed: {s} — will retry next tick\n",
@@ -257,12 +261,28 @@ fn submitSettle(
     const op_addr_hex = try operatorAddrHex(self.cfg.operator_key.address, alloc);
     defer alloc.free(op_addr_hex);
 
-    const nonce      = try evm_rpc.getTransactionCount(alloc, binding.rpc_url, op_addr_hex);
-    const gas_price  = try evm_rpc.gasPrice(alloc, binding.rpc_url);
-    // Apply a 1.25× margin to the gas price so the tx survives a base-fee
-    // bump while it's in the mempool. Integer math: gp * 5 / 4.
+    std.debug.print(
+        "[dex_settler] submitSettle START fill={d} order={d} chain={d} contract={s}\n",
+        .{ fill_id, order_id, binding.chain_id, binding.dex_contract },
+    );
+
+    const nonce = evm_rpc.getTransactionCount(alloc, binding.rpc_url, op_addr_hex) catch |e| {
+        std.debug.print("[dex_settler] getTxCount err: {s}\n", .{@errorName(e)});
+        return e;
+    };
+    const gas_price = evm_rpc.gasPrice(alloc, binding.rpc_url) catch |e| {
+        std.debug.print("[dex_settler] gasPrice err: {s}\n", .{@errorName(e)});
+        return e;
+    };
     const gp_bumped = gas_price +| (gas_price / 4);
-    const chain_id_live = try evm_rpc.chainId(alloc, binding.rpc_url);
+    const chain_id_live = evm_rpc.chainId(alloc, binding.rpc_url) catch |e| {
+        std.debug.print("[dex_settler] chainId err: {s}\n", .{@errorName(e)});
+        return e;
+    };
+    std.debug.print(
+        "[dex_settler] nonce={d} gas_price={d} chain_live={d} chain_cfg={d}\n",
+        .{ nonce, gp_bumped, chain_id_live, binding.chain_id },
+    );
     if (chain_id_live != binding.chain_id) {
         std.debug.print(
             "[dex_settler] chain_id mismatch: cfg={d} rpc={d}\n",
