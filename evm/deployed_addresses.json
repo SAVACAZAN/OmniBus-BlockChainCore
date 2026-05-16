@@ -27,6 +27,15 @@
       "deployed": "2026-05-15",
       "compiler": "solc 0.8.24 optimizer 200 runs"
     },
+    "421614": {
+      "network": "arbSepolia",
+      "address": "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0x2a7b19e77728336f11bf6030dacc39bf500b8b4e36bb89a353ee3d8f90a98f9a",
+      "deployed": "2026-05-16",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
+    },
     "11155111": {
       "network": "sepolia",
       "address": "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
@@ -34,6 +43,15 @@
       "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
       "tx": "0x43c03dc4954f4872d56c20bc11dff60597188f13e6eccb0b2b33d7eae7fc8025",
       "deployed": "2026-05-15",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
+    },
+    "11155420": {
+      "network": "opSepolia",
+      "address": "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0x1eab3830db0a27905444236d2659b9901e7de3926d49fcfb7ec20fbdd7bae2c6",
+      "deployed": "2026-05-16",
       "compiler": "solc 0.8.24 optimizer 200 runs"
     }
   }

@@ -28,6 +28,10 @@ const NETWORKS: Record<string, { rpc: string; chainId: number; explorer: string 
   sepolia:     { rpc: "https://sepolia.drpc.org",   chainId: 11155111, explorer: "https://sepolia.etherscan.io" },
   baseSepolia: { rpc: "https://sepolia.base.org",   chainId: 84532,    explorer: "https://sepolia.basescan.org" },
   liberty:     { rpc: "https://rpc.testnet.lcx.com", chainId: 76847801, explorer: "" },
+  arbSepolia:  { rpc: "https://sepolia-rollup.arbitrum.io/rpc", chainId: 421614,   explorer: "https://sepolia.arbiscan.io" },
+  opSepolia:   { rpc: "https://sepolia.optimism.io",            chainId: 11155420, explorer: "https://sepolia-optimism.etherscan.io" },
+  polygonAmoy: { rpc: "https://rpc-amoy.polygon.technology",    chainId: 80002,    explorer: "https://amoy.polygonscan.com" },
+  avaxFuji:    { rpc: "https://api.avax-test.network/ext/bc/C/rpc", chainId: 43113, explorer: "https://testnet.snowtrace.io" },
 };
 
 const OPERATOR = "0xA66235662c363e9915b6353f79df309F67D146A6"; // slot 2 exchange.omnibus (EIP-55)

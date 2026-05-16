@@ -59,6 +59,26 @@ const config: HardhatUserConfig = {
       chainId: 76847801,
       accounts,
     },
+    arbSepolia: {
+      url: process.env.ARB_SEPOLIA_RPC_URL ?? "https://sepolia-rollup.arbitrum.io/rpc",
+      chainId: 421614,
+      accounts,
+    },
+    opSepolia: {
+      url: process.env.OP_SEPOLIA_RPC_URL ?? "https://sepolia.optimism.io",
+      chainId: 11155420,
+      accounts,
+    },
+    polygonAmoy: {
+      url: process.env.POLYGON_AMOY_RPC_URL ?? "https://rpc-amoy.polygon.technology",
+      chainId: 80002,
+      accounts,
+    },
+    avaxFuji: {
+      url: process.env.AVAX_FUJI_RPC_URL ?? "https://api.avax-test.network/ext/bc/C/rpc",
+      chainId: 43113,
+      accounts,
+    },
   },
 
   // Optional Etherscan/Basescan keys for `npm run verify`. Not required
