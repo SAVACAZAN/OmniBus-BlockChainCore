@@ -12927,9 +12927,17 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         // the fill itself already succeeded.
         if (ctx.fills_log) |flog| {
             const taker_side_byte: u8 = if (side == .buy) 0 else 1;
-            // pair_id 0 (USDC), 6 (ETH) cross-chain to Sepolia (11155111).
-            // pair_id 5 (LCX) lands on Liberty (8888) — wire when binding lands.
-            const evm_chain_id: u64 = if (f.pair_id == 0 or f.pair_id == 6) 11155111 else 0;
+            // Read the actual chain_id from the EVM escrow (watcher tagged
+            // it at OrderPlaced time). Falls back to 0 (= OMNI-only fill)
+            // for non-cross-chain pairs or when watcher isn't running.
+            var evm_chain_id: u64 = 0;
+            if (f.evm_order_id != 0) {
+                if (ctx.evm_escrow_watcher) |w| {
+                    if (w.getOpen(f.evm_order_id)) |esc| {
+                        evm_chain_id = esc.chain_id;
+                    }
+                }
+            }
             flog.append(f, taker_side_byte, block_height_now, evm_chain_id) catch |err| {
                 std.debug.print(
                     "[FILLS-LOG] append failed for fill {d}: {} — entry skipped\n",
