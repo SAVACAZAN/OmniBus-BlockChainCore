@@ -32,6 +32,8 @@ const NETWORKS: Record<string, { rpc: string; chainId: number; explorer: string 
   opSepolia:   { rpc: "https://sepolia.optimism.io",            chainId: 11155420, explorer: "https://sepolia-optimism.etherscan.io" },
   polygonAmoy: { rpc: "https://rpc-amoy.polygon.technology",    chainId: 80002,    explorer: "https://amoy.polygonscan.com" },
   avaxFuji:    { rpc: "https://api.avax-test.network/ext/bc/C/rpc", chainId: 43113, explorer: "https://testnet.snowtrace.io" },
+  soneiumMinato: { rpc: "https://rpc.minato.soneium.org", chainId: 1946, explorer: "https://soneium-minato.blockscout.com" },
+  arcTestnet:    { rpc: "https://rpc.testnet.arc.network", chainId: 5042002, explorer: "https://testnet.arcscan.app" },
 };
 
 const OPERATOR = "0xA66235662c363e9915b6353f79df309F67D146A6"; // slot 2 exchange.omnibus (EIP-55)

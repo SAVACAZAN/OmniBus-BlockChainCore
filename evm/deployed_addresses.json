@@ -18,6 +18,15 @@
     "note": "ERC20 HTLC for USDC — not yet deployed. Use ETH HTLC for now."
   },
   "OmnibusDEX": {
+    "1946": {
+      "network": "soneiumMinato",
+      "address": "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0xd739dab3e6fc5c450fa11091a1a51cc71edd9c23737082f0d449d758bb598dea",
+      "deployed": "2026-05-16",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
+    },
     "84532": {
       "network": "baseSepolia",
       "address": "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",

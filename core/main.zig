@@ -2089,7 +2089,7 @@ pub fn main() !void {
     // Add more chains (Base, Optimism, Liberty) by extending watcher_bindings.
     var evm_watcher_handle: ?*evm_escrow_mod.Watcher = null;
     {
-        const bindings = allocator.alloc(evm_escrow_mod.Binding, 4) catch null;
+        const bindings = allocator.alloc(evm_escrow_mod.Binding, 5) catch null;
         if (bindings) |bs| {
             bs[0] = .{
                 .chain_id = 11155111,
@@ -2109,6 +2109,11 @@ pub fn main() !void {
             bs[3] = .{
                 .chain_id = 11155420,
                 .rpc_url = "https://sepolia.optimism.io",
+                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
+            };
+            bs[4] = .{
+                .chain_id = 1946,
+                .rpc_url = "https://rpc.minato.soneium.org",
                 .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
             };
             const w = allocator.create(evm_escrow_mod.Watcher) catch null;
@@ -2180,7 +2185,7 @@ pub fn main() !void {
         // Pair_id × chain_id grid. EURC (pair 1) only where Circle has it
         // deployed (Sepolia + Base Sepolia). USDC + native everywhere else.
         // pair_id 5 (OMNI/LCX) reserved for Liberty when RPC comes back.
-        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 10) catch break :blk_dex;
+        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 11) catch break :blk_dex;
         // Sepolia
         bindings[0] = .{ .pair_id = 0, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
         bindings[1] = .{ .pair_id = 6, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
@@ -2195,6 +2200,9 @@ pub fn main() !void {
         // OP Sepolia (deployed 2026-05-16)
         bindings[8] = .{ .pair_id = 0, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
         bindings[9] = .{ .pair_id = 6, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
+        // Soneium Minato (deployed 2026-05-16 via Sepolia bridge)
+        // No USDC oficial Circle on Minato yet; only native ETH pair_id=6.
+        bindings[10] = .{ .pair_id = 6, .chain_id = 1946, .rpc_url = "https://rpc.minato.soneium.org", .dex_contract = dex_create2_addr };
 
         const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;
         settler.* = dex_settler_mod.Settler.init(

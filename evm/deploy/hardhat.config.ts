@@ -79,6 +79,16 @@ const config: HardhatUserConfig = {
       chainId: 43113,
       accounts,
     },
+    soneiumMinato: {
+      url: process.env.SONEIUM_MINATO_RPC_URL ?? "https://rpc.minato.soneium.org",
+      chainId: 1946,
+      accounts,
+    },
+    arcTestnet: {
+      url: process.env.ARC_TESTNET_RPC_URL ?? "https://rpc.testnet.arc.network",
+      chainId: 5042002,
+      accounts,
+    },
   },
 
   // Optional Etherscan/Basescan keys for `npm run verify`. Not required

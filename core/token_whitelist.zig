@@ -67,6 +67,9 @@ pub const WHITELIST = [_]Entry{
     // too — semantically pair_id=6 is "OMNI/native".
     .{ .pair_id = 6, .chain_id = 80002,    .token = NATIVE_TOKEN,      .label = "MATIC (native, Polygon Amoy)" },
     .{ .pair_id = 6, .chain_id = 43113,    .token = NATIVE_TOKEN,      .label = "AVAX (native, Avalanche Fuji)" },
+    // Soneium Minato L2 (deployed 2026-05-16). ETH gas asset via OP Stack
+    // bridge from Sepolia. No Circle USDC on Minato yet.
+    .{ .pair_id = 6, .chain_id = 1946,     .token = NATIVE_TOKEN,      .label = "ETH (native, Soneium Minato)" },
 
     // pair_id 1 — OMNI/EURC (Circle euro stablecoin).
     .{ .pair_id = 1, .chain_id = 11155111, .token = EURC_SEPOLIA,      .label = "EURC (Circle, Sepolia)" },
