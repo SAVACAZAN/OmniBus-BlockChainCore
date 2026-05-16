@@ -62,6 +62,15 @@
       "tx": "0x1eab3830db0a27905444236d2659b9901e7de3926d49fcfb7ec20fbdd7bae2c6",
       "deployed": "2026-05-16",
       "compiler": "solc 0.8.24 optimizer 200 runs"
+    },
+    "76847801": {
+      "network": "liberty",
+      "address": "0xE4a3965C4B5205D28259D1CC82fD54060B0bCd19",
+      "deployer": "0xc5A63d78B451768Ba1dc799Fb08Ad41c6b37C938",
+      "operator": "0xA66235662c363e9915b6353f79df309F67D146A6",
+      "tx": "0x3cf1a779ec378a11c3c14cbee95fe69025df731687b68c83dcc5238748c3360a",
+      "deployed": "2026-05-16",
+      "compiler": "solc 0.8.24 optimizer 200 runs"
     }
   }
 }

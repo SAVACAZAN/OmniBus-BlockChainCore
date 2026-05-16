@@ -27,7 +27,7 @@ import * as readline from "readline";
 const NETWORKS: Record<string, { rpc: string; chainId: number; explorer: string }> = {
   sepolia:     { rpc: "https://sepolia.drpc.org",   chainId: 11155111, explorer: "https://sepolia.etherscan.io" },
   baseSepolia: { rpc: "https://sepolia.base.org",   chainId: 84532,    explorer: "https://sepolia.basescan.org" },
-  liberty:     { rpc: "https://rpc.testnet.lcx.com", chainId: 76847801, explorer: "" },
+  liberty:     { rpc: "https://testnet-rpc.lcx.com", chainId: 76847801, explorer: "https://testnet-explorer.lcx.com" },
   arbSepolia:  { rpc: "https://sepolia-rollup.arbitrum.io/rpc", chainId: 421614,   explorer: "https://sepolia.arbiscan.io" },
   opSepolia:   { rpc: "https://sepolia.optimism.io",            chainId: 11155420, explorer: "https://sepolia-optimism.etherscan.io" },
   polygonAmoy: { rpc: "https://rpc-amoy.polygon.technology",    chainId: 80002,    explorer: "https://amoy.polygonscan.com" },

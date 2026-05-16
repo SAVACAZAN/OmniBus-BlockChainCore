@@ -58,6 +58,8 @@ const EVM_RPC: Record<string, string> = {
   OP_SEPOLIA:    "https://sepolia.optimism.io",
   POLYGON_AMOY:  "https://rpc-amoy.polygon.technology",
   AVAX_FUJI:     "https://api.avax-test.network/ext/bc/C/rpc",
+  // Soneium Minato (OP Stack L2 on Sepolia, chainId 1946) — ETH gas
+  SONEIUM_MINATO: "https://rpc.minato.soneium.org",
 };
 
 // USDC contract addresses (Circle official only — no bridged variants)

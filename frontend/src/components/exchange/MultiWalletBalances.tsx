@@ -53,6 +53,8 @@ const COLS = [
   { key: "usdcFuji",   label: "USDC Fuji",  sym: "USDC", isSat: false },
   // LCX Liberty
   { key: "lcxLib",     label: "LCX Lib",    sym: "LCX",  isSat: false },
+  // Soneium Minato (OP Stack L2, ETH gas)
+  { key: "ethMinato",  label: "ETH Minato", sym: "ETH",  isSat: false },
   // XRP testnet
   { key: "xrpTest",    label: "XRP Test",   sym: "XRP",  isSat: false },
 ] as const;
@@ -80,6 +82,7 @@ type WRow = {
   usdcAmoy: BalVal;
   usdcFuji: BalVal;
   lcxLib: BalVal;
+  ethMinato: BalVal;
   xrpTest: BalVal;
 };
 
@@ -220,6 +223,8 @@ export function MultiWalletBalances() {
       fetches.push(fetchUsdcBalance("AVAX_FUJI", evmAddr).then(b => upd("usdcFuji", b ? Number(b.native) : null)).catch(() => upd("usdcFuji", null)));
       // LCX Liberty — native LCX token
       fetches.push(fetchLcxBalance("LIBERTY", evmAddr).then(b => upd("lcxLib", b ? Number(b.native) : null)).catch(() => upd("lcxLib", null)));
+      // Soneium Minato — native ETH (OP Stack L2)
+      fetches.push(fetchEvmBalance("SONEIUM_MINATO", evmAddr).then(b => upd("ethMinato", b ? Number(b.native) : null)).catch(() => upd("ethMinato", null)));
     }
 
     // XRP testnet — per-slot fetch (each BIP-44 m/44'/144'/0'/0/i derives a

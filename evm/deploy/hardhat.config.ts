@@ -55,7 +55,7 @@ const config: HardhatUserConfig = {
       accounts,
     },
     liberty: {
-      url: process.env.LIBERTY_RPC_URL ?? "https://rpc.testnet.lcx.com",
+      url: process.env.LIBERTY_RPC_URL ?? "https://testnet-rpc.lcx.com",
       chainId: 76847801,
       accounts,
     },
