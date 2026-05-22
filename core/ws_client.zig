@@ -143,6 +143,63 @@ fn tcpConnect(gpa: Allocator, host: []const u8, port: u16) !std.net.Stream {
     return std.net.tcpConnectToHost(gpa, host, port);
 }
 
+// Build a Transport from an already-connected sock.  On failure the function
+// closes sock itself, so the caller never double-closes on error return.
+fn initTransport(gpa: Allocator, sock: std.net.Stream, host: []const u8, tls: bool) !Transport {
+    if (!tls) return Transport{ .plain = sock };
+
+    errdefer sock.close();
+
+    const stream_reader = try gpa.create(std.net.Stream.Reader);
+    errdefer gpa.destroy(stream_reader);
+    const stream_writer = try gpa.create(std.net.Stream.Writer);
+    errdefer gpa.destroy(stream_writer);
+    const tls_client = try gpa.create(std.crypto.tls.Client);
+    errdefer gpa.destroy(tls_client);
+
+    const min_len = std.crypto.tls.Client.min_buffer_len;
+    const sock_read_buf = try gpa.alloc(u8, min_len);
+    errdefer gpa.free(sock_read_buf);
+    const sock_write_buf = try gpa.alloc(u8, min_len);
+    errdefer gpa.free(sock_write_buf);
+    const tls_read_buf = try gpa.alloc(u8, min_len);
+    errdefer gpa.free(tls_read_buf);
+    const tls_write_buf = try gpa.alloc(u8, min_len);
+    errdefer gpa.free(tls_write_buf);
+
+    stream_reader.* = sock.reader(sock_read_buf);
+    stream_writer.* = sock.writer(sock_write_buf);
+
+    var ca_bundle: std.crypto.Certificate.Bundle = .{};
+    errdefer ca_bundle.deinit(gpa);
+    try ca_bundle.rescan(gpa);
+
+    tls_client.* = try std.crypto.tls.Client.init(
+        stream_reader.interface(),
+        &stream_writer.interface,
+        .{
+            .host = .{ .explicit = host },
+            .ca = .{ .bundle = ca_bundle },
+            .read_buffer = tls_read_buf,
+            .write_buffer = tls_write_buf,
+            // We do our own framing (RFC 6455) so we never let TLS
+            // truncation be silently turned into "EOF". Keep strict.
+            .allow_truncation_attacks = false,
+        },
+    );
+
+    return Transport{ .tls = .{
+        .tls_client = tls_client,
+        .stream_reader = stream_reader,
+        .stream_writer = stream_writer,
+        .tls_read_buf = tls_read_buf,
+        .tls_write_buf = tls_write_buf,
+        .sock_read_buf = sock_read_buf,
+        .sock_write_buf = sock_write_buf,
+        .ca_bundle = ca_bundle,
+    } };
+}
+
 // ─── Helpers: handshake key generation + accept verification ─────────────────
 
 const ws_guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -257,63 +314,9 @@ pub const WsClient = struct {
         tls: bool,
     ) !*WsClient {
         const sock = try tcpConnect(allocator, host, port);
-        errdefer sock.close();
-
-        var transport: Transport = blk: {
-            if (!tls) break :blk Transport{ .plain = sock };
-
-            // Set up TLS over this socket. We must heap-allocate everything the
-            // tls.Client borrows pointers into so they outlive this stack frame.
-            const stream_reader = try allocator.create(std.net.Stream.Reader);
-            errdefer allocator.destroy(stream_reader);
-            const stream_writer = try allocator.create(std.net.Stream.Writer);
-            errdefer allocator.destroy(stream_writer);
-            const tls_client = try allocator.create(std.crypto.tls.Client);
-            errdefer allocator.destroy(tls_client);
-
-            // Buffers — sizes per std.crypto.tls.Client.min_buffer_len recommendation.
-            const min_len = std.crypto.tls.Client.min_buffer_len;
-            const sock_read_buf = try allocator.alloc(u8, min_len);
-            errdefer allocator.free(sock_read_buf);
-            const sock_write_buf = try allocator.alloc(u8, min_len);
-            errdefer allocator.free(sock_write_buf);
-            const tls_read_buf = try allocator.alloc(u8, min_len);
-            errdefer allocator.free(tls_read_buf);
-            const tls_write_buf = try allocator.alloc(u8, min_len);
-            errdefer allocator.free(tls_write_buf);
-
-            stream_reader.* = sock.reader(sock_read_buf);
-            stream_writer.* = sock.writer(sock_write_buf);
-
-            var ca_bundle: std.crypto.Certificate.Bundle = .{};
-            errdefer ca_bundle.deinit(allocator);
-            try ca_bundle.rescan(allocator);
-
-            tls_client.* = try std.crypto.tls.Client.init(
-                stream_reader.interface(),
-                &stream_writer.interface,
-                .{
-                    .host = .{ .explicit = host },
-                    .ca = .{ .bundle = ca_bundle },
-                    .read_buffer = tls_read_buf,
-                    .write_buffer = tls_write_buf,
-                    // We do our own framing (RFC 6455) so we never let TLS
-                    // truncation be silently turned into "EOF". Keep strict.
-                    .allow_truncation_attacks = false,
-                },
-            );
-
-            break :blk Transport{ .tls = .{
-                .tls_client = tls_client,
-                .stream_reader = stream_reader,
-                .stream_writer = stream_writer,
-                .tls_read_buf = tls_read_buf,
-                .tls_write_buf = tls_write_buf,
-                .sock_read_buf = sock_read_buf,
-                .sock_write_buf = sock_write_buf,
-                .ca_bundle = ca_bundle,
-            } };
-        };
+        // initTransport takes ownership of sock; it closes it on any error so
+        // we never attempt a double-close here.
+        var transport = try initTransport(allocator, sock, host, tls);
         errdefer transport.close(allocator);
 
         // ── HTTP/1.1 Upgrade handshake ──────────────────────────────────
