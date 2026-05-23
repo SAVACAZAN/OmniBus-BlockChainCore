@@ -201,8 +201,8 @@ fn mempoolVerifierFn(ctx_opt: ?*anyopaque, tx: *const transaction_mod.Transactio
             // *bad* signatures, not missing ones.
             break :blk true;
         },
-        .love_dilithium, .food_falcon, .rent_slh_dsa => tx.verifySignature(null),
-        .vacation_kem => false, // KEM doesn't sign — never accept as a TX
+        .love_dilithium, .food_falcon, .rent_ml_dsa, .vacation_slh_dsa
+            => tx.verifySignature(null),
         .pq_omni_ml_dsa, .pq_omni_falcon, .pq_omni_dilithium, .pq_omni_slh_dsa,
         .hybrid_q1, .hybrid_q2, .hybrid_q3, .hybrid_q4 => tx.verifySignature(null),
     };
@@ -1352,9 +1352,21 @@ pub fn main() !void {
         }
     };
 
+    // OMNIBUS_DATA_DIR lets a second process (e.g. a miner co-hosted with a
+    // seed) use a separate directory so they don't fight over the same file.
+    // Example: OMNIBUS_DATA_DIR=/root/omnibus-blockchain/data/miner-testnet
+    const env_data_dir = std.process.getEnvVarOwned(allocator, "OMNIBUS_DATA_DIR") catch null;
+    defer if (env_data_dir) |d| allocator.free(d);
+
     // Mainnet only: prefer legacy file if it exists (back-compat).
     // Testnet/regtest/devnet: ALWAYS use data/{chain}/chain.dat — never legacy.
     const db_path: []u8 = blk: {
+        if (env_data_dir) |dir| {
+            std.fs.cwd().makePath(dir) catch {};
+            const p = try std.fmt.allocPrint(allocator, "{s}/chain.dat", .{dir});
+            std.debug.print("[DB] Using chain DB at {s} (OMNIBUS_DATA_DIR)\n", .{p});
+            break :blk p;
+        }
         if (std.mem.eql(u8, short_name, "mainnet")) {
             const legacy_exists = std.fs.cwd().access(LEGACY_DB_PATH, .{}) catch null;
             if (legacy_exists != null) {
@@ -2190,7 +2202,7 @@ pub fn main() !void {
         // Pair_id × chain_id grid. EURC (pair 1) only where Circle has it
         // deployed (Sepolia + Base Sepolia). USDC + native everywhere else.
         // pair_id 5 (OMNI/LCX) reserved for Liberty when RPC comes back.
-        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 12) catch break :blk_dex;
+        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 16) catch break :blk_dex;
         // Sepolia
         bindings[0] = .{ .pair_id = 0, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
         bindings[1] = .{ .pair_id = 6, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
@@ -2211,6 +2223,11 @@ pub fn main() !void {
         // LCX Liberty Chain testnet (OP Stack L2 on Sepolia, ETH gas).
         // Different deploy address because slot 6 had prior nonce on Liberty.
         bindings[11] = .{ .pair_id = 6, .chain_id = 76847801, .rpc_url = "https://testnet-rpc.lcx.com", .dex_contract = "0xE4a3965C4B5205D28259D1CC82fD54060B0bCd19" };
+        // pair_id 7 (OMNI/LINK) on chains where DEX deployed and LINK confirmed.
+        bindings[12] = .{ .pair_id = 7, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
+        bindings[13] = .{ .pair_id = 7, .chain_id = 84532, .rpc_url = "https://sepolia.base.org", .dex_contract = dex_create2_addr };
+        bindings[14] = .{ .pair_id = 7, .chain_id = 421614, .rpc_url = "https://sepolia-rollup.arbitrum.io/rpc", .dex_contract = dex_create2_addr };
+        bindings[15] = .{ .pair_id = 7, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
 
         const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;
         settler.* = dex_settler_mod.Settler.init(
@@ -2587,6 +2604,13 @@ pub fn main() !void {
         // tip.timestamp is in seconds, far too coarse.
         const SLOT_TIMEOUT_MS: i64 = 300;
         {
+            // Guard: chain should always contain genesis, but if another thread
+            // is mid-reset (DB reload, fork resolution), len can transiently be 0.
+            // Skip this slot rather than panic on out-of-bounds index.
+            if (bc.chain.items.len == 0) {
+                std.Thread.sleep(50 * std.time.ns_per_ms);
+                continue;
+            }
             const tip = bc.chain.items[bc.chain.items.len - 1];
             const slot_id: u64 = @intCast(bc.chain.items.len); // = next block index
             const leader = validator_mod.leaderForSlot(
