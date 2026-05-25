@@ -66,6 +66,9 @@ pub const Config = struct {
     /// pair_id has bindings on multiple chains. Without this it falls
     /// back to the first binding for that pair_id.
     escrow_watcher: ?*evm_escrow_mod.Watcher = null,
+    /// Sidecar file mapping fill_id → evm_order_id. Written for every new
+    /// EVM fill seen; read at startup to replay fills lost at last crash.
+    evm_index_path: []const u8 = "dex_settler_evm_index.bin",
 };
 
 /// Internal handle. Owned by the spawner.
@@ -113,6 +116,9 @@ pub const Settler = struct {
 // ── Worker loop ───────────────────────────────────────────────────────────
 
 fn workerLoop(self: *Settler) void {
+    // One-time startup replay: re-settle any fills matched before last crash.
+    replayPendingFills(self);
+
     while (!self.stop_flag.load(.acquire)) {
         scanOnce(self) catch |err| {
             std.debug.print("[dex_settler] tick err: {s}\n", .{@errorName(err)});
@@ -132,6 +138,12 @@ fn scanOnce(self: *Settler) !void {
     while (i < n) : (i += 1) {
         const fill = &self.engine.fills[i];
         if (fill.fill_id <= self.last_settled_fill_id) continue;
+
+        // Persist (fill_id → evm_order_id) so startup replay can recover
+        // fills that were matched but not yet settled before a crash.
+        if (fill.evm_order_id != 0) {
+            appendEvmIndex(self.cfg.evm_index_path, fill.fill_id, fill.evm_order_id);
+        }
 
         // Look up the escrow's chain_id so we pick the right binding when
         // a pair_id has bindings on more than one chain. Falls back to the
@@ -153,10 +165,25 @@ fn scanOnce(self: *Settler) !void {
 
         // The sell order carries seller_evm — the 20-byte EVM address where
         // the buyer's escrowed quote token should be delivered. If unset
-        // (all-zero), the seller didn't request an EVM payout; skip.
+        // (all-zero) but the BUY side locked an escrow (evm_order_id != 0),
+        // we have a stuck-escrow situation: the buyer paid on EVM but the
+        // seller never told us where to send the funds. Refuse to advance
+        // the cursor so the operator notices (instead of silently leaking
+        // a fill into the "skip" branch and locking the buyer's tokens
+        // forever — cf. LINK fill #13 2026-05-16). RPC guard at
+        // rpc_server.zig now blocks SELL without sellerEvm on EVM pairs,
+        // so reaching this branch with evm_order_id != 0 means a stale
+        // fill from before the guard or a bug. Log loudly and bail.
         var all_zero = true;
         for (fill.seller_evm) |b| { if (b != 0) { all_zero = false; break; } }
         if (all_zero) {
+            if (fill.evm_order_id != 0) {
+                std.debug.print(
+                    "[dex_settler] STUCK fill {d} pair={d} evm_order_id={d}: seller_evm is zero but BUY has escrow — refusing to advance cursor. Manually cancel the EVM escrow or operator-settle to a recovery address.\n",
+                    .{ fill.fill_id, fill.pair_id, fill.evm_order_id },
+                );
+                return; // bail without advancing cursor
+            }
             self.last_settled_fill_id = fill.fill_id;
             saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
             continue;
@@ -262,8 +289,8 @@ fn submitSettle(
     defer alloc.free(op_addr_hex);
 
     std.debug.print(
-        "[dex_settler] submitSettle START fill={d} order={d} chain={d} contract={s}\n",
-        .{ fill_id, order_id, binding.chain_id, binding.dex_contract },
+        "[dex_settler] submitSettle START fill={d} order={d} chain={d} contract={s} op={s}\n",
+        .{ fill_id, order_id, binding.chain_id, binding.dex_contract, op_addr_hex },
     );
 
     const nonce = evm_rpc.getTransactionCount(alloc, binding.rpc_url, op_addr_hex) catch |e| {
@@ -342,6 +369,123 @@ fn submitSettle(
                 .{ fill_id, @errorName(err) },
             );
         };
+    }
+}
+
+// ── EVM index sidecar ─────────────────────────────────────────────────────
+// 16-byte records: fill_id(u64 LE) + evm_order_id(u64 LE).
+// Written for each new EVM fill; read at startup to replay lost fills.
+
+fn appendEvmIndex(path: []const u8, fill_id: u64, evm_order_id: u64) void {
+    var buf: [16]u8 = undefined;
+    std.mem.writeInt(u64, buf[0..8], fill_id, .little);
+    std.mem.writeInt(u64, buf[8..16], evm_order_id, .little);
+    const f = std.fs.cwd().createFile(path, .{ .truncate = false }) catch return;
+    defer f.close();
+    f.seekFromEnd(0) catch return;
+    f.writeAll(&buf) catch return;
+}
+
+fn loadEvmIndex(allocator: std.mem.Allocator, path: []const u8) std.AutoHashMap(u64, u64) {
+    var map = std.AutoHashMap(u64, u64).init(allocator);
+    const f = std.fs.cwd().openFile(path, .{}) catch return map;
+    defer f.close();
+    var buf: [16]u8 = undefined;
+    while (true) {
+        const n = f.readAll(&buf) catch break;
+        if (n < 16) break;
+        const fid = std.mem.readInt(u64, buf[0..8], .little);
+        const oid = std.mem.readInt(u64, buf[8..16], .little);
+        map.put(fid, oid) catch {};
+    }
+    return map;
+}
+
+// ── Startup replay ────────────────────────────────────────────────────────
+
+fn replayPendingFills(self: *Settler) void {
+    const flog = self.cfg.fills_log orelse return;
+
+    var settle_map = flog.loadSettleMap() catch return;
+    defer settle_map.deinit();
+
+    var evm_index = loadEvmIndex(self.allocator, self.cfg.evm_index_path);
+    defer evm_index.deinit();
+
+    const all_fills = flog.readForTrader(self.allocator, "", 0) catch return;
+    defer self.allocator.free(all_fills);
+
+    for (all_fills) |rec| {
+        if (rec.fill_id <= self.last_settled_fill_id) continue;
+
+        // Already settled — just bump the bookmark.
+        if (settle_map.contains(rec.fill_id)) {
+            self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        }
+
+        // Non-EVM fill — nothing to settle on-chain.
+        if (rec.evm_chain_id == 0) {
+            self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        }
+
+        const evm_order_id = evm_index.get(rec.fill_id) orelse {
+            std.debug.print("[dex_settler] replay: fill {d} not in EVM index — skipping\n",
+                .{rec.fill_id});
+            continue; // can't settle without evm_order_id; will stay stuck
+        };
+        if (evm_order_id == 0) {
+            self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        }
+
+        // Determine target chain: prefer watcher's live escrow record.
+        var target_chain_id: u64 = rec.evm_chain_id;
+        if (self.cfg.escrow_watcher) |w| {
+            if (w.getOpen(evm_order_id)) |esc| target_chain_id = esc.chain_id;
+        }
+
+        const binding = findBindingForChain(self.cfg.bindings, rec.pair_id, target_chain_id) orelse {
+            std.debug.print("[dex_settler] replay: fill {d} no binding pair={d} chain={d}\n",
+                .{ rec.fill_id, rec.pair_id, target_chain_id });
+            self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        };
+
+        // Reject zero seller.
+        var seller_all_zero = true;
+        for (rec.seller_evm) |b| { if (b != 0) { seller_all_zero = false; break; } }
+        if (seller_all_zero) {
+            std.debug.print("[dex_settler] replay: fill {d} seller_evm zero — skip\n",
+                .{rec.fill_id});
+            self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+            saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
+            continue;
+        }
+
+        var seller_hex_buf: [42]u8 = undefined;
+        seller_hex_buf[0] = '0';
+        seller_hex_buf[1] = 'x';
+        const hc = "0123456789abcdef";
+        for (rec.seller_evm, 0..) |b, idx| {
+            seller_hex_buf[2 + idx * 2]     = hc[b >> 4];
+            seller_hex_buf[2 + idx * 2 + 1] = hc[b & 0x0F];
+        }
+
+        std.debug.print("[dex_settler] replay fill {d} order={d} chain={d}\n",
+            .{ rec.fill_id, evm_order_id, target_chain_id });
+        submitSettle(self, binding, evm_order_id, rec.fill_id, seller_hex_buf[0..42]) catch |err| {
+            std.debug.print("[dex_settler] replay fill {d} err: {s} — will retry next restart\n",
+                .{ rec.fill_id, @errorName(err) });
+            continue; // don't advance cursor; retry next startup
+        };
+        self.last_settled_fill_id = @max(self.last_settled_fill_id, rec.fill_id);
+        saveCursor(self.cfg.cursor_path, self.last_settled_fill_id) catch {};
     }
 }
 

@@ -83,11 +83,22 @@ pub const Watcher = struct {
     thread: ?std.Thread = null,
 
     pub fn init(allocator: std.mem.Allocator, cfg: Config) Watcher {
-        return Watcher{
+        const w = Watcher{
             .allocator = allocator,
             .cfg = cfg,
             .escrows = std.AutoHashMap(u64, EvmEscrow).init(allocator),
         };
+        // Restore scanning position so restarts don't always fall back to
+        // head-1000 and miss events that landed while the node was down.
+        // Apply a 64-block safety overlap to catch events near the tip.
+        const saved = loadWatcherCursor(cfg.cursor_path);
+        if (saved > 0) {
+            const safe_start = if (saved > 64) saved - 64 else 0;
+            for (cfg.bindings) |*b| {
+                b.from_block = safe_start;
+            }
+        }
+        return w;
     }
 
     pub fn deinit(self: *Watcher) void {
@@ -421,6 +432,15 @@ fn nibble(c: u8) !u8 {
         'A'...'F' => c - 'A' + 10,
         else => error.BadHex,
     };
+}
+
+fn loadWatcherCursor(path: []const u8) u64 {
+    const f = std.fs.cwd().openFile(path, .{}) catch return 0;
+    defer f.close();
+    var buf: [8]u8 = undefined;
+    const n = f.readAll(&buf) catch return 0;
+    if (n != 8) return 0;
+    return std.mem.readInt(u64, &buf, .little);
 }
 
 fn saveCursor(path: []const u8, last_block: u64) !void {
