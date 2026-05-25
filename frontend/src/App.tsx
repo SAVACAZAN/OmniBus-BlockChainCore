@@ -30,8 +30,12 @@ import { ProfilePage } from "./components/profile/ProfilePage";
 import { ProfileInitToast } from "./components/profile/ProfileInitToast";
 import { DocsPage } from "./components/docs/DocsPage";
 import { VaultPage } from "./components/vault/VaultPage";
+import { GovernancePage } from "./components/governance/GovernancePage";
+import { PoapPage } from "./components/poap/PoapPage";
+import { NotarizePage } from "./components/notarize/NotarizePage";
+import { ChannelsPage } from "./components/channels/ChannelsPage";
 
-export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault";
+export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -57,6 +61,10 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "docs", label: "Docs" },
   { id: "roadmap", label: "Roadmap" },
   { id: "vault", label: "🔐 Vault" },
+  { id: "governance", label: "Governance" },
+  { id: "poap", label: "POAP" },
+  { id: "notarize", label: "Notarize" },
+  { id: "channels", label: "Channels" },
 ];
 
 // Bottom nav: 4 primary tabs + "More" drawer
@@ -250,6 +258,10 @@ export default function App() {
           {activeTab === "docs" && <DocsPage />}
           {activeTab === "profile" && <ProfilePage address={profileAddressOverride} />}
           {activeTab === "vault" && <VaultPage />}
+          {activeTab === "governance" && <GovernancePage />}
+          {activeTab === "poap" && <PoapPage />}
+          {activeTab === "notarize" && <NotarizePage />}
+          {activeTab === "channels" && <ChannelsPage />}
           {activeTab === "roadmap" && (
             <iframe
               src="/roadmap-flow.html"
@@ -337,7 +349,11 @@ export default function App() {
                          tab.id === "profile" ? "🪪" :
                          tab.id === "docs" ? "📚" :
                          tab.id === "roadmap" ? "🗺️" :
-                         tab.id === "vault" ? "🔐" : "•"}
+                         tab.id === "vault" ? "🔐" :
+                         tab.id === "governance" ? "🏛️" :
+                         tab.id === "poap" ? "🎖️" :
+                         tab.id === "notarize" ? "📜" :
+                         tab.id === "channels" ? "⚡" : "•"}
                       </span>
                       {tab.label}
                     </button>
