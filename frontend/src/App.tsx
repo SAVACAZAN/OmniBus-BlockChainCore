@@ -36,8 +36,9 @@ import { NotarizePage } from "./components/notarize/NotarizePage";
 import { ChannelsPage } from "./components/channels/ChannelsPage";
 import { SubscriptionPage } from "./components/subscription/SubscriptionPage";
 import { PQWalletPanel } from "./components/wallet/PQWalletPanel";
+import { IdentityDIDPage } from "./components/identity/IdentityDIDPage";
 
-export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels" | "subscriptions" | "pqwallet";
+export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels" | "subscriptions" | "pqwallet" | "identity";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -69,6 +70,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "channels", label: "Channels" },
   { id: "subscriptions", label: "Subscriptions" },
   { id: "pqwallet", label: "PQ Wallet" },
+  { id: "identity", label: "Identity" },
 ];
 
 // Bottom nav: 4 primary tabs + "More" drawer
@@ -268,6 +270,7 @@ export default function App() {
           {activeTab === "channels" && <ChannelsPage />}
           {activeTab === "subscriptions" && <SubscriptionPage />}
           {activeTab === "pqwallet" && <PQWalletPanel />}
+          {activeTab === "identity" && <IdentityDIDPage />}
           {activeTab === "roadmap" && (
             <iframe
               src="/roadmap-flow.html"
@@ -361,7 +364,8 @@ export default function App() {
                          tab.id === "notarize" ? "📜" :
                          tab.id === "channels" ? "⚡" :
                          tab.id === "subscriptions" ? "🔄" :
-                         tab.id === "pqwallet" ? "🔮" : "•"}
+                         tab.id === "pqwallet" ? "🔮" :
+                         tab.id === "identity" ? "🪪" : "•"}
                       </span>
                       {tab.label}
                     </button>
