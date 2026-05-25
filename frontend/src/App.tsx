@@ -173,6 +173,15 @@ export default function App() {
         return;
       }
 
+      // Direct tab nav: #/<tabId> or legacy #/exchange etc.
+      const tabId = h.replace(/^#\/?/, "") as TabId;
+      if (tabId && TABS.some((t) => t.id === tabId)) {
+        setExplorerDeepLink(null);
+        setActiveTab(tabId);
+        if (tabId !== "profile") setProfileAddressOverride(undefined);
+        return;
+      }
+
       setExplorerDeepLink(null);
     };
     parseHash();

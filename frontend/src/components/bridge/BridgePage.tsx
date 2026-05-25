@@ -93,12 +93,12 @@ export function BridgePage() {
             this page is just the reference of which chains we can settle with.
           </p>
         </div>
-        <a
-          href="#/exchange"
+        <button
+          onClick={() => { window.location.hash = "#exchange"; }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-mempool-green text-mempool-bg font-semibold hover:bg-mempool-green/90 transition-colors whitespace-nowrap"
         >
           Open Exchange →
-        </a>
+        </button>
       </div>
 
       {/* Chain registry */}

@@ -299,13 +299,13 @@ export class OmniBusRpcClient {
   }> {
     // Note: full signing flow requires wallet private key — for now sends
     // declaration_hash as proof of reading. Full sig enforcement in Phase 2.
-    return this.request("claimfaucet", {
+    return this.request("claimfaucet", [{
       address,
       declaration_hash: declarationHash,
       signature: "00".repeat(64),   // placeholder — node validates decl_hash only for now
       public_key: "00".repeat(33),
       nonce: 0,
-    });
+    }]);
   }
 
   async getMempoolStats(): Promise<any> {

@@ -502,16 +502,16 @@ function fmtQty(n: number, sym: string): string {
 // ETH/USDC 0.05% reference pool used to convert ETH-quoted prices to USD
 // Picked per-chain; falls back to Mainnet pool if chain has no ETH/USDC pool.
 const ETH_USD_REF: Record<string, { chainName: string; pool: PoolDef }> = {
-  "Mainnet":  { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Sepolia":  { chainName: "Sepolia",  pool: { address: "0x3289680dd4d6C10bb19b899729cda5Eef58AEff1", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Base":     { chainName: "Base",     pool: { address: "0x4C36388bE6F416A29C8d8Eee81C771cE6bE14B5", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Base Sep": { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Arbitrum": { chainName: "Arbitrum", pool: { address: "0xC6962004f452bE9203591991D15f6b388e09E8D0", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Arb Sep":  { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Optimism": { chainName: "Optimism", pool: { address: "0x85149247691df622eaF1a8Bd0cafd40BC45154a", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "OP Sep":   { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Polygon":  { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
-  "Amoy":     { chainName: "Mainnet",  pool: { address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Mainnet":  { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Sepolia":  { chainName: "Sepolia",  pool: { version: "v3", address: "0x3289680dd4d6C10bb19b899729cda5Eef58AEff1", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Base":     { chainName: "Base",     pool: { version: "v3", address: "0x4C36388bE6F416A29C8d8Eee81C771cE6bE14B5", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Base Sep": { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Arbitrum": { chainName: "Arbitrum", pool: { version: "v3", address: "0xC6962004f452bE9203591991D15f6b388e09E8D0", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Arb Sep":  { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Optimism": { chainName: "Optimism", pool: { version: "v3", address: "0x85149247691df622eaF1a8Bd0cafd40BC45154a", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "OP Sep":   { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Polygon":  { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
+  "Amoy":     { chainName: "Mainnet",  pool: { version: "v3", address: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640", label: "ref", fee: 500,  token0Symbol: "USDC", token1Symbol: "WETH", token0Dec: 6, token1Dec: 18, displayQuote: "USD" } },
 };
 
 async function fetchEthUsdPrice(chainName: string): Promise<number | null> {

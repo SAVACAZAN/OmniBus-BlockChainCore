@@ -1653,7 +1653,7 @@ function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keyst
         love, food, rent, vacation, btc, eth,
         nonce: nextNonce(),
       });
-      const res: any = await rpc.request_raw("sendpqattest", payload);
+      const res: any = await rpc.request_raw("sendpqattest", [payload]);
       if (res && (res.status === "queued" || res.txid)) {
         setStatus("ok");
         const tx = res.txid ?? "";
