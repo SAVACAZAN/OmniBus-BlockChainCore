@@ -1,15 +1,11 @@
-import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { MempoolBlock } from "./MempoolBlock";
-import { BlockDetail } from "../blocks/BlockDetail";
-import type { BlockData } from "../../types";
 
 const MAX_VISIBLE_BLOCKS = 8;
 
 export function MempoolBlockStrip() {
   const { state } = useBlockchain();
   const blocks = state.recentBlocks.slice(0, MAX_VISIBLE_BLOCKS);
-  const [selectedBlock, setSelectedBlock] = useState<BlockData | null>(null);
 
   return (
     <section className="w-full">
@@ -24,8 +20,6 @@ export function MempoolBlockStrip() {
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-        {/* Confirmed blocks (newest first, displayed left to right). Dedupe
-            by height so concurrent WS + RPC fetches don't produce dupes. */}
         {[...new Map(blocks.map((b) => [b.height, b])).values()]
           .reverse()
           .map((block, i, arr) => (
@@ -33,39 +27,18 @@ export function MempoolBlockStrip() {
               key={`block-${block.height}`}
               block={block}
               isLatest={i === arr.length - 1}
-              onClick={() => setSelectedBlock(block)}
+              onClick={() => { window.location.hash = `#/block/${block.height}`; }}
             />
           ))}
 
-        {/* Arrow separator */}
         <div className="flex-shrink-0 flex items-center px-1">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-mempool-blue opacity-50"
-          >
-            <path
-              d="M9 18l6-6-6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-mempool-blue opacity-50">
+            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
 
-        {/* Pending block (mempool) */}
-        <MempoolBlock
-          isPending
-          pendingTxs={state.pendingTxs}
-        />
+        <MempoolBlock isPending pendingTxs={state.pendingTxs} />
       </div>
-
-      {selectedBlock && (
-        <BlockDetail block={selectedBlock} onClose={() => setSelectedBlock(null)} />
-      )}
     </section>
   );
 }

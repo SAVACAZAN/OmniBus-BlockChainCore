@@ -135,7 +135,7 @@ export function RecentTransactions() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => window.__openTx?.(item.id)}
+                      onClick={() => { window.location.hash = `#/tx/${item.id}`; }}
                       title={item.id}
                       className="text-xs font-mono text-mempool-blue hover:underline truncate"
                     >
@@ -155,14 +155,26 @@ export function RecentTransactions() {
                 </div>
                 <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>
                   {item.from === "coinbase" ? (
-                    // Coinbase reward: show only the miner address (the receiver),
-                    // skipping the literal "coinbase" sender label which the user
-                    // doesn't care about and which kept appearing as garbage text.
-                    item.to ? <span className="font-mono text-mempool-green">→ {midTrunc(item.to, 8, 6)}</span> : null
+                    item.to ? (
+                      <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
+                        className="font-mono text-mempool-green hover:underline">
+                        → {midTrunc(item.to, 8, 6)}
+                      </button>
+                    ) : null
                   ) : (
                     <>
-                      <span className="font-mono">{midTrunc(item.from, 8, 6)}</span>
-                      {item.to ? <> &nbsp;→&nbsp; <span className="font-mono">{midTrunc(item.to, 8, 6)}</span></> : null}
+                      <button onClick={() => { window.location.hash = `#/address/${item.from}`; }}
+                        className="font-mono hover:text-mempool-blue hover:underline transition-colors">
+                        {midTrunc(item.from, 8, 6)}
+                      </button>
+                      {item.to ? (
+                        <> &nbsp;→&nbsp;{" "}
+                          <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
+                            className="font-mono hover:text-mempool-blue hover:underline transition-colors">
+                            {midTrunc(item.to, 8, 6)}
+                          </button>
+                        </>
+                      ) : null}
                     </>
                   )}
                 </p>

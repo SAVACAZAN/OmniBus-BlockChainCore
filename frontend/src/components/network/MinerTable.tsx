@@ -37,8 +37,9 @@ export function MinerTable() {
                 ? ((miner.blocksMined / totalBlocks) * 100).toFixed(1)
                 : "0.0";
               return (
-                <tr key={miner.miner} className="hover:bg-mempool-bg-light/50 transition-colors">
-                  <td className="px-4 py-2 font-mono text-mempool-blue truncate max-w-[200px]">
+                <tr key={miner.miner} className="hover:bg-mempool-bg-light/50 transition-colors cursor-pointer"
+                  onClick={() => { if (miner.miner) window.location.hash = `#/address/${miner.miner}`; }}>
+                  <td className="px-4 py-2 font-mono text-mempool-blue truncate max-w-[200px] hover:underline">
                     {miner.miner}
                   </td>
                   <td className="px-4 py-2 text-right font-mono text-mempool-text">
