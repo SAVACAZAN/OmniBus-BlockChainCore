@@ -56,7 +56,18 @@ fn p2pSend(stream: std.net.Stream, data: []const u8) !void {
             sent += @intCast(n);
         }
     } else {
-        try stream.writeAll(data);
+        // Bypass std.net.Stream.writeAll() because it uses sendmsg() which
+        // panics on BADF (closed-fd race with a peer-disconnect thread).
+        // posix.write returns NotOpenForWriting instead of panicking, so
+        // heartbeat/gossip threads can survive a parallel close cleanly.
+        var sent: usize = 0;
+        while (sent < data.len) {
+            const n = std.posix.write(stream.handle, data[sent..]) catch {
+                return error.ConnectionClosed;
+            };
+            if (n == 0) return error.ConnectionClosed;
+            sent += n;
+        }
     }
 }
 const array_list     = std.array_list;
