@@ -39,11 +39,18 @@ export function Header() {
     });
   }, []);
 
-  // Permite altor componente sa deschida cautarea cu un TX preselectat
-  // — RecentTransactions.tsx face <button onClick={() => window.__openTx(id)}>
+  // Other components can open search pre-filled with a TX id via window.__openTx.
+  // If the input is a 64-char hex we keep legacy TxSearch modal; otherwise we
+  // navigate directly with hash routing.
   useEffect(() => {
     window.__openTx = (txid: string) => {
-      setSearchInitial(txid);
+      const s = txid.trim();
+      // Block number
+      if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; return; }
+      // Full TX hash
+      if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; return; }
+      // Address or partial — fall back to legacy TxSearch
+      setSearchInitial(s);
       setShowSearch(true);
     };
     return () => { delete window.__openTx; };
@@ -72,16 +79,7 @@ export function Header() {
 
           {/* Search + Block Height */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowSearch(true)}
-              className="flex items-center gap-2 bg-mempool-bg border border-mempool-border rounded-lg px-3 py-1.5 text-xs text-mempool-text-dim hover:text-mempool-text hover:border-mempool-blue transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <span className="hidden sm:inline">Search TX</span>
-            </button>
+            <ExplorerSearchBar onFallback={() => setShowSearch(true)} />
             <div className="text-center">
               <p className="text-xs text-mempool-text-dim uppercase tracking-wider">
                 Block Height
@@ -203,7 +201,7 @@ export function Header() {
               <button
                 onClick={() => setShowSearch(true)}
                 className="flex items-center justify-center bg-mempool-bg border border-mempool-border rounded-lg p-1.5 text-mempool-text-dim hover:text-mempool-text hover:border-mempool-blue transition-colors"
-                title="Search TX"
+                title="Search"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8" />
@@ -261,6 +259,66 @@ export function Header() {
         />
       )}
     </>
+  );
+}
+
+/**
+ * ExplorerSearchBar — inline search in the desktop header.
+ * Detects input type: block number → #/block/:n, 64-hex → #/tx/:h,
+ * otherwise → #/address/:addr. Falls back to legacy TxSearch modal for
+ * short queries that don't match a known pattern.
+ */
+function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
+  const [q, setQ] = useState("");
+
+  const navigate = (raw: string) => {
+    const s = raw.trim();
+    if (!s) { onFallback(); return; }
+    if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; setQ(""); return; }
+    if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; setQ(""); return; }
+    if (s.length >= 8) { window.location.hash = `#/address/${s}`; setQ(""); return; }
+    onFallback();
+  };
+
+  return (
+    <div className="relative flex items-center">
+      <svg
+        width="13" height="13"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        className="absolute left-2.5 text-mempool-text-dim pointer-events-none"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="M21 21l-4.35-4.35" />
+      </svg>
+      <input
+        type="text"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") navigate(q); }}
+        placeholder="Block / TX / Address…"
+        className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-52 lg:w-64 transition-colors"
+      />
+      {q ? (
+        <button
+          onClick={() => setQ("")}
+          className="absolute right-2 text-mempool-text-dim hover:text-mempool-text"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      ) : (
+        <button
+          onClick={onFallback}
+          className="absolute right-2 text-mempool-text-dim hover:text-mempool-blue"
+          title="Advanced TX search"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 6h16M4 12h8m-8 6h4" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }
 

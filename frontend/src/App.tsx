@@ -4,6 +4,9 @@ import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { BlocksPage } from "./components/blocks/BlocksPage";
+import { BlockPage } from "./components/explorer/BlockPage";
+import { TxPage } from "./components/explorer/TxPage";
+import { AddressPage } from "./components/explorer/AddressPage";
 import { WalletPage } from "./components/wallet/WalletPage";
 import { NetworkPage } from "./components/network/NetworkPage";
 import { FaucetPage } from "./components/faucet/FaucetPage";
@@ -99,27 +102,74 @@ const BOTTOM_NAV_PRIMARY: { id: TabId; label: string; icon: React.ReactNode }[] 
   },
 ];
 
+type ExplorerDeepLink =
+  | { kind: "block"; height: number }
+  | { kind: "tx"; hash: string }
+  | { kind: "address"; addr: string }
+  | null;
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
-  // Lightweight hash-based deep link for #/profile/<addr> without pulling in
-  // react-router. Other tabs ignore this state.
   const [profileAddressOverride, setProfileAddressOverride] = useState<string | undefined>(undefined);
+  const [explorerDeepLink, setExplorerDeepLink] = useState<ExplorerDeepLink>(null);
 
   const handleTabSelect = (tab: TabId) => {
     setActiveTab(tab);
     setShowMoreDrawer(false);
     if (tab !== "profile") setProfileAddressOverride(undefined);
+    if (tab !== "blocks") setExplorerDeepLink(null);
+  };
+
+  const handleExplorerNavigate = (hash: string) => {
+    window.location.hash = hash;
   };
 
   useEffect(() => {
     const parseHash = () => {
       const h = window.location.hash || "";
-      const m = h.match(/^#\/profile\/([A-Za-z0-9_]+)/);
-      if (m) {
-        setProfileAddressOverride(m[1]);
+
+      // Profile deep link
+      const profileM = h.match(/^#\/profile\/([A-Za-z0-9_.]+)/);
+      if (profileM) {
+        setProfileAddressOverride(profileM[1]);
         setActiveTab("profile");
+        setExplorerDeepLink(null);
+        return;
       }
+
+      // Block deep link: #/block/12345
+      const blockM = h.match(/^#\/block\/(\d+)$/);
+      if (blockM) {
+        setExplorerDeepLink({ kind: "block", height: parseInt(blockM[1], 10) });
+        setActiveTab("blocks");
+        return;
+      }
+
+      // TX deep link: #/tx/<64-hex>
+      const txM = h.match(/^#\/tx\/([0-9a-fA-F]{64})$/);
+      if (txM) {
+        setExplorerDeepLink({ kind: "tx", hash: txM[1] });
+        setActiveTab("blocks");
+        return;
+      }
+
+      // Address deep link: #/address/<addr>
+      const addrM = h.match(/^#\/address\/(.+)$/);
+      if (addrM) {
+        setExplorerDeepLink({ kind: "address", addr: addrM[1] });
+        setActiveTab("blocks");
+        return;
+      }
+
+      // Blocks list: #/blocks
+      if (h === "#/blocks") {
+        setExplorerDeepLink(null);
+        setActiveTab("blocks");
+        return;
+      }
+
+      setExplorerDeepLink(null);
     };
     parseHash();
     window.addEventListener("hashchange", parseHash);
@@ -158,7 +208,15 @@ export default function App() {
         {/* pb-16 on mobile so content isn't hidden under bottom nav */}
         <main className="flex-1 pb-16 sm:pb-0">
           {activeTab === "dashboard" && <Dashboard />}
-          {activeTab === "blocks" && <BlocksPage />}
+          {activeTab === "blocks" && (
+            explorerDeepLink?.kind === "block"
+              ? <BlockPage height={explorerDeepLink.height} onNavigate={handleExplorerNavigate} />
+              : explorerDeepLink?.kind === "tx"
+              ? <TxPage hash={explorerDeepLink.hash} onNavigate={handleExplorerNavigate} />
+              : explorerDeepLink?.kind === "address"
+              ? <AddressPage addr={explorerDeepLink.addr} onNavigate={handleExplorerNavigate} />
+              : <BlocksPage />
+          )}
           {activeTab === "wallet" && <WalletPage />}
           {activeTab === "network" && <NetworkPage />}
           {activeTab === "faucet" && <FaucetPage />}

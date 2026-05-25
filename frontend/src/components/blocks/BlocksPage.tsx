@@ -1,37 +1,38 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { BlockDetail } from "./BlockDetail";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 const rpc = new OmniBusRpcClient();
 
-// Trunchiaza hash/adresa la mijloc cu '**' (gen 0000abcd**1234ef).
-// Pastreaza primele `head` si ultimele `tail` caractere.
 function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
   if (!s) return "—";
   if (s.length <= head + tail + 2) return s;
   return `${s.slice(0, head)}**${s.slice(-tail)}`;
 }
 
+type BlockWithDiff = BlockData & { difficulty?: number };
+
 export function BlocksPage() {
   const { state } = useBlockchain();
-  const [blocks, setBlocks] = useState<BlockData[]>([]);
-  const [selectedBlock, setSelectedBlock] = useState<BlockData | null>(null);
+  const [blocks, setBlocks] = useState<BlockWithDiff[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
-  // Reload only when paging — not on every blockCount tick (would cause
-  // 1 reload per mined block = annoying flicker on Testnet/Regtest where
-  // blocks come at 1/s or faster).
   useEffect(() => {
     loadBlocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  // For new blocks: only reload page 0 (the "latest" view), and only every
-  // 5 seconds even if 5 blocks were mined. Older pages don't change.
   useEffect(() => {
     if (page !== 0) return;
     const id = setInterval(() => loadBlocks(), 5000);
@@ -42,26 +43,19 @@ export function BlocksPage() {
   const loadBlocks = async () => {
     setLoading(true);
     try {
-      // Re-fetch the live tip from getblockcount instead of trusting the
-      // cached state.blockCount (which might be off by one relative to the
-      // node's actual chain length, depending on whether nodeHeight counts
-      // the genesis or not). This avoids "Block not found" on block tip.
       let height = state.blockCount;
       try {
         const live: any = await rpc.getBlockCount();
         const liveCount = typeof live === "object" && live ? live.blockCount : live;
         if (typeof liveCount === "number" && liveCount > 0) height = liveCount;
-      } catch { /* fall back to cached */ }
-      // Convention: if `height` = chain.items.len, valid block indices are 0..height-1.
-      // Top of latest page = height - 1.
+      } catch { /* fall back */ }
+
       const start = Math.max(0, height - 1 - page * PAGE_SIZE);
       const end = Math.max(0, start - PAGE_SIZE);
-      // Batch by 4 to avoid overloading the RPC backend (MAX_CONCURRENT=4
-      // in rpc_server.zig). Sequential batches >> 20 parallel requests
-      // that get refused with ECONNRESET / 502 Bad Gateway through Nginx.
       const indices: number[] = [];
       for (let i = start; i > end && i >= 0; i--) indices.push(i);
-      const results: (BlockData | null)[] = [];
+
+      const results: (BlockWithDiff | null)[] = [];
       const BATCH = 4;
       for (let i = 0; i < indices.length; i += BATCH) {
         const slice = indices.slice(i, i + BATCH);
@@ -70,24 +64,38 @@ export function BlocksPage() {
         );
         results.push(...batch);
       }
-      setBlocks(results.filter(Boolean) as BlockData[]);
+      setBlocks(results.filter(Boolean) as BlockWithDiff[]);
     } catch {}
     setLoading(false);
   };
 
   const maxPage = Math.max(0, Math.floor((state.blockCount - 1) / PAGE_SIZE));
 
+  // Chart data: last 20 blocks (oldest→newest for correct left-to-right render)
+  const chartData = [...blocks]
+    .reverse()
+    .map((b) => ({
+      h: b.height,
+      d: b.difficulty ?? b.nonce ?? 0,
+    }));
+
+  const hasDifficulty = chartData.some((c) => c.d > 0);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Title + pagination */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-lg font-bold text-mempool-text">
-          Blocks <span className="text-mempool-text-dim font-normal text-sm">({state.blockCount} total)</span>
+          Blocks{" "}
+          <span className="text-mempool-text-dim font-normal text-sm">
+            ({state.blockCount.toLocaleString()} total)
+          </span>
         </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setPage(Math.min(page + 1, maxPage))}
             disabled={page >= maxPage}
-            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
+            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim transition-colors"
           >
             Older
           </button>
@@ -95,13 +103,50 @@ export function BlocksPage() {
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page <= 0}
-            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim"
+            className="px-3 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light disabled:opacity-30 text-mempool-text-dim transition-colors"
           >
             Newer
           </button>
         </div>
       </div>
 
+      {/* Difficulty / nonce sparkline chart */}
+      {hasDifficulty && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+              Difficulty (last {chartData.length} blocks)
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={80}>
+            <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <XAxis dataKey="h" hide />
+              <YAxis hide domain={["auto", "auto"]} />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-mempool-bg-elev, #1a1b1e)",
+                  border: "1px solid var(--color-mempool-border, #2d2f36)",
+                  borderRadius: "6px",
+                  fontSize: "11px",
+                  color: "#c9d1d9",
+                }}
+                labelFormatter={(v) => `Block #${v}`}
+                formatter={(v: any) => [v.toLocaleString(), "Difficulty"]}
+              />
+              <Line
+                type="monotone"
+                dataKey="d"
+                stroke="#3b82f6"
+                strokeWidth={1.5}
+                dot={false}
+                activeDot={{ r: 3, fill: "#3b82f6" }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Blocks table */}
       <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-x-auto">
         <table className="w-full text-xs min-w-[480px]">
           <thead>
@@ -116,29 +161,53 @@ export function BlocksPage() {
           </thead>
           <tbody className="divide-y divide-mempool-border/30">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">Loading...</td></tr>
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                  Loading…
+                </td>
+              </tr>
             ) : blocks.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">No blocks</td></tr>
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                  No blocks
+                </td>
+              </tr>
             ) : (
               blocks.map((b) => (
-                <tr key={`block-${b.height}`} className="hover:bg-mempool-bg-light/50 transition-colors cursor-pointer" onClick={() => setSelectedBlock(b)}>
+                <tr
+                  key={`block-${b.height}`}
+                  className="hover:bg-mempool-bg-light/50 transition-colors cursor-pointer"
+                  onClick={() => { window.location.hash = `#/block/${b.height}`; }}
+                  title={`Open block #${b.height}`}
+                >
                   <td className="px-4 py-2.5 font-mono text-mempool-blue font-bold whitespace-nowrap">
-                    #{b.height}
+                    #{b.height.toLocaleString()}
                   </td>
                   <td className="px-4 py-2.5 font-mono text-mempool-text whitespace-nowrap" title={b.hash}>
                     {midTrunc(b.hash, 8, 6)}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-mempool-text-dim whitespace-nowrap" title={b.miner}>
+                  <td
+                    className="px-4 py-2.5 font-mono text-mempool-text-dim whitespace-nowrap hover:text-mempool-blue transition-colors"
+                    title={b.miner}
+                    onClick={(e) => {
+                      if (b.miner) {
+                        e.stopPropagation();
+                        window.location.hash = `#/address/${b.miner}`;
+                      }
+                    }}
+                  >
                     {midTrunc(b.miner, 8, 6)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-text whitespace-nowrap">
-                    {b.txCount + 1}
+                    {(b.txCount || 0) + 1}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
                     {((b.rewardSAT || 0) / 1e9).toFixed(8)}
                   </td>
                   <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap">
-                    {b.timestamp ? new Date(b.timestamp * 1000).toLocaleTimeString() : "—"}
+                    {b.timestamp
+                      ? new Date(b.timestamp * 1000).toLocaleTimeString()
+                      : "—"}
                   </td>
                 </tr>
               ))
@@ -146,11 +215,6 @@ export function BlocksPage() {
           </tbody>
         </table>
       </div>
-
-      {/* Block Detail Modal */}
-      {selectedBlock && (
-        <BlockDetail block={selectedBlock} onClose={() => setSelectedBlock(null)} />
-      )}
     </div>
   );
 }
