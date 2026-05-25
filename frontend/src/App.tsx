@@ -34,8 +34,10 @@ import { GovernancePage } from "./components/governance/GovernancePage";
 import { PoapPage } from "./components/poap/PoapPage";
 import { NotarizePage } from "./components/notarize/NotarizePage";
 import { ChannelsPage } from "./components/channels/ChannelsPage";
+import { SubscriptionPage } from "./components/subscription/SubscriptionPage";
+import { PQWalletPanel } from "./components/wallet/PQWalletPanel";
 
-export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels";
+export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels" | "subscriptions" | "pqwallet";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -65,6 +67,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "poap", label: "POAP" },
   { id: "notarize", label: "Notarize" },
   { id: "channels", label: "Channels" },
+  { id: "subscriptions", label: "Subscriptions" },
+  { id: "pqwallet", label: "PQ Wallet" },
 ];
 
 // Bottom nav: 4 primary tabs + "More" drawer
@@ -262,6 +266,8 @@ export default function App() {
           {activeTab === "poap" && <PoapPage />}
           {activeTab === "notarize" && <NotarizePage />}
           {activeTab === "channels" && <ChannelsPage />}
+          {activeTab === "subscriptions" && <SubscriptionPage />}
+          {activeTab === "pqwallet" && <PQWalletPanel />}
           {activeTab === "roadmap" && (
             <iframe
               src="/roadmap-flow.html"
@@ -353,7 +359,9 @@ export default function App() {
                          tab.id === "governance" ? "🏛️" :
                          tab.id === "poap" ? "🎖️" :
                          tab.id === "notarize" ? "📜" :
-                         tab.id === "channels" ? "⚡" : "•"}
+                         tab.id === "channels" ? "⚡" :
+                         tab.id === "subscriptions" ? "🔄" :
+                         tab.id === "pqwallet" ? "🔮" : "•"}
                       </span>
                       {tab.label}
                     </button>

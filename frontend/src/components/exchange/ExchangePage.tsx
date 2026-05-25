@@ -19,6 +19,7 @@ import { GridPanel } from "./GridPanel";
 import { HtlcTradePanel } from "./HtlcTradePanel";
 import { AmmOrderbookPanel } from "./AmmOrderbookPanel";
 import { OraclePricePanel } from "./OraclePricePanel";
+import { IntentSwapPanel } from "./IntentSwapPanel";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 
@@ -27,7 +28,7 @@ const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
 const MICRO_PER_USD = 1_000_000;
 
-type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account";
+type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account" | "intent";
 type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
 
 export function ExchangePage() {
@@ -207,6 +208,7 @@ export function ExchangePage() {
           { id: "amm",     label: "🦄 Uniswap AMM" },
           { id: "oracle",  label: "📡 Oracle" },
           { id: "account", label: "Account" },
+          { id: "intent",  label: "🤝 Intent Swap" },
         ] as { id: Tab; label: string }[]).map((t) => (
           <button
             key={t.id}
@@ -274,6 +276,12 @@ export function ExchangePage() {
       {tab === "oracle" && (
         <div className="max-w-4xl">
           <OraclePricePanel />
+        </div>
+      )}
+
+      {tab === "intent" && (
+        <div className="max-w-3xl">
+          <IntentSwapPanel />
         </div>
       )}
 
