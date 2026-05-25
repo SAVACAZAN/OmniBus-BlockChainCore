@@ -7,6 +7,8 @@ import { BlocksPage } from "./components/blocks/BlocksPage";
 import { BlockPage } from "./components/explorer/BlockPage";
 import { TxPage } from "./components/explorer/TxPage";
 import { AddressPage } from "./components/explorer/AddressPage";
+import { MempoolPage } from "./components/mempool/MempoolPage";
+import { StatsPage } from "./components/stats/StatsPage";
 import { WalletPage } from "./components/wallet/WalletPage";
 import { NetworkPage } from "./components/network/NetworkPage";
 import { FaucetPage } from "./components/faucet/FaucetPage";
@@ -29,11 +31,13 @@ import { ProfileInitToast } from "./components/profile/ProfileInitToast";
 import { DocsPage } from "./components/docs/DocsPage";
 import { VaultPage } from "./components/vault/VaultPage";
 
-export type TabId = "dashboard" | "blocks" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault";
+export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "blocks", label: "Blocks" },
+  { id: "mempool", label: "Mempool" },
+  { id: "stats", label: "Stats" },
   { id: "richlist", label: "Rich List" },
   { id: "reputation", label: "Reputation" },
   { id: "stake", label: "Stake" },
@@ -208,6 +212,8 @@ export default function App() {
         {/* pb-16 on mobile so content isn't hidden under bottom nav */}
         <main className="flex-1 pb-16 sm:pb-0">
           {activeTab === "dashboard" && <Dashboard />}
+          {activeTab === "mempool" && <MempoolPage />}
+          {activeTab === "stats" && <StatsPage />}
           {activeTab === "blocks" && (
             explorerDeepLink?.kind === "block"
               ? <BlockPage height={explorerDeepLink.height} onNavigate={handleExplorerNavigate} />
@@ -306,7 +312,9 @@ export default function App() {
                       }`}
                     >
                       <span className="text-base">
-                        {tab.id === "richlist" ? "🏆" :
+                        {tab.id === "mempool" ? "⏳" :
+                         tab.id === "stats" ? "📊" :
+                         tab.id === "richlist" ? "🏆" :
                          tab.id === "reputation" ? "⭐" :
                          tab.id === "audit" ? "📋" :
                          tab.id === "names" ? "🔖" :

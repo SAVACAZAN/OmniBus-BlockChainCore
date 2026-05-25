@@ -52,6 +52,7 @@ interface Props {
 
 export function AddressPage({ addr, onNavigate }: Props) {
   const [history, setHistory] = useState<AddressHistoryEntry[]>([]);
+  const [chainBalance, setChainBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
@@ -61,12 +62,19 @@ export function AddressPage({ addr, onNavigate }: Props) {
     setLoading(true);
     setErr("");
     setPage(0);
-    rpc.getAddressHistory(addr)
-      .then((data) => {
-        const txs: AddressHistoryEntry[] = Array.isArray(data)
-          ? data
-          : data?.transactions || data?.history || [];
+    setChainBalance(null);
+    Promise.all([
+      rpc.getAddressHistory(addr),
+      rpc.getAddressBalance(addr),
+    ])
+      .then(([histData, balData]) => {
+        const txs: AddressHistoryEntry[] = Array.isArray(histData)
+          ? histData
+          : histData?.transactions || histData?.history || [];
         setHistory(txs);
+        if (balData?.balance !== undefined) {
+          setChainBalance(balData.balance);
+        }
       })
       .catch((e) => setErr(e.message))
       .finally(() => setLoading(false));
@@ -77,7 +85,8 @@ export function AddressPage({ addr, onNavigate }: Props) {
   const totalReceived = received.reduce((s, t) => s + t.amount, 0);
   const totalSent = sent.reduce((s, t) => s + t.amount, 0);
   const totalFees = sent.reduce((s, t) => s + (t.fee || 0), 0);
-  const balance = Math.max(0, totalReceived - totalSent);
+  // Prefer chain-reported balance; fall back to computed
+  const balance = chainBalance !== null ? chainBalance : Math.max(0, totalReceived - totalSent);
 
   const filtered = filter === "all" ? history : filter === "received" ? received : sent;
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -126,7 +135,12 @@ export function AddressPage({ addr, onNavigate }: Props) {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-mempool-border">
-          <StatCard label="Balance" value={fmtSat(balance)} color="blue" />
+          <StatCard
+            label="Balance"
+            value={fmtSat(balance)}
+            color="blue"
+            sub={chainBalance !== null ? "on-chain" : "computed"}
+          />
           <StatCard label="Received" value={fmtSat(totalReceived)} sub={`${received.length} tx`} color="green" />
           <StatCard label="Sent" value={fmtSat(totalSent)} sub={`${sent.length} tx`} color="orange" />
           <StatCard label="Fees Paid" value={fmtSat(totalFees)} color="dim" />

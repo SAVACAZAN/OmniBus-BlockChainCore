@@ -370,6 +370,14 @@ export class OmniBusRpcClient {
     return this.request("getnonce", [address]);
   }
 
+  async getAddressBalance(address: string): Promise<{ address: string; balance: number; balanceOMNI: number } | null> {
+    try {
+      return await this.request("getaddressbalance", [address]);
+    } catch {
+      return null;
+    }
+  }
+
   async getHeaders(fromHeight: number, count: number = 10): Promise<any> {
     return this.request("getheaders", [fromHeight, count]);
   }
