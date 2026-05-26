@@ -396,6 +396,17 @@ export class OmniBusRpcClient {
     }
   }
 
+  async nsResolveForSend(name: string, tld: string): Promise<{
+    found: boolean; route_address?: string; primary_address?: string;
+    route_address_kind?: string; route_slot?: number;
+  } | null> {
+    try {
+      return await this.request("ns_resolveforsend", [name, tld]);
+    } catch {
+      return null;
+    }
+  }
+
   async getWalletSummary(address: string): Promise<{
     wallet_sat?: number; staked_sat?: number; in_orders_sat?: number;
     available_sat?: number; height?: number;

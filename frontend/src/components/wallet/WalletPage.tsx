@@ -295,7 +295,7 @@ export function WalletPage() {
       const fullLabelInput = sendTo.trim().toLowerCase();
       if (looksLikeName) {
         const [n, t] = fullLabelInput.split(".");
-        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]).catch(() => null);
+        const r = await rpc.nsResolveForSend(n, t).catch(() => null);
         if (!r || !r.found) {
           throw new Error(`Name "${sendTo}" not registered on chain`);
         }
@@ -1204,7 +1204,7 @@ function SendNamePreview({ rawInput, onResolve }: {
         const [n, t] = txt.split(".");
         // Use the chain's authoritative send-routing helper so the preview
         // matches exactly what `handleSend` will broadcast.
-        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]);
+        const r = await rpc.nsResolveForSend(n, t);
         if (cancelled) return;
         if (!r?.found) {
           setErr(`${txt} — not registered`);

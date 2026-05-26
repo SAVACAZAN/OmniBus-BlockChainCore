@@ -90,7 +90,7 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     let cancelled = false;
     (async () => {
       try {
-        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]);
+        const r = await rpc.nsResolveForSend(n, t);
         if (cancelled) return;
         if (r?.found) {
           setResolvedAddress(r.route_address || r.primary_address || "");
