@@ -11850,10 +11850,11 @@ fn handleAgentList(ctx: *ServerCtx, id: u64) ![]u8 {
     try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"agents\":[", .{ id, n });
     for (snap_buf[0..n], 0..) |a, i| {
         if (i > 0) try w.writeByte(',');
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, a.getName());
         try w.print(
-            "{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}",
+            "\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}",
             .{
-                a.getName(),
                 a.wallet_index,
                 a.getAddress(),
                 a.strategy.name(),
@@ -11884,11 +11885,13 @@ fn handleAgentStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const wi = extractU32Param(body, "\"wallet_index\"") orelse return errorJson(-32602, "missing wallet_index", id, alloc);
     const slot = main_mod.g_agent_manager.findByWalletIndex(wi) orelse return errorJson(-32000, "agent not found", id, alloc);
 
+    const name_safe = try jsonSanitize(alloc, slot.config.getName());
+    defer alloc.free(name_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}}}",
         .{
             id,
-            slot.config.getName(),
+            name_safe,
             slot.config.wallet_index,
             slot.getAddress(),
             slot.config.strategy.name(),
@@ -11928,7 +11931,7 @@ fn handleAgentPendingDecisions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
     for (pend_buf[0..n], 0..) |p, i| {
         if (i > 0) try w.writeByte(',');
         try w.print(
-            "{{\"id\":{d},\"wallet_index\":{d},\"block_height\":{d},\"emitted_ms\":{d},\"venue\":\"{s}\",\"kind\":\"{s}\",\"pair\":\"{s}\",\"amount_sat\":{d},\"reason\":\"{s}\"}}",
+            "{{\"id\":{d},\"wallet_index\":{d},\"block_height\":{d},\"emitted_ms\":{d},\"venue\":\"{s}\",\"kind\":\"{s}\",\"pair\":\"{s}\",\"amount_sat\":{d},\"reason\":\"",
             .{
                 p.id,
                 p.wallet_index,
@@ -11938,9 +11941,10 @@ fn handleAgentPendingDecisions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
                 @tagName(p.decision.kind),
                 p.decision.getPair(),
                 p.decision.amount_sat,
-                p.decision.getReason(),
             },
         );
+        try writeJsonSafeStr(w, p.decision.getReason());
+        try w.writeAll("\"}");
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -16521,6 +16525,8 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
         return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
+    const note_safe = try jsonSanitize(alloc, p.getNote());
+    defer alloc.free(note_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
@@ -16530,7 +16536,7 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         "\"create_block\":{d},\"vote_count\":{d}," ++
         "\"executed\":{},\"executed_block\":{d}," ++
         "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}}}}}",
-        .{ id, p.id, p.getProposer(), p.getTitleHash(), p.getNote(),
+        .{ id, p.id, p.getProposer(), p.getTitleHash(), note_safe,
            p.statusStr(), p.yes_weight, p.no_weight,
            p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count,
            p.executed, p.executed_block,
@@ -16933,6 +16939,8 @@ fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
     const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const note_safe = try jsonSanitize(alloc, e.noteSlice());
+    defer alloc.free(note_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"id\":{d}," ++
@@ -16950,7 +16958,7 @@ fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
            e.amount_sat, e.conditionSlice(),
            e.timeout_block, e.create_block, e.statusStr(),
            if (e.isTimedOut(current_block)) "true" else "false",
-           e.noteSlice() });
+           note_safe });
 }
 
 // ── getescrows ────────────────────────────────────────────────────────────────
@@ -16980,13 +16988,15 @@ fn handleGetEscrows(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
             "\"amount_sat\":{d},\"status\":\"{s}\"," ++
             "\"timeout_block\":{d},\"timed_out\":{s}," ++
-            "\"condition_hash\":\"{s}\",\"note\":\"{s}\"}}",
+            "\"condition_hash\":\"{s}\",\"note\":\"",
             .{ e.id, e.fromSlice(), e.toSlice(),
                e.amount_sat, e.statusStr(),
                e.timeout_block,
                if (e.isTimedOut(current_block)) "true" else "false",
-               e.conditionSlice(), e.noteSlice() },
+               e.conditionSlice() },
         );
+        try writeJsonSafeStr(w, e.noteSlice());
+        try w.writeAll("\"}");
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -17973,9 +17983,11 @@ fn handleDisclosePost(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
 
+    const phash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(phash_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"post_hash\":\"{s}\",\"timestamp\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, hash_val, ts_num, is_pub, root_hex });
+        .{ id, phash_safe, ts_num, is_pub, root_hex });
 }
 
 /// RPC `disclose_cert` — prove a specific professional certification from facet[1].
@@ -18032,9 +18044,15 @@ fn handleDiscloseCert(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const from_num  = std.fmt.parseInt(u64, from_val,  10) catch 0;
     const until_num = std.fmt.parseInt(u64, until_val, 10) catch 0;
 
+    const issuer_safe = try jsonSanitize(alloc, issuer_val);
+    defer alloc.free(issuer_safe);
+    const ckind_safe = try jsonSanitize(alloc, kind_val);
+    defer alloc.free(ckind_safe);
+    const chash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(chash_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"issuer_did\":\"{s}\",\"credential_kind\":\"{s}\",\"valid_from\":{d},\"valid_until\":{d},\"hash\":\"{s}\",\"proof\":[\"{s}\"]}}}}",
-        .{ id, issuer_val, kind_val, from_num, until_num, hash_val, root_hex });
+        .{ id, issuer_safe, ckind_safe, from_num, until_num, chash_safe, root_hex });
 }
 
 /// RPC `disclose_work` — prove a specific notarized work from facet[2] (cultural).
@@ -18086,9 +18104,13 @@ fn handleDiscloseWork(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
 
+    const whash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(whash_safe);
+    const wkind_safe = try jsonSanitize(alloc, kind_val);
+    defer alloc.free(wkind_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"content_hash\":\"{s}\",\"work_kind\":\"{s}\",\"notarized_at\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, hash_val, kind_val, ts_num, is_pub, root_hex });
+        .{ id, whash_safe, wkind_safe, ts_num, is_pub, root_hex });
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────
