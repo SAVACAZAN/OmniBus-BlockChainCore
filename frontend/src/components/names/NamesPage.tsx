@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked } from "../../api/wallet-keystore";
@@ -1389,17 +1389,17 @@ function BrowseByCategory() {
     }
   };
 
-  // Counts per year tier within the currently-loaded category.
-  // Treats undefined registered_years as 1 (legacy default for older nodes).
-  const yearCounts: Record<number, number> = entries.reduce((acc, e) => {
-    const y = e.registered_years ?? 1;
-    acc[y] = (acc[y] ?? 0) + 1;
-    return acc;
-  }, {} as Record<number, number>);
+  const yearCounts = useMemo<Record<number, number>>(() =>
+    entries.reduce((acc, e) => {
+      const y = e.registered_years ?? 1;
+      acc[y] = (acc[y] ?? 0) + 1;
+      return acc;
+    }, {} as Record<number, number>),
+  [entries]);
 
-  const visibleEntries: CatEntry[] = filterYear == null
-    ? entries
-    : entries.filter((e) => (e.registered_years ?? 1) === filterYear);
+  const visibleEntries = useMemo<CatEntry[]>(() =>
+    filterYear == null ? entries : entries.filter((e) => (e.registered_years ?? 1) === filterYear),
+  [entries, filterYear]);
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">

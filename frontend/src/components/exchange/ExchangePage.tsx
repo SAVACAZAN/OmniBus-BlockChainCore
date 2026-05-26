@@ -52,6 +52,8 @@ export function ExchangePage() {
   const walletAddress: string = wallet?.address ?? "";
   const globalBal = useGlobalBalance();
 
+  const tradesForPair = useMemo(() => trades.filter((t) => t.pairId === pairId), [trades, pairId]);
+
   // pairInfo is now available directly from the loaded ChainPair.
   const pairInfo: PairInfo | null = useMemo(() => {
     const found = allPairs.find((p) => p.id === pairId);
@@ -471,7 +473,7 @@ export function ExchangePage() {
                 <span className="text-right">Size</span>
                 <span className="text-right">Age</span>
               </div>
-              {trades.filter((t) => t.pairId === pairId).map((t, i, arr) => {
+              {tradesForPair.map((t, i, arr) => {
                 const prev = arr[i + 1];
                 const dir = !prev ? null : t.price > prev.price ? "up" : t.price < prev.price ? "down" : null;
                 const priceColor = dir === "up" ? "text-green-400" : dir === "down" ? "text-red-400" : "text-mempool-text";

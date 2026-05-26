@@ -357,11 +357,11 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
     }
   }
 
-  const displayed = filterOwn && walletAddress
-    ? grids.filter((g) => g.owner === walletAddress)
-    : grids;
+  const displayed = useMemo(() =>
+    filterOwn && walletAddress ? grids.filter((g) => g.owner === walletAddress) : grids,
+  [grids, filterOwn, walletAddress]);
 
-  const activeCount = grids.filter((g) => g.active).length;
+  const activeCount = useMemo(() => grids.filter((g) => g.active).length, [grids]);
 
   return (
     <div className="space-y-4">
