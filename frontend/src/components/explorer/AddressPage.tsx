@@ -357,6 +357,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
       </div>
 
       <AddressLabelsPanel addr={addr} />
+      <UtxoPanel addr={addr} onNavigate={onNavigate} />
     </div>
   );
 }
@@ -457,6 +458,110 @@ function AddressLabelsPanel({ addr }: { addr: string }) {
         </button>
       </div>
       {err && <p className="text-[11px] text-red-400">{err}</p>}
+    </div>
+  );
+}
+
+// ── UTXO panel ──────────────────────────────────────────────────────────────
+
+interface Utxo {
+  tx_hash: string;
+  output_index: number;
+  amount: number;
+  block_height: number;
+  is_coinbase: boolean;
+}
+
+function UtxoPanel({ addr, onNavigate }: { addr: string; onNavigate: (h: string) => void }) {
+  const [utxos, setUtxos] = useState<Utxo[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    rpc.request_raw("listunspent", [addr])
+      .then((r: any) => {
+        if (Array.isArray(r?.utxos)) {
+          setUtxos(r.utxos);
+          setTotal(r.total ?? 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [addr]);
+
+  if (!loading && utxos.length === 0) return null;
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+          UTXOs ({loading ? "…" : utxos.length})
+          {total > 0 && (
+            <span className="ml-2 font-mono text-xs text-mempool-blue normal-case">
+              {fmtSat(total)}
+            </span>
+          )}
+        </h3>
+        {utxos.length > 5 && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-xs text-mempool-text-dim hover:text-mempool-text"
+          >
+            {expanded ? "Show less" : `Show all ${utxos.length}`}
+          </button>
+        )}
+      </div>
+      {loading ? (
+        <p className="text-xs text-mempool-text-dim animate-pulse">Loading UTXOs…</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs min-w-[420px]">
+            <thead className="text-mempool-text-dim border-b border-mempool-border">
+              <tr>
+                <th className="text-left pb-2 pr-3">TX Hash</th>
+                <th className="text-right pb-2 pr-3">Vout</th>
+                <th className="text-right pb-2 pr-3">Amount</th>
+                <th className="text-right pb-2 pr-3">Block</th>
+                <th className="text-left pb-2">Type</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-mempool-border/30">
+              {(expanded ? utxos : utxos.slice(0, 5)).map((u) => (
+                <tr key={`${u.tx_hash}:${u.output_index}`} className="hover:bg-mempool-bg-light/30">
+                  <td className="py-1.5 pr-3 font-mono text-mempool-blue">
+                    <button
+                      onClick={() => onNavigate(`#/tx/${u.tx_hash}`)}
+                      className="hover:underline"
+                      title={u.tx_hash}
+                    >
+                      {midTrunc(u.tx_hash, 10, 8)}
+                    </button>
+                  </td>
+                  <td className="py-1.5 pr-3 text-right font-mono text-mempool-text-dim">{u.output_index}</td>
+                  <td className="py-1.5 pr-3 text-right font-mono text-green-400">{fmtSat(u.amount)}</td>
+                  <td className="py-1.5 pr-3 text-right font-mono">
+                    <button
+                      onClick={() => onNavigate(`#/block/${u.block_height}`)}
+                      className="text-mempool-blue hover:underline"
+                    >
+                      #{u.block_height.toLocaleString()}
+                    </button>
+                  </td>
+                  <td className="py-1.5">
+                    {u.is_coinbase ? (
+                      <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 text-[9px] uppercase">coinbase</span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded bg-gray-700/40 text-gray-400 text-[9px] uppercase">utxo</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

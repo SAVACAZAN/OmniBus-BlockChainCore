@@ -51,15 +51,27 @@ export function BlocksPage() {
         if (typeof liveCount === "number" && liveCount > 0) height = liveCount;
       } catch { /* fall back */ }
 
-      const start = Math.max(0, height - 1 - page * PAGE_SIZE);
-      const end = Math.max(0, start - PAGE_SIZE);
-      const indices: number[] = [];
-      for (let i = start; i > end && i >= 0; i--) indices.push(i);
+      // Use getblocks (1 call) instead of N individual getBlock calls.
+      // getblocks returns blocks ascending from `from`; we reverse for display.
+      const from = Math.max(0, height - (page + 1) * PAGE_SIZE);
+      const count = Math.min(PAGE_SIZE, height - from);
+      if (count <= 0) { setBlocks([]); setLoading(false); return; }
 
-      const results = await Promise.all(
-        indices.map((idx) => rpc.getBlock(idx).catch(() => null))
-      );
-      setBlocks(results.filter(Boolean) as BlockWithDiff[]);
+      try {
+        const resp: any = await rpc.getBlocks(from, count);
+        const blks: any[] = Array.isArray(resp) ? resp : (resp?.blocks ?? []);
+        setBlocks([...blks].reverse() as BlockWithDiff[]);
+      } catch {
+        // Fallback to individual requests if getblocks not available
+        const start = Math.max(0, height - 1 - page * PAGE_SIZE);
+        const end = Math.max(0, start - PAGE_SIZE);
+        const indices: number[] = [];
+        for (let i = start; i > end && i >= 0; i--) indices.push(i);
+        const results = await Promise.all(
+          indices.map((idx) => rpc.getBlock(idx).catch(() => null))
+        );
+        setBlocks(results.filter(Boolean) as BlockWithDiff[]);
+      }
     } catch {}
     setLoading(false);
   };
