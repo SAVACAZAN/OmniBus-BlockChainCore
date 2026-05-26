@@ -66,6 +66,10 @@ export function BlocksPage() {
 
   const maxPage = Math.max(0, Math.floor((state.blockCount - 1) / PAGE_SIZE));
 
+  // Build a height→timestamp lookup for computing inter-block times
+  const tsMap = new Map(blocks.map((b) => [b.height, b.timestamp]));
+  const maxTxCount = Math.max(1, ...blocks.map((b) => b.txCount || 0));
+
   // Chart data: last 20 blocks (oldest→newest for correct left-to-right render)
   const chartData = [...blocks]
     .reverse()
@@ -151,19 +155,20 @@ export function BlocksPage() {
               <th className="px-4 py-3 font-medium">Miner</th>
               <th className="px-4 py-3 font-medium text-right">TXs</th>
               <th className="px-4 py-3 font-medium text-right">Reward</th>
+              <th className="px-4 py-3 font-medium text-right">Δt</th>
               <th className="px-4 py-3 font-medium text-right">Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-mempool-border/30">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
                   Loading…
                 </td>
               </tr>
             ) : blocks.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
                   No blocks
                 </td>
               </tr>
@@ -193,11 +198,30 @@ export function BlocksPage() {
                   >
                     <AddressLabel address={b.miner ?? ""} showEmoji truncate={{ left: 8, right: 6 }} />
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-mempool-text whitespace-nowrap">
-                    {(b.txCount || 0) + 1}
+                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div className="w-12 h-1.5 bg-mempool-bg rounded-full overflow-hidden flex-shrink-0">
+                        <div
+                          className="h-full rounded-full bg-green-400"
+                          style={{ width: `${Math.min(100, ((b.txCount || 0) / maxTxCount) * 100)}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-mempool-text">{(b.txCount || 0) + 1}</span>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
                     {((b.rewardSAT || 0) / 1e9).toFixed(8)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                    {(() => {
+                      const prevTs = tsMap.get(b.height + 1);
+                      if (!prevTs || !b.timestamp) return <span className="text-mempool-text-dim">—</span>;
+                      const delta = prevTs - b.timestamp;
+                      const cls = delta <= 0 || delta > 60
+                        ? "text-mempool-text-dim"
+                        : delta < 8 ? "text-orange-400" : delta <= 15 ? "text-green-400" : "text-yellow-400";
+                      return <span className={`font-mono ${cls}`}>{Math.abs(delta)}s</span>;
+                    })()}
                   </td>
                   <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap">
                     {b.timestamp
