@@ -6831,10 +6831,11 @@ fn handleGetPendingTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     while (n < take) : (n += 1) {
         const tx = items[i];
         const sep: []const u8 = if (n == 0) "" else ",";
+        const kind = inferTxKind(tx);
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d}}}",
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d}}}",
             .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee,
-               txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
+               kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m;
         if (i == 0) break;

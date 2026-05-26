@@ -38,6 +38,25 @@ interface MempoolTx {
   timestamp?: number;
   scheme?: string;
   nonce?: number;
+  kind?: string;
+}
+
+const KIND_STYLE: Record<string, string> = {
+  coinbase:   "bg-yellow-500/20 text-yellow-300",
+  faucet:     "bg-cyan-500/20 text-cyan-300",
+  registrar:  "bg-purple-500/20 text-purple-300",
+  exchange:   "bg-blue-500/20 text-blue-300",
+  stake:      "bg-green-500/20 text-green-300",
+  demo_grant: "bg-pink-500/20 text-pink-300",
+};
+function KindBadge({ kind }: { kind?: string }) {
+  if (!kind || kind === "transfer") return null;
+  const cls = KIND_STYLE[kind] ?? "bg-gray-700/40 text-gray-300";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded text-[10px] uppercase tracking-wide font-mono flex-shrink-0 ${cls}`}>
+      {kind}
+    </span>
+  );
 }
 
 function SchemeTag({ scheme }: { scheme: string }) {
@@ -110,6 +129,7 @@ export function MempoolPage() {
           timestamp: tx.timestamp,
           scheme: tx.scheme,
           nonce: tx.nonce,
+          kind: tx.kind,
         }));
         const existing = new Set(mapped.map((t) => t.txid));
         const merged = [
@@ -422,7 +442,10 @@ export function MempoolPage() {
                       <FeeTag fee={tx.fee} />
                     </td>
                     <td className="px-4 py-2.5">
-                      {tx.scheme ? <SchemeTag scheme={tx.scheme} /> : <span className="text-mempool-text-dim">—</span>}
+                      <div className="flex items-center gap-1">
+                        <KindBadge kind={tx.kind} />
+                        {tx.scheme ? <SchemeTag scheme={tx.scheme} /> : <span className="text-mempool-text-dim">—</span>}
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-right text-mempool-text-dim">
                       {tx.timestamp ? fmtAge(tx.timestamp) : "—"}
