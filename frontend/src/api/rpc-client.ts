@@ -8,6 +8,10 @@
  */
 
 import { SAT_PER_OMNI } from "../utils/fmt";
+import type {
+  BlockData, TransactionData, MempoolStats, PeerInfo, NetworkInfo,
+  TransactionDetail, AddressHistoryEntry, FeeEstimate, MinerInfo,
+} from "../types";
 
 export type ChainName = "mainnet" | "testnet" | "regtest";
 
@@ -156,11 +160,11 @@ export class OmniBusRpcClient {
     return this.request("getblockcount");
   }
 
-  async getBlock(index: number): Promise<any> {
+  async getBlock(index: number): Promise<BlockData> {
     return this.request("getblock", [index]);
   }
 
-  async getLatestBlock(): Promise<any> {
+  async getLatestBlock(): Promise<BlockData> {
     return this.request("getlatestblock");
   }
 
@@ -188,7 +192,7 @@ export class OmniBusRpcClient {
     return this.request("pq_send", [p]);
   }
 
-  async getTransaction(txId: string): Promise<any> {
+  async getTransaction(txId: string): Promise<TransactionData> {
     return this.request("gettransaction", [txId]);
   }
 
@@ -309,61 +313,63 @@ export class OmniBusRpcClient {
     }]);
   }
 
-  async getMempoolStats(): Promise<any> {
+  async getMempoolStats(): Promise<MempoolStats & { count?: number; max_tx?: number; max_bytes?: number }> {
     return this.request("getmempoolstats");
   }
 
-  async getPeers(): Promise<any> {
+  async getPeers(): Promise<PeerInfo[]> {
     return this.request("getpeers");
   }
 
-  async getSyncStatus(): Promise<any> {
+  async getSyncStatus(): Promise<{ synced: boolean; height: number; peerCount: number }> {
     return this.request("getsyncstatus");
   }
 
-  async getNetworkInfo(): Promise<any> {
+  async getNetworkInfo(): Promise<NetworkInfo> {
     return this.request("getnetworkinfo");
   }
 
-  async getNodeList(): Promise<any> {
+  async getNodeList(): Promise<PeerInfo[]> {
     return this.request("getnodelist");
   }
 
-  async getBlocks(from: number, count: number = 10): Promise<any> {
+  async getBlocks(from: number, count: number = 10): Promise<BlockData[]> {
     return this.request("getblocks", [from, count]);
   }
 
-  async getMinerInfo(): Promise<any> {
+  async getMinerInfo(): Promise<MinerInfo> {
     return this.request("getminerinfo");
   }
 
-  async getMinerStatus(): Promise<any> {
+  async getMinerStatus(): Promise<{ mining: boolean; hashrate?: number; address?: string }> {
     return this.request("getminerstatus");
   }
 
-  async registerMiner(minerData: any): Promise<any> {
+  async registerMiner(minerData: { address: string; publicKey: string; signature: string; nonce: number }): Promise<{ success: boolean; message?: string }> {
     return this.request("registerminer", [minerData]);
   }
 
-  async minerKeepalive(address: string): Promise<any> {
+  async minerKeepalive(address: string): Promise<{ success: boolean }> {
     return this.request("minerkeepalive", [address]);
   }
 
   // ── New RPC endpoints ──────────────────────────────────────────────────
 
-  async getTransactionDetail(txid: string): Promise<any> {
+  async getTransactionDetail(txid: string): Promise<TransactionDetail> {
     return this.request("gettransaction", [txid]);
   }
 
-  async getAddressHistory(address: string): Promise<any> {
+  async getAddressHistory(address: string): Promise<{ transactions?: AddressHistoryEntry[]; history?: AddressHistoryEntry[]; entries?: AddressHistoryEntry[]; count?: number }> {
     return this.request("getaddresshistory", [address]);
   }
 
-  async listTransactions(count: number = 20): Promise<any> {
-    return this.request("listtransactions", [count]);
+  async listTransactions(count: number = 20): Promise<{ transactions: TransactionData[] }> {
+    const r = await this.request("listtransactions", [count]);
+    if (Array.isArray(r)) return { transactions: r as TransactionData[] };
+    return { transactions: (r as { transactions?: TransactionData[] })?.transactions ?? [] };
   }
 
-  async estimateFee(): Promise<any> {
+  async estimateFee(): Promise<FeeEstimate & { feeSAT?: number; fee_sat?: number; minFeeSAT?: number; min_fee_sat?: number; burn_pct?: number }> {
     return this.request("estimatefee");
   }
 

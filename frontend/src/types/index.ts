@@ -134,6 +134,10 @@ export interface BlockData {
   txCount: number;
   miner?: string;
   rewardSAT?: number;
+  // Backend may include tx list under any of these keys
+  transactions?: string[];
+  tx_ids?: string[];
+  txids?: string[];
   /// Optional oracle price snapshot captured at mining time. Up to 21 slots
   /// (7 IMPORTANT_PAIRS x 3 exchanges) — empty/zero entries are filtered
   /// server-side.
