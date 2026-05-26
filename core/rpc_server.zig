@@ -5465,6 +5465,8 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 }
             }
 
+            const rfs_safe = try jsonSanitize(alloc, name);
+            defer alloc.free(rfs_safe);
             return std.fmt.allocPrint(alloc,
                 "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
                     "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
@@ -5477,7 +5479,7 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     "\"found\":true" ++
                 "}}}}",
                 .{
-                    id, name, tld, name, tld,
+                    id, rfs_safe, tld, rfs_safe, tld,
                     primary,
                     route_slot,
                     route_addr,
@@ -5487,12 +5489,16 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 });
         }
     }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-            "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
-            "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
-            "\"fell_back_to_primary\":false,\"found\":false}}}}",
-        .{ id, name, tld, name, tld });
+    {
+        const rfs_nf = try jsonSanitize(alloc, name);
+        defer alloc.free(rfs_nf);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+                "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
+                "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
+                "\"fell_back_to_primary\":false,\"found\":false}}}}",
+            .{ id, rfs_nf, tld, rfs_nf, tld });
+    }
 }
 
 fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
