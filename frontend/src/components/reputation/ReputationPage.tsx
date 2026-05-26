@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Heart,
   Utensils,
@@ -777,8 +779,10 @@ export function ReputationPage() {
       }
     };
     run();
-    const id = setInterval(run, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    // Reputation updates per-block (mining, staking rewards) — refresh on new_block.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
+    const id = setInterval(run, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [sortBy]);
 
   // Auto-load mine when wallet/address changes

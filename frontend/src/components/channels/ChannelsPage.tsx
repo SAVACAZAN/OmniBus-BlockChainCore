@@ -16,6 +16,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Zap,
   RefreshCw,
@@ -317,11 +319,12 @@ function OverviewTab({
     }
   }, []);
 
-  // Initial load + 5s auto-refresh
+  // Initial load + WS-driven refresh on new blocks; 60 s fallback poll.
   useEffect(() => {
     void refresh();
-    const id = window.setInterval(() => { void refresh(); }, 5000);
-    return () => window.clearInterval(id);
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = window.setInterval(() => { void refresh(); }, 60_000);
+    return () => { window.clearInterval(id); unsub(); };
   }, [refresh]);
 
   const channels = useMemo(() => {
