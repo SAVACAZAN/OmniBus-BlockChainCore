@@ -179,14 +179,18 @@ interface OmniDexPrice {
   midPrice: number;
 }
 
+const DEX_PAIRS = [
+  { id: 0,  label: "OMNI/USDC" },
+  { id: 2,  label: "LCX/USDC"  },
+  { id: 3,  label: "ETH/USDC"  },
+  { id: 5,  label: "OMNI/LCX"  },
+  { id: 6,  label: "OMNI/ETH"  },
+] as const;
+
+const DEX_PAIR_LABELS = DEX_PAIRS.map((p) => p.label);
+
 async function fetchOmniDexPrices(): Promise<OmniDexPrice[]> {
-  const pairs = [
-    { id: 0,  label: "OMNI/USDC" },
-    { id: 2,  label: "LCX/USDC"  },
-    { id: 3,  label: "ETH/USDC"  },
-    { id: 5,  label: "OMNI/LCX"  },
-    { id: 6,  label: "OMNI/ETH"  },
-  ];
+  const pairs = DEX_PAIRS;
   const out: OmniDexPrice[] = [];
   for (const p of pairs) {
     try {
@@ -1188,7 +1192,7 @@ function DexOrderbookPanel() {
             onChange={(e) => setPair(e.target.value)}
             className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text"
           >
-            {["OMNI/USDC", "LCX/USDC", "ETH/USDC", "OMNI/LCX", "OMNI/ETH"].map((p) => (
+            {DEX_PAIR_LABELS.map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
           </select>

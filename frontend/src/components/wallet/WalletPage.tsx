@@ -29,6 +29,12 @@ import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 //   ob_f5_ = FOOD   🥖       (work util — mining + oracle + agents)
 //   ob_d5_ = RENT   🏠       (capital angajat — stake + LP + hold)
 //   ob_s3_ = VACATION 🏖️    (longevitate — zile pe retea)
+const TX_FILTER_TYPES = [
+  "All", "Sent", "Received", "Mining Reward", "Stake", "Unstake",
+  "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw",
+  "NS Claim", "Agent Register", "Notarize",
+] as const;
+
 const PQ_DOMAINS = [
   { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue",   emoji: "🔑", tier: "OMNI" },
   { prefix: "ob_k1_", algo: "ML-DSA-87",     bits: 256, color: "text-mempool-purple", emoji: "❤️",  tier: "LOVE" },
@@ -934,7 +940,7 @@ export function WalletPage() {
           {/* Type filter pills — driven by classifyTx() result. "All" shows
               everything, including types that may not be present yet. */}
           <div className="flex flex-wrap gap-1">
-            {["All", "Sent", "Received", "Mining Reward", "Stake", "Unstake", "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw", "NS Claim", "Agent Register", "Notarize"].map((type) => {
+            {TX_FILTER_TYPES.map((type) => {
               const count = txCountByType[type] ?? 0;
               if (type !== "All" && count === 0) return null; // hide empty filters
               return (
