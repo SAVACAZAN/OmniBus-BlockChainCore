@@ -74,13 +74,16 @@ function bucketLabel(bucket: string): string {
   return bucket;
 }
 
+const BUCKET_SYMBOL: Record<string, string> = {
+  "USD*": "$",
+  "EUR*": "€",
+  "GBP":  "£",
+  "JPY":  "¥",
+};
+
 // Pretty-print currency prefix for a bucket — $ for USD*, € for EUR*, etc.
 function bucketSymbol(bucket: string): string {
-  if (bucket === "USD*") return "$";
-  if (bucket === "EUR*") return "€";
-  if (bucket === "GBP") return "£";
-  if (bucket === "JPY") return "¥";
-  return "";
+  return BUCKET_SYMBOL[bucket] ?? "";
 }
 
 // ── Cell sub-component ────────────────────────────────────────────────────

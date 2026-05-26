@@ -74,45 +74,37 @@ const POAP_TABS: { id: SubTab; label: string; icon: React.FC<{ className?: strin
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
+const BADGE_TEXT_COLORS = [
+  "text-mempool-blue",
+  "text-mempool-green",
+  "text-mempool-orange",
+  "text-purple-400",
+  "text-pink-400",
+] as const;
+const BADGE_BG_COLORS = [
+  "bg-mempool-blue/20 border-mempool-blue/40",
+  "bg-mempool-green/20 border-mempool-green/40",
+  "bg-mempool-orange/20 border-mempool-orange/40",
+  "bg-purple-400/20 border-purple-400/40",
+  "bg-pink-400/20 border-pink-400/40",
+] as const;
 
+function hashEventId(eventId: string): number {
+  let h = 0;
+  for (let i = 0; i < eventId.length; i++) {
+    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
 
 /** Derive a stable color class from an event_id string using a simple hash. */
 function badgeColor(eventId: string): string {
-  const COLORS = [
-    "text-mempool-blue",
-    "text-mempool-green",
-    "text-mempool-orange",
-    "text-purple-400",
-    "text-pink-400",
-  ];
-  const BG_COLORS = [
-    "bg-mempool-blue/20 border-mempool-blue/40",
-    "bg-mempool-green/20 border-mempool-green/40",
-    "bg-mempool-orange/20 border-mempool-orange/40",
-    "bg-purple-400/20 border-purple-400/40",
-    "bg-pink-400/20 border-pink-400/40",
-  ];
-  let h = 0;
-  for (let i = 0; i < eventId.length; i++) {
-    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
-  }
-  const idx = h % COLORS.length;
-  return `${COLORS[idx]} ${BG_COLORS[idx]}`;
+  const idx = hashEventId(eventId) % BADGE_TEXT_COLORS.length;
+  return `${BADGE_TEXT_COLORS[idx]} ${BADGE_BG_COLORS[idx]}`;
 }
 
 function badgeTextColor(eventId: string): string {
-  const COLORS = [
-    "text-mempool-blue",
-    "text-mempool-green",
-    "text-mempool-orange",
-    "text-purple-400",
-    "text-pink-400",
-  ];
-  let h = 0;
-  for (let i = 0; i < eventId.length; i++) {
-    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
-  }
-  return COLORS[h % COLORS.length];
+  return BADGE_TEXT_COLORS[hashEventId(eventId) % BADGE_TEXT_COLORS.length];
 }
 
 // ── Signing ───────────────────────────────────────────────────────────────
