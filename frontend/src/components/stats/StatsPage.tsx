@@ -391,6 +391,64 @@ export function StatsPage() {
         </div>
       )}
 
+      {/* Halving Countdown */}
+      {chainMetrics && chainMetrics.height > 0 && (() => {
+        const HALVING_INTERVAL = 210_000;
+        const blockTimeS = netStats?.avgBlockTime ?? 10;
+        const effectiveBT = blockTimeS > 0 ? blockTimeS : 10;
+        const era = Math.floor(chainMetrics.height / HALVING_INTERVAL);
+        const nextHalvingBlock = (era + 1) * HALVING_INTERVAL;
+        const blocksLeft = nextHalvingBlock - chainMetrics.height;
+        const secondsLeft = blocksLeft * effectiveBT;
+        const daysLeft = secondsLeft / 86400;
+        const currentReward = (chainMetrics.currentBlockReward / SAT).toFixed(8);
+        const nextReward = (chainMetrics.currentBlockReward / SAT / 2).toFixed(8);
+        const pct = ((chainMetrics.height % HALVING_INTERVAL) / HALVING_INTERVAL) * 100;
+        const halvingDate = new Date(Date.now() + secondsLeft * 1000);
+        return (
+          <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+              Halving Countdown — Era {era + 1}
+            </h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1 w-full">
+                <div className="flex justify-between text-xs text-mempool-text-dim mb-1">
+                  <span>Block #{(era * HALVING_INTERVAL).toLocaleString()}</span>
+                  <span>Next halving: #{nextHalvingBlock.toLocaleString()}</span>
+                </div>
+                <div className="w-full h-3 bg-mempool-bg rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-300 transition-all"
+                    style={{ width: `${pct.toFixed(2)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-mempool-text-dim mt-1">
+                  <span>{pct.toFixed(1)}% through era</span>
+                  <span>{blocksLeft.toLocaleString()} blocks remaining</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 text-xs text-right sm:min-w-[160px]">
+                <div className="text-2xl font-mono font-bold text-orange-400">
+                  {daysLeft >= 1
+                    ? `~${daysLeft.toFixed(0)}d`
+                    : daysLeft >= 1/24
+                    ? `~${Math.ceil(daysLeft * 24)}h`
+                    : `~${Math.ceil(secondsLeft / 60)}m`}
+                </div>
+                <div className="text-mempool-text-dim">
+                  {halvingDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                </div>
+                <div className="flex items-center gap-2 justify-end mt-1">
+                  <span className="text-mempool-text-dim">
+                    {currentReward} → <span className="text-orange-400">{nextReward} OMNI</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Block time chart */}
       {hasBlockTime && (
         <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
