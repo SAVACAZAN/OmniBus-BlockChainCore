@@ -265,6 +265,28 @@ export function ColdWalletPanel() {
           Watched addresses ({addresses.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {addresses.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["address", "label", "balance_omni"].join(","),
+                ...addresses.map((a) => [
+                  `"${a.address}"`,
+                  `"${a.label}"`,
+                  (a.balance_sat / SAT_PER_OMNI).toFixed(4),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const el = document.createElement("a");
+              el.href = url; el.download = "omnibus-cold-wallets.csv";
+              el.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
