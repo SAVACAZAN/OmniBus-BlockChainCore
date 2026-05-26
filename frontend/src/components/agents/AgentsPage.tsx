@@ -638,6 +638,12 @@ export function AgentsPage() {
           </div>
         )}
 
+        {/* agent_status — detailed stats per wallet_index */}
+        {!methodMissing && <AgentStatusPanel />}
+
+        {/* agent_report_execution — report result of a pending decision */}
+        {!methodMissing && <AgentReportPanel />}
+
         <div className="mt-6 text-xs text-mempool-text-dim">
           <p>
             <span className="font-semibold text-mempool-text">Refresh:</span> auto every 5s (system) / 8s (registry).
@@ -649,6 +655,217 @@ export function AgentsPage() {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── AgentStatusPanel ─────────────────────────────────────────────────────
+
+interface AgentDetailStatus {
+  name: string;
+  wallet_index: number;
+  address: string;
+  strategy: string;
+  tier: string;
+  balance_sat: number;
+  staked_sat: number;
+  lp_locked_sat: number;
+  pnl_session_sat: number;
+  halted: boolean;
+  stats: {
+    ticks: number;
+    decisions_emitted: number;
+    decisions_queued: number;
+    exec_success: number;
+    exec_failed: number;
+    tier_transitions: number;
+    total_mined_sat: number;
+  };
+}
+
+function AgentStatusPanel() {
+  const [walletIndex, setWalletIndex] = useState("");
+  const [result, setResult] = useState<AgentDetailStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const lookup = async () => {
+    const wi = parseInt(walletIndex);
+    if (isNaN(wi)) { setError("Enter a valid wallet_index integer."); return; }
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const r = await rpc.request_raw("agent_status", [{ wallet_index: wi }]);
+      if (r && typeof r === "object") setResult(r as AgentDetailStatus);
+    } catch (e) {
+      setError(String(e));
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-mempool-text mb-2">Agent status (by wallet index)</h3>
+      <div className="flex gap-3 mb-3">
+        <input
+          type="number"
+          min="0"
+          value={walletIndex}
+          onChange={(e) => setWalletIndex(e.target.value)}
+          placeholder="wallet_index (e.g. 10)"
+          className="w-40 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading}
+          className="px-3 py-1.5 rounded text-xs bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/30 hover:bg-mempool-blue/30 disabled:opacity-50"
+        >
+          {loading ? "…" : "agent_status"}
+        </button>
+      </div>
+      {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
+      {result && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3 text-xs space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-semibold text-mempool-text font-mono">{result.name}</span>
+            <span className="text-mempool-text-dim">idx {result.wallet_index}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${result.halted ? "bg-red-500/20 text-red-300" : "bg-green-500/20 text-green-300"}`}>
+              {result.halted ? "HALTED" : "RUNNING"}
+            </span>
+            <span className="text-mempool-blue">{result.tier}</span>
+            <span className="text-mempool-text-dim">{result.strategy}</span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-4 gap-y-1 font-mono">
+            {[
+              ["balance", omniFmt(result.balance_sat) + " OMNI"],
+              ["staked", omniFmt(result.staked_sat) + " OMNI"],
+              ["LP locked", omniFmt(result.lp_locked_sat) + " OMNI"],
+              ["P&L session", (result.pnl_session_sat >= 0 ? "+" : "") + omniFmt(result.pnl_session_sat)],
+              ["ticks", String(result.stats.ticks)],
+              ["decisions ✉", String(result.stats.decisions_emitted)],
+              ["queued", String(result.stats.decisions_queued)],
+              ["exec ✓/✗", `${result.stats.exec_success}/${result.stats.exec_failed}`],
+              ["tier Δ", String(result.stats.tier_transitions)],
+              ["mined", omniFmt(result.stats.total_mined_sat) + " OMNI"],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <div className="text-[9px] text-mempool-text-dim uppercase">{k}</div>
+                <div className="text-mempool-text">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="text-[10px] font-mono text-mempool-text-dim truncate">{result.address}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── AgentReportPanel ─────────────────────────────────────────────────────
+
+const EXEC_STATUSES = ["success", "rejected", "network_error", "timeout", "cancelled"] as const;
+type ExecStatus = typeof EXEC_STATUSES[number];
+
+function AgentReportPanel() {
+  const [decisionId, setDecisionId] = useState("");
+  const [status, setStatus] = useState<ExecStatus>("success");
+  const [externalId, setExternalId] = useState("");
+  const [filledSat, setFilledSat] = useState("");
+  const [fillPrice, setFillPrice] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const report = async () => {
+    const did = parseInt(decisionId);
+    if (isNaN(did)) { setErr("Enter a valid decision_id."); return; }
+    setBusy(true);
+    setResult(null);
+    setErr(null);
+    try {
+      const params: Record<string, unknown> = { decision_id: did, status };
+      if (externalId) params.external_id = externalId;
+      if (filledSat) params.filled_amount_sat = parseInt(filledSat) || 0;
+      if (fillPrice) params.fill_price_micro_usd = parseInt(fillPrice) || 0;
+      if (errorMsg) params.error_msg = errorMsg;
+      const r = await rpc.request_raw("agent_report_execution", [params]);
+      setResult(r && typeof r === "object" ? JSON.stringify(r) : String(r));
+    } catch (e) {
+      setErr(String(e));
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-mempool-text mb-2">Report execution result</h3>
+      <p className="text-xs text-mempool-text-dim mb-3">
+        Used by the external Python agent client to report the outcome of a pending decision.
+        Sets the decision's status and marks it as settled in the queue.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mb-3">
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">decision_id *</span>
+          <input
+            type="number" min="0"
+            value={decisionId} onChange={(e) => setDecisionId(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="42"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">status *</span>
+          <select
+            value={status} onChange={(e) => setStatus(e.target.value as ExecStatus)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-mempool-text focus:outline-none focus:border-mempool-blue"
+          >
+            {EXEC_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">external_id</span>
+          <input
+            value={externalId} onChange={(e) => setExternalId(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="LCX-12345"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">filled_amount_sat</span>
+          <input
+            type="number" min="0"
+            value={filledSat} onChange={(e) => setFilledSat(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="0"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">fill_price_micro_usd</span>
+          <input
+            type="number" min="0"
+            value={fillPrice} onChange={(e) => setFillPrice(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="0"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">error_msg</span>
+          <input
+            value={errorMsg} onChange={(e) => setErrorMsg(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="optional"
+          />
+        </label>
+      </div>
+      <button
+        onClick={report}
+        disabled={busy || !decisionId}
+        className="px-4 py-1.5 rounded text-xs bg-mempool-blue hover:bg-blue-600 text-white disabled:opacity-50"
+      >
+        {busy ? "Reporting…" : "agent_report_execution"}
+      </button>
+      {result && <div className="mt-2 text-green-400 text-xs font-mono">{result}</div>}
+      {err && <div className="mt-2 text-red-400 text-xs">{err}</div>}
     </div>
   );
 }
