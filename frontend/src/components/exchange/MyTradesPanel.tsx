@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewTradeEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -99,10 +101,16 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
       }
     };
     refresh();
-    const id = setInterval(refresh, 6000);
+    // Live: new_trade on this pair fires immediately when a fill happens.
+    const unsub = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    // Fallback poll at 30 s for when WS is disconnected.
+    const id = setInterval(refresh, 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [u?.address, pairId, refreshKey]);
 

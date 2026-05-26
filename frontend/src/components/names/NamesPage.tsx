@@ -8,6 +8,8 @@ import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { TxHashLink } from "../common/TxHashLink";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -219,26 +221,36 @@ export function NamesPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => { if (!cancelled) await refresh(); };
-    tick();
-    const id = setInterval(tick, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void refresh();
+    // Refresh immediately on name events (new registrations + renewals).
+    const unsubReg = wsSubscribe<WsNameRegisteredEvent>("name_registered", () => {
+      if (!cancelled) void refresh();
+    });
+    const unsubRen = wsSubscribe<WsNameRenewedEvent>("name_renewed", () => {
+      if (!cancelled) void refresh();
+    });
+    // Slow fallback poll for newly expired names or missed events.
+    const id = setInterval(() => { if (!cancelled) void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsubReg(); unsubRen(); };
   }, []);
 
   // Track chain tip so the per-row "expires in N days" badge stays fresh.
-  // 30s is plenty — block time is 10s but UI rounds to days anyway.
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    const fetchHeight = async () => {
       try {
         const r: any = await rpc.request_raw("getblockchaininfo", []);
         const h = r?.height ?? r?.blocks ?? r?.chain_height;
         if (!cancelled && typeof h === "number") setCurrentBlock(h);
       } catch { /* keep stale */ }
     };
-    tick();
-    const id = setInterval(tick, 30_000);
-    return () => { cancelled = true; clearInterval(id); };
+    void fetchHeight();
+    // Live: new_block fires every ~10 s — no polling needed for block height.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setCurrentBlock(ev.height);
+    });
+    const id = setInterval(fetchHeight, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   useEffect(() => {
@@ -1098,9 +1110,11 @@ function TreasuryStatusCard() {
         }
       }
     };
-    tick();
-    const id = setInterval(tick, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void tick();
+    // Treasury state updates per block — use WS for immediate refresh.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
+    const id = setInterval(tick, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   if (unavailable) {
