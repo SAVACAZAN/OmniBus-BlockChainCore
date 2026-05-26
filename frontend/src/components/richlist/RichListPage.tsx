@@ -64,6 +64,90 @@ function deriveRoles(e: RichEntry): Role[] {
   return fallback;
 }
 
+// ── Wealth Concentration ───────────────────────────────────────────────────
+
+type ConcentrationSlot = { label: string; pct: number; color: string };
+
+function buildConcentration(entries: RichEntry[], totalSupply: number): ConcentrationSlot[] {
+  if (!totalSupply || entries.length === 0) return [];
+  const pct = (n: number) => +((n / totalSupply) * 100).toFixed(2);
+  const sumRange = (from: number, to: number) =>
+    entries.slice(from, to).reduce((s, e) => s + e.balance, 0);
+  const top1   = pct(sumRange(0, 1));
+  const top5   = pct(sumRange(0, Math.min(5,  entries.length)));
+  const top10  = pct(sumRange(0, Math.min(10, entries.length)));
+  const top50  = pct(sumRange(0, Math.min(50, entries.length)));
+  return [
+    { label: "Top 1",    pct: top1,            color: "#f97316" },
+    { label: "Top 5",    pct: top5  - top1,    color: "#eab308" },
+    { label: "Top 10",   pct: top10 - top5,    color: "#22c55e" },
+    { label: "Top 50",   pct: top50 - top10,   color: "#3b82f6" },
+    { label: "Others",   pct: 100   - top50,   color: "#4b5563" },
+  ].filter((s) => s.pct > 0);
+}
+
+function nakamotoCoefficient(entries: RichEntry[], totalSupply: number): number {
+  let cumulative = 0;
+  for (let i = 0; i < entries.length; i++) {
+    cumulative += entries[i].balance;
+    if (cumulative / totalSupply > 0.5) return i + 1;
+  }
+  return entries.length;
+}
+
+function ConcentrationBar({ entries, totalSupply }: { entries: RichEntry[]; totalSupply: number }) {
+  const slots = buildConcentration(entries, totalSupply);
+  if (slots.length === 0) return null;
+  const coeff = nakamotoCoefficient(entries, totalSupply);
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+          Wealth Concentration
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-mempool-text-dim">Nakamoto coefficient:</span>
+          <span
+            className={`font-mono font-bold ${
+              coeff <= 3 ? "text-red-400" : coeff <= 10 ? "text-orange-400" : "text-green-400"
+            }`}
+            title={`${coeff} address${coeff !== 1 ? "es" : ""} needed to control >50% of supply`}
+          >
+            {coeff}
+          </span>
+          <span className="text-mempool-text-dim text-[10px]">addr → 51%</span>
+        </div>
+      </div>
+
+      {/* Stacked bar */}
+      <div className="flex rounded-full overflow-hidden h-5 mb-3" title="Supply concentration by address group">
+        {slots.map((s) => (
+          <div
+            key={s.label}
+            style={{ width: `${s.pct}%`, backgroundColor: s.color, minWidth: s.pct > 0.5 ? "4px" : "0" }}
+            title={`${s.label}: ${s.pct.toFixed(2)}%`}
+            className="transition-all"
+          />
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {slots.map((s) => (
+          <div key={s.label} className="flex items-center gap-1.5 text-[11px]">
+            <span className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="text-mempool-text-dim">{s.label}</span>
+            <span className="font-mono text-mempool-text">{s.pct.toFixed(2)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+
 export function RichListPage() {
   const [list, setList] = useState<RichListResp | null>(null);
   const [metrics, setMetrics] = useState<ChainMetrics | null>(null);
@@ -140,6 +224,11 @@ export function RichListPage() {
           <Metric label="Block reward" value={`${omniFmt(metrics.currentBlockReward)} OMNI`} />
           <Metric label="Min validator" value={`${omniFmt(metrics.minValidatorBalance)} OMNI`} />
         </div>
+      )}
+
+      {/* Wealth concentration bar */}
+      {list && list.entries.length > 0 && list.totalSupply > 0 && (
+        <ConcentrationBar entries={list.entries} totalSupply={list.totalSupply} />
       )}
 
       {/* Filter + limit selector */}

@@ -242,7 +242,47 @@ export function TxPage({ hash, onNavigate }: Props) {
             </div>
           </div>
         )}
+
+        {/* Raw JSON */}
+        <RawJsonSection tx={tx} />
       </div>
+    </div>
+  );
+}
+
+function RawJsonSection({ tx }: { tx: any }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const raw = JSON.stringify(tx, null, 2);
+  const copyRaw = () => {
+    navigator.clipboard.writeText(raw);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className="border-t border-mempool-border pt-4">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-[10px] uppercase tracking-wider text-mempool-text-dim hover:text-mempool-blue transition-colors flex items-center gap-1"
+        >
+          <span>{open ? "▾" : "▸"}</span>
+          Raw JSON
+        </button>
+        {open && (
+          <button
+            onClick={copyRaw}
+            className="text-[10px] text-mempool-text-dim hover:text-mempool-blue transition-colors"
+          >
+            {copied ? "✓ Copied" : "⧉ Copy"}
+          </button>
+        )}
+      </div>
+      {open && (
+        <pre className="mt-2 text-[10px] font-mono text-mempool-text-dim bg-mempool-bg rounded p-3 overflow-x-auto max-h-80 leading-relaxed">
+          {raw}
+        </pre>
+      )}
     </div>
   );
 }
