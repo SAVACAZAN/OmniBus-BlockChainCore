@@ -45,6 +45,12 @@ interface Stats {
   maxBytes: number;
 }
 
+interface FeeEstimate {
+  feeSAT: number;
+  minFeeSAT: number;
+  burnPct: number;
+}
+
 // Fee buckets in SAT
 const FEE_BUCKETS = [
   { label: "< 1k", min: 0, max: 1_000 },
@@ -59,6 +65,7 @@ const BUCKET_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f97316", "#ef4444"];
 export function MempoolPage() {
   const [txs, setTxs] = useState<MempoolTx[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [feeEst, setFeeEst] = useState<FeeEstimate | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
@@ -68,10 +75,10 @@ export function MempoolPage() {
 
   const fetchMempool = async () => {
     try {
-      const [mempoolData, statsData] = await Promise.allSettled([
+      const [mempoolData, statsData, feeData] = await Promise.allSettled([
         rpc.getMempoolTransactions(),
         rpc.getMempoolStats(),
-        rpc.request_raw("getrawmempool", []),  // same handler as getmempoolinfo — confirms mempool size
+        rpc.estimateFee(),
       ]);
 
       if (mempoolData.status === "fulfilled" && mempoolData.value) {
@@ -101,6 +108,15 @@ export function MempoolPage() {
           maxTx: s.maxTx ?? s.max_tx ?? 5000,
           bytes: s.bytes ?? 0,
           maxBytes: s.maxBytes ?? s.max_bytes ?? 10_000_000,
+        });
+      }
+
+      if (feeData.status === "fulfilled" && feeData.value) {
+        const f = feeData.value;
+        setFeeEst({
+          feeSAT: f.feeSAT ?? f.fee_sat ?? 1000,
+          minFeeSAT: f.minFeeSAT ?? f.min_fee_sat ?? 500,
+          burnPct: f.burnPct ?? f.burn_pct ?? 0,
         });
       }
     } catch {}
@@ -212,6 +228,48 @@ export function MempoolPage() {
           }
           color="orange"
         />
+      </div>
+
+      {/* Fee Estimator */}
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+        <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+          Fee Estimator
+          {feeEst && feeEst.burnPct > 0 && (
+            <span className="ml-2 text-orange-400 normal-case font-normal text-[10px]">
+              🔥 {feeEst.burnPct}% burned
+            </span>
+          )}
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Fast", sub: "next 1-2 blocks", sat: feeEst ? Math.round(feeEst.feeSAT * 2) : null, color: "text-red-400", dot: "bg-red-400" },
+            { label: "Normal", sub: "3-6 blocks", sat: feeEst?.feeSAT ?? null, color: "text-orange-400", dot: "bg-orange-400" },
+            { label: "Economy", sub: "7+ blocks", sat: feeEst?.minFeeSAT ?? null, color: "text-green-400", dot: "bg-green-400" },
+          ].map((tier) => (
+            <div key={tier.label} className="bg-mempool-bg border border-mempool-border rounded-lg p-3 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${tier.dot}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-mempool-text-dim">{tier.label}</span>
+              </div>
+              <div className={`text-base font-mono font-bold ${tier.color}`}>
+                {tier.sat === null ? (
+                  <span className="animate-pulse text-mempool-text-dim">…</span>
+                ) : (
+                  tier.sat.toLocaleString()
+                )}
+                {tier.sat !== null && <span className="text-[10px] text-mempool-text-dim font-normal ml-1">SAT</span>}
+              </div>
+              <div className="text-[10px] text-mempool-text-dim">{tier.sub}</div>
+            </div>
+          ))}
+        </div>
+        {feeEst && (
+          <div className="mt-2 text-[10px] text-mempool-text-dim">
+            Median mempool fee: <span className="text-mempool-text font-mono">{feeEst.feeSAT.toLocaleString()} SAT</span>
+            {" · "}
+            Min accepted: <span className="text-mempool-text font-mono">{feeEst.minFeeSAT.toLocaleString()} SAT</span>
+          </div>
+        )}
       </div>
 
       {/* Fee distribution chart */}
