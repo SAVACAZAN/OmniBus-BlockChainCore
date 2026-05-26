@@ -464,6 +464,11 @@ function MarketTab() {
         <p className="text-red-400 text-xs">{error}</p>
       )}
 
+      {loading && swaps.length === 0 && (
+        <div className="text-mempool-text-dim text-xs text-center py-8 animate-pulse">
+          Loading open swaps…
+        </div>
+      )}
       {!loading && swaps.length === 0 && !error && (
         <div className="text-mempool-text-dim text-sm text-center py-8">
           No open swaps available.

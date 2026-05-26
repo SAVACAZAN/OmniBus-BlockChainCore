@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import OmniBusRpcClient from "../../api/rpc-client";
-import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import {
@@ -285,14 +285,19 @@ export function HtlcTradePanel() {
   // ── List pending HTLCs ──────────────────────────────────────────────────
   const [htlcs, setHtlcs] = useState<any[]>([]);
   const [loadingHtlcs, setLoadingHtlcs] = useState(false);
+  const [htlcErr, setHtlcErr] = useState<string | null>(null);
 
   async function loadHtlcs() {
     if (!u) return;
     setLoadingHtlcs(true);
+    setHtlcErr(null);
     try {
       const res = await (rpc as any).request_raw("htlc_listByAddress", [{ address: u.address }]) as any[];
       setHtlcs(Array.isArray(res) ? res : []);
-    } catch { setHtlcs([]); }
+    } catch (e: any) {
+      setHtlcs([]);
+      setHtlcErr(e?.message ?? String(e));
+    }
     setLoadingHtlcs(false);
   }
 
@@ -468,7 +473,10 @@ export function HtlcTradePanel() {
             </button>
           </div>
         </div>
-        {htlcs.length === 0 ? (
+        {htlcErr && (
+          <p className="text-[10px] text-red-400 font-mono">{htlcErr}</p>
+        )}
+        {!htlcErr && htlcs.length === 0 ? (
           <p className="text-[10px] text-mempool-text-dim">No HTLCs found for this address.</p>
         ) : (
           <div className="space-y-2">
@@ -476,7 +484,7 @@ export function HtlcTradePanel() {
               <div key={i} className="rounded bg-mempool-bg p-2 text-[10px] font-mono space-y-0.5">
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">ID</span>
-                  <span className="text-mempool-text">{h.htlc_id?.slice(0, 16)}…</span>
+                  <span className="text-mempool-text">{midTrunc(h.htlc_id, 16, 6)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">Amount</span>
