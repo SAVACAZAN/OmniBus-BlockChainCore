@@ -43,63 +43,16 @@ async function fetchBlockchairBalance(chain: string, address: string): Promise<C
 // RPC URLs from aweb3/src/config/chains.ts (single source of truth).
 
 const EVM_RPC: Record<string, string> = {
-  // ── Mainnet ──
-  ETH:           "https://ethereum-rpc.publicnode.com",
+  ETH:           "https://eth.llamarpc.com",
   ARBITRUM:      "https://arb1.arbitrum.io/rpc",
-  ARB:           "https://arb1.arbitrum.io/rpc",
   OPTIMISM:      "https://mainnet.optimism.io",
-  OP:            "https://mainnet.optimism.io",
   POLYGON:       "https://polygon-rpc.com",
-  MATIC:         "https://polygon-rpc.com",
-  BASE:          "https://base-rpc.publicnode.com",
-  BSC:           "https://bsc-dataseed1.binance.org",
-  BNB:           "https://bsc-dataseed1.binance.org",
+  BASE:          "https://base.drpc.org",
+  BSC:           "https://bsc-dataseed.binance.org",
   AVAX:          "https://api.avax.network/ext/bc/C/rpc",
-  FTM:           "https://rpc.ftm.tools",
-  ONE:           "https://api.harmony.one",
-  // Layer-2s
-  LINEA:         "https://rpc.linea.build",
-  ZKSYNC:        "https://mainnet.era.zksync.io",
-  SCROLL:        "https://rpc.scroll.io",
-  BLAST:         "https://rpc.blast.io",
-  MODE:          "https://mainnet.mode.network",
-  MANTA:         "https://pacific-rpc.manta.network/http",
-  MANTLE:        "https://rpc.mantle.xyz",
-  OPBNB:         "https://opbnb-mainnet-rpc.bnbchain.org",
-  TAIKO:         "https://rpc.taiko.xyz",
-  BOB:           "https://rpc.gobob.xyz",
-  XLAYER:        "https://rpc.xlayer.tech",
-  ZORA:          "https://rpc.zora.energy",
-  IMMUTABLE_ZK:  "https://rpc.immutable.com",
-  MERLIN:        "https://rpc.merlinchain.io",
-  // Side-chains and forks
-  GNOSIS:        "https://rpc.gnosischain.com",
-  CELO:          "https://forno.celo.org",
-  CRONOS:        "https://evm.cronos.org",
-  METIS:         "https://andromeda.metis.io/?owner=1088",
-  // Polkadot ecosystem EVM
-  MOONBEAM:      "https://rpc.api.moonbeam.network",
-  MOONRIVER:     "https://rpc.api.moonriver.moonbeam.network",
-  ASTAR:         "https://evm.astar.network",
-  // Misc EVM
-  ETC:           "https://etc.rivet.link",
-  XDC:           "https://rpc.xinfin.network",
-  KAIA:          "https://public-en.node.kaia.io",
-  CONFLUX:       "https://evm.confluxrpc.com",
-  FLARE:         "https://flare-api.flare.network/ext/C/rpc",
-  ROOTSTOCK:     "https://public-node.rsk.co",
-  LUKSO:         "https://rpc.mainnet.lukso.network",
-  IOTEX:         "https://babel-api.mainnet.iotex.io",
-  SYSCOIN:       "https://rpc.syscoin.org",
-  EWT:           "https://rpc.energyweb.org",
-  LCX:           "https://testnet-rpc.lcx.com",
-  LIBERTY:       "https://testnet-rpc.lcx.com",   // alias
-
-  // ── Testnet ──
-  SEPOLIA:       "https://ethereum-sepolia-rpc.publicnode.com",
-  ETH_SEPOLIA:   "https://ethereum-sepolia-rpc.publicnode.com",
-  BASE_SEPOLIA:  "https://base-sepolia-rpc.publicnode.com",
-  MANTLE_SEPOLIA: "https://rpc.sepolia.mantle.xyz",
+  SEPOLIA:       "https://sepolia.drpc.org",
+  BASE_SEPOLIA:  "https://sepolia.base.org",
+  LIBERTY:       "https://testnet-rpc.lcx.com",   // LCX Liberty testnet, chainId 76847801
   // Circle USDC testnet chains
   ARB_SEPOLIA:   "https://sepolia-rollup.arbitrum.io/rpc",
   OP_SEPOLIA:    "https://sepolia.optimism.io",
@@ -353,26 +306,15 @@ async function fetchTronBalance(address: string): Promise<ChainBalance | null> {
 export async function fetchChainBalance(chain: string, address: string): Promise<ChainBalance | null> {
   // Map UI chain key → fetcher
   switch (chain.toUpperCase()) {
-    // BTC mainnet — Blockchair (single API for all 4 variants)
+    // BTC family
     case "BTC_NATIVE":
     case "BTC_LEGACY":
     case "BTC_SEGWIT":
-    case "BTC_TAPROOT":
     case "BTC":
       return fetchBlockchairBalance("bitcoin", address);
-
-    // BTC testnet — Blockchair testnet endpoint
-    case "BTC_TESTNET_LEGACY":
-    case "BTC_TESTNET_SEGWIT":
-    case "BTC_TESTNET_NATIVE":
-    case "BTC_TESTNET_TAPROOT":
-    case "BTC_TESTNET":
-      return fetchBlockchairBalance("bitcoin/testnet", address);
-
     case "LTC":
     case "LTC_NATIVE":
     case "LTC_LEGACY":
-    case "LTC_SEGWIT":
       return fetchBlockchairBalance("litecoin", address);
     case "DOGE":
     case "DOGE_LEGACY":
@@ -380,83 +322,31 @@ export async function fetchChainBalance(chain: string, address: string): Promise
     case "BCH":
       return fetchBlockchairBalance("bitcoin-cash", address);
 
-    // ── EVM family — coin_type=60 (all share same 0x address) ──
-    case "ETH":          return fetchEvmBalance("ETH", address);
+    // EVM family
+    case "ETH":
+      return fetchEvmBalance("ETH", address);
     case "ARBITRUM":
-    case "ARB":          return fetchEvmBalance("ARBITRUM", address);
+      return fetchEvmBalance("ARBITRUM", address);
     case "OPTIMISM":
-    case "OP":           return fetchEvmBalance("OPTIMISM", address);
+      return fetchEvmBalance("OPTIMISM", address);
     case "POLYGON":
-    case "MATIC":        return fetchEvmBalance("POLYGON", address);
-    case "BASE":         return fetchEvmBalance("BASE", address);
+      return fetchEvmBalance("POLYGON", address);
+    case "BASE":
+      return fetchEvmBalance("BASE", address);
     case "BSC":
-    case "BNB":          return fetchEvmBalance("BSC", address);
+      return fetchEvmBalance("BSC", address);
     case "AVAX":
-    case "AVALANCHE":    return fetchEvmBalance("AVAX", address);
-    case "FTM":          return fetchEvmBalance("FTM", address);
-    case "ONE":          return fetchEvmBalance("ONE", address);
-    case "LINEA":        return fetchEvmBalance("LINEA", address);
-    case "ZKSYNC":       return fetchEvmBalance("ZKSYNC", address);
-    case "SCROLL":       return fetchEvmBalance("SCROLL", address);
-    case "BLAST":        return fetchEvmBalance("BLAST", address);
-    case "MODE":         return fetchEvmBalance("MODE", address);
-    case "MANTA":        return fetchEvmBalance("MANTA", address);
-    case "MANTLE":       return fetchEvmBalance("MANTLE", address);
-    case "OPBNB":        return fetchEvmBalance("OPBNB", address);
-    case "GNOSIS":       return fetchEvmBalance("GNOSIS", address);
-    case "CELO":         return fetchEvmBalance("CELO", address);
-    case "CRONOS":       return fetchEvmBalance("CRONOS", address);
-    case "METIS":        return fetchEvmBalance("METIS", address);
-    case "MOONBEAM":     return fetchEvmBalance("MOONBEAM", address);
-    case "MOONRIVER":    return fetchEvmBalance("MOONRIVER", address);
-    case "ASTAR":        return fetchEvmBalance("ASTAR", address);
-    case "ETC":          return fetchEvmBalance("ETC", address);
-    case "XDC":          return fetchEvmBalance("XDC", address);
-    case "KAIA":         return fetchEvmBalance("KAIA", address);
-    case "CONFLUX":      return fetchEvmBalance("CONFLUX", address);
-    case "FLARE":        return fetchEvmBalance("FLARE", address);
-    case "ROOTSTOCK":    return fetchEvmBalance("ROOTSTOCK", address);
-    case "LUKSO":        return fetchEvmBalance("LUKSO", address);
-    case "IOTEX":        return fetchEvmBalance("IOTEX", address);
-    case "SYSCOIN":      return fetchEvmBalance("SYSCOIN", address);
-    case "EWT":          return fetchEvmBalance("EWT", address);
-    case "BOB":          return fetchEvmBalance("BOB", address);
-    case "TAIKO":        return fetchEvmBalance("TAIKO", address);
-    case "XLAYER":       return fetchEvmBalance("XLAYER", address);
-    case "ZORA":         return fetchEvmBalance("ZORA", address);
-    case "IMMUTABLE_ZK": return fetchEvmBalance("IMMUTABLE_ZK", address);
-    case "MERLIN":       return fetchEvmBalance("MERLIN", address);
-    case "LCX":          return fetchEvmBalance("LCX", address);
+    case "AVALANCHE":
+      return fetchEvmBalance("AVAX", address);
     case "SEPOLIA":
-    case "ETH_SEPOLIA":  return fetchEvmBalance("SEPOLIA", address);
-    case "BASE_SEPOLIA": return fetchEvmBalance("BASE_SEPOLIA", address);
-    case "MANTLE_SEPOLIA": return fetchEvmBalance("MANTLE_SEPOLIA", address);
+      return fetchEvmBalance("SEPOLIA", address);
+    case "BASE_SEPOLIA":
+      return fetchEvmBalance("BASE_SEPOLIA", address);
 
-    // ── Solana ──
+    // Other
     case "SOL":
     case "SOLANA":
       return fetchSolanaBalance(address);
-
-    // ── Chains awaiting balance fetcher implementation (UI shows "unavailable") ──
-    // All Cosmos chains use REST API patterns — add when implemented.
-    case "ATOM": case "OSMOSIS": case "INJECTIVE": case "SEI": case "DYDX":
-    case "JUNO": case "AKASH": case "KAVA": case "STRIDE": case "NOBLE":
-    case "STARGAZE": case "EVMOS": case "TERRA_CLASSIC": case "TERRA2":
-    case "BABYLON": case "KUJIRA": case "NEUTRON": case "CRESCENT": case "UMEE":
-    case "COMDEX": case "CHIHUAHUA": case "BITCANNA": case "IXO": case "SENTINEL":
-    case "DYMENSION": case "SEDA": case "PERSISTENCE": case "CELESTIA":
-    case "CRYPTO_ORG": case "BAND": case "PROVENANCE":
-    // Non-Cosmos chains awaiting fetchers
-    case "ADA":   // Cardano — needs Blockfrost API key
-    case "DOT":   // Polkadot — needs sidecar API
-    case "XRP":   // Ripple — public XRPL JSON-RPC
-    case "XLM":   // Stellar — Horizon API
-    case "ALGO":  // Algorand — algonode.cloud
-    case "EGLD":  // MultiversX — api.multiversx.com
-    case "NEAR":  // NEAR — rpc.mainnet.near.org
-    case "TON":   // TON — toncenter.com/api/v2
-    case "ZIL":   // Zilliqa — api.zilliqa.com
-      return null;
     case "TRX":
     case "TRON":
       return fetchTronBalance(address);
