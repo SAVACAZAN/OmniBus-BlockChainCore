@@ -93,8 +93,7 @@ export function RecentTransactions() {
       setRecentTxs([]);
     };
     fetchRecent();
-    const id = setInterval(fetchRecent, 6000);
-    return () => clearInterval(id);
+    // state.blockCount is WS-driven — no interval needed.
   }, [state.blockCount]);
 
   type TxItem = {

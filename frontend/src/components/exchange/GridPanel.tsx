@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewTradeEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -332,7 +334,14 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // Refresh on trade fills (grid fills emit new_trade) + 60s fallback.
+    const unsub = wsSubscribe<WsNewTradeEvent>("new_trade", () => { void load(); });
+    const id = setInterval(load, 60_000);
+    return () => { unsub(); clearInterval(id); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function cancel(g: GridConfig) {
     if (!walletAddress) return;

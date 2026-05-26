@@ -74,9 +74,8 @@ export function AtomicSwapPanel() {
     try {
       const r = await rpc.request_raw("swap_listOpen", [{ address: u?.address ?? "" }]);
       if (Array.isArray(r)) setBindings(r as SwapBindingView[]);
-    } catch (e) {
+    } catch {
       // swap_listOpen may be unsupported on the connected node — silent.
-      console.debug("swap_listOpen unavailable:", e);
     }
   };
 

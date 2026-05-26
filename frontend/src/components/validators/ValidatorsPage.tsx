@@ -1114,10 +1114,12 @@ function SlashingLogTab() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 15_000);
+    const unsub3 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub3();
     };
   }, []);
 

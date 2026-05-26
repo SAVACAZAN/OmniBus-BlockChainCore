@@ -30,17 +30,11 @@ export function BlocksPage() {
   const [jumpInput, setJumpInput] = useState("");
   const PAGE_SIZE = 20;
 
+  // Reload when page changes OR a new block arrives (state.blockCount is WS-driven).
   useEffect(() => {
     loadBlocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
-
-  useEffect(() => {
-    if (page !== 0) return;
-    const id = setInterval(() => loadBlocks(), 5000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, state.blockCount]);
 
   const loadBlocks = async () => {
     setLoading(true);
