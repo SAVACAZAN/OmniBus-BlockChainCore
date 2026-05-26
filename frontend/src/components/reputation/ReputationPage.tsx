@@ -844,3 +844,137 @@ export function ReputationPage() {
 }
 
 export default ReputationPage;
+
+// ── Social Follow Panel ────────────────────────────────────────────────────
+// Covers: follow, unfollow, getfollowers, getfollowing RPCs
+
+export function SocialFollowPanel({ address }: { address: string }) {
+  const [followers, setFollowers] = useState<string[]>([]);
+  const [following, setFollowing] = useState<string[]>([]);
+  const [followTarget, setFollowTarget] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [actionErr, setActionErr] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  const loadSocial = async () => {
+    if (!address) return;
+    setLoading(true);
+    try {
+      const [frs, fing] = await Promise.allSettled([
+        rpc.request_raw("getfollowers", [address]) as Promise<string[] | { followers?: string[] }>,
+        rpc.request_raw("getfollowing", [address]) as Promise<string[] | { following?: string[] }>,
+      ]);
+      if (frs.status === "fulfilled") {
+        const v = frs.value;
+        setFollowers(Array.isArray(v) ? v : (v as { followers?: string[] }).followers ?? []);
+      }
+      if (fing.status === "fulfilled") {
+        const v = fing.value;
+        setFollowing(Array.isArray(v) ? v : (v as { following?: string[] }).following ?? []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void loadSocial(); }, [address]); // eslint-disable-line
+
+  const doFollow = async () => {
+    if (!followTarget.trim()) return;
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      await rpc.request_raw("follow", [{ from: address, to: followTarget.trim() }]);
+      setActionMsg(`Following ${followTarget.trim().slice(0, 14)}…`);
+      setFollowTarget("");
+      await loadSocial();
+    } catch (e: any) {
+      setActionErr(e?.message ?? String(e));
+    }
+  };
+
+  const doUnfollow = async (target: string) => {
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      await rpc.request_raw("unfollow", [{ from: address, to: target }]);
+      setActionMsg(`Unfollowed ${target.slice(0, 14)}…`);
+      await loadSocial();
+    } catch (e: any) {
+      setActionErr(e?.message ?? String(e));
+    }
+  };
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Social Graph
+      </h3>
+
+      <div className="flex gap-2">
+        <input
+          value={followTarget}
+          onChange={(e) => setFollowTarget(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && doFollow()}
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+          placeholder="ob1q… address to follow"
+        />
+        <button
+          onClick={doFollow}
+          disabled={!followTarget.trim()}
+          className="px-3 py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          Follow
+        </button>
+      </div>
+      {actionErr && <p className="text-[11px] text-red-400">{actionErr}</p>}
+      {actionMsg && <p className="text-[11px] text-green-400">{actionMsg}</p>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <h4 className="text-[10px] uppercase text-mempool-text-dim mb-1.5">
+            Following ({following.length})
+          </h4>
+          {loading ? (
+            <p className="text-mempool-text-dim animate-pulse text-[10px]">Loading…</p>
+          ) : following.length === 0 ? (
+            <p className="text-mempool-text-dim text-[10px]">Not following anyone.</p>
+          ) : (
+            <div className="space-y-1">
+              {following.map((f) => (
+                <div key={f} className="flex items-center justify-between gap-2 font-mono text-[10px]">
+                  <span className="text-mempool-text truncate">{f.slice(0, 16)}…</span>
+                  <button
+                    onClick={() => doUnfollow(f)}
+                    className="text-red-400 hover:text-red-300 text-[9px] shrink-0"
+                  >
+                    Unfollow
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h4 className="text-[10px] uppercase text-mempool-text-dim mb-1.5">
+            Followers ({followers.length})
+          </h4>
+          {loading ? (
+            <p className="text-mempool-text-dim animate-pulse text-[10px]">Loading…</p>
+          ) : followers.length === 0 ? (
+            <p className="text-mempool-text-dim text-[10px]">No followers yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {followers.map((f) => (
+                <div key={f} className="font-mono text-[10px] text-mempool-text truncate">
+                  {f.slice(0, 20)}…
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

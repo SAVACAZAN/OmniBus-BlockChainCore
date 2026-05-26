@@ -579,7 +579,7 @@ function OraclePolicyPanel() {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
-  const [tab, setTab] = useState<"prices" | "policy" | "blocks">("prices");
+  const [tab, setTab] = useState<"prices" | "policy" | "blocks" | "cross">("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -665,11 +665,12 @@ export function OraclePricePanel() {
     <div className="space-y-4">
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-mempool-border pb-1">
+      <div className="flex gap-1 border-b border-mempool-border pb-1 flex-wrap">
         {([
           { id: "prices", label: "📡 Prices & Arbitrage" },
           { id: "blocks", label: "📦 Block Prices" },
           { id: "policy", label: "⚙️ Policy" },
+          { id: "cross", label: "🔗 Cross-Chain Heights" },
         ] as const).map((t) => (
           <button
             key={t.id}
@@ -687,6 +688,7 @@ export function OraclePricePanel() {
 
       {tab === "policy" && <OraclePolicyPanel />}
       {tab === "blocks" && <BlockPricesPanel />}
+      {tab === "cross" && <CrossChainHeightsPanel />}
 
       {tab === "prices" && (<>
 
@@ -923,6 +925,101 @@ export function OraclePricePanel() {
 
       </>)}
 
+    </div>
+  );
+}
+
+// ── Cross-chain heights panel (oracle_btcHeight + oracle_ethHeight) ────────
+
+function CrossChainHeightsPanel() {
+  const [btcHeight, setBtcHeight] = useState<number | null>(null);
+  const [ethHeight, setEthHeight] = useState<number | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const [b, e] = await Promise.allSettled([
+          rpc.request_raw("oracle_btcHeight", []) as Promise<number | { height: number }>,
+          rpc.request_raw("oracle_ethHeight", []) as Promise<number | { height: number }>,
+        ]);
+        if (cancelled) return;
+        if (b.status === "fulfilled") {
+          const v = b.value;
+          setBtcHeight(typeof v === "number" ? v : (v as { height: number }).height ?? null);
+        }
+        if (e.status === "fulfilled") {
+          const v = e.value;
+          setEthHeight(typeof v === "number" ? v : (v as { height: number }).height ?? null);
+        }
+        setLastUpdate(Date.now());
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    refresh();
+    const id = setInterval(refresh, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[11px] text-mempool-text-dim">
+        Chain heights as observed by the OmniBus oracle node (polled every 30s). Used for
+        cross-chain settlement finality checks.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={`rounded-xl border p-4 space-y-2 ${btcHeight ? "border-orange-500/30 bg-orange-500/5" : "border-mempool-border bg-mempool-bg-elev"}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">₿</span>
+            <h4 className="text-sm font-semibold text-orange-300">Bitcoin (oracle)</h4>
+          </div>
+          {loading ? (
+            <p className="text-[11px] text-mempool-text-dim animate-pulse">Fetching…</p>
+          ) : btcHeight !== null ? (
+            <div>
+              <div className="text-2xl font-mono font-bold text-orange-300">
+                #{btcHeight.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-mempool-text-dim mt-1">
+                oracle_btcHeight · updated {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : "—"}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[11px] text-mempool-text-dim">Not available (oracle may be offline).</p>
+          )}
+        </div>
+
+        <div className={`rounded-xl border p-4 space-y-2 ${ethHeight ? "border-blue-500/30 bg-blue-500/5" : "border-mempool-border bg-mempool-bg-elev"}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">Ξ</span>
+            <h4 className="text-sm font-semibold text-blue-300">Ethereum (oracle)</h4>
+          </div>
+          {loading ? (
+            <p className="text-[11px] text-mempool-text-dim animate-pulse">Fetching…</p>
+          ) : ethHeight !== null ? (
+            <div>
+              <div className="text-2xl font-mono font-bold text-blue-300">
+                #{ethHeight.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-mempool-text-dim mt-1">
+                oracle_ethHeight · updated {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : "—"}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[11px] text-mempool-text-dim">Not available (oracle may be offline).</p>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 text-[11px] text-mempool-text-dim space-y-1">
+        <p className="font-semibold text-mempool-text text-xs mb-1">How this is used</p>
+        <p>BTC height: confirms Bitcoin HTLC finality (≥6 confirmations) before OMNI release.</p>
+        <p>ETH height: confirms EVM HTLC finality (≥12 confirmations) for Sepolia/Base settlements.</p>
+        <p>The oracle records each height as an on-chain oracle price entry via <code className="font-mono text-purple-400">oracle_recordHeader</code>.</p>
+      </div>
     </div>
   );
 }

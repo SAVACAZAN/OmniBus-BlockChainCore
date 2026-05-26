@@ -246,6 +246,108 @@ export function AddressPage({ addr, onNavigate }: Props) {
           </div>
         )}
       </div>
+
+      <AddressLabelsPanel addr={addr} />
+    </div>
+  );
+}
+
+function AddressLabelsPanel({ addr }: { addr: string }) {
+  const [labels, setLabels] = useState<string[]>([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const loadLabels = async () => {
+    setLoading(true);
+    try {
+      const r = (await rpc.request_raw("getlabels", [addr])) as string[] | { labels?: string[] };
+      setLabels(Array.isArray(r) ? r : (r?.labels ?? []));
+    } catch {
+      setLabels([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (addr) loadLabels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addr]);
+
+  const applyLabel = async () => {
+    if (!newLabel.trim()) return;
+    setApplying(true);
+    setErr(null);
+    try {
+      await rpc.request_raw("applylabel", [addr, newLabel.trim()]);
+      setNewLabel("");
+      await loadLabels();
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const removeLabel = async (label: string) => {
+    setRemoving(label);
+    setErr(null);
+    try {
+      await rpc.request_raw("removelabel", [addr, label]);
+      await loadLabels();
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+        On-chain Labels
+      </h3>
+      {loading ? (
+        <p className="text-xs text-mempool-text-dim animate-pulse">Loading labels…</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {labels.map((l) => (
+            <span key={l} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-mempool-blue/10 text-mempool-blue border border-mempool-blue/20 text-[11px] font-mono">
+              {l}
+              <button
+                onClick={() => removeLabel(l)}
+                disabled={removing === l}
+                className="text-mempool-text-dim hover:text-red-400 ml-0.5 text-[10px] leading-none"
+              >
+                {removing === l ? "…" : "×"}
+              </button>
+            </span>
+          ))}
+          {labels.length === 0 && (
+            <span className="text-[11px] text-mempool-text-dim">No labels yet.</span>
+          )}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && applyLabel()}
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+          placeholder="Add label…"
+        />
+        <button
+          onClick={applyLabel}
+          disabled={applying || !newLabel.trim()}
+          className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          {applying ? "…" : "Apply"}
+        </button>
+      </div>
+      {err && <p className="text-[11px] text-red-400">{err}</p>}
     </div>
   );
 }
