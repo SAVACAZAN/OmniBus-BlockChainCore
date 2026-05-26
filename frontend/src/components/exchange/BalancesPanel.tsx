@@ -168,6 +168,44 @@ export function BalancesPanel() {
       </div>
 
       {/* Header */}
+      {rows.length > 0 && rows.every(r => r.balance !== "loading") && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["chain", "token", "label", "address", "free", "in_orders", "total", "role"].join(","),
+                ...rows.map((row) => {
+                  const bal = row.balance as import("../../api/multichain-balances").ChainBalance | null;
+                  const onChain = bal ? Number(bal.native) : 0;
+                  const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
+                  const div = row.exchToken === "OMNI" ? SAT : row.exchToken === "ETH" ? 1e18 : MU;
+                  const inOrders = eb ? eb.locked / div : 0;
+                  const free = Math.max(0, onChain - inOrders);
+                  const dec = row.exchToken === "OMNI" ? 8 : row.exchToken === "ETH" ? 8 : 6;
+                  return [
+                    `"${row.chain}"`,
+                    `"${row.exchToken ?? ""}"`,
+                    `"${row.label}"`,
+                    `"${row.address}"`,
+                    free.toFixed(dec),
+                    inOrders.toFixed(dec),
+                    onChain.toFixed(dec),
+                    row.role,
+                  ].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-balances.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
       <div className="overflow-x-auto -mx-1">
       <div className="min-w-[440px] px-1">
       <div className="grid text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1 gap-1"
