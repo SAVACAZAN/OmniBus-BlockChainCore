@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
-import { MICRO_PER_USD } from "../../utils/fmt";
+import { MICRO_PER_USD, SAT_PER_OMNI } from "../../utils/fmt";
 
 const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
@@ -169,7 +169,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Reward</p>
               <p className="text-xs font-mono text-mempool-green">
-                {((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
+                {((full.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
               </p>
             </div>
             <div>
@@ -331,7 +331,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                         `"${tx.txid ?? ""}"`,
                         `"${tx.from ?? ""}"`,
                         `"${tx.to ?? ""}"`,
-                        ((tx.amount || 0) / 1e9).toFixed(8),
+                        ((tx.amount || 0) / SAT_PER_OMNI).toFixed(8),
                         tx.fee || 0,
                         tx.kind ?? "transfer",
                         tx.status ?? "",
@@ -357,7 +357,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                 <div className="w-2 h-2 rounded-full bg-mempool-green flex-shrink-0" />
                 <span className="text-xs font-mono text-mempool-green font-bold">Block Reward</span>
                 <span className="text-mempool-green ml-auto font-mono text-xs">
-                  +{((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI
+                  +{((full.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)} OMNI
                 </span>
               </div>
               {full.miner && (
@@ -416,7 +416,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                       ) : null}
                     </span>
                     <span className="text-mempool-orange">
-                      {((tx.amount || 0) / 1e9).toFixed(8)} OMNI
+                      {((tx.amount || 0) / SAT_PER_OMNI).toFixed(8)} OMNI
                     </span>
                     {tx.fee > 0 && (
                       <span className="text-mempool-text-dim">

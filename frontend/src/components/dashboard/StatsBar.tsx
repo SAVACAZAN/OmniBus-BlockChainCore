@@ -4,6 +4,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 interface StatCardProps {
   label: string;
@@ -87,7 +88,7 @@ export function StatsBar() {
   }, [state.blockCount]);
 
   const rewardPerBlock = state.networkInfo?.blockRewardSAT
-    ? (state.networkInfo.blockRewardSAT / 1e9).toFixed(8)
+    ? (state.networkInfo.blockRewardSAT / SAT_PER_OMNI).toFixed(8)
     : "0.00833333";
 
   // Trim trailing zeros from "X.000000000" -> "X" or "X.123" (4 dp max).

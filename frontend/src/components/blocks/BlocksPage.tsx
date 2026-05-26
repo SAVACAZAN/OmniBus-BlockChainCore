@@ -3,7 +3,7 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
-import { midTrunc, fmtAge } from "../../utils/fmt";
+import { midTrunc, fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   LineChart,
@@ -132,8 +132,8 @@ export function BlocksPage() {
                     `"${b.hash}"`,
                     `"${b.miner ?? ""}"`,
                     (b.txCount || 0) + 1,
-                    ((b.rewardSAT || 0) / 1e9).toFixed(8),
-                    ((b as any).totalFees > 0 ? ((b as any).totalFees / 1e9).toFixed(8) : "0"),
+                    ((b.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8),
+                    ((b as any).totalFees > 0 ? ((b as any).totalFees / SAT_PER_OMNI).toFixed(8) : "0"),
                     b.timestamp ?? "",
                   ].join(",")),
                 ].join("\n");
@@ -268,11 +268,11 @@ export function BlocksPage() {
                     </div>
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
-                    {((b.rewardSAT || 0) / 1e9).toFixed(8)}
+                    {((b.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-text-dim whitespace-nowrap">
                     {(b as any).totalFees > 0
-                      ? <span className="text-purple-300">{((b as any).totalFees / 1e9).toFixed(8)}</span>
+                      ? <span className="text-purple-300">{((b as any).totalFees / SAT_PER_OMNI).toFixed(8)}</span>
                       : <span>—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">

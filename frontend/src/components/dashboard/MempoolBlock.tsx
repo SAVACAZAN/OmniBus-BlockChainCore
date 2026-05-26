@@ -4,7 +4,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
-import { MICRO_PER_USD } from "../../utils/fmt";
+import { MICRO_PER_USD, SAT_PER_OMNI } from "../../utils/fmt";
 
 const MICRO = MICRO_PER_USD;
 interface MempoolBlockProps {
@@ -204,7 +204,7 @@ export function MempoolBlock({
               {hash.slice(0, 14)}...
             </p>
             <p className="text-[11px] font-mono text-mempool-green">
-              +{(reward / 1e9).toFixed(8)} OMNI
+              +{(reward / SAT_PER_OMNI).toFixed(8)} OMNI
             </p>
             {timeStr && (
               <p className="text-[11px] text-mempool-text-dim">{timeStr}</p>
