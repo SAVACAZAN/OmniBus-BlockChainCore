@@ -570,9 +570,9 @@ export function AmmOrderbookPanel() {
 
   useEffect(() => {
     setPrice(null); setLevels([]); setError(null); setEthUsd(null); setIsV2(false);
-    load();
+    void load();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(load, 15000);
+    timerRef.current = setInterval(() => { void load(); }, 15000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
 

@@ -51,7 +51,7 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
       if (ev.pair_id === pairId) void refresh();
     });
     // Fallback poll at 15 s in case WS is not connected.
-    const id = setInterval(refresh, 15_000);
+    const id = setInterval(() => { void refresh(); }, 15_000);
     return () => {
       cancelled = true;
       clearInterval(id);

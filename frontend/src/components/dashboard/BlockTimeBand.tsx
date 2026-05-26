@@ -73,7 +73,7 @@ export function BlockTimeBand() {
         // RPC unavailable — show nothing
       }
     };
-    load();
+    void load();
     return () => { cancelled = true; };
   }, [state.blockCount]);
 

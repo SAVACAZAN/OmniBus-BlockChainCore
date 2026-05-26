@@ -263,9 +263,9 @@ function ValidatorListTab() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
+    void refresh();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -1110,9 +1110,9 @@ function SlashingLogTab() {
         if (!cancelled) setErr(e?.message ?? String(e));
       }
     };
-    refresh();
+    void refresh();
     const unsub3 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -1239,9 +1239,9 @@ function ConsensusTab() {
         if (!cancelled) setErr(e?.message ?? String(e));
       }
     };
-    refresh();
+    void refresh();
     const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub2(); };
   }, []);
 

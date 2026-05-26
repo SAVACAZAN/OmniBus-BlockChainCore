@@ -130,12 +130,12 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
         if (!cancelled && Array.isArray(res)) setUserOrders(res as UserOrder[]);
       } catch { /* ignore */ }
     };
-    load();
+    void load();
     // Refresh when orderbook changes (fills affect in-orders balances).
     const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", () => {
       void load();
     });
-    const id = setInterval(load, 30_000);
+    const id = setInterval(() => { void load(); }, 30_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [omniAddr]);
 

@@ -50,11 +50,11 @@ export function FaucetPage() {
         if (!cancelled) setStatusLoading(false);
       }
     };
-    refresh();
+    void refresh();
     // Live refresh on every new block (faucet balance changes on claims/rewards).
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
     // Slow fallback poll for when WS is disconnected.
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 

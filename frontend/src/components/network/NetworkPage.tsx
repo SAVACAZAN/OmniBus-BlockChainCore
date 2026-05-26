@@ -196,9 +196,9 @@ function NetworkRpcPanels() {
       if (cc.status === "fulfilled") setConnCount(typeof cc.value === "number" ? cc.value : null);
       if (diff.status === "fulfilled") setDifficulty(typeof diff.value === "number" ? diff.value : null);
     };
-    refresh();
+    void refresh();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 

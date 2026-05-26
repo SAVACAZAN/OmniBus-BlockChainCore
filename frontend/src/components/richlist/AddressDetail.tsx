@@ -70,13 +70,13 @@ export function AddressDetail({
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
+    void refresh();
     // Refresh immediately on any new block or TX involving this address.
     const unsubBlock = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
     const unsubTx = wsSubscribe<WsNewTxEvent>("new_tx", (ev) => {
       if (ev.from === address) void refresh();
     });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);

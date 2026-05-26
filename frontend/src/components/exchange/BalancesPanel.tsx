@@ -68,7 +68,7 @@ export function BalancesPanel() {
         .catch(() => {});
     void fetch();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
-    const id = setInterval(fetch, 60_000);
+    const id = setInterval(() => { void fetch(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 

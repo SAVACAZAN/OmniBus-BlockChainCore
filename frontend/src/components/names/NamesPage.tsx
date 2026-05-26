@@ -1578,7 +1578,7 @@ function NsHealthDashboard() {
         if (!cancelled) setLoading(false);
       }
     };
-    load();
+    void load();
     const unsubReg = wsSubscribe<WsNameRegisteredEvent>("name_registered", () => { void load(); });
     const unsubRen = wsSubscribe<WsNameRenewedEvent>("name_renewed", () => { void load(); });
     const id = setInterval(() => { void load(); }, 60_000);

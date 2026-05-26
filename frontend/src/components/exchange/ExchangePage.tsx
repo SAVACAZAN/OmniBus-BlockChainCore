@@ -80,7 +80,7 @@ export function ExchangePage() {
     };
     void fetch();
     const unsubBal = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
-    const id = setInterval(fetch, 60_000);
+    const id = setInterval(() => { void fetch(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsubBal(); };
   }, [walletAddress]);
 
@@ -114,14 +114,14 @@ export function ExchangePage() {
         }
       }
     };
-    refresh();
+    void refresh();
     const unsubOb = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
       if (ev.pair_id === pairId) void refresh();
     });
     const unsubTr = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
       if (ev.pair_id === pairId) void refresh();
     });
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);

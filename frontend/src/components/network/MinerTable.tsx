@@ -43,7 +43,7 @@ export function MinerTable() {
         }
       } catch {}
     };
-    load();
+    void load();
     // state.blockCount is WS-driven — re-runs on every new block automatically.
     return () => { cancelled = true; };
   }, [state.blockCount]);

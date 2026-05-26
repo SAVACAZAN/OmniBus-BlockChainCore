@@ -178,9 +178,9 @@ export function RichListPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
+    void refresh();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);

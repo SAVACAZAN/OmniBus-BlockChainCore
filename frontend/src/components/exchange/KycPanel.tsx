@@ -83,11 +83,11 @@ export function KycPanel() {
       const r = await rpc.kycGetStatus(u.address);
       if (!cancelled) setStatus(r);
     };
-    refresh();
+    void refresh();
     // KYC status changes are rare but critical — use new_block for instant
     // notification when an attestation lands on chain.
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 

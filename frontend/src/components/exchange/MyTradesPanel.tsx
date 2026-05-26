@@ -94,13 +94,13 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
         }
       }
     };
-    refresh();
+    void refresh();
     // Live: new_trade on this pair fires immediately when a fill happens.
     const unsub = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
       if (ev.pair_id === pairId) void refresh();
     });
     // Fallback poll at 30 s for when WS is disconnected.
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);

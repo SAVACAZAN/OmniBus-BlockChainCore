@@ -646,7 +646,7 @@ export function OraclePricePanel() {
     if (timerRef.current) clearInterval(timerRef.current);
     // oracle_price fires when node fetches from Chainlink/Pyth — supplement CoinGecko poll.
     const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void load(); });
-    timerRef.current = setInterval(load, 30000); // CoinGecko rate limit fallback
+    timerRef.current = setInterval(() => { void load(); }, 30000); // CoinGecko rate limit fallback
     return () => { if (timerRef.current) clearInterval(timerRef.current); unsub(); };
   }, [load]);
 
@@ -1019,8 +1019,8 @@ function CrossChainHeightsPanel() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 30_000);
+    void refresh();
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
@@ -1133,11 +1133,11 @@ function DexOrderbookPanel() {
       if (ob.status === "fulfilled") setOrderbook(ob.value);
       if (tm.status === "fulfilled") setTotalMined(tm.value);
     };
-    refresh();
+    void refresh();
     const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
       if (ev.pair === pair) void refresh();
     });
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [pair]);
 
