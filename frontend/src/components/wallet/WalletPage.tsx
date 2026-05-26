@@ -51,6 +51,15 @@ const PQ_SCHEME_MAP: Record<string, string> = {
   slh_dsa_256s: "pq_omni_slh_dsa",
 };
 
+const SLOT_NAMES = ["primary (ECDSA)", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"] as const;
+
+const ROUTE_KIND_LABEL: Record<string, string> = {
+  ml_dsa:    "PQ-1 (ML-DSA-87)",
+  falcon:    "PQ-2 (Falcon-512)",
+  dilithium: "PQ-3 (Dilithium-5)",
+  slh_dsa:   "PQ-4 (SLH-DSA-256s)",
+};
+
 // Wallet state used to live here as a local useState. Now everything comes
 // from the global wallet-keystore singleton via useWallet() — connecting from
 // the Header button instantly lights up this page (and every other tab).
@@ -320,12 +329,7 @@ export function WalletPage() {
         // before broadcasting. `preferred_slot` is now functional, not
         // cosmetic — but the user should still see *what* they are signing.
         if (routeSlot > 0 && resolvedTo !== r.primary_address) {
-          const kindLabel = ({
-            ml_dsa:    "PQ-1 (ML-DSA-87)",
-            falcon:    "PQ-2 (Falcon-512)",
-            dilithium: "PQ-3 (Dilithium-5)",
-            slh_dsa:   "PQ-4 (SLH-DSA-256s)",
-          } as Record<string, string>)[routeKind] ?? `PQ-${routeSlot}`;
+          const kindLabel = ROUTE_KIND_LABEL[routeKind] ?? `PQ-${routeSlot}`;
           const ok = window.confirm(
             `${fullLabelInput} prefers ${kindLabel}.\n\n` +
             `Sending to ${resolvedTo}\ninstead of ${r.primary_address}.\n\n` +
@@ -1243,7 +1247,7 @@ function SendNamePreview({ rawInput, onResolve }: {
   const routeSlot: number = data.route_slot ?? 0;
   const routed: string    = data.route_address || data.primary_address;
   const fellBack: boolean = !!data.fell_back_to_primary;
-  const slotName = ["primary (ECDSA)", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][routeSlot];
+  const slotName = SLOT_NAMES[routeSlot];
   const isPq = routeSlot > 0;
 
   return (

@@ -52,6 +52,8 @@ type Step =
   | "done"
   | "error";
 
+const BUSY_STEPS = new Set<Step>(["omni_locking", "evm_approving", "evm_locking", "evm_claiming", "omni_claiming"]);
+
 const STEP_LABEL: Record<Step, string> = {
   idle: "Ready",
   omni_locking: "Locking OMNI…",
@@ -76,6 +78,13 @@ const STEP_COLOR: Record<Step, string> = {
   omni_claiming: "text-yellow-400 animate-pulse",
   done: "text-green-400",
   error: "text-red-400",
+};
+
+const HTLC_STATE_COLOR: Record<string, string> = {
+  active:   "text-green-400",
+  claimed:  "text-mempool-blue",
+  refunded: "text-yellow-400",
+  expired:  "text-red-400",
 };
 
 interface HtlcState {
@@ -330,7 +339,7 @@ export function HtlcTradePanel() {
 
   useEffect(() => { loadHtlcs(); }, [u?.address]);
 
-  const busy = ["omni_locking","evm_approving","evm_locking","evm_claiming","omni_claiming"].includes(state.step);
+  const busy = BUSY_STEPS.has(state.step);
 
   if (!u) {
     return (
@@ -562,14 +571,6 @@ export function HtlcLookupPanel() {
     finally { setLoading(false); }
   }, [htlcId]);
 
-  const stateColor = (s: string) => {
-    if (s === "active") return "text-green-400";
-    if (s === "claimed") return "text-mempool-blue";
-    if (s === "refunded") return "text-yellow-400";
-    if (s === "expired") return "text-red-400";
-    return "text-mempool-text-dim";
-  };
-
   return (
     <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
       <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
@@ -596,7 +597,7 @@ export function HtlcLookupPanel() {
           <div className="flex items-center gap-2 mb-2">
             <span className="font-semibold text-mempool-text">HTLC</span>
             <span className="font-mono text-mempool-text-dim">{entry.htlc_id.slice(0, 16)}…</span>
-            <span className={`ml-auto font-semibold ${stateColor(entry.state)}`}>{entry.state}</span>
+            <span className={`ml-auto font-semibold ${HTLC_STATE_COLOR[entry.state] ?? "text-mempool-text-dim"}`}>{entry.state}</span>
           </div>
           {[
             ["Sender", entry.sender],

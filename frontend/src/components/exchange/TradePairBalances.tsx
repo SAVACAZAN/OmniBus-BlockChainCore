@@ -9,6 +9,8 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 
 
+const USDC_CHAINS = ["SEPOLIA", "BASE_SEPOLIA", "ARB_SEPOLIA", "OP_SEPOLIA", "POLYGON_AMOY", "AVAX_FUJI"] as const;
+
 function dec(token: string) {
   if (token === "OMNI") return 4;
   if (token === "ETH")  return 6;
@@ -25,8 +27,7 @@ async function fetchOnChain(token: string, omniAddr: string, evmAddr: string): P
     } catch { return 0; }
   }
   if (token === "USDC") {
-    const chains = ["SEPOLIA", "BASE_SEPOLIA", "ARB_SEPOLIA", "OP_SEPOLIA", "POLYGON_AMOY", "AVAX_FUJI"];
-    const results = await Promise.all(chains.map(c => fetchUsdcBalance(c, evmAddr)));
+    const results = await Promise.all(USDC_CHAINS.map(c => fetchUsdcBalance(c, evmAddr)));
     let total = 0;
     for (const b of results) if (b) total += Number(b.native);
     return total;

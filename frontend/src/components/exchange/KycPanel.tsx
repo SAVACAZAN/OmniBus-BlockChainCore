@@ -291,6 +291,9 @@ function KycStatusLookup() {
   );
 }
 
+const KYC_BADGE_COLORS = ["", "bg-blue-500/20 text-blue-200", "bg-green-500/20 text-green-200", "bg-purple-500/20 text-purple-200"] as const;
+const KYC_BADGE_LABELS = ["", "Starter", "Verified", "Pro"] as const;
+
 export function KycBadge({ level }: { level: 0 | 1 | 2 | 3 }) {
   if (level === 0) {
     return (
@@ -299,11 +302,9 @@ export function KycBadge({ level }: { level: 0 | 1 | 2 | 3 }) {
       </span>
     );
   }
-  const colors = ["", "bg-blue-500/20 text-blue-200", "bg-green-500/20 text-green-200", "bg-purple-500/20 text-purple-200"];
-  const labels = ["", "Starter", "Verified", "Pro"];
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${colors[level]}`}>
-      🛡 KYC L{level} · {labels[level]}
+    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${KYC_BADGE_COLORS[level]}`}>
+      🛡 KYC L{level} · {KYC_BADGE_LABELS[level]}
     </span>
   );
 }
