@@ -13,8 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import type { WsNewTxEvent, WsTxConfirmedEvent } from "../../types";
-
-const SAT = 1_000_000_000;
+import { satToOmni } from "../../utils/fmt";
 
 interface Toast {
   id: number;
@@ -86,7 +85,7 @@ export function TxToast() {
             </div>
             {t.kind === "sent" && t.amount !== undefined && (
               <div className="text-[11px] text-mempool-text-dim">
-                {(t.amount / SAT).toFixed(8)} OMNI
+                {satToOmni(t.amount)} OMNI
               </div>
             )}
             <button

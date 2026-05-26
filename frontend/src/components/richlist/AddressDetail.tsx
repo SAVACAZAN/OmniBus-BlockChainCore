@@ -4,9 +4,9 @@ import { AddressLabel } from "../common/AddressLabel";
 import { KIND_STYLE } from "../common/TxBadges";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
+import { satToOmni } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 type TxKind =
   | "coinbase"
@@ -41,7 +41,7 @@ type AddressHistory = {
 };
 
 
-const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
+const omniFmt = satToOmni;
 
 export function AddressDetail({
   address,

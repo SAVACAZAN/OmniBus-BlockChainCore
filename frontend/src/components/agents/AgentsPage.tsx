@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
+import { satToOmni } from "../../utils/fmt";
 import {
   Bot,
   Users,
@@ -20,7 +21,6 @@ import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ─── Types: existing system-level agents (agent_manager.zig) ────────────────
 
@@ -104,7 +104,7 @@ type SortBy = "performance" | "followers" | "recent";
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
 
-const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
+const omniFmt = satToOmni;
 const omniShort = (n: number) => (n >= 0 ? "+" : "") + n.toFixed(4);
 
 const TIER_INFO: Record<string, { label: string; color: string; threshold: string }> = {

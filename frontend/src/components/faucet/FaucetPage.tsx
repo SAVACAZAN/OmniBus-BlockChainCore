@@ -3,9 +3,9 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
+import { satToOmni } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 type FaucetStatus = {
   enabled: boolean;
@@ -93,7 +93,7 @@ export function FaucetPage() {
     }
   };
 
-  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(4);
+  const omniFmt = (sat: number) => satToOmni(sat, 4);
   const canClaim = !!wallet && !!status?.enabled && (status.balance >= status.grantPerClaim);
 
   return (

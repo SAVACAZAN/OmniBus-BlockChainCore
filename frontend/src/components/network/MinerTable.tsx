@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
 
 interface MinerRow {
   address: string;
@@ -15,7 +15,7 @@ interface MinerRow {
 }
 
 function fmtOmni(sat: number): string {
-  const omni = sat / SAT;
+  const omni = sat / SAT_PER_OMNI;
   return omni >= 1
     ? omni.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })
     : omni.toFixed(6);
