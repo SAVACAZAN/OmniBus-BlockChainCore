@@ -308,20 +308,55 @@ export function AddressPage({ addr, onNavigate }: Props) {
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
             Transactions ({filtered.length})
           </h2>
-          <div className="flex gap-1">
-            {(["all", "received", "sent"] as FilterType[]).map((f) => (
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {(["all", "received", "sent"] as FilterType[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => { setFilter(f); setPage(0); }}
+                  className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                    filter === f
+                      ? "bg-mempool-blue text-white"
+                      : "text-mempool-text-dim hover:text-mempool-text border border-mempool-border"
+                  }`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+            {history.length > 0 && (
               <button
-                key={f}
-                onClick={() => { setFilter(f); setPage(0); }}
-                className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                  filter === f
-                    ? "bg-mempool-blue text-white"
-                    : "text-mempool-text-dim hover:text-mempool-text border border-mempool-border"
-                }`}
+                onClick={() => {
+                  const rows = [
+                    ["txid", "direction", "amount_omni", "fee_omni", "from", "to", "block_height", "confirmations", "status", "kind", "timestamp"].join(","),
+                    ...history.map((tx) => [
+                      tx.txid,
+                      tx.direction ?? "",
+                      (tx.amount / SAT).toFixed(8),
+                      (tx.fee / SAT).toFixed(8),
+                      tx.from,
+                      tx.to,
+                      tx.blockHeight ?? "",
+                      tx.confirmations,
+                      tx.status,
+                      tx.kind ?? "",
+                      tx.timestamp ? new Date(tx.timestamp > 1e12 ? tx.timestamp : tx.timestamp * 1000).toISOString() : "",
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `omnibus-${addr.slice(0, 12)}-txs.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-[10px] px-2.5 py-1 rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue transition-colors font-mono"
+                title="Download transaction history as CSV"
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                ⬇ CSV
               </button>
-            ))}
+            )}
           </div>
         </div>
 

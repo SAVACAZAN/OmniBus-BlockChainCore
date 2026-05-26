@@ -50,6 +50,7 @@ interface ChainMetrics {
   peerCount: number;
   currentBlockReward: number;
   satPerOmni: number;
+  halvingInterval?: number;
   latestBlockTxCount?: number;
   latestBlockFees?: number;
   latestBlockTimestamp?: number;
@@ -444,7 +445,7 @@ export function StatsPage() {
 
       {/* Halving Countdown */}
       {chainMetrics && chainMetrics.height > 0 && (() => {
-        const HALVING_INTERVAL = 210_000;
+        const HALVING_INTERVAL = chainMetrics.halvingInterval ?? 210_000;
         const blockTimeS = netStats?.avgBlockTime ?? 10;
         const effectiveBT = blockTimeS > 0 ? blockTimeS : 10;
         const era = Math.floor(chainMetrics.height / HALVING_INTERVAL);

@@ -11,6 +11,12 @@ function fmtSat(sat: number) {
 function fmtTs(ts: number) {
   return new Date(ts < 1e10 ? ts * 1000 : ts).toLocaleString();
 }
+function fmtPrice(microUsd: number): string {
+  if (!microUsd) return "—";
+  const usd = microUsd / 1_000_000;
+  const dec = usd >= 100 ? 2 : usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
+  return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
 function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
   if (!s) return "—";
   if (s.length <= h + t + 3) return s;
@@ -285,8 +291,8 @@ export function BlockPage({ height, onNavigate }: Props) {
                   <tr key={i} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
                     <td className="py-2 pr-4 text-mempool-text">{p.exchange}</td>
                     <td className="py-2 pr-4 text-mempool-text-dim">{p.pair}</td>
-                    <td className="py-2 pr-4 text-right text-green-400">${(p.bidMicroUsd / 1e6).toFixed(2)}</td>
-                    <td className="py-2 text-right text-red-400">${(p.askMicroUsd / 1e6).toFixed(2)}</td>
+                    <td className="py-2 pr-4 text-right text-green-400">{fmtPrice(p.bidMicroUsd)}</td>
+                    <td className="py-2 text-right text-red-400">{fmtPrice(p.askMicroUsd)}</td>
                   </tr>
                 ))}
               </tbody>
