@@ -196,9 +196,8 @@ export function MempoolPage() {
 
   useEffect(() => {
     fetchMempool();
-    // new_tx WS handler (below) prepends TXs live — this poll is only needed
-    // for fee estimate refresh + catching mismatches. 10 s is sufficient.
-    const id = setInterval(fetchMempool, 10_000);
+    // new_tx WS (below) prepends TXs live — this poll only refreshes fee estimates.
+    const id = setInterval(fetchMempool, 30_000);
     return () => clearInterval(id);
   }, []);
 

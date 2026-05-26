@@ -118,7 +118,7 @@ export function ExchangePage() {
     const unsubTr = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
       if (ev.pair_id === pairId) void refresh();
     });
-    const id = setInterval(refresh, 10_000);
+    const id = setInterval(refresh, 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);
