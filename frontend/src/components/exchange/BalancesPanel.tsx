@@ -19,15 +19,17 @@ type WalletRow = {
   role: "maker" | "taker" | "omni";
 };
 
+const EXPLORER_BASE: Record<string, string> = {
+  OMNI:         "https://omnibusblockchain.cc:8443/#/address/",
+  SEPOLIA:      "https://sepolia.etherscan.io/address/",
+  BASE_SEPOLIA: "https://sepolia-explorer.base.org/address/",
+  ETH:          "https://etherscan.io/address/",
+  BASE:         "https://basescan.org/address/",
+};
+
 function explorerFor(chain: string, address: string): string {
-  switch (chain) {
-    case "OMNI":         return `https://omnibusblockchain.cc:8443/#/address/${address}`;
-    case "SEPOLIA":      return `https://sepolia.etherscan.io/address/${address}`;
-    case "BASE_SEPOLIA": return `https://sepolia-explorer.base.org/address/${address}`;
-    case "ETH":          return `https://etherscan.io/address/${address}`;
-    case "BASE":         return `https://basescan.org/address/${address}`;
-    default:             return `#`;
-  }
+  const base = EXPLORER_BASE[chain];
+  return base ? `${base}${address}` : "#";
 }
 
 

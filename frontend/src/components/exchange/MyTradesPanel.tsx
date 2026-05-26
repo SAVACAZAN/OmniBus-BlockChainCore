@@ -30,15 +30,17 @@ const PAIR_LABELS: Record<number, string> = {
   6: "OMNI/ETH",
 };
 
+const CHAIN_TX_BASE: Record<number, string> = {
+  11155111: "https://sepolia.etherscan.io/tx/",
+  84532:    "https://sepolia.basescan.org/tx/",
+  8888:     "https://explorer.lcx.com/tx/",
+  1:        "https://etherscan.io/tx/",
+  8453:     "https://basescan.org/tx/",
+};
+
 function explorerUrl(chainId: number, txHash: string): string | null {
-  switch (chainId) {
-    case 11155111: return `https://sepolia.etherscan.io/tx/${txHash}`;
-    case 84532:    return `https://sepolia.basescan.org/tx/${txHash}`;
-    case 8888:     return `https://explorer.lcx.com/tx/${txHash}`;
-    case 1:        return `https://etherscan.io/tx/${txHash}`;
-    case 8453:     return `https://basescan.org/tx/${txHash}`;
-    default:       return null;
-  }
+  const base = CHAIN_TX_BASE[chainId];
+  return base ? `${base}${txHash}` : null;
 }
 
 interface Props {

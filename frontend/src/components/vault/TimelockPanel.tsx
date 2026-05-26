@@ -40,20 +40,16 @@ interface TimelockVault {
   state: VaultState;
 }
 
-function stateBadge(state: VaultState): string {
-  switch (state) {
-    case "locked":   return "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40";
-    case "unlocked": return "bg-mempool-green/15 text-mempool-green border-mempool-green/40";
-    case "spent":    return "bg-mempool-border/30 text-mempool-text-dim border-mempool-border";
-  }
-}
-function stateIcon(state: VaultState): string {
-  switch (state) {
-    case "locked":   return "🔒";
-    case "unlocked": return "🔓";
-    case "spent":    return "✅";
-  }
-}
+const STATE_BADGE: Record<VaultState, string> = {
+  locked:   "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40",
+  unlocked: "bg-mempool-green/15 text-mempool-green border-mempool-green/40",
+  spent:    "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
+const STATE_ICON: Record<VaultState, string> = {
+  locked:   "🔒",
+  unlocked: "🔓",
+  spent:    "✅",
+};
 
 export function TimelockPanel() {
   const wallet = useWallet();
@@ -291,8 +287,8 @@ export function TimelockPanel() {
                   <span className="font-mono text-[10px] text-mempool-text-dim">
                     #{shortId(v.vault_id)}
                   </span>
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${stateBadge(v.state)}`}>
-                    {stateIcon(v.state)} {v.state}
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${STATE_BADGE[v.state]}`}>
+                    {STATE_ICON[v.state]} {v.state}
                   </span>
                   <span className="font-mono text-sm text-mempool-text">
                     {satToOmni(v.amount_sat, 4)} <span className="text-xs text-mempool-text-dim">OMNI</span>

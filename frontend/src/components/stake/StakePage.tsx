@@ -55,6 +55,12 @@ const BASE_RENT_PER_OMNI_PER_DAY = 0.10; // baseline RENT/day before tier mult.
 
 type StakeStatus = "active" | "unbonding" | "completed";
 
+const STAKE_STATUS_BADGE: Record<StakeStatus, string> = {
+  active:    "bg-mempool-green/15 text-mempool-green border-mempool-green/40",
+  unbonding: "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40",
+  completed: "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
+
 interface StakeEntry {
   id: number;
   amount_sat: number;
@@ -392,17 +398,7 @@ function StakeCard({
   );
   const daysRemaining = Math.ceil(blocksRemaining / BLOCKS_PER_DAY);
 
-  const statusBadge = (() => {
-    switch (stake.status) {
-      case "active":
-        return "bg-mempool-green/15 text-mempool-green border-mempool-green/40";
-      case "unbonding":
-        return "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40";
-      case "completed":
-      default:
-        return "bg-mempool-border/30 text-mempool-text-dim border-mempool-border";
-    }
-  })();
+  const statusBadge = STAKE_STATUS_BADGE[stake.status] ?? STAKE_STATUS_BADGE.completed;
 
   return (
     <div className="bg-mempool-bg border border-mempool-border rounded p-3">
