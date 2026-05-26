@@ -396,6 +396,17 @@ export class OmniBusRpcClient {
     }
   }
 
+  async getWalletSummary(address: string): Promise<{
+    wallet_sat?: number; staked_sat?: number; in_orders_sat?: number;
+    available_sat?: number; height?: number;
+  } | null> {
+    try {
+      return await this.request("getwalletsummary", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
   async getStake(address: string): Promise<{
     stakes: Array<{
       id: number; amount_sat: number; lock_blocks: number;

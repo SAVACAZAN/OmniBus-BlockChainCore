@@ -76,8 +76,8 @@ type WalletSummaryResp = {
 
 async function fetchSlotSummary(address: string): Promise<WalletSummaryResp> {
   try {
-    const r = (await rpc.request_raw("getwalletsummary", [{ address }])) as WalletSummaryResp;
-    return r ?? {};
+    const r = await rpc.getWalletSummary(address);
+    return (r ?? {}) as WalletSummaryResp;
   } catch {
     return {};
   }

@@ -113,18 +113,14 @@ async function refreshOnce(address: string): Promise<void> {
     //      block landed mid-fetch — caller saw "wallet=0 staked=212" for a
     //      single tick which the UI rendered as a glaring inconsistency.
     const summary = (await rpc
-      .request_raw("getwalletsummary", [{ address }])
+      .getWalletSummary(address)
       .catch(() => null)) as WalletSummaryRpc | null;
 
     if (!summary) {
       // Fall through to legacy fan-out only if the new RPC isn't reachable.
       // Old nodes (pre 2026-05-13) don't ship getwalletsummary.
-      const balRaw = await rpc
-        .request_raw("getbalance", [address])
-        .catch(() => null);
-      const wallet_sat = typeof balRaw === "number"
-        ? balRaw
-        : Number((balRaw as { balance?: number } | null)?.balance ?? 0);
+      const balRaw = await rpc.getAddressBalance(address).catch(() => null);
+      const wallet_sat = balRaw?.balance ?? 0;
       emit({
         address,
         wallet_sat,
