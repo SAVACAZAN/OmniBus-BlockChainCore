@@ -368,10 +368,10 @@ function SpvPanel() {
     setHErr(null);
     setHeaders(null);
     try {
-      const r = (await rpc.request_raw("getheaders", [
+      const r = (await rpc.getHeaders(
         parseInt(hFrom, 10),
         parseInt(hCount, 10) || 10,
-      ])) as GetHeadersResp;
+      )) as GetHeadersResp;
       setHeaders(Array.isArray(r?.headers) ? r.headers : []);
     } catch (e: any) {
       setHErr(e?.message ?? String(e));
