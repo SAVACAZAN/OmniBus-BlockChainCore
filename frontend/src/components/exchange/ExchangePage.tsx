@@ -409,6 +409,10 @@ export function ExchangePage() {
                     </span>
                     <span className="text-xs text-mempool-text-dim ml-2">
                       Spread ${(spread / MICRO_PER_USD).toFixed(4)}
+                      {" "}
+                      <span className="text-[10px] text-mempool-text-dim/70">
+                        ({((spread / mid) * 100).toFixed(2)}%)
+                      </span>
                     </span>
                   </>
                 ) : (
