@@ -4591,9 +4591,13 @@ fn handleSendOpReturn(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (!tx.isValid()) return errorJson(-32000, "Invalid OP_RETURN transaction", id, alloc);
     ctx.bc.registerPubkey(ctx.wallet.address, ctx.wallet.addresses[0].public_key_hex) catch {};
     ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool error", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"op_return\":\"{s}\",\"fee\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, tx.hash, tx.from_address, tx.op_return, tx.fee });
+    {
+        const opr_safe = try jsonSanitize(alloc, tx.op_return);
+        defer alloc.free(opr_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"op_return\":\"{s}\",\"fee\":{d},\"status\":\"accepted\"}}}}",
+            .{ id, tx.hash, tx.from_address, opr_safe, tx.fee });
+    }
 }
 
 /// RPC "minersendtx" — send TX from a registered miner's wallet.
@@ -17113,6 +17117,8 @@ fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     };
     ctx.bc.mutex.unlock();
 
+    const ndoc_type_safe = try jsonSanitize(alloc, doc_type_s);
+    defer alloc.free(ndoc_type_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"status\":\"queued\"," ++
@@ -17122,7 +17128,7 @@ fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         "\"doc_type\":\"{s}\"," ++
         "\"fee_sat\":{d}" ++
         "}}}}",
-        .{ id, canonical, note_id, doc_hash, doc_type_s, notarize_mod.NOTARIZE_FEE_SAT });
+        .{ id, canonical, note_id, doc_hash, ndoc_type_safe, notarize_mod.NOTARIZE_FEE_SAT });
 }
 
 // ── verifynotarize ────────────────────────────────────────────────────────────
@@ -17146,20 +17152,24 @@ fn handleVerifyNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     const e = result.entry.?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"status\":\"{s}\"," ++
-        "\"notarize_id\":{d}," ++
-        "\"doc_hash\":\"{s}\"," ++
-        "\"doc_type\":\"{s}\"," ++
-        "\"owner\":\"{s}\"," ++
-        "\"block_height\":{d}," ++
-        "\"tx_hash\":\"{s}\"," ++
-        "\"expiry_block\":{d}," ++
-        "\"note\":\"{s}\"" ++
-        "}}}}",
-        .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
-           e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, e.noteSlice() });
+    {
+        const vnote_safe = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(vnote_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"status\":\"{s}\"," ++
+            "\"notarize_id\":{d}," ++
+            "\"doc_hash\":\"{s}\"," ++
+            "\"doc_type\":\"{s}\"," ++
+            "\"owner\":\"{s}\"," ++
+            "\"block_height\":{d}," ++
+            "\"tx_hash\":\"{s}\"," ++
+            "\"expiry_block\":{d}," ++
+            "\"note\":\"{s}\"" ++
+            "}}}}",
+            .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
+               e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, vnote_safe });
+    }
 }
 
 // ── revokenotarize ────────────────────────────────────────────────────────────
