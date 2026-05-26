@@ -614,6 +614,36 @@ export function AmmOrderbookPanel() {
               {updatedAt.toLocaleTimeString()}
             </span>
           )}
+          {levels.length > 0 && pool && (
+            <button
+              onClick={() => {
+                const poolLabel = pool.label.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+                const rows = [
+                  ["side","price","qty0","qty1","liq_pct","tick_lo","tick_hi"].join(","),
+                  ...[...levels].sort((a, b) => a.side === b.side
+                    ? (a.side === "ask" ? a.price - b.price : b.price - a.price)
+                    : a.side === "ask" ? -1 : 1
+                  ).map((l) => [
+                    l.side,
+                    l.price.toFixed(8),
+                    l.qty0.toFixed(8),
+                    l.qty1.toFixed(8),
+                    l.liqPct.toFixed(4),
+                    l.tickLo,
+                    l.tickHi,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `omnibus-amm-${poolLabel}.csv`;
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={load}
             disabled={loading}
