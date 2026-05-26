@@ -642,7 +642,7 @@ export function OraclePricePanel() {
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
     if (timerRef.current) clearInterval(timerRef.current);
     // oracle_price fires when node fetches from Chainlink/Pyth — supplement CoinGecko poll.
     const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void load(); });

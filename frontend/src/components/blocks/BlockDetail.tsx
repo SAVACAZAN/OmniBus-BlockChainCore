@@ -55,21 +55,20 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   useEffect(() => {
     setFull(block);
     setPrices([]);
-    loadTxs();
-    loadFull();
-    loadTip();
+    void loadBlock();
+    void loadTip();
   }, [block.height]);
 
   const loadTip = async () => {
     try {
       const r: any = await rpc.request_raw("getblockcount", []);
-      // Some nodes return { count } and others a bare number — handle both.
       const h = typeof r === "number" ? r : r?.count;
       if (typeof h === "number") setTipHeight(h);
     } catch {}
   };
 
-  const loadFull = async () => {
+  const loadBlock = async () => {
+    setLoading(true);
     try {
       const result: any = await rpc.request_raw("getblock", [block.height]);
       if (result && typeof result === "object") {
@@ -86,34 +85,16 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
           pricesValidated: result.pricesValidated ?? block.pricesValidated,
         });
         if (Array.isArray(result.prices)) setPrices(result.prices);
+        const txids: string[] = result.transactions || result.tx_ids || result.txids || [];
+        const settled = await Promise.allSettled(
+          txids.slice(0, 100).map((id: string) => rpc.getTransactionDetail(id))
+        );
+        setTxs(
+          settled
+            .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled" && !!r.value)
+            .map((r) => r.value)
+        );
       }
-    } catch {}
-  };
-
-  const loadTxs = async () => {
-    setLoading(true);
-    try {
-      const result: any = await rpc.request_raw("gettransactions");
-      const blockTxs = (result?.transactions || []).filter(
-        (tx: any) => tx.blockHeight === block.height
-      );
-
-      // Enrich each TX with detail (confirmations, fee) from gettransaction
-      const enriched = await Promise.all(
-        blockTxs.map(async (tx: any) => {
-          try {
-            const detail = await rpc.getTransactionDetail(tx.txid);
-            return {
-              ...tx,
-              fee: detail?.fee ?? tx.fee ?? 0,
-              confirmations: detail?.confirmations ?? 0,
-            };
-          } catch {
-            return { ...tx, fee: tx.fee ?? 0, confirmations: 0 };
-          }
-        })
-      );
-      setTxs(enriched);
     } catch {}
     setLoading(false);
   };

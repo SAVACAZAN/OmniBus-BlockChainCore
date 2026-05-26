@@ -337,10 +337,10 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
   }
 
   useEffect(() => {
-    load();
+    void load();
     // Refresh on trade fills (grid fills emit new_trade) + 60s fallback.
     const unsub = wsSubscribe<WsNewTradeEvent>("new_trade", () => { void load(); });
-    const id = setInterval(load, 60_000);
+    const id = setInterval(() => { void load(); }, 60_000);
     return () => { unsub(); clearInterval(id); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

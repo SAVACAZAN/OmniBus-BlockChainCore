@@ -356,7 +356,7 @@ function MarketTab() {
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   const handleFill = async (swap: SwapEntry) => {
