@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import {
   ResponsiveContainer,
   LineChart,
   Line,
+  ReferenceLine,
   BarChart,
   Bar,
   XAxis,
@@ -114,52 +115,60 @@ const TOOLTIP_STYLE = {
   color: "#c9d1d9",
 };
 
+const AUTO_REFRESH_MS = 30_000;
+
 export function StatsPage() {
   const [series, setSeries] = useState<BlockStat[]>([]);
   const [netStats, setNetStats] = useState<NetworkStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [lastRefresh, setLastRefresh] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
+    try {
+      const tipRaw = await rpc.getBlockCount();
+      const tip: number =
+        typeof tipRaw === "object" && tipRaw
+          ? (tipRaw as any).blockCount ?? (tipRaw as any)
+          : tipRaw;
+      if (!tip || tip < 1) { setLoading(false); return; }
+
+      // Fetch last 100 blocks — all in parallel (20 concurrent RPCs max)
+      const count = Math.min(100, tip);
+      const start = tip - 1;
+      const end = Math.max(0, start - count);
+      const indices: number[] = [];
+      for (let i = start; i >= end; i--) indices.push(i);
+
+      const CONCURRENCY = 20;
+      const blocks: any[] = [];
+      for (let i = 0; i < indices.length; i += CONCURRENCY) {
+        const slice = indices.slice(i, i + CONCURRENCY);
+        const batch = await Promise.all(
+          slice.map((idx) => rpc.getBlock(idx).catch(() => null))
+        );
+        blocks.push(...batch.filter(Boolean));
+      }
+
+      const { stats, series: s } = computeStats(blocks);
+      setNetStats(stats);
+      setSeries(s);
+      setLastRefresh(Date.now());
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setErr("");
-      try {
-        const tipRaw = await rpc.getBlockCount();
-        const tip: number =
-          typeof tipRaw === "object" && tipRaw
-            ? (tipRaw as any).blockCount ?? (tipRaw as any)
-            : tipRaw;
-        if (!tip || tip < 1) { setLoading(false); return; }
-
-        // Fetch last 100 blocks in batches of 4
-        const count = Math.min(100, tip);
-        const start = tip - 1;
-        const end = Math.max(0, start - count);
-        const indices: number[] = [];
-        for (let i = start; i >= end; i--) indices.push(i);
-
-        const blocks: any[] = [];
-        const BATCH = 4;
-        for (let i = 0; i < indices.length; i += BATCH) {
-          const slice = indices.slice(i, i + BATCH);
-          const batch = await Promise.all(
-            slice.map((idx) => rpc.getBlock(idx).catch(() => null))
-          );
-          blocks.push(...batch.filter(Boolean));
-        }
-
-        const { stats, series: s } = computeStats(blocks);
-        setNetStats(stats);
-        setSeries(s);
-      } catch (e: any) {
-        setErr(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+    void load();
+    timerRef.current = setInterval(() => void load(), AUTO_REFRESH_MS);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [load]);
 
   if (loading) {
     return (
@@ -182,12 +191,34 @@ export function StatsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      <h2 className="text-lg font-bold text-mempool-text">
-        Network Statistics{" "}
-        <span className="text-mempool-text-dim font-normal text-sm">
-          (last {netStats?.blocksAnalyzed ?? 0} blocks)
-        </span>
-      </h2>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="text-lg font-bold text-mempool-text">
+          Network Statistics{" "}
+          <span className="text-mempool-text-dim font-normal text-sm">
+            (last {netStats?.blocksAnalyzed ?? 0} blocks)
+          </span>
+        </h2>
+        <div className="flex items-center gap-3">
+          {lastRefresh > 0 && (
+            <span className="text-[10px] text-mempool-text-dim font-mono">
+              updated {new Date(lastRefresh).toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={() => void load()}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue disabled:opacity-40 transition-colors"
+          >
+            <svg className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 21h5v-5" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
 
       {/* Summary cards */}
       {netStats && (
@@ -250,6 +281,8 @@ export function StatsPage() {
                 formatter={(v: any) => [`${v}s`, "Block Time"]}
               />
               {/* Target line at 10s */}
+              <ReferenceLine y={10} stroke="#f97316" strokeDasharray="4 4" strokeWidth={1}
+                label={{ value: "10s target", position: "right", fill: "#f97316", fontSize: 9 }} />
               <Line
                 type="monotone"
                 dataKey="blockTime"
