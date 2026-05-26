@@ -123,8 +123,7 @@ type EscrowSubTab = "my-escrows" | "create-escrow" | "release-escrow";
 // ── SHA-256 helpers ───────────────────────────────────────────────────────
 
 async function sha256Hex(data: Uint8Array | ArrayBuffer): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hashBuf = await crypto.subtle.digest("SHA-256", data as any);
+  const hashBuf = await crypto.subtle.digest("SHA-256", data as BufferSource);
   return Array.from(new Uint8Array(hashBuf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");

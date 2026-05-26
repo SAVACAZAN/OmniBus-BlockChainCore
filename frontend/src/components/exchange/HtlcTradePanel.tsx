@@ -16,6 +16,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
+
+import type { Eip1193Provider } from "ethers";
+
+declare global {
+  interface Window { ethereum?: Eip1193Provider; }
+}
 import OmniBusRpcClient from "../../api/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
@@ -71,7 +77,7 @@ function addLog(s: HtlcState, msg: string): HtlcState {
 
 // Get MetaMask signer on Sepolia
 async function getEvmSigner(): Promise<JsonRpcSigner> {
-  const eth = (window as any).ethereum;
+  const eth = window.ethereum;
   if (!eth) throw new Error("MetaMask not found");
   const provider = new BrowserProvider(eth);
   await provider.send("eth_requestAccounts", []);

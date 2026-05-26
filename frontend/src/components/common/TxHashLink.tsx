@@ -9,6 +9,10 @@
 
 import { midTrunc } from "../../utils/fmt";
 
+declare global {
+  interface Window { __openTx?: (txid: string) => void; }
+}
+
 type Props = {
   txid: string;
   truncate?: { left: number; right: number };
@@ -29,8 +33,8 @@ export function TxHashLink({
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        if (typeof window !== "undefined" && (window as any).__openTx) {
-          (window as any).__openTx(txid);
+        if (typeof window !== "undefined" && window.__openTx) {
+          window.__openTx(txid);
         }
       }}
       title={`${txid} — click to open transaction details`}

@@ -212,7 +212,7 @@ export function NamesPage() {
   const refresh = async () => {
     try {
       const r = (await rpc.request_raw("listnames", [{ limit: 200 }])) as ListResp;
-      const safe: ListResp = (r && Array.isArray((r as any).entries))
+      const safe: ListResp = (r && Array.isArray(r.entries))
         ? r
         : { entries: [], total: 0 };
       setList(safe);
