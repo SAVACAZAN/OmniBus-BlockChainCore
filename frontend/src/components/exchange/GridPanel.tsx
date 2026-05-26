@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
-const MICRO = 1_000_000;
+const MICRO = MICRO_PER_USD;
 const SAT = SAT_PER_OMNI; // alias kept for readability in existing inline calculations
 
 type Pair = { id: number; base: string; quote: string; label: string };

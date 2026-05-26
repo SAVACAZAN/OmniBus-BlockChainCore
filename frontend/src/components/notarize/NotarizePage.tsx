@@ -31,14 +31,12 @@ import {
   Lock,
   ChevronDown,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
 
