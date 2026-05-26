@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent } from "../../types/index";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -201,11 +203,14 @@ export default function ExchangePrices() {
     };
 
     fetchFeed();
-    const id = setInterval(fetchFeed, POLL_MS);
+    // oracle_price fires when backend refreshes feed — update immediately.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void fetchFeed(); });
+    const id = setInterval(fetchFeed, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [rpc]);
 

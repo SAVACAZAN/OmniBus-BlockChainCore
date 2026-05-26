@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types/index";
 import {
   ResponsiveContainer,
   LineChart,
@@ -249,8 +251,10 @@ export function StatsPage() {
 
   useEffect(() => {
     void load();
+    // Refresh immediately on new block; fall back to 30s poll.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void load(); });
     timerRef.current = setInterval(() => void load(), AUTO_REFRESH_MS);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => { if (timerRef.current) clearInterval(timerRef.current); unsub(); };
   }, [load]);
 
   if (loading) {

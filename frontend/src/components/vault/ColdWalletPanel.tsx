@@ -17,6 +17,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types/index";
 
 const rpc = new OmniBusRpcClient();
 
@@ -185,9 +187,11 @@ export function ColdWalletPanel() {
 
   useEffect(() => {
     void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
     timerRef.current = setInterval(() => void refresh(), REFRESH_INTERVAL_MS);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      unsub();
     };
   }, [refresh]);
 

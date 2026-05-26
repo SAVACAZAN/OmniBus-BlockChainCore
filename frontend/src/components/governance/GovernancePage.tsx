@@ -467,13 +467,14 @@ function ProposalsTab({
     }
   }, [filter]);
 
-  // Initial load + auto-refresh every 10s
+  // Initial load + WS-driven refresh on new block, 60s fallback.
   useEffect(() => {
     let cancelled = false;
     const tick = async () => { if (!cancelled) await refresh(); };
     void tick();
-    const id = window.setInterval(tick, 10_000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
+    const id = window.setInterval(tick, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, [refresh]);
 
   // Fetch full proposal details for modal (getproposal returns extra fields)

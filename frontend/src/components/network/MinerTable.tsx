@@ -44,8 +44,8 @@ export function MinerTable() {
       } catch {}
     };
     load();
-    const id = setInterval(load, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    // state.blockCount is WS-driven — re-runs on every new block automatically.
+    return () => { cancelled = true; };
   }, [state.blockCount]);
 
   // Merge: prefer RPC data (richer), fall back to store
