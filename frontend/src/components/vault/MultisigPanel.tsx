@@ -23,6 +23,12 @@ import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 
 type SubTab = "create" | "send" | "balance";
 
+const MULTISIG_TABS: { id: SubTab; label: string }[] = [
+  { id: "create",  label: "Create Multisig" },
+  { id: "send",    label: "Send from Multisig" },
+  { id: "balance", label: "Balance" },
+];
+
 export function MultisigPanel() {
   const [tab, setTab] = useState<SubTab>("create");
 
@@ -38,11 +44,7 @@ export function MultisigPanel() {
 
       {/* Sub-tabs */}
       <div className="flex gap-1 border-b border-mempool-border overflow-x-auto scrollbar-none">
-        {([
-          { id: "create" as SubTab, label: "Create Multisig" },
-          { id: "send"   as SubTab, label: "Send from Multisig" },
-          { id: "balance" as SubTab, label: "Balance" },
-        ]).map((t) => {
+        {MULTISIG_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button

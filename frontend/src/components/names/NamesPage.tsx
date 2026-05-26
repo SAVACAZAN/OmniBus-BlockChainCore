@@ -17,6 +17,13 @@ import { SAT_PER_OMNI, satToOmni, MICRO_PER_USD } from "../../utils/fmt";
 
 const VALID_RE = /^[a-z][a-z0-9_]{2,24}$/;
 
+const PQ_SLOT_LABEL: Record<"k" | "f" | "s" | "d", string> = {
+  k: "ML-DSA-87 (obk1_)",
+  f: "Falcon-512 (obf5_)",
+  s: "Dilithium-5 (obs3_)",
+  d: "SLH-DSA-256s (obd5_)",
+};
+
 // Canonical ens.omnibus treasury — slot index 3 in core/registrar_addresses.zig.
 // Older nodes (pre b1e6b54) used to derive this from the node mnemonic at
 // BIP-44 path 3 instead of reading the hardcoded slot. If the running node
@@ -139,7 +146,7 @@ function SearchAllResultsList({ results, search }: { results: MultiResolveResp[]
                 {(["k", "f", "s", "d"] as const).map((slot) => {
                   const addrs = r.addresses!;
                   if (!addrs[`${slot}_set`]) return null;
-                  const label = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                  const label = PQ_SLOT_LABEL[slot];
                   return (
                     <p key={slot} className="text-mempool-text-dim font-mono break-all">
                       <span className="text-purple-400">↳ {label}:</span> {addrs[slot]}
@@ -665,7 +672,7 @@ export function NamesPage() {
                   const addrs = searchResult.addresses;
                   const isSet = addrs[`${slot}_set`];
                   if (!isSet) return null;
-                  const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                  const slotLabel = PQ_SLOT_LABEL[slot];
                   return (
                     <p key={slot} className="text-mempool-text-dim font-mono break-all">
                       <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}

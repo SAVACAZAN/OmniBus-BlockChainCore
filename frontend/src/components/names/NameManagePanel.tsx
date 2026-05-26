@@ -32,6 +32,14 @@ const CATEGORY_LABEL: Record<Category, string> = {
   none:     "(unset)",
 };
 
+const PREFERRED_SLOT_OPTIONS: { idx: number; label: string }[] = [
+  { idx: 0, label: "Primary (ECDSA)" },
+  { idx: 1, label: "ML-DSA-87" },
+  { idx: 2, label: "Falcon-512" },
+  { idx: 3, label: "Dilithium-5" },
+  { idx: 4, label: "SLH-DSA-256s" },
+];
+
 // Slot letters → chain enum names (must match handleSetPqAddress mapping).
 const SLOT_INFO: { slot: string; label: string; algoLabel: string; prefix: string }[] = [
   { slot: "ml_dsa",    label: "ML-DSA-87",    algoLabel: "FIPS 204",         prefix: "obk1_" },
@@ -305,13 +313,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
               Preferred receiving scheme — wallets that send to your name pick this scheme by default.
             </p>
             <div className="flex flex-wrap gap-1 mb-2">
-              {[
-                { idx: 0, label: "Primary (ECDSA)" },
-                { idx: 1, label: "ML-DSA-87" },
-                { idx: 2, label: "Falcon-512" },
-                { idx: 3, label: "Dilithium-5" },
-                { idx: 4, label: "SLH-DSA-256s" },
-              ].map((opt) => (
+              {PREFERRED_SLOT_OPTIONS.map((opt) => (
                 <button
                   key={opt.idx}
                   onClick={() => setPreferredInput(opt.idx)}
