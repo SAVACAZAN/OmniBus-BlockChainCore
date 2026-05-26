@@ -304,9 +304,37 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
 
           {/* Transactions */}
           <div className="pt-3 border-t border-mempool-border/50">
-            <h4 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider mb-2">
-              Transactions ({(full.txCount ?? 0) + 1})
-            </h4>
+            <div className="flex items-center gap-2 mb-2">
+              <h4 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+                Transactions ({(full.txCount ?? 0) + 1})
+              </h4>
+              {txs.length > 0 && (
+                <button
+                  onClick={() => {
+                    const rows = [
+                      ["txid","from","to","amount_omni","fee_sat","kind","status"].join(","),
+                      ...txs.map((tx: any) => [
+                        `"${tx.txid ?? ""}"`,
+                        `"${tx.from ?? ""}"`,
+                        `"${tx.to ?? ""}"`,
+                        ((tx.amount || 0) / 1e9).toFixed(8),
+                        tx.fee || 0,
+                        tx.kind ?? "transfer",
+                        tx.status ?? "",
+                      ].join(",")),
+                    ].join("\n");
+                    const blob = new Blob([rows], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = `omnibus-block-${full.height}-txs.csv`;
+                    a.click(); URL.revokeObjectURL(url);
+                  }}
+                  className="ml-auto px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+                >
+                  ⬇ CSV
+                </button>
+              )}
+            </div>
 
             {/* Block Reward (coinbase TX). Show the real miner address,
                 not the literal word 'miner...' from before. */}

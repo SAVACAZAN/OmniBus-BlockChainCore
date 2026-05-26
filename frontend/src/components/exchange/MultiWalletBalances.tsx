@@ -271,6 +271,34 @@ export function MultiWalletBalances() {
         </div>
         <div className="flex items-center gap-2">
           {fetching && <span className="text-[10px] text-mempool-text-dim animate-pulse">Fetching…</span>}
+          {rows.length > 0 && !fetching && (
+            <button
+              onClick={() => {
+                const header = ["slot", "omni_addr", "evm_addr", ...COLS.map(c => c.label.replace(" ", "_").toLowerCase())].join(",");
+                const dataRows = rows.map(r =>
+                  [
+                    r.index,
+                    `"${r.omniAddr}"`,
+                    `"${r.evmAddr}"`,
+                    ...COLS.map(c => {
+                      const v = r[c.key];
+                      if (v === "loading" || v === null || v === undefined) return "";
+                      return c.isSat ? ((v as number) / SAT).toFixed(8) : (v as number).toFixed(6);
+                    }),
+                  ].join(",")
+                );
+                const csv = [header, ...dataRows].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-multichain-balances.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <div className="flex gap-0.5 bg-mempool-bg rounded p-0.5">
             <button onClick={() => setView("cards")}
               className={`px-2 py-1 text-[10px] rounded transition-colors ${view === "cards" ? "bg-mempool-blue/20 text-mempool-blue font-semibold" : "text-mempool-text-dim hover:text-mempool-text"}`}>
