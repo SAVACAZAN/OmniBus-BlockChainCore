@@ -151,9 +151,7 @@ export default function ExchangePrices() {
 
     const fetchFeed = async () => {
       try {
-        const result = (await rpc.request_raw(
-          "omnibus_getexchangefeed",
-        )) as ExchangeFeed | null;
+        const result = (await rpc.getExchangeFeed()) as ExchangeFeed | null;
         if (cancelled) return;
         if (result && Array.isArray(result.prices)) {
           setFeed(result);

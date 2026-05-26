@@ -149,10 +149,7 @@ export default function AllPricesGrid() {
 
     const fetchAll = async () => {
       try {
-        const result = (await rpc.request_raw("omnibus_getallprices", [
-          0,
-          PAGE_LIMIT,
-        ])) as AllPricesResponse | null;
+        const result = (await rpc.getAllPrices([0, PAGE_LIMIT])) as AllPricesResponse | null;
         if (cancelled) return;
         if (result && Array.isArray(result.prices)) {
           setPrices(result.prices);

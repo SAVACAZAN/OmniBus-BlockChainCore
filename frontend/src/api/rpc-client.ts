@@ -1348,6 +1348,67 @@ export class OmniBusRpcClient {
   } | null> {
     try { return await this.request("getfuturepool", []); } catch { return null; }
   }
+
+  // ── NS / ENS / Names ──────────────────────────────────────────────────────
+
+  async listNames(params?: { limit?: number }): Promise<{ entries?: unknown[] } | null> {
+    try { return await this.request("listnames", params ? [params] : []); } catch { return null; }
+  }
+
+  async nsExpiringSoon(address: string, blocksThreshold?: number): Promise<{ entries?: unknown[] } | null> {
+    try {
+      const p = blocksThreshold == null ? [address] : [address, blocksThreshold];
+      return await this.request("ns_expiringSoon", p);
+    } catch { return null; }
+  }
+
+  // ── Exchange prices / oracle ───────────────────────────────────────────────
+
+  async getExchangeFeed(): Promise<{ prices: unknown[] } | null> {
+    try { return await this.request("omnibus_getexchangefeed", []); } catch { return null; }
+  }
+
+  async getAllPrices(params?: unknown): Promise<unknown> {
+    try { return await this.request("omnibus_getallprices", params != null ? [params] : []); } catch { return null; }
+  }
+
+  async getArbitrage(): Promise<unknown> {
+    try { return await this.request("omnibus_getarbitrage", []); } catch { return null; }
+  }
+
+  async getFxRate(): Promise<unknown> {
+    try { return await this.request("omnibus_getfxrate", []); } catch { return null; }
+  }
+
+  async getPriceRange(fromHeight: number, count: number): Promise<unknown> {
+    try { return await this.request("omnibus_getpricerange", [fromHeight, count]); } catch { return null; }
+  }
+
+  async getOraclePolicy(): Promise<unknown> {
+    try { return await this.request("omnibus_getoraclepolicy", []); } catch { return null; }
+  }
+
+  async getBlockPrices(height: number): Promise<unknown> {
+    try { return await this.request("omnibus_getblockprices", [height]); } catch { return null; }
+  }
+
+  async getDexOrderbook(pair: string): Promise<unknown> {
+    try { return await this.request("omnibus_getorderbook", [{ pair }]); } catch { return null; }
+  }
+
+  async getOracleBtcHeight(): Promise<number | null> {
+    try {
+      const v = await this.request("oracle_btcHeight", []);
+      return typeof v === "number" ? v : (v as { height?: number })?.height ?? null;
+    } catch { return null; }
+  }
+
+  async getOracleEthHeight(): Promise<number | null> {
+    try {
+      const v = await this.request("oracle_ethHeight", []);
+      return typeof v === "number" ? v : (v as { height?: number })?.height ?? null;
+    } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";

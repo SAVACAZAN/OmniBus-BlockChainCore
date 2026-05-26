@@ -72,8 +72,8 @@ export default function ArbitrageOpportunities() {
       try {
         // Run arb + FX in parallel — they share the same backend.
         const [arbResult, fxResult] = await Promise.all([
-          rpc.request_raw("omnibus_getarbitrage"),
-          rpc.request_raw("omnibus_getfxrate").catch(() => null),
+          rpc.getArbitrage(),
+          rpc.getFxRate(),
         ]);
         if (cancelled) return;
         const result = arbResult as ArbResponse | null;

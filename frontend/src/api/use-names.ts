@@ -73,7 +73,7 @@ async function loadAllEntries(): Promise<DnsEntry[]> {
   if (allEntriesPromise) return allEntriesPromise;
   allEntriesPromise = (async () => {
     try {
-      const r = (await rpc.request_raw("listnames", [])) as { entries?: DnsEntry[] };
+      const r = (await rpc.listNames()) as { entries?: DnsEntry[] } | null;
       const entries = r?.entries ?? [];
       // Re-bucket by address so subsequent useNamesOwnedBy() calls are O(1).
       namesByAddress.clear();
@@ -268,12 +268,7 @@ export function useExpiringNames(
     let cancelled = false;
     const tick = async () => {
       try {
-        const params: any[] = blocksThreshold == null
-          ? [addr]
-          : [addr, blocksThreshold];
-        const r = (await rpc.request_raw("ns_expiringSoon", params)) as {
-          entries?: ExpiringNameEntry[];
-        };
+        const r = (await rpc.nsExpiringSoon(addr, blocksThreshold)) as { entries?: ExpiringNameEntry[] } | null;
         if (!cancelled) setList(r?.entries ?? []);
       } catch {
         // Older nodes without ns_expiringSoon — silently treat as "nothing

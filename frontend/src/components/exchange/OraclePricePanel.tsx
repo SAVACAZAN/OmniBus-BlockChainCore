@@ -193,7 +193,7 @@ async function fetchOmniDexPrices(): Promise<OmniDexPrice[]> {
       // "exchange_orderbook" and "exchange_trades" are snake_case aliases for
       // "exchange_getOrderbook" and "exchange_getTrades" (same handler on backend).
       // We call the canonical camelCase form; aliases are also registered in rpc_server.zig.
-      const res = await rpc.request_raw("exchange_getOrderbook", [{ pairId: p.id, depth: 1 }]);
+      const res = await rpc.exchangeGetOrderbook({ pairId: p.id, depth: 1 });
       const bestBid = res?.bestBid ? res.bestBid / MICRO_PER_USD : 0;
       const bestAsk = res?.bestAsk ? res.bestAsk / MICRO_PER_USD : 0;
       if (bestBid > 0 || bestAsk > 0) {
@@ -264,18 +264,13 @@ function BlockPricesPanel() {
       const c = Math.min(parseInt(count, 10) || 20, 100);
       const from = fromHeight !== "" ? parseInt(fromHeight, 10) : null;
       if (from !== null && !isNaN(from)) {
-        const r = await rpc.request_raw("omnibus_getpricerange", [from, c]);
-        if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {
-          setBlocks((r as {blocks: BlockPrices[]}).blocks.filter((b) => b.prices.length > 0));
-        }
+        const r = await rpc.getPriceRange(from, c) as { blocks?: BlockPrices[] } | null;
+        if (r?.blocks) setBlocks(r.blocks.filter((b) => b.prices.length > 0));
       } else {
-        // Get current tip height first
         const tipH = await rpc.getBlockCount();
         const startH = Math.max(0, tipH - c);
-        const r = await rpc.request_raw("omnibus_getpricerange", [startH, c]);
-        if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {
-          setBlocks((r as {blocks: BlockPrices[]}).blocks.filter((b) => b.prices.length > 0).reverse());
-        }
+        const r = await rpc.getPriceRange(startH, c) as { blocks?: BlockPrices[] } | null;
+        if (r?.blocks) setBlocks(r.blocks.filter((b) => b.prices.length > 0).reverse());
       }
     } catch { /* no blocks */ } finally {
       setLoading(false);
@@ -442,7 +437,7 @@ function OraclePolicyPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    rpc.request_raw("omnibus_getoraclepolicy", [])
+    rpc.getOraclePolicy()
       .then((r) => {
         if (!cancelled && r && typeof r === "object") {
           const p = r as OraclePolicy;
@@ -1001,19 +996,13 @@ function CrossChainHeightsPanel() {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const [b, e] = await Promise.allSettled([
-          rpc.request_raw("oracle_btcHeight", []) as Promise<number | { height: number }>,
-          rpc.request_raw("oracle_ethHeight", []) as Promise<number | { height: number }>,
+        const [btc, eth] = await Promise.all([
+          rpc.getOracleBtcHeight(),
+          rpc.getOracleEthHeight(),
         ]);
         if (cancelled) return;
-        if (b.status === "fulfilled") {
-          const v = b.value;
-          setBtcHeight(typeof v === "number" ? v : (v as { height: number }).height ?? null);
-        }
-        if (e.status === "fulfilled") {
-          const v = e.value;
-          setEthHeight(typeof v === "number" ? v : (v as { height: number }).height ?? null);
-        }
+        setBtcHeight(btc);
+        setEthHeight(eth);
         setLastUpdate(Date.now());
       } finally {
         if (!cancelled) setLoading(false);
@@ -1126,7 +1115,7 @@ function DexOrderbookPanel() {
     let cancelled = false;
     const refresh = async () => {
       const [ob, tm] = await Promise.allSettled([
-        rpc.request_raw("omnibus_getorderbook", [{ pair }]) as Promise<DexOrderbookResp>,
+        rpc.getDexOrderbook(pair) as Promise<DexOrderbookResp>,
         rpc.getTotalMined() as Promise<TotalMinedResp>,
       ]);
       if (cancelled) return;
@@ -1148,7 +1137,7 @@ function DexOrderbookPanel() {
     setBlockErr("");
     setBlockPrices(null);
     try {
-      const r = await rpc.request_raw("omnibus_getblockprices", [h]) as BlockPricesResult;
+      const r = await rpc.getBlockPrices(h) as BlockPricesResult | null;
       if (r && typeof r === "object" && "prices" in r) setBlockPrices(r);
       else setBlockErr("Block not found or no prices");
     } catch (e) {
