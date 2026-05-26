@@ -5,6 +5,8 @@ import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -194,8 +196,9 @@ function NetworkRpcPanels() {
       if (diff.status === "fulfilled") setDifficulty(typeof diff.value === "number" ? diff.value : null);
     };
     refresh();
-    const id = setInterval(refresh, 8_000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   return (

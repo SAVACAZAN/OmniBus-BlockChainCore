@@ -3,6 +3,8 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc-btc";
 import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc-eth";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -80,8 +82,9 @@ export function AtomicSwapPanel() {
 
   useEffect(() => {
     refreshBindings();
-    const id = setInterval(refreshBindings, 6000);
-    return () => clearInterval(id);
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refreshBindings(); });
+    const id = setInterval(refreshBindings, 60_000);
+    return () => { clearInterval(id); unsub(); };
   }, [u?.address]);
 
   const chainCode = (q: string): ChainCode => (q === "BTC" ? 1 : q === "ETH" ? 2 : 3);
