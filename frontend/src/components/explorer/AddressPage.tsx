@@ -36,6 +36,8 @@ function StatCard({ label, value, sub, color }: {
 const PAGE_SIZE = 20;
 type FilterType = "all" | "received" | "sent";
 
+const FILTER_TYPES: FilterType[] = ["all", "received", "sent"];
+
 interface Props {
   addr: string;
   onNavigate: (h: string) => void;
@@ -252,7 +254,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
           </h2>
           <div className="flex items-center gap-2">
             <div className="flex gap-1">
-              {(["all", "received", "sent"] as FilterType[]).map((f) => (
+              {FILTER_TYPES.map((f) => (
                 <button
                   key={f}
                   onClick={() => { setFilter(f); setPage(0); }}

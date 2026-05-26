@@ -53,6 +53,12 @@ const FEE_BUCKETS = [
 
 const BUCKET_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f97316", "#ef4444"];
 
+const FEE_TIERS = [
+  { label: "Fast",    sub: "next 1-2 blocks", mult: 2,    color: "text-red-400",    dot: "bg-red-400" },
+  { label: "Normal",  sub: "3-6 blocks",      mult: 1,    color: "text-orange-400", dot: "bg-orange-400" },
+  { label: "Economy", sub: "7+ blocks",        mult: null, color: "text-green-400",  dot: "bg-green-400" },
+] as const;
+
 export function MempoolPage() {
   const [txs, setTxs] = useState<MempoolTx[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -283,27 +289,30 @@ export function MempoolPage() {
           )}
         </h3>
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Fast", sub: "next 1-2 blocks", sat: feeEst ? Math.round(feeEst.feeSAT * 2) : null, color: "text-red-400", dot: "bg-red-400" },
-            { label: "Normal", sub: "3-6 blocks", sat: feeEst?.feeSAT ?? null, color: "text-orange-400", dot: "bg-orange-400" },
-            { label: "Economy", sub: "7+ blocks", sat: feeEst?.minFeeSAT ?? null, color: "text-green-400", dot: "bg-green-400" },
-          ].map((tier) => (
-            <div key={tier.label} className="bg-mempool-bg border border-mempool-border rounded-lg p-3 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${tier.dot}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-mempool-text-dim">{tier.label}</span>
+          {FEE_TIERS.map((tier) => {
+            const sat = tier.label === "Fast"
+              ? (feeEst ? Math.round(feeEst.feeSAT * 2) : null)
+              : tier.label === "Normal"
+              ? (feeEst?.feeSAT ?? null)
+              : (feeEst?.minFeeSAT ?? null);
+            return (
+              <div key={tier.label} className="bg-mempool-bg border border-mempool-border rounded-lg p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${tier.dot}`} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-mempool-text-dim">{tier.label}</span>
+                </div>
+                <div className={`text-base font-mono font-bold ${tier.color}`}>
+                  {sat === null ? (
+                    <span className="animate-pulse text-mempool-text-dim">…</span>
+                  ) : (
+                    sat.toLocaleString()
+                  )}
+                  {sat !== null && <span className="text-[10px] text-mempool-text-dim font-normal ml-1">SAT</span>}
+                </div>
+                <div className="text-[10px] text-mempool-text-dim">{tier.sub}</div>
               </div>
-              <div className={`text-base font-mono font-bold ${tier.color}`}>
-                {tier.sat === null ? (
-                  <span className="animate-pulse text-mempool-text-dim">…</span>
-                ) : (
-                  tier.sat.toLocaleString()
-                )}
-                {tier.sat !== null && <span className="text-[10px] text-mempool-text-dim font-normal ml-1">SAT</span>}
-              </div>
-              <div className="text-[10px] text-mempool-text-dim">{tier.sub}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {feeEst && (
           <div className="mt-2 text-[10px] text-mempool-text-dim">

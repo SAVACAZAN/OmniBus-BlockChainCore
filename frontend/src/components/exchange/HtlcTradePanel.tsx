@@ -52,6 +52,32 @@ type Step =
   | "done"
   | "error";
 
+const STEP_LABEL: Record<Step, string> = {
+  idle: "Ready",
+  omni_locking: "Locking OMNI…",
+  omni_locked: "OMNI locked ✅ — waiting for EVM lock",
+  evm_approving: "Approving USDC…",
+  evm_locking: "Locking on Sepolia…",
+  evm_locked: "EVM locked ✅ — maker to claim",
+  evm_claiming: "Maker claiming EVM…",
+  omni_claiming: "Taker claiming OMNI…",
+  done: "✅ Swap complete!",
+  error: "❌ Error",
+};
+
+const STEP_COLOR: Record<Step, string> = {
+  idle: "text-mempool-text-dim",
+  omni_locking: "text-yellow-400 animate-pulse",
+  omni_locked: "text-blue-400",
+  evm_approving: "text-yellow-400 animate-pulse",
+  evm_locking: "text-yellow-400 animate-pulse",
+  evm_locked: "text-blue-400",
+  evm_claiming: "text-yellow-400 animate-pulse",
+  omni_claiming: "text-yellow-400 animate-pulse",
+  done: "text-green-400",
+  error: "text-red-400",
+};
+
 interface HtlcState {
   step: Step;
   omniHtlcId?: string;
@@ -304,32 +330,6 @@ export function HtlcTradePanel() {
 
   useEffect(() => { loadHtlcs(); }, [u?.address]);
 
-  const stepLabel: Record<Step, string> = {
-    idle: "Ready",
-    omni_locking: "Locking OMNI…",
-    omni_locked: "OMNI locked ✅ — waiting for EVM lock",
-    evm_approving: "Approving USDC…",
-    evm_locking: "Locking on Sepolia…",
-    evm_locked: "EVM locked ✅ — maker to claim",
-    evm_claiming: "Maker claiming EVM…",
-    omni_claiming: "Taker claiming OMNI…",
-    done: "✅ Swap complete!",
-    error: "❌ Error",
-  };
-
-  const stepColor: Record<Step, string> = {
-    idle: "text-mempool-text-dim",
-    omni_locking: "text-yellow-400 animate-pulse",
-    omni_locked: "text-blue-400",
-    evm_approving: "text-yellow-400 animate-pulse",
-    evm_locking: "text-yellow-400 animate-pulse",
-    evm_locked: "text-blue-400",
-    evm_claiming: "text-yellow-400 animate-pulse",
-    omni_claiming: "text-yellow-400 animate-pulse",
-    done: "text-green-400",
-    error: "text-red-400",
-  };
-
   const busy = ["omni_locking","evm_approving","evm_locking","evm_claiming","omni_claiming"].includes(state.step);
 
   if (!u) {
@@ -357,8 +357,8 @@ export function HtlcTradePanel() {
         </p>
 
         {/* Status bar */}
-        <div className={`text-[11px] font-semibold mb-4 ${stepColor[state.step]}`}>
-          Status: {stepLabel[state.step]}
+        <div className={`text-[11px] font-semibold mb-4 ${STEP_COLOR[state.step]}`}>
+          Status: {STEP_LABEL[state.step]}
           {state.error && <span className="ml-2 font-normal text-red-300">{state.error}</span>}
         </div>
 
