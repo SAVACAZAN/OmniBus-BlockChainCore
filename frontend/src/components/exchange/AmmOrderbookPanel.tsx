@@ -19,7 +19,7 @@
  * Tick spacing: fee 500 (0.05%) → 10 | fee 3000 (0.3%) → 60 | fee 10000 (1%) → 200
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 // ── Pool catalogue ────────────────────────────────────────────────────────────
 
@@ -577,8 +577,8 @@ export function AmmOrderbookPanel() {
 
   useEffect(() => { setPoolIdx(0); }, [chainIdx]);
 
-  const asks = levels.filter(l => l.side === "ask").sort((a, b) => a.price - b.price);
-  const bids = levels.filter(l => l.side === "bid").sort((a, b) => b.price - a.price);
+  const asks = useMemo(() => levels.filter(l => l.side === "ask").sort((a, b) => a.price - b.price), [levels]);
+  const bids = useMemo(() => levels.filter(l => l.side === "bid").sort((a, b) => b.price - a.price), [levels]);
 
   // showToken0Price → display token0 price in token1 units, label = "token0/token1"
   // otherwise      → display token1 price in token0 units, label = "token1/token0"

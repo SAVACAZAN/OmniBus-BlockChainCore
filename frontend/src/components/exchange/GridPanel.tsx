@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
@@ -182,16 +182,15 @@ function GridLadderChart({
   quote: string;
   base: string;
 }) {
-  // Merge buy and sell levels into one sorted list, highest price first
   type LadderRow = { price: number; amount: number; side: "buy" | "sell" };
-  const rows: LadderRow[] = [
+  const rows = useMemo<LadderRow[]>(() => [
     ...status.sell_levels.map((l) => ({ price: l.price, amount: l.amount, side: "sell" as const })),
     ...status.buy_levels.map((l) => ({ price: l.price, amount: l.amount, side: "buy" as const })),
-  ].sort((a, b) => b.price - a.price);
+  ].sort((a, b) => b.price - a.price), [status.sell_levels, status.buy_levels]);
 
   if (rows.length === 0) return null;
 
-  const maxAmount = Math.max(...rows.map((r) => r.amount), 1);
+  const maxAmount = useMemo(() => Math.max(...rows.map((r) => r.amount), 1), [rows]);
   const sellTotal = status.sell_levels.reduce((s, l) => s + l.amount, 0);
   const buyTotal  = status.buy_levels.reduce((s, l) => s + l.amount, 0);
 

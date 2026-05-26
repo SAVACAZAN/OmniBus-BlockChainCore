@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
@@ -183,17 +183,17 @@ export function MempoolPage() {
     color: BUCKET_COLORS[i],
   }));
 
-  // Filter + sort + paginate
-  const filtered = filter
+  // Filter + sort + paginate (memoized to avoid re-runs on unrelated state changes)
+  const filtered = useMemo(() => filter
     ? txs.filter(
         (t) =>
           t.txid.includes(filter) ||
           t.from.includes(filter) ||
           t.to.includes(filter)
       )
-    : txs;
+    : txs, [txs, filter]);
 
-  const sorted = sortCol
+  const sorted = useMemo(() => sortCol
     ? [...filtered].sort((a, b) => {
         let va = 0; let vb = 0;
         if (sortCol === "fee")    { va = a.fee;       vb = b.fee; }
@@ -201,7 +201,7 @@ export function MempoolPage() {
         if (sortCol === "age")    { va = a.timestamp ?? 0; vb = b.timestamp ?? 0; }
         return sortDir === "desc" ? vb - va : va - vb;
       })
-    : filtered;
+    : filtered, [filtered, sortCol, sortDir]);
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const pageTxs = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
