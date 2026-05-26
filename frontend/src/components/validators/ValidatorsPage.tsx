@@ -239,6 +239,7 @@ function ValidatorListTab() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [addrSearch, setAddrSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -304,6 +305,16 @@ function ValidatorListTab() {
           icon={Crown}
           accent="text-yellow-300"
           mono
+        />
+      </div>
+
+      <div className="mb-2">
+        <input
+          type="text"
+          placeholder="Filter by address…"
+          value={addrSearch}
+          onChange={(e) => setAddrSearch(e.target.value)}
+          className="w-full sm:w-72 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
         />
       </div>
 
@@ -378,7 +389,9 @@ function ValidatorListTab() {
             </tr>
           </thead>
           <tbody>
-            {(data?.validators ?? []).map((v, i) => {
+            {(data?.validators ?? [])
+              .filter((v) => !addrSearch.trim() || v.address.toLowerCase().includes(addrSearch.trim().toLowerCase()))
+              .map((v, i) => {
               const isLeader =
                 data?.current_slot_leader && v.address === data.current_slot_leader;
               return (
@@ -455,6 +468,14 @@ function ValidatorListTab() {
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
                   No validators registered yet.
+                </td>
+              </tr>
+            )}
+            {!loading && (data?.validators?.length ?? 0) > 0 && addrSearch.trim() &&
+              (data?.validators ?? []).filter((v) => v.address.toLowerCase().includes(addrSearch.trim().toLowerCase())).length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-gray-500">
+                  No validators match "{addrSearch.trim()}"
                 </td>
               </tr>
             )}
