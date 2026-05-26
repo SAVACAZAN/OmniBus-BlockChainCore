@@ -4,7 +4,7 @@ import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
-import { SAT_PER_OMNI, midTrunc, MICRO_PER_USD } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -205,7 +205,8 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
                 <tbody>
                   {trades.map((t) => {
                     const date = new Date(t.ts);
-                    const timeStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                    const timeStr = fmtAge(t.ts);
+                    const timeTitle = date.toLocaleString();
                     const pairLabel = PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`;
                     const priceUsd = t.price / MICRO_PER_USD;
                     const amtOmni = t.amount / SAT_PER_OMNI;
@@ -217,7 +218,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
 
                     return (
                       <tr key={t.fillId} className="border-t border-mempool-border/40">
-                        <td className="py-1 pr-2 text-mempool-text-dim">{timeStr}</td>
+                        <td className="py-1 pr-2 text-mempool-text-dim" title={timeTitle}>{timeStr}</td>
                         <td className="py-1 pr-2">{pairLabel}</td>
                         <td className={`py-1 pr-2 uppercase font-semibold ${sideColor}`}>{t.side}</td>
                         <td className="py-1 pr-2 text-right">{priceUsd.toFixed(4)}</td>
