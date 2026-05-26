@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { KycVerifyFlow } from "./KycVerifyFlow";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -82,8 +84,11 @@ export function KycPanel() {
       if (!cancelled) setStatus(r);
     };
     refresh();
-    const id = setInterval(refresh, 5000);
-    return () => { cancelled = true; clearInterval(id); };
+    // KYC status changes are rare but critical — use new_block for instant
+    // notification when an attestation lands on chain.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 
   if (!u) {

@@ -1800,8 +1800,9 @@ function SoulboundCard({
       } catch {}
     };
     poll();
-    const id = setInterval(poll, 10000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void poll(); });
+    const id = setInterval(poll, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [address, hasAddr]);
 
   return (
@@ -2759,8 +2760,9 @@ function PqOmniSlotCard({ slot }: { slot: PqOmniSlot }) {
       } catch { /* RPC may not exist on every node — silent fallback */ }
     };
     refresh();
-    const id = setInterval(refresh, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [slot.address]);
 
   const balanceOmni = balanceSat !== null ? (balanceSat / 1e9).toFixed(4) : "—";
