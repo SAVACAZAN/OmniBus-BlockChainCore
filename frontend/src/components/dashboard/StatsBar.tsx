@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
+import type { WsNewBlockEvent } from "../../types";
 
 interface StatCardProps {
   label: string;
@@ -41,8 +42,38 @@ function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }:
   );
 }
 
+function useLastBlockAge(): string {
+  const lastBlockTs = useRef<number>(0);
+  const [age, setAge] = useState("—");
+
+  useEffect(() => {
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      lastBlockTs.current = ev.timestamp > 1_000_000_000 ? ev.timestamp : Date.now() / 1000;
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const tick = () => {
+      if (!lastBlockTs.current) { setAge("—"); return; }
+      const secs = Math.floor(Date.now() / 1000 - lastBlockTs.current);
+      if (secs < 0) { setAge("now"); return; }
+      if (secs < 60) { setAge(`${secs}s ago`); return; }
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      setAge(`${m}m ${s}s ago`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return age;
+}
+
 export function StatsBar() {
   const { state } = useBlockchain();
+  const lastBlockAge = useLastBlockAge();
   const [totalMined, setTotalMined] = useState<string | null>(null);
   // Optimistic mempool delta — increments on every `new_tx` WS event and
   // resets when the next block lands (mempool size is authoritative again).
@@ -86,7 +117,7 @@ export function StatsBar() {
       <StatCard
         label="Block Height"
         value={state.blockCount}
-        sub="1s block time"
+        sub={<span className="font-mono text-[10px] text-mempool-text-dim">{lastBlockAge}</span>}
         color="text-mempool-blue"
         slotIndex={0}
       />
