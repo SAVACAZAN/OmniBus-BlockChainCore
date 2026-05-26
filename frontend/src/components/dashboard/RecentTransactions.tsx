@@ -5,11 +5,10 @@ import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
-// Trunchiaza hash/adresa la mijloc cu '**' (gen 0000abcd**1234ef).
 function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
   if (!s) return "—";
-  if (s.length <= head + tail + 2) return s;
-  return `${s.slice(0, head)}**${s.slice(-tail)}`;
+  if (s.length <= head + tail + 3) return s;
+  return `${s.slice(0, head)}…${s.slice(-tail)}`;
 }
 
 // Click pe hash → deschide modal cu detalii TX (in TxSearch, mai jos)

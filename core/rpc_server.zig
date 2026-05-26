@@ -4455,7 +4455,8 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     for (ctx.bc.mempool.items) |tx| {
         if (std.mem.eql(u8, tx.hash, tx_hash)) {
             const scheme_label = txSchemeLabel(tx.scheme);
-            const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+            const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+            defer alloc.free(op_ret);
             const kind = inferTxKind(tx);
             return std.fmt.allocPrint(alloc,
                 "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
@@ -4472,7 +4473,8 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             for (blk.transactions.items) |tx| {
                 if (std.mem.eql(u8, tx.hash, tx_hash)) {
                     const scheme_label = txSchemeLabel(tx.scheme);
-                    const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+                    const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                    defer alloc.free(op_ret);
                     const kind = inferTxKind(tx);
                     return std.fmt.allocPrint(alloc,
                         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
@@ -4494,7 +4496,8 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 const bh: u64 = @intCast(blk.index);
                 const confirmations = if (current_height > bh) current_height - bh else 0;
                 const scheme_label = txSchemeLabel(tx.scheme);
-                const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+                const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                defer alloc.free(op_ret);
                 const kind = inferTxKind(tx);
                 return std.fmt.allocPrint(alloc,
                     "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
@@ -6410,7 +6413,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (is_from) total_sent += tx.amount else total_received += tx.amount;
         const kind = inferTxKind(tx);
         const sep: []const u8 = if (count == 0) "" else ",";
-        const memo: []const u8 = if (tx.op_return.len > 0) tx.op_return else "";
+        const memo = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+        defer alloc.free(memo);
         const e = try std.fmt.allocPrint(alloc,
             "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"pending\",\"memo\":\"{s}\"}}",
             .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo });
@@ -6432,7 +6436,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 if (is_from) total_sent += tx.amount else total_received += tx.amount;
                 const kind = inferTxKind(tx);
                 const sep: []const u8 = if (count == 0) "" else ",";
-                const memo2: []const u8 = if (tx.op_return.len > 0) tx.op_return else "";
+                const memo2 = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                defer alloc.free(memo2);
                 const e = try std.fmt.allocPrint(alloc,
                     "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"confirmed\",\"memo\":\"{s}\"}}",
                     .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo2 });
@@ -8022,6 +8027,22 @@ fn writeUnauthorized(stream: std.net.Stream) void {
         "Connection: close\r\n\r\n" ++
         "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32001,\"message\":\"Unauthorized\"}}";
     _ = stream.write(resp) catch {};
+}
+
+/// Sanitize a string for safe embedding in a JSON string value.
+/// Replaces `"` → `'`, `\` → `/`, and strips control chars (< 0x20).
+/// Returns an allocated slice that must be freed by the caller.
+/// Used to safely include op_return / memo content in RPC JSON responses.
+fn jsonSanitize(alloc: std.mem.Allocator, s: []const u8) ![]u8 {
+    var out = try alloc.alloc(u8, s.len);
+    var j: usize = 0;
+    for (s) |c| {
+        if (c == '"')       { out[j] = '\''; j += 1; }
+        else if (c == '\\') { out[j] = '/';  j += 1; }
+        else if (c < 0x20)  {}  // strip control chars
+        else                { out[j] = c;   j += 1; }
+    }
+    return out[0..j];
 }
 
 /// Extrage valoarea unui string field din JSON.
