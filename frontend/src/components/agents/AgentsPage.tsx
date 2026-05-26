@@ -294,12 +294,14 @@ export function AgentsPage() {
       if (!cancelled) await refreshRegistry();
     };
     run();
+    const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
     const id = setInterval(() => {
-      if (!cancelled) refreshRegistry();
-    }, 8000);
+      if (!cancelled) void run();
+    }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub2();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy]);
