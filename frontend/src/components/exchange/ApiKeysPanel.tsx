@@ -34,15 +34,10 @@ export function ApiKeysPanel() {
     }
     let cancelled = false;
     setLoading(true);
-    rpc.exchangeListApiKeys(u.address).then((list) => {
-      if (!cancelled) {
-        setKeys(list);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
+    rpc.exchangeListApiKeys(u.address)
+      .then((list) => { if (!cancelled) { setKeys(list); setLoading(false); } })
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [u?.address]);
 
   const refresh = async () => {

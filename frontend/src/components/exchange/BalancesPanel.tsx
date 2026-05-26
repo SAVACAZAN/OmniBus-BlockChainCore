@@ -63,8 +63,10 @@ export function BalancesPanel() {
     if (!u?.address) return;
     let cancelled = false;
     const fetch = () =>
-      rpc.exchangeGetBalances(u.address).then(bal => { if (!cancelled) setExchBalances(bal); });
-    fetch();
+      rpc.exchangeGetBalances(u.address)
+        .then(bal => { if (!cancelled) setExchBalances(bal); })
+        .catch(() => {});
+    void fetch();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
     const id = setInterval(fetch, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };

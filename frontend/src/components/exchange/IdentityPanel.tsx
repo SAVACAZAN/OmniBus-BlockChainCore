@@ -38,15 +38,17 @@ export function IdentityPanel() {
       return;
     }
     let cancelled = false;
-    rpc.identityGet(u.address).then((cur) => {
-      if (cancelled) return;
-      if (cur) {
-        setNickname(cur.nickname || "");
-        setEns(cur.ens || "");
-        setVisibility(cur.visibility);
-      }
-      setLoaded(true);
-    });
+    rpc.identityGet(u.address)
+      .then((cur) => {
+        if (cancelled) return;
+        if (cur) {
+          setNickname(cur.nickname || "");
+          setEns(cur.ens || "");
+          setVisibility(cur.visibility);
+        }
+        setLoaded(true);
+      })
+      .catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
   }, [u?.address]);
 
