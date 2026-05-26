@@ -21,7 +21,6 @@ interface AllPricesResponse {
   lastUpdateMs: number;
 }
 
-const POLL_MS = 3000;
 // Bumped from 1000 → 5000 to cover the full pair_registry (~1006 routes today,
 // could grow to ~3000 if exchanges list more shared pairs). Backend caps via
 // MAX_TOTAL_PAIRS=5000 in ws_exchange_feed.zig, so 5000 is a safe upper bound.

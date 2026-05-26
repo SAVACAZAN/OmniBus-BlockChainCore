@@ -21,7 +21,6 @@ interface ArbResponse {
   opportunities: ArbOpportunity[];
 }
 
-const POLL_MS = 2000;
 const MIN_SPREAD_PCT = 0.05;
 const TOP_N = 15;
 
