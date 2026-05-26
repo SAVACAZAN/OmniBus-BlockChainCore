@@ -11,10 +11,10 @@ import type { WsOrderbookUpdateEvent } from "../../types";
 
 const USDC_CHAINS = ["SEPOLIA", "BASE_SEPOLIA", "ARB_SEPOLIA", "OP_SEPOLIA", "POLYGON_AMOY", "AVAX_FUJI"] as const;
 
-function dec(token: string) {
-  if (token === "OMNI") return 4;
-  if (token === "ETH")  return 6;
-  return 2;
+const TOKEN_DECIMALS: Record<string, number> = { OMNI: 4, ETH: 6 };
+
+function dec(token: string): number {
+  return TOKEN_DECIMALS[token] ?? 2;
 }
 
 // Fetch wallet on-chain balance (human units)

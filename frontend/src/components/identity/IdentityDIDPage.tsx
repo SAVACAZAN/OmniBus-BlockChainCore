@@ -240,6 +240,12 @@ function LoadingSpinner() {
   );
 }
 
+const RISK_COLOR: Record<string, string> = {
+  low:    "text-green-400",
+  medium: "text-yellow-400",
+  high:   "text-red-400",
+};
+
 // ── Tab 1: DID & OBM ─────────────────────────────────────────────────────────
 
 const OBM_BITS: { key: keyof ObmResult; label: string; desc: string }[] = [
@@ -679,13 +685,6 @@ function TabMiCA({ address }: { address: string }) {
   if (loading) return <LoadingSpinner />;
   if (error) return <p className="text-red-400 text-sm">{error}</p>;
 
-  const riskColor = (cat: string) => {
-    if (cat === "low") return "text-green-400";
-    if (cat === "medium") return "text-yellow-400";
-    if (cat === "high") return "text-red-400";
-    return "text-mempool-text-dim";
-  };
-
   return (
     <div className="space-y-4">
       {/* Summary */}
@@ -699,7 +698,7 @@ function TabMiCA({ address }: { address: string }) {
         </div>
         <div>
           <span className="text-xs text-mempool-text-dim block mb-1">Risk Category</span>
-          <span className={`text-sm font-semibold ${riskColor(data?.risk_category ?? "unknown")}`}>
+          <span className={`text-sm font-semibold ${RISK_COLOR[data?.risk_category ?? ""] ?? "text-mempool-text-dim"}`}>
             {data?.risk_category ?? "unknown"}
           </span>
         </div>

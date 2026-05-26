@@ -364,11 +364,14 @@ function tickToPrice(tick: number, pool: PoolDef): number {
   return pool.showToken0Price ? p1in0 : 1 / p1in0;
 }
 
+const TICK_SPACING: Record<number, number> = {
+  500:   10,
+  3000:  60,
+  10000: 200,
+};
+
 function tickSpacing(fee: number): number {
-  if (fee === 500)   return 10;
-  if (fee === 3000)  return 60;
-  if (fee === 10000) return 200;
-  return 10;
+  return TICK_SPACING[fee] ?? 10;
 }
 
 // sqrtPrice from tick: sqrt(1.0001^tick) as a plain float
