@@ -103,9 +103,10 @@ export function BlockPage({ height, onNavigate }: Props) {
     );
   }
 
-  const totalFeesSat = txs.reduce((s: number, tx: any) => s + (tx.fee || 0), 0);
-  const burned = Math.floor(totalFeesSat / 2);
-  const minerFees = totalFeesSat - burned;
+  const { totalFeesSat, burned, minerFees } = useMemo(() => {
+    const total = txs.reduce((s: number, tx: any) => s + (tx.fee || 0), 0);
+    return { totalFeesSat: total, burned: Math.floor(total / 2), minerFees: total - Math.floor(total / 2) };
+  }, [txs]);
   const confirmations = tip > height ? tip - height : 0;
 
   const schemeCounts = useMemo(() => {

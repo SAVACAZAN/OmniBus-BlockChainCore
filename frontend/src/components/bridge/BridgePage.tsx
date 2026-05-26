@@ -481,6 +481,10 @@ const FAMILY_LABELS: Record<ChainFamily, string> = {
   MultiversX: "MultiversX",
 };
 
+const CHAINS_BY_FAMILY = new Map<ChainFamily, typeof CHAINS>(
+  FAMILY_ORDER.map((f) => [f, CHAINS.filter((c) => c.family === f)]),
+);
+
 export function BridgePage() {
   const counts = chainCounts();
 
@@ -562,7 +566,7 @@ export function BridgePage() {
         </div>
 
         {FAMILY_ORDER.map((family) => {
-          const rows = CHAINS.filter((c) => c.family === family);
+          const rows = CHAINS_BY_FAMILY.get(family) ?? [];
           if (rows.length === 0) return null;
           return (
             <div key={family} className="bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
