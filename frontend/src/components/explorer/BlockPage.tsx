@@ -304,9 +304,38 @@ export function BlockPage({ height, onNavigate }: Props) {
       {/* Transactions */}
       <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
         <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
-          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
-            Transactions ({block.txCount ?? txs.length})
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+              Transactions ({block.txCount ?? txs.length})
+            </h2>
+            {txs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["txid", "from", "to", "amount_omni", "fee_omni", "kind", "scheme", "status"].join(","),
+                    ...txs.map((tx: any) => [
+                      `"${tx.txid ?? ""}"`,
+                      `"${tx.from ?? ""}"`,
+                      `"${tx.to ?? ""}"`,
+                      ((tx.amount || 0) / SAT).toFixed(8),
+                      ((tx.fee || 0) / SAT).toFixed(8),
+                      tx.kind ?? "transfer",
+                      tx.scheme ?? "",
+                      tx.status ?? "",
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = `omnibus-block-${block.height}-txs.csv`;
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
           {schemeCounts.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {schemeCounts.map(([scheme, n]) => (

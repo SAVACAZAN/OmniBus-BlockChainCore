@@ -314,10 +314,34 @@ function NetworkRpcPanels() {
       {/* Peer info (RPC) */}
       {peers.length > 0 && (
         <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-mempool-border">
+          <div className="px-4 py-2.5 border-b border-mempool-border flex items-center justify-between">
             <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
               Peer Info (RPC) — {peers.length} peers
             </h3>
+            <button
+              onClick={() => {
+                const rows = [
+                  ["id", "host", "port", "height", "version", "status", "last_seen"].join(","),
+                  ...peers.map((p) => [
+                    `"${p.id}"`,
+                    p.host,
+                    p.port,
+                    p.height,
+                    p.version || "",
+                    p.alive ? "alive" : "dead",
+                    p.last_seen ? new Date(p.last_seen * 1000).toISOString() : "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-peers.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono"
+            >
+              ⬇ CSV
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs min-w-[500px]">
