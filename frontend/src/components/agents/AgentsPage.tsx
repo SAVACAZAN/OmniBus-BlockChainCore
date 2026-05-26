@@ -14,6 +14,7 @@ import {
   Activity,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -564,11 +565,11 @@ export function AgentsPage() {
                       <td className="px-3 py-2 text-xs text-mempool-text-dim">{a.strategy}</td>
                       <td className="px-3 py-2 font-mono text-xs">
                         <button
-                          onClick={() => navigator.clipboard.writeText(a.address)}
+                          onClick={() => { window.location.hash = `#/address/${a.address}`; }}
                           className="text-mempool-blue hover:underline"
                           title={a.address}
                         >
-                          {a.address.slice(0, 12)}…{a.address.slice(-6)}
+                          <AddressLabel address={a.address} showEmoji truncate={{ left: 10, right: 6 }} />
                         </button>
                       </td>
                       <td className="px-3 py-2 text-right font-mono text-mempool-text">{omniFmt(a.balance_sat)}</td>

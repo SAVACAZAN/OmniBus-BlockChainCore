@@ -35,6 +35,20 @@ interface NetworkStats {
   blocksAnalyzed: number;
 }
 
+interface ChainMetrics {
+  height: number;
+  tipHash: string;
+  totalSupply: number;
+  addressesWithBalance: number;
+  validators: number;
+  validatorSetSize: number;
+  minValidatorBalance: number;
+  mempoolSize: number;
+  peerCount: number;
+  currentBlockReward: number;
+  satPerOmni: number;
+}
+
 function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[] } {
   if (blocks.length < 2) {
     return {
@@ -120,6 +134,7 @@ const AUTO_REFRESH_MS = 30_000;
 export function StatsPage() {
   const [series, setSeries] = useState<BlockStat[]>([]);
   const [netStats, setNetStats] = useState<NetworkStats | null>(null);
+  const [chainMetrics, setChainMetrics] = useState<ChainMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -129,11 +144,15 @@ export function StatsPage() {
     setLoading(true);
     setErr("");
     try {
-      const tipRaw = await rpc.getBlockCount();
+      const [tipRaw, metricsRaw] = await Promise.all([
+        rpc.getBlockCount(),
+        rpc.request_raw("getchainmetrics", []).catch(() => null) as Promise<ChainMetrics | null>,
+      ]);
       const tip: number =
         typeof tipRaw === "object" && tipRaw
           ? (tipRaw as any).blockCount ?? (tipRaw as any)
           : tipRaw;
+      if (metricsRaw) setChainMetrics(metricsRaw);
       if (!tip || tip < 1) { setLoading(false); return; }
 
       // Fetch last 100 blocks — all in parallel (20 concurrent RPCs max)
@@ -256,6 +275,46 @@ export function StatsPage() {
             }
             color="dim"
           />
+        </div>
+      )}
+
+      {/* Chain Overview */}
+      {chainMetrics && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+            Chain Overview
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard
+              label="Total Supply"
+              value={`${((chainMetrics.totalSupply ?? 0) / SAT).toLocaleString(undefined, { maximumFractionDigits: 2 })} OMNI`}
+              sub={`of 21,000,000 max`}
+              color="orange"
+            />
+            <StatCard
+              label="Active Addresses"
+              value={(chainMetrics.addressesWithBalance ?? 0).toLocaleString()}
+              color="blue"
+            />
+            <StatCard
+              label="Validators"
+              value={`${chainMetrics.validators ?? 0} / ${chainMetrics.validatorSetSize ?? 0}`}
+              sub={`min ${((chainMetrics.minValidatorBalance ?? 0) / SAT).toFixed(0)} OMNI`}
+              color="green"
+            />
+            <StatCard
+              label="Block Reward"
+              value={`${((chainMetrics.currentBlockReward ?? 0) / SAT).toFixed(2)} OMNI`}
+              sub={`mempool: ${chainMetrics.mempoolSize ?? 0} TX`}
+              color="dim"
+            />
+          </div>
+          {chainMetrics.peerCount > 0 && (
+            <div className="mt-2 text-[10px] text-mempool-text-dim font-mono">
+              {chainMetrics.peerCount} peer{chainMetrics.peerCount !== 1 ? "s" : ""} connected
+              {chainMetrics.tipHash ? ` · tip ${chainMetrics.tipHash.slice(0, 16)}…` : ""}
+            </div>
+          )}
         </div>
       )}
 

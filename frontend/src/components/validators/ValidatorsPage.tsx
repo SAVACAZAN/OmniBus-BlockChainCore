@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Shield,
   ShieldCheck,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -295,7 +296,11 @@ function ValidatorListTab() {
         />
         <StatCard
           label="Slot Leader"
-          value={truncAddr(data?.current_slot_leader ?? "")}
+          value={
+            data?.current_slot_leader
+              ? <AddressLabel address={data.current_slot_leader} showEmoji truncate={{ left: 8, right: 5 }} />
+              : "—"
+          }
           icon={Crown}
           accent="text-yellow-300"
           mono
@@ -354,9 +359,13 @@ function ValidatorListTab() {
                 >
                   <td className="px-3 py-2 text-gray-500">{i + 1}</td>
                   <td className="px-3 py-2 font-mono text-xs">
-                    <span className={v.slashed ? "line-through text-red-300/70" : ""}>
-                      {truncAddr(v.address)}
-                    </span>
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${v.address}`; }}
+                      className={v.slashed ? "line-through text-red-300/70 hover:text-mempool-blue" : "hover:text-mempool-blue transition-colors"}
+                      title={v.address}
+                    >
+                      <AddressLabel address={v.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                     <button
                       onClick={() => onCopy(v.address)}
                       className="ml-2 inline-flex text-gray-500 hover:text-gray-200 align-middle"
@@ -466,7 +475,11 @@ function ValidatorsSimplePanel() {
           <tbody className="divide-y divide-mempool-border/30">
             {data.validators.slice(0, 20).map((v) => (
               <tr key={v.address} className="hover:bg-mempool-bg-light/20">
-                <td className="px-3 py-1.5 font-mono text-mempool-blue text-[10px]">{v.address.slice(0, 20)}…</td>
+                <td className="px-3 py-1.5 font-mono text-mempool-blue text-[10px]">
+                  <button onClick={() => { window.location.hash = `#/address/${v.address}`; }} className="hover:underline">
+                    <AddressLabel address={v.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                  </button>
+                </td>
                 <td className="px-3 py-1.5 text-right font-mono text-mempool-text">{v.weight}</td>
                 <td className="px-3 py-1.5 text-right font-mono text-mempool-text-dim">{v.since_height}</td>
               </tr>
@@ -1010,7 +1023,9 @@ function SlashHistoryPanel() {
                     <td className="px-3 py-1.5 text-right font-mono text-gray-300">{h.block_height}</td>
                     <td className="px-3 py-1.5 text-red-300">{h.reason}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-red-400">{h.slashed_amount}</td>
-                    <td className="px-3 py-1.5 font-mono text-xs text-gray-400">{truncAddr(h.reporter)}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-400">
+                      <AddressLabel address={h.reporter} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1098,7 +1113,7 @@ function SlashingLogTab() {
                   {new Date(e.timestamp * 1000).toLocaleString()}
                 </td>
                 <td className="px-3 py-2 font-mono text-xs text-red-300/90 line-through">
-                  {truncAddr(e.address)}
+                  <AddressLabel address={e.address} showEmoji truncate={{ left: 8, right: 6 }} />
                 </td>
                 <td className="px-3 py-2">
                   <span className="inline-flex items-center gap-1 text-red-300">
@@ -1196,7 +1211,11 @@ function ConsensusTab() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Leader</span>
-                <span className="font-mono text-yellow-300">{leader.leader ? truncAddr(leader.leader) : "none"}</span>
+                <span className="font-mono text-yellow-300">
+                  {leader.leader
+                    ? <AddressLabel address={leader.leader} showEmoji truncate={{ left: 8, right: 6 }} />
+                    : "none"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Weight</span>
@@ -1292,7 +1311,9 @@ function ConsensusTab() {
                     }`}
                   >
                     <td className="px-3 py-1.5 text-right font-mono text-gray-300">{e.slot_id}</td>
-                    <td className="px-3 py-1.5 font-mono text-xs text-gray-200">{truncAddr(e.leader)}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-200">
+                      <AddressLabel address={e.leader} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </td>
                     <td className="px-3 py-1.5 text-right font-mono text-gray-400">{e.expected_arrival_ms}</td>
                     <td className={`px-3 py-1.5 font-semibold ${SLOT_STATE_COLOR[e.state] ?? "text-gray-400"}`}>
                       {e.state}
@@ -1327,7 +1348,7 @@ function StatCard({
   mono,
 }: {
   label: string;
-  value: number | string;
+  value: number | string | React.ReactNode;
   icon: React.ComponentType<{ className?: string }>;
   accent?: string;
   mono?: boolean;

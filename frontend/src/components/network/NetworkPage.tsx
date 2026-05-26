@@ -4,6 +4,7 @@ import { MinerTable } from "./MinerTable";
 import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -349,7 +350,9 @@ function NetworkRpcPanels() {
             {miners.map((m) => (
               <div key={m.address} className="px-4 py-2 flex items-center gap-3 text-xs">
                 <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                <span className="font-mono text-mempool-text">{m.address}</span>
+                <button onClick={() => { window.location.hash = `#/address/${m.address}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline transition-colors">
+                  <AddressLabel address={m.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                </button>
                 <span className="text-mempool-text-dim">{m.node_id}</span>
                 <span className="ml-auto text-green-400 text-[9px] uppercase">{m.status}</span>
               </div>

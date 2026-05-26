@@ -35,6 +35,7 @@ import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { hmac } from "@noble/hashes/hmac";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
@@ -233,7 +234,11 @@ function ProposalModal({
 
         {/* Info grid */}
         <div className="bg-mempool-bg border border-mempool-border rounded p-3 space-y-1.5">
-          <Row label="Proposer"        value={<span className="font-mono text-mempool-blue">{shortAddr(proposal.proposer)}</span>} />
+          <Row label="Proposer"        value={
+            <button onClick={() => { window.location.hash = `#/address/${proposal.proposer}`; }} className="font-mono text-mempool-blue hover:underline">
+              <AddressLabel address={proposal.proposer} showEmoji truncate={{ left: 10, right: 8 }} />
+            </button>
+          } />
           <Row label="Created at block" value={proposal.create_block !== undefined ? intFmt.format(proposal.create_block) : "—"} />
           <Row label="Voting ends"      value={<>block {intFmt.format(proposal.voting_end_block)} <span className="text-mempool-text-dim">({blocksLeft > 0 ? `~${blocksLeft} blk left` : "ended"})</span></>} />
           <Row label="Quorum"           value={`${intFmt.format(proposal.quorum)} votes required`} />
@@ -338,7 +343,9 @@ function ProposalRow({
         <td className="py-2.5 px-2"><StatusBadge status={proposal.status} /></td>
         {/* Proposer */}
         <td className="py-2.5 px-2 font-mono text-[11px]">
-          <span className="text-mempool-blue" title={proposal.proposer}>{shortAddr(proposal.proposer)}</span>
+          <button onClick={() => { window.location.hash = `#/address/${proposal.proposer}`; }} className="text-mempool-blue hover:underline font-mono text-[11px]">
+            <AddressLabel address={proposal.proposer} showEmoji truncate={{ left: 8, right: 6 }} />
+          </button>
         </td>
         {/* Votes */}
         <td className="py-2.5 px-2 min-w-[120px]">
