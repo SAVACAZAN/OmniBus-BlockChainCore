@@ -377,10 +377,10 @@ function SpvPanel() {
     setPErr(null);
     setProof(null);
     try {
-      const r = (await rpc.request_raw("getmerkleproof", [
+      const r = (await rpc.getMerkleProofByIndex(
         parseInt(pHeight, 10),
         parseInt(pTxIndex, 10),
-      ])) as MerkleProofResp;
+      )) as MerkleProofResp;
       setProof(r);
     } catch (e: any) {
       setPErr(e?.message ?? String(e));
@@ -584,11 +584,8 @@ function BlockHashPanel() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    rpc.request_raw("getbestblockhash", [])
-      .then((r) => {
-        if (typeof r === "string") setBestHash(r);
-        else if (r && typeof r === "object" && "result" in r) setBestHash(String((r as { result: unknown }).result));
-      })
+    rpc.getBestBlockHash()
+      .then((r) => { if (r) setBestHash(r); })
       .catch(() => {});
   }, []);
 
@@ -597,9 +594,8 @@ function BlockHashPanel() {
     if (isNaN(h) || h < 0) { setLookupErr("Enter a valid block height"); return; }
     setLoading(true); setLookupErr(""); setLookupHash(null);
     try {
-      const r = await rpc.request_raw("getblockhash", [h]);
-      if (typeof r === "string") setLookupHash(r);
-      else if (r && typeof r === "object" && "result" in r) setLookupHash(String((r as { result: unknown }).result));
+      const r = await rpc.getBlockHash(h);
+      if (r) setLookupHash(r);
       else setLookupErr("Block not found");
     } catch (e) { setLookupErr(String(e)); }
     finally { setLoading(false); }

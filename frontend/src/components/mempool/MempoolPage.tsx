@@ -84,7 +84,7 @@ export function MempoolPage() {
         rpc.getMempoolTransactions(),
         rpc.getMempoolStats(),
         rpc.estimateFee(),
-        rpc.request_raw("getpendingtxs", [200]).catch(() => null) as Promise<{ transactions?: MempoolTx[] } | null>,
+        rpc.getPendingTxs(200),
       ]);
 
       if (pendingData.status === "fulfilled" && pendingData.value?.transactions?.length) {

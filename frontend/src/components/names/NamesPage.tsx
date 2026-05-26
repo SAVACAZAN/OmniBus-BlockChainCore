@@ -243,7 +243,7 @@ export function NamesPage() {
     let cancelled = false;
     const fetchHeight = async () => {
       try {
-        const r: any = await rpc.request_raw("getblockchaininfo", []);
+        const r = await rpc.getBlockchainInfo() as { height?: number; blocks?: number; chain_height?: number } | null;
         const h = r?.height ?? r?.blocks ?? r?.chain_height;
         if (!cancelled && typeof h === "number") setCurrentBlock(h);
       } catch { /* keep stale */ }

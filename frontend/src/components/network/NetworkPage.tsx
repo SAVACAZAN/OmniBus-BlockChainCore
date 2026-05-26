@@ -170,30 +170,27 @@ function NetworkRpcPanels() {
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      const [s, p, m, ns, mi, perf, mpi, cc, diff] = await Promise.allSettled([
-        rpc.request_raw("getsyncstatus", []) as Promise<SyncStatus>,
-        rpc.request_raw("getpeerinfo", []) as Promise<{ result: PeerInfo[] } | PeerInfo[]>,
-        rpc.request_raw("omnibus_getminers", []) as Promise<MinerEntry[]>,
-        rpc.request_raw("getstatus", []) as Promise<NodeStatus>,
-        rpc.request_raw("getmininginfo", []) as Promise<MiningInfo>,
-        rpc.request_raw("getperformance", []) as Promise<PerformanceInfo>,
-        rpc.request_raw("getmempoolinfo", []) as Promise<MempoolInfo>,
-        rpc.request_raw("getconnectioncount", []) as Promise<number>,
-        rpc.request_raw("getdifficulty", []) as Promise<number>,
+      const [s, p, m, ns, mi, perf, mpi, cc, diff] = await Promise.all([
+        rpc.getSyncStatusFull(),
+        rpc.getPeerInfo(),
+        rpc.getOnlineMiners(),
+        rpc.getNodeStatus(),
+        rpc.getMiningInfoFull(),
+        rpc.getPerformanceInfo(),
+        rpc.getMempoolInfo(),
+        rpc.getConnectionCount(),
+        rpc.getDifficulty(),
       ]);
       if (cancelled) return;
-      if (s.status === "fulfilled") setSync(s.value);
-      if (p.status === "fulfilled") {
-        const v = p.value;
-        setPeers(Array.isArray(v) ? v : ((v as { result: PeerInfo[] }).result ?? []));
-      }
-      if (m.status === "fulfilled") setMiners(Array.isArray(m.value) ? m.value : []);
-      if (ns.status === "fulfilled") setNodeStatus(ns.value);
-      if (mi.status === "fulfilled") setMiningInfo(mi.value);
-      if (perf.status === "fulfilled") setPerfInfo(perf.value);
-      if (mpi.status === "fulfilled") setMempoolInfo(mpi.value);
-      if (cc.status === "fulfilled") setConnCount(typeof cc.value === "number" ? cc.value : null);
-      if (diff.status === "fulfilled") setDifficulty(typeof diff.value === "number" ? diff.value : null);
+      if (s) setSync(s);
+      setPeers(p);
+      setMiners(m);
+      if (ns) setNodeStatus(ns);
+      if (mi) setMiningInfo(mi);
+      if (perf) setPerfInfo(perf);
+      if (mpi) setMempoolInfo(mpi);
+      if (cc !== null) setConnCount(cc);
+      if (diff !== null) setDifficulty(diff);
     };
     void refresh();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });

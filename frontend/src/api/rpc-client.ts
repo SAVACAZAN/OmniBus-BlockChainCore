@@ -1157,6 +1157,106 @@ export class OmniBusRpcClient {
   }): Promise<{ txid: string; sent: boolean }> {
     return this.request("sendmultisig", [params]);
   }
+
+  // ── Network / node info ───────────────────────────────────────────────────
+
+  async getSyncStatusFull(): Promise<{
+    status: string; localHeight: number; peerHeight: number;
+    behind: number; progress: number; synced: boolean; stalled: boolean; ibd: boolean;
+  } | null> {
+    try { return await this.request("getsyncstatus", []); } catch { return null; }
+  }
+
+  async getPeerInfo(): Promise<Array<{
+    id: string; addr: string; host: string; port: number;
+    height: number; version: string; alive: boolean; last_seen: number;
+  }>> {
+    try {
+      const v = await this.request("getpeerinfo", []);
+      return (Array.isArray(v) ? v : ((v as { result?: unknown[] })?.result ?? [])) as Array<{
+        id: string; addr: string; host: string; port: number;
+        height: number; version: string; alive: boolean; last_seen: number;
+      }>;
+    } catch { return []; }
+  }
+
+  async getOnlineMiners(): Promise<Array<{ address: string; node_id: string; status: string }>> {
+    try {
+      const v = await this.request("omnibus_getminers", []);
+      return Array.isArray(v) ? v : [];
+    } catch { return []; }
+  }
+
+  async getNodeStatus(): Promise<{
+    status: string; blockCount: number; mempoolSize: number; address: string; balance: number;
+  } | null> {
+    try { return await this.request("getstatus", []); } catch { return null; }
+  }
+
+  async getMiningInfoFull(): Promise<{
+    blocks: number; difficulty: number; networkhashps: number; hashrate: number;
+    pooledtx: number; chain: string; currentblockreward: number;
+  } | null> {
+    try { return await this.request("getmininginfo", []); } catch { return null; }
+  }
+
+  async getPerformanceInfo(): Promise<{
+    uptime_seconds: number; blocks_mined: number; blocks_per_minute: number;
+    txs_processed: number; tps_current: number; mempool_throughput: number;
+    avg_block_time_ms: number; peak_tps: number; rpc_requests_total: number;
+    p2p_messages_total: number; hashrate: number;
+  } | null> {
+    try { return await this.request("getperformance", []); } catch { return null; }
+  }
+
+  async getMempoolInfo(): Promise<{ size: number; bytes: number } | null> {
+    try { return await this.request("getmempoolinfo", []); } catch { return null; }
+  }
+
+  async getConnectionCount(): Promise<number | null> {
+    try {
+      const v = await this.request("getconnectioncount", []);
+      return typeof v === "number" ? v : null;
+    } catch { return null; }
+  }
+
+  async getDifficulty(): Promise<number | null> {
+    try {
+      const v = await this.request("getdifficulty", []);
+      return typeof v === "number" ? v : null;
+    } catch { return null; }
+  }
+
+  async getBestBlockHash(): Promise<string | null> {
+    try { return await this.request("getbestblockhash", []); } catch { return null; }
+  }
+
+  async getBlockHash(height: number): Promise<string | null> {
+    try { return await this.request("getblockhash", [height]); } catch { return null; }
+  }
+
+  async getMerkleProofForTx(txid: string, blockHash?: string): Promise<unknown> {
+    return this.request("getmerkleproof", [blockHash ? { txid, blockHash } : txid]);
+  }
+
+  async getMerkleProofByIndex(blockHeight: number, txIndex: number): Promise<unknown> {
+    return this.request("getmerkleproof", [blockHeight, txIndex]);
+  }
+
+  async getPendingTxs(limit = 200): Promise<{ transactions?: Array<{
+    txid: string; from?: string; to?: string; amount: number; fee: number;
+    timestamp: number; scheme?: string; op_return?: string;
+  }> } | null> {
+    try { return await this.request("getpendingtxs", [limit]); } catch { return null; }
+  }
+
+  async getSchemeStats(limit = 100): Promise<unknown> {
+    try { return await this.request("getschemestats", [limit]); } catch { return null; }
+  }
+
+  async getBlockchainInfo(): Promise<unknown> {
+    try { return await this.request("getblockchaininfo", []); } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";
