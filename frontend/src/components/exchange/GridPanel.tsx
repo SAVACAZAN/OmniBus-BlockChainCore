@@ -173,6 +173,101 @@ function CreateGridModal({
   );
 }
 
+function GridLadderChart({
+  status,
+  quote,
+  base,
+}: {
+  status: GridStatus;
+  quote: string;
+  base: string;
+}) {
+  // Merge buy and sell levels into one sorted list, highest price first
+  type LadderRow = { price: number; amount: number; side: "buy" | "sell" };
+  const rows: LadderRow[] = [
+    ...status.sell_levels.map((l) => ({ price: l.price, amount: l.amount, side: "sell" as const })),
+    ...status.buy_levels.map((l) => ({ price: l.price, amount: l.amount, side: "buy" as const })),
+  ].sort((a, b) => b.price - a.price);
+
+  if (rows.length === 0) return null;
+
+  const maxAmount = Math.max(...rows.map((r) => r.amount), 1);
+  const sellTotal = status.sell_levels.reduce((s, l) => s + l.amount, 0);
+  const buyTotal  = status.buy_levels.reduce((s, l) => s + l.amount, 0);
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg overflow-hidden">
+      {/* Header legend */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-mempool-bg-elev border-b border-mempool-border">
+        <span className="text-[9px] uppercase tracking-wider text-green-400 font-semibold">
+          ↑ Buy {status.buy_levels.length} levels · {fmtBase(buyTotal, base)}
+        </span>
+        <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">ladder</span>
+        <span className="text-[9px] uppercase tracking-wider text-orange-400 font-semibold">
+          Sell {status.sell_levels.length} levels · {fmtBase(sellTotal, base)} ↓
+        </span>
+      </div>
+
+      {/* Price ladder rows */}
+      <div className="max-h-64 overflow-y-auto">
+        {rows.map((r, i) => {
+          const pct = (r.amount / maxAmount) * 100;
+          const isSell = r.side === "sell";
+          return (
+            <div
+              key={i}
+              className="relative flex items-center px-3 h-[22px] border-b border-mempool-border/30 last:border-b-0 hover:bg-mempool-bg-elev/40 transition-colors"
+            >
+              {/* Amount bar — fills from left for buy, from right for sell */}
+              <div
+                className={`absolute top-0 bottom-0 ${isSell ? "right-0" : "left-0"} opacity-20`}
+                style={{
+                  width: `${pct / 2}%`,
+                  background: isSell ? "#f97316" : "#22c55e",
+                }}
+              />
+
+              {/* Price */}
+              <span
+                className={`relative z-10 text-[10px] font-mono font-semibold flex-1 ${
+                  isSell ? "text-orange-400" : "text-green-400"
+                }`}
+              >
+                {fmtPrice(r.price, quote)}
+              </span>
+
+              {/* Side badge */}
+              <span
+                className={`relative z-10 text-[8px] uppercase tracking-wider px-1.5 rounded mr-2 flex-shrink-0 ${
+                  isSell
+                    ? "bg-orange-500/20 text-orange-300"
+                    : "bg-green-500/20 text-green-300"
+                }`}
+              >
+                {r.side}
+              </span>
+
+              {/* Amount */}
+              <span className="relative z-10 text-[10px] font-mono text-mempool-text-dim w-28 text-right flex-shrink-0">
+                {fmtBase(r.amount, base)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Midpoint separator indicator */}
+      <div className="flex items-center gap-2 px-3 py-1 bg-mempool-bg-elev border-t border-mempool-border">
+        <div className="flex-1 h-px bg-mempool-border/60" />
+        <span className="text-[9px] text-mempool-text-dim font-mono whitespace-nowrap">
+          mid: {fmtPrice(Math.round((status.price_low + status.price_high) / 2), quote)}
+        </span>
+        <div className="flex-1 h-px bg-mempool-border/60" />
+      </div>
+    </div>
+  );
+}
+
 function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: Pair[]; onClose: () => void }) {
   const [status, setStatus] = useState<GridStatus | null>(null);
 
@@ -195,32 +290,26 @@ function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: 
           <p className="text-mempool-text-dim text-sm text-center py-8">Loading…</p>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2 text-[10px] text-mempool-text-dim">
-              <span>Range: {fmtPrice(status.price_low, quote)} – {fmtPrice(status.price_high, quote)}</span>
-              <span className="text-center">Fills: {status.filled_count}</span>
-              <span className="text-right">Profit: {(status.profit_quote / MICRO).toFixed(4)} {quote}</span>
+            {/* Summary stats */}
+            <div className="grid grid-cols-3 gap-2 text-[10px] bg-mempool-bg rounded-lg border border-mempool-border p-2">
+              <div>
+                <div className="text-mempool-text-dim">Range</div>
+                <div className="font-mono text-mempool-text">{fmtPrice(status.price_low, quote)} – {fmtPrice(status.price_high, quote)}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-mempool-text-dim">Fills</div>
+                <div className="font-mono text-mempool-blue">{status.filled_count}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-mempool-text-dim">Profit</div>
+                <div className={`font-mono ${status.profit_quote >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {status.profit_quote >= 0 ? "+" : ""}{(status.profit_quote / MICRO).toFixed(4)} {quote}
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-green-400 mb-1">Buy ({status.buy_levels.length})</p>
-                {status.buy_levels.map((l) => (
-                  <div key={l.level} className="flex justify-between text-xs font-mono py-0.5">
-                    <span className="text-green-400">{fmtPrice(l.price, quote)}</span>
-                    <span className="text-mempool-text-dim">{fmtBase(l.amount, base)}</span>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-orange-400 mb-1">Sell ({status.sell_levels.length})</p>
-                {status.sell_levels.map((l) => (
-                  <div key={l.level} className="flex justify-between text-xs font-mono py-0.5">
-                    <span className="text-orange-400">{fmtPrice(l.price, quote)}</span>
-                    <span className="text-mempool-text-dim">{fmtBase(l.amount, base)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Visual ladder chart */}
+            <GridLadderChart status={status} quote={quote} base={base} />
           </div>
         )}
       </div>
