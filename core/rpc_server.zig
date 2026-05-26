@@ -5773,9 +5773,13 @@ fn handleSetCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
         return errorJson(-32030, msg, id, alloc);
     };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
-        .{ id, name, tld, cat.toString() });
+    {
+        const scat_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(scat_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
+            .{ id, scat_safe, tld, cat.toString() });
+    }
 }
 
 /// setpreferredslot — owner sets which scheme they want funds delivered to by default.
@@ -5802,9 +5806,13 @@ fn handleSetPreferredSlot(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
         return errorJson(-32030, msg, id, alloc);
     };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
-        .{ id, name, tld, slot_idx });
+    {
+        const sps_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(sps_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
+            .{ id, sps_safe, tld, slot_idx });
+    }
 }
 
 /// getnamesbycategory — list all names with a given category badge.
@@ -5838,22 +5846,21 @@ fn handleGetNamesByCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     var out = std.ArrayList(u8){};
     defer out.deinit(alloc);
-    var hdr: [128]u8 = undefined;
-    const hdr_str = try std.fmt.bufPrint(&hdr,
+    const gncw = out.writer(alloc);
+    try std.fmt.format(gncw,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"category\":\"{s}\",\"total\":{d},\"entries\":[",
         .{ id, cat.toString(), found });
-    try out.appendSlice(alloc, hdr_str);
     var i: usize = 0;
     while (i < found) : (i += 1) {
         const e = slice[i];
-        if (i > 0) try out.appendSlice(alloc, ",");
-        var row: [256]u8 = undefined;
-        const row_str = try std.fmt.bufPrint(&row,
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
-            .{ e.getName(), e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
-        try out.appendSlice(alloc, row_str);
+        if (i > 0) try gncw.writeByte(',');
+        try gncw.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(gncw, e.getName());
+        try std.fmt.format(gncw,
+            "\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
+            .{ e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
     }
-    try out.appendSlice(alloc, "]}}");
+    try gncw.writeAll("]}}");
     return alloc.dupe(u8, out.items);
 }
 
