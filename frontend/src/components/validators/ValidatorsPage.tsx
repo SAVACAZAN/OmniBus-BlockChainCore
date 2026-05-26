@@ -231,6 +231,10 @@ function ValidatorListTab() {
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [addrSearch, setAddrSearch] = useState("");
+  const filteredValidators = useMemo(() => {
+    const q = addrSearch.trim().toLowerCase();
+    return (data?.validators ?? []).filter((v) => !q || v.address.toLowerCase().includes(q));
+  }, [data?.validators, addrSearch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -382,9 +386,7 @@ function ValidatorListTab() {
             </tr>
           </thead>
           <tbody>
-            {(data?.validators ?? [])
-              .filter((v) => !addrSearch.trim() || v.address.toLowerCase().includes(addrSearch.trim().toLowerCase()))
-              .map((v, i) => {
+            {filteredValidators.map((v, i) => {
               const isLeader =
                 data?.current_slot_leader && v.address === data.current_slot_leader;
               return (
@@ -465,7 +467,7 @@ function ValidatorListTab() {
               </tr>
             )}
             {!loading && (data?.validators?.length ?? 0) > 0 && addrSearch.trim() &&
-              (data?.validators ?? []).filter((v) => v.address.toLowerCase().includes(addrSearch.trim().toLowerCase())).length === 0 && (
+              filteredValidators.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
                   No validators match "{addrSearch.trim()}"
