@@ -1575,8 +1575,11 @@ function NsHealthDashboard() {
       }
     };
     load();
-    const id = setInterval(load, 30_000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNameRegisteredEvent | WsNameRenewedEvent>(
+      "name_registered" as any, () => { void load(); }
+    );
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   useEffect(() => {
