@@ -60,6 +60,9 @@ export function ExchangePage() {
     return found?.info ?? null;
   }, [allPairs, pairId]);
 
+  const makerLabels = useMemo(() => pairInfo?.maker_chains.map((c) => c.chain) ?? [], [pairInfo]);
+  const takerLabels = useMemo(() => pairInfo?.taker_chains.map((c) => c.chain) ?? [], [pairInfo]);
+
   // Poll exchange internal balances for the connected wallet.
   // Refresh on new_block events so the "in orders" vs "available" numbers
   // update immediately after fills, not after 10 s.
@@ -352,30 +355,20 @@ export function ExchangePage() {
               {bids.length}b / {asks.length}a
             </span>
           </div>
-          {(() => {
-            const makerLabels = pairInfo
-              ? pairInfo.maker_chains.map(c => c.chain)
-              : [];
-            const takerLabels = pairInfo
-              ? pairInfo.taker_chains.map(c => c.chain)
-              : [];
-            return (
-              <div className="flex flex-wrap gap-2 mb-3">
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Maker (sells {activePair?.base}):</span>
-                  {makerLabels.map((c) => (
-                    <span key={c} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-mono">{c}</span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Taker (pays {activePair?.quote}):</span>
-                  {takerLabels.map((c) => (
-                    <span key={c} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded text-[9px] font-mono">{c}</span>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Maker (sells {activePair?.base}):</span>
+              {makerLabels.map((c) => (
+                <span key={c} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-mono">{c}</span>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Taker (pays {activePair?.quote}):</span>
+              {takerLabels.map((c) => (
+                <span key={c} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded text-[9px] font-mono">{c}</span>
+              ))}
+            </div>
+          </div>
 
           {loading && bids.length === 0 && asks.length === 0 ? (
             <div className="p-8 text-center text-mempool-text-dim text-sm">Loading…</div>

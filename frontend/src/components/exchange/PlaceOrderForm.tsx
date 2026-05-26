@@ -294,12 +294,8 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     }
   };
 
-  const notional = (() => {
-    const p = Number(priceStr);
-    const a = Number(amountStr);
-    if (!Number.isFinite(p) || !Number.isFinite(a) || p <= 0 || a <= 0) return 0;
-    return p * a;
-  })();
+  const _p = Number(priceStr), _a = Number(amountStr);
+  const notional = (Number.isFinite(_p) && Number.isFinite(_a) && _p > 0 && _a > 0) ? _p * _a : 0;
 
   const selectedChain = takerChains.find(c => c.key === selectedChainKey);
 

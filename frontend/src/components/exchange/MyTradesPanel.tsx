@@ -120,6 +120,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
       : null;
     return { buys, sells, totalVolOmni, totalVolUsd, avgBuy, avgSell };
   }, [trades]);
+  const { buys, sells, totalVolOmni, totalVolUsd, avgBuy, avgSell } = tradeStats;
 
   if (!u) {
     return (
@@ -186,10 +187,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
         <div className="text-[10px] text-mempool-text-dim">No trades yet for this wallet.</div>
       )}
 
-      {trades.length > 0 && (() => {
-        const { buys, sells, totalVolOmni, totalVolUsd, avgBuy, avgSell } = tradeStats;
-
-        return (
+      {trades.length > 0 && (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-[10px] font-mono">
@@ -271,8 +269,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
               )}
             </div>
           </>
-        );
-      })()}
+      )}
     </div>
   );
 }

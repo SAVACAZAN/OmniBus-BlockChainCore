@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -91,6 +91,21 @@ export function StatsBar() {
     ? (state.networkInfo.blockRewardSAT / SAT_PER_OMNI).toFixed(8)
     : "0.00833333";
 
+  const minedProgressSub = useMemo(() => {
+    const omni = totalMined ? parseFloat(totalMined) : 0;
+    const pct = omni > 0 ? Math.min(100, (omni / 21_000_000) * 100) : 0;
+    return (
+      <div className="mt-1">
+        <div className="w-full h-1 bg-mempool-bg rounded-full overflow-hidden">
+          <div className="h-full bg-mempool-green rounded-full transition-all" style={{ width: `${pct}%` }} />
+        </div>
+        <p className="text-[9px] text-mempool-text-dim mt-0.5">
+          {pct < 0.001 ? "<0.001" : pct.toFixed(4)}% of 21M cap
+        </p>
+      </div>
+    );
+  }, [totalMined]);
+
   // Trim trailing zeros from "X.000000000" -> "X" or "X.123" (4 dp max).
   const formatOMNI = (raw: string | null) => {
     if (!raw) return "...";
@@ -135,23 +150,7 @@ export function StatsBar() {
         label="Total Mined"
         slotIndex={3}
         value={`${formatOMNI(totalMined)} OMNI`}
-        sub={(() => {
-          const omni = totalMined ? parseFloat(totalMined) : 0;
-          const pct = omni > 0 ? Math.min(100, (omni / 21_000_000) * 100) : 0;
-          return (
-            <div className="mt-1">
-              <div className="w-full h-1 bg-mempool-bg rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-mempool-green rounded-full transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="text-[9px] text-mempool-text-dim mt-0.5">
-                {pct < 0.001 ? "<0.001" : pct.toFixed(4)}% of 21M cap
-              </p>
-            </div>
-          );
-        })()}
+        sub={minedProgressSub}
         color="text-mempool-green"
       />
       <StatCard
