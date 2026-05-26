@@ -113,6 +113,8 @@ const TIER_INFO: Record<string, { label: string; color: string; threshold: strin
   t4_arbitrage: { label: "T4 Arbitrage", color: "bg-emerald-500/20 text-emerald-300", threshold: "≥10k OMNI" },
 };
 
+const TIER_KEYS = Object.keys(TIER_INFO);
+
 const VENUE_COLOR: Record<string, string> = {
   omnibus_native: "bg-amber-500/20 text-amber-300",
   lcx:            "bg-blue-500/20 text-blue-300",
@@ -515,7 +517,7 @@ export function AgentsPage() {
               label="Exec success / fail"
               value={`${totalExecSuccess.toLocaleString()} / ${totalExecFailed.toLocaleString()}`}
             />
-            {Object.keys(TIER_INFO).map((tier) => (
+            {TIER_KEYS.map((tier) => (
               <Metric
                 key={tier}
                 label={TIER_INFO[tier].label}
