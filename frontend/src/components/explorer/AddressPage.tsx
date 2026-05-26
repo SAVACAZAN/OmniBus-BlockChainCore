@@ -64,6 +64,16 @@ interface Props {
 interface DailyEntry { dayIndex: number; txCount: number; sent: number; received: number; miningReward: number; }
 interface NonceInfo { nonce: number; chainNonce: number; pendingCount: number; }
 
+function fmtAge(ts: number): string {
+  if (!ts) return "";
+  const diff = Math.floor(Date.now() / 1000 - (ts > 1e12 ? ts / 1000 : ts));
+  if (diff < 0) return "";
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
 function SchemeTag({ scheme }: { scheme: string }) {
   const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
   const isSoulbound = scheme.includes("soulbound");
@@ -310,6 +320,11 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     <span>{tx.confirmations} conf</span>
                     {tx.fee > 0 && <span>Fee: {fmtSat(tx.fee)}</span>}
                     {tx.scheme && <SchemeTag scheme={tx.scheme} />}
+                    {tx.timestamp && tx.timestamp > 0 && (
+                      <span className="text-mempool-text-dim" title={new Date(tx.timestamp > 1e12 ? tx.timestamp : tx.timestamp * 1000).toLocaleString()}>
+                        {fmtAge(tx.timestamp)}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

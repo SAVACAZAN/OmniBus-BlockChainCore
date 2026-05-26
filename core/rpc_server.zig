@@ -6376,8 +6376,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const kind = inferTxKind(tx);
         const sep: []const u8 = if (count == 0) "" else ",";
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"status\":\"pending\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.nonce });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"pending\"}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6397,8 +6397,8 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 const kind = inferTxKind(tx);
                 const sep: []const u8 = if (count == 0) "" else ",";
                 const e = try std.fmt.allocPrint(alloc,
-                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"status\":\"confirmed\"}}",
-                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.nonce });
+                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"confirmed\"}}",
+                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
                 const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                 alloc.free(entries); alloc.free(e); entries = m; count += 1;
                 break;
@@ -7159,7 +7159,9 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     while (n < mc) : ({ h += 1; n += 1; }) {
         const blk = ctx.bc.getBlock(h) orelse break;
         const sep: []const u8 = if (n == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat });
+        var blk_fees: u64 = 0;
+        for (blk.transactions.items) |tx| { if (tx.fee > 0) blk_fees += @as(u64, @intCast(tx.fee)); }
+        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat, blk_fees });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m;
     }
