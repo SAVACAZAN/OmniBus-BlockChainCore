@@ -69,10 +69,6 @@ function rowKey(base: string, bucket: string): string {
   return `${base} @ ${bucket}`;
 }
 
-// Bucket display label. USD*/EUR* are canonical (any stable).
-function bucketLabel(bucket: string): string {
-  return bucket;
-}
 
 const BUCKET_SYMBOL: Record<string, string> = {
   "USD*": "$",
@@ -353,7 +349,7 @@ export default function AllPricesGrid() {
                         : row.bucket === "EUR*" ? "text-blue-400/80"
                         : "text-mempool-text-dim"
                       }>
-                        {bucketLabel(row.bucket)}
+                        {row.bucket}
                       </span>
                     </td>
                     {EXCHANGES.map((ex) => (
