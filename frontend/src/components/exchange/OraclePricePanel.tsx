@@ -14,6 +14,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -641,8 +643,10 @@ export function OraclePricePanel() {
   useEffect(() => {
     load();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(load, 30000); // refresh every 30s (CoinGecko rate limit)
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    // oracle_price fires when node fetches from Chainlink/Pyth — supplement CoinGecko poll.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void load(); });
+    timerRef.current = setInterval(load, 30000); // CoinGecko rate limit fallback
+    return () => { if (timerRef.current) clearInterval(timerRef.current); unsub(); };
   }, [load]);
 
   // Compute arbitrage opportunities
