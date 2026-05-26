@@ -4411,8 +4411,10 @@ fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: address", id, alloc);
 
+    ctx.bc.mutex.lock();
     const chain_nonce = ctx.bc.getNextNonce(addr);
     const next_available = ctx.bc.getNextAvailableNonce(addr);
+    ctx.bc.mutex.unlock();
     const pending = next_available - chain_nonce;
 
     return std.fmt.allocPrint(alloc,
