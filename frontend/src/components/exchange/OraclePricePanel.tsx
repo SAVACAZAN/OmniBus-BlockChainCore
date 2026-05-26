@@ -16,8 +16,10 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent, WsOrderbookUpdateEvent } from "../../types";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
+const MICRO = MICRO_PER_USD;
 
 // omnibus-oracle is a separate process on port 28100.
 // On VPS, nginx proxies /oracle → http://127.0.0.1:28100
@@ -195,8 +197,8 @@ async function fetchOmniDexPrices(): Promise<OmniDexPrice[]> {
       // "exchange_getOrderbook" and "exchange_getTrades" (same handler on backend).
       // We call the canonical camelCase form; aliases are also registered in rpc_server.zig.
       const res = await rpc.request_raw("exchange_getOrderbook", [{ pairId: p.id, depth: 1 }]);
-      const bestBid = res?.bestBid ? res.bestBid / 1_000_000 : 0;
-      const bestAsk = res?.bestAsk ? res.bestAsk / 1_000_000 : 0;
+      const bestBid = res?.bestBid ? res.bestBid / MICRO : 0;
+      const bestAsk = res?.bestAsk ? res.bestAsk / MICRO : 0;
       if (bestBid > 0 || bestAsk > 0) {
         out.push({
           pair: p.label,
@@ -354,8 +356,8 @@ function BlockPricesPanel() {
             </thead>
             <tbody>
               {Object.entries(pairSummary).map(([key, v]) => {
-                const bid = v.lastBid / 1_000_000;
-                const ask = v.lastAsk / 1_000_000;
+                const bid = v.lastBid / MICRO;
+                const ask = v.lastAsk / MICRO;
                 return (
                   <tr key={key} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 text-mempool-text">{v.exchange}</td>
@@ -398,7 +400,7 @@ function BlockPricesPanel() {
               </div>
               <div className="flex flex-wrap gap-2 px-3 py-1.5">
                 {b.prices.filter(e => e.success).map((e, i) => {
-                  const bid = e.bidMicroUsd / 1_000_000;
+                  const bid = e.bidMicroUsd / MICRO;
                   return (
                     <div key={i} className="flex items-center gap-1 text-[9px] font-mono">
                       <span className="text-mempool-text-dim">{e.exchange}·{e.pair}</span>
@@ -909,8 +911,8 @@ export function OraclePricePanel() {
                     ...zigOracle.map((e) => [
                       e.exchange,
                       e.pair,
-                      (e.bid / 1_000_000).toFixed(6),
-                      (e.ask / 1_000_000).toFixed(6),
+                      (e.bid / MICRO).toFixed(6),
+                      (e.ask / MICRO).toFixed(6),
                       Math.floor((Date.now() - e.timestamp_ms) / 1000),
                     ].join(",")),
                   ].join("\n");
@@ -940,8 +942,8 @@ export function OraclePricePanel() {
             </thead>
             <tbody>
               {zigOracle.map((e, i) => {
-                const bidUsd = e.bid / 1_000_000;
-                const askUsd = e.ask / 1_000_000;
+                const bidUsd = e.bid / MICRO;
+                const askUsd = e.ask / MICRO;
                 const ageSec = Math.floor((Date.now() - e.timestamp_ms) / 1000);
                 return (
                   <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
