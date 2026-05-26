@@ -436,10 +436,37 @@ export function HtlcTradePanel() {
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-xs font-semibold text-mempool-text uppercase tracking-wider">My HTLCs</h4>
-          <button onClick={loadHtlcs} disabled={loadingHtlcs}
-            className="text-[10px] text-mempool-blue hover:underline disabled:opacity-50">
-            {loadingHtlcs ? "Loading…" : "Refresh"}
-          </button>
+          <div className="flex items-center gap-2">
+            {htlcs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["htlc_id","amount_omni","state","timelock_block","sender","receiver"].join(","),
+                    ...htlcs.map((h: any) => [
+                      `"${h.htlc_id ?? ""}"`,
+                      ((h.amount_sat ?? 0) / SAT).toFixed(8),
+                      h.state ?? "",
+                      h.timelock_block ?? "",
+                      `"${h.sender ?? ""}"`,
+                      `"${h.receiver ?? ""}"`,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-htlcs.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button onClick={loadHtlcs} disabled={loadingHtlcs}
+              className="text-[10px] text-mempool-blue hover:underline disabled:opacity-50">
+              {loadingHtlcs ? "Loading…" : "Refresh"}
+            </button>
+          </div>
         </div>
         {htlcs.length === 0 ? (
           <p className="text-[10px] text-mempool-text-dim">No HTLCs found for this address.</p>

@@ -434,14 +434,41 @@ function MarketTab() {
         <span className="text-xs text-mempool-text-dim">
           {swaps.length} open swap{swaps.length !== 1 ? "s" : ""}
         </span>
-        <button
-          onClick={load}
-          disabled={loading}
-          className="flex items-center gap-1 text-xs text-mempool-blue hover:opacity-80 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {swaps.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["swap_id","order_id","state","maker_chain","taker_chain","timeout_block"].join(","),
+                  ...swaps.map((s) => [
+                    `"${s.swap_id}"`,
+                    s.order_id,
+                    s.state,
+                    s.maker_chain,
+                    s.taker_chain,
+                    s.timeout_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-intent-swaps.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-1 text-xs text-mempool-blue hover:opacity-80 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
