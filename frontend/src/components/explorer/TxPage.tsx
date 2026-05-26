@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -52,17 +53,6 @@ function SchemeTag({ scheme }: { scheme: string }) {
   );
 }
 
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="flex-shrink-0 text-mempool-text-dim hover:text-mempool-blue text-xs transition-colors"
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-    >
-      {copied ? "✓" : "⧉"}
-    </button>
-  );
-}
 
 interface Props {
   hash: string;
@@ -139,7 +129,7 @@ export function TxPage({ hash, onNavigate }: Props) {
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">TX Hash</div>
             <div className="flex items-center gap-2 font-mono text-xs text-mempool-text break-all">
               <span>{tx.txid}</span>
-              <CopyBtn text={tx.txid} />
+              <CopyButton text={tx.txid} />
             </div>
           </div>
 

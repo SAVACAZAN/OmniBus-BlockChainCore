@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -60,23 +61,6 @@ function SchemeTag({ scheme }: { scheme: string }) {
   );
 }
 
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="flex-shrink-0 text-mempool-text-dim hover:text-mempool-blue text-xs transition-colors"
-      title="Copy"
-      onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? "✓" : "⧉"}
-    </button>
-  );
-}
-
 function Field({
   label,
   value,
@@ -106,7 +90,7 @@ function Field({
         ) : (
           <span className="truncate max-w-full break-all">{value}</span>
         )}
-        {copy && <CopyBtn text={value} />}
+        {copy && <CopyButton text={value} />}
         {badge && <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-medium ${badgeCls}`}>{badge.text}</span>}
       </div>
     </div>
@@ -230,7 +214,7 @@ export function BlockPage({ height, onNavigate }: Props) {
                   <AddressLabel address={block.miner} showRawAddress showEmoji
                     truncate={{ left: 12, right: 10 }} />
                 </button>
-                <CopyBtn text={block.miner} />
+                <CopyButton text={block.miner} />
               </div>
             </div>
           )}

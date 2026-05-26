@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
 import { useNameForAddress } from "../../api/use-names";
 import {
   ResponsiveContainer,
@@ -23,18 +24,6 @@ function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
   if (!s) return "—";
   if (s.length <= h + t + 3) return s;
   return s.slice(0, h) + "…" + s.slice(-t);
-}
-
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="flex-shrink-0 text-mempool-text-dim hover:text-mempool-blue transition-colors"
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-    >
-      {copied ? "✓" : "⧉"}
-    </button>
-  );
 }
 
 function StatCard({ label, value, sub, color }: {
@@ -242,7 +231,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
           )}
           <div className="flex items-start gap-2">
             <span className="font-mono text-sm text-mempool-text break-all">{addr}</span>
-            <CopyBtn text={addr} />
+            <CopyButton text={addr} />
           </div>
         </div>
 
