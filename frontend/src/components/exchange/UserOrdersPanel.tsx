@@ -176,6 +176,23 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
               </span>
             </div>
           ))}
+          {/* Summary row */}
+          {(() => {
+            const buys = orders.filter((o) => o.side.toLowerCase().includes("buy"));
+            const sells = orders.filter((o) => !o.side.toLowerCase().includes("buy"));
+            const lockedQuote = buys.reduce((s, o) => s + (o.price / MICRO_PER_USD) * (o.remaining / SAT_PER_OMNI), 0);
+            const lockedBase = sells.reduce((s, o) => s + o.remaining / SAT_PER_OMNI, 0);
+            return (
+              <div className="mt-1 pt-1 border-t border-mempool-border/40 flex flex-wrap gap-x-3 text-[9px] font-mono text-mempool-text-dim px-1">
+                {buys.length > 0 && (
+                  <span>Buys ({buys.length}): <span className="text-green-400">${lockedQuote.toFixed(2)} locked</span></span>
+                )}
+                {sells.length > 0 && (
+                  <span>Sells ({sells.length}): <span className="text-orange-400">{lockedBase.toFixed(4)} base locked</span></span>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
       {err && (
