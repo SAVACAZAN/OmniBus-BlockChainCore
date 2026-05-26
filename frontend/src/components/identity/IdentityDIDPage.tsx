@@ -782,15 +782,87 @@ function TabMiCA({ address }: { address: string }) {
   );
 }
 
+// ── Tab: Identity Lookup (getidentity) ────────────────────────────────────────
+
+function TabIdentityLookup() {
+  const [addr, setAddr] = useState("");
+  const [result, setResult] = useState<unknown>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const lookup = useCallback(async () => {
+    const a = addr.trim();
+    if (!a) { setErr("Enter an address"); return; }
+    setLoading(true); setErr(""); setResult(null);
+    try {
+      const r = await rpc.request_raw("getidentity", [{ address: a }]);
+      setResult(r);
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  }, [addr]);
+
+  const renderField = (key: string, val: unknown) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === "object") return null;
+    return (
+      <div key={key} className="flex justify-between gap-2 text-xs flex-wrap">
+        <span className="text-mempool-text-dim">{key}</span>
+        <span className="font-mono text-mempool-text break-all text-right max-w-[60%]">{String(val)}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-mempool-text-dim">
+        Full identity snapshot for any address — PQ attestations, EVM links, balance, roles, and name registry.
+        Uses <code className="font-mono text-purple-400">getidentity</code>.
+      </p>
+      <div className="flex gap-2">
+        <input
+          value={addr}
+          onChange={(e) => setAddr(e.target.value)}
+          placeholder="ob1q… / 0x… / obk1_…"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !addr}
+          className="px-4 py-2 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded-lg disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result !== null && (
+        <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-2">
+          <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider mb-2">Identity Result</h3>
+          {typeof result === "object" && result !== null
+            ? Object.entries(result as Record<string, unknown>).map(([k, v]) => renderField(k, v))
+            : <p className="font-mono text-xs text-mempool-text">{String(result)}</p>
+          }
+          <details className="mt-2">
+            <summary className="text-[10px] text-mempool-text-dim cursor-pointer">Raw JSON</summary>
+            <pre className="text-[9px] font-mono text-mempool-text-dim mt-1 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-type TabKey = "did" | "facets" | "disclosure" | "mica";
+type TabKey = "did" | "facets" | "disclosure" | "mica" | "lookup";
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: "did",        label: "DID & OBM" },
   { id: "facets",     label: "Facets Overview" },
   { id: "disclosure", label: "Selective Disclosure" },
   { id: "mica",       label: "MiCA Compliance" },
+  { id: "lookup",     label: "Identity Lookup" },
 ];
 
 export function IdentityDIDPage() {
@@ -861,6 +933,7 @@ export function IdentityDIDPage() {
         {activeTab === "facets"     && <TabFacets address={address} />}
         {activeTab === "disclosure" && <TabSelectiveDisclosure address={address} />}
         {activeTab === "mica"       && <TabMiCA address={address} />}
+        {activeTab === "lookup"     && <TabIdentityLookup />}
       </div>
     </div>
   );

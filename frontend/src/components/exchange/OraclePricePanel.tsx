@@ -579,7 +579,7 @@ function OraclePolicyPanel() {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
-  const [tab, setTab] = useState<"prices" | "policy" | "blocks" | "cross">("prices");
+  const [tab, setTab] = useState<"prices" | "policy" | "blocks" | "cross" | "dex">("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -671,6 +671,7 @@ export function OraclePricePanel() {
           { id: "blocks", label: "📦 Block Prices" },
           { id: "policy", label: "⚙️ Policy" },
           { id: "cross", label: "🔗 Cross-Chain Heights" },
+          { id: "dex", label: "🏛️ DEX Orderbook" },
         ] as const).map((t) => (
           <button
             key={t.id}
@@ -689,6 +690,7 @@ export function OraclePricePanel() {
       {tab === "policy" && <OraclePolicyPanel />}
       {tab === "blocks" && <BlockPricesPanel />}
       {tab === "cross" && <CrossChainHeightsPanel />}
+      {tab === "dex" && <DexOrderbookPanel />}
 
       {tab === "prices" && (<>
 
@@ -1019,6 +1021,223 @@ function CrossChainHeightsPanel() {
         <p>BTC height: confirms Bitcoin HTLC finality (≥6 confirmations) before OMNI release.</p>
         <p>ETH height: confirms EVM HTLC finality (≥12 confirmations) for Sepolia/Base settlements.</p>
         <p>The oracle records each height as an on-chain oracle price entry via <code className="font-mono text-purple-400">oracle_recordHeader</code>.</p>
+      </div>
+    </div>
+  );
+}
+
+// ── DEX Orderbook panel (omnibus_getorderbook + omnibus_gettotalmined + omnibus_getblockprices) ─
+
+interface DexOrderbookResp {
+  bids: [number, number][];
+  asks: [number, number][];
+  note?: string;
+}
+
+interface TotalMinedResp {
+  totalMinedSAT: number;
+  totalMinedOMNI: string;
+  blockHeight: number;
+}
+
+interface BlockPricesEntry {
+  exchange: string;
+  pair: string;
+  bidMicroUsd: number;
+  askMicroUsd: number;
+  success: boolean;
+}
+
+interface BlockPricesResult {
+  height: number;
+  prices: BlockPricesEntry[];
+  prices_root: string;
+  valid: boolean;
+}
+
+function DexOrderbookPanel() {
+  const [orderbook, setOrderbook] = useState<DexOrderbookResp | null>(null);
+  const [totalMined, setTotalMined] = useState<TotalMinedResp | null>(null);
+  const [pair, setPair] = useState("OMNI/USDC");
+  const [blockHeight, setBlockHeight] = useState("");
+  const [blockPrices, setBlockPrices] = useState<BlockPricesResult | null>(null);
+  const [blockErr, setBlockErr] = useState("");
+  const [loadingBlock, setLoadingBlock] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const [ob, tm] = await Promise.allSettled([
+        rpc.request_raw("omnibus_getorderbook", [{ pair }]) as Promise<DexOrderbookResp>,
+        rpc.request_raw("omnibus_gettotalmined", []) as Promise<TotalMinedResp>,
+      ]);
+      if (cancelled) return;
+      if (ob.status === "fulfilled") setOrderbook(ob.value);
+      if (tm.status === "fulfilled") setTotalMined(tm.value);
+    };
+    refresh();
+    const id = setInterval(refresh, 15_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [pair]);
+
+  const lookupBlockPrices = async () => {
+    const h = parseInt(blockHeight);
+    if (isNaN(h) || h < 0) { setBlockErr("Enter a valid block height"); return; }
+    setLoadingBlock(true);
+    setBlockErr("");
+    setBlockPrices(null);
+    try {
+      const r = await rpc.request_raw("omnibus_getblockprices", [h]) as BlockPricesResult;
+      if (r && typeof r === "object" && "prices" in r) setBlockPrices(r);
+      else setBlockErr("Block not found or no prices");
+    } catch (e) {
+      setBlockErr(String(e));
+    } finally {
+      setLoadingBlock(false);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Total mined */}
+      {totalMined && (
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4">
+          <h3 className="text-xs font-semibold text-purple-300 mb-2 uppercase tracking-wider">
+            Total Mined (omnibus_gettotalmined)
+          </h3>
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            {[
+              ["Block Height", String(totalMined.blockHeight)],
+              ["Total OMNI", totalMined.totalMinedOMNI],
+              ["Total SAT", totalMined.totalMinedSAT.toLocaleString()],
+            ].map(([k, v]) => (
+              <div key={k} className="bg-mempool-bg/50 rounded p-2">
+                <div className="text-[9px] uppercase text-mempool-text-dim">{k}</div>
+                <div className="font-mono text-purple-300 mt-0.5">{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Orderbook */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+            DEX Orderbook (omnibus_getorderbook)
+          </h3>
+          <select
+            value={pair}
+            onChange={(e) => setPair(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text"
+          >
+            {["OMNI/USDC", "LCX/USDC", "ETH/USDC", "OMNI/LCX", "OMNI/ETH"].map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        {orderbook?.note && (
+          <p className="text-[11px] text-mempool-text-dim italic">{orderbook.note}</p>
+        )}
+        <div className="grid grid-cols-2 gap-4 text-xs">
+          <div>
+            <div className="text-[9px] text-green-400 uppercase font-semibold mb-1">Bids</div>
+            {orderbook?.bids?.length ? (
+              <table className="w-full">
+                <thead className="text-[9px] text-mempool-text-dim">
+                  <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
+                </thead>
+                <tbody>
+                  {orderbook.bids.slice(0, 8).map(([p, q], i) => (
+                    <tr key={i} className="font-mono text-green-400">
+                      <td>{p}</td><td className="text-right">{q}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-mempool-text-dim text-[11px]">No bids (P2P matching active)</p>
+            )}
+          </div>
+          <div>
+            <div className="text-[9px] text-red-400 uppercase font-semibold mb-1">Asks</div>
+            {orderbook?.asks?.length ? (
+              <table className="w-full">
+                <thead className="text-[9px] text-mempool-text-dim">
+                  <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
+                </thead>
+                <tbody>
+                  {orderbook.asks.slice(0, 8).map(([p, q], i) => (
+                    <tr key={i} className="font-mono text-red-400">
+                      <td>{p}</td><td className="text-right">{q}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-mempool-text-dim text-[11px]">No asks (P2P matching active)</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Block prices lookup */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Block Oracle Prices (omnibus_getblockprices)
+        </h3>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            value={blockHeight}
+            onChange={(e) => setBlockHeight(e.target.value)}
+            placeholder="Block height"
+            className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+          />
+          <button
+            onClick={lookupBlockPrices}
+            disabled={loadingBlock || !blockHeight}
+            className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+          >
+            {loadingBlock ? "…" : "Lookup"}
+          </button>
+        </div>
+        {blockErr && <p className="text-xs text-red-400">{blockErr}</p>}
+        {blockPrices && (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[11px] text-mempool-text-dim">
+              <span>Block #{blockPrices.height}</span>
+              <span className="font-mono text-[9px]">{blockPrices.prices_root?.slice(0, 16)}…</span>
+              <span className={blockPrices.valid ? "text-green-400" : "text-red-400"}>
+                {blockPrices.valid ? "✓ valid" : "✗ invalid"}
+              </span>
+            </div>
+            {blockPrices.prices.length === 0 ? (
+              <p className="text-xs text-mempool-text-dim">No oracle prices in this block.</p>
+            ) : (
+              <table className="w-full text-xs">
+                <thead className="text-[9px] text-mempool-text-dim uppercase">
+                  <tr>
+                    <th className="text-left py-1">Exchange</th>
+                    <th className="text-left">Pair</th>
+                    <th className="text-right">Bid (µUSD)</th>
+                    <th className="text-right">Ask (µUSD)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-mempool-border/20">
+                  {blockPrices.prices.map((e, i) => (
+                    <tr key={i} className={e.success ? "" : "opacity-40"}>
+                      <td className="py-0.5 font-mono text-mempool-text-dim">{e.exchange}</td>
+                      <td className="font-mono text-mempool-blue">{e.pair}</td>
+                      <td className="text-right font-mono text-green-400">{e.bidMicroUsd}</td>
+                      <td className="text-right font-mono text-red-400">{e.askMicroUsd}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

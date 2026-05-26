@@ -16,7 +16,7 @@ import { IdentityPanel } from "./IdentityPanel";
 import { KycPanel } from "./KycPanel";
 import { TraderModeToggle, useTraderMode } from "./TraderModeToggle";
 import { GridPanel } from "./GridPanel";
-import { HtlcTradePanel } from "./HtlcTradePanel";
+import { HtlcTradePanel, HtlcLookupPanel } from "./HtlcTradePanel";
 import { AmmOrderbookPanel } from "./AmmOrderbookPanel";
 import { OraclePricePanel } from "./OraclePricePanel";
 import { IntentSwapPanel } from "./IntentSwapPanel";
@@ -262,8 +262,9 @@ export function ExchangePage() {
       )}
 
       {tab === "htlc" && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl space-y-4">
           <HtlcTradePanel />
+          <HtlcLookupPanel />
         </div>
       )}
 

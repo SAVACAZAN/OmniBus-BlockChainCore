@@ -14,7 +14,7 @@
  *   4. Claims OMNI
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
@@ -492,3 +492,94 @@ export function HtlcTradePanel() {
     </div>
   );
 }
+
+// ── HTLC Lookup panel (htlc_get) ──────────────────────────────────────────
+
+interface HtlcEntry {
+  htlc_id: string;
+  sender: string;
+  receiver: string;
+  amount_sat: number;
+  hash_lock: string;
+  timelock_block: number;
+  state: string;
+  preimage?: string;
+  tx_hash?: string;
+  claim_tx_hash?: string;
+}
+
+export function HtlcLookupPanel() {
+  const [htlcId, setHtlcId] = useState("");
+  const [entry, setEntry] = useState<HtlcEntry | null>(null);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const lookup = useCallback(async () => {
+    const id = htlcId.trim();
+    if (!id) { setErr("Enter HTLC ID"); return; }
+    setLoading(true); setErr(""); setEntry(null);
+    try {
+      const r = await rpc.request_raw("htlc_get", [{ htlc_id: id }]) as HtlcEntry;
+      if (r && typeof r === "object" && "htlc_id" in r) setEntry(r);
+      else setErr("HTLC not found");
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  }, [htlcId]);
+
+  const stateColor = (s: string) => {
+    if (s === "active") return "text-green-400";
+    if (s === "claimed") return "text-mempool-blue";
+    if (s === "refunded") return "text-yellow-400";
+    if (s === "expired") return "text-red-400";
+    return "text-mempool-text-dim";
+  };
+
+  return (
+    <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        HTLC Lookup (htlc_get)
+      </h3>
+      <div className="flex gap-2">
+        <input
+          value={htlcId}
+          onChange={(e) => setHtlcId(e.target.value)}
+          placeholder="64-hex HTLC ID"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !htlcId}
+          className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {entry && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg/50 p-3 space-y-1.5 text-xs">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-semibold text-mempool-text">HTLC</span>
+            <span className="font-mono text-mempool-text-dim">{entry.htlc_id.slice(0, 16)}…</span>
+            <span className={`ml-auto font-semibold ${stateColor(entry.state)}`}>{entry.state}</span>
+          </div>
+          {[
+            ["Sender", entry.sender],
+            ["Receiver", entry.receiver],
+            ["Amount", `${(entry.amount_sat / 1e9).toFixed(9)} OMNI`],
+            ["Hash lock", entry.hash_lock.slice(0, 32) + "…"],
+            ["Timelock block", String(entry.timelock_block)],
+            ...(entry.tx_hash ? [["Init TX", entry.tx_hash.slice(0, 16) + "…"]] : []),
+            ...(entry.claim_tx_hash ? [["Claim TX", entry.claim_tx_hash.slice(0, 16) + "…"]] : []),
+            ...(entry.preimage ? [["Preimage", entry.preimage.slice(0, 16) + "…"]] : []),
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2">
+              <span className="text-mempool-text-dim">{k}</span>
+              <span className="font-mono text-mempool-text break-all text-right">{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+

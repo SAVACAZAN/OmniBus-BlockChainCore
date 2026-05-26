@@ -35,6 +35,43 @@ interface MinerEntry {
   status: string;
 }
 
+interface NodeStatus {
+  status: string;
+  blockCount: number;
+  mempoolSize: number;
+  address: string;
+  balance: number;
+}
+
+interface MiningInfo {
+  blocks: number;
+  difficulty: number;
+  networkhashps: number;
+  hashrate: number;
+  pooledtx: number;
+  chain: string;
+  currentblockreward: number;
+}
+
+interface PerformanceInfo {
+  uptime_seconds: number;
+  blocks_mined: number;
+  blocks_per_minute: number;
+  txs_processed: number;
+  tps_current: number;
+  mempool_throughput: number;
+  avg_block_time_ms: number;
+  peak_tps: number;
+  rpc_requests_total: number;
+  p2p_messages_total: number;
+  hashrate: number;
+}
+
+interface MempoolInfo {
+  size: number;
+  bytes: number;
+}
+
 export function NetworkPage() {
   const { state } = useBlockchain();
 
@@ -108,14 +145,22 @@ function NetworkRpcPanels() {
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [peers, setPeers] = useState<PeerInfo[]>([]);
   const [miners, setMiners] = useState<MinerEntry[]>([]);
+  const [nodeStatus, setNodeStatus] = useState<NodeStatus | null>(null);
+  const [miningInfo, setMiningInfo] = useState<MiningInfo | null>(null);
+  const [perfInfo, setPerfInfo] = useState<PerformanceInfo | null>(null);
+  const [mempoolInfo, setMempoolInfo] = useState<MempoolInfo | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      const [s, p, m] = await Promise.allSettled([
+      const [s, p, m, ns, mi, perf, mpi] = await Promise.allSettled([
         rpc.request_raw("getsyncstatus", []) as Promise<SyncStatus>,
         rpc.request_raw("getpeerinfo", []) as Promise<{ result: PeerInfo[] } | PeerInfo[]>,
         rpc.request_raw("omnibus_getminers", []) as Promise<MinerEntry[]>,
+        rpc.request_raw("getstatus", []) as Promise<NodeStatus>,
+        rpc.request_raw("getmininginfo", []) as Promise<MiningInfo>,
+        rpc.request_raw("getperformance", []) as Promise<PerformanceInfo>,
+        rpc.request_raw("getmempoolinfo", []) as Promise<MempoolInfo>,
       ]);
       if (cancelled) return;
       if (s.status === "fulfilled") setSync(s.value);
@@ -124,6 +169,10 @@ function NetworkRpcPanels() {
         setPeers(Array.isArray(v) ? v : ((v as { result: PeerInfo[] }).result ?? []));
       }
       if (m.status === "fulfilled") setMiners(Array.isArray(m.value) ? m.value : []);
+      if (ns.status === "fulfilled") setNodeStatus(ns.value);
+      if (mi.status === "fulfilled") setMiningInfo(mi.value);
+      if (perf.status === "fulfilled") setPerfInfo(perf.value);
+      if (mpi.status === "fulfilled") setMempoolInfo(mpi.value);
     };
     refresh();
     const id = setInterval(refresh, 8_000);
@@ -132,6 +181,75 @@ function NetworkRpcPanels() {
 
   return (
     <div className="space-y-4">
+      {/* Node status + mining info + performance + mempool info — 4 stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {nodeStatus && (
+          <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
+            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Node Status</div>
+            {[
+              ["Status", nodeStatus.status],
+              ["Blocks", String(nodeStatus.blockCount)],
+              ["Mempool", `${nodeStatus.mempoolSize} tx`],
+              ["Address", nodeStatus.address ? nodeStatus.address.slice(0, 16) + "…" : "—"],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between text-xs">
+                <span className="text-mempool-text-dim">{k}</span>
+                <span className="font-mono text-mempool-text">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {miningInfo && (
+          <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
+            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Mining Info</div>
+            {[
+              ["Chain", miningInfo.chain],
+              ["Difficulty", String(miningInfo.difficulty)],
+              ["Hashrate", `${miningInfo.hashrate.toLocaleString()} H/s`],
+              ["Reward", `${(miningInfo.currentblockreward / 1e9).toFixed(4)} OMNI`],
+              ["Pooled TX", String(miningInfo.pooledtx)],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between text-xs">
+                <span className="text-mempool-text-dim">{k}</span>
+                <span className="font-mono text-mempool-text">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {perfInfo && (
+          <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
+            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Performance</div>
+            {[
+              ["Uptime", `${Math.floor(perfInfo.uptime_seconds / 60)}m`],
+              ["TPS (now)", String(perfInfo.tps_current)],
+              ["Peak TPS", String(perfInfo.peak_tps)],
+              ["Blocks/min", String(perfInfo.blocks_per_minute)],
+              ["Avg block", `${perfInfo.avg_block_time_ms}ms`],
+              ["RPC reqs", String(perfInfo.rpc_requests_total)],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between text-xs">
+                <span className="text-mempool-text-dim">{k}</span>
+                <span className="font-mono text-mempool-text">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {mempoolInfo && (
+          <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
+            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Mempool Info</div>
+            {[
+              ["TX count", String(mempoolInfo.size)],
+              ["Bytes", mempoolInfo.bytes > 0 ? `${mempoolInfo.bytes.toLocaleString()} B` : "—"],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between text-xs">
+                <span className="text-mempool-text-dim">{k}</span>
+                <span className="font-mono text-mempool-text">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Sync status */}
       {sync && (
         <div className={`rounded-xl border p-4 ${

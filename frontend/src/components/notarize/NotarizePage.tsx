@@ -16,7 +16,7 @@
  * Canonical message strings must stay in sync with rpc_server.zig verifiers.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   FileText,
   Shield,
@@ -125,7 +125,7 @@ interface EscrowCreateResp {
   condition_hash: string;
 }
 
-type TopTab = "notarize" | "escrow";
+type TopTab = "notarize" | "escrow" | "opreturn";
 type NotarizeSubTab = "notarize-doc" | "verify-doc" | "my-docs";
 type EscrowSubTab = "my-escrows" | "create-escrow" | "release-escrow";
 
@@ -1674,6 +1674,7 @@ export function NotarizePage() {
   const topTabs: { id: TopTab; label: string }[] = [
     { id: "notarize", label: "Notarize" },
     { id: "escrow",   label: "Escrow" },
+    { id: "opreturn", label: "OP_RETURN" },
   ];
 
   return (
@@ -1707,6 +1708,8 @@ export function NotarizePage() {
             >
               {t.id === "notarize" ? (
                 <><FileText className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />{t.label}</>
+              ) : t.id === "opreturn" ? (
+                <><span className="mr-1 font-mono text-[9px]">OP</span>{t.label}</>
               ) : (
                 <><Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />{t.label}</>
               )}
@@ -1720,7 +1723,165 @@ export function NotarizePage() {
 
       {topTab === "notarize" && <NotarizeSection />}
       {topTab === "escrow"   && <EscrowSection blockHeight={blockHeight} />}
+      {topTab === "opreturn" && <OpReturnSection />}
     </section>
+  );
+}
+
+// ── OP_RETURN Section (sendopreturn + sendrawtransaction) ─────────────────────
+
+function OpReturnSection() {
+  const wallet = useWallet();
+  const rpcLocal = new OmniBusRpcClient();
+
+  // sendopreturn
+  const [opData, setOpData] = useState("");
+  const [opFee, setOpFee] = useState("1000");
+  const [opLoading, setOpLoading] = useState(false);
+  const [opResult, setOpResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const sendOpReturn = async () => {
+    if (!opData.trim()) return;
+    setOpLoading(true); setOpResult(null);
+    try {
+      const r = await rpcLocal.request_raw("sendopreturn", [opData.trim(), parseInt(opFee) || 1000]) as { txid?: string; tx_hash?: string; error?: string };
+      if (r && (r.txid || r.tx_hash)) {
+        setOpResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
+      } else {
+        setOpResult({ ok: false, msg: r?.error ?? JSON.stringify(r) });
+      }
+    } catch (e) { setOpResult({ ok: false, msg: String(e) }); }
+    finally { setOpLoading(false); }
+  };
+
+  // sendrawtransaction
+  const [rawFrom, setRawFrom] = useState("");
+  const [rawTo, setRawTo] = useState("");
+  const [rawAmount, setRawAmount] = useState("");
+  const [rawFee, setRawFee] = useState("1000");
+  const [rawSig, setRawSig] = useState("");
+  const [rawHash, setRawHash] = useState("");
+  const [rawPubkey, setRawPubkey] = useState("");
+  const [rawNonce, setRawNonce] = useState("0");
+  const [rawLoading, setRawLoading] = useState(false);
+  const [rawResult, setRawResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const sendRaw = async () => {
+    setRawLoading(true); setRawResult(null);
+    try {
+      const r = await rpcLocal.request_raw("sendrawtransaction", [{
+        from: rawFrom.trim(),
+        to: rawTo.trim(),
+        amount: parseInt(rawAmount),
+        fee: parseInt(rawFee) || 1000,
+        signature: rawSig.trim(),
+        hash: rawHash.trim(),
+        publicKey: rawPubkey.trim(),
+        nonce: parseInt(rawNonce) || 0,
+        timestamp: Math.floor(Date.now() / 1000),
+      }]) as { txid?: string; tx_hash?: string; error?: string };
+      if (r && (r.txid || r.tx_hash)) {
+        setRawResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
+      } else {
+        setRawResult({ ok: false, msg: r?.error ?? JSON.stringify(r) });
+      }
+    } catch (e) { setRawResult({ ok: false, msg: String(e) }); }
+    finally { setRawLoading(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* sendopreturn */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Send OP_RETURN (sendopreturn)
+        </h3>
+        <p className="text-[11px] text-mempool-text-dim">
+          Embed up to 80 bytes of arbitrary data on-chain. Amount = 0, uses node wallet. Commonly used for notarization, name registration receipts, or protocol messages.
+        </p>
+        {!wallet?.address && (
+          <p className="text-xs text-yellow-400">Unlock wallet first — node must be running with your mnemonic.</p>
+        )}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Data (≤80 bytes UTF-8)</label>
+            <input
+              value={opData}
+              onChange={(e) => setOpData(e.target.value)}
+              placeholder="ns:alice.omnibus:ob1q…"
+              maxLength={80}
+              className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text"
+            />
+            <p className="text-[9px] text-mempool-text-dim">{opData.length}/80 chars</p>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Fee (SAT)</label>
+            <input
+              type="number"
+              value={opFee}
+              onChange={(e) => setOpFee(e.target.value)}
+              className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text"
+            />
+          </div>
+          <button
+            onClick={sendOpReturn}
+            disabled={opLoading || !opData.trim()}
+            className="w-full py-2 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+          >
+            {opLoading ? "Broadcasting…" : "Send OP_RETURN TX"}
+          </button>
+          {opResult && (
+            <div className={`rounded px-3 py-2 text-xs border ${opResult.ok ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
+              {opResult.msg}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* sendrawtransaction */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Broadcast Raw TX (sendrawtransaction)
+        </h3>
+        <p className="text-[11px] text-mempool-text-dim">
+          Broadcast a pre-signed transaction directly to the mempool. All fields must be pre-computed (signature, hash, nonce). For advanced use only.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[
+            ["From", rawFrom, setRawFrom, "ob1q…"],
+            ["To", rawTo, setRawTo, "ob1q…"],
+            ["Amount (SAT)", rawAmount, setRawAmount, "100000000"],
+            ["Fee (SAT)", rawFee, setRawFee, "1000"],
+            ["Signature (128 hex)", rawSig, setRawSig, "aabbcc…"],
+            ["TX Hash (64 hex)", rawHash, setRawHash, "deadbeef…"],
+            ["Public key (66 hex)", rawPubkey, setRawPubkey, "02aabb…"],
+            ["Nonce", rawNonce, setRawNonce, "0"],
+          ].map(([label, val, setter, ph]) => (
+            <div key={label as string} className="space-y-0.5">
+              <label className="text-[9px] text-mempool-text-dim uppercase">{label as string}</label>
+              <input
+                value={val as string}
+                onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+                placeholder={ph as string}
+                className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-2 py-1.5 text-[11px] font-mono text-mempool-text"
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={sendRaw}
+          disabled={rawLoading || !rawFrom || !rawTo || !rawAmount || !rawSig || !rawHash || !rawPubkey}
+          className="w-full py-2 text-xs font-medium bg-orange-500/20 hover:bg-orange-500/40 text-orange-300 border border-orange-500/30 rounded disabled:opacity-50"
+        >
+          {rawLoading ? "Broadcasting…" : "Broadcast Raw TX"}
+        </button>
+        {rawResult && (
+          <div className={`rounded px-3 py-2 text-xs border ${rawResult.ok ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
+            {rawResult.msg}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
