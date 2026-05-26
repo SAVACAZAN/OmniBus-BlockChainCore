@@ -63,6 +63,18 @@ interface SupplyDistSlice {
   color: string;
 }
 
+interface SchemeStatEntry {
+  scheme: string;
+  count: number;
+  pct: number; // × 100, so 9950 = 99.50%
+}
+
+interface SchemeStats {
+  totalTxs: number;
+  blocks: number;
+  schemes: SchemeStatEntry[];
+}
+
 function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[] } {
   if (blocks.length < 2) {
     return {
@@ -150,6 +162,7 @@ export function StatsPage() {
   const [netStats, setNetStats] = useState<NetworkStats | null>(null);
   const [chainMetrics, setChainMetrics] = useState<ChainMetrics | null>(null);
   const [supplyDist, setSupplyDist] = useState<SupplyDistSlice[] | null>(null);
+  const [schemeStats, setSchemeStats] = useState<SchemeStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -159,11 +172,13 @@ export function StatsPage() {
     setLoading(true);
     setErr("");
     try {
-      const [tipRaw, metricsRaw, richRaw] = await Promise.all([
+      const [tipRaw, metricsRaw, richRaw, schemeRaw] = await Promise.all([
         rpc.getBlockCount(),
         rpc.request_raw("getchainmetrics", []).catch(() => null) as Promise<ChainMetrics | null>,
         rpc.request_raw("getrichlist", [100]).catch(() => null) as Promise<{ entries?: RichEntry[]; totalSupply?: number; total?: number } | null>,
+        rpc.request_raw("getschemestats", [100]).catch(() => null) as Promise<SchemeStats | null>,
       ]);
+      if (schemeRaw?.schemes && schemeRaw.schemes.length > 0) setSchemeStats(schemeRaw);
       const tip: number =
         typeof tipRaw === "object" && tipRaw
           ? (tipRaw as any).blockCount ?? (tipRaw as any)
@@ -448,6 +463,37 @@ export function StatsPage() {
           </div>
         );
       })()}
+
+      {/* Signing Scheme Distribution */}
+      {schemeStats && schemeStats.schemes.length > 0 && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-1">
+            Signing Scheme Distribution
+          </h3>
+          <p className="text-[10px] text-mempool-text-dim mb-3">
+            {schemeStats.totalTxs.toLocaleString()} TXs across {schemeStats.blocks.toLocaleString()} blocks
+          </p>
+          <div className="space-y-2">
+            {schemeStats.schemes.map((s) => {
+              const pctFloat = s.pct / 100;
+              const isPQ = s.scheme.includes("ML-DSA") || s.scheme.includes("Falcon") || s.scheme.includes("SLH-DSA") || s.scheme.includes("Hybrid");
+              const isSoulbound = s.scheme.includes("soulbound");
+              const barColor = isSoulbound ? "#a855f7" : isPQ ? "#3b82f6" : "#22c55e";
+              return (
+                <div key={s.scheme} className="flex items-center gap-2 text-xs">
+                  <span className="text-mempool-text-dim w-44 flex-shrink-0 truncate" title={s.scheme}>{s.scheme}</span>
+                  <div className="flex-1 bg-mempool-bg rounded-full h-2 overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pctFloat, 100)}%`, background: barColor }} />
+                  </div>
+                  <span className="font-mono text-mempool-text w-14 text-right flex-shrink-0">
+                    {pctFloat.toFixed(2)}% <span className="text-mempool-text-dim">({s.count})</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Block time chart */}
       {hasBlockTime && (

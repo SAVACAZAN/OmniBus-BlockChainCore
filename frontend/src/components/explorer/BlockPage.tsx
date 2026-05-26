@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 
@@ -15,6 +15,21 @@ function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
   if (!s) return "—";
   if (s.length <= h + t + 3) return s;
   return s.slice(0, h) + "…" + s.slice(-t);
+}
+
+function SchemeTag({ scheme }: { scheme: string }) {
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded border text-[10px] font-mono flex-shrink-0 ${cls}`}>
+      {scheme}
+    </span>
+  );
 }
 
 function CopyBtn({ text }: { text: string }) {
@@ -130,6 +145,14 @@ export function BlockPage({ height, onNavigate }: Props) {
   const burned = Math.floor(totalFeesSat / 2);
   const minerFees = totalFeesSat - burned;
   const confirmations = tip > height ? tip - height : 0;
+
+  const schemeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const tx of txs) {
+      if (tx.scheme) counts[tx.scheme] = (counts[tx.scheme] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [txs]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
@@ -249,9 +272,20 @@ export function BlockPage({ height, onNavigate }: Props) {
 
       {/* Transactions */}
       <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
-        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
-          Transactions ({block.txCount ?? txs.length})
-        </h2>
+        <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+            Transactions ({block.txCount ?? txs.length})
+          </h2>
+          {schemeCounts.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {schemeCounts.map(([scheme, n]) => (
+                <span key={scheme} className="text-[10px] text-mempool-text-dim">
+                  <SchemeTag scheme={scheme} /> ×{n}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="space-y-2">
           {/* Coinbase */}
           <div className="bg-mempool-bg-light border border-yellow-400/20 rounded-lg p-3 text-xs">
@@ -305,12 +339,13 @@ export function BlockPage({ height, onNavigate }: Props) {
                   </button>
                 </span>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 items-center">
                 <span className="text-mempool-text font-mono">{fmtSat(tx.amount)}</span>
                 <span className="text-mempool-text-dim">Fee: {fmtSat(tx.fee)}</span>
                 {tx.confirmations !== undefined && (
                   <span className="text-mempool-text-dim">{tx.confirmations} conf</span>
                 )}
+                {tx.scheme && <SchemeTag scheme={tx.scheme} />}
               </div>
               {tx.op_return && (
                 <div className="text-mempool-text-dim font-mono break-all border-t border-mempool-border/30 pt-1.5 mt-1">

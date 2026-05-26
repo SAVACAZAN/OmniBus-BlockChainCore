@@ -4069,6 +4069,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getfaucetstatus"))  return handleFaucetStatus(ctx, id);
     if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
     if (std.mem.eql(u8, method, "getchainmetrics"))  return handleChainMetrics(ctx, id);
+    if (std.mem.eql(u8, method, "getschemestats"))   return handleSchemeStats(body, ctx, id);
     if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
     if (std.mem.eql(u8, method, "transfername"))     return handleTransferName(body, ctx, id);
     if (std.mem.eql(u8, method, "updatename"))       return handleUpdateName(body, ctx, id);
@@ -5049,6 +5050,71 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
             validators, validator_set_size, validator_mod.MIN_VALIDATOR_BALANCE,
             mempool_size, peer_count, current_reward,
         });
+}
+
+/// RPC "getschemestats" — signing-scheme distribution across last N blocks.
+/// Params: [blocks_count]  (default 100, max 1000)
+/// Returns: { totalTxs, blocks, schemes: [{scheme, count, pct}] }
+fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_blocks = extractArrayNum(body, 0);
+    const scan: u64 = if (req_blocks > 0 and req_blocks <= 1000) req_blocks else 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const chain_len: u64 = @intCast(ctx.bc.chain.items.len);
+    const start: u64 = if (chain_len > scan) chain_len - scan else 0;
+
+    // Counters for 13 schemes (indices match transaction.Scheme enum order)
+    var counts: [13]u64 = .{0} ** 13;
+    var total: u64 = 0;
+
+    var hi: u64 = start;
+    while (hi < chain_len) : (hi += 1) {
+        const blk = ctx.bc.chain.items[@intCast(hi)];
+        for (blk.transactions.items) |tx| {
+            const idx: usize = @intFromEnum(tx.scheme);
+            if (idx < 13) counts[idx] += 1;
+            total += 1;
+        }
+    }
+
+    const scanned = chain_len - start;
+    const scheme_labels = [13][]const u8{
+        "ECDSA (secp256k1)",
+        "ML-DSA-87 (soulbound)",
+        "Falcon-512 (soulbound)",
+        "ML-DSA-87 (soulbound)",
+        "SLH-DSA-256s (soulbound)",
+        "ML-DSA-87",
+        "Falcon-512",
+        "ML-DSA-87 (Dilithium-5)",
+        "SLH-DSA-256s",
+        "Hybrid ECDSA+ML-DSA-87",
+        "Hybrid ECDSA+Falcon-512",
+        "Hybrid ECDSA+Dilithium-5",
+        "Hybrid ECDSA+SLH-DSA",
+    };
+
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var written: usize = 0;
+    for (scheme_labels, 0..) |label, i| {
+        if (counts[i] == 0) continue;
+        const pct_x100: u64 = if (total > 0) counts[i] * 10000 / total else 0;
+        const sep: []const u8 = if (written == 0) "" else ",";
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"scheme\":\"{s}\",\"count\":{d},\"pct\":{d}}}",
+            .{ sep, label, counts[i], pct_x100 });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries); alloc.free(e); entries = m;
+        written += 1;
+    }
+    defer alloc.free(entries);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalTxs\":{d},\"blocks\":{d},\"schemes\":[{s}]}}}}",
+        .{ id, total, scanned, entries });
 }
 
 // ─── DNS / ENS handlers ─────────────────────────────────────────────────────
