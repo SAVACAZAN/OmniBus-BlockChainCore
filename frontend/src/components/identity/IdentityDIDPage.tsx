@@ -266,9 +266,9 @@ function TabDIDOBM({ address }: { address: string }) {
     setError(null);
 
     Promise.all([
-      rpc.request_raw("getdid", [address]),
-      rpc.request_raw("getobm", [address]),
-      rpc.request_raw("getfacets", [address]),
+      rpc.getDid(address),
+      rpc.getObm(address),
+      rpc.getFacets(address),
     ])
       .then(([d, o, f]) => {
         if (isDidResult(d)) setDid(d);
@@ -406,7 +406,7 @@ function TabFacets({ address }: { address: string }) {
     setLoading(true);
     setError(null);
     rpc
-      .request_raw("getfacets", [address])
+      .getFacets(address)
       .then((f) => {
         if (isFacetsResult(f)) setFacets(f);
       })
@@ -666,7 +666,7 @@ function TabMiCA({ address }: { address: string }) {
     setLoading(true);
     setError(null);
     rpc
-      .request_raw("mica_disclose", [address])
+      .micaDisclose(address)
       .then((r) => {
         if (isMicaDiscloseResult(r)) setData(r);
       })
@@ -773,7 +773,7 @@ function TabIdentityLookup() {
     if (!a) { setErr("Enter an address"); return; }
     setLoading(true); setErr(""); setResult(null);
     try {
-      const r = await rpc.request_raw("getidentity", [{ address: a }]);
+      const r = await rpc.getIdentity(a);
       setResult(r);
     } catch (e) { setErr(String(e)); }
     finally { setLoading(false); }

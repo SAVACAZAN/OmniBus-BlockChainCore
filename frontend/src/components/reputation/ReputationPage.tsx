@@ -883,18 +883,12 @@ export function SocialFollowPanel({ address }: { address: string }) {
     if (!address) return;
     setLoading(true);
     try {
-      const [frs, fing] = await Promise.allSettled([
-        rpc.request_raw("getfollowers", [address]) as Promise<string[] | { followers?: string[] }>,
-        rpc.request_raw("getfollowing", [address]) as Promise<string[] | { following?: string[] }>,
+      const [frs, fing] = await Promise.all([
+        rpc.getFollowers(address),
+        rpc.getFollowing(address),
       ]);
-      if (frs.status === "fulfilled") {
-        const v = frs.value;
-        setFollowers(Array.isArray(v) ? v : (v as { followers?: string[] }).followers ?? []);
-      }
-      if (fing.status === "fulfilled") {
-        const v = fing.value;
-        setFollowing(Array.isArray(v) ? v : (v as { following?: string[] }).following ?? []);
-      }
+      setFollowers(frs);
+      setFollowing(fing);
     } finally {
       setLoading(false);
     }
@@ -907,7 +901,7 @@ export function SocialFollowPanel({ address }: { address: string }) {
     setActionErr(null);
     setActionMsg(null);
     try {
-      await rpc.request_raw("follow", [{ from: address, to: followTarget.trim() }]);
+      await rpc.follow(address, followTarget.trim());
       setActionMsg(`Following ${followTarget.trim().slice(0, 14)}…`);
       setFollowTarget("");
       await loadSocial();
@@ -920,7 +914,7 @@ export function SocialFollowPanel({ address }: { address: string }) {
     setActionErr(null);
     setActionMsg(null);
     try {
-      await rpc.request_raw("unfollow", [{ from: address, to: target }]);
+      await rpc.unfollow(address, target);
       setActionMsg(`Unfollowed ${target.slice(0, 14)}…`);
       await loadSocial();
     } catch (e: any) {

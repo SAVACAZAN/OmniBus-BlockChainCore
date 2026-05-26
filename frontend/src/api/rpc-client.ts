@@ -1436,6 +1436,58 @@ export class OmniBusRpcClient {
   async removeLabel(address: string, label: string): Promise<void> {
     await this.request("removelabel", [address, label]);
   }
+
+  // ── Identity DID / OBM / Facets ─────────────────────────────────────────
+
+  async getDid(address: string): Promise<unknown> {
+    try { return await this.request("getdid", [address]); } catch { return null; }
+  }
+
+  async getObm(address: string): Promise<unknown> {
+    try { return await this.request("getobm", [address]); } catch { return null; }
+  }
+
+  async getFacets(address: string): Promise<unknown> {
+    try { return await this.request("getfacets", [address]); } catch { return null; }
+  }
+
+  async getIdentity(address: string): Promise<unknown> {
+    try { return await this.request("getidentity", [{ address }]); } catch { return null; }
+  }
+
+  // ── Social graph (follow/unfollow) ───────────────────────────────────────
+
+  async getFollowers(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getfollowers", [address]);
+      return Array.isArray(r) ? r : ((r as { followers?: string[] })?.followers ?? []);
+    } catch { return []; }
+  }
+
+  async getFollowing(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getfollowing", [address]);
+      return Array.isArray(r) ? r : ((r as { following?: string[] })?.following ?? []);
+    } catch { return []; }
+  }
+
+  async follow(from: string, to: string): Promise<void> {
+    await this.request("follow", [{ from, to }]);
+  }
+
+  async unfollow(from: string, to: string): Promise<void> {
+    await this.request("unfollow", [{ from, to }]);
+  }
+
+  // ── Governance ────────────────────────────────────────────────────────────
+
+  async getProposals(filter: string): Promise<unknown> {
+    try { return await this.request("getproposals", [{ filter }]); } catch { return null; }
+  }
+
+  async getProposal(proposalId: string | number): Promise<unknown> {
+    try { return await this.request("getproposal", [{ proposal_id: proposalId }]); } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";

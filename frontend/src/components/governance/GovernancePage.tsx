@@ -426,7 +426,7 @@ function ProposalsTab({
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getproposals", [{ filter }])) as GetProposalsResp | null;
+      const r = (await rpc.getProposals(filter)) as GetProposalsResp | null;
       setProposals(r?.proposals ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -449,7 +449,7 @@ function ProposalsTab({
   // Fetch full proposal details for modal (getproposal returns extra fields)
   const openDetails = async (p: Proposal) => {
     try {
-      const full = (await rpc.request_raw("getproposal", [{ proposal_id: p.id }])) as Proposal | null;
+      const full = (await rpc.getProposal(p.id)) as Proposal | null;
       setModalProposal(full ?? p);
     } catch {
       setModalProposal(p);
@@ -762,7 +762,7 @@ function VoteTab({
     setFetchedProposal(null);
     setVote(null);
     try {
-      const r = (await rpc.request_raw("getproposal", [{ proposal_id: id }])) as Proposal | null;
+      const r = (await rpc.getProposal(id)) as Proposal | null;
       if (!r) { setFetchErr("Proposal not found"); return; }
       setFetchedProposal(r);
     } catch (e) {
