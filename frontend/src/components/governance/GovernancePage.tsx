@@ -83,6 +83,13 @@ interface GovExecuteResp { proposal_id: number; executed_block: number; action_k
 
 type SubTab = "proposals" | "all" | "propose" | "vote";
 
+const GOV_TABS: { id: SubTab; label: string }[] = [
+  { id: "proposals", label: "Active" },
+  { id: "all",       label: "All proposals" },
+  { id: "propose",   label: "Propose" },
+  { id: "vote",      label: "Vote by ID" },
+];
+
 // ── Format helpers ─────────────────────────────────────────────────────────
 
 
@@ -992,12 +999,7 @@ export function GovernancePage() {
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "proposals", label: "Active" },
-          { id: "all",       label: "All proposals" },
-          { id: "propose",   label: "Propose" },
-          { id: "vote",      label: "Vote by ID" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {GOV_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button

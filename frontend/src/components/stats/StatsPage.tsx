@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -326,8 +326,9 @@ export function StatsPage() {
     );
   }
 
-  const hasDifficulty = series.some((s) => s.difficulty > 0);
-  const hasBlockTime = series.some((s) => s.blockTime > 0);
+  const hasDifficulty = useMemo(() => series.some((s) => s.difficulty > 0), [series]);
+  const hasBlockTime = useMemo(() => series.some((s) => s.blockTime > 0), [series]);
+  const hasFeesEstimate = useMemo(() => series.some((s) => s.feesEstimate > 0), [series]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
@@ -664,7 +665,7 @@ export function StatsPage() {
       </div>
 
       {/* Fees per block chart */}
-      {series.some((s) => s.feesEstimate > 0) && (
+      {hasFeesEstimate && (
         <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
             Fees per Block (sat)

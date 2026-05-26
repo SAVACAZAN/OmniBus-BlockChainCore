@@ -26,6 +26,16 @@ import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account" | "intent";
 type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
 
+const EXCHANGE_TABS: { id: Tab; label: string }[] = [
+  { id: "trade",   label: "Trade" },
+  { id: "grid",    label: "Grid" },
+  { id: "htlc",    label: "⚡ HTLC Swap" },
+  { id: "amm",     label: "🦄 Uniswap AMM" },
+  { id: "oracle",  label: "📡 Oracle" },
+  { id: "account", label: "Account" },
+  { id: "intent",  label: "🤝 Intent Swap" },
+];
+
 export function ExchangePage() {
   const [tab, setTab] = useState<Tab>("trade");
   const [accountTab, setAccountTab] = useState<AccountTab>("balances");
@@ -137,10 +147,9 @@ export function ExchangePage() {
   );
   const pairLabel = activePair?.label ?? "?";
 
-  const maxAmount = Math.max(
-    1,
-    ...bids.map((b) => b.remaining),
-    ...asks.map((a) => a.remaining),
+  const maxAmount = useMemo(
+    () => Math.max(1, ...bids.map((b) => b.remaining), ...asks.map((a) => a.remaining)),
+    [bids, asks],
   );
 
   const fmtPrice = (p: number) => (p / MICRO_PER_USD).toFixed(4);
@@ -218,15 +227,7 @@ export function ExchangePage() {
 
       {/* Top-level tabs */}
       <div className="flex gap-1 border-b border-mempool-border overflow-x-auto scrollbar-none flex-nowrap">
-        {([
-          { id: "trade",   label: "Trade" },
-          { id: "grid",    label: "Grid" },
-          { id: "htlc",    label: "⚡ HTLC Swap" },
-          { id: "amm",     label: "🦄 Uniswap AMM" },
-          { id: "oracle",  label: "📡 Oracle" },
-          { id: "account", label: "Account" },
-          { id: "intent",  label: "🤝 Intent Swap" },
-        ] as { id: Tab; label: string }[]).map((t) => (
+        {EXCHANGE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}

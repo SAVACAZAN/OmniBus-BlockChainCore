@@ -583,10 +583,20 @@ function OraclePolicyPanel() {
   );
 }
 
+type OracleTab = "prices" | "policy" | "blocks" | "cross" | "dex";
+
+const ORACLE_TABS: { id: OracleTab; label: string }[] = [
+  { id: "prices", label: "📡 Prices & Arbitrage" },
+  { id: "blocks", label: "📦 Block Prices" },
+  { id: "policy", label: "⚙️ Policy" },
+  { id: "cross",  label: "🔗 Cross-Chain Heights" },
+  { id: "dex",    label: "🏛️ DEX Orderbook" },
+];
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
-  const [tab, setTab] = useState<"prices" | "policy" | "blocks" | "cross" | "dex">("prices");
+  const [tab, setTab] = useState<OracleTab>("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -680,13 +690,7 @@ export function OraclePricePanel() {
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-mempool-border pb-1 flex-wrap">
-        {([
-          { id: "prices", label: "📡 Prices & Arbitrage" },
-          { id: "blocks", label: "📦 Block Prices" },
-          { id: "policy", label: "⚙️ Policy" },
-          { id: "cross", label: "🔗 Cross-Chain Heights" },
-          { id: "dex", label: "🏛️ DEX Orderbook" },
-        ] as const).map((t) => (
+        {ORACLE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}

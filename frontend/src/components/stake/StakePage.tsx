@@ -82,6 +82,13 @@ interface UnstakeResp { status: string; txid: string; unbonding_until_block: num
 
 type SubTab = "mine" | "new" | "top" | "activity";
 
+const STAKE_TABS: { id: SubTab; label: string }[] = [
+  { id: "mine",     label: "My Stakes" },
+  { id: "new",      label: "Stake new" },
+  { id: "top",      label: "Top Stakers" },
+  { id: "activity", label: "Activity" },
+];
+
 // ── Activity tab — stake / unstake history pulled from getaddresshistory ──
 
 interface AddressHistoryTx {
@@ -159,12 +166,7 @@ export function StakePage() {
 
       {/* Sub-tab bar (matches App.tsx tab styling) */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "mine",     label: "My Stakes" },
-          { id: "new",      label: "Stake new" },
-          { id: "top",      label: "Top Stakers" },
-          { id: "activity", label: "Activity" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {STAKE_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button

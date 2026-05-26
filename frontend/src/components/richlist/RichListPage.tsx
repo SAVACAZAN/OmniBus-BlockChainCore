@@ -192,20 +192,20 @@ export function RichListPage() {
   }, [limit]);
 
 
-  // Per-role counts derived from current entries.
-  let validatorCount = 0;
-  let minerCount = 0;
-  let agentCount = 0;
-  let userCount = 0;
-  if (list) {
-    for (const e of list.entries) {
+  const { validatorCount, minerCount, agentCount, userCount } = useMemo(() => {
+    let validatorCount = 0;
+    let minerCount = 0;
+    let agentCount = 0;
+    let userCount = 0;
+    for (const e of list?.entries ?? []) {
       const roles = deriveRoles(e);
       if (roles.includes("validator")) validatorCount++;
       if (roles.includes("miner")) minerCount++;
       if (roles.includes("agent")) agentCount++;
       if (roles.includes("user")) userCount++;
     }
-  }
+    return { validatorCount, minerCount, agentCount, userCount };
+  }, [list]);
 
   const exportCsv = () => {
     if (!list) return;

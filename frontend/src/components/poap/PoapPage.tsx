@@ -65,6 +65,13 @@ interface CloseResp { status: string; txid: string; closed: boolean }
 
 type SubTab = "my-poaps" | "lookup" | "create" | "claim";
 
+const POAP_TABS: { id: SubTab; label: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: "my-poaps", label: "My POAPs",     icon: Award },
+  { id: "lookup",   label: "Lookup",       icon: Search },
+  { id: "create",   label: "Create Event", icon: PlusCircle },
+  { id: "claim",    label: "Claim",        icon: Download },
+];
+
 // ── Format helpers ────────────────────────────────────────────────────────
 
 
@@ -321,12 +328,7 @@ export function PoapPage() {
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "my-poaps", label: "My POAPs",    icon: Award },
-          { id: "lookup",   label: "Lookup",      icon: Search },
-          { id: "create",   label: "Create Event", icon: PlusCircle },
-          { id: "claim",    label: "Claim",        icon: Download },
-        ] as { id: SubTab; label: string; icon: React.FC<{ className?: string }> }[]).map((t) => {
+        {POAP_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button

@@ -48,6 +48,13 @@ const toSAT = (omni: number) => Math.round(omni * SAT_PER_OMNI);
 type ChannelState = "open" | "closing" | "settled" | "disputed";
 type SubTab = "overview" | "open" | "pay" | "close";
 
+const CHANNEL_TABS: { id: SubTab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "open",     label: "Open Channel" },
+  { id: "pay",      label: "Pay" },
+  { id: "close",    label: "Close" },
+];
+
 interface Channel {
   channel_id: string;    // 64-char hex
   party_a: string;       // 66-char compressed pubkey hex
@@ -197,12 +204,7 @@ export function ChannelsPage() {
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "overview", label: "Overview" },
-          { id: "open",     label: "Open Channel" },
-          { id: "pay",      label: "Pay" },
-          { id: "close",    label: "Close" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {CHANNEL_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button

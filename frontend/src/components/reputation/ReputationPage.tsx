@@ -133,6 +133,13 @@ interface LeaderboardEntry {
 type SortKey = "total" | CupKey;
 type Tab = "mine" | "earn" | "leaderboard" | "decay";
 
+const REP_TABS: { key: Tab; label: string }[] = [
+  { key: "mine",        label: "My Reputation" },
+  { key: "earn",        label: "How to Earn" },
+  { key: "leaderboard", label: "Leaderboard" },
+  { key: "decay",       label: "Decay & Penalties" },
+];
+
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 function fmtCup(v: number): string {
@@ -784,12 +791,7 @@ export function ReputationPage() {
     return (data?.history || []).filter((h) => h.kind === "violation" || h.delta < 0).slice(0, 30);
   }, [data]);
 
-  const tabs: Array<{ key: Tab; label: string }> = [
-    { key: "mine",        label: "My Reputation" },
-    { key: "earn",        label: "How to Earn" },
-    { key: "leaderboard", label: "Leaderboard" },
-    { key: "decay",       label: "Decay & Penalties" },
-  ];
+  const tabs = REP_TABS;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
