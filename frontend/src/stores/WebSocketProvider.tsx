@@ -76,6 +76,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           miners: minerStats?.miners || [],
           networkInfo: networkInfo || null,
           recentBlocks: blocks,
+          lastBlockTimestamp: blocks[0]?.timestamp ?? null,
           difficulty: networkInfo?.difficulty || 4,
           isMining: (blocks.length > 1) || (minerStats?.totalMiners > 0),
         },
