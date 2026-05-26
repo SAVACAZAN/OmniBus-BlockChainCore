@@ -1409,6 +1409,33 @@ export class OmniBusRpcClient {
       return typeof v === "number" ? v : (v as { height?: number })?.height ?? null;
     } catch { return null; }
   }
+
+  async exchangeGetUserTrades(params: {
+    trader: string; limit?: number; pairId?: number; mode?: "real" | "paper";
+  }): Promise<unknown[]> {
+    try { return (await this.request("exchange_getUserTrades", [params])) ?? []; } catch { return []; }
+  }
+
+  async exchangeGetUserOrdersRaw(trader: string): Promise<unknown[]> {
+    try { return (await this.request("exchange_getUserOrders", [{ trader }])) ?? []; } catch { return []; }
+  }
+
+  // ── Address labels ────────────────────────────────────────────────────────
+
+  async getLabels(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getlabels", [address]);
+      return Array.isArray(r) ? r : ((r as { labels?: string[] })?.labels ?? []);
+    } catch { return []; }
+  }
+
+  async applyLabel(address: string, label: string): Promise<void> {
+    await this.request("applylabel", [address, label]);
+  }
+
+  async removeLabel(address: string, label: string): Promise<void> {
+    await this.request("removelabel", [address, label]);
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";

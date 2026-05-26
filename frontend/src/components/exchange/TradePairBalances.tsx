@@ -125,7 +125,7 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await rpc.request_raw("exchange_getUserOrders", [{ trader: omniAddr }]);
+        const res = await rpc.exchangeGetUserOrdersRaw(omniAddr);
         if (!cancelled && Array.isArray(res)) setUserOrders(res as UserOrder[]);
       } catch { /* ignore */ }
     };

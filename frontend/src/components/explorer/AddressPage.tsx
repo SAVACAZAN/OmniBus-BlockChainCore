@@ -403,8 +403,7 @@ function AddressLabelsPanel({ addr }: { addr: string }) {
   const loadLabels = async () => {
     setLoading(true);
     try {
-      const r = (await rpc.request_raw("getlabels", [addr])) as string[] | { labels?: string[] };
-      setLabels(Array.isArray(r) ? r : (r?.labels ?? []));
+      setLabels(await rpc.getLabels(addr));
     } catch {
       setLabels([]);
     } finally {
@@ -422,7 +421,7 @@ function AddressLabelsPanel({ addr }: { addr: string }) {
     setApplying(true);
     setErr(null);
     try {
-      await rpc.request_raw("applylabel", [addr, newLabel.trim()]);
+      await rpc.applyLabel(addr, newLabel.trim());
       setNewLabel("");
       await loadLabels();
     } catch (e: any) {
@@ -436,7 +435,7 @@ function AddressLabelsPanel({ addr }: { addr: string }) {
     setRemoving(label);
     setErr(null);
     try {
-      await rpc.request_raw("removelabel", [addr, label]);
+      await rpc.removeLabel(addr, label);
       await loadLabels();
     } catch (e: any) {
       setErr(e?.message ?? String(e));

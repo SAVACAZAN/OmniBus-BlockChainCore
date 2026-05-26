@@ -80,7 +80,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
           limit: 100,
         };
         if (pairId !== undefined) params.pairId = pairId;
-        const result = await rpc.request_raw("exchange_getUserTrades", [params]);
+        const result = await rpc.exchangeGetUserTrades(params);
         if (!cancelled && Array.isArray(result)) {
           setTrades(result as UserTrade[]);
           setErr(null);
