@@ -101,8 +101,7 @@ function CreateMultisigTab() {
     setErr(null);
     setResult(null);
     try {
-      const res = await rpc.request_raw("createmultisig", [{ m, pubkeys: validKeys }]) as
-        { address?: string; redeemScript?: string } | null;
+      const res = await rpc.createMultisig(m, validKeys) as { address?: string; redeemScript?: string } | null;
       if (res?.address) {
         setResult({ address: res.address, redeemScript: res.redeemScript ?? "" });
       } else {
@@ -256,13 +255,13 @@ function SendMultisigTab() {
     setErr(null);
     setResult(null);
     try {
-      const res = await rpc.request_raw("sendmultisig", [{
+      const res = await rpc.sendMultisig({
         from: fromAddr.trim(),
         to: toAddr.trim(),
         amount_sat: amountSat,
         fee_sat: feeSat,
         privkeys: validKeys,
-      }]) as { txid?: string } | null;
+      }) as { txid?: string } | null;
       setResult(res?.txid ?? "OK");
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));

@@ -62,8 +62,7 @@ export function CovenantPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("covenant_list", [{}]) as
-        { covenants?: CovenantEntry[] } | null;
+      const result = await rpc.covenantList() as { covenants?: CovenantEntry[] } | null;
       setCovenants(result?.covenants ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -91,7 +90,7 @@ export function CovenantPanel() {
       if (formMaxPerTx) payload.max_per_tx_sat = Math.floor(parseFloat(formMaxPerTx) * SAT_PER_OMNI);
       if (formExpires) payload.expires_block = parseInt(formExpires, 10);
 
-      await rpc.request_raw("covenant_create", [payload]);
+      await rpc.covenantCreate(payload as Parameters<typeof rpc.covenantCreate>[0]);
       showToast(`Covenant created for ${midTrunc(addr)}`);
       setFormAddr(wallet?.address ?? "");
       setFormLabel("");
@@ -108,14 +107,14 @@ export function CovenantPanel() {
 
   const handleFetchLive = async (address: string) => {
     try {
-      const r = await rpc.request_raw("covenant_get", [{ address }]) as CovenantEntry | null;
+      const r = await rpc.covenantGet(address);
       if (r) setLiveMap((prev) => ({ ...prev, [address]: r }));
     } catch { /* ignore */ }
   };
 
   const handleRemove = async (address: string) => {
     try {
-      await rpc.request_raw("covenant_remove", [{ address }]);
+      await rpc.covenantRemove(address);
       setRemoveAddr(null);
       showToast(`Covenant removed for ${midTrunc(address)}`);
       await refresh();

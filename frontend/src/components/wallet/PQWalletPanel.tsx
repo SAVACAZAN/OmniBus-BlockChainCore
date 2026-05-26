@@ -148,9 +148,8 @@ export function PQWalletPanel() {
       let balance = 0;
       if (addr) {
         try {
-          const res: unknown = await rpc.request_raw("pq_balance", [{ address: addr }]);
-          const r = res as { balance?: number } | null;
-          balance = r?.balance ?? 0;
+          const res = await rpc.pqBalance(addr) as { balance?: number } | null;
+          balance = res?.balance ?? 0;
         } catch { /* ignore */ }
       }
       built.push({
@@ -177,9 +176,8 @@ export function PQWalletPanel() {
       let balance = 0;
       if (addr) {
         try {
-          const res: unknown = await rpc.request_raw("pq_balance", [{ address: addr }]);
-          const r = res as { balance?: number } | null;
-          balance = r?.balance ?? 0;
+          const res = await rpc.pqBalance(addr) as { balance?: number } | null;
+          balance = res?.balance ?? 0;
         } catch { /* ignore */ }
       }
       built.push({
@@ -211,7 +209,7 @@ export function PQWalletPanel() {
     if (tab !== "schemes") return;
     setLoadingSchemes(true);
     rpc
-      .request_raw("pq_listSchemes", [])
+      .pqListSchemes()
       .then((res: unknown) => {
         const r = res as { schemes?: PqSchemeRow[] } | PqSchemeRow[] | null;
         if (Array.isArray(r)) setSchemes(r);

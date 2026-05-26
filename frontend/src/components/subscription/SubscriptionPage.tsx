@@ -106,7 +106,7 @@ export function SubscriptionPage() {
     if (!wallet?.address) return;
     setLoadingSubs(true);
     try {
-      const res: unknown = await rpc.request_raw("getsubscriptions", [{ address: wallet.address }]);
+      const res: unknown = await rpc.getSubscriptions(wallet.address);
       const r = res as GetSubscriptionsResp | Subscription[] | null;
       if (Array.isArray(r)) {
         setMySubs(r);
@@ -248,7 +248,7 @@ export function SubscriptionPage() {
     if (!addr) return;
     setLoadingIncoming(true);
     try {
-      const res: unknown = await rpc.request_raw("getsubscriptions", [{ address: addr }]);
+      const res: unknown = await rpc.getSubscriptions(addr);
       const r = res as GetSubscriptionsResp | Subscription[] | null;
       let all: Subscription[] = [];
       if (Array.isArray(r)) {

@@ -62,8 +62,8 @@ function BridgeMonitor() {
       setLoading(true);
       try {
         const [s, l] = await Promise.all([
-          rpc.request_raw("omnibus_getbridgestatus", []),
-          rpc.request_raw("omnibus_bridge_limits", []),
+          rpc.getBridgeStatus(),
+          rpc.getBridgeLimits(),
         ]);
         if (!cancelled) {
           if (s && typeof s === "object") setStatus(s as BridgeStatus);

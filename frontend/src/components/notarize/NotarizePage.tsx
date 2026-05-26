@@ -535,7 +535,7 @@ function VerifyDocTab() {
     setErr(null);
     setResult(null);
     try {
-      const r = await rpc.request_raw("verifynotarize", [{ doc_hash: hash }]) as VerifyResp;
+      const r = await rpc.verifyNotarize(hash) as VerifyResp;
       setResult(r);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -650,7 +650,7 @@ function MyDocsTab() {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getnotarizations", [{ address: wallet.address }]) as GetNotarizationsResp | null;
+      const r = await rpc.getNotarizations(wallet.address) as GetNotarizationsResp | null;
       setRows(r?.notarizations ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -876,7 +876,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getescrows", [{ address: wallet.address }]) as GetEscrowsResp | null;
+      const r = await rpc.getEscrows(wallet.address) as GetEscrowsResp | null;
       setRows(r?.escrows ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -1488,7 +1488,7 @@ function ReleaseEscrowTab() {
     setErrLoad(null);
     setEscrow(null);
     try {
-      const r = await rpc.request_raw("getescrow", [{ escrow_id: id }]) as EscrowRow | null;
+      const r = await rpc.getEscrow(id) as EscrowRow | null;
       setEscrow(r);
     } catch (e) {
       setErrLoad(e instanceof Error ? e.message : String(e));

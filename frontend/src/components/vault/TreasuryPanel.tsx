@@ -139,8 +139,7 @@ export function TreasuryPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("treasury_list", [{}]) as
-        { treasuries?: TreasuryEntry[] } | null;
+      const result = await rpc.treasuryList() as { treasuries?: TreasuryEntry[] } | null;
       setTreasuries(result?.treasuries ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -171,7 +170,7 @@ export function TreasuryPanel() {
     const triggerSat = Math.floor((parseFloat(formTrigger) || 0) * SAT_PER_OMNI);
     setCreateBusy(true);
     try {
-      await rpc.request_raw("treasury_create", [{
+      await rpc.treasuryCreate({
         address: addr,
         label: formLabel.trim(),
         destinations: dests.map((d) => ({
@@ -180,7 +179,7 @@ export function TreasuryPanel() {
           label: d.label.trim(),
         })),
         trigger_sat: triggerSat,
-      }]);
+      });
       showToast(`Treasury created for ${midTrunc(addr)}`);
       setFormAddress("");
       setFormLabel("");
@@ -196,7 +195,7 @@ export function TreasuryPanel() {
 
   const handleStatus = async (tid: string) => {
     try {
-      const r = await rpc.request_raw("treasury_status", [{ treasury_id: tid }]) as
+      const r = await rpc.treasuryStatus(tid) as
         { pending_distribute_sat?: number; total_distributed_sat?: number; balance_sat?: number } | null;
       if (r) setStatusMap((prev) => ({ ...prev, [tid]: {
         pending_distribute_sat: r.pending_distribute_sat ?? 0,
@@ -208,7 +207,7 @@ export function TreasuryPanel() {
 
   const handleDistribute = async (entry: TreasuryEntry) => {
     try {
-      await rpc.request_raw("treasury_distribute", [{ treasury_id: entry.treasury_id }]);
+      await rpc.treasuryDistribute(entry.treasury_id);
       showToast(`Distributed treasury ${entry.label || midTrunc(entry.address)}`);
       await refresh();
     } catch (e) {

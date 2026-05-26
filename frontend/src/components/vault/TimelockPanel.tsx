@@ -82,9 +82,7 @@ export function TimelockPanel() {
     setErr(null);
     try {
       const owner = wallet?.address;
-      const result = await rpc.request_raw("timelock_list", [
-        owner ? { owner } : {},
-      ]) as { vaults?: TimelockVault[] } | null;
+      const result = await rpc.timelockList(owner) as { vaults?: TimelockVault[] } | null;
       setVaults(result?.vaults ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -105,12 +103,12 @@ export function TimelockPanel() {
     }
     setCreateBusy(true);
     try {
-      const result = await rpc.request_raw("timelock_create", [{
+      const result = await rpc.timelockCreate({
         owner: wallet.address,
         dest: dest.trim(),
         amount_sat: amountSat,
         unlock_block: unlock,
-      }]) as { vault_id?: string } | null;
+      }) as { vault_id?: string } | null;
       showToast(`Vault created: ${result?.vault_id ?? "—"}`);
       setDest(""); setAmountStr(""); setUnlockBlock("");
       await refresh();
@@ -123,8 +121,7 @@ export function TimelockPanel() {
 
   const handleStatus = async (vaultId: string) => {
     try {
-      const r = await rpc.request_raw("timelock_status", [{ vault_id: vaultId }]) as
-        { blocks_remaining?: number } | null;
+      const r = await rpc.timelockStatus(vaultId) as { blocks_remaining?: number } | null;
       if (r) setStatusMap((prev) => ({ ...prev, [vaultId]: { blocks_remaining: r.blocks_remaining ?? 0 } }));
     } catch { /* ignore */ }
   };
@@ -132,7 +129,7 @@ export function TimelockPanel() {
   const handleSpend = async (vaultId: string) => {
     setSpendBusy(vaultId);
     try {
-      await rpc.request_raw("timelock_spend", [{ vault_id: vaultId }]);
+      await rpc.timelockSpend(vaultId);
       showToast(`Vault ${shortId(vaultId)} spent`);
       await refresh();
     } catch (e) {

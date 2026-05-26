@@ -71,7 +71,7 @@ export function AtomicSwapPanel() {
 
   const refreshBindings = async () => {
     try {
-      const r = await rpc.request_raw("swap_listOpen", [{ address: u?.address ?? "" }]);
+      const r = await rpc.swapListOpen(u?.address ?? "");
       if (Array.isArray(r)) setBindings(r as SwapBindingView[]);
     } catch {
       // swap_listOpen may be unsupported on the connected node — silent.
@@ -398,7 +398,7 @@ function SwapManagePanel({
     setActionMsg(null);
     setStatusResult(null);
     try {
-      const r = await rpc.request_raw("swap_status", [{ swap_id: swapId.trim() }]);
+      const r = await rpc.swapStatus(swapId.trim());
       if (r && typeof r === "object") setStatusResult(r as SwapStatusResult);
     } catch (e) {
       setActionMsg({ ok: false, text: String(e) });

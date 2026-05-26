@@ -117,7 +117,7 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     let cancelled = false;
     const tick = async () => {
       try {
-        const r: any = await rpc.request_raw("gettransaction", [txid]);
+        const r: any = await rpc.getTransaction(txid);
         if (cancelled) return;
         if (typeof r?.confirmations === "number") setConfirmations(r.confirmations);
       } catch {}

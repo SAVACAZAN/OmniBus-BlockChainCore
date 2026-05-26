@@ -341,7 +341,7 @@ function MarketTab() {
     setLoading(true);
     setError(null);
     try {
-      const result = await rpc.request_raw("swap_listOpen", []);
+      const result = await rpc.swapListOpen();
       setSwaps(Array.isArray(result) ? result : []);
     } catch (err) {
       setError(String(err));

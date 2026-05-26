@@ -1488,6 +1488,133 @@ export class OmniBusRpcClient {
   async getProposal(proposalId: string | number): Promise<unknown> {
     try { return await this.request("getproposal", [{ proposal_id: proposalId }]); } catch { return null; }
   }
+
+  // ── Bridge ────────────────────────────────────────────────────────────────
+
+  async getBridgeStatus(): Promise<unknown> {
+    try { return await this.request("omnibus_getbridgestatus", []); } catch { return null; }
+  }
+
+  async getBridgeLimits(): Promise<unknown> {
+    try { return await this.request("omnibus_bridge_limits", []); } catch { return null; }
+  }
+
+  // ── Subscriptions ─────────────────────────────────────────────────────────
+
+  async getSubscriptions(address: string): Promise<unknown> {
+    try { return await this.request("getsubscriptions", [{ address }]); } catch { return null; }
+  }
+
+  // ── Names (NS / ENS) ──────────────────────────────────────────────────────
+
+  async getEnsFee(address?: string): Promise<unknown> {
+    const params = address ? [address] : [];
+    try { return await this.request("getensfee", params); } catch { return null; }
+  }
+
+  async nsListTlds(): Promise<unknown[]> {
+    try {
+      const r = await this.request("ns_listTlds", []);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async nsYearTiers(): Promise<unknown[]> {
+    try {
+      const r = await this.request("ns_yearTiers", []);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async nsStats(): Promise<unknown> {
+    try { return await this.request("ns_stats", []); } catch { return null; }
+  }
+
+  async getNamesByCategory(category: string, limit = 100): Promise<unknown> {
+    try { return await this.request("getnamesbycategory", [category, limit]); } catch { return null; }
+  }
+
+  async reverseResolveName(address: string): Promise<unknown> {
+    try { return await this.request("reverseresolvename", [address]); } catch { return null; }
+  }
+
+  async treasuryGetStatus(): Promise<unknown> {
+    try { return await this.request("treasury_getStatus", []); } catch { return null; }
+  }
+
+  async treasuryGetConfig(): Promise<unknown> {
+    try { return await this.request("treasury_getConfig", []); } catch { return null; }
+  }
+
+  // ── Notarize / Escrow ─────────────────────────────────────────────────────
+
+  async verifyNotarize(docHash: string): Promise<unknown> {
+    try { return await this.request("verifynotarize", [{ doc_hash: docHash }]); } catch { return null; }
+  }
+
+  async getNotarizations(address: string): Promise<unknown> {
+    try { return await this.request("getnotarizations", [{ address }]); } catch { return null; }
+  }
+
+  async getEscrows(address: string): Promise<unknown> {
+    try { return await this.request("getescrows", [{ address }]); } catch { return null; }
+  }
+
+  async getEscrow(escrowId: string | number): Promise<unknown> {
+    try { return await this.request("getescrow", [{ escrow_id: escrowId }]); } catch { return null; }
+  }
+
+  // ── POAP ──────────────────────────────────────────────────────────────────
+
+  async getPoaps(address: string): Promise<unknown> {
+    try { return await this.request("getpoaps", [{ address }]); } catch { return null; }
+  }
+
+  async getPoapEvent(eventId: string | number): Promise<unknown> {
+    try { return await this.request("getpoapevent", [{ event_id: eventId }]); } catch { return null; }
+  }
+
+  // ── HTLC (read) ───────────────────────────────────────────────────────────
+
+  async htlcListByAddress(address: string): Promise<unknown[]> {
+    try {
+      const r = await this.request("htlc_listByAddress", [{ address }]);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async htlcGet(htlcId: string | number): Promise<unknown> {
+    try { return await this.request("htlc_get", [{ htlc_id: htlcId }]); } catch { return null; }
+  }
+
+  // ── Swap (read) ───────────────────────────────────────────────────────────
+
+  async swapListOpen(address?: string): Promise<unknown> {
+    const params = address ? [{ address }] : [];
+    try { return await this.request("swap_listOpen", params); } catch { return null; }
+  }
+
+  async swapStatus(swapId: string): Promise<unknown> {
+    try { return await this.request("swap_status", [{ swap_id: swapId }]); } catch { return null; }
+  }
+
+  // ── Wallet / PQ (read) ────────────────────────────────────────────────────
+
+  async getTransactions(): Promise<unknown> {
+    try { return await this.request("gettransactions", []); } catch { return null; }
+  }
+
+  async getPqIdentity(address: string): Promise<unknown> {
+    try { return await this.request("getpqidentity", [address]); } catch { return null; }
+  }
+
+  async pqBalance(address: string): Promise<unknown> {
+    try { return await this.request("pq_balance", [{ address }]); } catch { return null; }
+  }
+
+  async pqListSchemes(): Promise<unknown> {
+    try { return await this.request("pq_listSchemes", []); } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";

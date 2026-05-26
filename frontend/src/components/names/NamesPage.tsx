@@ -293,7 +293,7 @@ export function NamesPage() {
 
   const refresh = async () => {
     try {
-      const r = (await rpc.request_raw("listnames", [{ limit: 200 }])) as ListResp;
+      const r = (await rpc.listNames({ limit: 200 })) as ListResp;
       const safe: ListResp = (r && Array.isArray(r.entries))
         ? r
         : { entries: [], total: 0 };
@@ -347,8 +347,7 @@ export function NamesPage() {
         // Pass connected wallet address so the node returns the actual
         // Sybil-adjusted multiplier this user faces (3× at 10 names, etc.).
         // Empty/missing wallet → multiplier defaults to 1.00× server-side.
-        const params = wallet?.address ? [wallet.address] : [];
-        const r = (await rpc.request_raw("getensfee", params)) as EnsFeeResp;
+        const r = (await rpc.getEnsFee(wallet?.address)) as EnsFeeResp;
         if (!cancelled) setEnsFee(r);
       } catch {
         // silent fail — fee info is optional
@@ -356,7 +355,7 @@ export function NamesPage() {
     };
     const loadTlds = async () => {
       try {
-        const r = (await rpc.request_raw("ns_listTlds", [])) as TldFeeEntry[];
+        const r = await rpc.nsListTlds() as TldFeeEntry[];
         if (!cancelled && Array.isArray(r)) setTldList(r);
       } catch {
         // older node without ns_listTlds — fee map will fall back to ensFee
@@ -364,7 +363,7 @@ export function NamesPage() {
     };
     const loadYears = async () => {
       try {
-        const r = (await rpc.request_raw("ns_yearTiers", [])) as YearTier[];
+        const r = await rpc.nsYearTiers() as YearTier[];
         if (!cancelled && Array.isArray(r) && r.length > 0) setYearTiers(r);
       } catch {
         // older node — keep FALLBACK_YEAR_TIERS already in state
@@ -1092,8 +1091,8 @@ function TreasuryStatusCard() {
     const tick = async () => {
       try {
         const [s, c] = await Promise.all([
-          rpc.request_raw("treasury_getStatus", []) as Promise<TreasuryStatus>,
-          rpc.request_raw("treasury_getConfig", []) as Promise<TreasuryConfig>,
+          rpc.treasuryGetStatus() as Promise<TreasuryStatus>,
+          rpc.treasuryGetConfig() as Promise<TreasuryConfig>,
         ]);
         if (!cancelled) {
           setStatus(s);
@@ -1369,7 +1368,7 @@ function BrowseByCategory() {
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getnamesbycategory", [cat, 100])) as {
+      const r = (await rpc.getNamesByCategory(cat, 100)) as {
         category: string; total: number; entries: CatEntry[];
       };
       setEntries(r.entries ?? []);
@@ -1565,7 +1564,7 @@ function NsHealthDashboard() {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await rpc.request_raw("ns_stats", []);
+        const r = await rpc.nsStats();
         if (!cancelled && r && typeof r === "object") setStats(r as NsStats);
       } catch { /* ns_stats not available */ } finally {
         if (!cancelled) setLoading(false);
@@ -1581,7 +1580,7 @@ function NsHealthDashboard() {
   useEffect(() => {
     if (!u) { setExpiring([]); return; }
     let cancelled = false;
-    rpc.request_raw("ns_expiringSoon", [{ address: u.address }])
+    rpc.nsExpiringSoon(u.address)
       .then((r) => {
         if (!cancelled && r && typeof r === "object") {
           setExpiring((r as { entries?: ExpiringEntry[] }).entries ?? []);
@@ -1596,7 +1595,7 @@ function NsHealthDashboard() {
       const r = await rpc.request_raw("ns_pruneExpired", []);
       if (r && typeof r === "object") {
         setPruneResult(r as { removed: number; entry_count: number });
-        const s = await rpc.request_raw("ns_stats", []);
+        const s = await rpc.nsStats();
         if (s && typeof s === "object") setStats(s as NsStats);
       }
     } catch { /* no-op */ } finally { setPruning(false); }
@@ -1724,7 +1723,7 @@ export function ReverseResolvePanel() {
     setErr(null);
     setResult(null);
     try {
-      const r = (await rpc.request_raw("reverseresolvename", [a])) as {
+      const r = (await rpc.reverseResolveName(a)) as {
         address: string; name: string; found: boolean;
       };
       setResult(r);

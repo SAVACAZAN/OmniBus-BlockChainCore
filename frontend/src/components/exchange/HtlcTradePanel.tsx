@@ -293,8 +293,8 @@ export function HtlcTradePanel() {
     setLoadingHtlcs(true);
     setHtlcErr(null);
     try {
-      const res = await rpc.request_raw("htlc_listByAddress", [{ address: u.address }]) as unknown[];
-      setHtlcs(Array.isArray(res) ? res : []);
+      const res = await rpc.htlcListByAddress(u.address);
+      setHtlcs(res);
     } catch (e: any) {
       setHtlcs([]);
       setHtlcErr(e?.message ?? String(e));
@@ -555,7 +555,7 @@ export function HtlcLookupPanel() {
     if (!id) { setErr("Enter HTLC ID"); return; }
     setLoading(true); setErr(""); setEntry(null);
     try {
-      const r = await rpc.request_raw("htlc_get", [{ htlc_id: id }]) as HtlcEntry;
+      const r = await rpc.htlcGet(id) as HtlcEntry;
       if (r && typeof r === "object" && "htlc_id" in r) setEntry(r);
       else setErr("HTLC not found");
     } catch (e) { setErr(String(e)); }

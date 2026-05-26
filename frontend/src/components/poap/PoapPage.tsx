@@ -391,7 +391,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getpoaps", [{ address: effectiveAddress }]) as GetPoapsResp | null;
+      const r = await rpc.getPoaps(effectiveAddress) as GetPoapsResp | null;
       setPoaps(r?.poaps ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -408,7 +408,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     setSelectedEvent(null);
     setEventLoading(true);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setSelectedEvent(ev);
     } catch { /* ignore */ } finally {
       setEventLoading(false);
@@ -615,7 +615,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     setErr(null);
     setEvent(undefined);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setEvent(ev ?? null);
       if (ev === null) setErr("Event not found");
     } catch (e) {
@@ -960,7 +960,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
     setPreviewEvent(undefined);
     setClaimResult(null);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setPreviewEvent(ev);
       if (!ev) setPreviewErr("Event not found");
     } catch (e) {

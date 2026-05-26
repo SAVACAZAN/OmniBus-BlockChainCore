@@ -54,9 +54,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
     let cancelled = false;
     const load = async () => {
       try {
-        const result = await rpc.request_raw("coldwallet_history", [
-          { address: entry.address, limit: 50 },
-        ]) as { transactions?: ColdWalletTx[] } | null;
+        const result = await rpc.coldwalletHistory(entry.address, 50) as { transactions?: ColdWalletTx[] } | null;
         if (!cancelled) setTxs(result?.transactions ?? []);
       } catch (e) {
         if (!cancelled) setErr(e instanceof Error ? e.message : String(e));
@@ -167,8 +165,7 @@ export function ColdWalletPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("coldwallet_list", [{}]) as
-        { addresses?: ColdWalletEntry[] } | null;
+      const result = await rpc.coldwalletList() as { addresses?: ColdWalletEntry[] } | null;
       setAddresses(result?.addresses ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -192,7 +189,7 @@ export function ColdWalletPanel() {
     if (!addr) return;
     setAddBusy(true);
     try {
-      await rpc.request_raw("coldwallet_add", [{ address: addr, label: addLabel.trim() }]);
+      await rpc.coldwalletAdd(addr, addLabel.trim());
       setAddAddress("");
       setAddLabel("");
       showToast(`Watching address ${midTrunc(addr)}`);
@@ -206,7 +203,7 @@ export function ColdWalletPanel() {
 
   const handleRemove = async (address: string) => {
     try {
-      await rpc.request_raw("coldwallet_remove", [{ address }]);
+      await rpc.coldwalletRemove(address);
       setRemoveAddr(null);
       showToast(`Removed ${midTrunc(address)}`);
       await refresh();

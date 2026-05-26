@@ -210,7 +210,7 @@ export function WalletPage() {
           setTransactions(fallback?.transactions || []);
         } catch {
           try {
-            const last = await rpc.request_raw("gettransactions");
+            const last = await rpc.getTransactions() as { transactions?: unknown[] } | null;
             setTransactions(last?.transactions || []);
           } catch {}
         }
@@ -1673,7 +1673,7 @@ function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keyst
           return;
         }
         // Authoritative check via chain RPC.
-        const res: any = await rpc.request_raw("getpqidentity", [unlocked.address]);
+        const res: any = await rpc.getPqIdentity(unlocked.address);
         if (!cancelled && res && res.omni_address) {
           setStatus("already");
           setTxid(res.attest_tx ?? "");
