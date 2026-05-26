@@ -70,7 +70,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const loadBlock = async () => {
     setLoading(true);
     try {
-      const result: any = await rpc.getBlock(block.height);
+      const result = await rpc.getBlock(block.height) as BlockData & { prices?: PriceEntry[]; transactions?: string[]; tx_ids?: string[]; txids?: string[] };
       if (result && typeof result === "object") {
         setFull({
           height:          result.height ?? block.height,

@@ -57,11 +57,10 @@ export function BlockTimeBand() {
         const from = Math.max(0, state.blockCount - 25);
         const count = Math.min(25, state.blockCount - from);
         if (count < 2) return;
-        const resp: any = await rpc.getBlocks(from, count);
+        const blks = (await rpc.getBlocks(from, count))
+          .filter((b) => b.timestamp > 0)
+          .sort((a, b) => a.height - b.height);
         if (cancelled) return;
-        const blks: any[] = (Array.isArray(resp) ? resp : (resp?.blocks ?? []))
-          .filter((b: any) => b.timestamp > 0)
-          .sort((a: any, b: any) => a.height - b.height);
         const ts: number[] = [];
         for (let i = 1; i < blks.length; i++) {
           const dt = blks[i].timestamp - blks[i - 1].timestamp;

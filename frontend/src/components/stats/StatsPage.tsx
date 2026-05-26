@@ -216,10 +216,9 @@ export function StatsPage() {
       // Fetch last 100 blocks — single batch call, fallback to parallel individual calls
       const count = Math.min(100, tip);
       const from = Math.max(0, tip - count);
-      let blocks: any[] = [];
+      let blocks: import("../../types").BlockData[] = [];
       try {
-        const resp: any = await rpc.getBlocks(from, count);
-        blocks = Array.isArray(resp) ? resp : (resp?.blocks ?? []);
+        blocks = await rpc.getBlocks(from, count);
       } catch {
         const start = tip - 1;
         const end = Math.max(0, start - count);

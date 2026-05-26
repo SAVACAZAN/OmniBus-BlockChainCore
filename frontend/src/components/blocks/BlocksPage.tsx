@@ -37,9 +37,8 @@ export function BlocksPage() {
     try {
       let height = state.blockCount;
       try {
-        const live: any = await rpc.getBlockCount();
-        const liveCount = typeof live === "object" && live ? live.blockCount : live;
-        if (typeof liveCount === "number" && liveCount > 0) height = liveCount;
+        const liveCount = await rpc.getBlockCount();
+        if (liveCount > 0) height = liveCount;
       } catch { /* fall back */ }
 
       // Use getblocks (1 call) instead of N individual getBlock calls.
@@ -49,8 +48,7 @@ export function BlocksPage() {
       if (count <= 0) { setBlocks([]); setLoading(false); return; }
 
       try {
-        const resp: any = await rpc.getBlocks(from, count);
-        const blks: any[] = Array.isArray(resp) ? resp : (resp?.blocks ?? []);
+        const blks = await rpc.getBlocks(from, count);
         setBlocks([...blks].reverse() as BlockWithDiff[]);
       } catch {
         // Fallback to individual requests if getblocks not available

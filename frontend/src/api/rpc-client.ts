@@ -334,7 +334,8 @@ export class OmniBusRpcClient {
   }
 
   async getBlocks(from: number, count: number = 10): Promise<BlockData[]> {
-    return this.request("getblocks", [from, count]);
+    const r = await this.request("getblocks", [from, count]) as BlockData[] | { blocks?: BlockData[] };
+    return Array.isArray(r) ? r : (r?.blocks ?? []);
   }
 
   async getMinerInfo(): Promise<MinerInfo> {
