@@ -7184,7 +7184,7 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const sep: []const u8 = if (n == 0) "" else ",";
         var blk_fees: u64 = 0;
         for (blk.transactions.items) |tx| { if (tx.fee > 0) blk_fees += @as(u64, @intCast(tx.fee)); }
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat, blk_fees });
+        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"difficulty\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat, blk_fees, ctx.bc.difficulty });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m;
     }
