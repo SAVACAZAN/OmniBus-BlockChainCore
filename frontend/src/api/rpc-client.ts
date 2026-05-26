@@ -1247,3 +1247,6 @@ export interface MultisigCreateResult {
 }
 
 export default OmniBusRpcClient;
+
+/** Module-level singleton — share one client across hooks that don't need a custom URL. */
+export const rpc = new OmniBusRpcClient();

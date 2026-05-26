@@ -32,8 +32,7 @@ import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
 import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
 
 const rpc = new OmniBusRpcClient();
 
@@ -145,27 +144,7 @@ function signUnstakePayload(args: {
 
 export function StakePage() {
   const [tab, setTab] = useState<SubTab>("mine");
-  const [blockHeight, setBlockHeight] = useState<number>(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    })();
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      setBlockHeight(ev.height);
-    });
-    const id = window.setInterval(async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => { cancelled = true; window.clearInterval(id); unsub(); };
-  }, []);
+  const blockHeight = useBlockHeight();
 
   return (
     <section className="bg-mempool-bg-elev rounded-lg p-3 sm:p-4 border border-mempool-border backdrop-blur-sm">

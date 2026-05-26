@@ -17,8 +17,7 @@ import { Lock, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
 
 const rpc = new OmniBusRpcClient();
 
@@ -59,7 +58,7 @@ function stateIcon(state: VaultState): string {
 
 export function TimelockPanel() {
   const wallet = useWallet();
-  const [blockHeight, setBlockHeight] = useState(0);
+  const blockHeight = useBlockHeight();
   const [vaults, setVaults] = useState<TimelockVault[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -78,26 +77,6 @@ export function TimelockPanel() {
     window.setTimeout(() => setToast(null), 6000);
   };
 
-  // Fetch block height — live via WS, 60 s fallback poll.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    })();
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      setBlockHeight(ev.height);
-    });
-    const id = setInterval(async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => { cancelled = true; clearInterval(id); unsub(); };
-  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);

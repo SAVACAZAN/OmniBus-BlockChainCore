@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
 import {
   Scale,
   RefreshCw,
@@ -918,33 +919,13 @@ function VoteTab({
 export function GovernancePage() {
   const wallet = useWallet();
   const [tab, setTab] = useState<SubTab>("proposals");
-  const [blockHeight, setBlockHeight] = useState<number>(0);
+  const blockHeight = useBlockHeight();
 
   // Shared toast + vote/execute callbacks so proposals list and modal
   // both surface results in a single place.
   const [sharedToast, setSharedToast] = useState<string | null>(null);
   const [voteBusy, setVoteBusy] = useState(false);
   const [executeBusy, setExecuteBusy] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    })();
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      setBlockHeight(ev.height);
-    });
-    const id = window.setInterval(async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => { cancelled = true; window.clearInterval(id); unsub(); };
-  }, []);
 
   const handleVote = async (proposal: Proposal, vote: "yes" | "no") => {
     if (!wallet) { setSharedToast("Connect wallet to vote"); return; }

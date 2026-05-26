@@ -17,8 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
 import {
   FileText,
   Shield,
@@ -1664,30 +1663,7 @@ function ReleaseEscrowTab() {
 
 export function NotarizePage() {
   const [topTab, setTopTab]     = useState<TopTab>("notarize");
-  const [blockHeight, setBlockHeight] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    // Initial fetch — sets a real height before first WS event.
-    (async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    })();
-    // Live update: fires immediately on every mined block (no polling needed).
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      setBlockHeight(ev.height);
-    });
-    // Slow fallback poll (60 s) in case WS is disconnected.
-    const id = window.setInterval(async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => { cancelled = true; window.clearInterval(id); unsub(); };
-  }, []);
+  const blockHeight = useBlockHeight();
 
   const topTabs: { id: TopTab; label: string }[] = [
     { id: "notarize", label: "Notarize" },

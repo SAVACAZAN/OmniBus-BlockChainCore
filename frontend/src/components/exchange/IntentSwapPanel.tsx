@@ -17,8 +17,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
 import {
   RefreshCw,
   ArrowLeftRight,
@@ -170,7 +169,7 @@ function StatusBadge({ status }: { status: IntentStatus }) {
 function MyIntentsTab() {
   const wallet = useWallet();
   const [intents, setIntents] = useState<LocalIntent[]>([]);
-  const [blockHeight, setBlockHeight] = useState(0);
+  const blockHeight = useBlockHeight();
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     id: string;
@@ -180,12 +179,10 @@ function MyIntentsTab() {
 
   useEffect(() => {
     setIntents(loadLocalIntents());
-    rpc.getBlockCount().then(setBlockHeight).catch(() => {});
   }, []);
 
   const refresh = useCallback(() => {
     setIntents(loadLocalIntents());
-    rpc.getBlockCount().then(setBlockHeight).catch(() => {});
   }, []);
 
   const markStatus = (intent_id: string, status: LocalIntent["status"]) => {
@@ -970,27 +967,7 @@ const TABS: { id: SubTab; label: string; Icon: React.FC<{ className?: string }> 
 
 export function IntentSwapPanel() {
   const [tab, setTab] = useState<SubTab>("market");
-  const [blockHeight, setBlockHeight] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    })();
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      setBlockHeight(ev.height);
-    });
-    const id = window.setInterval(async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => { cancelled = true; window.clearInterval(id); unsub(); };
-  }, []);
+  const blockHeight = useBlockHeight();
 
   return (
     <section className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4">
