@@ -19,6 +19,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Scale,
   RefreshCw,
@@ -960,15 +962,22 @@ export function GovernancePage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    (async () => {
       try {
         const h = await rpc.getBlockCount();
         if (!cancelled) setBlockHeight(h);
       } catch { /* ignore */ }
-    };
-    void tick();
-    const id = window.setInterval(tick, 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    })();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setBlockHeight(ev.height);
+    });
+    const id = window.setInterval(async () => {
+      try {
+        const h = await rpc.getBlockCount();
+        if (!cancelled) setBlockHeight(h);
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, []);
 
   const handleVote = async (proposal: Proposal, vote: "yes" | "no") => {

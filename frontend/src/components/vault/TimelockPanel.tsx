@@ -16,6 +16,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Lock, Unlock, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -82,18 +84,25 @@ export function TimelockPanel() {
     window.setTimeout(() => setToast(null), 6000);
   };
 
-  // Fetch block height
+  // Fetch block height — live via WS, 60 s fallback poll.
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    (async () => {
       try {
         const h = await rpc.getBlockCount();
         if (!cancelled) setBlockHeight(h);
       } catch { /* ignore */ }
-    };
-    void tick();
-    const id = setInterval(() => void tick(), 5000);
-    return () => { cancelled = true; clearInterval(id); };
+    })();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setBlockHeight(ev.height);
+    });
+    const id = setInterval(async () => {
+      try {
+        const h = await rpc.getBlockCount();
+        if (!cancelled) setBlockHeight(h);
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   const refresh = useCallback(async () => {

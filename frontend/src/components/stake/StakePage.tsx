@@ -33,6 +33,8 @@ import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -168,15 +170,22 @@ export function StakePage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    (async () => {
       try {
         const h = await rpc.getBlockCount();
         if (!cancelled) setBlockHeight(h);
       } catch { /* ignore */ }
-    };
-    tick();
-    const id = window.setInterval(tick, 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    })();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setBlockHeight(ev.height);
+    });
+    const id = window.setInterval(async () => {
+      try {
+        const h = await rpc.getBlockCount();
+        if (!cancelled) setBlockHeight(h);
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, []);
 
   return (
