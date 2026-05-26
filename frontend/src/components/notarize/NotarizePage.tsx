@@ -233,22 +233,30 @@ function SubTabBar({
   );
 }
 
+const STATUS_BADGE_MAP: Record<string, string> = {
+  valid:     "bg-green-500/20 text-green-400 border-green-500/40",
+  released:  "bg-green-500/20 text-green-400 border-green-500/40",
+  expired:   "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
+  disputed:  "bg-orange-500/20 text-orange-400 border-orange-500/40",
+  revoked:   "bg-red-500/20 text-red-400 border-red-500/40",
+  not_found: "bg-red-500/20 text-red-400 border-red-500/40",
+  open:      "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  refunded:  "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
+
+const VERIFY_STATUS_COLOR: Record<string, string> = {
+  valid:     "border-green-500/40 bg-green-500/5",
+  expired:   "border-yellow-500/40 bg-yellow-500/5",
+  revoked:   "border-red-500/40 bg-red-500/5",
+  not_found: "border-red-500/40 bg-red-500/5",
+};
+
 function StatusBadge({ status }: { status: "valid" | "expired" | "revoked" | "not_found" | EscrowStatus }) {
-  const map: Record<string, string> = {
-    valid:      "bg-green-500/20 text-green-400 border-green-500/40",
-    released:   "bg-green-500/20 text-green-400 border-green-500/40",
-    expired:    "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
-    disputed:   "bg-orange-500/20 text-orange-400 border-orange-500/40",
-    revoked:    "bg-red-500/20 text-red-400 border-red-500/40",
-    not_found:  "bg-red-500/20 text-red-400 border-red-500/40",
-    open:       "bg-blue-500/20 text-blue-400 border-blue-500/40",
-    refunded:   "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
-  };
   return (
     <span
       className={
         "text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium " +
-        (map[status] ?? map.refunded)
+        (STATUS_BADGE_MAP[status] ?? STATUS_BADGE_MAP.refunded)
       }
     >
       {status.replace("_", " ")}
@@ -556,13 +564,6 @@ function VerifyDocTab() {
     }
   };
 
-  const statusColor: Record<string, string> = {
-    valid:     "border-green-500/40 bg-green-500/5",
-    expired:   "border-yellow-500/40 bg-yellow-500/5",
-    revoked:   "border-red-500/40 bg-red-500/5",
-    not_found: "border-red-500/40 bg-red-500/5",
-  };
-
   return (
     <div className="space-y-4">
       <HashInput hash={hash} setHash={setHash} label="Document to verify" />
@@ -578,7 +579,7 @@ function VerifyDocTab() {
       {err && <p className="text-xs text-mempool-orange font-mono">{err}</p>}
 
       {result && (
-        <div className={`rounded border p-3 space-y-2 text-xs font-mono ${statusColor[result.status] ?? ""}`}>
+        <div className={`rounded border p-3 space-y-2 text-xs font-mono ${VERIFY_STATUS_COLOR[result.status] ?? ""}`}>
           <div className="flex items-center gap-2">
             <StatusBadge status={result.status} />
             {result.status === "valid" && <span className="text-green-400 font-semibold">Verified on chain</span>}

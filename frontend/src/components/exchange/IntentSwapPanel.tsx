@@ -141,25 +141,20 @@ const INTENT_STATUS_LEGEND: { status: IntentStatus; desc: string }[] = [
   { status: "cancelled", desc: "Cancelled" },
 ];
 
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  open:        "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/40",
+  pending:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  filled:      "bg-green-500/20 text-green-400 border border-green-500/40",
+  settled:     "bg-gray-500/20 text-gray-400 border border-gray-500/40",
+  both_locked: "bg-green-500/20 text-green-400 border border-green-500/40",
+  expired:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  timeout:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  cancelled:   "bg-red-500/20 text-red-400 border border-red-500/40",
+};
+
 function StatusBadge({ status }: { status: IntentStatus }) {
-  const map: Record<string, string> = {
-    open: "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/40",
-    pending:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    filled:
-      "bg-green-500/20 text-green-400 border border-green-500/40",
-    settled: "bg-gray-500/20 text-gray-400 border border-gray-500/40",
-    both_locked:
-      "bg-green-500/20 text-green-400 border border-green-500/40",
-    expired:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    timeout:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    cancelled:
-      "bg-red-500/20 text-red-400 border border-red-500/40",
-  };
   const cls =
-    map[status] ??
+    STATUS_BADGE_CLASS[status] ??
     "bg-gray-500/20 text-gray-400 border border-gray-500/40";
   return (
     <span
