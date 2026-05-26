@@ -229,9 +229,34 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               : "bg-mempool-green/20 text-mempool-green";
             return (
               <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
-                <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-2">
-                  Oracle Prices @ Mining ({prices.length} entries)
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider">
+                    Oracle Prices @ Mining ({prices.length} entries)
+                  </p>
+                  <button
+                    onClick={() => {
+                      const csvRows = [
+                        ["pair","exchange","bid_usd","ask_usd","timestamp_ms","source"].join(","),
+                        ...prices.filter(p => p.success).map((p) => [
+                          p.pair,
+                          p.exchange,
+                          (p.bidMicroUsd / 1_000_000).toFixed(6),
+                          (p.askMicroUsd / 1_000_000).toFixed(6),
+                          p.timestampMs,
+                          isOnChain ? "on-chain" : "live",
+                        ].join(",")),
+                      ].join("\n");
+                      const blob = new Blob([csvRows], { type: "text/csv" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = `omnibus-block-${full.height}-prices.csv`;
+                      a.click(); URL.revokeObjectURL(url);
+                    }}
+                    className="px-2 py-0.5 text-[9px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+                  >
+                    ⬇ CSV
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   {Array.from(new Set(prices.map((p) => p.pair))).map((pair) => {
                     const rows = prices.filter((p) => p.pair === pair);
