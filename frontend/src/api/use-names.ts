@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "./rpc-client";
+import { subscribe as wsSubscribe } from "./ws-bus";
 
 const rpc = new OmniBusRpcClient();
 
@@ -100,6 +101,10 @@ export function refreshNameCache() {
   inflight.clear();
   loadAllEntries();
 }
+
+// Auto-refresh when node broadcasts a name_registered or name_renewed WS event
+wsSubscribe("name_registered", () => { refreshNameCache(); });
+wsSubscribe("name_renewed",    () => { refreshNameCache(); });
 
 /** What the user picked as their public-facing name for `addr`. */
 export function getPrimaryName(addr: string): string | null {

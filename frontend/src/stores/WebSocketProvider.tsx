@@ -6,7 +6,7 @@ import {
 } from "./useBlockchainStore";
 import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
 import { publish as wsBusPublish } from "../api/ws-bus";
-import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent } from "../types";
+import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent, WsIbdProgressEvent, WsPeerConnectEvent, WsPeerDisconnectEvent } from "../types";
 
 // On HTTP: connects directly to ws://hostname:{8334|18334|28334}.
 // On HTTPS: routes via wss://host/ws-{chain} (Caddy proxy).
@@ -151,6 +151,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
               break;
             case "oracle_price":
               dispatch({ type: "WS_ORACLE_PRICE", payload: data as WsOraclePriceEvent });
+              break;
+            case "ibd_progress":
+              dispatch({ type: "WS_IBD_PROGRESS", payload: data as WsIbdProgressEvent });
+              break;
+            case "peer_connect":
+              dispatch({ type: "WS_PEER_CONNECT", payload: data as WsPeerConnectEvent });
+              break;
+            case "peer_disconnect":
+              dispatch({ type: "WS_PEER_DISCONNECT", payload: data as WsPeerDisconnectEvent });
               break;
             case "heartbeat":
               break;

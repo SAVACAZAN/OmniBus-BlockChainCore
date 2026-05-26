@@ -24,6 +24,7 @@ export const initialState: BlockchainState = {
   oraclePrices: {},
   orderbookSnapshots: {},
   recentTrades: [],
+  ibdProgress: null,
 };
 
 export function blockchainReducer(
@@ -127,6 +128,31 @@ export function blockchainReducer(
         recentTrades: [trade, ...state.recentTrades].slice(0, MAX_RECENT_TRADES),
       };
     }
+
+    case "WS_IBD_PROGRESS": {
+      const p = action.payload;
+      return {
+        ...state,
+        ibdProgress: p.active ? { local_height: p.local_height, peer_height: p.peer_height, behind: p.behind, progress: p.progress, active: true } : null,
+        blockCount: p.active ? p.local_height : state.blockCount,
+      };
+    }
+
+    case "WS_PEER_CONNECT": {
+      const existing = state.peers.find((pr) => pr.id === action.payload.nodeId);
+      if (existing) return state;
+      const [host, portStr] = action.payload.address.split(":");
+      const newPeer = { id: action.payload.nodeId, host: host ?? action.payload.address, port: parseInt(portStr ?? "9000"), alive: true };
+      return { ...state, peers: [...state.peers, newPeer] };
+    }
+
+    case "WS_PEER_DISCONNECT":
+      return {
+        ...state,
+        peers: state.peers.map((p) =>
+          p.id === action.payload.nodeId ? { ...p, alive: false } : p
+        ),
+      };
 
     default:
       return state;

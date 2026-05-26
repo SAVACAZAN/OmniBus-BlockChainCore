@@ -56,8 +56,25 @@ export function Header() {
     return () => { delete window.__openTx; };
   }, []);
 
+  const ibd = state.ibdProgress;
+
   return (
     <>
+      {/* IBD sync progress banner — visible only while node is catching up */}
+      {ibd && ibd.active && (
+        <div className="sticky top-0 z-[60] bg-mempool-orange/10 border-b border-mempool-orange/40 px-4 py-1.5 flex items-center gap-3">
+          <span className="text-[11px] text-mempool-orange font-medium animate-pulse">Syncing…</span>
+          <div className="flex-1 bg-mempool-bg rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-mempool-orange rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, ibd.progress)}%` }}
+            />
+          </div>
+          <span className="text-[10px] font-mono text-mempool-text-dim whitespace-nowrap">
+            {ibd.local_height.toLocaleString()} / {ibd.peer_height.toLocaleString()} ({ibd.progress}%)
+          </span>
+        </div>
+      )}
       <header className="sticky top-0 z-50 bg-mempool-bg-elev backdrop-blur-sm border-b border-mempool-border">
         {/* ── Desktop layout (sm+) ── */}
         <div className="hidden sm:flex max-w-7xl mx-auto px-4 py-3 items-center justify-between">
