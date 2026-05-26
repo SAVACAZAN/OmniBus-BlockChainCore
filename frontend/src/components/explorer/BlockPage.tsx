@@ -207,6 +207,9 @@ export function BlockPage({ height, onNavigate }: Props) {
             </div>
           )}
           <Field label="Block Reward" value={fmtSat(block.rewardSAT || 0)} highlight />
+          {(block.totalFees ?? 0) > 0 && (
+            <Field label="Total Fees" value={fmtSat(block.totalFees)} />
+          )}
           <Field label="Confirmations" value={String(confirmations)} />
           {block.difficulty !== undefined && (
             <Field label="Difficulty" value={Number(block.difficulty).toLocaleString()} />

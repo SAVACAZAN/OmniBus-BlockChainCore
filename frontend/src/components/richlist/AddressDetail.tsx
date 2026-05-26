@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -209,15 +210,20 @@ export function AddressDetail({
                     className="border-b border-mempool-border/40 hover:bg-mempool-bg/30"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-mempool-text-dim">
-                      {tx.blockHeight !== null
-                        ? tx.blockHeight.toLocaleString()
-                        : "—"}
+                      {tx.blockHeight !== null ? (
+                        <button
+                          onClick={() => { window.location.hash = `#/block/${tx.blockHeight}`; }}
+                          className="text-mempool-blue hover:underline"
+                        >
+                          #{tx.blockHeight.toLocaleString()}
+                        </button>
+                      ) : "—"}
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
-                        onClick={() => navigator.clipboard.writeText(tx.txid)}
+                        onClick={() => { window.location.hash = `#/tx/${tx.txid}`; }}
                         className="text-mempool-blue hover:underline"
-                        title="Click to copy TXID"
+                        title={tx.txid}
                       >
                         {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
                       </button>
@@ -239,13 +245,11 @@ export function AddressDetail({
                         </span>
                       ) : (
                         <button
-                          onClick={() =>
-                            navigator.clipboard.writeText(counterparty)
-                          }
-                          className="text-mempool-text-dim hover:text-mempool-text"
-                          title="Click to copy"
+                          onClick={() => { window.location.hash = `#/address/${counterparty}`; }}
+                          className="text-mempool-blue hover:underline transition-colors"
+                          title={counterparty}
                         >
-                          {counterparty.slice(0, 10)}…{counterparty.slice(-6)}
+                          <AddressLabel address={counterparty} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       )}
                     </td>
