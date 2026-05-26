@@ -16011,10 +16011,12 @@ fn handleGetLabels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const n = ctx.bc.label_registry.listActive(address, &entries);
     for (entries[0..n], 0..) |e, i| {
         if (i > 0) try w.writeByte(',');
+        const label_note = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(label_note);
         try w.print(
             "{{\"id\":{d},\"reporter\":\"{s}\",\"tag\":\"{s}\",\"note\":\"{s}\"," ++
             "\"weight\":{d},\"block\":{d}}}",
-            .{ e.id, e.reporterSlice(), e.tag.toStr(), e.noteSlice(), e.weight, e.block_height },
+            .{ e.id, e.reporterSlice(), e.tag.toStr(), label_note, e.weight, e.block_height },
         );
     }
 
@@ -17170,13 +17172,15 @@ fn handleGetNotarizations(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const status = if (e.revoked) "revoked"
             else if (e.expiry_block > 0 and current_block > e.expiry_block) "expired"
             else "valid";
+        const note_safe = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(note_safe);
         try w.print(
             "{{\"id\":{d},\"doc_hash\":\"{s}\",\"doc_type\":\"{s}\"," ++
             "\"block_height\":{d},\"tx_hash\":\"{s}\"," ++
             "\"expiry_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
             .{ e.id, e.docHashSlice(), e.doc_type.toStr(),
                e.block_height, e.txHashSlice(),
-               e.expiry_block, status, e.noteSlice() },
+               e.expiry_block, status, note_safe },
         );
     }
     try w.writeAll("]}}");
@@ -17320,6 +17324,8 @@ fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .cancelled => "cancelled",
             .completed => "completed",
         };
+        const sub_note = try jsonSanitize(alloc, sub.noteSlice());
+        defer alloc.free(sub_note);
         try w.print(
             "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
             "\"amount_sat\":{d},\"interval_blocks\":{d}," ++
@@ -17328,7 +17334,7 @@ fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .{ sub.id, sub.fromSlice(), sub.toSlice(),
                sub.amount_sat, sub.interval_blocks,
                sub.max_payments, sub.payments_done,
-               sub.next_block, status_str, sub.noteSlice() },
+               sub.next_block, status_str, sub_note },
         );
     }
     try w.writeAll("]}}");
@@ -17737,6 +17743,16 @@ fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, facet_name, root_hex });
 }
 
+/// Write a JSON-safe string: escapes `"` → `'`, `\` → `/`, strips ctrl chars.
+fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
+    for (s) |c| {
+        if (c == '"')       { try w.writeByte('\''); }
+        else if (c == '\\') { try w.writeByte('/');  }
+        else if (c < 0x20)  {}
+        else                { try w.writeByte(c);    }
+    }
+}
+
 /// Emit a facet as a JSON object containing only fields with is_public=true.
 fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
     try w.writeByte('{');
@@ -17746,7 +17762,11 @@ fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
         if (!kv.value_ptr.is_public) continue;
         if (!first) try w.writeByte(',');
         first = false;
-        try w.print("\"{s}\":\"{s}\"", .{ kv.key_ptr.*, kv.value_ptr.value });
+        try w.writeByte('"');
+        try writeJsonSafeStr(w, kv.key_ptr.*);
+        try w.writeAll("\":\"");
+        try writeJsonSafeStr(w, kv.value_ptr.value);
+        try w.writeByte('"');
     }
     try w.writeByte('}');
 }
