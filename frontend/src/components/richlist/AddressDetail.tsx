@@ -128,6 +128,41 @@ export function AddressDetail({
         </div>
       )}
 
+      {filteredTxs.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const rows = [
+                ["txid","kind","direction","amount_omni","fee_omni","counterparty","block_height","confirmations","status","memo"].join(","),
+                ...filteredTxs.map((tx) => {
+                  const counterparty = tx.direction === "sent" ? tx.to : tx.from;
+                  return [
+                    `"${tx.txid}"`,
+                    tx.kind,
+                    tx.direction,
+                    omniFmt(tx.amount),
+                    omniFmt(tx.fee),
+                    `"${counterparty}"`,
+                    tx.blockHeight ?? "",
+                    tx.confirmations,
+                    tx.status,
+                    `"${(tx.memo ?? "").replace(/"/g, '""')}"`,
+                  ].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = `omnibus-${address.slice(0, 12)}-txs.csv`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
+
       {kinds.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span className="text-xs text-mempool-text-dim">Filter by type:</span>

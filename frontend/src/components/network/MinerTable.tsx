@@ -74,11 +74,40 @@ export function MinerTable() {
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Miners ({miners.length})
         </h3>
-        {totalBlocks > 0 && (
-          <span className="text-[10px] text-mempool-text-dim">
-            {totalBlocks.toLocaleString()} blocks total
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {totalBlocks > 0 && (
+            <span className="text-[10px] text-mempool-text-dim">
+              {totalBlocks.toLocaleString()} blocks total
+            </span>
+          )}
+          <button
+            onClick={() => {
+              const rows = [
+                ["rank","address","blocks_mined","share_pct","total_reward_omni","balance_omni","last_block"].join(","),
+                ...[...miners].sort((a, b) => b.blocksMined - a.blocksMined).map((m, idx) => {
+                  const pct = totalBlocks > 0 ? (m.blocksMined / totalBlocks * 100).toFixed(2) : "0";
+                  return [
+                    idx + 1,
+                    `"${m.address}"`,
+                    m.blocksMined,
+                    pct,
+                    fmtOmni(m.totalRewardSAT),
+                    fmtOmni(m.currentBalanceSAT),
+                    m.lastBlockHeight ?? "",
+                  ].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-miners.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs min-w-[520px]">

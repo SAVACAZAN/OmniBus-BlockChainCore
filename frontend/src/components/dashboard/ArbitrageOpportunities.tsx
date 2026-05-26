@@ -149,6 +149,32 @@ export default function ArbitrageOpportunities() {
           </span>
         )}
         <div className="flex-1 h-px bg-mempool-border" />
+        {sorted.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["pair","buy_at","buy_ask_usd","sell_at","sell_bid_usd","spread_usd","spread_pct"].join(","),
+                ...sorted.map((o) => [
+                  o.pair,
+                  o.buyAt,
+                  (o.buyAskMicroUsd / 1_000_000).toFixed(6),
+                  o.sellAt,
+                  (o.sellBidMicroUsd / 1_000_000).toFixed(6),
+                  (o.spreadMicroUsd / 1_000_000).toFixed(6),
+                  o.spreadPct.toFixed(4),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-arb-opportunities.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <span className="text-xs text-mempool-text-dim font-mono">
           {sorted.length} shown
         </span>
