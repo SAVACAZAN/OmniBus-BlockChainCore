@@ -1117,7 +1117,7 @@ function TreasuryStatusCard() {
     void tick();
     // Treasury state updates per block — use WS for immediate refresh.
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
-    const id = setInterval(tick, 60_000);
+    const id = setInterval(() => { void tick(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 

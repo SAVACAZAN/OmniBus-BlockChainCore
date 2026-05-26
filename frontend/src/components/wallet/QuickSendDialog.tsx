@@ -123,8 +123,8 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
         if (typeof r?.confirmations === "number") setConfirmations(r.confirmations);
       } catch {}
     };
-    tick();
-    const id = setInterval(tick, 5_000);
+    void tick();
+    const id = setInterval(() => { void tick(); }, 5_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [result?.txid]);
 

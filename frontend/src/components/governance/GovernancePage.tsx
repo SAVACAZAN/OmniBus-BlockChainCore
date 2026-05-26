@@ -442,7 +442,7 @@ function ProposalsTab({
     const tick = async () => { if (!cancelled) await refresh(); };
     void tick();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
-    const id = window.setInterval(tick, 60_000);
+    const id = window.setInterval(() => { void tick(); }, 60_000);
     return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, [refresh]);
 

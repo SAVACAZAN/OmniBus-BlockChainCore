@@ -80,9 +80,9 @@ export function AtomicSwapPanel() {
   };
 
   useEffect(() => {
-    refreshBindings();
+    void refreshBindings();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refreshBindings(); });
-    const id = setInterval(refreshBindings, 60_000);
+    const id = setInterval(() => { void refreshBindings(); }, 60_000);
     return () => { clearInterval(id); unsub(); };
   }, [u?.address]);
 
