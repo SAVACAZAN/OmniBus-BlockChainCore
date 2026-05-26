@@ -83,6 +83,9 @@ type SortKey =
   | "stakeChange";
 type SortDir = "asc" | "desc";
 
+const REP_CUPS = ["love", "food", "rent", "vacation"] as const;
+type RepCup = typeof REP_CUPS[number];
+
 /** Convert tip block timestamp + day-window math to a real ISO date string. */
 function dayDate(d: DailyEntry, resp: DailyActivityResp | null): string {
   if (!resp) return `day-${d.dayIndex}`;
@@ -310,7 +313,7 @@ export function DailyAuditPage() {
       {/* Reputation snapshot — current cups (LOVE/FOOD/RENT/VACATION) */}
       {rep && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-          {(["love", "food", "rent", "vacation"] as const).map((k) => (
+          {REP_CUPS.map((k) => (
             <div key={k} className="bg-mempool-bg border border-mempool-border rounded p-2.5">
               <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">{k}</div>
               <div className="text-sm font-mono text-mempool-text mt-0.5">{rep.cups[k]}</div>

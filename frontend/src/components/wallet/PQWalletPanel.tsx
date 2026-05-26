@@ -54,6 +54,27 @@ interface PqSchemeRow {
 
 type SubTab = "addresses" | "send" | "schemes" | "verify" | "attest";
 
+const PQ_TABS: SubTab[] = ["addresses", "send", "schemes", "verify", "attest"];
+const PQ_TAB_LABEL: Record<SubTab, string> = {
+  addresses: "PQ Addresses",
+  send:      "Send PQ",
+  schemes:   "Schemes",
+  verify:    "🔑 Verify",
+  attest:    "📜 Attest",
+};
+
+const PQ_FALLBACK_SCHEMES: { name: string; code: number; key: number; sig: number; sec: number; prefix: string }[] = [
+  { name: "pq_omni_ml_dsa",   code: 5, key: 2592, sig: 4627,  sec: 256, prefix: "obk1_" },
+  { name: "pq_omni_falcon",   code: 6, key: 897,  sig: 752,   sec: 192, prefix: "obf5_" },
+  { name: "pq_omni_dilithium",code: 7, key: 2592, sig: 4627,  sec: 256, prefix: "obs3_" },
+  { name: "pq_omni_slh_dsa",  code: 8, key: 64,   sig: 29792, sec: 256, prefix: "obd5_" },
+];
+
+const VERIFY_SCHEME_OPTIONS = [
+  "pq_omni_ml_dsa", "pq_omni_falcon", "pq_omni_slh_dsa", "pq_omni_dilithium",
+  "ml_dsa_87", "falcon_512", "slh_dsa_256s",
+] as const;
+
 // pq_verify_test response
 interface PqVerifyResp {
   verified: boolean;
@@ -338,7 +359,7 @@ export function PQWalletPanel() {
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-mempool-bg-elev rounded-xl border border-mempool-border p-1 flex-wrap">
-        {(["addresses", "send", "schemes", "verify", "attest"] as SubTab[]).map((t) => (
+        {PQ_TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -348,7 +369,7 @@ export function PQWalletPanel() {
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "addresses" ? "PQ Addresses" : t === "send" ? "Send PQ" : t === "schemes" ? "Schemes" : t === "verify" ? "🔑 Verify" : "📜 Attest"}
+            {PQ_TAB_LABEL[t]}
           </button>
         ))}
       </div>
@@ -566,12 +587,7 @@ export function PQWalletPanel() {
                 Node did not return scheme data (may be an older build).
               </p>
               <div className="text-left space-y-1 mt-3">
-                {[
-                  { name: "pq_omni_ml_dsa",    code: 5, key: 2592,  sig: 4627,  sec: 256, prefix: "obk1_" },
-                  { name: "pq_omni_falcon",     code: 6, key: 897,   sig: 752,   sec: 192, prefix: "obf5_" },
-                  { name: "pq_omni_dilithium",  code: 7, key: 2592,  sig: 4627,  sec: 256, prefix: "obs3_" },
-                  { name: "pq_omni_slh_dsa",    code: 8, key: 64,    sig: 29792, sec: 256, prefix: "obd5_" },
-                ].map((s) => (
+                {PQ_FALLBACK_SCHEMES.map((s) => (
                   <div
                     key={s.name}
                     className="flex items-center justify-between bg-mempool-bg rounded-lg px-3 py-2 text-xs"
@@ -721,8 +737,7 @@ function PqVerifyTab() {
             onChange={(e) => setScheme(e.target.value)}
             className="bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs text-mempool-text w-full"
           >
-            {["pq_omni_ml_dsa", "pq_omni_falcon", "pq_omni_slh_dsa", "pq_omni_dilithium",
-              "ml_dsa_87", "falcon_512", "slh_dsa_256s"].map((s) => (
+            {VERIFY_SCHEME_OPTIONS.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
