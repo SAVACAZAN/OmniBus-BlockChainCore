@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
+import { AddressLabel } from "../common/AddressLabel";
 import {
   ResponsiveContainer,
   LineChart,
@@ -55,15 +56,9 @@ export function BlocksPage() {
       const indices: number[] = [];
       for (let i = start; i > end && i >= 0; i--) indices.push(i);
 
-      const results: (BlockWithDiff | null)[] = [];
-      const BATCH = 4;
-      for (let i = 0; i < indices.length; i += BATCH) {
-        const slice = indices.slice(i, i + BATCH);
-        const batch = await Promise.all(
-          slice.map((idx) => rpc.getBlock(idx).catch(() => null))
-        );
-        results.push(...batch);
-      }
+      const results = await Promise.all(
+        indices.map((idx) => rpc.getBlock(idx).catch(() => null))
+      );
       setBlocks(results.filter(Boolean) as BlockWithDiff[]);
     } catch {}
     setLoading(false);
@@ -196,7 +191,7 @@ export function BlocksPage() {
                       }
                     }}
                   >
-                    {midTrunc(b.miner, 8, 6)}
+                    <AddressLabel address={b.miner ?? ""} showEmoji truncate={{ left: 8, right: 6 }} />
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-text whitespace-nowrap">
                     {(b.txCount || 0) + 1}
