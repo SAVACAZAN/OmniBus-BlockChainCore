@@ -20,7 +20,7 @@ function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
   return `${s.slice(0, head)}**${s.slice(-tail)}`;
 }
 
-type BlockWithDiff = BlockData & { difficulty?: number };
+type BlockWithDiff = BlockData & { difficulty?: number; totalFees?: number };
 
 export function BlocksPage() {
   const { state } = useBlockchain();
@@ -155,6 +155,7 @@ export function BlocksPage() {
               <th className="px-4 py-3 font-medium">Miner</th>
               <th className="px-4 py-3 font-medium text-right">TXs</th>
               <th className="px-4 py-3 font-medium text-right">Reward</th>
+              <th className="px-4 py-3 font-medium text-right">Fees</th>
               <th className="px-4 py-3 font-medium text-right">Δt</th>
               <th className="px-4 py-3 font-medium text-right">Time</th>
             </tr>
@@ -162,13 +163,13 @@ export function BlocksPage() {
           <tbody className="divide-y divide-mempool-border/30">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
+                <td colSpan={8} className="px-4 py-8 text-center text-mempool-text-dim">
                   Loading…
                 </td>
               </tr>
             ) : blocks.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
+                <td colSpan={8} className="px-4 py-8 text-center text-mempool-text-dim">
                   No blocks
                 </td>
               </tr>
@@ -211,6 +212,11 @@ export function BlocksPage() {
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-green whitespace-nowrap">
                     {((b.rewardSAT || 0) / 1e9).toFixed(8)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono text-mempool-text-dim whitespace-nowrap">
+                    {(b as any).totalFees > 0
+                      ? <span className="text-purple-300">{((b as any).totalFees / 1e9).toFixed(8)}</span>
+                      : <span>—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
                     {(() => {

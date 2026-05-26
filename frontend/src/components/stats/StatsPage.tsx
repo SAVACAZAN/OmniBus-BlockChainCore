@@ -95,6 +95,7 @@ function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[]
   let totalBlockTime = 0;
   let btCount = 0;
   let totalTx = 0;
+  let totalFees = 0;
   const series: BlockStat[] = [];
 
   for (let i = 0; i < sorted.length; i++) {
@@ -108,6 +109,7 @@ function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[]
       }
     }
     totalTx += b.txCount || 0;
+    totalFees += b.totalFees || 0;
     series.push({
       height: b.height,
       timestamp: b.timestamp || 0,
@@ -115,7 +117,7 @@ function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[]
       rewardSAT: b.rewardSAT || 0,
       difficulty: b.difficulty || 0,
       blockTime: i > 0 ? blockTime : 0,
-      feesEstimate: 0,
+      feesEstimate: b.totalFees || 0,
     });
   }
 
@@ -134,12 +136,14 @@ function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[]
     else hashrate = `${Math.round(hs)} H/s`;
   }
 
+  const avgFeeLast100 = totalTx > 0 ? Math.round(totalFees / totalTx) : 0;
+
   return {
     stats: {
       avgBlockTime,
       estimatedHashrate: hashrate,
       totalTxLast100: totalTx,
-      avgFeeLast100: 0,
+      avgFeeLast100,
       latestDifficulty,
       blocksAnalyzed: sorted.length,
     },
@@ -326,6 +330,14 @@ export function StatsPage() {
             }
             color="dim"
           />
+          {netStats.avgFeeLast100 > 0 && (
+            <StatCard
+              label="Avg Fee / TX"
+              value={`${(netStats.avgFeeLast100 / 1e9).toFixed(8)} OMNI`}
+              sub={`${netStats.avgFeeLast100.toLocaleString()} SAT`}
+              color="green"
+            />
+          )}
         </div>
       )}
 
@@ -590,6 +602,34 @@ export function StatsPage() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Fees per block chart */}
+      {series.some((s) => s.feesEstimate > 0) && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+            Fees per Block (SAT)
+          </h3>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2d2f36" />
+              <XAxis
+                dataKey="height"
+                tick={{ fontSize: 10, fill: "#6b7280" }}
+                tickFormatter={(v) => `#${v}`}
+                interval="preserveStartEnd"
+              />
+              <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} width={42}
+                tickFormatter={(v) => v >= 1e9 ? `${(v/1e9).toFixed(2)}` : v >= 1e6 ? `${(v/1e6).toFixed(0)}M` : v.toLocaleString()} />
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                labelFormatter={(v) => `Block #${v}`}
+                formatter={(v: any) => [`${(v/1e9).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT)`, "Fees"]}
+              />
+              <Bar dataKey="feesEstimate" fill="#a855f7" radius={[2, 2, 0, 0]} maxBarSize={16} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Block reward chart */}
       <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">

@@ -342,6 +342,9 @@ export function BlockPage({ height, onNavigate }: Props) {
               <div className="flex flex-wrap gap-x-4 gap-y-0.5 items-center">
                 <span className="text-mempool-text font-mono">{fmtSat(tx.amount)}</span>
                 <span className="text-mempool-text-dim">Fee: {fmtSat(tx.fee)}</span>
+                {tx.nonce !== undefined && (
+                  <span className="text-mempool-text-dim">nonce: <span className="font-mono text-mempool-text">{tx.nonce}</span></span>
+                )}
                 {tx.confirmations !== undefined && (
                   <span className="text-mempool-text-dim">{tx.confirmations} conf</span>
                 )}

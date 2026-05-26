@@ -7072,6 +7072,12 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const tx_count = blk.transactions.items.len;
     const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
 
+    // Sum fees for all non-coinbase TXs in this block
+    var total_fees: u64 = 0;
+    for (blk.transactions.items) |tx| {
+        if (tx.fee > 0) total_fees += @as(u64, @intCast(tx.fee));
+    }
+
     // Build optional prices array. Strategy:
     //   1) FAST path — read the in-memory `block_prices` map (legacy 6-slot
     //      snapshot, populated at mining time). This avoids touching the
@@ -7138,8 +7144,8 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const prices_validated = blk.validatePrices();
 
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, total_fees, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
