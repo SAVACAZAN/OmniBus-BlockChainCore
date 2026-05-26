@@ -16,6 +16,8 @@ import {
 
 type BlockWithDiff = BlockData & { difficulty?: number; totalFees?: number };
 
+const BLOCK_HISTORY_SIZES = ["10", "20", "50", "100", "500", "2000"] as const;
+
 function BlockIntervalCell({ height, timestamp, tsMap }: { height: number; timestamp?: number; tsMap: Map<number, number> }) {
   const prevTs = tsMap.get(height + 1);
   if (!prevTs || !timestamp) return <span className="text-mempool-text-dim">—</span>;
@@ -438,7 +440,7 @@ function SpvPanel() {
                 onChange={(e) => setHCount(e.target.value)}
                 className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
               >
-                {["10", "20", "50", "100", "500", "2000"].map((n) => (
+                {BLOCK_HISTORY_SIZES.map((n) => (
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>

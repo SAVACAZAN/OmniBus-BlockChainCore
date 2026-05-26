@@ -321,7 +321,7 @@ function BlockPricesPanel() {
             onChange={(e) => setCount(e.target.value)}
             className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text focus:outline-none focus:border-mempool-blue"
           >
-            {["10", "20", "50", "100"].map((v) => <option key={v} value={v}>{v} blocks</option>)}
+            {ORACLE_BLOCK_THRESHOLD_OPTIONS.map((v) => <option key={v} value={v}>{v} blocks</option>)}
           </select>
         </div>
         <button
@@ -584,6 +584,8 @@ function OraclePolicyPanel() {
 }
 
 type OracleTab = "prices" | "policy" | "blocks" | "cross" | "dex";
+
+const ORACLE_BLOCK_THRESHOLD_OPTIONS = ["10", "20", "50", "100"] as const;
 
 const ORACLE_TABS: { id: OracleTab; label: string }[] = [
   { id: "prices", label: "📡 Prices & Arbitrage" },
