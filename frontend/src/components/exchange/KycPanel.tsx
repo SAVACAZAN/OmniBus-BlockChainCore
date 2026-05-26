@@ -57,6 +57,19 @@ export function KycPanel() {
     expires?: number;
   } | null>(null);
   const [verifyTier, setVerifyTier] = useState<1 | 2 | 3 | null>(null);
+  const [issuers, setIssuers] = useState<Array<{ address: string; role: string; slot: number }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    rpc.request_raw("kyc_listIssuers", [])
+      .then((r) => {
+        if (!cancelled && Array.isArray(r)) {
+          setIssuers(r as Array<{ address: string; role: string; slot: number }>);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!u) {
@@ -189,6 +202,22 @@ export function KycPanel() {
           );
         })}
       </div>
+
+      {issuers.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-mempool-border">
+          <h4 className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">Registered KYC Issuers</h4>
+          <div className="space-y-1">
+            {issuers.map((iss) => (
+              <div key={iss.address} className="flex items-center gap-2 text-[11px]">
+                <span className="text-mempool-text-dim">·</span>
+                <span className="font-mono text-mempool-text truncate">{iss.address}</span>
+                <span className="text-mempool-blue shrink-0">{iss.role}</span>
+                <span className="text-mempool-text-dim shrink-0">slot {iss.slot}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
