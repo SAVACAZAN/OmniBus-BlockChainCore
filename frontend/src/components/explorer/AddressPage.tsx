@@ -3,6 +3,15 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { useNameForAddress } from "../../api/use-names";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -52,9 +61,12 @@ interface Props {
   onNavigate: (h: string) => void;
 }
 
+interface DailyEntry { dayIndex: number; txCount: number; sent: number; received: number; miningReward: number; }
+
 export function AddressPage({ addr, onNavigate }: Props) {
   const [history, setHistory] = useState<AddressHistoryEntry[]>([]);
   const [chainBalance, setChainBalance] = useState<number | null>(null);
+  const [dailyActivity, setDailyActivity] = useState<DailyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
@@ -66,17 +78,26 @@ export function AddressPage({ addr, onNavigate }: Props) {
     setErr("");
     setPage(0);
     setChainBalance(null);
+    setDailyActivity([]);
     Promise.all([
       rpc.getAddressHistory(addr),
       rpc.getAddressBalance(addr),
+      rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[] } | null>,
     ])
-      .then(([histData, balData]) => {
+      .then(([histData, balData, dailyData]) => {
         const txs: AddressHistoryEntry[] = Array.isArray(histData)
           ? histData
           : histData?.transactions || histData?.history || [];
         setHistory(txs);
         if (balData?.balance !== undefined) {
           setChainBalance(balData.balance);
+        }
+        if (dailyData?.daily && dailyData.daily.length > 0) {
+          // Filter to days with activity, keep last 30
+          const active = dailyData.daily.filter(d =>
+            d.txCount > 0 || d.sent > 0 || d.received > 0 || d.miningReward > 0
+          );
+          setDailyActivity(active.slice(-30));
         }
       })
       .catch((e) => setErr(e.message))
@@ -155,6 +176,36 @@ export function AddressPage({ addr, onNavigate }: Props) {
           <StatCard label="Fees Paid" value={fmtSat(totalFees)} color="dim" />
         </div>
       </div>
+
+      {/* 30-day activity chart */}
+      {dailyActivity.length > 0 && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+            Activity (last {dailyActivity.length} active days)
+          </h3>
+          <ResponsiveContainer width="100%" height={110}>
+            <BarChart data={dailyActivity} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+              <XAxis dataKey="dayIndex" tick={{ fontSize: 9, fill: "#6b7280" }}
+                tickFormatter={(v) => `D${v}`} interval="preserveStartEnd" />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{ background: "#1a1b1e", border: "1px solid #2d2f36", borderRadius: "6px", fontSize: "11px", color: "#c9d1d9" }}
+                labelFormatter={(v) => `Day ${v}`}
+                formatter={(val: number, name: string) => [
+                  `${(val / SAT).toFixed(4)} OMNI`,
+                  name === "received" ? "Received" : name === "sent" ? "Sent" : "Mining",
+                ]}
+              />
+              <Legend iconType="square" wrapperStyle={{ fontSize: "10px" }} />
+              <Bar dataKey="received" fill="#22c55e" radius={[2, 2, 0, 0]} maxBarSize={14} stackId="a" name="received" />
+              <Bar dataKey="sent" fill="#f97316" radius={[2, 2, 0, 0]} maxBarSize={14} stackId="b" name="sent" />
+              {dailyActivity.some(d => d.miningReward > 0) && (
+                <Bar dataKey="miningReward" fill="#eab308" radius={[2, 2, 0, 0]} maxBarSize={14} stackId="c" name="mining" />
+              )}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Transactions */}
       <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
