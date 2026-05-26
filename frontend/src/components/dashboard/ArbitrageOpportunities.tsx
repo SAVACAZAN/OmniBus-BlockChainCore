@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent } from "../../types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -118,11 +120,17 @@ export default function ArbitrageOpportunities() {
     };
 
     fetchArb();
-    const id = setInterval(fetchArb, POLL_MS);
+    // Arbitrage opportunities change when prices change — subscribe to oracle_price.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => {
+      void fetchArb();
+    });
+    // Slow fallback poll (30 s) for when WS is disconnected.
+    const id = setInterval(fetchArb, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [rpc]);
 

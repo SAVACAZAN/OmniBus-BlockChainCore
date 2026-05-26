@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent } from "../../types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -183,11 +185,18 @@ export default function AllPricesGrid() {
     };
 
     fetchAll();
-    const id = setInterval(fetchAll, POLL_MS);
+    // oracle_price fires whenever the node gets fresh prices from Chainlink/Pyth.
+    // This is the event that should drive price grid updates, not a 3 s timer.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => {
+      void fetchAll();
+    });
+    // Slow fallback poll (30 s) for when WS is disconnected.
+    const id = setInterval(fetchAll, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [rpc]);
 
