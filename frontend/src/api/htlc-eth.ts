@@ -256,17 +256,19 @@ export async function getLockEth(params: GetLockEthParams): Promise<HTLCLock> {
   const { contractAddr, htlcId, provider } = params;
   const contract = new Contract(contractAddr, HTLC_ABI, provider);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw: any = await contract.getLock(htlcId);
+  const raw = await contract.getLock(htlcId) as {
+    sender: string; recipient: string; amount: bigint;
+    hashLock: string; timelock: bigint; claimed: boolean; refunded: boolean;
+  };
 
   return {
-    sender:    raw.sender    as string,
-    recipient: raw.recipient as string,
+    sender:    raw.sender,
+    recipient: raw.recipient,
     amount:    BigInt(raw.amount),
-    hashLock:  raw.hashLock  as string,
+    hashLock:  raw.hashLock,
     timelock:  BigInt(raw.timelock),
-    claimed:   raw.claimed   as boolean,
-    refunded:  raw.refunded  as boolean,
+    claimed:   raw.claimed,
+    refunded:  raw.refunded,
   };
 }
 

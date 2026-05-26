@@ -184,8 +184,7 @@ export class OmniBusRpcClient {
     nonce: number;
     fee?: number;
     op_return?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }): Promise<any> {
+  }): Promise<{ txid?: string; hash?: string; error?: string }> {
     return this.request("pq_send", [p]);
   }
 

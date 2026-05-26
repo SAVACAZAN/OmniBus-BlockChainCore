@@ -189,7 +189,6 @@ function Spinner() {
   return <RefreshCw className="inline w-3.5 h-3.5 animate-spin" />;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SubTabBar({
   tabs,
   active,
@@ -197,7 +196,7 @@ function SubTabBar({
 }: {
   tabs: { id: string; label: string }[];
   active: string;
-  onChange: (t: any) => void;
+  onChange: (t: string) => void;
 }) {
   return (
     <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
@@ -382,7 +381,7 @@ function NotarizeSection() {
   ];
   return (
     <div>
-      <SubTabBar tabs={subTabs} active={subTab} onChange={setSubTab} />
+      <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
       {subTab === "notarize-doc" && <NotarizeDocTab />}
       {subTab === "verify-doc"   && <VerifyDocTab />}
       {subTab === "my-docs"      && <MyDocsTab />}
@@ -854,7 +853,7 @@ function EscrowSection({ blockHeight }: { blockHeight: number }) {
   ];
   return (
     <div>
-      <SubTabBar tabs={subTabs} active={subTab} onChange={setSubTab} />
+      <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
       {subTab === "my-escrows"     && <MyEscrowsTab blockHeight={blockHeight} />}
       {subTab === "create-escrow"  && <CreateEscrowTab blockHeight={blockHeight} />}
       {subTab === "release-escrow" && <ReleaseEscrowTab />}
