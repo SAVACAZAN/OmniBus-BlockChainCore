@@ -3,7 +3,7 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
-import { midTrunc } from "../../utils/fmt";
+import { midTrunc, fmtAge } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   LineChart,
@@ -286,10 +286,9 @@ export function BlocksPage() {
                       return <span className={`font-mono ${cls}`}>{Math.abs(delta)}s</span>;
                     })()}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap">
-                    {b.timestamp
-                      ? new Date(b.timestamp * 1000).toLocaleTimeString()
-                      : "—"}
+                  <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap"
+                      title={b.timestamp ? new Date(b.timestamp * 1000).toLocaleString() : undefined}>
+                    {b.timestamp ? fmtAge(b.timestamp) : "—"}
                   </td>
                 </tr>
               ))
@@ -475,8 +474,9 @@ function SpvPanel() {
                       <td className="px-2 py-1.5 font-mono text-mempool-text-dim" title={h.merkleRoot}>{midTrunc(h.merkleRoot)}</td>
                       <td className="px-2 py-1.5 text-right font-mono text-mempool-text-dim">{h.nonce}</td>
                       <td className="px-2 py-1.5 text-right font-mono text-mempool-text">{h.txCount}</td>
-                      <td className="px-2 py-1.5 text-right text-mempool-text-dim whitespace-nowrap">
-                        {h.timestamp ? new Date(h.timestamp * 1000).toLocaleTimeString() : "—"}
+                      <td className="px-2 py-1.5 text-right text-mempool-text-dim whitespace-nowrap"
+                          title={h.timestamp ? new Date(h.timestamp * 1000).toLocaleString() : undefined}>
+                        {h.timestamp ? fmtAge(h.timestamp) : "—"}
                       </td>
                     </tr>
                   ))}

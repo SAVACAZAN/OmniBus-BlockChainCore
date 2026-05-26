@@ -3,6 +3,7 @@ import { NetworkStatus } from "./NetworkStatus";
 import { MinerTable } from "./MinerTable";
 import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
+import { fmtAge } from "../../utils/fmt";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -371,7 +372,9 @@ function NetworkRpcPanels() {
                       </span>
                     </td>
                     <td className="px-3 py-1.5 text-right text-mempool-text-dim">
-                      {p.last_seen ? new Date(p.last_seen * 1000).toLocaleTimeString() : "—"}
+                      {p.last_seen
+                        ? <span title={new Date(p.last_seen * 1000).toLocaleString()}>{fmtAge(p.last_seen)}</span>
+                        : "—"}
                     </td>
                   </tr>
                 ))}
