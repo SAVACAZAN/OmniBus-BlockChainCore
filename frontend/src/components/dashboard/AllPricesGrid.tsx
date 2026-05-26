@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
-import { MICRO_PER_USD } from "../../utils/fmt";
-
-const MICRO = MICRO_PER_USD;
+import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface PriceEntry {
@@ -35,20 +33,11 @@ type SortDir = "asc" | "desc";
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / MICRO;
+  const dollars = microUsd / MICRO_PER_USD;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-}
-
-// Pick decimals based on price magnitude — bigger prices get fewer decimals.
-function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / MICRO);
-  if (dollars >= 1000) return 2;
-  if (dollars >= 1) return 2;
-  if (dollars >= 0.01) return 4;
-  return 4;
 }
 
 // Resolve the canonical exchange label (case-insensitive match).
@@ -126,8 +115,8 @@ function PriceCell({ entry, prefix }: { entry: CellEntry | undefined; prefix: st
   }
 
   const dimClass = entry.stale ? "opacity-50" : "";
-  const askDec = decimalsFor(entry.askMicroUsd);
-  const bidDec = decimalsFor(entry.bidMicroUsd);
+  const askDec = decimalsForUsd(entry.askMicroUsd);
+  const bidDec = decimalsForUsd(entry.bidMicroUsd);
   // Show real quote (USDC vs USD vs USDT) as a tiny suffix when it differs
   // from the bucket prefix — helps users spot stable mismatches.
   const realQuoteHint = entry.realQuote;
@@ -300,7 +289,7 @@ export default function AllPricesGrid() {
                   const fmtCell = (ex: Exchange) => {
                     const c = r.cells[ex];
                     if (!c || !c.success) return ",";
-                    return `${(c.bidMicroUsd / MICRO).toFixed(6)},${(c.askMicroUsd / MICRO).toFixed(6)}`;
+                    return `${(c.bidMicroUsd / MICRO_PER_USD).toFixed(6)},${(c.askMicroUsd / MICRO_PER_USD).toFixed(6)}`;
                   };
                   return [r.base, r.bucket, fmtCell("Coinbase"), fmtCell("Kraken"), fmtCell("LCX")].join(",");
                 }),

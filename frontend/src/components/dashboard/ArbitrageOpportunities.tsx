@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
-import { MICRO_PER_USD } from "../../utils/fmt";
-
-const MICRO = MICRO_PER_USD;
+import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface ArbOpportunity {
@@ -29,20 +27,11 @@ const TOP_N = 15;
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / MICRO;
+  const dollars = microUsd / MICRO_PER_USD;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-}
-
-// Pick decimals based on price magnitude — bigger numbers get fewer decimals.
-function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / MICRO);
-  if (dollars >= 1000) return 2;
-  if (dollars >= 1) return 2;
-  if (dollars >= 0.01) return 4;
-  return 4;
 }
 
 function formatPct(pct: number): string {
@@ -166,10 +155,10 @@ export default function ArbitrageOpportunities() {
                 ...sorted.map((o) => [
                   o.pair,
                   o.buyAt,
-                  (o.buyAskMicroUsd / MICRO).toFixed(6),
+                  (o.buyAskMicroUsd / MICRO_PER_USD).toFixed(6),
                   o.sellAt,
-                  (o.sellBidMicroUsd / MICRO).toFixed(6),
-                  (o.spreadMicroUsd / MICRO).toFixed(6),
+                  (o.sellBidMicroUsd / MICRO_PER_USD).toFixed(6),
+                  (o.spreadMicroUsd / MICRO_PER_USD).toFixed(6),
                   o.spreadPct.toFixed(4),
                 ].join(",")),
               ].join("\n");
@@ -218,9 +207,9 @@ export default function ArbitrageOpportunities() {
             </thead>
             <tbody>
               {sorted.map((o, idx) => {
-                const askDec = decimalsFor(o.buyAskMicroUsd);
-                const bidDec = decimalsFor(o.sellBidMicroUsd);
-                const spreadDec = decimalsFor(o.spreadMicroUsd);
+                const askDec = decimalsForUsd(o.buyAskMicroUsd);
+                const bidDec = decimalsForUsd(o.sellBidMicroUsd);
+                const spreadDec = decimalsForUsd(o.spreadMicroUsd);
                 const ageMs = Math.max(
                   now - o.buyTimestampMs,
                   now - o.sellTimestampMs,

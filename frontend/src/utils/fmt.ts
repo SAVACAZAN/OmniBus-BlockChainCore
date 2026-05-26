@@ -62,3 +62,32 @@ export function fmtDuration(epochSec: number): string {
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
   return `${Math.floor(diff / 3600)}h`;
 }
+
+/**
+ * Format a micro-USD price as a USD string with fixed decimal places.
+ * Returns "—" for zero/falsy input.
+ *
+ * @param microUsd  Price in micro-USD (1 USD = 1_000_000 micro-USD).
+ * @param decimals  Number of decimal places to show (default auto).
+ */
+export function fmtUsd(microUsd: number, decimals?: number): string {
+  if (!microUsd) return "—";
+  const usd = microUsd / MICRO_PER_USD;
+  const dec = decimals !== undefined ? decimals : usd >= 1000 ? 2 : usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
+  return "$" + usd.toLocaleString("en-US", {
+    minimumFractionDigits: dec,
+    maximumFractionDigits: dec,
+  });
+}
+
+/**
+ * Pick the right number of decimal places for a micro-USD price based on magnitude.
+ * Small prices (< $0.01) get 6 decimals; large prices (>= $1) get 2.
+ */
+export function decimalsForUsd(microUsd: number): number {
+  const usd = Math.abs(microUsd / MICRO_PER_USD);
+  if (usd >= 1000) return 2;
+  if (usd >= 1) return 2;
+  if (usd >= 0.01) return 4;
+  return 6;
+}

@@ -4,9 +4,8 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
-import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtUsd } from "../../utils/fmt";
 
-const MICRO = MICRO_PER_USD;
 interface MempoolBlockProps {
   block?: BlockData;
   pendingTxs?: PendingTx[];
@@ -19,17 +18,7 @@ interface MempoolBlockProps {
 
 const rpc = new OmniBusRpcClient();
 
-// Format USD with thousand-comma + dot decimals: 100,000.00 / 0.0316.
-// `decimals` is min decimals; thousands separator is locale-en-US to lock
-// the comma even when the user's browser is non-EN.
-function fmtUsd(micro: number, decimals: number): string {
-  if (!micro) return "—";
-  const usd = micro / MICRO;
-  return usd.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
+
 
 // Median across the 3 exchange slots for a given pair label.
 function median(prices: BlockPriceSnapshot[] | undefined, pair: string): number {

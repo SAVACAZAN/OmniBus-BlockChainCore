@@ -3,20 +3,13 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { fmtSat, midTrunc, SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
+import { fmtSat, midTrunc, SAT_PER_OMNI, fmtAge, fmtUsd } from "../../utils/fmt";
 
-const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
 
 function fmtTs(ts: number) {
   const ms = ts < 1e10 ? ts * 1000 : ts;
   return `${fmtAge(ms)} · ${new Date(ms).toLocaleString()}`;
-}
-function fmtPrice(microUsd: number): string {
-  if (!microUsd) return "—";
-  const usd = microUsd / MICRO;
-  const dec = usd >= 100 ? 2 : usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
-  return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
 
 
@@ -234,8 +227,8 @@ export function BlockPage({ height, onNavigate }: Props) {
                   <tr key={i} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
                     <td className="py-2 pr-4 text-mempool-text">{p.exchange}</td>
                     <td className="py-2 pr-4 text-mempool-text-dim">{p.pair}</td>
-                    <td className="py-2 pr-4 text-right text-green-400">{fmtPrice(p.bidMicroUsd)}</td>
-                    <td className="py-2 text-right text-red-400">{fmtPrice(p.askMicroUsd)}</td>
+                    <td className="py-2 pr-4 text-right text-green-400">{fmtUsd(p.bidMicroUsd)}</td>
+                    <td className="py-2 text-right text-red-400">{fmtUsd(p.askMicroUsd)}</td>
                   </tr>
                 ))}
               </tbody>
