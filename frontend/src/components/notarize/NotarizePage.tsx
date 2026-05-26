@@ -776,6 +776,36 @@ function MyDocsTab() {
       )}
 
       {rows && rows.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["notarize_id","doc_hash","doc_type","block_height","tx_hash","expiry_block","status","note"].join(","),
+                ...rows.map((r) => [
+                  r.notarize_id,
+                  `"${r.doc_hash}"`,
+                  r.doc_type,
+                  r.block_height,
+                  `"${r.tx_hash}"`,
+                  r.expiry_block,
+                  r.status,
+                  `"${(r.note ?? "").replace(/"/g, '""')}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-notarizations.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
+
+      {rows && rows.length > 0 && (
         <div className="overflow-x-auto -mx-3 sm:mx-0">
           <table className="w-full min-w-[600px] text-xs font-mono">
             <thead className="sticky top-0 bg-mempool-bg-elev">
@@ -1034,6 +1064,39 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
         <p className="text-xs text-mempool-text-dim font-mono py-6 text-center">
           No escrows yet. Use the Create tab to lock funds.
         </p>
+      )}
+
+      {rows && rows.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const SAT_PER_OMNI = 1_000_000_000;
+              const csvRows = [
+                ["escrow_id","creator","recipient","amount_omni","condition_hash","timeout_block","created_block","status","role","note"].join(","),
+                ...rows.map((r) => [
+                  r.escrow_id,
+                  `"${r.creator}"`,
+                  `"${r.recipient}"`,
+                  (r.amount_sat / SAT_PER_OMNI).toFixed(8),
+                  `"${r.condition_hash}"`,
+                  r.timeout_block,
+                  r.created_block,
+                  r.status,
+                  r.role,
+                  `"${(r.note ?? "").replace(/"/g, '""')}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-escrows.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
       )}
 
       {rows && rows.length > 0 && (
