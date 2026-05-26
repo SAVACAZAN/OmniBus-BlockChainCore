@@ -1257,6 +1257,97 @@ export class OmniBusRpcClient {
   async getBlockchainInfo(): Promise<unknown> {
     try { return await this.request("getblockchaininfo", []); } catch { return null; }
   }
+
+  // ── Agents (system-level + registry) ────────────────────────────────────────
+
+  async agentList(): Promise<{
+    count: number;
+    agents: Array<{
+      name: string; wallet_index: number; address: string; strategy: string;
+      tier: string; balance_sat: number; staked_sat: number; lp_locked_sat: number;
+      pnl_session_sat: number; halted: boolean;
+      stats: { ticks: number; decisions_emitted: number; decisions_queued: number;
+        exec_success: number; exec_failed: number; tier_transitions: number; total_mined_sat: number };
+    }>;
+  } | null> {
+    try { return await this.request("agent_list", []); } catch { return null; }
+  }
+
+  async agentPendingDecisions(): Promise<{
+    count: number;
+    decisions: Array<{
+      id: number; wallet_index: number; block_height: number; emitted_ms: number;
+      venue: string; kind: string; pair: string; amount_sat: number; reason: string;
+    }>;
+  }> {
+    try { return (await this.request("agent_pending_decisions", [])) ?? { count: 0, decisions: [] }; }
+    catch { return { count: 0, decisions: [] }; }
+  }
+
+  async getAgents(sortBy: string, limit = 200): Promise<{ agents: unknown[] } | null> {
+    try { return await this.request("getagents", [{ sort_by: sortBy, limit }]); } catch { return null; }
+  }
+
+  async getAgent(agentId: number): Promise<unknown> {
+    try { return await this.request("getagent", [{ agent_id: agentId }]); } catch { return null; }
+  }
+
+  async agentStatus(walletIndex: number): Promise<unknown> {
+    try { return await this.request("agent_status", [{ wallet_index: walletIndex }]); } catch { return null; }
+  }
+
+  // ── Validators ────────────────────────────────────────────────────────────
+
+  async getValidatorsV2(params: { sort_by: string; limit: number }): Promise<{
+    validators: unknown[];
+    current_slot_leader: string;
+    total_validators: number;
+    active_count: number;
+    slashed_count: number;
+  } | null> {
+    try { return await this.request("getvalidatorsv2", [params]); } catch { return null; }
+  }
+
+  async getValidators(): Promise<{ count: number; validators: unknown[] } | null> {
+    try { return await this.request("getvalidators", []); } catch { return null; }
+  }
+
+  async getStakingInfo(address: string): Promise<unknown> {
+    try { return await this.request("getstakinginfo", [address]); } catch { return null; }
+  }
+
+  async getSlashHistory(address: string): Promise<unknown[]> {
+    try {
+      const r = await this.request("getslashhistory", [address]);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async getSlashEvents(limit = 100): Promise<{ events: unknown[] }> {
+    try { return (await this.request("getslashevents", [{ limit }])) ?? { events: [] }; }
+    catch { return { events: [] }; }
+  }
+
+  async getSlotLeader(): Promise<{ slot: number; leader: string | null; weight: number } | null> {
+    try { return await this.request("getslotleader", []); } catch { return null; }
+  }
+
+  async getClockStatus(): Promise<{ now_ms: number; rdtsc: number; spectrum: string } | null> {
+    try { return await this.request("getclockstatus", []); } catch { return null; }
+  }
+
+  async getSlotCalendar(): Promise<{
+    head_slot: number; slot_interval_ms: number;
+    entries: Array<{ slot_id: number; leader: string; expected_arrival_ms: number; state: string }>;
+  } | null> {
+    try { return await this.request("getslotcalendar", []); } catch { return null; }
+  }
+
+  async getFuturePool(): Promise<{
+    current_height: number; locked_count: number; earliest_target: number; latest_target: number;
+  } | null> {
+    try { return await this.request("getfuturepool", []); } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";

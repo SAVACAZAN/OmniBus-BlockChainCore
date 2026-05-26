@@ -236,8 +236,8 @@ export function AgentsPage() {
     const refresh = async () => {
       try {
         const [list, pend] = await Promise.all([
-          rpc.request_raw("agent_list", []) as Promise<AgentListResp>,
-          rpc.request_raw("agent_pending_decisions", []).catch(() => ({ count: 0, decisions: [] })) as Promise<PendingResp>,
+          rpc.agentList() as Promise<AgentListResp | null>,
+          rpc.agentPendingDecisions() as Promise<PendingResp>,
         ]);
         if (!cancelled) {
           setAgents(list?.agents || []);
@@ -271,7 +271,7 @@ export function AgentsPage() {
   // ── Fetch registry agents ────────────────────────────────────────────────
   const refreshRegistry = async () => {
     try {
-      const resp = (await rpc.request_raw("getagents", [{ sort_by: sortBy, limit: 200 }])) as GetAgentsResp | null;
+      const resp = (await rpc.getAgents(sortBy, 200)) as GetAgentsResp | null;
       setRegistry(resp?.agents || []);
       setRegistryError(null);
     } catch (e: any) {
@@ -702,7 +702,7 @@ function AgentStatusPanel() {
     setError(null);
     setResult(null);
     try {
-      const r = await rpc.request_raw("agent_status", [{ wallet_index: wi }]);
+      const r = await rpc.agentStatus(wi);
       if (r && typeof r === "object") setResult(r as AgentDetailStatus);
     } catch (e) {
       setError(String(e));
@@ -889,7 +889,7 @@ function AgentLookupPanel() {
     if (isNaN(id)) { setErr("Enter a numeric agent ID"); return; }
     setLoading(true); setErr(""); setResult(null);
     try {
-      const r = await rpc.request_raw("getagent", [{ agent_id: id }]);
+      const r = await rpc.getAgent(id);
       setResult(r);
     } catch (e) { setErr(String(e)); }
     finally { setLoading(false); }

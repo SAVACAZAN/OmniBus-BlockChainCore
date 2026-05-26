@@ -241,9 +241,7 @@ function ValidatorListTab() {
     const refresh = async () => {
       try {
         setLoading(true);
-        const r = (await rpc.request_raw("getvalidatorsv2", [
-          { sort_by: sortBy, limit: 100 },
-        ])) as GetValidatorsResp;
+        const r = (await rpc.getValidatorsV2({ sort_by: sortBy, limit: 100 })) as GetValidatorsResp | null;
         if (cancelled) return;
         const safe: GetValidatorsResp = {
           validators: Array.isArray(r?.validators) ? r.validators : [],
@@ -493,12 +491,10 @@ function ValidatorsSimplePanel() {
   const [data, setData] = useState<SimpleValidatorsResp | null>(null);
 
   useEffect(() => {
-    rpc.request_raw("getvalidators", [])
+    rpc.getValidators()
       .then((r) => {
-        const v = r as SimpleValidatorsResp;
-        if (v && Array.isArray(v.validators)) setData(v);
-      })
-      .catch(() => {});
+        if (r && Array.isArray(r.validators)) setData(r as SimpleValidatorsResp);
+      });
   }, []);
 
   if (!data || data.validators.length === 0) return null;
@@ -554,7 +550,7 @@ function StakingInfoLookup() {
     setErr(null);
     setInfo(null);
     try {
-      const r = (await rpc.request_raw("getstakinginfo", [address])) as typeof info;
+      const r = (await rpc.getStakingInfo(address)) as typeof info;
       setInfo(r);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -1015,8 +1011,8 @@ function SlashHistoryPanel() {
     setErr(null);
     setHistory(null);
     try {
-      const r = (await rpc.request_raw("getslashhistory", [address])) as SlashHistoryEntry[];
-      setHistory(Array.isArray(r) ? r : []);
+      const r = await rpc.getSlashHistory(address);
+      setHistory(r as SlashHistoryEntry[]);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     } finally {
@@ -1092,11 +1088,9 @@ function SlashingLogTab() {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r = (await rpc.request_raw("getslashevents", [{ limit: 100 }])) as {
-          events: SlashEvent[];
-        };
+        const r = await rpc.getSlashEvents(100);
         if (!cancelled) {
-          setEvents(Array.isArray(r?.events) ? r.events : []);
+          setEvents(Array.isArray(r?.events) ? r.events as SlashEvent[] : []);
           setErr(null);
         }
       } catch (e: any) {
@@ -1217,10 +1211,10 @@ function ConsensusTab() {
     const refresh = async () => {
       try {
         const [l, c, cal, fp] = await Promise.all([
-          rpc.request_raw("getslotleader", []) as Promise<SlotLeaderResp2>,
-          rpc.request_raw("getclockstatus", []) as Promise<ClockStatusResp>,
-          rpc.request_raw("getslotcalendar", []) as Promise<SlotCalendarResp>,
-          rpc.request_raw("getfuturepool", []) as Promise<FuturePoolResp>,
+          rpc.getSlotLeader() as Promise<SlotLeaderResp2 | null>,
+          rpc.getClockStatus() as Promise<ClockStatusResp | null>,
+          rpc.getSlotCalendar() as Promise<SlotCalendarResp | null>,
+          rpc.getFuturePool() as Promise<FuturePoolResp | null>,
         ]);
         if (cancelled) return;
         setLeader(l);

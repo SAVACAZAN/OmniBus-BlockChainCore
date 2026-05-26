@@ -16,6 +16,14 @@ import {
 
 type BlockWithDiff = BlockData & { difficulty?: number; totalFees?: number };
 
+function BlockIntervalCell({ height, timestamp, tsMap }: { height: number; timestamp?: number; tsMap: Map<number, number> }) {
+  const prevTs = tsMap.get(height + 1);
+  if (!prevTs || !timestamp) return <span className="text-mempool-text-dim">—</span>;
+  const d = prevTs - timestamp;
+  const cls = d <= 0 || d > 60 ? "text-mempool-text-dim" : d < 8 ? "text-orange-400" : d <= 15 ? "text-green-400" : "text-yellow-400";
+  return <span className={`font-mono ${cls}`}>{Math.abs(d)}s</span>;
+}
+
 export function BlocksPage() {
   const { state } = useBlockchain();
   const [blocks, setBlocks] = useState<BlockWithDiff[]>([]);
@@ -276,13 +284,7 @@ export function BlocksPage() {
                       : <span>—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                    {(() => {
-                      const prevTs = tsMap.get(b.height + 1);
-                      if (!prevTs || !b.timestamp) return <span className="text-mempool-text-dim">—</span>;
-                      const d = prevTs - b.timestamp;
-                      const cls = d <= 0 || d > 60 ? "text-mempool-text-dim" : d < 8 ? "text-orange-400" : d <= 15 ? "text-green-400" : "text-yellow-400";
-                      return <span className={`font-mono ${cls}`}>{Math.abs(d)}s</span>;
-                    })()}
+                    <BlockIntervalCell height={b.height} timestamp={b.timestamp} tsMap={tsMap} />
                   </td>
                   <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap"
                       title={b.timestamp ? new Date(b.timestamp * 1000).toLocaleString() : undefined}>
