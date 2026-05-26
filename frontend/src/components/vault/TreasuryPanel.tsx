@@ -359,6 +359,32 @@ export function TreasuryPanel() {
           Treasuries ({treasuries.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {treasuries.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["treasury_id", "address", "label", "balance_omni", "trigger_omni", "destinations", "last_distribute_block"].join(","),
+                ...treasuries.map((t) => [
+                  `"${t.treasury_id}"`,
+                  `"${t.address}"`,
+                  `"${t.label}"`,
+                  (t.balance_sat / SAT_PER_OMNI).toFixed(4),
+                  (t.trigger_sat / SAT_PER_OMNI).toFixed(4),
+                  t.destinations.length,
+                  t.last_distribute_block ?? "",
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-treasuries.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}

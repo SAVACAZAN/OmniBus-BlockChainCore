@@ -933,6 +933,30 @@ function StakeActivityTab() {
             className="flex-1 min-w-0 sm:min-w-[280px] w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
           />
         )}
+        {rows.length > 0 && (
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["block", "type", "txid", "amount_omni", "running_stake_omni"].join(","),
+                ...rows.map((r) => [
+                  r.tx.blockHeight === null ? "pending" : r.tx.blockHeight,
+                  r.type,
+                  r.tx.txid,
+                  (r.delta / SAT_PER_OMNI).toFixed(8),
+                  (r.running / SAT_PER_OMNI).toFixed(8),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-stake-activity.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
