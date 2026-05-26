@@ -23,10 +23,10 @@ export function MinerTable() {
     let cancelled = false;
     const load = async () => {
       try {
-        const r: any = await rpc.request_raw("getminerstats", []);
+        const r = await rpc.getMinerStats();
         if (cancelled) return;
         if (Array.isArray(r?.miners)) {
-          setRpcMiners(r.miners.map((m: any): MinerRow => ({
+          setRpcMiners(r.miners.map((m): MinerRow => ({
             address: m.miner || "",
             blocksMined: m.blocksMined || 0,
             totalRewardSAT: m.totalRewardSAT || 0,

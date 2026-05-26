@@ -396,6 +396,20 @@ export class OmniBusRpcClient {
     }
   }
 
+  async getStake(address: string): Promise<{
+    stakes: Array<{
+      id: number; amount_sat: number; lock_blocks: number;
+      started_at_block: number; days_locked: number; rent_earned: number;
+      status: "active" | "unbonding" | "completed"; unbonding_until?: number;
+    }>;
+  } | null> {
+    try {
+      return await this.request("getstake", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
   async resolveName(name: string, tld: string): Promise<{
     name: string; address: string | null; found: boolean;
     registeredAtBlock?: number; expiresAtBlock?: number; fullLabel?: string;
@@ -404,6 +418,59 @@ export class OmniBusRpcClient {
   } | null> {
     try {
       return await this.request("resolvename", [name, tld]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getMinerStats(): Promise<{
+    miners: Array<{
+      miner: string; blocksMined: number; totalRewardSAT: number;
+      currentBalanceSAT: number; lastBlockHeight?: number;
+    }>;
+    totalMiners: number;
+  } | null> {
+    try {
+      return await this.request("getminerstats", []);
+    } catch {
+      return null;
+    }
+  }
+
+  async getReputation(address: string): Promise<{
+    address: string; love: number; food: number; rent: number; vacation: number;
+    total: number; badge: "none" | "bronze" | "silver" | "gold" | "satoshi";
+    last_update_block?: number; history?: unknown[];
+    tier?: string; satoshi_badge?: boolean; cups?: Record<string, string>;
+  } | null> {
+    try {
+      return await this.request("getreputation", [address]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getReputationTop(sortBy: string, limit: number = 100): Promise<unknown[] | null> {
+    try {
+      return await this.request("getreputationtop", [{ sort_by: sortBy, limit }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getChannels(): Promise<{
+    summary: {
+      open_count: number; closing_count: number; settled_count: number;
+      disputed_count: number; total_locked_sat: number;
+    };
+    channels: Array<{
+      channel_id: string; party_a: string; party_b: string;
+      capacity_sat: number; balance_a: number; balance_b: number;
+      sequence_num: number; state: "open" | "closing" | "settled" | "disputed";
+    }>;
+  } | null> {
+    try {
+      return await this.request("getchannels", []);
     } catch {
       return null;
     }

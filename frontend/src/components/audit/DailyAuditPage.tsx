@@ -135,10 +135,10 @@ export function DailyAuditPage() {
       // serializing.
       const [dailyRaw, repRaw] = await Promise.all([
         rpc.request_raw("getdailyactivity", [{ address: effectiveAddress, days }]),
-        rpc.request_raw("getreputation", [effectiveAddress]),
+        rpc.getReputation(effectiveAddress),
       ]);
       const daily = dailyRaw as DailyActivityResp | null;
-      const reputation = repRaw as ReputationResp | null;
+      const reputation = repRaw as unknown as ReputationResp | null;
       setResp(daily);
       setRep(reputation);
     } catch (e) {

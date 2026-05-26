@@ -634,9 +634,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
     let cancelled = false;
     (async () => {
       try {
-        const r = (await rpc.request_raw("getstake", [
-          { address: wallet.address },
-        ])) as StakeResp;
+        const r = (await rpc.getStake(wallet.address)) as unknown as StakeResp;
         if (!cancelled) setStake(r?.stake_omni ?? 0);
       } catch (e: any) {
         if (!cancelled) setStakeErr(e?.message ?? String(e));

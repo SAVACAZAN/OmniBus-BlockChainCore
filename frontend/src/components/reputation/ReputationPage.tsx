@@ -734,7 +734,7 @@ export function ReputationPage() {
     if (!addr) return;
     setLoadingMine(true);
     try {
-      const raw = await rpc.request_raw("getreputation", [addr]);
+      const raw = await rpc.getReputation(addr);
       const norm = normalizeRep(raw);
       setData(norm);
       setError(null);
@@ -753,7 +753,7 @@ export function ReputationPage() {
     let cancelled = false;
     const run = async () => {
       try {
-        const raw = await rpc.request_raw("getreputationtop", [{ sort_by: sortBy, limit: 100 }]);
+        const raw = await rpc.getReputationTop(sortBy, 100);
         if (!cancelled) {
           setLeaderboard(normalizeLeaderboard(raw));
           setMethodMissing(false);

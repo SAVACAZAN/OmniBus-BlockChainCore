@@ -217,7 +217,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getstake", [{ address: effectiveAddress }])) as GetStakeResp | null;
+      const r = (await rpc.getStake(effectiveAddress)) as GetStakeResp | null;
       setStakes(r?.stakes ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -816,12 +816,11 @@ function StakeActivityTab() {
       // Fire both in parallel so the running total + chain truth come from
       // the same snapshot of chain state, minimising drift between "what the
       // history says" and "what getstake reports".
-      const [histRaw, stakeRaw] = await Promise.all([
+      const [histRaw, stakeResp] = await Promise.all([
         rpc.request_raw("getaddresshistory", [effectiveAddress]),
-        rpc.request_raw("getstake", [{ address: effectiveAddress }]),
+        rpc.getStake(effectiveAddress),
       ]);
       const hist = histRaw as AddressHistoryResp | null;
-      const stakeResp = stakeRaw as { stakes?: StakeEntry[] } | null;
 
       // Filter to stake / unstake TXs only. The backend tags these via
       // `inferTxKind` (kind === "stake") for op_return-prefixed sends.

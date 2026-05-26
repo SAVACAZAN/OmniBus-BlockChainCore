@@ -228,8 +228,8 @@ export function WalletPage() {
 
       // Reputation cups for the SELECTED slot.
       try {
-        const rep: any = await rpc.request_raw("getreputation", [activeAddress]);
-        if (rep) setReputation(rep);
+        const rep = await rpc.getReputation(activeAddress);
+        if (rep) setReputation(rep as any);
       } catch {}
 
       // UTXO list — use listunspent on the SELECTED slot. The old getBalance()

@@ -35,7 +35,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         await Promise.all([
           rpc.getBalance().catch(() => null),
           rpc.getMempoolStats().catch(() => null),
-          rpc.request_raw("getminerstats").catch(() => null),
+          rpc.getMinerStats().catch(() => null),
           rpc.getNetworkInfo().catch(() => null),
         ]);
 
@@ -225,7 +225,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     minerTimer.current = window.setInterval(async () => {
       try {
         const [minerStats, peers, networkInfo, balanceData] = await Promise.all([
-          rpc.request_raw("getminerstats").catch(() => null),
+          rpc.getMinerStats().catch(() => null),
           rpc.getPeers().catch(() => null),
           rpc.getNetworkInfo().catch(() => null),
           rpc.getBalance().catch(() => null),

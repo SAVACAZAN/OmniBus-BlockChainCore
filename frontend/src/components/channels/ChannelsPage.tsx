@@ -269,7 +269,7 @@ function OverviewTab({
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+      const r = (await rpc.getChannels()) as GetChannelsResp | null;
       setData(r ?? { summary: { open_count: 0, closing_count: 0, settled_count: 0, disputed_count: 0, total_locked_sat: 0 }, channels: [] });
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -768,7 +768,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
       // Fetch current sequence from chain first so we can compute next
       let nextSeq = 1;
       try {
-        const ch = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+        const ch = (await rpc.getChannels()) as GetChannelsResp | null;
         const found = ch?.channels.find((c) => c.channel_id === channelId);
         if (found) nextSeq = found.sequence_num + 1;
       } catch { /* use 1 as fallback */ }
@@ -948,7 +948,7 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
     const load = async () => {
       setLoadingInfo(true);
       try {
-        const r = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+        const r = (await rpc.getChannels()) as GetChannelsResp | null;
         if (!cancelled) {
           const found = r?.channels.find((c) => c.channel_id === channelId) ?? null;
           setChannelInfo(found);
