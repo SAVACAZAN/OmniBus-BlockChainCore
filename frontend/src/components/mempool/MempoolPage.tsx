@@ -36,6 +36,23 @@ interface MempoolTx {
   amount: number;
   fee: number;
   timestamp?: number;
+  scheme?: string;
+  nonce?: number;
+}
+
+function SchemeTag({ scheme }: { scheme: string }) {
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded border text-[10px] font-mono flex-shrink-0 ${cls}`}>
+      {scheme}
+    </span>
+  );
 }
 
 interface Stats {
@@ -75,13 +92,32 @@ export function MempoolPage() {
 
   const fetchMempool = async () => {
     try {
-      const [mempoolData, statsData, feeData] = await Promise.allSettled([
+      const [mempoolData, statsData, feeData, pendingData] = await Promise.allSettled([
         rpc.getMempoolTransactions(),
         rpc.getMempoolStats(),
         rpc.estimateFee(),
+        rpc.request_raw("getpendingtxs", [200]).catch(() => null) as Promise<{ transactions?: MempoolTx[] } | null>,
       ]);
 
-      if (mempoolData.status === "fulfilled" && mempoolData.value) {
+      if (pendingData.status === "fulfilled" && pendingData.value?.transactions?.length) {
+        // Use rich pending TX list (has scheme/nonce) when available
+        const mapped: MempoolTx[] = pendingData.value.transactions.map((tx: any) => ({
+          txid: tx.txid || "",
+          from: tx.from || "",
+          to: tx.to || "",
+          amount: tx.amount || 0,
+          fee: tx.fee || 0,
+          timestamp: tx.timestamp,
+          scheme: tx.scheme,
+          nonce: tx.nonce,
+        }));
+        const existing = new Set(mapped.map((t) => t.txid));
+        const merged = [
+          ...wsBuffer.current.filter((t) => !existing.has(t.txid)),
+          ...mapped,
+        ];
+        setTxs(merged.slice(0, 500));
+      } else if (mempoolData.status === "fulfilled" && mempoolData.value) {
         const val: any = mempoolData.value;
         const raw = Array.isArray(val) ? val : val?.transactions || [];
         const mapped: MempoolTx[] = raw.map((tx: any) => ({
@@ -92,7 +128,6 @@ export function MempoolPage() {
           fee: tx.fee || 0,
           timestamp: tx.timestamp,
         }));
-        // Merge WS buffer (live arrivals not yet in RPC list)
         const existing = new Set(mapped.map((t) => t.txid));
         const merged = [
           ...wsBuffer.current.filter((t) => !existing.has(t.txid)),
@@ -332,19 +367,20 @@ export function MempoolPage() {
                 <th className="px-4 py-2.5 font-medium">To</th>
                 <th className="px-4 py-2.5 font-medium text-right">Amount</th>
                 <th className="px-4 py-2.5 font-medium text-right">Fee (SAT)</th>
+                <th className="px-4 py-2.5 font-medium">Scheme</th>
                 <th className="px-4 py-2.5 font-medium text-right">Age</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mempool-border/30">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim animate-pulse">
+                  <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim animate-pulse">
                     Loading mempool…
                   </td>
                 </tr>
               ) : pageTxs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                  <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
                     {filter ? "No matching transactions" : "Mempool is empty"}
                   </td>
                 </tr>
@@ -384,6 +420,9 @@ export function MempoolPage() {
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono">
                       <FeeTag fee={tx.fee} />
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {tx.scheme ? <SchemeTag scheme={tx.scheme} /> : <span className="text-mempool-text-dim">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-mempool-text-dim">
                       {tx.timestamp ? fmtAge(tx.timestamp) : "—"}

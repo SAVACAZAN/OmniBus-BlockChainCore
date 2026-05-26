@@ -4045,6 +4045,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getpoolstats"))     return handlePoolStats(ctx, id);
     if (std.mem.eql(u8, method, "getaddressbalance"))return handleAddrBal(body, ctx, id);
     if (std.mem.eql(u8, method, "getmempoolstats"))  return handleMpStats(ctx, id);
+    if (std.mem.eql(u8, method, "getpendingtxs"))   return handleGetPendingTxs(body, ctx, id);
     if (std.mem.eql(u8, method, "getpeers"))         return handlePeers(ctx, id);
     if (std.mem.eql(u8, method, "getsyncstatus"))    return handleSyncSt(ctx, id);
     if (std.mem.eql(u8, method, "getnetworkinfo"))   return handleNetInfo(ctx, id);
@@ -6785,6 +6786,43 @@ fn handleMpStats(ctx: *ServerCtx, id: u64) ![]u8 {
     const mp_len = ctx.bc.mempool.items.len;
     ctx.bc.mutex.unlock();
     return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":0}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES });
+}
+
+/// RPC "getpendingtxs" — returns all TXs currently in the mempool with scheme info.
+/// Params: [limit]  (default 100, max 500)
+/// Returns: { count, transactions: [{txid,from,to,amount,fee,scheme,nonce,timestamp}] }
+fn handleGetPendingTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_limit = extractArrayNum(body, 0);
+    const limit: usize = if (req_limit > 0 and req_limit <= 500) @intCast(req_limit) else 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const items = ctx.bc.mempool.items;
+    const take = @min(limit, items.len);
+
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var n: usize = 0;
+    // Return newest first (reverse order)
+    var i: usize = if (items.len > 0) items.len - 1 else 0;
+    while (n < take) : (n += 1) {
+        const tx = items[i];
+        const sep: []const u8 = if (n == 0) "" else ",";
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d}}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee,
+               txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries); alloc.free(e); entries = m;
+        if (i == 0) break;
+        i -= 1;
+    }
+    defer alloc.free(entries);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"transactions\":[{s}]}}}}",
+        .{ id, n, entries });
 }
 
 // SEGFAULT-FIX [scan-2026-04-25]: hold p2p.peers_mutex for entire iteration.
