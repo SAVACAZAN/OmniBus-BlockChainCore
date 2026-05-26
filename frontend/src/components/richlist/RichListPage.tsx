@@ -9,6 +9,8 @@ import type { WsNewBlockEvent } from "../../types";
 
 type Role = "validator" | "miner" | "agent" | "user";
 
+const PAGE_SIZE_OPTIONS = [50, 100, 250, 500] as const;
+
 type RichEntry = {
   rank: number;
   address: string;
@@ -278,7 +280,7 @@ export function RichListPage() {
           <button onClick={() => setFilter("")} className="text-xs text-mempool-text-dim hover:text-mempool-text">✕</button>
         )}
         <span className="text-xs text-mempool-text-dim">Show:</span>
-        {[50, 100, 250, 500].map((n) => (
+        {PAGE_SIZE_OPTIONS.map((n) => (
           <button
             key={n}
             onClick={() => setLimit(n)}

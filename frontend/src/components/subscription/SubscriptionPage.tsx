@@ -48,6 +48,13 @@ interface GetSubscriptionsResp {
 
 type SubTab = "mine" | "create" | "incoming";
 
+const SUB_TABS: SubTab[] = ["mine", "create", "incoming"];
+const SUB_TAB_LABEL: Record<SubTab, string> = {
+  mine:     "My Subscriptions",
+  create:   "Create",
+  incoming: "Incoming",
+};
+
 const SUB_INTERVAL_PRESETS = [
   { label: "1h",  blocks: 3600 },
   { label: "1d",  blocks: 86400 },
@@ -315,7 +322,7 @@ export function SubscriptionPage() {
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-mempool-bg-elev rounded-xl border border-mempool-border p-1">
-        {(["mine", "create", "incoming"] as SubTab[]).map((t) => (
+        {SUB_TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -325,7 +332,7 @@ export function SubscriptionPage() {
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "mine" ? "My Subscriptions" : t === "create" ? "Create" : "Incoming"}
+            {SUB_TAB_LABEL[t]}
           </button>
         ))}
       </div>

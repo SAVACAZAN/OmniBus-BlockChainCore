@@ -6,6 +6,8 @@ import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keysto
 
 type Visibility = "public" | "private" | "ens_only";
 
+const VISIBILITY_OPTIONS: Visibility[] = ["public", "ens_only", "private"];
+
 /**
  * Public identity panel.
  *
@@ -158,7 +160,7 @@ export function IdentityPanel() {
           Visibility
         </label>
         <div className="grid grid-cols-3 gap-1 text-[11px]">
-          {(["public", "ens_only", "private"] as Visibility[]).map((v) => (
+          {VISIBILITY_OPTIONS.map((v) => (
             <button
               key={v}
               onClick={() => setVisibility(v)}
