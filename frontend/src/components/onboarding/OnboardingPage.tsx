@@ -159,10 +159,11 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
 // ── Progress indicator ──────────────────────────────────────────────────
 
+const PROGRESS_ORDER: StepId[] = ["welcome", "create-display", "password", "backup", "done"];
+
 function ProgressBar({ step }: { step: StepId }) {
-  // Linear ordering of visible steps — both create and import paths collapse
-  // to the same visual progress (5 dots) so the user always sees their place.
-  const order: StepId[] = ["welcome", "create-display", "password", "backup", "done"];
+  // For the import path, treat "import"/"create-confirm" as create-display.
+  const order = PROGRESS_ORDER;
   // For the import path, treat "import" as create-display.
   const flat: StepId = step === "import" || step === "create-confirm" ? "create-display" : step;
   const idx = order.indexOf(flat);
