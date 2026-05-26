@@ -284,17 +284,19 @@ function BlockPricesPanel() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Collect unique pairs from all blocks for a summary row
-  const pairSummary: Record<string, { lastBid: number; lastAsk: number; exchange: string; height: number }> = {};
-  for (const b of blocks) {
-    for (const e of b.prices) {
-      if (!e.success || e.bidMicroUsd === 0) continue;
-      const key = `${e.exchange}:${e.pair}`;
-      if (!pairSummary[key] || b.height > pairSummary[key].height) {
-        pairSummary[key] = { lastBid: e.bidMicroUsd, lastAsk: e.askMicroUsd, exchange: e.exchange, height: b.height };
+  const pairSummary = useMemo(() => {
+    const m: Record<string, { lastBid: number; lastAsk: number; exchange: string; height: number }> = {};
+    for (const b of blocks) {
+      for (const e of b.prices) {
+        if (!e.success || e.bidMicroUsd === 0) continue;
+        const key = `${e.exchange}:${e.pair}`;
+        if (!m[key] || b.height > m[key].height) {
+          m[key] = { lastBid: e.bidMicroUsd, lastAsk: e.askMicroUsd, exchange: e.exchange, height: b.height };
+        }
       }
     }
-  }
+    return m;
+  }, [blocks]);
 
   return (
     <div className="space-y-4">
