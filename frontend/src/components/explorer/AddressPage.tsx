@@ -97,10 +97,13 @@ const KIND_STYLE: Record<string, string> = {
   demo_grant:     "bg-pink-500/20 text-pink-300",
   transfer:       "bg-gray-700/40 text-gray-300",
 };
-function KindBadge({ kind }: { kind: string }) {
+function KindBadge({ kind, memo }: { kind: string; memo?: string }) {
   const cls = KIND_STYLE[kind] ?? "bg-gray-700/40 text-gray-300";
   return (
-    <span className={`inline-block px-1.5 py-0 rounded text-[10px] uppercase tracking-wide font-mono ${cls}`}>
+    <span
+      className={`inline-block px-1.5 py-0 rounded text-[10px] uppercase tracking-wide font-mono ${cls}`}
+      title={memo || kind}
+    >
       {kind}
     </span>
   );
@@ -368,7 +371,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     )}
                     <span>{tx.confirmations} conf</span>
                     {tx.fee > 0 && <span>Fee: {fmtSat(tx.fee)}</span>}
-                    {tx.kind && tx.kind !== "transfer" && <KindBadge kind={tx.kind} />}
+                    {tx.kind && tx.kind !== "transfer" && <KindBadge kind={tx.kind} memo={(tx as any).memo} />}
                     {tx.scheme && <SchemeTag scheme={tx.scheme} />}
                     {tx.timestamp && tx.timestamp > 0 && (
                       <span className="text-mempool-text-dim" title={new Date(tx.timestamp > 1e12 ? tx.timestamp : tx.timestamp * 1000).toLocaleString()}>

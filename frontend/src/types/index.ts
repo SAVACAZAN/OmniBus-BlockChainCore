@@ -239,6 +239,7 @@ export interface AddressHistoryEntry {
   scheme?: string;
   nonce?: number;
   kind?: string;
+  memo?: string;
 }
 
 export interface FeeEstimate {

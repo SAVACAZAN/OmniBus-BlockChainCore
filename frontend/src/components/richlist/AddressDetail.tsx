@@ -26,6 +26,7 @@ type AddressTx = {
   direction: "sent" | "received";
   kind: TxKind;
   status: "pending" | "confirmed";
+  memo?: string;
 };
 
 type AddressHistory = {
@@ -235,6 +236,7 @@ export function AddressDetail({
                     <td className="px-3 py-2 text-center">
                       <span
                         className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider rounded ${kindClass}`}
+                        title={tx.memo || tx.kind}
                       >
                         {tx.kind}
                       </span>
