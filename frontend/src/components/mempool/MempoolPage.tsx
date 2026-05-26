@@ -4,6 +4,7 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { satToOmni, midTrunc, fmtDuration } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   BarChart,
@@ -15,20 +16,7 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
-
-function fmtSat(sat: number) { return (sat / SAT).toFixed(8); }
-function midTrunc(s: string | undefined | null, h = 10, t = 8): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
-}
-function fmtAge(ts: number): string {
-  const diff = Math.floor((Date.now() / 1000) - ts);
-  if (diff < 60) return `${diff}s`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  return `${Math.floor(diff / 3600)}h`;
-}
+const fmtSat = satToOmni;
 
 interface MempoolTx {
   txid: string;
@@ -483,7 +471,7 @@ export function MempoolPage() {
                       </div>
                     </td>
                     <td className="px-4 py-2.5 text-right text-mempool-text-dim">
-                      {tx.timestamp ? fmtAge(tx.timestamp) : "—"}
+                      {tx.timestamp ? fmtDuration(tx.timestamp) : "—"}
                     </td>
                   </tr>
                 ))

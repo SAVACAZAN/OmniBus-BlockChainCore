@@ -3,18 +3,9 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { fmtSat, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
-
-function fmtSat(sat: number) {
-  return (sat / SAT).toFixed(8) + " OMNI";
-}
-function midTrunc(s: string | undefined | null, h = 14, t = 12): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
-}
 
 
 interface Props {

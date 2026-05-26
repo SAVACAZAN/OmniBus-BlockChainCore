@@ -3,6 +3,7 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
+import { midTrunc } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   LineChart,
@@ -13,12 +14,6 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-
-function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
-  if (!s) return "—";
-  if (s.length <= head + tail + 3) return s;
-  return `${s.slice(0, head)}…${s.slice(-tail)}`;
-}
 
 type BlockWithDiff = BlockData & { difficulty?: number; totalFees?: number };
 

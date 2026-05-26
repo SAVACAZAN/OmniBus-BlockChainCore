@@ -5,6 +5,7 @@ import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useNameForAddress } from "../../api/use-names";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { fmtSat, midTrunc, fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   BarChart,
@@ -16,16 +17,6 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
-
-function fmtSat(sat: number) {
-  return (sat / SAT).toFixed(8) + " OMNI";
-}
-function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
-}
 
 function StatCard({ label, value, sub, color }: {
   label: string;
@@ -64,15 +55,6 @@ interface DailyEntry {
 }
 interface NonceInfo { nonce: number; chainNonce: number; pendingCount: number; }
 
-function fmtAge(ts: number): string {
-  if (!ts) return "";
-  const diff = Math.floor(Date.now() / 1000 - (ts > 1e12 ? ts / 1000 : ts));
-  if (diff < 0) return "";
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
 
 
 export function AddressPage({ addr, onNavigate }: Props) {
@@ -237,7 +219,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
                 contentStyle={{ background: "#1a1b1e", border: "1px solid #2d2f36", borderRadius: "6px", fontSize: "11px", color: "#c9d1d9" }}
                 labelFormatter={(v) => `${v}`}
                 formatter={(val: number, name: string) => [
-                  `${(val / SAT).toFixed(4)} OMNI`,
+                  `${(val / SAT_PER_OMNI).toFixed(4)} OMNI`,
                   name === "received" ? "Received" : name === "sent" ? "Sent" : "Mining",
                 ]}
               />
@@ -283,8 +265,8 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     ...history.map((tx) => [
                       tx.txid,
                       tx.direction ?? "",
-                      (tx.amount / SAT).toFixed(8),
-                      (tx.fee / SAT).toFixed(8),
+                      (tx.amount / SAT_PER_OMNI).toFixed(8),
+                      (tx.fee / SAT_PER_OMNI).toFixed(8),
                       tx.from,
                       tx.to,
                       tx.blockHeight ?? "",

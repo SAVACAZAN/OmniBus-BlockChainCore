@@ -3,13 +3,10 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { fmtSat, midTrunc, SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
 
-function fmtSat(sat: number) {
-  return (sat / SAT).toFixed(8) + " OMNI";
-}
 function fmtTs(ts: number) {
   return new Date(ts < 1e10 ? ts * 1000 : ts).toLocaleString();
 }
@@ -18,11 +15,6 @@ function fmtPrice(microUsd: number): string {
   const usd = microUsd / 1_000_000;
   const dec = usd >= 100 ? 2 : usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
   return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
-}
-function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
 }
 
 
@@ -266,8 +258,8 @@ export function BlockPage({ height, onNavigate }: Props) {
                       `"${tx.txid ?? ""}"`,
                       `"${tx.from ?? ""}"`,
                       `"${tx.to ?? ""}"`,
-                      ((tx.amount || 0) / SAT).toFixed(8),
-                      ((tx.fee || 0) / SAT).toFixed(8),
+                      ((tx.amount || 0) / SAT_PER_OMNI).toFixed(8),
+                      ((tx.fee || 0) / SAT_PER_OMNI).toFixed(8),
                       tx.kind ?? "transfer",
                       tx.scheme ?? "",
                       tx.status ?? "",
