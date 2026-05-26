@@ -1,4 +1,5 @@
 import { StatsBar } from "./StatsBar";
+import { BlockTimeBand } from "./BlockTimeBand";
 import { MempoolBlockStrip } from "./MempoolBlockStrip";
 import { RecentTransactions } from "./RecentTransactions";
 import { MinerTable } from "../network/MinerTable";
@@ -14,6 +15,9 @@ export function Dashboard() {
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Stats Bar */}
       <StatsBar />
+
+      {/* Block time health band — sparkline of last N inter-block deltas */}
+      <BlockTimeBand />
 
       {/* MempoolBlockStrip with Plasma ambient on the right — no border,
            no card chrome around the plasma; the orange core sits visually
