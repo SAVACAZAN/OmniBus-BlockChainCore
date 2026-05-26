@@ -38,6 +38,7 @@ import { SubscriptionPage } from "./components/subscription/SubscriptionPage";
 import { PQWalletPanel } from "./components/wallet/PQWalletPanel";
 import { IdentityDIDPage } from "./components/identity/IdentityDIDPage";
 import { TxToast } from "./components/common/TxToast";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
 export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels" | "subscriptions" | "pqwallet" | "identity";
 
@@ -235,43 +236,45 @@ export default function App() {
         {/* ── Main content ── */}
         {/* pb-16 on mobile so content isn't hidden under bottom nav */}
         <main className="flex-1 pb-16 sm:pb-0">
-          {activeTab === "dashboard" && <Dashboard />}
-          {activeTab === "mempool" && <MempoolPage />}
-          {activeTab === "stats" && <StatsPage />}
+          {activeTab === "dashboard" && <ErrorBoundary label="Dashboard"><Dashboard /></ErrorBoundary>}
+          {activeTab === "mempool" && <ErrorBoundary label="Mempool"><MempoolPage /></ErrorBoundary>}
+          {activeTab === "stats" && <ErrorBoundary label="Stats"><StatsPage /></ErrorBoundary>}
           {activeTab === "blocks" && (
-            explorerDeepLink?.kind === "block"
-              ? <BlockPage height={explorerDeepLink.height} onNavigate={handleExplorerNavigate} />
-              : explorerDeepLink?.kind === "tx"
-              ? <TxPage hash={explorerDeepLink.hash} onNavigate={handleExplorerNavigate} />
-              : explorerDeepLink?.kind === "address"
-              ? <AddressPage addr={explorerDeepLink.addr} onNavigate={handleExplorerNavigate} />
-              : <BlocksPage />
+            <ErrorBoundary label="Explorer">
+              {explorerDeepLink?.kind === "block"
+                ? <BlockPage height={explorerDeepLink.height} onNavigate={handleExplorerNavigate} />
+                : explorerDeepLink?.kind === "tx"
+                ? <TxPage hash={explorerDeepLink.hash} onNavigate={handleExplorerNavigate} />
+                : explorerDeepLink?.kind === "address"
+                ? <AddressPage addr={explorerDeepLink.addr} onNavigate={handleExplorerNavigate} />
+                : <BlocksPage />}
+            </ErrorBoundary>
           )}
-          {activeTab === "wallet" && <WalletPage />}
-          {activeTab === "network" && <NetworkPage />}
-          {activeTab === "faucet" && <FaucetPage />}
-          {activeTab === "zeroday" && <ZeroDayPage />}
-          {activeTab === "richlist" && <RichListPage />}
-          {activeTab === "agents" && <AgentsPage />}
-          {activeTab === "reputation" && <ReputationPage />}
-          {activeTab === "stake" && <StakePage />}
-          {activeTab === "audit" && <DailyAuditPage />}
-          {activeTab === "validators" && <ValidatorsPage />}
-          {activeTab === "names" && <NamesPage />}
-          {activeTab === "exchange" && <ExchangePage />}
-          {activeTab === "bridge" && <BridgePage />}
-          {activeTab === "swap" && <AtomicSwapPanel />}
-          {activeTab === "api" && <ApiDocsPage />}
-          {activeTab === "docs" && <DocsPage />}
-          {activeTab === "profile" && <ProfilePage address={profileAddressOverride} />}
-          {activeTab === "vault" && <VaultPage />}
-          {activeTab === "governance" && <GovernancePage />}
-          {activeTab === "poap" && <PoapPage />}
-          {activeTab === "notarize" && <NotarizePage />}
-          {activeTab === "channels" && <ChannelsPage />}
-          {activeTab === "subscriptions" && <SubscriptionPage />}
-          {activeTab === "pqwallet" && <PQWalletPanel />}
-          {activeTab === "identity" && <IdentityDIDPage />}
+          {activeTab === "wallet" && <ErrorBoundary label="Wallet"><WalletPage /></ErrorBoundary>}
+          {activeTab === "network" && <ErrorBoundary label="Network"><NetworkPage /></ErrorBoundary>}
+          {activeTab === "faucet" && <ErrorBoundary label="Faucet"><FaucetPage /></ErrorBoundary>}
+          {activeTab === "zeroday" && <ErrorBoundary label="0day"><ZeroDayPage /></ErrorBoundary>}
+          {activeTab === "richlist" && <ErrorBoundary label="Rich List"><RichListPage /></ErrorBoundary>}
+          {activeTab === "agents" && <ErrorBoundary label="Agents"><AgentsPage /></ErrorBoundary>}
+          {activeTab === "reputation" && <ErrorBoundary label="Reputation"><ReputationPage /></ErrorBoundary>}
+          {activeTab === "stake" && <ErrorBoundary label="Stake"><StakePage /></ErrorBoundary>}
+          {activeTab === "audit" && <ErrorBoundary label="Audit"><DailyAuditPage /></ErrorBoundary>}
+          {activeTab === "validators" && <ErrorBoundary label="Validators"><ValidatorsPage /></ErrorBoundary>}
+          {activeTab === "names" && <ErrorBoundary label=".omnibus Names"><NamesPage /></ErrorBoundary>}
+          {activeTab === "exchange" && <ErrorBoundary label="Exchange"><ExchangePage /></ErrorBoundary>}
+          {activeTab === "bridge" && <ErrorBoundary label="Bridge"><BridgePage /></ErrorBoundary>}
+          {activeTab === "swap" && <ErrorBoundary label="Atomic Swap"><AtomicSwapPanel /></ErrorBoundary>}
+          {activeTab === "api" && <ErrorBoundary label="API Docs"><ApiDocsPage /></ErrorBoundary>}
+          {activeTab === "docs" && <ErrorBoundary label="Docs"><DocsPage /></ErrorBoundary>}
+          {activeTab === "profile" && <ErrorBoundary label="Profile"><ProfilePage address={profileAddressOverride} /></ErrorBoundary>}
+          {activeTab === "vault" && <ErrorBoundary label="Vault"><VaultPage /></ErrorBoundary>}
+          {activeTab === "governance" && <ErrorBoundary label="Governance"><GovernancePage /></ErrorBoundary>}
+          {activeTab === "poap" && <ErrorBoundary label="POAP"><PoapPage /></ErrorBoundary>}
+          {activeTab === "notarize" && <ErrorBoundary label="Notarize"><NotarizePage /></ErrorBoundary>}
+          {activeTab === "channels" && <ErrorBoundary label="Channels"><ChannelsPage /></ErrorBoundary>}
+          {activeTab === "subscriptions" && <ErrorBoundary label="Subscriptions"><SubscriptionPage /></ErrorBoundary>}
+          {activeTab === "pqwallet" && <ErrorBoundary label="PQ Wallet"><PQWalletPanel /></ErrorBoundary>}
+          {activeTab === "identity" && <ErrorBoundary label="Identity"><IdentityDIDPage /></ErrorBoundary>}
           {activeTab === "roadmap" && (
             <iframe
               src="/roadmap-flow.html"
