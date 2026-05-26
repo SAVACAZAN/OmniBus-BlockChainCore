@@ -34,26 +34,11 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
-import { sha256 } from "@noble/hashes/sha2";
-import * as secp from "@noble/secp256k1";
-import { hmac } from "@noble/hashes/hmac";
+
+// exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
 const rpc = new OmniBusRpcClient();
 
-// Wire noble HMAC once for RFC6979 deterministic-k (mirrors exchange-sign.ts)
-const _sAny: Record<string, unknown> = secp as unknown as Record<string, unknown>;
-if (_sAny["etc"] && !(_sAny["etc"] as Record<string, unknown>)["hmacSha256Sync"]) {
-  (_sAny["etc"] as Record<string, unknown>)["hmacSha256Sync"] = (
-    key: Uint8Array,
-    ...msgs: Uint8Array[]
-  ) => {
-    let buf = new Uint8Array(0);
-    for (const m of msgs) { const t = new Uint8Array(buf.length + m.length); t.set(buf); t.set(m, buf.length); buf = t; }
-    return hmac(sha256, key, buf);
-  };
-}
-
-/** ECDSA secp256k1 SHA256d signer — mirrors signMessage in exchange-sign.ts. */
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type SubTab = "my-intents" | "market" | "post" | "fill";

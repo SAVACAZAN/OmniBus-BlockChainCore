@@ -38,13 +38,14 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
     }
     let cancelled = false;
     const refresh = async () => {
-      const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId, mode: traderMode });
-      if (!cancelled) {
-        setOrders(list);
-        setLoading(false);
+      try {
+        const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId, mode: traderMode });
+        if (!cancelled) { setOrders(list); setLoading(false); }
+      } catch {
+        if (!cancelled) setLoading(false);
       }
     };
-    refresh();
+    void refresh();
     // Live: orderbook_update fires whenever this pair's book changes.
     const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
       if (ev.pair_id === pairId) void refresh();

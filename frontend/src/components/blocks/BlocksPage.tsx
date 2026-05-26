@@ -426,6 +426,7 @@ function SpvPanel() {
                 value={hFrom}
                 onChange={(e) => setHFrom(e.target.value)}
                 type="number"
+                min="0"
                 className="w-28 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
                 placeholder="0"
               />
@@ -502,6 +503,7 @@ function SpvPanel() {
                 value={pHeight}
                 onChange={(e) => setPHeight(e.target.value)}
                 type="number"
+                min="0"
                 className="w-28 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
                 placeholder="1234"
               />
@@ -512,6 +514,7 @@ function SpvPanel() {
                 value={pTxIndex}
                 onChange={(e) => setPTxIndex(e.target.value)}
                 type="number"
+                min="0"
                 className="w-20 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
                 placeholder="0"
               />
@@ -628,6 +631,7 @@ function BlockHashPanel() {
         <div className="flex gap-2">
           <input
             type="number"
+            min="0"
             value={lookupHeight}
             onChange={(e) => setLookupHeight(e.target.value)}
             placeholder="Block height"

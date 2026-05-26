@@ -910,6 +910,7 @@ function AgentLookupPanel() {
       <div className="flex gap-2">
         <input
           type="number"
+          min="0"
           value={agentId}
           onChange={(e) => setAgentId(e.target.value)}
           placeholder="Agent ID (number)"

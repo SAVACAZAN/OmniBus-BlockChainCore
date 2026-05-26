@@ -33,30 +33,13 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
-import { hmac } from "@noble/hashes/hmac";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
-// ── noble/secp256k1 v2 HMAC init (copy from exchange-sign.ts) ─────────────
-
-const sAny: unknown = secp;
-{
-  const s = sAny as Record<string, Record<string, unknown>>;
-  const concatB = (...arrays: Uint8Array[]): Uint8Array => {
-    let t = 0; for (const a of arrays) t += a.length;
-    const o = new Uint8Array(t); let off = 0;
-    for (const a of arrays) { o.set(a, off); off += a.length; }
-    return o;
-  };
-  if (s?.etc && !s.etc.hmacSha256Sync)
-    s.etc.hmacSha256Sync = (k: Uint8Array, ...m: Uint8Array[]) => hmac(sha256, k, concatB(...m));
-  if (s?.utils && !s.utils.hmacSha256Sync)
-    s.utils.hmacSha256Sync = (k: Uint8Array, ...m: Uint8Array[]) => hmac(sha256, k, concatB(...m));
-}
+// exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
 const rpc = new OmniBusRpcClient();
 

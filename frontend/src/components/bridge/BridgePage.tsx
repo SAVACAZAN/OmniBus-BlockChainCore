@@ -209,7 +209,7 @@ function BridgeLockPanel() {
           </div>
           <div>
             <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Amount (sat)</label>
-            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number"
+            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number" min="0"
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
               placeholder="1000000000" />
           </div>
@@ -287,7 +287,7 @@ function BridgeUnlockPanel() {
           </div>
           <div>
             <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Amount (sat)</label>
-            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number"
+            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number" min="0"
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
               placeholder="1000000000" />
           </div>
