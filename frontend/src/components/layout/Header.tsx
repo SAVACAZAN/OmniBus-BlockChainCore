@@ -56,7 +56,7 @@ export function Header() {
       if (/^ob[1_][a-z0-9_]{5,}/.test(s)) { window.location.hash = `#/address/${s}`; return; }
       // ENS-style name — try resolveaddress, fall back to TxSearch
       if (/^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9]+)?$/.test(s) && !/^[0-9a-fA-F]+$/.test(s)) {
-        _searchRpc.request_raw("resolveaddress", [s]).then((r: any) => {
+        _searchRpc.resolveAddress(s).then((r) => {
           const resolved = typeof r === "string" ? r : r?.address;
           if (resolved && resolved.length > 8) {
             window.location.hash = `#/address/${resolved}`;
@@ -338,7 +338,7 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
       if (abortRef.current) abortRef.current.abort();
       abortRef.current = new AbortController();
       try {
-        const r = (await _searchRpc.request_raw("resolveaddress", [s])) as { address?: string } | string | null;
+        const r = await _searchRpc.resolveAddress(s);
         const resolved = typeof r === "string" ? r : r?.address;
         if (resolved && resolved.length > 8) {
           window.location.hash = `#/address/${resolved}`;

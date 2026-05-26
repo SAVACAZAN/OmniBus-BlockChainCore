@@ -388,6 +388,14 @@ export class OmniBusRpcClient {
     }
   }
 
+  async resolveAddress(nameOrHandle: string): Promise<{ address?: string } | string | null> {
+    try {
+      return await this.request("resolveaddress", [nameOrHandle]);
+    } catch {
+      return null;
+    }
+  }
+
   async resolveName(name: string, tld: string): Promise<{
     name: string; address: string | null; found: boolean;
     registeredAtBlock?: number; expiresAtBlock?: number; fullLabel?: string;
