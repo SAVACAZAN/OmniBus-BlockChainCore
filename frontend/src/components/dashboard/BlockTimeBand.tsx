@@ -25,6 +25,7 @@ function Sparkline({ values, width = 200, height = 32 }: {
   // Color the line based on latest block time relative to target (1s)
   const latest = values[values.length - 1];
   const stroke = latest <= 2 ? "#22c55e" : latest <= 10 ? "#f59e0b" : "#ef4444";
+  const [dotX, dotY] = pts[pts.length - 1].split(",").map(Number);
 
   return (
     <svg width={width} height={height} className="overflow-visible">
@@ -37,11 +38,7 @@ function Sparkline({ values, width = 200, height = 32 }: {
         strokeLinecap="round"
         opacity="0.85"
       />
-      {/* Latest dot */}
-      {(() => {
-        const [lx, ly] = pts[pts.length - 1].split(",").map(Number);
-        return <circle cx={lx} cy={ly} r="2.5" fill={stroke} />;
-      })()}
+      <circle cx={dotX} cy={dotY} r="2.5" fill={stroke} />
     </svg>
   );
 }

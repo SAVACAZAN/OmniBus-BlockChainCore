@@ -1125,7 +1125,7 @@ function DexOrderbookPanel() {
     const refresh = async () => {
       const [ob, tm] = await Promise.allSettled([
         rpc.request_raw("omnibus_getorderbook", [{ pair }]) as Promise<DexOrderbookResp>,
-        rpc.request_raw("omnibus_gettotalmined", []) as Promise<TotalMinedResp>,
+        rpc.getTotalMined() as Promise<TotalMinedResp>,
       ]);
       if (cancelled) return;
       if (ob.status === "fulfilled") setOrderbook(ob.value);

@@ -20,7 +20,7 @@
  * RPCs: pq_balance, pq_send, pq_listSchemes
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
@@ -115,6 +115,9 @@ export function PQWalletPanel() {
   const [rows, setRows] = useState<PqAddressRow[]>([]);
   const [loadingBal, setLoadingBal] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+
+  const soulboundRows = useMemo(() => rows.filter((r) => r.soulbound), [rows]);
+  const transferableRows = useMemo(() => rows.filter((r) => !r.soulbound), [rows]);
 
   // ── Tab 2: send ───────────────────────────────────────────────────────
   const [sendTo, setSendTo] = useState("");
@@ -366,7 +369,7 @@ export function PQWalletPanel() {
               </span>
             </div>
             <div className="space-y-2">
-              {rows.filter((r) => r.soulbound).map((row) => (
+              {soulboundRows.map((row) => (
                 <PQAddressCard
                   key={row.prefix}
                   row={row}
@@ -375,7 +378,7 @@ export function PQWalletPanel() {
                   loadingBal={loadingBal}
                 />
               ))}
-              {!loadingBal && rows.filter((r) => r.soulbound).length === 0 && (
+              {!loadingBal && soulboundRows.length === 0 && (
                 <p className="text-mempool-text-dim text-xs text-center py-3">
                   Unlock from mnemonic to derive soulbound addresses.
                 </p>
@@ -394,7 +397,7 @@ export function PQWalletPanel() {
               </span>
             </div>
             <div className="space-y-2">
-              {rows.filter((r) => !r.soulbound).map((row) => (
+              {transferableRows.map((row) => (
                 <PQAddressCard
                   key={row.prefix}
                   row={row}
@@ -403,7 +406,7 @@ export function PQWalletPanel() {
                   loadingBal={loadingBal}
                 />
               ))}
-              {!loadingBal && rows.filter((r) => !r.soulbound).length === 0 && (
+              {!loadingBal && transferableRows.length === 0 && (
                 <p className="text-mempool-text-dim text-xs text-center py-3">
                   Unlock from mnemonic to derive transferable PQ addresses.
                 </p>

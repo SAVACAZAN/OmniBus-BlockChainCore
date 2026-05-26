@@ -551,6 +551,14 @@ export class OmniBusRpcClient {
     }
   }
 
+  async getTotalMined(): Promise<{ totalMinedOMNI: string; totalMinedSAT: number; blockHeight?: number } | null> {
+    try {
+      return await this.request("omnibus_gettotalmined", []);
+    } catch {
+      return null;
+    }
+  }
+
   async getHeaders(fromHeight: number, count: number = 10): Promise<any> {
     return this.request("getheaders", [fromHeight, count]);
   }

@@ -80,7 +80,7 @@ export function StatsBar() {
   // shown on the public explorer in place of any per-wallet balance.
   useEffect(() => {
     let cancelled = false;
-    rpc.request_raw("omnibus_gettotalmined", []).then((r) => {
+    rpc.getTotalMined().then((r) => {
       if (cancelled) return;
       if (r?.totalMinedOMNI) setTotalMined(r.totalMinedOMNI);
     }).catch(() => {});
