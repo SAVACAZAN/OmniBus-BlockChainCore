@@ -26,7 +26,7 @@ import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
-import { midTrunc, SAT_PER_OMNI } from "../../utils/fmt";
+import { midTrunc, satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -78,9 +78,6 @@ interface PqAttestResp {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
 
 
 
@@ -677,7 +674,7 @@ function PQAddressCard({ row, copied, onCopy, loadingBal }: PQAddressCardProps) 
           <span className="text-mempool-text-dim text-xs animate-pulse">…</span>
         ) : (
           <span className={`text-sm font-semibold ${row.balance > 0 ? "text-mempool-green" : "text-mempool-text-dim"}`}>
-            {fmtOmni(row.balance)}
+            {satToOmni(row.balance, 4)}
           </span>
         )}
         <p className="text-xs text-mempool-text-dim">OMNI</p>

@@ -51,11 +51,6 @@ type SubTab = "mine" | "create" | "incoming";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function fmtOmni(sat: number): string {
-  return satToOmni(sat, 4);
-}
-
-
 function signSubCreate(args: {
   privateKeyHex: string;
   from: string;
@@ -383,7 +378,7 @@ export function SubscriptionPage() {
                       s.id,
                       `"${s.from}"`,
                       `"${s.to}"`,
-                      fmtOmni(s.amount),
+                      satToOmni(s.amount, 4),
                       s.interval,
                       s.max_payments,
                       s.payments_made,
@@ -503,9 +498,10 @@ export function SubscriptionPage() {
             {parseInt(createMax || "0", 10) > 0 && createAmount && (
               <p className="text-xs text-mempool-text-dim">
                 Total max:{" "}
-                {fmtOmni(
+                {satToOmni(
                   Math.floor(parseFloat(createAmount || "0") * SAT_PER_OMNI) *
                     parseInt(createMax, 10),
+                  4
                 )}{" "}
                 OMNI
               </p>
@@ -690,7 +686,7 @@ function SubscriptionCard({
             </div>
             <div>
               <span className="opacity-70">Per period </span>
-              <span className="text-mempool-blue font-semibold">{fmtOmni(sub.amount)} OMNI</span>
+              <span className="text-mempool-blue font-semibold">{satToOmni(sub.amount, 4)} OMNI</span>
             </div>
             <div>
               <span className="opacity-70">Interval </span>

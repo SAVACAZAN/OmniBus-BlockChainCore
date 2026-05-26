@@ -15,15 +15,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Wallet, Plus, X, RefreshCw, Play, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, satToOmni, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
 interface TreasuryDest {
   address: string;
   percent: number;
@@ -80,7 +77,7 @@ function DistributeModal({ entry, onClose, onConfirm }: DistributeModalProps) {
         </div>
 
         <div className="text-xs text-mempool-text-dim">
-          Current balance: <span className="text-mempool-text font-mono">{fmtOmni(entry.balance_sat)} OMNI</span>
+          Current balance: <span className="text-mempool-text font-mono">{satToOmni(entry.balance_sat, 4)} OMNI</span>
         </div>
 
         <div className="space-y-2">
@@ -91,7 +88,7 @@ function DistributeModal({ entry, onClose, onConfirm }: DistributeModalProps) {
                 <span className="text-mempool-text-dim">{d.label || midTrunc(d.address)}</span>
                 <span className="text-mempool-text-dim ml-2">{d.percent}%</span>
               </div>
-              <span className="text-mempool-green">+{fmtOmni(d.amount_sat)} OMNI</span>
+              <span className="text-mempool-green">+{satToOmni(d.amount_sat, 4)} OMNI</span>
             </div>
           ))}
         </div>
@@ -430,12 +427,12 @@ export function TreasuryPanel() {
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-mempool-text-dim">
                   <div>
                     <div className="text-[9px] uppercase tracking-wider">Balance</div>
-                    <div className="text-mempool-text">{fmtOmni(t.balance_sat)} OMNI</div>
+                    <div className="text-mempool-text">{satToOmni(t.balance_sat, 4)} OMNI</div>
                   </div>
                   <div>
                     <div className="text-[9px] uppercase tracking-wider">Trigger</div>
                     <div className={belowTrigger ? "text-mempool-orange" : "text-mempool-green"}>
-                      {fmtOmni(t.trigger_sat)} OMNI
+                      {satToOmni(t.trigger_sat, 4)} OMNI
                     </div>
                   </div>
                   <div>
@@ -455,17 +452,17 @@ export function TreasuryPanel() {
                   <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] font-mono">
                     <div>
                       <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Live balance</div>
-                      <div className="text-mempool-blue">{fmtOmni(statusMap[t.treasury_id].balance_sat)} OMNI</div>
+                      <div className="text-mempool-blue">{satToOmni(statusMap[t.treasury_id].balance_sat, 4)} OMNI</div>
                     </div>
                     <div>
                       <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Pending dist.</div>
                       <div className={statusMap[t.treasury_id].pending_distribute_sat > 0 ? "text-mempool-green" : "text-mempool-text-dim"}>
-                        {fmtOmni(statusMap[t.treasury_id].pending_distribute_sat)} OMNI
+                        {satToOmni(statusMap[t.treasury_id].pending_distribute_sat, 4)} OMNI
                       </div>
                     </div>
                     <div>
                       <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Total distrib.</div>
-                      <div className="text-mempool-text">{fmtOmni(statusMap[t.treasury_id].total_distributed_sat)} OMNI</div>
+                      <div className="text-mempool-text">{satToOmni(statusMap[t.treasury_id].total_distributed_sat, 4)} OMNI</div>
                     </div>
                   </div>
                 )}

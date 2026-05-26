@@ -16,14 +16,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Users, Send, Plus, X, AlertTriangle, Copy, RefreshCw } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
 
 type SubTab = "create" | "send" | "balance";
 
@@ -452,7 +449,7 @@ function BalanceTab() {
         <div className="bg-mempool-bg border border-mempool-border rounded p-4">
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">Balance</div>
           <div className="text-2xl font-mono text-mempool-text">
-            {fmtOmni(balance)}
+            {satToOmni(balance, 4)}
             <span className="text-sm text-mempool-text-dim ml-2">OMNI</span>
           </div>
           <div className="text-[10px] font-mono text-mempool-text-dim mt-1">

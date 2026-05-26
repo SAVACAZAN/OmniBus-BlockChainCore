@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, satToOmni, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types/index";
@@ -26,9 +26,6 @@ const rpc = new OmniBusRpcClient();
 
 const REFRESH_INTERVAL_MS = 30_000;
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
 interface ColdWalletEntry {
   address: string;
   label: string;
@@ -123,7 +120,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
                       {midTrunc(tx.txid, 10, 6)}
                     </td>
                     <td className={`py-1.5 text-right ${tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"}`}>
-                      {tx.direction === "received" ? "+" : "−"}{fmtOmni(tx.amount_sat)} OMNI
+                      {tx.direction === "received" ? "+" : "−"}{satToOmni(tx.amount_sat, 4)} OMNI
                     </td>
                   </tr>
                 ))}
@@ -329,7 +326,7 @@ export function ColdWalletPanel() {
                     {entry.label || <span className="italic opacity-50">—</span>}
                   </td>
                   <td className="py-2 px-2 text-right text-mempool-text">
-                    {fmtOmni(entry.balance_sat ?? 0)}
+                    {satToOmni(entry.balance_sat ?? 0, 4)}
                   </td>
                   <td className="py-2 px-2">
                     <div className="flex items-center justify-center gap-2">
