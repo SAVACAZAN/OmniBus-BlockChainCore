@@ -4425,10 +4425,10 @@ fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
     return switch (scheme) {
         .omni_ecdsa       => "ECDSA (secp256k1)",
-        .love_dilithium   => "ML-DSA-87 (soulbound)",
-        .food_falcon      => "Falcon-512 (soulbound)",
-        .rent_ml_dsa      => "ML-DSA-87 (soulbound)",
-        .vacation_slh_dsa => "SLH-DSA-256s (soulbound)",
+        .love_dilithium   => "ML-DSA-87 (LOVE soulbound)",
+        .food_falcon      => "Falcon-512 (FOOD soulbound)",
+        .rent_ml_dsa      => "ML-DSA-87 (RENT soulbound)",
+        .vacation_slh_dsa => "SLH-DSA-256s (VACATION soulbound)",
         .pq_omni_ml_dsa   => "ML-DSA-87",
         .pq_omni_falcon   => "Falcon-512",
         .pq_omni_dilithium=> "ML-DSA-87 (Dilithium-5)",
@@ -5106,10 +5106,10 @@ fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const scanned = chain_len - start;
     const scheme_labels = [13][]const u8{
         "ECDSA (secp256k1)",
-        "ML-DSA-87 (soulbound)",
-        "Falcon-512 (soulbound)",
-        "ML-DSA-87 (soulbound)",
-        "SLH-DSA-256s (soulbound)",
+        "ML-DSA-87 (LOVE soulbound)",
+        "Falcon-512 (FOOD soulbound)",
+        "ML-DSA-87 (RENT soulbound)",
+        "SLH-DSA-256s (VACATION soulbound)",
         "ML-DSA-87",
         "Falcon-512",
         "ML-DSA-87 (Dilithium-5)",
@@ -10628,13 +10628,40 @@ fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
     return out;
 }
 
+/// Approximate on-wire bytes per TX scheme (base overhead ~220 bytes fixed fields).
+fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
+    const base: u64 = 220; // txid+from+to+amount+fee+nonce+timestamp overhead
+    const extra: u64 = switch (scheme) {
+        .omni_ecdsa        => @as(u64, 97),    // sig(64) + pubkey(33)
+        .love_dilithium,
+        .rent_ml_dsa,
+        .pq_omni_ml_dsa,
+        .pq_omni_dilithium => @as(u64, 5245),  // ML-DSA-87: sig(3293) + pubkey(1952)
+        .food_falcon,
+        .pq_omni_falcon    => @as(u64, 1563),  // Falcon-512: sig(666) + pubkey(897)
+        .vacation_slh_dsa,
+        .pq_omni_slh_dsa   => @as(u64, 49984), // SLH-DSA-256s: sig(49856) + pubkey(64) + overhead
+        .hybrid_q1,
+        .hybrid_q3         => @as(u64, 5342),  // ECDSA(97) + ML-DSA-87(5245)
+        .hybrid_q2         => @as(u64, 1660),  // ECDSA(97) + Falcon-512(1563)
+        .hybrid_q4         => @as(u64, 50081), // ECDSA(97) + SLH-DSA(49984)
+    };
+    return base + extra;
+}
+
 /// getmempoolinfo — mempool stats (matches Bitcoin RPC)
 fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const size: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
+    ctx.bc.mutex.lock();
+    const size: u64 = @intCast(ctx.bc.mempool.items.len);
+    var bytes: u64 = 0;
+    for (ctx.bc.mempool.items) |tx| {
+        bytes += estimateTxBytes(tx.scheme);
+    }
+    ctx.bc.mutex.unlock();
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":0}}}}",
-        .{ id, size },
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":{d}}}}}",
+        .{ id, size, bytes },
     );
 }
 
@@ -10705,17 +10732,20 @@ fn handleGetPeerInfo(ctx: *ServerCtx, id: u64) ![]u8 {
 
     var entries: []u8 = try alloc.dupe(u8, "");
     var n: usize = 0;
-    for (p2p.peers.items) |peer| {
-        const sep: []const u8 = if (n == 0) "" else ",";
-        // last_seen: not tracked on PeerConnection — placeholder 0. TODO: actual timestamp tracking.
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
-            .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries);
-        alloc.free(e);
-        entries = m;
-        n += 1;
+    {
+        p2p.peers_mutex.lock();
+        defer p2p.peers_mutex.unlock();
+        for (p2p.peers.items) |peer| {
+            const sep: []const u8 = if (n == 0) "" else ",";
+            const e = try std.fmt.allocPrint(alloc,
+                "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
+                .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
+            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+            alloc.free(entries);
+            alloc.free(e);
+            entries = m;
+            n += 1;
+        }
     }
     defer alloc.free(entries);
     return std.fmt.allocPrint(alloc,
