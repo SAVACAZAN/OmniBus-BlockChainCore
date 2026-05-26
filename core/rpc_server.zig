@@ -7176,6 +7176,10 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
     const rc = extractArrayNum(body, 1);
     const mc: u32 = if (rc == 0 or rc > 100) 100 else std.math.cast(u32, rc) orelse 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
     var entries: []u8 = try alloc.dupe(u8, "");
     var n: u32 = 0;
     var h: u32 = from;
