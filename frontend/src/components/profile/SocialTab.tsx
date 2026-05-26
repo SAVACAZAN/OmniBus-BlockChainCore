@@ -141,7 +141,7 @@ export function SocialTab({ profile, editable, onSave }: SocialTabProps) {
       >
         <div className="space-y-2">
           {links.map((l, i) => (
-            <div key={i} className="flex gap-2 items-center">
+            <div key={`link-${i}`} className="flex gap-2 items-center">
               {editable ? (
                 <>
                   <input
