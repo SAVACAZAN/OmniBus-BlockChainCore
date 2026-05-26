@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
@@ -104,44 +104,45 @@ export function RecentTransactions() {
   };
 
   // Combine: new endpoint TXs + fallback pending + block rewards
-  const items: TxItem[] = recentTxs.length > 0
-    ? recentTxs.slice(0, 15).map((tx: any): TxItem => ({
-        id: tx.txid || tx.id,
-        from: tx.from || "",
-        to: tx.to || "",
-        amount: tx.amount || 0,
-        fee: tx.fee || 0,
-        status: (tx.status === "confirmed" ? "confirmed" : "pending"),
-        confirmations: tx.confirmations ?? 0,
-        time: tx.timestamp || Date.now(),
-        scheme: tx.scheme,
-        kind: tx.kind,
-      }))
-    : [
-        ...state.pendingTxs.slice(0, 10).map((tx): TxItem => ({
-          id: tx.txid,
-          from: tx.from,
-          to: "",
-          amount: tx.amount_sat,
-          fee: 0,
-          status: "pending",
-          confirmations: 0,
-          time: tx.timestamp,
-        })),
-        ...state.recentBlocks.slice(0, 10).map((block): TxItem => ({
-          id: `coinbase-${block.height}`,
-          from: "coinbase",
-          to: block.miner || state.address,
-          amount: block.rewardSAT || 0,
-          fee: 0,
-          status: "confirmed",
-          confirmations: Math.max(1, state.blockCount - block.height),
-          time: block.timestamp ? block.timestamp * 1000 : Date.now(),
-        })),
-      ].slice(0, 15);
-
-  // Dedupe by id — pending TX + coinbase reward at same block can collide.
-  const uniqueItems: TxItem[] = [...new Map<string, TxItem>(items.map((it) => [it.id, it])).values()];
+  const uniqueItems = useMemo<TxItem[]>(() => {
+    const items: TxItem[] = recentTxs.length > 0
+      ? recentTxs.slice(0, 15).map((tx: any): TxItem => ({
+          id: tx.txid || tx.id,
+          from: tx.from || "",
+          to: tx.to || "",
+          amount: tx.amount || 0,
+          fee: tx.fee || 0,
+          status: (tx.status === "confirmed" ? "confirmed" : "pending"),
+          confirmations: tx.confirmations ?? 0,
+          time: tx.timestamp || Date.now(),
+          scheme: tx.scheme,
+          kind: tx.kind,
+        }))
+      : [
+          ...state.pendingTxs.slice(0, 10).map((tx): TxItem => ({
+            id: tx.txid,
+            from: tx.from,
+            to: "",
+            amount: tx.amount_sat,
+            fee: 0,
+            status: "pending",
+            confirmations: 0,
+            time: tx.timestamp,
+          })),
+          ...state.recentBlocks.slice(0, 10).map((block): TxItem => ({
+            id: `coinbase-${block.height}`,
+            from: "coinbase",
+            to: block.miner || state.address,
+            amount: block.rewardSAT || 0,
+            fee: 0,
+            status: "confirmed",
+            confirmations: Math.max(1, state.blockCount - block.height),
+            time: block.timestamp ? block.timestamp * 1000 : Date.now(),
+          })),
+        ].slice(0, 15);
+    // Dedupe by id — pending TX + coinbase reward at same block can collide.
+    return [...new Map<string, TxItem>(items.map((it) => [it.id, it])).values()];
+  }, [recentTxs, state.pendingTxs, state.recentBlocks, state.blockCount, state.address]);
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border backdrop-blur-sm">
