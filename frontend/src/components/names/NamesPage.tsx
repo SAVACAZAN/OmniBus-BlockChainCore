@@ -90,6 +90,89 @@ type ResolveResp = {
 // searches across all TLDs at once.
 type MultiResolveResp = ResolveResp & { _tld: Tld };
 
+function SearchAllResultsList({ results, search }: { results: MultiResolveResp[]; search: string }) {
+  const found = results.filter((r) => r.found);
+  if (found.length === 0) {
+    return (
+      <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
+        <p className="text-sm text-mempool-text font-mono">
+          <span className="font-semibold text-mempool-text">
+            {(results[0] && results[0].name) || search}
+          </span>
+          {" — "}
+          <span className="text-amber-300">AVAILABLE everywhere</span>
+          <span className="ml-2 text-[11px] text-mempool-text-dim">
+            (0 of {results.length} TLDs taken — pick one in the Register form below)
+          </span>
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="text-xs text-mempool-text-dim">
+        Found <span className="font-semibold text-mempool-text">{found.length}</span> of{" "}
+        {results.length} TLDs
+      </p>
+      {found.map((r) => {
+        const tld = r._tld;
+        const info = TLD_INFO[tld];
+        return (
+          <div key={tld} className="p-3 rounded border border-green-500/40 bg-green-500/10">
+            <p className="text-sm text-mempool-text font-mono">
+              <span className={`font-semibold ${info.color}`}>
+                {r.fullLabel || `${r.name}.${r.tld || tld}`}
+              </span>
+              {r.category && r.category !== "none" && (
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
+                  {r.category}
+                </span>
+              )}
+              {" — "}
+              <span className="text-green-300">TAKEN</span>
+            </p>
+            {r.address && (
+              <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">→ primary: {r.address}</p>
+            )}
+            {r.addresses && (
+              <div className="text-[10px] mt-2 space-y-0.5">
+                {(["k", "f", "s", "d"] as const).map((slot) => {
+                  const addrs = r.addresses!;
+                  if (!addrs[`${slot}_set`]) return null;
+                  const label = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                  return (
+                    <p key={slot} className="text-mempool-text-dim font-mono break-all">
+                      <span className="text-purple-400">↳ {label}:</span> {addrs[slot]}
+                    </p>
+                  );
+                })}
+              </div>
+            )}
+            {r.preferred_slot != null && r.preferred_slot > 0 && (
+              <p className="text-[11px] text-mempool-blue mt-1">
+                Preferred receiving scheme: slot {r.preferred_slot} (
+                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][r.preferred_slot]}
+                )
+              </p>
+            )}
+            {r.registered_years != null && r.registered_years > 0 && (
+              <p className="text-xs text-mempool-text-dim mt-1">
+                Registered for {r.registered_years} {r.registered_years === 1 ? "year" : "years"}
+              </p>
+            )}
+            {r.registeredAtBlock != null && (
+              <p className="text-xs text-mempool-text-dim mt-1">
+                Block #{r.registeredAtBlock.toLocaleString()}
+                {r.expiresAtBlock && <span> · expires #{r.expiresAtBlock.toLocaleString()}</span>}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 type EnsFeeResp = {
   treasury: string;
   enforcement: boolean;
@@ -619,96 +702,9 @@ export function NamesPage() {
             line shows "Found N of M TLDs" and an "available everywhere"
             hint when nothing matches. Each card renders the same metadata
             block as the single-result path above. */}
-        {searchAllResults && (() => {
-          const found = searchAllResults.filter((r) => r.found);
-          if (found.length === 0) {
-            return (
-              <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
-                <p className="text-sm text-mempool-text font-mono">
-                  <span className="font-semibold text-mempool-text">
-                    {(searchAllResults[0] && searchAllResults[0].name) || search}
-                  </span>
-                  {" — "}
-                  <span className="text-amber-300">AVAILABLE everywhere</span>
-                  <span className="ml-2 text-[11px] text-mempool-text-dim">
-                    (0 of {searchAllResults.length} TLDs taken — pick one in the Register form below)
-                  </span>
-                </p>
-              </div>
-            );
-          }
-          return (
-            <div className="mt-3 space-y-2">
-              <p className="text-xs text-mempool-text-dim">
-                Found <span className="font-semibold text-mempool-text">{found.length}</span> of{" "}
-                {searchAllResults.length} TLDs
-              </p>
-              {found.map((r) => {
-                const tld = r._tld;
-                const info = TLD_INFO[tld];
-                return (
-                  <div
-                    key={tld}
-                    className="p-3 rounded border border-green-500/40 bg-green-500/10"
-                  >
-                    <p className="text-sm text-mempool-text font-mono">
-                      <span className={`font-semibold ${info.color}`}>
-                        {r.fullLabel || `${r.name}.${r.tld || tld}`}
-                      </span>
-                      {r.category && r.category !== "none" && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
-                          {r.category}
-                        </span>
-                      )}
-                      {" — "}
-                      <span className="text-green-300">TAKEN</span>
-                    </p>
-                    {r.address && (
-                      <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">
-                        → primary: {r.address}
-                      </p>
-                    )}
-                    {r.addresses && (
-                      <div className="text-[10px] mt-2 space-y-0.5">
-                        {(["k", "f", "s", "d"] as const).map((slot) => {
-                          const addrs = r.addresses!;
-                          const isSet = addrs[`${slot}_set`];
-                          if (!isSet) return null;
-                          const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
-                          return (
-                            <p key={slot} className="text-mempool-text-dim font-mono break-all">
-                              <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}
-                            </p>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {r.preferred_slot != null && r.preferred_slot > 0 && (
-                      <p className="text-[11px] text-mempool-blue mt-1">
-                        Preferred receiving scheme: slot {r.preferred_slot} (
-                        {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][r.preferred_slot]}
-                        )
-                      </p>
-                    )}
-                    {r.registered_years != null && r.registered_years > 0 && (
-                      <p className="text-xs text-mempool-text-dim mt-1">
-                        Registered for {r.registered_years} {r.registered_years === 1 ? "year" : "years"}
-                      </p>
-                    )}
-                    {r.registeredAtBlock != null && (
-                      <p className="text-xs text-mempool-text-dim mt-1">
-                        Block #{r.registeredAtBlock.toLocaleString()}
-                        {r.expiresAtBlock && (
-                          <span> · expires #{r.expiresAtBlock.toLocaleString()}</span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
+        {searchAllResults && (
+          <SearchAllResultsList results={searchAllResults} search={search} />
+        )}
       </div>
 
       {/* NS Health Dashboard — Phase 2 totals */}

@@ -448,6 +448,8 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     await loadEventDetail(id);
   };
 
+  const ownedPoap = poaps?.find((p) => p.event_id === selectedId) ?? null;
+
   return (
     <div className="space-y-4">
       {/* Address row */}
@@ -567,21 +569,18 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
                 busyClose={busyClose}
               />
               {/* Show TX hash for the owned POAP if it's in our list */}
-              {poaps?.find((p) => p.event_id === selectedId) && (() => {
-                const p = poaps!.find((pp) => pp.event_id === selectedId)!;
-                return (
-                  <div className="text-[11px] text-mempool-text-dim font-mono">
-                    claim tx:{" "}
-                    <a
-                      href={`/blocks/${p.tx_hash}`}
-                      className="text-mempool-blue hover:underline"
-                      title={p.tx_hash}
-                    >
-                      {midTrunc(p.tx_hash, 10, 6)}
-                    </a>
-                  </div>
-                );
-              })()}
+              {ownedPoap && (
+                <div className="text-[11px] text-mempool-text-dim font-mono">
+                  claim tx:{" "}
+                  <a
+                    href={`/blocks/${ownedPoap.tx_hash}`}
+                    className="text-mempool-blue hover:underline"
+                    title={ownedPoap.tx_hash}
+                  >
+                    {midTrunc(ownedPoap.tx_hash, 10, 6)}
+                  </a>
+                </div>
+              )}
             </>
           )}
         </div>
