@@ -213,21 +213,26 @@ export function StatsPage() {
 
       if (!tip || tip < 1) { setLoading(false); return; }
 
-      // Fetch last 100 blocks — all in parallel (20 concurrent RPCs max)
+      // Fetch last 100 blocks — single batch call, fallback to parallel individual calls
       const count = Math.min(100, tip);
-      const start = tip - 1;
-      const end = Math.max(0, start - count);
-      const indices: number[] = [];
-      for (let i = start; i >= end; i--) indices.push(i);
-
-      const CONCURRENCY = 20;
-      const blocks: any[] = [];
-      for (let i = 0; i < indices.length; i += CONCURRENCY) {
-        const slice = indices.slice(i, i + CONCURRENCY);
-        const batch = await Promise.all(
-          slice.map((idx) => rpc.getBlock(idx).catch(() => null))
-        );
-        blocks.push(...batch.filter(Boolean));
+      const from = Math.max(0, tip - count);
+      let blocks: any[] = [];
+      try {
+        const resp: any = await rpc.getBlocks(from, count);
+        blocks = Array.isArray(resp) ? resp : (resp?.blocks ?? []);
+      } catch {
+        const start = tip - 1;
+        const end = Math.max(0, start - count);
+        const indices: number[] = [];
+        for (let i = start; i >= end; i--) indices.push(i);
+        const CONCURRENCY = 20;
+        for (let i = 0; i < indices.length; i += CONCURRENCY) {
+          const slice = indices.slice(i, i + CONCURRENCY);
+          const batch = await Promise.all(
+            slice.map((idx) => rpc.getBlock(idx).catch(() => null))
+          );
+          blocks.push(...batch.filter(Boolean));
+        }
       }
 
       const { stats, series: s } = computeStats(blocks);

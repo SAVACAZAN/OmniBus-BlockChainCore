@@ -74,6 +74,24 @@ function fmtAge(ts: number): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+const KIND_STYLE: Record<string, string> = {
+  coinbase:   "bg-yellow-500/20 text-yellow-300",
+  faucet:     "bg-cyan-500/20 text-cyan-300",
+  registrar:  "bg-purple-500/20 text-purple-300",
+  exchange:   "bg-blue-500/20 text-blue-300",
+  stake:      "bg-green-500/20 text-green-300",
+  demo_grant: "bg-pink-500/20 text-pink-300",
+  transfer:   "bg-gray-700/40 text-gray-300",
+};
+function KindBadge({ kind }: { kind: string }) {
+  const cls = KIND_STYLE[kind] ?? "bg-gray-700/40 text-gray-300";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded text-[10px] uppercase tracking-wide font-mono ${cls}`}>
+      {kind}
+    </span>
+  );
+}
+
 function SchemeTag({ scheme }: { scheme: string }) {
   const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
   const isSoulbound = scheme.includes("soulbound");
@@ -319,6 +337,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     )}
                     <span>{tx.confirmations} conf</span>
                     {tx.fee > 0 && <span>Fee: {fmtSat(tx.fee)}</span>}
+                    {tx.kind && tx.kind !== "transfer" && <KindBadge kind={tx.kind} />}
                     {tx.scheme && <SchemeTag scheme={tx.scheme} />}
                     {tx.timestamp && tx.timestamp > 0 && (
                       <span className="text-mempool-text-dim" title={new Date(tx.timestamp > 1e12 ? tx.timestamp : tx.timestamp * 1000).toLocaleString()}>

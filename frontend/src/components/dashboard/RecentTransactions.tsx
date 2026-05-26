@@ -34,6 +34,22 @@ function SchemeTag({ scheme }: { scheme?: string }) {
   );
 }
 
+const KIND_DOT: Record<string, string> = {
+  coinbase:   "text-yellow-300",
+  faucet:     "text-cyan-300",
+  registrar:  "text-purple-300",
+  exchange:   "text-blue-300",
+  stake:      "text-green-300",
+  demo_grant: "text-pink-300",
+};
+function KindBadge({ kind }: { kind?: string }) {
+  if (!kind || kind === "transfer") return null;
+  const cls = KIND_DOT[kind] ?? "text-gray-400";
+  return (
+    <span className={`text-[9px] font-mono uppercase ${cls}`}>{kind}</span>
+  );
+}
+
 function ConfirmationBadge({ count }: { count: number }) {
   if (count === 0) {
     return (
@@ -88,6 +104,7 @@ export function RecentTransactions() {
     confirmations: number;
     time: number;
     scheme?: string;
+    kind?: string;
   };
 
   // Combine: new endpoint TXs + fallback pending + block rewards
@@ -102,6 +119,7 @@ export function RecentTransactions() {
         confirmations: tx.confirmations ?? 0,
         time: tx.timestamp || Date.now(),
         scheme: tx.scheme,
+        kind: tx.kind,
       }))
     : [
         ...state.pendingTxs.slice(0, 10).map((tx): TxItem => ({
@@ -183,6 +201,7 @@ export function RecentTransactions() {
                     {item.status}
                   </span>
                   <ConfirmationBadge count={item.confirmations} />
+                  <KindBadge kind={item.kind} />
                   {item.scheme && <SchemeTag scheme={item.scheme} />}
                 </div>
                 <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>

@@ -6618,9 +6618,10 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!is_from and !is_to) continue;
         const dir: []const u8 = if (is_from) "sent" else "received";
         const sep: []const u8 = if (count == 0) "" else ",";
+        const kind = inferTxKind(tx);
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"status\":\"pending\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, txSchemeLabel(tx.scheme), tx.timestamp });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"pending\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6665,9 +6666,10 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     const is_from = std.mem.eql(u8, tx.from_address, wallet_addr);
                     const dir: []const u8 = if (is_from) "sent" else "received";
                     const sep: []const u8 = if (count == 0) "" else ",";
+                    const kind = inferTxKind(tx);
                     const e = try std.fmt.allocPrint(alloc,
-                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"status\":\"confirmed\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
-                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, txSchemeLabel(tx.scheme), tx.timestamp });
+                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"confirmed\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
                     const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                     alloc.free(entries); alloc.free(e); entries = m; count += 1;
                     break;
