@@ -747,6 +747,30 @@ function TopStakersTab() {
           );
         })}
         <div className="flex-1" />
+        {rows && rows.length > 0 && (
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["rank", "address", "amount_omni", "days_locked", "rent_earned"].join(","),
+                ...rows.map((r, i) => [
+                  i + 1,
+                  `"${r.address}"`,
+                  (r.amount_sat / SAT_PER_OMNI).toFixed(8),
+                  r.days_locked,
+                  (r.rent_earned / 100).toFixed(2),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-top-stakers.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}

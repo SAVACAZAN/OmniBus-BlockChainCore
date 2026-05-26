@@ -324,7 +324,38 @@ function ValidatorListTab() {
             </button>
           ))}
         </div>
-        {loading && <span className="text-xs text-gray-500">refreshing…</span>}
+        <div className="flex items-center gap-2">
+          {loading && <span className="text-xs text-gray-500">refreshing…</span>}
+          {data && data.validators.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["rank", "address", "tier", "stake_omni", "uptime_pct", "blocks_signed", "blocks_missed", "slash_count", "slashed", "joined_at_block"].join(","),
+                  ...data.validators.map((v, i) => [
+                    i + 1,
+                    `"${v.address}"`,
+                    v.tier,
+                    v.stake_omni.toFixed(2),
+                    v.uptime_pct.toFixed(2),
+                    v.blocks_signed,
+                    v.blocks_missed,
+                    v.slash_count,
+                    v.slashed ? "true" : "false",
+                    v.joined_at_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-validators.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-gray-800/60 border border-gray-700/40 rounded text-gray-400 hover:text-gray-200 transition-colors font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {err && (

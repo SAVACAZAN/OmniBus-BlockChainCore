@@ -898,6 +898,34 @@ export function NamesPage() {
           <span className="ml-auto text-xs text-mempool-text-dim">
             {list ? `${list.entries.length} of ${list.total}` : "loading…"}
           </span>
+          {list && list.entries.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["name", "tld", "full_name", "address", "registered_at_block", "expires_at_block"].join(","),
+                  ...list.entries.map((e) => {
+                    const tld = e.tld || "omnibus";
+                    return [
+                      `"${e.name}"`,
+                      tld,
+                      `"${e.name}.${tld}"`,
+                      `"${e.address}"`,
+                      e.registeredAtBlock,
+                      Number.isFinite(e.expiresAtBlock) ? e.expiresAtBlock : "",
+                    ].join(",");
+                  }),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-names.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-mempool-bg border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono flex-shrink-0"
+            >
+              ⬇ CSV
+            </button>
+          )}
         </div>
         {list && list.entries.length === 0 ? (
           <div className="p-8 text-center text-mempool-text-dim text-sm">
