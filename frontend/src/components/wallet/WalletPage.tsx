@@ -18,7 +18,7 @@ import { TxHashLink } from "../common/TxHashLink";
 import { NameManagePanel } from "../names/NameManagePanel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -592,7 +592,7 @@ export function WalletPage() {
                         {isActive ? <span className="text-mempool-blue font-semibold">▶ #{s.index}</span> : `#${s.index}`}
                       </td>
                       <td className="px-3 py-1.5 font-mono text-[10px] text-mempool-text-dim truncate max-w-[200px]" title={s.address}>
-                        {s.address.slice(0, 10)}…{s.address.slice(-6)}
+                        {midTrunc(s.address, 10, 6)}
                       </td>
                       <td className="px-3 py-1.5 text-right font-mono">{formatOmni(s.wallet_sat)}</td>
                       <td className="px-3 py-1.5 text-right font-mono text-mempool-purple/80">{formatOmni(s.staked_sat)}</td>
@@ -627,7 +627,7 @@ export function WalletPage() {
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue mt-1"
               >
                 <option value="omni_ecdsa">
-                  🔑 OMNI Slot #{activeSlot} (ECDSA) — {activeAddress.slice(0, 14)}…{activeAddress.slice(-6)}
+                  🔑 OMNI Slot #{activeSlot} (ECDSA) — {midTrunc(activeAddress, 14, 6)}
                 </option>
                 {unlocked.pqOmni && unlocked.pqOmni.map((slot) => (
                   <option key={slot.scheme} value={slot.scheme}>
@@ -635,7 +635,7 @@ export function WalletPage() {
                     {slot.scheme === "falcon_512"  && "🛡 PQ Falcon-512"}
                     {slot.scheme === "dilithium_5" && "🛡 PQ Dilithium-5"}
                     {slot.scheme === "slh_dsa_256s"&& "🛡 PQ SLH-DSA-256s"}
-                    {" — "}{slot.address.slice(0, 14)}…{slot.address.slice(-6)}
+                    {" — "}{midTrunc(slot.address, 14, 6)}
                   </option>
                 ))}
               </select>
@@ -1814,7 +1814,7 @@ function SoulboundCard({
           <span className={`text-[10px] font-bold uppercase w-16 flex-shrink-0 ${meta.text}`}>{tier}</span>
           <span className="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-semibold">SOULBOUND</span>
           <span className={`font-mono text-[10px] flex-1 truncate ${meta.text}`}>
-            {hasAddr ? `${address.slice(0, 12)}…${address.slice(-6)}` : `${prefix}…`}
+            {hasAddr ? `${midTrunc(address, 12, 6)}` : `${prefix}…`}
           </span>
           {balanceSat !== null && balanceSat > 0 && (
             <span className="text-[9px] font-mono text-mempool-green font-semibold">

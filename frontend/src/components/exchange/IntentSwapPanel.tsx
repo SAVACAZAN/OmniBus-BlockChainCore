@@ -31,7 +31,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { sha256 } from "@noble/hashes/sha2";
@@ -135,7 +135,7 @@ function genSwapId(): string {
 
 function shortHex(h: string): string {
   if (h.length <= 12) return h;
-  return h.slice(0, 8) + "…" + h.slice(-4);
+  return midTrunc(h, 8, 4);
 }
 
 const intFmt = new Intl.NumberFormat("en-US");

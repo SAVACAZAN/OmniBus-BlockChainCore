@@ -120,7 +120,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
                       {tx.block_height === null ? "pending" : tx.block_height}
                     </td>
                     <td className="py-1.5 pr-2 text-mempool-blue">
-                      {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
+                      {midTrunc(tx.txid, 10, 6)}
                     </td>
                     <td className={`py-1.5 text-right ${tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"}`}>
                       {tx.direction === "received" ? "+" : "−"}{fmtOmni(tx.amount_sat)} OMNI

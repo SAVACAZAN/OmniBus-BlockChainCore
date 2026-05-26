@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, { ApiKeyInfo } from "../../api/rpc-client";
+import { midTrunc } from "../../utils/fmt";
+import OmniBusRpcClient, { type ApiKeyInfo } from "../../api/rpc-client";
 import {
   signCreateApiKeyPayload,
   signRevokeApiKeyPayload,
@@ -123,7 +124,7 @@ export function ApiKeysPanel() {
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
       <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-        API keys for {u.address.slice(0, 10)}…{u.address.slice(-6)}
+        API keys for {midTrunc(u.address, 10, 6)}
       </h3>
 
       <div className="flex gap-2">

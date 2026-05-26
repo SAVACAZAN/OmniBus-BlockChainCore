@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { useNameForAddress, useEntryForAddress, useExpiringNames, TLD_THEME } from "../../api/use-names";
 
@@ -103,7 +104,7 @@ export function WalletConnectButton() {
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           <span className={`text-xs ${theme?.color ?? "text-mempool-blue"} ${primaryName ? "font-semibold" : "font-mono"}`}>
             {theme?.emoji && <span className="mr-1">{theme.emoji}</span>}
-            {primaryName ?? `${wallet.address.slice(0, 8)}…${wallet.address.slice(-6)}`}
+            {primaryName ?? `${midTrunc(wallet.address, 8, 6)}`}
           </span>
           {cat && (
             <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
@@ -316,7 +317,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
             <div className="text-[10px] text-mempool-text-dim">
               Saved wallet:{" "}
               <span className="font-mono text-mempool-blue">
-                {meta?.address.slice(0, 12)}…{meta?.address.slice(-8)}
+                {midTrunc(meta?.address ?? "", 12, 8)}
               </span>
             </div>
             <input

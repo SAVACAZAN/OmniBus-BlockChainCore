@@ -6,7 +6,7 @@ import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../ap
 import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
 import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
-import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
 import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance, dexContractFor } from "../../api/omnibus-dex";
@@ -275,7 +275,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       // tell exactly which derived child key signed this order — matters
       // when they have 19 slots with different balances and want to audit
       // the trade in their wallet history.
-      const traderShort = `${traderAddr.slice(0, 8)}…${traderAddr.slice(-4)}`;
+      const traderShort = `${midTrunc(traderAddr, 8, 4)}`;
       if (!res) {
         setErr("Order submitted but no response — check the orderbook for your order");
       } else {

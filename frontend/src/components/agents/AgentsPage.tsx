@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
-import { satToOmni } from "../../utils/fmt";
+import { satToOmni, midTrunc } from "../../utils/fmt";
 import {
   Bot,
   Users,
@@ -1154,7 +1154,7 @@ function AgentCard({ agent, onFollow }: { agent: RegistryAgent; onFollow: (id: s
             )}
           </div>
           <div className="text-[10px] font-mono text-mempool-text-dim truncate" title={agent.owner}>
-            {agent.owner.slice(0, 14)}…{agent.owner.slice(-6)}
+            {midTrunc(agent.owner, 14, 6)}
           </div>
         </div>
         <StrategyBadge strategy={agent.strategy} />

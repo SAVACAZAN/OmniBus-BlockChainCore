@@ -27,7 +27,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
@@ -1034,7 +1034,7 @@ function StakeActivityTab() {
                       className="text-mempool-blue hover:underline"
                       title={r.tx.txid}
                     >
-                      {r.tx.txid.slice(0, 10)}…{r.tx.txid.slice(-6)}
+                      {midTrunc(r.tx.txid, 10, 6)}
                     </a>
                   </td>
                   <td
