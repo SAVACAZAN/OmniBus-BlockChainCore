@@ -7,7 +7,7 @@ import OmniBusRpcClient, {
   PairInfo,
   TradeFill,
 } from "../../api/rpc-client";
-import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { DexBuyPanel } from "./DexBuyPanel";
@@ -471,17 +471,20 @@ export function ExchangePage() {
               <div className="grid grid-cols-3 text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">
                 <span>Price</span>
                 <span className="text-right">Size</span>
-                <span className="text-right">Time</span>
+                <span className="text-right">Age</span>
               </div>
-              {trades.filter((t) => t.pairId === pairId).map((t) => (
-                <div key={t.fillId} className="grid grid-cols-3 text-xs font-mono py-0.5">
-                  <span className="text-mempool-text">{fmtPrice(t.price)}</span>
-                  <span className="text-right text-mempool-text">{fmtAmount(t.amount)}</span>
-                  <span className="text-right text-mempool-text-dim">
-                    {new Date(t.ts).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))}
+              {trades.filter((t) => t.pairId === pairId).map((t, i, arr) => {
+                const prev = arr[i + 1];
+                const dir = !prev ? null : t.price > prev.price ? "up" : t.price < prev.price ? "down" : null;
+                const priceColor = dir === "up" ? "text-green-400" : dir === "down" ? "text-red-400" : "text-mempool-text";
+                return (
+                  <div key={t.fillId} className="grid grid-cols-3 text-xs font-mono py-0.5" title={new Date(t.ts).toLocaleString()}>
+                    <span className={priceColor}>{fmtPrice(t.price)}</span>
+                    <span className="text-right text-mempool-text">{fmtAmount(t.amount)}</span>
+                    <span className="text-right text-mempool-text-dim">{fmtAge(t.ts)}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
