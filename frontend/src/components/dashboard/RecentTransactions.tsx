@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { midTrunc } from "../../utils/fmt";
+import { midTrunc, SAT_PER_OMNI, fmtAge } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -234,14 +234,20 @@ export function RecentTransactions() {
                 </p>
               </div>
 
-              {/* Amount + Fee */}
+              {/* Amount + Fee + Age */}
               <div className="text-right flex-shrink-0">
                 <span className="text-xs font-mono text-mempool-text">
-                  {(item.amount / 1e9).toFixed(8)}
+                  {(item.amount / SAT_PER_OMNI).toFixed(8)}
                 </span>
                 {item.fee > 0 && (
                   <p className="text-[9px] text-mempool-text-dim font-mono">
                     fee: {item.fee} SAT
+                  </p>
+                )}
+                {item.time > 0 && (
+                  <p className="text-[9px] text-mempool-text-dim/70 font-mono"
+                     title={new Date(item.time).toLocaleString()}>
+                    {fmtAge(item.time)}
                   </p>
                 )}
               </div>
