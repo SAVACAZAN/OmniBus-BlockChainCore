@@ -758,12 +758,12 @@ export function AmmOrderbookPanel() {
               <div className="text-[10px] text-mempool-text-dim text-center py-2">no ask ticks sampled</div>
             ) : (
               <div className="max-h-52 overflow-y-auto space-y-px">
-                {[...asks].reverse().map((l, i) => {
+                {[...asks].reverse().map((l) => {
                   const usd = toUsd(l.price);
                   // Ask: token0 is being sold (e.g. LCX or WBTC); qty1 is also there but tiny
                   const mainQty = l.qty0 > 0 ? fmtQty(l.qty0, pool!.token0Symbol) : fmtQty(l.qty1, pool!.token1Symbol);
                   return (
-                    <div key={`a${i}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
+                    <div key={`a${l.price}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
                       <div className="absolute inset-y-0 right-0 bg-orange-500/10" style={{ width: `${l.liqPct}%` }} />
                       <span className="text-orange-400 relative z-10">{pricePrefix(pool!)}{fmtPrice(l.price, pool!)}{priceSuffix(pool!)}</span>
                       {needsEthConv && <span className="text-yellow-300/70 relative z-10 text-right">${usd !== null ? usd.toFixed(4) : "…"}</span>}
@@ -805,12 +805,12 @@ export function AmmOrderbookPanel() {
               <div className="text-[10px] text-mempool-text-dim text-center py-2">no bid ticks sampled</div>
             ) : (
               <div className="max-h-52 overflow-y-auto space-y-px">
-                {bids.map((l, i) => {
+                {bids.map((l) => {
                   const usd = toUsd(l.price);
                   // Bid: token1 (WETH) is the liquidity on bid side
                   const mainQty = l.qty1 > 0 ? fmtQty(l.qty1, pool!.token1Symbol) : fmtQty(l.qty0, pool!.token0Symbol);
                   return (
-                    <div key={`b${i}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
+                    <div key={`b${l.price}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
                       <div className="absolute inset-y-0 right-0 bg-green-500/10" style={{ width: `${l.liqPct}%` }} />
                       <span className="text-green-400 relative z-10">{pricePrefix(pool!)}{fmtPrice(l.price, pool!)}{priceSuffix(pool!)}</span>
                       {needsEthConv && <span className="text-yellow-300/70 relative z-10 text-right">${usd !== null ? usd.toFixed(4) : "…"}</span>}

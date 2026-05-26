@@ -6,6 +6,8 @@ import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
+const rpc = new OmniBusRpcClient();
+
 interface StatCardProps {
   label: string;
   value: string | number;
@@ -78,9 +80,8 @@ export function StatsBar() {
   // it's a single sum loop). This is the canonical "Total Mined Network"
   // shown on the public explorer in place of any per-wallet balance.
   useEffect(() => {
-    const client = new OmniBusRpcClient();
     let cancelled = false;
-    client.request_raw("omnibus_gettotalmined", []).then((r) => {
+    rpc.request_raw("omnibus_gettotalmined", []).then((r) => {
       if (cancelled) return;
       if (r?.totalMinedOMNI) setTotalMined(r.totalMinedOMNI);
     }).catch(() => {});

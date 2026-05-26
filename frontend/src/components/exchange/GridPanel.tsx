@@ -210,12 +210,12 @@ function GridLadderChart({
 
       {/* Price ladder rows */}
       <div className="max-h-64 overflow-y-auto">
-        {rows.map((r, i) => {
+        {rows.map((r) => {
           const pct = (r.amount / maxAmount) * 100;
           const isSell = r.side === "sell";
           return (
             <div
-              key={i}
+              key={`${r.side}${r.price}`}
               className="relative flex items-center px-3 h-[22px] border-b border-mempool-border/30 last:border-b-0 hover:bg-mempool-bg-elev/40 transition-colors"
             >
               {/* Amount bar — fills from left for buy, from right for sell */}
