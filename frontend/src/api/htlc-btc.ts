@@ -17,7 +17,7 @@
  * No private keys touch this code. No broadcasting either — the user
  * always signs and broadcasts via their own wallet.
  */
-import { OmniBusRpcClient } from "./rpc-client";
+import { OmniBusRpcClient, rpc as defaultRpc } from "./rpc-client";
 
 export type BtcNetwork = "mainnet" | "testnet" | "regtest" | "signet";
 
@@ -117,7 +117,7 @@ export async function buildHtlcScript(
     throw new Error(`network: must be one of ${validNets.join(", ")}`);
   }
 
-  const rpc = client ?? new OmniBusRpcClient();
+  const rpc = client ?? defaultRpc;
   const result = await rpc.request_raw("htlc_btc_buildScript", [
     {
       recipient_pk: params.recipient_pk.toLowerCase(),
