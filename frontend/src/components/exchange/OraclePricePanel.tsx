@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsOraclePriceEvent } from "../../types";
+import type { WsOraclePriceEvent, WsOrderbookUpdateEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -1133,8 +1133,11 @@ function DexOrderbookPanel() {
       if (tm.status === "fulfilled") setTotalMined(tm.value);
     };
     refresh();
-    const id = setInterval(refresh, 15_000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair === pair) void refresh();
+    });
+    const id = setInterval(refresh, 30_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [pair]);
 
   const lookupBlockPrices = async () => {
