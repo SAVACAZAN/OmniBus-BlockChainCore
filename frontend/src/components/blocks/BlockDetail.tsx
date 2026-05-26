@@ -32,15 +32,15 @@ interface BlockDetailProps {
   onClose: () => void;
 }
 
-// Format micro-USD as $price with thousand-comma + dot decimals.
-// BTC -> $100,000.00 (2 decimals), LCX -> $0.0316 (4 decimals).
-function fmtUsd(micro: number, isLcx: boolean): string {
+// Format micro-USD with adaptive decimal precision:
+// ≥$100 → 2 dec, ≥$1 → 2 dec, ≥$0.01 → 4 dec, else 6 dec.
+function fmtUsd(micro: number): string {
   if (!micro) return "—";
   const usd = micro / 1_000_000;
-  const decimals = isLcx ? 4 : 2;
+  const dec = usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
   return "$" + usd.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
+    minimumFractionDigits: dec,
+    maximumFractionDigits: dec,
   });
 }
 
@@ -233,8 +233,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                   Oracle Prices @ Mining ({prices.length} entries)
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {(["BTC/USD", "LCX/USD"] as const).map((pair) => {
-                    const isLcx = pair === "LCX/USD";
+                  {Array.from(new Set(prices.map((p) => p.pair))).map((pair) => {
                     const rows = prices.filter((p) => p.pair === pair);
                     if (rows.length === 0) return null;
                     return (
@@ -260,10 +259,10 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                               >
                                 <td className="text-mempool-text-dim pr-1">{p.exchange}</td>
                                 <td className="text-right font-mono text-mempool-green">
-                                  {p.success ? fmtUsd(p.bidMicroUsd, isLcx) : "n/a"}
+                                  {p.success ? fmtUsd(p.bidMicroUsd) : "n/a"}
                                 </td>
                                 <td className="text-right font-mono text-mempool-orange">
-                                  {p.success ? fmtUsd(p.askMicroUsd, isLcx) : "n/a"}
+                                  {p.success ? fmtUsd(p.askMicroUsd) : "n/a"}
                                 </td>
                                 <td className="text-right font-mono text-mempool-text-dim pl-1">
                                   {p.success ? fmtTs(p.timestampMs) : "—"}
