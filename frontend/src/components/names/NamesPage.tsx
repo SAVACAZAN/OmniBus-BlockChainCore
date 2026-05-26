@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked } from "../../api/wallet-keystore";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { TxHashLink } from "../common/TxHashLink";
@@ -1708,18 +1706,8 @@ function NsHealthDashboard() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Signing helper (same recipe as StakePage / PQWalletPanel)
-// ─────────────────────────────────────────────────────────────────────────
-
-function signPayload(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
+// signMessage imported from ../../api/exchange-sign
+const signPayload = signMessage;
 
 // ─────────────────────────────────────────────────────────────────────────
 // ReverseResolvePanel — address → name lookup (reverseresolvename RPC)

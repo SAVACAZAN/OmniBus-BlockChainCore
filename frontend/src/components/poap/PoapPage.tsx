@@ -32,12 +32,10 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
@@ -113,16 +111,6 @@ function badgeTextColor(eventId: string): string {
 }
 
 // ── Signing ───────────────────────────────────────────────────────────────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signCreateEvent(args: {
   privateKeyHex: string; from: string; event_id: string;

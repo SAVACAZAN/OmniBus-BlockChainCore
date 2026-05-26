@@ -38,7 +38,7 @@ import { SAT_PER_OMNI } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
 
@@ -142,15 +142,6 @@ async function sha256HexFromText(text: string): Promise<string> {
 }
 
 // ── ECDSA signing (same convention as StakePage / exchange-sign.ts) ───────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signNotarize(args: {
   privateKeyHex: string; from: string; docHash: string; docType: string;

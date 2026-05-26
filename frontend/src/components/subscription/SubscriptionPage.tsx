@@ -17,12 +17,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
@@ -57,18 +55,6 @@ function fmtOmni(sat: number): string {
   return satToOmni(sat, 4);
 }
 
-/** Inline secp256k1 + SHA256d sign — same recipe as StakePage / WalletPage. */
-function signMessage(
-  privKeyHex: string,
-  msg: string,
-): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signSubCreate(args: {
   privateKeyHex: string;

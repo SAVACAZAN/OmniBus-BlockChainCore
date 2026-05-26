@@ -21,11 +21,9 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
 import { midTrunc } from "../../utils/fmt";
@@ -85,18 +83,7 @@ function fmtOmni(sat: number): string {
 }
 
 
-/** Inline secp256k1 + SHA256d sign — same recipe as StakePage / WalletPage. */
-function signMessage(
-  privKeyHex: string,
-  msg: string,
-): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
+
 
 // Soulbound address metadata — in same order as coin_types 778-781.
 // Addresses are stored in wallet.soulboundAddresses[].

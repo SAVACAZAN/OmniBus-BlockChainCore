@@ -39,7 +39,7 @@ import { hmac } from "@noble/hashes/hmac";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
 // ── noble/secp256k1 v2 HMAC init (copy from exchange-sign.ts) ─────────────
 
@@ -132,15 +132,6 @@ function signGovVote(args: {
 }): { signature: string; publicKey: string } {
   const msg = `GOV_VOTE_V1\n${args.from}\n${args.proposalId}\n${args.vote}\n${args.nonce}`;
   return signMessage(args.privateKeyHex, msg);
-}
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
 }
 
 // ── Status badge helper ────────────────────────────────────────────────────

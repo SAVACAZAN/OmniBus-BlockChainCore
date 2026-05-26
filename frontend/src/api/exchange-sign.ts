@@ -239,7 +239,7 @@ export function stableStringify(value: unknown): string {
  * `EcdsaSecp256k1Sha256oSha256` which prehashes with SHA256d. We pre-hash
  * here too and pass `prehash:false` so noble does not double-hash.
  */
-function signMessage(privKeyHex: string, msg: string): {
+export function signMessage(privKeyHex: string, msg: string): {
   signature: string;
   publicKey: string;
 } {

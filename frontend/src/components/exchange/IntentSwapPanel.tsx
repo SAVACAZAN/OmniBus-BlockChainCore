@@ -33,7 +33,7 @@ import {
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
-import { hexToBytes, bytesToHex } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { sha256 } from "@noble/hashes/sha2";
 import * as secp from "@noble/secp256k1";
 import { hmac } from "@noble/hashes/hmac";
@@ -54,18 +54,6 @@ if (_sAny["etc"] && !(_sAny["etc"] as Record<string, unknown>)["hmacSha256Sync"]
 }
 
 /** ECDSA secp256k1 SHA256d signer — mirrors signMessage in exchange-sign.ts. */
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const priv = hexToBytes(privKeyHex);
-  const enc = new TextEncoder().encode(msg);
-  const h2 = sha256(sha256(enc));
-  const sig = secp.sign(h2, priv, { lowS: true });
-  return {
-    signature: bytesToHex(sig.toBytes()),
-    publicKey: bytesToHex(secp.getPublicKey(priv, true)),
-  };
-}
-
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type SubTab = "my-intents" | "market" | "post" | "fill";

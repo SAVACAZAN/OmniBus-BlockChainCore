@@ -30,12 +30,11 @@ import {
   Clock,
 } from "lucide-react";
 import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
 import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
 
@@ -98,16 +97,6 @@ interface CloseChannelResp {
 }
 
 // ── Signing ──────────────────────────────────────────────────────────────────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const priv = hexToBytes(privKeyHex);
-  const msgBytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(msgBytes));
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signChannelPay(args: {
   privateKeyHex: string;
