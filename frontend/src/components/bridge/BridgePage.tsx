@@ -153,6 +153,83 @@ function BridgeMonitor() {
   );
 }
 
+function BridgeLockPanel() {
+  const [destChain, setDestChain] = useState("");
+  const [destAddr, setDestAddr] = useState("");
+  const [amountSat, setAmountSat] = useState("");
+  const [result, setResult] = useState<{ status?: string; lock_id?: string; tx_hash?: string } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async () => {
+    if (!destChain || !destAddr || !amountSat) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const r = (await rpc.request_raw("bridge_lock", [{
+        amount_sat: parseInt(amountSat, 10),
+        destination_chain: destChain,
+        destination_addr: destAddr,
+      }])) as { status?: string; lock_id?: string; tx_hash?: string };
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-widest">
+        Bridge Lock — OMNI → external chain
+      </h2>
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <p className="text-[11px] text-mempool-text-dim">
+          Lock OMNI in the bridge vault for relayer-assisted transfer to an external chain address.
+          Requires the bridge module to be initialized on the node.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Destination chain</label>
+            <input value={destChain} onChange={(e) => setDestChain(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="ethereum / base / solana…" />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Destination address</label>
+            <input value={destAddr} onChange={(e) => setDestAddr(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="0x… / addr1… / etc." />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Amount (sat)</label>
+            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number"
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="1000000000" />
+          </div>
+        </div>
+        <button
+          onClick={onSubmit}
+          disabled={loading || !destChain || !destAddr || !amountSat}
+          className="w-full py-1.5 text-xs bg-mempool-orange/20 hover:bg-mempool-orange/40 text-mempool-orange border border-mempool-orange/30 rounded disabled:opacity-50"
+        >
+          {loading ? "Locking…" : "Lock OMNI in Bridge"}
+        </button>
+        {err && <p className="text-[11px] text-red-400">{err}</p>}
+        {result && (
+          <div className="text-[11px] space-y-0.5 font-mono">
+            <div className="text-green-400">status: {result.status ?? "locked"}</div>
+            {result.lock_id && <div className="text-mempool-text-dim break-all">lock_id: {result.lock_id}</div>}
+            {result.tx_hash && <div className="text-mempool-text-dim break-all">tx_hash: {result.tx_hash}</div>}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function BridgeUnlockPanel() {
   const [signerAddr, setSignerAddr] = useState("");
   const [recipientAddr, setRecipientAddr] = useState("");
@@ -463,7 +540,8 @@ export function BridgePage() {
         <BridgeMonitor />
       </section>
 
-      {/* Bridge unlock request + admin: fraud challenge + settle */}
+      {/* Bridge lock / unlock request / admin: fraud challenge + settle */}
+      <BridgeLockPanel />
       <BridgeUnlockPanel />
       <BridgeAdminPanel />
 
