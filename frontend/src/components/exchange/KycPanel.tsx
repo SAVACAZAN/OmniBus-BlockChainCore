@@ -62,11 +62,9 @@ export function KycPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    rpc.request_raw("kyc_listIssuers", [])
+    rpc.kycListIssuers()
       .then((r) => {
-        if (!cancelled && Array.isArray(r)) {
-          setIssuers(r as Array<{ address: string; role: string; slot: number }>);
-        }
+        if (!cancelled) setIssuers(r);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -232,7 +230,7 @@ function KycStatusLookup() {
   const [address, setAddress] = useState("");
   const [status, setStatus] = useState<{
     address: string; level: number; label: string;
-    issuer: string; issued: number; expires: number;
+    issuer?: string; issued?: number; expires?: number;
   } | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -243,7 +241,7 @@ function KycStatusLookup() {
     setErr(null);
     setStatus(null);
     try {
-      const r = (await rpc.request_raw("kyc_getStatus", [{ address }])) as typeof status;
+      const r = await rpc.kycGetStatus(address);
       setStatus(r);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
