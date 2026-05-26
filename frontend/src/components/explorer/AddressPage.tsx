@@ -78,7 +78,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
       rpc.getAddressHistory(addr),
       rpc.getAddressBalance(addr),
       rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[]; tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number } | null>,
-      rpc.request_raw("getnonce", [addr]).catch(() => null) as Promise<NonceInfo | null>,
+      rpc.getNonce(addr).catch(() => null) as Promise<NonceInfo | null>,
     ])
       .then(([histData, balData, dailyData, nonceData]) => {
         const txs: AddressHistoryEntry[] = Array.isArray(histData)

@@ -246,10 +246,7 @@ export function PQWalletPanel() {
         throw new Error("PQ secret key missing — re-unlock from mnemonic (not from vault)");
 
       // Nonce
-      const nonceRes: unknown = await rpc.request_raw("getnonce", [slot.address]);
-      const nr = nonceRes as { nonce?: number } | number | null;
-      const nonce: number =
-        typeof nr === "number" ? nr : typeof nr === "object" && nr && "nonce" in nr ? (nr.nonce ?? 0) : 0;
+      const nonce: number = await rpc.getNonce(slot.address).catch(() => 0);
 
       const txId = Math.floor(Math.random() * 0x7fffffff);
       const timestamp = Math.floor(Date.now() / 1000);

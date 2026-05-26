@@ -62,16 +62,15 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
 
   const loadTip = async () => {
     try {
-      const r: any = await rpc.request_raw("getblockcount", []);
-      const h = typeof r === "number" ? r : r?.count;
-      if (typeof h === "number") setTipHeight(h);
+      const h = await rpc.getBlockCount();
+      setTipHeight(h);
     } catch {}
   };
 
   const loadBlock = async () => {
     setLoading(true);
     try {
-      const result: any = await rpc.request_raw("getblock", [block.height]);
+      const result: any = await rpc.getBlock(block.height);
       if (result && typeof result === "object") {
         setFull({
           height:          result.height ?? block.height,

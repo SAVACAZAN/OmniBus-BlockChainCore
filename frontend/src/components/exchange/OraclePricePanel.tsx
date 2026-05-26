@@ -270,8 +270,7 @@ function BlockPricesPanel() {
         }
       } else {
         // Get current tip height first
-        const tip = await rpc.request_raw("getBlockCount", []);
-        const tipH = typeof tip === "number" ? tip : (tip as {result?: number})?.result ?? 0;
+        const tipH = await rpc.getBlockCount();
         const startH = Math.max(0, tipH - c);
         const r = await rpc.request_raw("omnibus_getpricerange", [startH, c]);
         if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {

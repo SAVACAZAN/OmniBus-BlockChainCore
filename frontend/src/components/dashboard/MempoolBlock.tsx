@@ -53,9 +53,9 @@ export function MempoolBlock({
     let cancelled = false;
     (async () => {
       try {
-        const result: any = await rpc.request_raw("getblock", [block.height]);
-        if (!cancelled && Array.isArray(result?.prices)) {
-          setPrices(result.prices);
+        const result = await rpc.getBlock(block.height);
+        if (!cancelled && Array.isArray((result as any)?.prices)) {
+          setPrices((result as any).prices);
         }
       } catch {}
     })();

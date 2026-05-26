@@ -183,8 +183,8 @@ export function WalletPage() {
         // Use getaddressbalance for the SELECTED slot, not getBalance() which
         // hits the unlocked-session primary address. Old code rendered slot
         // 0 balance regardless of Header slot selector.
-        const balRes: any = await rpc.request_raw("getaddressbalance", [activeAddress]);
-        const sat = typeof balRes === "number" ? balRes : (balRes?.balance ?? 0);
+        const balRes = await rpc.getAddressBalance(activeAddress);
+        const sat = balRes?.balance ?? 0;
         const omni = (sat / SAT_PER_OMNI).toFixed(4);
         setBalance({ sat, omni });
       } catch {}
@@ -329,9 +329,7 @@ export function WalletPage() {
         if (!slot) throw new Error("PQ-OMNI slot not derived — re-unlock from mnemonic");
         if (!slot.secretKey?.length) throw new Error("PQ secret key missing — re-unlock from mnemonic");
 
-        const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
-        const nonce: number = typeof nonceRes === "number" ? nonceRes
-          : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+        const nonce: number = await rpc.getNonce(slot.address).catch(() => 0);
         const txId = Math.floor(Math.random() * 0x7fffffff);
         const timestamp = Math.floor(Date.now() / 1000);
         const fee = sendFee ? parseInt(sendFee, 10) : (feeEstimate?.medianFee ?? 1);
@@ -1791,7 +1789,7 @@ function SoulboundCard({
     let cancelled = false;
     const poll = async () => {
       try {
-        const r: any = await rpc.request_raw("getaddressbalance", [address]);
+        const r = await rpc.getAddressBalance(address);
         if (!cancelled && r && typeof r.balance === "number") setBalanceSat(r.balance);
       } catch {}
     };
@@ -2620,9 +2618,7 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
       if (amountSat > balanceSat) throw new Error("Insufficient balance");
 
       // 1. Fetch nonce for this address
-      const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
-      const nonce: number = typeof nonceRes === "number" ? nonceRes
-        : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+      const nonce: number = await rpc.getNonce(slot.address).catch(() => 0);
 
       const txId = Math.floor(Math.random() * 0x7fffffff);
       const timestamp = Math.floor(Date.now() / 1000);
@@ -2749,7 +2745,7 @@ function PqOmniSlotCard({ slot }: { slot: PqOmniSlot }) {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r: any = await rpc.request_raw("getaddressbalance", [slot.address]);
+        const r = await rpc.getAddressBalance(slot.address);
         if (!cancelled && r && typeof r.balance === "number") {
           setBalanceSat(r.balance);
         }

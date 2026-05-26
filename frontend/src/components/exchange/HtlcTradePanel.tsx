@@ -131,8 +131,7 @@ export function HtlcTradePanel() {
       log(`HashLock: ${hashHex.slice(0, 16)}…`);
 
       const timelockBlocks = Number(timelock);
-      const blockRes = await rpc.request_raw("getblockcount", []);
-      const currentBlock: number = typeof blockRes === "number" ? blockRes : (blockRes?.count ?? blockRes?.blocks ?? 0);
+      const currentBlock: number = await rpc.getBlockCount();
       const timelockBlock = currentBlock + timelockBlocks;
 
       log(`Current block: ${currentBlock}, timelock at: ${timelockBlock}`);

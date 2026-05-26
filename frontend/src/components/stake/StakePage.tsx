@@ -245,9 +245,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
     setUnstakeBusy(stakeId);
     try {
       // Fetch sequential nonce from chain (see doStake for why).
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address).catch(() => 0);
       const { signature, publicKey } = signUnstakePayload({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -498,9 +496,7 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
       // by validateTransaction (`nonce {d} != expected {d}`). Fetch from
       // chain via `getnonce` so each stake submission gets the real next
       // expected nonce.
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number; chainNonce?: number; pendingCount?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address).catch(() => 0);
       const { signature, publicKey } = signStakePayload({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
