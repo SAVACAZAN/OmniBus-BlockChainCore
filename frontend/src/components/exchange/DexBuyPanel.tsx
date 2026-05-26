@@ -229,7 +229,7 @@ export function DexBuyPanel() {
               {busy === "place" ? "Locking escrow…" : "Place Buy Order"}
             </button>
 
-            {lastOrderId && (
+            {lastOrderId !== null && (
               <button
                 onClick={handleCancel}
                 disabled={busy !== "idle"}
