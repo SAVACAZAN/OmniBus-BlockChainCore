@@ -15,11 +15,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Shield, Trash2, ChevronDown, ChevronRight, Plus, X, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
+
 
 function shortAddr(addr: string): string {
   if (addr.length <= 16) return addr;

@@ -7,7 +7,7 @@ import { SAT_PER_OMNI } from "../../utils/fmt";
 const rpc = new OmniBusRpcClient();
 
 const MICRO = 1_000_000;
-const SAT = SAT_PER_OMNI;
+const SAT = SAT_PER_OMNI; // alias kept for readability in existing inline calculations
 
 type Pair = { id: number; base: string; quote: string; label: string };
 

@@ -16,9 +16,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Users, Send, Plus, X, AlertTriangle, Copy, RefreshCw } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
+
 
 function fmtOmni(sat: number): string {
   return (sat / SAT_PER_OMNI).toFixed(4);

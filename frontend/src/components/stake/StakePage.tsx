@@ -29,6 +29,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
@@ -40,7 +41,7 @@ const rpc = new OmniBusRpcClient();
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const BLOCK_TIME_S = 1; // chain block time used for day math (1s/block)
 const BLOCKS_PER_DAY = 86_400 / BLOCK_TIME_S;
 const UNBONDING_BLOCKS = 7 * BLOCKS_PER_DAY; // 7-day cooling-off after unstake

@@ -15,10 +15,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Wallet, Plus, X, RefreshCw, Play, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
+
 
 function fmtOmni(sat: number): string {
   return (sat / SAT_PER_OMNI).toFixed(4);

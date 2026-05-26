@@ -15,13 +15,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Lock, Unlock, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const BLOCKS_PER_DAY = 86_400; // 1s blocks
 
 function fmtOmni(sat: number): string {

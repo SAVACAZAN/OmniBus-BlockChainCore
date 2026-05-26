@@ -16,13 +16,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types/index";
 
 const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const REFRESH_INTERVAL_MS = 30_000;
 
 function fmtOmni(sat: number): string {
