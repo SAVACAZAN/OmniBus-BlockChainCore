@@ -403,6 +403,33 @@ export function MempoolPage() {
               ✕
             </button>
           )}
+          {sorted.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["txid", "from", "to", "amount_omni", "fee_sat", "kind", "scheme", "age_s"].join(","),
+                  ...sorted.map((t) => [
+                    `"${t.txid}"`,
+                    `"${t.from}"`,
+                    `"${t.to}"`,
+                    (t.amount / 1e9).toFixed(8),
+                    t.fee,
+                    t.kind ?? "transfer",
+                    t.scheme ?? "",
+                    t.timestamp ? Math.floor(Date.now() / 1000) - t.timestamp : "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-mempool.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono whitespace-nowrap"
+            >
+              ⬇ CSV
+            </button>
+          )}
         </div>
 
         <div className="overflow-x-auto">

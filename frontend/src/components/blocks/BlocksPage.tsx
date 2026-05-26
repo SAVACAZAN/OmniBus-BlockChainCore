@@ -133,6 +133,32 @@ export function BlocksPage() {
             </button>
           </form>
 
+          {blocks.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["height", "hash", "miner", "tx_count", "reward_omni", "fees_omni", "timestamp"].join(","),
+                  ...blocks.map((b) => [
+                    b.height,
+                    `"${b.hash}"`,
+                    `"${b.miner ?? ""}"`,
+                    (b.txCount || 0) + 1,
+                    ((b.rewardSAT || 0) / 1e9).toFixed(8),
+                    ((b as any).totalFees > 0 ? ((b as any).totalFees / 1e9).toFixed(8) : "0"),
+                    b.timestamp ?? "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `omnibus-blocks-p${page + 1}.csv`;
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={() => setPage(Math.min(page + 1, maxPage))}
             disabled={page >= maxPage}
