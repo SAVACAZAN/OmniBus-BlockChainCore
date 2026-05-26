@@ -14429,9 +14429,11 @@ fn handleExchangeCreateApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 
     ) catch "";
     if (jline.len > 0) usersAppendJournal(ctx, "apikey", jline);
 
+    const apikey_name_safe = try jsonSanitize(alloc, name);
+    defer alloc.free(apikey_name_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"secret\":\"{s}\",\"secretB64\":\"{s}\",\"name\":\"{s}\",\"warning\":\"Save the secret — it is only shown once. Use secretB64 for HMAC-SHA512 signing.\",\"createdMs\":{d}}}}}",
-        .{ id, key_id, secret_str, secret_b64, name, now_ms });
+        .{ id, key_id, secret_str, secret_b64, apikey_name_safe, now_ms });
 }
 
 /// exchange_listApiKeys — list keys owned by an address. Secrets are
@@ -14457,9 +14459,11 @@ fn handleExchangeListApiKeys(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!std.mem.eql(u8, k.owner[0..k.owner_len], owner)) continue;
         if (!first) try out.appendSlice(alloc, ",");
         first = false;
+        const kname_safe = try jsonSanitize(alloc, k.name[0..k.name_len]);
+        defer alloc.free(kname_safe);
         try std.fmt.format(out.writer(alloc),
             "{{\"keyId\":\"{s}\",\"name\":\"{s}\",\"createdMs\":{d},\"lastUsedMs\":{d},\"revoked\":{s}}}",
-            .{ k.key_id[0..k.key_id_len], k.name[0..k.name_len], k.created_ms, k.last_used_ms,
+            .{ k.key_id[0..k.key_id_len], kname_safe, k.created_ms, k.last_used_ms,
                if (k.revoked) "true" else "false" });
     }
     try out.appendSlice(alloc, "]}");
