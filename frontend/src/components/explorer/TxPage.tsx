@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
+import { KindBadge, SchemeTag } from "../common/TxBadges";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -13,44 +14,6 @@ function midTrunc(s: string | undefined | null, h = 14, t = 12): string {
   if (!s) return "—";
   if (s.length <= h + t + 3) return s;
   return s.slice(0, h) + "…" + s.slice(-t);
-}
-
-const KIND_STYLE: Record<string, string> = {
-  coinbase: "bg-yellow-500/20 text-yellow-300",
-  faucet: "bg-cyan-500/20 text-cyan-300",
-  registrar: "bg-purple-500/20 text-purple-300",
-  exchange: "bg-blue-500/20 text-blue-300",
-  stake: "bg-green-500/20 text-green-300",
-  unstake:       "bg-amber-500/20 text-amber-300",
-  ns_claim:      "bg-violet-500/20 text-violet-300",
-  agent_register:"bg-indigo-500/20 text-indigo-300",
-  notarize:      "bg-rose-500/20 text-rose-300",
-  demo_grant:    "bg-pink-500/20 text-pink-300",
-  transfer:      "bg-gray-700/40 text-gray-300",
-};
-
-function KindBadge({ kind }: { kind: string }) {
-  const cls = KIND_STYLE[kind] ?? "bg-gray-700/40 text-gray-300";
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded text-[11px] uppercase tracking-wide font-mono ${cls}`}>
-      {kind}
-    </span>
-  );
-}
-
-function SchemeTag({ scheme }: { scheme: string }) {
-  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
-  const isSoulbound = scheme.includes("soulbound");
-  const cls = isSoulbound
-    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
-    : isPQ
-    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
-    : "bg-green-400/10 text-green-300 border-green-400/30";
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded border text-[11px] font-mono ${cls}`}>
-      {isPQ ? "🔒 " : "🔑 "}{scheme}
-    </span>
-  );
 }
 
 
