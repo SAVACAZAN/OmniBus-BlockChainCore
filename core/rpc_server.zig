@@ -16245,9 +16245,11 @@ fn handlePoapCreateEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
     ctx.bc.mutex.unlock();
 
+    const eid_safe = try jsonSanitize(alloc, event_id);
+    defer alloc.free(eid_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\",\"fee_sat\":{d}}}}}",
-        .{ id, canonical, event_id, poap_mod.POAP_EVENT_FEE_SAT });
+        .{ id, canonical, eid_safe, poap_mod.POAP_EVENT_FEE_SAT });
 }
 
 // ── poap_claim ────────────────────────────────────────────────────────────────
@@ -16292,9 +16294,11 @@ fn handlePoapClaim(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
     ctx.bc.mutex.unlock();
 
+    const eid2_safe = try jsonSanitize(alloc, event_id);
+    defer alloc.free(eid2_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\"}}}}",
-        .{ id, canonical, event_id });
+        .{ id, canonical, eid2_safe });
 }
 
 // ── poap_close ────────────────────────────────────────────────────────────────
@@ -16351,8 +16355,9 @@ fn handleGetPoaps(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"poaps\":[", .{id});
     for (claims[0..n], 0..) |c, i| {
         if (i > 0) try w.writeByte(',');
-        try w.print("{{\"event_id\":\"{s}\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}",
-            .{ c.eventIdSlice(), c.claim_block, c.txHashSlice() });
+        try w.writeAll("{\"event_id\":\"");
+        try writeJsonSafeStr(w, c.eventIdSlice());
+        try w.print("\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}", .{ c.claim_block, c.txHashSlice() });
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -16368,15 +16373,21 @@ fn handleGetPoapEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const ev = ctx.bc.poap_registry.getEvent(event_id) orelse
         return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
+    const pev_id   = try jsonSanitize(alloc, ev.eventIdSlice());
+    defer alloc.free(pev_id);
+    const pev_name = try jsonSanitize(alloc, ev.nameSlice());
+    defer alloc.free(pev_name);
+    const pev_note = try jsonSanitize(alloc, ev.noteSlice());
+    defer alloc.free(pev_note);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"event_id\":\"{s}\",\"name\":\"{s}\"," ++
         "\"organizer\":\"{s}\",\"max_claims\":{d}," ++
         "\"claims_count\":{d},\"create_block\":{d}," ++
         "\"closed\":{s},\"note\":\"{s}\"}}}}",
-        .{ id, ev.eventIdSlice(), ev.nameSlice(), ev.organizerSlice(),
+        .{ id, pev_id, pev_name, ev.organizerSlice(),
            ev.max_claims, ev.claims_count, ev.create_block,
-           if (ev.closed) "true" else "false", ev.noteSlice() });
+           if (ev.closed) "true" else "false", pev_note });
 }
 
 // ── gov_propose ───────────────────────────────────────────────────────────────
@@ -18397,9 +18408,11 @@ fn handleCovenantCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Failed to create covenant", id, alloc);
     };
 
+    const cov_label = try jsonSanitize(alloc, label);
+    defer alloc.free(cov_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, address, wl_count, max_per_tx, expires_block, label });
+        .{ id, address, wl_count, max_per_tx, expires_block, cov_label });
 }
 
 /// covenant_list {} — lists all active covenants
@@ -18415,9 +18428,11 @@ fn handleCovenantList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try out.appendSlice(alloc, "[");
     for (buf[0..n], 0..) |c, i| {
         if (i > 0) try out.appendSlice(alloc, ",");
+        const cl_safe = try jsonSanitize(alloc, c.labelSlice());
+        defer alloc.free(cl_safe);
         const entry = try std.fmt.allocPrint(alloc,
             "{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}",
-            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, c.labelSlice() });
+            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, cl_safe });
         defer alloc.free(entry);
         try out.appendSlice(alloc, entry);
     }
@@ -18448,9 +18463,11 @@ fn handleCovenantGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     try wl_json.appendSlice(alloc, "]");
 
+    const cget_label = try jsonSanitize(alloc, cov.labelSlice());
+    defer alloc.free(cget_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist\":{s},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}}}",
-        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cov.labelSlice() });
+        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cget_label });
 }
 
 /// covenant_remove {"address":"ob1q..."}
@@ -18526,9 +18543,11 @@ fn handleTreasuryCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Failed to create treasury (check share_bps sum = 10000)", id, alloc);
     };
 
+    const treas_label = try jsonSanitize(alloc, label);
+    defer alloc.free(treas_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"dest_count\":{d},\"trigger_amount_sat\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, id_hex, treasury_addr, dest_count, trigger, label });
+        .{ id, id_hex, treasury_addr, dest_count, trigger, treas_label });
 }
 
 /// treasury_list {} — list all active treasuries
@@ -18544,10 +18563,12 @@ fn handleTreasuryList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     for (buf[0..n], 0..) |t, i| {
         if (i > 0) try out.appendSlice(alloc, ",");
         const live_bal = ctx.bc.getAddressBalance(t.treasurySlice());
+        const tl_safe = try jsonSanitize(alloc, t.labelSlice());
+        defer alloc.free(tl_safe);
         const entry = try std.fmt.allocPrint(alloc,
             "{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"dest_count\":{d},\"label\":\"{s}\"}}",
             .{ t.idSlice(), t.treasurySlice(), live_bal, t.trigger_amount_sat,
-               t.last_distribute_block, t.total_distributed_sat, t.dest_count, t.labelSlice() });
+               t.last_distribute_block, t.total_distributed_sat, t.dest_count, tl_safe });
         defer alloc.free(entry);
         try out.appendSlice(alloc, entry);
     }
@@ -18601,8 +18622,10 @@ fn handleTreasuryStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Treasury not found", id, alloc);
     const live_bal = ctx.bc.getAddressBalance(treas.treasurySlice());
     const pending: u64 = if (live_bal >= treas.trigger_amount_sat and treas.trigger_amount_sat > 0) live_bal else 0;
+    const ts_label = try jsonSanitize(alloc, treas.labelSlice());
+    defer alloc.free(ts_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"pending_distribute_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"label\":\"{s}\"}}}}",
         .{ id, treas.idSlice(), treas.treasurySlice(), live_bal, pending,
-           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, treas.labelSlice() });
+           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, ts_label });
 }
