@@ -385,7 +385,7 @@ function TabMine({ data, animated }: { data: ReputationData | null; animated: bo
                 {events.map((ev, i) => {
                   const cup = CUPS.find((c) => c.label === ev.domain);
                   return (
-                    <tr key={i} className="border-b border-mempool-border/30 hover:bg-mempool-bg/40">
+                    <tr key={`${ev.block}:${ev.kind}:${i}`} className="border-b border-mempool-border/30 hover:bg-mempool-bg/40">
                       <td className="px-3 py-1.5 font-mono text-xs text-mempool-text-dim">#{ev.block}</td>
                       <td className="px-3 py-1.5 text-xs text-mempool-text">
                         {HISTORY_KIND_LABEL[ev.kind] || ev.kind}
@@ -688,7 +688,7 @@ function TabDecay({ violations }: { violations: HistoryEvent[] }) {
             </thead>
             <tbody>
               {violations.map((v, i) => (
-                <tr key={i} className="border-b border-mempool-border/30">
+                <tr key={`${v.block}:${v.domain}:${i}`} className="border-b border-mempool-border/30">
                   <td className="px-3 py-1.5 font-mono text-xs text-mempool-text-dim">#{v.block}</td>
                   <td className="px-3 py-1.5 text-xs text-mempool-text">{v.domain}</td>
                   <td className="px-3 py-1.5 text-right font-mono text-xs text-red-400">
