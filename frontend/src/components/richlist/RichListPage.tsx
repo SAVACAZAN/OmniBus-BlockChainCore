@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressDetail } from "./AddressDetail";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -212,10 +213,11 @@ export function RichListPage() {
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
                         onClick={() => setSelectedAddress(e.address)}
-                        className="text-mempool-blue hover:underline truncate max-w-[160px] inline-block align-middle"
+                        className="text-mempool-blue hover:underline truncate max-w-[180px] inline-block align-middle"
                         title={e.address}
                       >
-                        {e.address.slice(0, 10)}…{e.address.slice(-6)}
+                        <AddressLabel address={e.address} showEmoji
+                          truncate={{ left: 10, right: 6 }} />
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-mempool-text">

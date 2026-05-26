@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
+import { AddressLabel } from "../common/AddressLabel";
 import {
   ResponsiveContainer,
   BarChart,
@@ -306,7 +307,7 @@ export function MempoolPage() {
                           onClick={() => { window.location.hash = `#/address/${tx.from}`; }}
                           className="hover:text-mempool-blue hover:underline transition-colors"
                         >
-                          {midTrunc(tx.from, 8, 6)}
+                          <AddressLabel address={tx.from} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       ) : "—"}
                     </td>
@@ -316,7 +317,7 @@ export function MempoolPage() {
                           onClick={() => { window.location.hash = `#/address/${tx.to}`; }}
                           className="hover:text-mempool-blue hover:underline transition-colors"
                         >
-                          {midTrunc(tx.to, 8, 6)}
+                          <AddressLabel address={tx.to} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       ) : "—"}
                     </td>
