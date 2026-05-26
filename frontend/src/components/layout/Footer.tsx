@@ -1,16 +1,15 @@
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { getActiveChain } from "../../api/rpc-client";
 
+const CHAIN_BADGE_COLOR: Record<string, string> = {
+  mainnet: "text-mempool-blue",
+  testnet: "text-mempool-orange",
+};
+
 export function Footer() {
   const { state } = useBlockchain();
   const chain = getActiveChain();
-
-  const chainBadge =
-    chain === "mainnet"
-      ? "text-mempool-blue"
-      : chain === "testnet"
-      ? "text-mempool-orange"
-      : "text-mempool-purple";
+  const chainBadge = CHAIN_BADGE_COLOR[chain] ?? "text-mempool-purple";
 
   return (
     <footer className="border-t border-mempool-border py-2.5 mt-auto">
