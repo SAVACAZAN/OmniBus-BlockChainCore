@@ -16,7 +16,8 @@ import {
 import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
 import { NameManagePanel } from "../names/NameManagePanel";
-import type { FeeEstimate } from "../../types";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -150,6 +151,21 @@ export function WalletPage() {
     first_active_block: number;
   } | null>(null);
   const [utxos, setUtxos] = useState<any[]>([]);
+  // Bumped by WS new_block/new_tx events to trigger an out-of-band refresh.
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Subscribe to WS events that signal new chain activity so the balance +
+  // transaction list update in ~1 s instead of waiting up to 5 s for the poll.
+  useEffect(() => {
+    if (!unlocked || !activeAddress) return;
+    const bump = () => setRefreshCounter((n) => n + 1);
+    const unsubBlock = wsSubscribe<WsNewBlockEvent>("new_block", bump);
+    // new_tx: only refresh if this wallet is directly involved.
+    const unsubTx = wsSubscribe<WsNewTxEvent>("new_tx", (ev) => {
+      if (ev.from === activeAddress) bump();
+    });
+    return () => { unsubBlock(); unsubTx(); };
+  }, [unlocked, activeAddress]);
 
   // Auto-refresh balance + fetch fee estimate + nonce when wallet is unlocked.
   useEffect(() => {
@@ -218,9 +234,11 @@ export function WalletPage() {
       } catch {}
     };
     refresh();
-    const id = setInterval(refresh, 5000);
+    // Keep a slow fallback poll (30 s). Real-time updates come from the WS
+    // subscription above (new_block/new_tx → refreshCounter bump).
+    const id = setInterval(refresh, 30_000);
     return () => clearInterval(id);
-  }, [unlocked, activeAddress]);
+  }, [unlocked, activeAddress, refreshCounter]);
 
   const handleLogout = () => {
     // Disconnect the global session — every subscriber (this page, Exchange,

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -49,8 +51,11 @@ export function FaucetPage() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 6000);
-    return () => { cancelled = true; clearInterval(id); };
+    // Live refresh on every new block (faucet balance changes on claims/rewards).
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    // Slow fallback poll for when WS is disconnected.
+    const id = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   const isOmniBusAddr = (a: string) =>

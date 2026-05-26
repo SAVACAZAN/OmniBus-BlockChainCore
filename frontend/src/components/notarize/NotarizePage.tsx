@@ -17,6 +17,8 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   FileText,
   Shield,
@@ -1726,15 +1728,25 @@ export function NotarizePage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    // Initial fetch — sets a real height before first WS event.
+    (async () => {
       try {
         const h = await rpc.getBlockCount();
         if (!cancelled) setBlockHeight(h);
       } catch { /* ignore */ }
-    };
-    void tick();
-    const id = window.setInterval(() => void tick(), 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    })();
+    // Live update: fires immediately on every mined block (no polling needed).
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setBlockHeight(ev.height);
+    });
+    // Slow fallback poll (60 s) in case WS is disconnected.
+    const id = window.setInterval(async () => {
+      try {
+        const h = await rpc.getBlockCount();
+        if (!cancelled) setBlockHeight(h);
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, []);
 
   const topTabs: { id: TopTab; label: string }[] = [

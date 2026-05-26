@@ -18,7 +18,8 @@ import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useGlobalBalance } from "../../api/use-global-balance";
-import type { FeeEstimate } from "../../types";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { FeeEstimate, WsTxConfirmedEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -103,20 +104,27 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     return () => { cancelled = true; };
   }, [to]);
 
-  // Track confirmations after sending. Polls every 5 s.
+  // Track confirmations after sending via WS event (instant) + polling fallback.
   useEffect(() => {
     if (!result?.txid) return;
+    const txid = result.txid;
+    // WebSocket: fires immediately when the block is found.
+    const unsub = wsSubscribe<WsTxConfirmedEvent>("tx_confirmed", (ev) => {
+      if (ev.hash === txid) setConfirmations(ev.blockHeight);
+    });
+    // Polling fallback: catches the case where WS is disconnected or the TX
+    // was already confirmed before the dialog opened.
     let cancelled = false;
     const tick = async () => {
       try {
-        const r: any = await rpc.request_raw("gettransaction", [result.txid]);
+        const r: any = await rpc.request_raw("gettransaction", [txid]);
         if (cancelled) return;
         if (typeof r?.confirmations === "number") setConfirmations(r.confirmations);
       } catch {}
     };
     tick();
     const id = setInterval(tick, 5_000);
-    return () => { cancelled = true; clearInterval(id); };
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [result?.txid]);
 
   const onMax = () => {
