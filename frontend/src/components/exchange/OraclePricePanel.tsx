@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { getUnlocked } from "../../api/wallet-keystore";
 
 const rpc = new OmniBusRpcClient();
 
@@ -229,9 +230,173 @@ function classifyArb(spreadPct: number): ArbOpportunity["urgency"] {
   return "low";
 }
 
+// ── Oracle Policy Panel ───────────────────────────────────────────────────────
+
+interface OraclePolicy {
+  warn_pct: number;
+  reject_pct: number;
+  fillgap_pct: number;
+  enabled: boolean;
+}
+
+function OraclePolicyPanel() {
+  const [policy, setPolicy]     = useState<OraclePolicy | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Editable form state
+  const [warnPct, setWarnPct]       = useState("2.0");
+  const [rejectPct, setRejectPct]   = useState("5.0");
+  const [fillgapPct, setFillgapPct] = useState("10.0");
+  const [enabled, setEnabled]       = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    rpc.request_raw("omnibus_getoraclepolicy", [])
+      .then((r) => {
+        if (!cancelled && r && typeof r === "object") {
+          const p = r as OraclePolicy;
+          setPolicy(p);
+          setWarnPct(String(p.warn_pct));
+          setRejectPct(String(p.reject_pct));
+          setFillgapPct(String(p.fillgap_pct));
+          setEnabled(p.enabled);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    setMsg(null);
+    try {
+      const result = await rpc.request_raw("omnibus_setoraclepolicy", [{
+        warn_pct:    parseFloat(warnPct)    || 0,
+        reject_pct:  parseFloat(rejectPct)  || 0,
+        fillgap_pct: parseFloat(fillgapPct) || 0,
+        enabled,
+      }]);
+      if (result && typeof result === "object") {
+        setPolicy(result as OraclePolicy);
+        setMsg({ ok: true, text: "Policy updated successfully." });
+      }
+    } catch (e: unknown) {
+      setMsg({ ok: false, text: String(e) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const u = getUnlocked();
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev px-4 py-3">
+        <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-1">
+          Oracle Price Policy
+        </h2>
+        <p className="text-[10px] text-mempool-text-dim leading-relaxed">
+          Controls how the OmniBus chain reacts to external oracle price feeds.
+          <span className="text-yellow-400"> warn_pct</span> — log warning if price deviates more than N%.
+          <span className="text-orange-400"> reject_pct</span> — reject TX if price deviates more than N%.
+          <span className="text-purple-400"> fillgap_pct</span> — fill price gaps up to N% with last known price.
+        </p>
+      </div>
+
+      {/* Current policy */}
+      {loading ? (
+        <div className="text-xs text-mempool-text-dim animate-pulse text-center py-4">Loading policy…</div>
+      ) : policy ? (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="px-3 py-2 border-b border-mempool-border">
+            <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">Current Active Policy</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3">
+            {[
+              { label: "Warn %", value: policy.warn_pct.toFixed(4), color: "text-yellow-400" },
+              { label: "Reject %", value: policy.reject_pct.toFixed(4), color: "text-orange-400" },
+              { label: "FillGap %", value: policy.fillgap_pct.toFixed(4), color: "text-purple-400" },
+              { label: "Enabled", value: policy.enabled ? "Yes" : "No", color: policy.enabled ? "text-green-400" : "text-red-400" },
+            ].map((item) => (
+              <div key={item.label} className="text-center">
+                <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim mb-0.5">{item.label}</div>
+                <div className={`text-lg font-mono font-bold ${item.color}`}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="text-[11px] text-mempool-text-dim text-center py-3">
+          Oracle policy RPC not available on this node.
+        </div>
+      )}
+
+      {/* Edit form */}
+      {!u ? (
+        <div className="text-[11px] text-mempool-text-dim text-center py-2">
+          Connect a wallet to update the oracle policy (requires founder authority).
+        </div>
+      ) : (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+          <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold mb-2">
+            Update Policy
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Warn %", value: warnPct, set: setWarnPct, color: "text-yellow-400", placeholder: "2.0" },
+              { label: "Reject %", value: rejectPct, set: setRejectPct, color: "text-orange-400", placeholder: "5.0" },
+              { label: "FillGap %", value: fillgapPct, set: setFillgapPct, color: "text-purple-400", placeholder: "10.0" },
+            ].map(({ label, value, set, color, placeholder }) => (
+              <div key={label}>
+                <label className={`block text-[10px] mb-1 ${color}`}>{label}</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <label className="flex items-center gap-2 text-xs text-mempool-text cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+                className="accent-mempool-blue"
+              />
+              Oracle enforcement enabled
+            </label>
+            <button
+              onClick={save}
+              disabled={saving}
+              className="ml-auto px-4 py-1.5 rounded text-xs bg-mempool-blue hover:bg-blue-600 text-white disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save Policy"}
+            </button>
+          </div>
+          {msg && (
+            <div className={`rounded px-3 py-2 text-[11px] ${msg.ok ? "bg-green-500/10 text-green-300 border border-green-500/30" : "bg-red-500/10 text-red-300 border border-red-500/30"}`}>
+              {msg.text}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
+  const [tab, setTab] = useState<"prices" | "policy">("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -315,6 +480,27 @@ export function OraclePricePanel() {
 
   return (
     <div className="space-y-4">
+
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-mempool-border pb-1">
+        {(["prices", "policy"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1.5 rounded-t text-xs font-semibold capitalize transition-colors ${
+              tab === t
+                ? "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/30"
+                : "text-mempool-text-dim hover:text-mempool-text"
+            }`}
+          >
+            {t === "prices" ? "📡 Prices & Arbitrage" : "⚙️ Oracle Policy"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "policy" && <OraclePolicyPanel />}
+
+      {tab === "prices" && <>
 
       {/* Header */}
       <div className="flex items-center justify-between rounded-lg border border-mempool-border bg-mempool-bg-elev px-4 py-2.5">
@@ -546,6 +732,8 @@ export function OraclePricePanel() {
           Fetching prices from CoinGecko + Uniswap on-chain…
         </div>
       )}
+
+      </>}
 
     </div>
   );

@@ -14,7 +14,144 @@
  * Legacy code preserved at BridgePage.legacy-omni-out.tsx.bak for history.
  */
 
+import { useEffect, useState } from "react";
+import OmniBusRpcClient from "../../api/rpc-client";
 import { CHAINS, chainCounts, type ChainFamily } from "../../api/chains";
+
+const rpc = new OmniBusRpcClient();
+
+interface BridgeStatus {
+  locked_total_sat: number;
+  lock_count: number;
+  pending_unlock_count: number;
+  daily_volume_sat: number;
+  paused: boolean;
+  required_sigs: number;
+  challenge_window_blocks: number;
+  max_per_tx_sat: number;
+  max_daily_sat: number;
+}
+
+interface BridgeLimits {
+  maxPerTxSAT: number;
+  maxDailySAT: number;
+  dailyWindowBlocks: number;
+  requiredSigs: number;
+  maxRelayers: number;
+  challengeWindowBlocks: number;
+  autoPauseFractionBps: number;
+  vaultAddrHex: string;
+}
+
+function formatOmni(sat: number): string {
+  if (sat === 0) return "0";
+  const omni = sat / 1_000_000_000;
+  return omni >= 1 ? omni.toLocaleString("en-US", { maximumFractionDigits: 4 }) : omni.toFixed(6);
+}
+
+function BridgeMonitor() {
+  const [status, setStatus] = useState<BridgeStatus | null>(null);
+  const [limits, setLimits] = useState<BridgeLimits | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [s, l] = await Promise.all([
+          rpc.request_raw("omnibus_getbridgestatus", []),
+          rpc.request_raw("omnibus_bridge_limits", []),
+        ]);
+        if (!cancelled) {
+          if (s && typeof s === "object") setStatus(s as BridgeStatus);
+          if (l && typeof l === "object") setLimits(l as BridgeLimits);
+        }
+      } catch {
+        // bridge not initialized = stub node
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    const id = setInterval(load, 10000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  if (loading && !status && !limits) {
+    return <div className="text-xs text-mempool-text-dim text-center py-4 animate-pulse">Fetching bridge data…</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {status && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[
+            { label: "Locked total", value: `${formatOmni(status.locked_total_sat)} OMNI`, highlight: false },
+            { label: "Lock records", value: String(status.lock_count), highlight: false },
+            { label: "Pending unlocks", value: String(status.pending_unlock_count), highlight: status.pending_unlock_count > 0 },
+            { label: "Daily volume", value: `${formatOmni(status.daily_volume_sat)} OMNI`, highlight: false },
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3">
+              <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">{item.label}</div>
+              <div className={`text-sm font-mono font-semibold ${item.highlight ? "text-yellow-400" : "text-mempool-text"}`}>
+                {item.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {status && (
+        <div className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-xs ${
+          status.paused
+            ? "border-red-500/40 bg-red-500/5 text-red-300"
+            : "border-green-500/30 bg-green-500/5 text-green-300"
+        }`}>
+          <span className="font-bold">{status.paused ? "⛔ PAUSED" : "✅ ACTIVE"}</span>
+          <span className="text-mempool-text-dim">·</span>
+          <span>Required sigs: <span className="font-mono">{status.required_sigs}</span></span>
+          <span className="text-mempool-text-dim">·</span>
+          <span>Challenge window: <span className="font-mono">{status.challenge_window_blocks}</span> blocks</span>
+        </div>
+      )}
+
+      {limits && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="px-3 py-2 border-b border-mempool-border">
+            <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">Bridge Limits &amp; Config</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 px-3 py-3 text-[11px] font-mono">
+            {[
+              ["Max per TX", `${formatOmni(limits.maxPerTxSAT)} OMNI`],
+              ["Max daily", `${formatOmni(limits.maxDailySAT)} OMNI`],
+              ["Daily window", `${limits.dailyWindowBlocks} blocks`],
+              ["Required sigs", String(limits.requiredSigs)],
+              ["Max relayers", String(limits.maxRelayers)],
+              ["Challenge window", `${limits.challengeWindowBlocks} blocks`],
+              ["Auto-pause bps", String(limits.autoPauseFractionBps)],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-2">
+                <span className="text-mempool-text-dim">{k}</span>
+                <span className="text-mempool-text">{v}</span>
+              </div>
+            ))}
+            <div className="col-span-2 sm:col-span-3 flex justify-between gap-2 pt-1 border-t border-mempool-border/40">
+              <span className="text-mempool-text-dim">Vault address</span>
+              <span className="text-mempool-blue truncate">{limits.vaultAddrHex}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!status && !limits && (
+        <div className="text-[11px] text-mempool-text-dim text-center py-3">
+          Bridge module not initialized — running without bridge.
+        </div>
+      )}
+    </div>
+  );
+}
 
 const FAMILY_ORDER: ChainFamily[] = [
   "OmniBus",
@@ -100,6 +237,15 @@ export function BridgePage() {
           Open Exchange →
         </button>
       </div>
+
+      {/* Bridge Monitor */}
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between flex-wrap gap-2">
+          <h2 className="text-lg font-semibold text-mempool-text">Bridge Monitor</h2>
+          <p className="text-xs text-mempool-text-dim">Live status of the OmniBus bridge vault · auto-refreshes every 10s</p>
+        </div>
+        <BridgeMonitor />
+      </section>
 
       {/* Chain registry */}
       <section className="space-y-3">
