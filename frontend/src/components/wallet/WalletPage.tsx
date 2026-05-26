@@ -1050,8 +1050,8 @@ function RewardsLegendCard({ cups }: { cups?: { love: string; food: string; rent
                 <span className="text-[10px] font-mono text-mempool-text-dim">{cup}/100</span>
               </div>
               <div className="space-y-0.5">
-                {r.earn.map((rule, i) => (
-                  <div key={i} className="flex items-center justify-between text-[9px] gap-2">
+                {r.earn.map((rule) => (
+                  <div key={rule.what} className="flex items-center justify-between text-[9px] gap-2">
                     <span className="text-mempool-text-dim/80 truncate flex-1">{rule.what}</span>
                     <span className="font-mono text-mempool-green font-semibold whitespace-nowrap">{rule.pts}</span>
                   </div>
@@ -1614,8 +1614,8 @@ function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; 
                   />
                 </div>
                 <div className="space-y-1">
-                  {r.earn.map((rule, i) => (
-                    <div key={i} className="flex items-center justify-between text-[9px]">
+                  {r.earn.map((rule) => (
+                    <div key={rule.what} className="flex items-center justify-between text-[9px]">
                       <span className="text-mempool-text-dim">
                         {rule.what} <span className="text-mempool-text-dim/50">({rule.per})</span>
                       </span>
