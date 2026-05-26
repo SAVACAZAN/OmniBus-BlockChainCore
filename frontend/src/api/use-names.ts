@@ -24,6 +24,13 @@ import { subscribe as wsSubscribe } from "./ws-bus";
 const PRIMARY_LS_PREFIX = "omnibus:primary-name:";
 const MAX_NAMES_PER_WALLET = 10;
 
+const TLD_PRIORITY: Record<string, number> = {
+  gov: 0, mil: 1, bank: 2, fin: 3,
+  quantum: 4, omnibus: 5,
+  edu: 6, org: 7, dev: 8,
+  arbitraje: 9,
+};
+
 export type DnsEntry = {
   name: string;
   tld: string;
@@ -148,12 +155,6 @@ export function useNameForAddress(addr: string | null | undefined): string | nul
   // Stable default: institutional categories first (gov/mil/bank/fin pin
   // identity to a regulated entity), then quantum (premium personal),
   // then omnibus (default), then niche (edu/org/dev), then arbitraje last.
-  const TLD_PRIORITY: Record<string, number> = {
-    gov: 0, mil: 1, bank: 2, fin: 3,
-    quantum: 4, omnibus: 5,
-    edu: 6, org: 7, dev: 8,
-    arbitraje: 9,
-  };
   const sorted = [...list].sort((a, b) => {
     const pa = TLD_PRIORITY[a.tld] ?? 99;
     const pb = TLD_PRIORITY[b.tld] ?? 99;
@@ -208,12 +209,6 @@ export function useEntryForAddress(addr: string | null | undefined): DnsEntry | 
     const found = list.find((e) => e.fullLabel === primaryLabel);
     if (found) return found;
   }
-  const TLD_PRIORITY: Record<string, number> = {
-    gov: 0, mil: 1, bank: 2, fin: 3,
-    quantum: 4, omnibus: 5,
-    edu: 6, org: 7, dev: 8,
-    arbitraje: 9,
-  };
   const sorted = [...list].sort((a, b) => {
     const pa = TLD_PRIORITY[a.tld] ?? 99;
     const pb = TLD_PRIORITY[b.tld] ?? 99;
