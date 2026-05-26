@@ -398,10 +398,10 @@ function BlockPricesPanel() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 px-3 py-1.5">
-                {b.prices.filter(e => e.success).map((e, i) => {
+                {b.prices.filter(e => e.success).map((e) => {
                   const bid = e.bidMicroUsd / MICRO_PER_USD;
                   return (
-                    <div key={i} className="flex items-center gap-1 text-[9px] font-mono">
+                    <div key={`${e.exchange}${e.pair}`} className="flex items-center gap-1 text-[9px] font-mono">
                       <span className="text-mempool-text-dim">{e.exchange}·{e.pair}</span>
                       <span className="text-green-400">{bid >= 1000 ? bid.toLocaleString("en-US", {maximumFractionDigits: 0}) : bid.toFixed(4)}</span>
                     </div>
@@ -797,12 +797,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {priceRows.map((row, i) => {
+              {priceRows.map((row) => {
                 const spreadColor = Math.abs(row.spreadPct) < 0.3
                   ? "text-mempool-text-dim"
                   : row.spreadPct > 0 ? "text-orange-400" : "text-green-400";
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={row.sym} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-bold text-mempool-text">{row.sym}</td>
                     <td className="px-3 py-1.5 text-right text-white">
                       {row.cexUsd > 0 ? `$${row.cexUsd >= 1000 ? row.cexUsd.toLocaleString("en-US", {maximumFractionDigits: 0}) : row.cexUsd >= 1 ? row.cexUsd.toFixed(4) : row.cexUsd.toFixed(6)}` : "—"}
@@ -836,8 +836,8 @@ export function OraclePricePanel() {
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold px-1">
             Arbitrage Opportunities
           </div>
-          {arbOpps.map((arb, i) => (
-            <div key={i} className={`rounded-lg border p-3 ${urgencyColor[arb.urgency]}`}>
+          {arbOpps.map((arb) => (
+            <div key={`${arb.pair}${arb.directionLabel}`} className={`rounded-lg border p-3 ${urgencyColor[arb.urgency]}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="font-bold text-[11px]">{arb.pair}</span>
                 <span className="font-mono text-[11px] font-bold">{arb.directionLabel}</span>
@@ -873,12 +873,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {omniDex.map((d, i) => {
+              {omniDex.map((d) => {
                 const spread = d.bestBid > 0 && d.bestAsk > 0
                   ? ((d.bestAsk - d.bestBid) / d.bestBid) * 100
                   : 0;
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={d.pair} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-bold text-mempool-text">{d.pair}</td>
                     <td className="px-3 py-1.5 text-right text-green-400">{d.bestBid > 0 ? `$${d.bestBid.toFixed(4)}` : "—"}</td>
                     <td className="px-3 py-1.5 text-right text-orange-400">{d.bestAsk > 0 ? `$${d.bestAsk.toFixed(4)}` : "—"}</td>
@@ -940,12 +940,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {zigOracle.map((e, i) => {
+              {zigOracle.map((e) => {
                 const bidUsd = e.bid / MICRO_PER_USD;
                 const askUsd = e.ask / MICRO_PER_USD;
                 const ageSec = Math.floor((Date.now() - e.timestamp_ms) / 1000);
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={`${e.exchange}${e.pair}`} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-semibold text-mempool-text">{e.exchange}</td>
                     <td className="px-3 py-1.5 text-mempool-text-dim">{e.pair}</td>
                     <td className="px-3 py-1.5 text-right text-green-400">
@@ -1209,8 +1209,8 @@ function DexOrderbookPanel() {
                   <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
                 </thead>
                 <tbody>
-                  {orderbook.bids.slice(0, 8).map(([p, q], i) => (
-                    <tr key={i} className="font-mono text-green-400">
+                  {orderbook.bids.slice(0, 8).map(([p, q]) => (
+                    <tr key={p} className="font-mono text-green-400">
                       <td>{p}</td><td className="text-right">{q}</td>
                     </tr>
                   ))}
@@ -1228,8 +1228,8 @@ function DexOrderbookPanel() {
                   <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
                 </thead>
                 <tbody>
-                  {orderbook.asks.slice(0, 8).map(([p, q], i) => (
-                    <tr key={i} className="font-mono text-red-400">
+                  {orderbook.asks.slice(0, 8).map(([p, q]) => (
+                    <tr key={p} className="font-mono text-red-400">
                       <td>{p}</td><td className="text-right">{q}</td>
                     </tr>
                   ))}
@@ -1287,8 +1287,8 @@ function DexOrderbookPanel() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-mempool-border/20">
-                  {blockPrices.prices.map((e, i) => (
-                    <tr key={i} className={e.success ? "" : "opacity-40"}>
+                  {blockPrices.prices.map((e) => (
+                    <tr key={`${e.exchange}${e.pair}`} className={e.success ? "" : "opacity-40"}>
                       <td className="py-0.5 font-mono text-mempool-text-dim">{e.exchange}</td>
                       <td className="font-mono text-mempool-blue">{e.pair}</td>
                       <td className="text-right font-mono text-green-400">{e.bidMicroUsd}</td>
