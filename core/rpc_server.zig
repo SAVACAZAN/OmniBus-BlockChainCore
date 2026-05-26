@@ -5513,9 +5513,11 @@ fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const found = dns.reverseResolve(address, current_block);
 
     if (found) |name| {
+        const rr_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(rr_safe);
         return std.fmt.allocPrint(alloc,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":\"{s}\",\"found\":true}}}}",
-            .{ id, address, name });
+            .{ id, address, rr_safe });
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":null,\"found\":false}}}}",
@@ -6186,7 +6188,6 @@ fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, address, current_block, blocks_threshold });
     for (buf[0..n], 0..) |e, i| {
         if (i > 0) try w.writeAll(",");
-        const name = e.getName();
         const tld_s = e.getTld();
         const in_grace = e.isInGrace(current_block);
         const remaining: u64 = if (in_grace or e.expires_block <= current_block)
@@ -6195,9 +6196,13 @@ fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             e.expires_block - current_block;
         // 10s/block, so days = remaining / (86400/10) = remaining / 8640
         const est_days: u64 = remaining / 8640;
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, e.getName());
+        try std.fmt.format(w, "\",\"tld\":\"{s}\",\"fullLabel\":\"", .{tld_s});
+        try writeJsonSafeStr(w, e.getName());
         try std.fmt.format(w,
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
-            .{ name, tld_s, name, tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
+            ".{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
+            .{ tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
     }
     try w.writeAll("]}}");
     return out.toOwnedSlice();
