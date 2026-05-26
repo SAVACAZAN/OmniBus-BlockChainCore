@@ -14,6 +14,21 @@ function midTrunc(s: string | undefined | null, h = 14, t = 12): string {
   return s.slice(0, h) + "…" + s.slice(-t);
 }
 
+function SchemeTag({ scheme }: { scheme: string }) {
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded border text-[11px] font-mono ${cls}`}>
+      {isPQ ? "🔒 " : "🔑 "}{scheme}
+    </span>
+  );
+}
+
 function CopyBtn({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -124,6 +139,29 @@ export function TxPage({ hash, onNavigate }: Props) {
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Fee</div>
             <div className="text-mempool-text font-mono">{fmtSat(tx.fee)}</div>
           </div>
+
+          {tx.nonce !== undefined && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Nonce</div>
+              <div className="text-mempool-text font-mono">{tx.nonce}</div>
+            </div>
+          )}
+
+          {tx.timestamp !== undefined && tx.timestamp > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Timestamp</div>
+              <div className="text-mempool-text font-mono text-xs">
+                {new Date(tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp).toLocaleString()}
+              </div>
+            </div>
+          )}
+
+          {tx.scheme && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Signing Scheme</div>
+              <SchemeTag scheme={tx.scheme} />
+            </div>
+          )}
 
           {tx.locktime !== undefined && tx.locktime > 0 && (
             <div>

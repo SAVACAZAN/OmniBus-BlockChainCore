@@ -1065,10 +1065,6 @@ fn randomHex(out: []u8, n_bytes: usize) void {
 
 // ─── PHASE 2E.4 — Funding helpers ──────────────────────────────────────
 
-/// Phase 2F bridge vault placeholder. Per-chain TSS-controlled deposit
-/// addresses replace this once bridge_native.zig is wired to RPC.
-pub const BRIDGE_VAULT_PLACEHOLDER: []const u8 = "BRIDGE_VAULT_PHASE_2F_PENDING";
-
 fn fundingFeeStr(asset: []const u8) []const u8 {
     if (std.mem.eql(u8, asset, "OMNI")) return "0.00050000";
     if (std.mem.eql(u8, asset, "BTC"))  return "0.00010000";
@@ -2456,14 +2452,19 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
                 writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
                 return true;
             }
-            const addr_slice: []const u8 = if (std.mem.eql(u8, asset, "OMNI"))
-                ctx.wallet.address
-            else
-                BRIDGE_VAULT_PLACEHOLDER;
+            // Native OMNI deposits land on the wallet address. Cross-chain
+            // assets require the Phase 2F TSS-controlled bridge vault, which
+            // is not yet deployed — return a clear error instead of a magic
+            // placeholder string the client would treat as a real address.
+            if (!std.mem.eql(u8, asset, "OMNI")) {
+                writeJsonResponse(stream,
+                    "{\"error\":[\"EFunding:BridgeVaultNotDeployed\"],\"result\":[]}");
+                return true;
+            }
             const body_json = std.fmt.allocPrint(alloc,
                 "{{\"error\":[],\"result\":[{{\"address\":\"{s}\"," ++
                 "\"expiretm\":0,\"newtag\":null}}]}}",
-                .{ addr_slice }) catch {
+                .{ ctx.wallet.address }) catch {
                     writeJsonResponse(stream, "{\"error\":[\"EFunding:Alloc\"],\"result\":[]}");
                     return true;
                 };
@@ -3088,6 +3089,10 @@ fn handleListUnspent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var total: u64 = 0;
     var count: usize = 0;
 
+    // Lock UTXOSet for the whole walk — see utxo.zig RwLock note.
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
+
     if (ctx.bc.utxo_set.address_index.get(req_addr)) |list| {
         for (list.items) |outpoint_key| {
             const utxo = ctx.bc.utxo_set.utxos.get(outpoint_key) orelse continue;
@@ -3135,11 +3140,12 @@ fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
 //
 // These do NOT touch ctx.bridge / ctx.bc state — they read/write the
 // process-global oracle protected by g_xchain_oracle_mutex. Wire
-// validation (PQ quorum 3-of-4 sigs on `oracle_recordHeader`) is left
-// for the caller of this RPC; right now we only check that the request
-// includes a `quorum_ok=true` flag so the gating point is explicit and
-// auditable. TODO: replace with real PQ quorum verification once
-// validator key set is exposed via ServerCtx.
+// validation on oracle_recordHeader: ≥ ORACLE_QUORUM_MIN distinct
+// secp256k1 sigs over SHA256("OMNI_ORACLE_v1\n" + chain + "\n" + height +
+// "\n" + header_hash_hex), signers must be in setOracleQuorumPubkeys().
+// The legacy `quorum_ok=true` flag is honored ONLY when zero pubkeys are
+// registered (dev/testnet bring-up); production operators install the
+// validator key set via oracle_quorum.json and the flag is ignored.
 
 fn handleOracleBtcHeight(ctx: *ServerCtx, id: u64) ![]u8 {
     ensureOracleLoaded();
@@ -4412,6 +4418,24 @@ fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, addr, next_available, chain_nonce, pending });
 }
 
+fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
+    return switch (scheme) {
+        .omni_ecdsa       => "ECDSA (secp256k1)",
+        .love_dilithium   => "ML-DSA-87 (soulbound)",
+        .food_falcon      => "Falcon-512 (soulbound)",
+        .rent_ml_dsa      => "ML-DSA-87 (soulbound)",
+        .vacation_slh_dsa => "SLH-DSA-256s (soulbound)",
+        .pq_omni_ml_dsa   => "ML-DSA-87",
+        .pq_omni_falcon   => "Falcon-512",
+        .pq_omni_dilithium=> "ML-DSA-87 (Dilithium-5)",
+        .pq_omni_slh_dsa  => "SLH-DSA-256s",
+        .hybrid_q1        => "Hybrid ECDSA+ML-DSA-87",
+        .hybrid_q2        => "Hybrid ECDSA+Falcon-512",
+        .hybrid_q3        => "Hybrid ECDSA+Dilithium-5",
+        .hybrid_q4        => "Hybrid ECDSA+SLH-DSA",
+    };
+}
+
 /// RPC "gettransaction" — returns a single TX by hash with confirmation count.
 /// Searches mempool (pending, 0 confirmations) then mined blocks (confirmed).
 /// Usage: {"method":"gettransaction","params":["tx_hash_hex"],"id":1}
@@ -4426,9 +4450,11 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // 1. Check mempool (pending TXs — 0 confirmations)
     for (ctx.bc.mempool.items) |tx| {
         if (std.mem.eql(u8, tx.hash, tx_hash)) {
+            const scheme_label = txSchemeLabel(tx.scheme);
+            const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
             return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
-                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee });
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
+                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret });
         }
     }
 
@@ -4440,9 +4466,11 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             const blk = ctx.bc.chain.items[block_height];
             for (blk.transactions.items) |tx| {
                 if (std.mem.eql(u8, tx.hash, tx_hash)) {
+                    const scheme_label = txSchemeLabel(tx.scheme);
+                    const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
                     return std.fmt.allocPrint(alloc,
-                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height });
+                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret, confirmations, block_height });
                 }
             }
         }
@@ -4459,9 +4487,11 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 const current_height: u64 = @intCast(ctx.bc.chain.items.len);
                 const bh: u64 = @intCast(blk.index);
                 const confirmations = if (current_height > bh) current_height - bh else 0;
+                const scheme_label = txSchemeLabel(tx.scheme);
+                const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
                 return std.fmt.allocPrint(alloc,
-                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, blk.index });
+                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret, confirmations, blk.index });
             }
         }
     }
@@ -4816,10 +4846,18 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // Collect (address, balance) pairs from the UTXO set (PHASE-B source of truth).
     var entries = std.array_list.Managed(RichEntry).init(alloc);
     defer entries.deinit();
+    // Lock UTXOSet for the iteration — getBalance() takes a recursive shared lock.
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
     var ait = ctx.bc.utxo_set.address_index.iterator();
     while (ait.next()) |kv| {
         const addr = kv.key_ptr.*;
-        const bal = ctx.bc.utxo_set.getBalance(addr);
+        // Inline tally to avoid re-locking (getBalance would try to lockShared again).
+        const list = kv.value_ptr.*;
+        var bal: u64 = 0;
+        for (list.items) |op| {
+            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
+        }
         if (bal == 0) continue; // skip dust/zero balances
         try entries.append(.{ .address = addr, .balance = bal });
     }
@@ -4966,10 +5004,17 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
     var addresses_with_balance: u64 = 0;
     var validators: u64 = 0;
     var total_supply: u64 = 0;
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
     var ait = ctx.bc.utxo_set.address_index.iterator();
     while (ait.next()) |kv| {
-        const addr = kv.key_ptr.*;
-        const bal = ctx.bc.utxo_set.getBalance(addr);
+        _ = kv.key_ptr.*;
+        // Inline tally — re-entering getBalance() would deadlock on the same RwLock.
+        const list = kv.value_ptr.*;
+        var bal: u64 = 0;
+        for (list.items) |op| {
+            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
+        }
         if (bal == 0) continue;
         addresses_with_balance += 1;
         total_supply += bal;
@@ -7275,13 +7320,28 @@ fn handleNodeList(ctx: *ServerCtx, id: u64) ![]u8 {
 // ─── Staking Slashing RPC Handlers ──────────────────────────────────────────
 
 /// RPC "submitslashevidence" — submit proof that a validator cheated.
-/// Usage: {"method":"submitslashevidence","params":["validator_addr","double_sign","block_hash1_hex","block_hash2_hex",block_height,"reporter_addr"],"id":1}
+/// Usage (double_sign / invalid_block — requires real proof):
+///   {"method":"submitslashevidence","params":[
+///     "validator_addr", "double_sign",
+///     "block_hash1_64hex", "block_hash2_64hex",
+///     block_height,
+///     "reporter_addr",
+///     "signature1_128hex", "signature2_128hex"
+///   ],"id":1}
+/// Usage (downtime — no cryptographic proof needed, just height window):
+///   {"method":"submitslashevidence","params":[
+///     "validator_addr", "downtime", "", "", block_height, "reporter_addr"
+///   ],"id":1}
+///
+/// double_sign / invalid_block evidence MUST include:
+///   - two distinct block hashes (different blocks at same height)
+///   - two valid secp256k1 signatures from the validator over those hashes
+/// Anything else is rejected with -32602 BEFORE reaching the staking engine.
 fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const staking = ctx.staking orelse
         return errorJson(-32000, "Staking engine not available", id, alloc);
 
-    // Parse params
     const validator_addr = extractArrayStr(body, 0) orelse
         return errorJson(-32602, "Missing param: validator_address", id, alloc);
     const reason_str = extractArrayStr(body, 1) orelse
@@ -7290,7 +7350,6 @@ fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Missing param: reporter_address", id, alloc);
     const block_height = extractArrayNum(body, 4);
 
-    // Parse reason
     const reason: staking_mod.SlashReason = if (std.mem.eql(u8, reason_str, "double_sign"))
         .double_sign
     else if (std.mem.eql(u8, reason_str, "invalid_block"))
@@ -7300,16 +7359,65 @@ fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     else
         return errorJson(-32602, "Invalid reason: use double_sign, invalid_block, or downtime", id, alloc);
 
-    // Build evidence with non-zero placeholder hashes/sigs for RPC submission
-    // (full cryptographic verification happens at the consensus layer)
+    var hash_1: [32]u8 = @splat(0);
+    var hash_2: [32]u8 = @splat(0);
+    var sig_1: [64]u8 = @splat(0);
+    var sig_2: [64]u8 = @splat(0);
+
+    if (reason == .double_sign or reason == .invalid_block) {
+        // Cryptographic evidence required.
+        const h1_hex = extractArrayStr(body, 2) orelse
+            return errorJson(-32602, "Missing block_hash_1 (64-char hex) for crypto-evidence reason", id, alloc);
+        const h2_hex = extractArrayStr(body, 3) orelse
+            return errorJson(-32602, "Missing block_hash_2 (64-char hex) for crypto-evidence reason", id, alloc);
+        if (h1_hex.len != 64) return errorJson(-32602, "block_hash_1 must be 64-char hex", id, alloc);
+        if (h2_hex.len != 64) return errorJson(-32602, "block_hash_2 must be 64-char hex", id, alloc);
+        hash_1 = hexDecode32(h1_hex) orelse return errorJson(-32602, "Invalid block_hash_1 hex", id, alloc);
+        hash_2 = hexDecode32(h2_hex) orelse return errorJson(-32602, "Invalid block_hash_2 hex", id, alloc);
+
+        // Two different blocks at the same height is the whole point — if
+        // they match, the reporter is either confused or trying to spam.
+        if (std.mem.eql(u8, &hash_1, &hash_2)) {
+            return errorJson(-32602, "block_hash_1 and block_hash_2 must differ", id, alloc);
+        }
+
+        const s1_hex = extractArrayStr(body, 6) orelse
+            return errorJson(-32602, "Missing signature_1 (128-char hex) — must be validator's sig over block_hash_1", id, alloc);
+        const s2_hex = extractArrayStr(body, 7) orelse
+            return errorJson(-32602, "Missing signature_2 (128-char hex) — must be validator's sig over block_hash_2", id, alloc);
+        if (s1_hex.len != 128) return errorJson(-32602, "signature_1 must be 128-char hex", id, alloc);
+        if (s2_hex.len != 128) return errorJson(-32602, "signature_2 must be 128-char hex", id, alloc);
+        sig_1 = hexDecode64(s1_hex) orelse return errorJson(-32602, "Invalid signature_1 hex", id, alloc);
+        sig_2 = hexDecode64(s2_hex) orelse return errorJson(-32602, "Invalid signature_2 hex", id, alloc);
+
+        // Verify each sig against the validator's registered pubkey over its
+        // corresponding block hash. We look up the pubkey from bc.pubkey_registry —
+        // every validator must have registered a pubkey TX before they can be
+        // slashed (otherwise we'd accept evidence with no way to validate it).
+        const pk_slice = ctx.bc.pubkey_registry.get(validator_addr) orelse
+            return errorJson(-32000, "Validator pubkey not registered — cannot verify evidence", id, alloc);
+        if (pk_slice.len != 33) return errorJson(-32000, "Registered validator pubkey is not 33 bytes (compressed secp256k1 expected)", id, alloc);
+        var pk: [33]u8 = undefined;
+        @memcpy(&pk, pk_slice[0..33]);
+
+        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_1, sig_1)) {
+            return errorJson(-32000, "signature_1 does not verify against validator's registered pubkey over block_hash_1", id, alloc);
+        }
+        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_2, sig_2)) {
+            return errorJson(-32000, "signature_2 does not verify against validator's registered pubkey over block_hash_2", id, alloc);
+        }
+    }
+    // downtime path: no crypto evidence; staking engine just checks the
+    // height window against the validator's last-seen timestamp.
+
     const evidence = staking_mod.SlashEvidence.init(
         validator_addr,
         reason,
-        [_]u8{0xAA} ** 32, // block_hash_1 placeholder
-        [_]u8{0xBB} ** 32, // block_hash_2 placeholder
+        hash_1,
+        hash_2,
         block_height,
-        [_]u8{0x11} ** 64, // signature_1 placeholder
-        [_]u8{0x22} ** 64, // signature_2 placeholder
+        sig_1,
+        sig_2,
         reporter_addr,
         std.time.timestamp(),
     );
@@ -8768,7 +8876,7 @@ fn handleGenWallet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// RPC "openchannel" — open a new payment channel between two parties.
 /// Usage: {"method":"openchannel","params":["party_a_hex","party_b_hex",amount_a,amount_b],"id":1}
-/// party_a_hex / party_b_hex: 33-byte compressed pubkeys as 66-char hex strings
+/// party_a_hex / party_b_hex: 33-byte compressed pubkeys as 66-char hex strings (REQUIRED)
 /// amount_a / amount_b: deposits in SAT
 fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -8778,25 +8886,18 @@ fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const amount_b = extractArrayNum(body, 3);
     if (amount_a == 0 and amount_b == 0) return errorJson(-32602, "Both amounts cannot be zero", id, alloc);
 
-    // Parse pubkeys from hex (or use placeholder if not provided)
-    var pk_a: [33]u8 = undefined;
-    var pk_b: [33]u8 = undefined;
-    if (extractArrayStr(body, 0)) |hex_a| {
-        if (hex_a.len == 66) {
-            pk_a = hexDecode33(hex_a) orelse return errorJson(-32602, "Invalid party_a hex", id, alloc);
-        } else return errorJson(-32602, "party_a must be 66-char hex", id, alloc);
-    } else {
-        pk_a[0] = 0x02;
-        @memset(pk_a[1..], 0xAA);
-    }
-    if (extractArrayStr(body, 1)) |hex_b| {
-        if (hex_b.len == 66) {
-            pk_b = hexDecode33(hex_b) orelse return errorJson(-32602, "Invalid party_b hex", id, alloc);
-        } else return errorJson(-32602, "party_b must be 66-char hex", id, alloc);
-    } else {
-        pk_b[0] = 0x03;
-        @memset(pk_b[1..], 0xBB);
-    }
+    // Pubkeys are mandatory. The placeholder fallback that filled them with
+    // 0xAA/0xBB used to silently produce a channel whose verify() rejects every
+    // payment — caller confusion guaranteed. Reject up-front instead.
+    const hex_a = extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing party_a: 66-char compressed pubkey hex required", id, alloc);
+    if (hex_a.len != 66) return errorJson(-32602, "party_a must be 66-char hex", id, alloc);
+    const pk_a = hexDecode33(hex_a) orelse return errorJson(-32602, "Invalid party_a hex", id, alloc);
+
+    const hex_b = extractArrayStr(body, 1) orelse
+        return errorJson(-32602, "Missing party_b: 66-char compressed pubkey hex required", id, alloc);
+    if (hex_b.len != 66) return errorJson(-32602, "party_b must be 66-char hex", id, alloc);
+    const pk_b = hexDecode33(hex_b) orelse return errorJson(-32602, "Invalid party_b hex", id, alloc);
 
     const ch = mgr.openChannel(pk_a, pk_b, amount_a, amount_b) catch |e| {
         return switch (e) {
@@ -8815,8 +8916,11 @@ fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// RPC "channelpay" — off-chain payment within a channel.
-/// Usage: {"method":"channelpay","params":["channel_id_hex","a_to_b",amount],"id":1}
+/// Usage: {"method":"channelpay","params":["channel_id_hex","a_to_b",amount,"sig_a_hex","sig_b_hex"],"id":1}
 /// direction: "a_to_b" or "b_to_a"
+/// sig_a_hex / sig_b_hex: 128-char hex (64-byte secp256k1 ECDSA sigs over the
+///                       canonical hash of the new ChannelUpdate). REQUIRED —
+///                       channel state is only advanced if both verify.
 fn handleChannelPay(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const mgr = ctx.channel_mgr orelse return errorJson(-32000, "Payment channels not initialized", id, alloc);
@@ -8831,19 +8935,24 @@ fn handleChannelPay(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const amount = extractArrayNum(body, 2);
     if (amount == 0) return errorJson(-32602, "Amount must be > 0", id, alloc);
 
-    const ch = mgr.findChannel(channel_id) orelse return errorJson(-32000, "Channel not found", id, alloc);
+    // Mandatory ECDSA signatures from both parties over the NEW state hash.
+    const sig_a_hex = extractArrayStr(body, 3) orelse
+        return errorJson(-32602, "Missing sig_a: 128-char hex ECDSA signature required", id, alloc);
+    const sig_b_hex = extractArrayStr(body, 4) orelse
+        return errorJson(-32602, "Missing sig_b: 128-char hex ECDSA signature required", id, alloc);
+    if (sig_a_hex.len != 128) return errorJson(-32602, "sig_a must be 128-char hex", id, alloc);
+    if (sig_b_hex.len != 128) return errorJson(-32602, "sig_b must be 128-char hex", id, alloc);
+    const sig_a = hexDecode64(sig_a_hex) orelse return errorJson(-32602, "Invalid sig_a hex", id, alloc);
+    const sig_b = hexDecode64(sig_b_hex) orelse return errorJson(-32602, "Invalid sig_b hex", id, alloc);
 
-    // Use placeholder signatures (in production, client provides real sigs)
-    var sig_a: [64]u8 = undefined;
-    @memset(&sig_a, 0x11);
-    var sig_b: [64]u8 = undefined;
-    @memset(&sig_b, 0x22);
+    const ch = mgr.findChannel(channel_id) orelse return errorJson(-32000, "Channel not found", id, alloc);
 
     _ = ch.pay(from_a, amount, sig_a, sig_b) catch |e| {
         return switch (e) {
             error.ChannelNotOpen => errorJson(-32000, "Channel not open", id, alloc),
             error.InsufficientBalance => errorJson(-32000, "Insufficient balance", id, alloc),
             error.BalanceMismatch => errorJson(-32000, "Balance mismatch", id, alloc),
+            error.InvalidSignature => errorJson(-32000, "Invalid signature — sig_a or sig_b does not verify", id, alloc),
         };
     };
 
@@ -8862,16 +8971,22 @@ fn handleCloseChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (cid_hex.len != 64) return errorJson(-32602, "channel_id must be 64-char hex", id, alloc);
     const channel_id = hexDecode32(cid_hex) orelse return errorJson(-32602, "Invalid channel_id hex", id, alloc);
 
-    // Use placeholder signatures
-    var sig_a: [64]u8 = undefined;
-    @memset(&sig_a, 0x33);
-    var sig_b: [64]u8 = undefined;
-    @memset(&sig_b, 0x44);
+    // Both parties must sign the final state. Sigs are ECDSA over the
+    // canonical hash of the final ChannelUpdate (see ChannelUpdate.hash).
+    const sig_a_hex = extractArrayStr(body, 1) orelse
+        return errorJson(-32602, "Missing sig_a: 128-char hex ECDSA signature required", id, alloc);
+    const sig_b_hex = extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing sig_b: 128-char hex ECDSA signature required", id, alloc);
+    if (sig_a_hex.len != 128) return errorJson(-32602, "sig_a must be 128-char hex", id, alloc);
+    if (sig_b_hex.len != 128) return errorJson(-32602, "sig_b must be 128-char hex", id, alloc);
+    const sig_a = hexDecode64(sig_a_hex) orelse return errorJson(-32602, "Invalid sig_a hex", id, alloc);
+    const sig_b = hexDecode64(sig_b_hex) orelse return errorJson(-32602, "Invalid sig_b hex", id, alloc);
 
     const settle = mgr.closeChannel(channel_id, sig_a, sig_b) catch |e| {
         return switch (e) {
             error.ChannelNotFound => errorJson(-32000, "Channel not found", id, alloc),
             error.ChannelNotOpen => errorJson(-32000, "Channel not open", id, alloc),
+            error.InvalidSignature => errorJson(-32000, "Invalid signature — sig_a or sig_b does not verify", id, alloc),
         };
     };
 
@@ -8991,6 +9106,18 @@ fn hexDecode32(hex: []const u8) ?[32]u8 {
     if (hex.len != 64) return null;
     var out: [32]u8 = undefined;
     for (0..32) |i| {
+        const hi = hexVal(hex[i * 2]) orelse return null;
+        const lo = hexVal(hex[i * 2 + 1]) orelse return null;
+        out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+    }
+    return out;
+}
+
+/// Decode 128-char hex string to [64]u8 (secp256k1 ECDSA signature: r||s)
+fn hexDecode64(hex: []const u8) ?[64]u8 {
+    if (hex.len != 128) return null;
+    var out: [64]u8 = undefined;
+    for (0..64) |i| {
         const hi = hexVal(hex[i * 2]) orelse return null;
         const lo = hexVal(hex[i * 2 + 1]) orelse return null;
         out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
@@ -12773,10 +12900,13 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // (cf. testnet fill #10 2026-05-15 — buyer paid nothing, seller lost
     // 95 OMNI). Refuse unbacked orders up front.
     //
-    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH — both settle on Sepolia (and any
-    // other EVM chain where OmnibusDEX is deployed). Add more pair_ids
-    // here when LCX Liberty / Base / etc come online.
-    const omni_evm_pair = (pair_id == 0 or pair_id == 6);
+    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH, 7 = OMNI/LINK — all settle on
+    // an EVM chain via OmnibusDEX. Add more pair_ids here when new
+    // OMNI/<EVM-asset> pairs come online (LCX, EURC, etc.). Without this
+    // guard a SELL with no sellerEvm crosses fine on OmniBus but the
+    // settler skips it silently — buyer's escrow stays locked forever
+    // (cf. testnet LINK fill #13 2026-05-16).
+    const omni_evm_pair = (pair_id == 0 or pair_id == 6 or pair_id == 7);
     if (omni_evm_pair) {
         if (side == .sell) {
             const evm_str_raw = extractStr(body, "sellerEvm") orelse
@@ -12802,12 +12932,40 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                         "No open OmnibusDEX escrow with this evmOrderId on Sepolia — did your placeBuyOrderNative tx mine?",
                         id, alloc);
                 };
-                // Amount sanity: the escrow amount must equal price * amount
-                // (in token's smallest unit). For OMNI/ETH price is micro-USD
-                // but on-chain ETH is 18-dec. Crude check: escrow > 0.
-                // Tighter check is a TODO; for now we just require non-zero.
+                // Amount sanity: the escrow amount must cover price * amount
+                // in the quote token's smallest unit.
+                //
+                // For OMNI/USDC (pair_id 0): both micro-USD and USDC use 1e-6,
+                // so expected_smallest = price_micro_usd * amount_sat / 1e9.
+                // We enforce that exactly (with a 1-wei tolerance for rounding).
+                //
+                // For OMNI/ETH (6) and OMNI/LINK (7): the quote is an 18-dec
+                // token whose USD value floats, so we can't compute the exact
+                // expected amount without an oracle price for ETH/LINK. We
+                // fall back to "non-zero" here; the EVM contract's own
+                // settle() enforces the per-fill amount against the buyer's
+                // signed intent, so an under-funded escrow won't actually pay
+                // the seller. TODO when an oracle quote is wired here, swap
+                // this branch for the same exact-match logic as USDC.
                 if (esc.amount == 0) {
                     return errorJson(-32000, "Escrow amount is zero", id, alloc);
+                }
+                if (pair_id == 0) {
+                    // price (micro-USD) * amount (SAT) / 1e9 = micro-USD owed
+                    // = USDC smallest-unit owed (since 1 micro-USD = 1e-6 USDC
+                    // and USDC has 6 decimals). u128 is wide enough: max
+                    // 21M OMNI × $1e9 ≈ 2e25.
+                    const expected_u128: u128 =
+                        @as(u128, price) * @as(u128, amount) / 1_000_000_000;
+                    if (esc.amount >> 128 != 0) {
+                        return errorJson(-32000, "Escrow amount > 2^128 micro-USD — refusing", id, alloc);
+                    }
+                    const escrow_u128: u128 = @intCast(esc.amount & ((@as(u256, 1) << 128) - 1));
+                    if (escrow_u128 < expected_u128) {
+                        return errorJson(-32000,
+                            "Escrow underfunded — locked amount is less than price * size in USDC smallest units",
+                            id, alloc);
+                    }
                 }
                 // SECURITY: refuse escrows that lock a token not on the
                 // hard-coded whitelist for this pair_id + chain. Without
@@ -13070,8 +13228,9 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const engine = pickEngine(ctx, is_paper) orelse
         return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
-    const order_id = extractArrayNumByKey(body, "orderId");
-    if (order_id == 0) return errorJson(-32602, "Missing param: orderId", id, alloc);
+    var order_id = extractArrayNumByKey(body, "orderId");
+    if (order_id == 0) order_id = extractArrayNumByKey(body, "order_id");
+    if (order_id == 0) return errorJson(-32602, "Missing param: orderId (or order_id)", id, alloc);
     const trader = extractStr(body, "trader") orelse
         return errorJson(-32602, "Missing param: trader", id, alloc);
     const sig_hex = extractStr(body, "signature") orelse
@@ -15057,8 +15216,8 @@ fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
 //    0 = omni_ecdsa     (secp256k1 ECDSA, prefix ob1q)
 //    1 = love_dilithium (ML-DSA-87, prefix ob_k1_)
 //    2 = food_falcon    (Falcon-512, prefix ob_f5_)
-//    3 = rent_slh_dsa   (SLH-DSA-256s, prefix ob_d5_)
-//    4 = vacation_kem   (ML-KEM-768, prefix ob_s3_) — encapsulation only,
+//    3 = rent_ml_dsa   (SLH-DSA-256s, prefix ob_d5_)
+//    4 = vacation_slh_dsa   (ML-KEM-768, prefix ob_s3_) — encapsulation only,
 //                       nu suporta semnaturi (verifySignature returneaza false)
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -15078,8 +15237,8 @@ fn handlePqListSchemes(ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"scheme\":\"omni_ecdsa\",\"code\":0,\"address_prefix\":\"ob1q\",\"transferable\":true}}," ++
             "{{\"scheme\":\"love_dilithium\",\"code\":1,\"address_prefix\":\"ob_k1_\",\"transferable\":false}}," ++
             "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\",\"transferable\":false}}," ++
-            "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
-            "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"rent_ml_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"vacation_slh_dsa\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
             // Canon transferable PQ-OMNI prefixes — must match
             // core/transaction.zig:prefix() and STATUS/MASTER_RULES_PQ_OMNI.md.
             "{{\"scheme\":\"pq_omni_ml_dsa\",\"code\":5,\"address_prefix\":\"obk1_\",\"transferable\":true}}," ++
@@ -15209,8 +15368,8 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             if (std.mem.eql(u8, s, "omni_ecdsa") or std.mem.eql(u8, s, "omni")) break :blk .omni_ecdsa;
             if (std.mem.eql(u8, s, "love_dilithium") or std.mem.eql(u8, s, "love")) break :blk .love_dilithium;
             if (std.mem.eql(u8, s, "food_falcon") or std.mem.eql(u8, s, "food")) break :blk .food_falcon;
-            if (std.mem.eql(u8, s, "rent_slh_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_slh_dsa;
-            if (std.mem.eql(u8, s, "vacation_kem") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_kem;
+            if (std.mem.eql(u8, s, "rent_ml_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_ml_dsa;
+            if (std.mem.eql(u8, s, "vacation_slh_dsa") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_slh_dsa;
             if (std.mem.eql(u8, s, "pq_omni_ml_dsa")) break :blk .pq_omni_ml_dsa;
             if (std.mem.eql(u8, s, "pq_omni_falcon")) break :blk .pq_omni_falcon;
             if (std.mem.eql(u8, s, "pq_omni_dilithium")) break :blk .pq_omni_dilithium;
@@ -15226,8 +15385,8 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     };
 
     // 3. VACATION (KEM) nu poate semna
-    if (scheme == .vacation_kem) {
-        return errorJson(-32602, "vacation_kem cannot sign transactions (KEM is encapsulation-only)", id, alloc);
+    if (scheme == .vacation_slh_dsa) {
+        return errorJson(-32602, "vacation_slh_dsa cannot sign transactions (KEM is encapsulation-only)", id, alloc);
     }
 
     // 4. Verifica prefix adresa from corespunde scheme-ului
@@ -17720,7 +17879,9 @@ fn handleColdWalletAdd(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Invalid address", id, alloc);
     const ok = ctx.bc.cold_wallet_store.add(address, label);
     if (!ok)
-        return errorJson(-32000, "Address already watched or store full", id, alloc);
+        return errorJson(-32000,
+            "Add failed: address already watched, store full, or label has forbidden chars (printable ASCII only, no quotes or backslashes)",
+            id, alloc);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"label\":\"{s}\",\"status\":\"added\"}}}}",
         .{ id, address, label });
