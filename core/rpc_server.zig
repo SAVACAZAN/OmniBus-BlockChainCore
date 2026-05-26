@@ -4821,7 +4821,7 @@ fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
         if (std.mem.startsWith(u8, tx.op_return, "exchange:")) return "exchange";
         if (std.mem.startsWith(u8, tx.op_return, "fill:")) return "exchange";
         if (std.mem.startsWith(u8, tx.op_return, "stake:")) return "stake";
-        if (std.mem.startsWith(u8, tx.op_return, "unstake:")) return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "unstake:")) return "unstake";
         if (std.mem.startsWith(u8, tx.op_return, "demo:")) return "demo_grant";
     }
 

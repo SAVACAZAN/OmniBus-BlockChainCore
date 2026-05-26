@@ -47,6 +47,7 @@ const KIND_STYLE: Record<string, string> = {
   registrar:  "bg-purple-500/20 text-purple-300",
   exchange:   "bg-blue-500/20 text-blue-300",
   stake:      "bg-green-500/20 text-green-300",
+  unstake:    "bg-amber-500/20 text-amber-300",
   demo_grant: "bg-pink-500/20 text-pink-300",
 };
 function KindBadge({ kind }: { kind?: string }) {
