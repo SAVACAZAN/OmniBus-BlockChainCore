@@ -731,6 +731,13 @@ export function StatsPage() {
   );
 }
 
+const STAT_CARD_COLOR: Record<string, string> = {
+  blue:   "text-mempool-blue",
+  green:  "text-green-400",
+  orange: "text-orange-400",
+  dim:    "text-mempool-text",
+};
+
 function StatCard({
   label,
   value,
@@ -742,12 +749,7 @@ function StatCard({
   sub?: string;
   color: "blue" | "green" | "orange" | "dim";
 }) {
-  const cls = {
-    blue: "text-mempool-blue",
-    green: "text-green-400",
-    orange: "text-orange-400",
-    dim: "text-mempool-text",
-  }[color];
+  const cls = STAT_CARD_COLOR[color];
   return (
     <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-3">
       <div className={`text-base font-mono font-bold ${cls}`}>{value}</div>
