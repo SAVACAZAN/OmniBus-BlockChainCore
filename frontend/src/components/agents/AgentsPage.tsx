@@ -644,6 +644,9 @@ export function AgentsPage() {
         {/* agent_report_execution — report result of a pending decision */}
         {!methodMissing && <AgentReportPanel />}
 
+        {/* agent_edit + agent_unregister — management operations */}
+        {!methodMissing && <AgentManagePanel />}
+
         <div className="mt-6 text-xs text-mempool-text-dim">
           <p>
             <span className="font-semibold text-mempool-text">Refresh:</span> auto every 5s (system) / 8s (registry).
@@ -866,6 +869,114 @@ function AgentReportPanel() {
       </button>
       {result && <div className="mt-2 text-green-400 text-xs font-mono">{result}</div>}
       {err && <div className="mt-2 text-red-400 text-xs">{err}</div>}
+    </div>
+  );
+}
+
+// ─── AgentManagePanel ─────────────────────────────────────────────────────
+
+function AgentManagePanel() {
+  const wallet = useWallet();
+
+  // Edit state
+  const [editAgentId, setEditAgentId] = useState("");
+  const [editResult, setEditResult] = useState<string | null>(null);
+  const [editErr, setEditErr] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Unregister state
+  const [unregAgentId, setUnregAgentId] = useState("");
+  const [unregResult, setUnregResult] = useState<string | null>(null);
+  const [unregErr, setUnregErr] = useState<string | null>(null);
+  const [unregLoading, setUnregLoading] = useState(false);
+
+  const onEdit = async () => {
+    if (!wallet || !editAgentId) return;
+    setEditLoading(true);
+    setEditErr(null);
+    setEditResult(null);
+    try {
+      const r = (await rpc.request_raw("agent_edit", [{
+        from: wallet.address,
+        agent_id: editAgentId,
+        signature: "00".repeat(64),
+        public_key: wallet.publicKey ?? "",
+      }])) as { status?: string; agent_id?: string };
+      setEditResult(`status=${r?.status ?? "ok"} agent=${r?.agent_id ?? editAgentId}`);
+    } catch (e: any) {
+      setEditErr(e?.message ?? String(e));
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const onUnregister = async () => {
+    if (!wallet || !unregAgentId) return;
+    setUnregLoading(true);
+    setUnregErr(null);
+    setUnregResult(null);
+    try {
+      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
+      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const r = (await rpc.request_raw("agent_unregister", [{
+        from: wallet.address,
+        agent_id: unregAgentId,
+        signature: "00".repeat(64),
+        public_key: wallet.publicKey ?? "",
+        nonce,
+      }])) as string | { txid?: string };
+      setUnregResult(typeof r === "string" ? r : (r as { txid?: string }).txid ?? "unregistered");
+    } catch (e: any) {
+      setUnregErr(e?.message ?? String(e));
+    } finally {
+      setUnregLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-mempool-text">Agent Management</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Edit */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold text-blue-300">Edit Agent</h4>
+          <input
+            value={editAgentId}
+            onChange={(e) => setEditAgentId(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="agent_id"
+          />
+          <button
+            onClick={onEdit}
+            disabled={editLoading || !editAgentId || !wallet}
+            className="w-full py-1.5 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded disabled:opacity-50"
+          >
+            {editLoading ? "…" : "Edit Agent"}
+          </button>
+          {editErr && <p className="text-[11px] text-red-400">{editErr}</p>}
+          {editResult && <p className="text-[11px] text-green-400 font-mono">{editResult}</p>}
+        </div>
+
+        {/* Unregister */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold text-red-300">Unregister Agent</h4>
+          <input
+            value={unregAgentId}
+            onChange={(e) => setUnregAgentId(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="agent_id"
+          />
+          <button
+            onClick={onUnregister}
+            disabled={unregLoading || !unregAgentId || !wallet}
+            className="w-full py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded disabled:opacity-50"
+          >
+            {unregLoading ? "…" : "Unregister Agent"}
+          </button>
+          {unregErr && <p className="text-[11px] text-red-400">{unregErr}</p>}
+          {unregResult && <p className="text-[11px] text-green-400 font-mono">TX: {unregResult}</p>}
+        </div>
+      </div>
     </div>
   );
 }

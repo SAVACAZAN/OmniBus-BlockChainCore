@@ -153,6 +153,84 @@ function BridgeMonitor() {
   );
 }
 
+function BridgeUnlockPanel() {
+  const [signerAddr, setSignerAddr] = useState("");
+  const [recipientAddr, setRecipientAddr] = useState("");
+  const [amountSat, setAmountSat] = useState("");
+  const [nonce, setNonce] = useState("");
+  const [result, setResult] = useState<{ status?: string } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async () => {
+    if (!signerAddr || !recipientAddr || !amountSat || !nonce) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const r = (await rpc.request_raw("bridge_unlock_request", [{
+        signer_addr: signerAddr,
+        recipient_addr: recipientAddr,
+        amount_sat: parseInt(amountSat, 10),
+        nonce,
+      }])) as { status?: string };
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-widest">
+        Bridge Unlock Request
+      </h2>
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <p className="text-[11px] text-mempool-text-dim">
+          Submit a multi-sig unlock request. The relayer will co-sign and release funds after the challenge window.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Signer address</label>
+            <input value={signerAddr} onChange={(e) => setSignerAddr(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="ob1q… relayer signer" />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Recipient address</label>
+            <input value={recipientAddr} onChange={(e) => setRecipientAddr(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="ob1q… beneficiary" />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Amount (sat)</label>
+            <input value={amountSat} onChange={(e) => setAmountSat(e.target.value)} type="number"
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="1000000000" />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-mempool-text-dim block mb-0.5">Nonce (hex)</label>
+            <input value={nonce} onChange={(e) => setNonce(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text text-xs"
+              placeholder="64 hex chars" />
+          </div>
+        </div>
+        <button
+          onClick={onSubmit}
+          disabled={loading || !signerAddr || !recipientAddr || !amountSat || !nonce}
+          className="w-full py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+        >
+          {loading ? "Submitting…" : "Submit Unlock Request"}
+        </button>
+        {err && <p className="text-[11px] text-red-400">{err}</p>}
+        {result && <p className="text-[11px] text-green-400 font-mono">status: {result.status ?? "submitted"}</p>}
+      </div>
+    </section>
+  );
+}
+
 function BridgeAdminPanel() {
   // Fraud challenge state
   const [fcNonce, setFcNonce] = useState("");
@@ -385,7 +463,8 @@ export function BridgePage() {
         <BridgeMonitor />
       </section>
 
-      {/* Bridge admin: fraud challenge + settle */}
+      {/* Bridge unlock request + admin: fraud challenge + settle */}
+      <BridgeUnlockPanel />
       <BridgeAdminPanel />
 
       {/* Chain registry */}

@@ -421,6 +421,83 @@ function ValidatorListTab() {
           </tbody>
         </table>
       </div>
+
+      <StakingInfoLookup />
+    </div>
+  );
+}
+
+function StakingInfoLookup() {
+  const [address, setAddress] = useState("");
+  const [info, setInfo] = useState<{
+    address: string; status: string; total_stake: number; self_stake: number;
+    delegated_stake: number; slash_count: number; slash_history_count: number;
+    total_rewards: number; uptime_pct: number; blocks_produced: number; commission_pct: number;
+  } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setInfo(null);
+    try {
+      const r = (await rpc.request_raw("getstakinginfo", [address])) as typeof info;
+      setInfo(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-3">
+      <h4 className="font-semibold text-gray-200 flex items-center gap-2 text-sm">
+        <Activity className="w-4 h-4 text-blue-400" /> Validator Staking Info
+      </h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs text-gray-400 block mb-0.5">Validator address</label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-xs text-gray-100"
+            placeholder="ob1…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 rounded text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {info && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs">
+          {[
+            ["Status", info.status],
+            ["Total stake", fmtOmni(info.total_stake) + " OMNI"],
+            ["Self stake", fmtOmni(info.self_stake) + " OMNI"],
+            ["Delegated", fmtOmni(info.delegated_stake) + " OMNI"],
+            ["Uptime", info.uptime_pct.toFixed(2) + "%"],
+            ["Blocks produced", String(info.blocks_produced)],
+            ["Total rewards", fmtOmni(info.total_rewards) + " OMNI"],
+            ["Commission", info.commission_pct + "%"],
+            ["Slash count", String(info.slash_count)],
+            ["Slash history", String(info.slash_history_count)],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400 text-[9px] uppercase">{k}</div>
+              <div className="font-mono text-gray-200">{v}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

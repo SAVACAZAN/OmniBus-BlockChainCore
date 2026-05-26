@@ -218,6 +218,73 @@ export function KycPanel() {
           </div>
         </div>
       )}
+
+      <KycStatusLookup />
+    </div>
+  );
+}
+
+function KycStatusLookup() {
+  const [address, setAddress] = useState("");
+  const [status, setStatus] = useState<{
+    address: string; level: number; label: string;
+    issuer: string; issued: number; expires: number;
+  } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setStatus(null);
+    try {
+      const r = (await rpc.request_raw("kyc_getStatus", [{ address }])) as typeof status;
+      setStatus(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-mempool-border space-y-3">
+      <h4 className="text-[10px] uppercase tracking-wider text-mempool-text-dim">KYC Status Lookup</h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q… address"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Check"}
+        </button>
+      </div>
+      {err && <p className="text-[11px] text-red-400">{err}</p>}
+      {status && (
+        <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+          {[
+            ["Level", `L${status.level} ${status.label}`],
+            ["Issuer", status.issuer ? status.issuer.slice(0, 16) + "…" : "—"],
+            ["Issued", status.issued ? new Date(status.issued * 1000).toLocaleDateString() : "—"],
+            ["Expires", status.expires ? new Date(status.expires * 1000).toLocaleDateString() : "—"],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-mempool-bg rounded p-1.5">
+              <div className="text-mempool-text-dim text-[9px]">{k}</div>
+              <div className="font-mono text-mempool-text">{v}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

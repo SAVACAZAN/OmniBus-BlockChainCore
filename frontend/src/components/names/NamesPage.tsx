@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import * as secp from "@noble/secp256k1";
+import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
+import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
@@ -976,6 +979,13 @@ export function NamesPage() {
 
       <TreasuryStatusCard />
 
+      {/* Name management tools: reverse lookup + transfer + update address */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+        <ReverseResolvePanel />
+        <TransferNamePanel />
+        <UpdateNamePanel />
+      </div>
+
       <div className="mt-6 text-xs text-mempool-text-dim space-y-1">
         <p>
           <span className="font-semibold text-mempool-text">Refresh:</span> auto every 8s.
@@ -1645,6 +1655,261 @@ function NsHealthDashboard() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Signing helper (same recipe as StakePage / PQWalletPanel)
+// ─────────────────────────────────────────────────────────────────────────
+
+function signPayload(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
+  const bytes = new TextEncoder().encode(msg);
+  const h = sha256(sha256(bytes));
+  const priv = hexToBytes(privKeyHex);
+  const sig = secp.sign(h, priv, { lowS: true });
+  const pub = secp.getPublicKey(priv, true);
+  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ReverseResolvePanel — address → name lookup (reverseresolvename RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function ReverseResolvePanel() {
+  const [addr, setAddr] = useState("");
+  const [result, setResult] = useState<{ address: string; name: string; found: boolean } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    const a = addr.trim();
+    if (!a) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const r = (await rpc.request_raw("reverseresolvename", [a])) as {
+        address: string; name: string; found: boolean;
+      };
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-mempool-text">Reverse Resolve</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Look up the registered name for an OmniBus address.
+      </p>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Address</label>
+          <input
+            value={addr}
+            onChange={(e) => setAddr(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !addr.trim()}
+          className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && (
+        result.found ? (
+          <div className="rounded border border-green-500/30 bg-green-500/5 px-3 py-2 text-xs space-y-0.5">
+            <div className="text-green-400 font-semibold">{result.name}</div>
+            <div className="text-mempool-text-dim font-mono">{result.address}</div>
+          </div>
+        ) : (
+          <p className="text-xs text-mempool-text-dim">No registered name for this address.</p>
+        )
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// TransferNamePanel — transfer name ownership (transfername RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function TransferNamePanel() {
+  const wallet = useWallet();
+  const [name, setName] = useState("");
+  const [tld, setTld] = useState("omnibus");
+  const [newOwner, setNewOwner] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onTransfer = async () => {
+    if (!wallet || !name || !newOwner) return;
+    const u = getUnlocked();
+    if (!u?.privateKey) { setErr("Wallet locked — unlock from mnemonic first."); return; }
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
+      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const msg = `transfername:${name}.${tld}:${newOwner}:${nonce}`;
+      const { signature, publicKey } = signPayload(u.privateKey, msg);
+      const r = (await rpc.request_raw("transfername", [{
+        name, tld, new_owner: newOwner, nonce, signature, publicKey,
+      }])) as { status?: string } | string;
+      setResult(typeof r === "string" ? r : ((r as { status?: string }).status ?? "ok"));
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!wallet) return null;
+
+  return (
+    <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-orange-200">Transfer Name Ownership</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Permanently transfers the name to a new owner. Requires your wallet to be unlocked.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value.toLowerCase())}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="alice"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">TLD</label>
+          <select
+            value={tld}
+            onChange={(e) => setTld(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+          >
+            {TLDS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">New owner address</label>
+          <input
+            value={newOwner}
+            onChange={(e) => setNewOwner(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onTransfer}
+        disabled={loading || !name || !newOwner}
+        className="w-full py-1.5 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 rounded disabled:opacity-50"
+      >
+        {loading ? "Transferring…" : "Transfer name"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && <p className="text-xs text-green-400">Success: {result}</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// UpdateNamePanel — update the address a name resolves to (updatename RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function UpdateNamePanel() {
+  const wallet = useWallet();
+  const [name, setName] = useState("");
+  const [tld, setTld] = useState("omnibus");
+  const [newAddress, setNewAddress] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onUpdate = async () => {
+    if (!wallet || !name || !newAddress) return;
+    const u = getUnlocked();
+    if (!u?.privateKey) { setErr("Wallet locked — unlock from mnemonic first."); return; }
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
+      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const msg = `updatename:${name}.${tld}:${newAddress}:${nonce}`;
+      const { signature, publicKey } = signPayload(u.privateKey, msg);
+      const r = (await rpc.request_raw("updatename", [{
+        name, tld, new_address: newAddress, nonce, signature, publicKey,
+      }])) as { status?: string } | string;
+      setResult(typeof r === "string" ? r : ((r as { status?: string }).status ?? "ok"));
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!wallet) return null;
+
+  return (
+    <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-blue-200">Update Name Address</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Points your name to a new OmniBus address. Requires the current owner&apos;s wallet to be unlocked.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value.toLowerCase())}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="alice"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">TLD</label>
+          <select
+            value={tld}
+            onChange={(e) => setTld(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+          >
+            {TLDS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">New address</label>
+          <input
+            value={newAddress}
+            onChange={(e) => setNewAddress(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onUpdate}
+        disabled={loading || !name || !newAddress}
+        className="w-full py-1.5 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-500/30 rounded disabled:opacity-50"
+      >
+        {loading ? "Updating…" : "Update name address"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && <p className="text-xs text-green-400">Success: {result}</p>}
     </div>
   );
 }
