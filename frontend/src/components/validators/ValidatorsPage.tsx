@@ -1072,7 +1072,7 @@ function SlashHistoryPanel() {
               </thead>
               <tbody>
                 {history.map((h, i) => (
-                  <tr key={i} className="border-t border-gray-800/60">
+                  <tr key={`${h.block_height}:${h.reason}:${i}`} className="border-t border-gray-800/60">
                     <td className="px-3 py-1.5 text-right font-mono text-gray-300">{h.block_height}</td>
                     <td className="px-3 py-1.5 text-red-300">{h.reason}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-red-400">{h.slashed_amount}</td>
@@ -1163,7 +1163,7 @@ function SlashingLogTab() {
           </thead>
           <tbody>
             {filtered.map((e, i) => (
-              <tr key={i} className="border-t border-gray-800/60">
+              <tr key={`${e.evidence_block_height}:${e.address}:${i}`} className="border-t border-gray-800/60">
                 <td className="px-3 py-2 text-gray-400">
                   <span title={new Date(e.timestamp * 1000).toLocaleString()}>{fmtAge(e.timestamp * 1000)}</span>
                 </td>

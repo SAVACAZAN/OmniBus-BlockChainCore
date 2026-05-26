@@ -124,7 +124,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
         if (!cancelled) setLoading(false);
       }
     };
-    run();
+    void run();
     return () => { cancelled = true; };
   }, [selected]);
 

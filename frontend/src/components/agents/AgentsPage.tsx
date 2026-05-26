@@ -293,7 +293,7 @@ export function AgentsPage() {
     const run = async () => {
       if (!cancelled) await refreshRegistry();
     };
-    run();
+    void run();
     const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
     const id = setInterval(() => {
       if (!cancelled) void run();
