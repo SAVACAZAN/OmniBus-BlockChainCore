@@ -7,6 +7,9 @@ import {
   ReferenceLine,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -47,6 +50,17 @@ interface ChainMetrics {
   peerCount: number;
   currentBlockReward: number;
   satPerOmni: number;
+}
+
+interface RichEntry {
+  address: string;
+  balance: number;
+}
+
+interface SupplyDistSlice {
+  name: string;
+  value: number;
+  color: string;
 }
 
 function computeStats(blocks: any[]): { stats: NetworkStats; series: BlockStat[] } {
@@ -135,6 +149,7 @@ export function StatsPage() {
   const [series, setSeries] = useState<BlockStat[]>([]);
   const [netStats, setNetStats] = useState<NetworkStats | null>(null);
   const [chainMetrics, setChainMetrics] = useState<ChainMetrics | null>(null);
+  const [supplyDist, setSupplyDist] = useState<SupplyDistSlice[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -144,15 +159,36 @@ export function StatsPage() {
     setLoading(true);
     setErr("");
     try {
-      const [tipRaw, metricsRaw] = await Promise.all([
+      const [tipRaw, metricsRaw, richRaw] = await Promise.all([
         rpc.getBlockCount(),
         rpc.request_raw("getchainmetrics", []).catch(() => null) as Promise<ChainMetrics | null>,
+        rpc.request_raw("getrichlist", [100]).catch(() => null) as Promise<{ entries?: RichEntry[]; totalSupply?: number; total?: number } | null>,
       ]);
       const tip: number =
         typeof tipRaw === "object" && tipRaw
           ? (tipRaw as any).blockCount ?? (tipRaw as any)
           : tipRaw;
       if (metricsRaw) setChainMetrics(metricsRaw);
+
+      // Build supply distribution from richlist
+      if (richRaw?.entries && richRaw.entries.length > 0) {
+        const entries = richRaw.entries;
+        const total = metricsRaw?.totalSupply ?? entries.reduce((s, e) => s + e.balance, 0);
+        if (total > 0) {
+          const top1 = entries.slice(0, 1).reduce((s, e) => s + e.balance, 0);
+          const top10 = entries.slice(0, 10).reduce((s, e) => s + e.balance, 0);
+          const top50 = entries.slice(0, 50).reduce((s, e) => s + e.balance, 0);
+          const top100 = entries.slice(0, 100).reduce((s, e) => s + e.balance, 0);
+          setSupplyDist([
+            { name: "Top 1",    value: Math.round((top1 / total) * 10000) / 100,               color: "#ef4444" },
+            { name: "Top 2-10", value: Math.round(((top10 - top1) / total) * 10000) / 100,     color: "#f97316" },
+            { name: "Top 11-50",value: Math.round(((top50 - top10) / total) * 10000) / 100,    color: "#eab308" },
+            { name: "51-100",   value: Math.round(((top100 - top50) / total) * 10000) / 100,   color: "#22c55e" },
+            { name: "Others",   value: Math.round(((total - top100) / total) * 10000) / 100,   color: "#3b82f6" },
+          ]);
+        }
+      }
+
       if (!tip || tip < 1) { setLoading(false); return; }
 
       // Fetch last 100 blocks — all in parallel (20 concurrent RPCs max)
@@ -315,6 +351,43 @@ export function StatsPage() {
               {chainMetrics.tipHash ? ` · tip ${chainMetrics.tipHash.slice(0, 16)}…` : ""}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Supply Distribution */}
+      {supplyDist && supplyDist.some((s) => s.value > 0) && (
+        <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+            Supply Distribution (top 100 addresses)
+          </h3>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <ResponsiveContainer width={160} height={160}>
+              <PieChart>
+                <Pie data={supplyDist} dataKey="value" cx="50%" cy="50%"
+                  innerRadius={40} outerRadius={70} strokeWidth={1} stroke="#0d0e12">
+                  {supplyDist.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  formatter={(v: number) => [`${v.toFixed(2)}%`, "of supply"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-1.5 text-xs flex-1">
+              {supplyDist.map((s) => (
+                <div key={s.name} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: s.color }} />
+                  <span className="text-mempool-text-dim w-20 flex-shrink-0">{s.name}</span>
+                  <div className="flex-1 bg-mempool-bg rounded-full h-1.5 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(s.value, 100)}%`, background: s.color }} />
+                  </div>
+                  <span className="font-mono text-mempool-text w-12 text-right">{s.value.toFixed(2)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
