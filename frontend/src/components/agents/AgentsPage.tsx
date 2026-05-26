@@ -383,22 +383,12 @@ export function AgentsPage() {
     });
   };
 
-  const handleEditFee = (a: RegistryAgent) => {
+  const handleEditFee = (a: RegistryAgent, newFeeBps: number) => {
     if (!localAddress) return;
-    const input = window.prompt(
-      `Edit fee_bps for "${a.name}" (current ${a.fee_bps}). Max ${reputationFeeCap(a.reputation_total)} bps.`,
-      String(a.fee_bps),
-    );
-    if (input === null) return;
-    const next = parseInt(input, 10);
-    if (!Number.isFinite(next) || next < 0 || next > 500) {
-      flash("err", "fee_bps must be 0..500");
-      return;
-    }
     callRpc("agent_edit", {
       from: localAddress,
       agent_id: a.id,
-      fee_bps: next,
+      fee_bps: newFeeBps,
       signature: "00".repeat(64),
       public_key: "00".repeat(33),
       nonce: Date.now(),
@@ -1207,10 +1197,11 @@ function MyAgentsTab(props: {
   agents: RegistryAgent[];
   localAddress: string | null;
   onHaltResume: (a: RegistryAgent) => void;
-  onEditFee: (a: RegistryAgent) => void;
+  onEditFee: (a: RegistryAgent, newFeeBps: number) => void;
   onUnregister: (a: RegistryAgent) => void;
 }) {
   const { agents, localAddress, onHaltResume, onEditFee, onUnregister } = props;
+  const [editingFee, setEditingFee] = useState<{ agentId: string; value: string } | null>(null);
 
   if (!localAddress) {
     return (
@@ -1265,13 +1256,40 @@ function MyAgentsTab(props: {
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => onEditFee(a)}
-              title="Edit fee"
-              className="px-3 py-2.5 text-xs bg-mempool-bg/40 border border-mempool-border rounded hover:border-mempool-blue inline-flex items-center gap-1"
-            >
-              <Edit3 className="w-3.5 h-3.5" /> Fee
-            </button>
+            {editingFee?.agentId === a.id ? (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="500"
+                  value={editingFee.value}
+                  onChange={(e) => setEditingFee({ agentId: a.id, value: e.target.value })}
+                  className="w-20 bg-mempool-bg border border-mempool-blue rounded px-2 py-1.5 text-xs text-mempool-text focus:outline-none font-mono"
+                  autoFocus
+                />
+                <button
+                  onClick={() => {
+                    const next = parseInt(editingFee.value, 10);
+                    if (!Number.isFinite(next) || next < 0 || next > 500) return;
+                    onEditFee(a, next);
+                    setEditingFee(null);
+                  }}
+                  className="px-2 py-1.5 text-xs bg-mempool-blue hover:bg-blue-600 text-white rounded"
+                >Save</button>
+                <button
+                  onClick={() => setEditingFee(null)}
+                  className="px-2 py-1.5 text-xs bg-mempool-bg-elev hover:bg-mempool-bg text-mempool-text-dim rounded"
+                >✕</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditingFee({ agentId: a.id, value: String(a.fee_bps) })}
+                title="Edit fee"
+                className="px-3 py-2.5 text-xs bg-mempool-bg/40 border border-mempool-border rounded hover:border-mempool-blue inline-flex items-center gap-1"
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Fee
+              </button>
+            )}
             <button
               onClick={() => onHaltResume(a)}
               title={a.status === "halted" ? "Resume" : "Halt"}
