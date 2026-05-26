@@ -59,11 +59,6 @@ function shortHash(h: string, head = 10, tail = 6): string {
   if (h.length <= head + tail + 3) return h;
   return `${h.slice(0, head)}…${h.slice(-tail)}`;
 }
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
-
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type DocType = "contract" | "certificate" | "receipt" | "identity" | "media" | "other";

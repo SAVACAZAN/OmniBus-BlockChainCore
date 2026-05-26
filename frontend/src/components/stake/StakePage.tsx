@@ -128,10 +128,6 @@ function fmtOmni(sat: number): string {
 function fmtRent(rentX100: number): string {
   return repFmt.format(rentX100 / 100);
 }
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
 function tierMultiplier(amountOmni: number): number {
   if (amountOmni >= 10_000) return 3.0;
   if (amountOmni >= 1_000)  return 2.0;

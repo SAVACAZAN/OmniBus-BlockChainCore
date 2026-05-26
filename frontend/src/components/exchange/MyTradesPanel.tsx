@@ -4,7 +4,7 @@ import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 const MICRO_PER_USD = 1_000_000;
@@ -41,11 +41,6 @@ function explorerUrl(chainId: number, txHash: string): string | null {
     case 8453:     return `https://basescan.org/tx/${txHash}`;
     default:       return null;
   }
-}
-
-function shortAddr(a: string): string {
-  if (a.length <= 14) return a;
-  return `${a.slice(0, 8)}…${a.slice(-4)}`;
 }
 
 interface Props {
@@ -223,7 +218,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
                           className="text-blue-400 hover:underline"
                           title={t.evmSettleTxHash ?? undefined}
                         >
-                          {shortAddr(t.evmSettleTxHash ?? "")}
+                          {midTrunc(t.evmSettleTxHash ?? "", 8, 4)}
                         </a>
                       ) : t.evmChainId ? (
                         <span className="text-yellow-400/70" title="waiting for settler to submit on EVM">

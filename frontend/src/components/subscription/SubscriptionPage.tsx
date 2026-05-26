@@ -23,7 +23,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
-import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
+import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -55,11 +55,6 @@ type SubTab = "mine" | "create" | "incoming";
 
 function fmtOmni(sat: number): string {
   return satToOmni(sat, 4);
-}
-
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
 }
 
 /** Inline secp256k1 + SHA256d sign — same recipe as StakePage / WalletPage. */

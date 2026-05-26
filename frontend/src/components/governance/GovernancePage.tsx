@@ -103,11 +103,6 @@ type SubTab = "proposals" | "all" | "propose" | "vote";
 
 const intFmt = new Intl.NumberFormat("en-US");
 
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
-
 function sha256Hex(text: string): string {
   const bytes = new TextEncoder().encode(text);
   const h = sha256(bytes);

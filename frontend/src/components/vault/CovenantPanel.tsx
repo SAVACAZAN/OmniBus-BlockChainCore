@@ -15,17 +15,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Shield, Trash2, ChevronDown, ChevronRight, Plus, X, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
-
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
 
 interface CovenantEntry {
   address: string;
@@ -98,7 +93,7 @@ export function CovenantPanel() {
       if (formExpires) payload.expires_block = parseInt(formExpires, 10);
 
       await rpc.request_raw("covenant_create", [payload]);
-      showToast(`Covenant created for ${shortAddr(addr)}`);
+      showToast(`Covenant created for ${midTrunc(addr)}`);
       setFormAddr(wallet?.address ?? "");
       setFormLabel("");
       setFormWhitelist([""]);
@@ -123,7 +118,7 @@ export function CovenantPanel() {
     try {
       await rpc.request_raw("covenant_remove", [{ address }]);
       setRemoveAddr(null);
-      showToast(`Covenant removed for ${shortAddr(address)}`);
+      showToast(`Covenant removed for ${midTrunc(address)}`);
       await refresh();
     } catch (e) {
       showToast(`Remove failed: ${e instanceof Error ? e.message : String(e)}`);

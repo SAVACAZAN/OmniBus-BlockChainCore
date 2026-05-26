@@ -149,12 +149,6 @@ function pctCup(v: number): number {
   return Math.min(100, Math.max(0, v / 100));
 }
 
-function truncAddr(addr: string): string {
-  if (!addr) return "";
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
 // Normalize whatever shape the node returns into our internal ReputationData.
 // Older builds returned `cups: { love: "12.07", … }` (already divided by 100).
 function normalizeRep(raw: any): ReputationData | null {

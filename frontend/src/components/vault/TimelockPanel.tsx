@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Lock, Unlock, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
@@ -27,10 +27,6 @@ const BLOCKS_PER_DAY = 86_400; // 1s blocks
 
 function fmtOmni(sat: number): string {
   return (sat / SAT_PER_OMNI).toFixed(4);
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
 }
 function shortId(id: string): string {
   if (id.length <= 12) return id;
@@ -330,7 +326,7 @@ export function TimelockPanel() {
                     {fmtOmni(v.amount_sat)} <span className="text-xs text-mempool-text-dim">OMNI</span>
                   </span>
                   <span className="text-xs text-mempool-text-dim font-mono">
-                    dest: {shortAddr(v.dest)}
+                    dest: {midTrunc(v.dest)}
                   </span>
                   <div className="flex-1" />
                   <button

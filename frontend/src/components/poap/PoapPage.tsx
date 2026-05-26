@@ -38,6 +38,7 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -71,15 +72,6 @@ type SubTab = "my-poaps" | "lookup" | "create" | "claim";
 
 const intFmt = new Intl.NumberFormat("en-US");
 
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
-
-function shortHash(hash: string): string {
-  if (hash.length <= 16) return hash;
-  return `${hash.slice(0, 10)}…${hash.slice(-6)}`;
-}
 
 /** Derive a stable color class from an event_id string using a simple hash. */
 function badgeColor(eventId: string): string {
@@ -605,7 +597,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
                       className="text-mempool-blue hover:underline"
                       title={p.tx_hash}
                     >
-                      {shortHash(p.tx_hash)}
+                      {midTrunc(p.tx_hash, 10, 6)}
                     </a>
                   </div>
                 );
@@ -948,7 +940,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
             <Row label="event_id" value={<span className="text-mempool-text">{successInfo.event_id}</span>} />
             <Row label="txid" value={
               <a href={`/blocks/${successInfo.txid}`} className="text-mempool-blue hover:underline" title={successInfo.txid}>
-                {shortHash(successInfo.txid)}
+                {midTrunc(successInfo.txid, 10, 6)}
               </a>
             } />
             <Row label="fee" value={`${successInfo.fee_sat} sat`} />
@@ -1106,7 +1098,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
             <div>
               txid:{" "}
               <a href={`/blocks/${claimResult.txid}`} className="text-mempool-blue hover:underline" title={claimResult.txid}>
-                {shortHash(claimResult.txid)}
+                {midTrunc(claimResult.txid, 10, 6)}
               </a>
             </div>
             <div>Status: <span className="text-mempool-green">{claimResult.status}</span></div>

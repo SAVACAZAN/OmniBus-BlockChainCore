@@ -20,6 +20,7 @@ import {
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { AddressLabel } from "../common/AddressLabel";
+import { midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -165,11 +166,6 @@ function tierFromStake(stake: number): Tier {
   return "Bronze";
 }
 
-function truncAddr(a: string): string {
-  if (!a) return "—";
-  if (a.length <= 14) return a;
-  return `${a.slice(0, 8)}…${a.slice(-6)}`;
-}
 
 function fmtOmni(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -788,7 +784,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         </button>
         {result && (
           <span className="text-sm text-gray-300">
-            {result.status} {result.txid && `· tx ${truncAddr(result.txid)}`}
+            {result.status} {result.txid && `· tx ${midTrunc(result.txid)}`}
           </span>
         )}
       </div>

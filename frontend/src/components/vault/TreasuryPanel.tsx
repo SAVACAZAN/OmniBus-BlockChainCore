@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Wallet, Plus, X, RefreshCw, Play, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -24,11 +24,6 @@ const rpc = new OmniBusRpcClient();
 function fmtOmni(sat: number): string {
   return (sat / SAT_PER_OMNI).toFixed(4);
 }
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
-
 interface TreasuryDest {
   address: string;
   percent: number;
@@ -93,7 +88,7 @@ function DistributeModal({ entry, onClose, onConfirm }: DistributeModalProps) {
           {perDest.map((d, i) => (
             <div key={i} className="flex items-center justify-between text-xs font-mono bg-mempool-bg rounded px-3 py-2">
               <div>
-                <span className="text-mempool-text-dim">{d.label || shortAddr(d.address)}</span>
+                <span className="text-mempool-text-dim">{d.label || midTrunc(d.address)}</span>
                 <span className="text-mempool-text-dim ml-2">{d.percent}%</span>
               </div>
               <span className="text-mempool-green">+{fmtOmni(d.amount_sat)} OMNI</span>
@@ -190,7 +185,7 @@ export function TreasuryPanel() {
         })),
         trigger_sat: triggerSat,
       }]);
-      showToast(`Treasury created for ${shortAddr(addr)}`);
+      showToast(`Treasury created for ${midTrunc(addr)}`);
       setFormAddress("");
       setFormLabel("");
       setFormTrigger("");
@@ -218,7 +213,7 @@ export function TreasuryPanel() {
   const handleDistribute = async (entry: TreasuryEntry) => {
     try {
       await rpc.request_raw("treasury_distribute", [{ treasury_id: entry.treasury_id }]);
-      showToast(`Distributed treasury ${entry.label || shortAddr(entry.address)}`);
+      showToast(`Distributed treasury ${entry.label || midTrunc(entry.address)}`);
       await refresh();
     } catch (e) {
       showToast(`Distribute failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -411,10 +406,10 @@ export function TreasuryPanel() {
               <div key={t.treasury_id} className="bg-mempool-bg border border-mempool-border rounded p-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   <span className="text-xs text-mempool-text font-medium">
-                    {t.label || shortAddr(t.address)}
+                    {t.label || midTrunc(t.address)}
                   </span>
                   <span className="font-mono text-[10px] text-mempool-text-dim">
-                    {shortAddr(t.address)}
+                    {midTrunc(t.address)}
                   </span>
                   <div className="flex-1" />
                   <button
@@ -479,7 +474,7 @@ export function TreasuryPanel() {
                 <div className="mt-2 flex flex-wrap gap-1">
                   {t.destinations.map((d, i) => (
                     <span key={i} className="text-[9px] font-mono bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-mempool-text-dim">
-                      {d.label || shortAddr(d.address)} {d.percent}%
+                      {d.label || midTrunc(d.address)} {d.percent}%
                     </span>
                   ))}
                 </div>

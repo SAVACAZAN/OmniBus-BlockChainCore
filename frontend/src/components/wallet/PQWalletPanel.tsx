@@ -28,6 +28,7 @@ import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
+import { midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -83,10 +84,6 @@ function fmtOmni(sat: number): string {
   return (sat / 1e9).toFixed(4);
 }
 
-function shortAddr(addr: string): string {
-  if (addr.length <= 18) return addr;
-  return `${addr.slice(0, 10)}…${addr.slice(-6)}`;
-}
 
 /** Inline secp256k1 + SHA256d sign — same recipe as StakePage / WalletPage. */
 function signMessage(
@@ -663,7 +660,7 @@ function PQAddressCard({ row, copied, onCopy, loadingBal }: PQAddressCardProps) 
         {row.address ? (
           <div className="flex items-center justify-center gap-1">
             <span className="font-mono text-xs text-mempool-text truncate">
-              {shortAddr(row.address)}
+              {midTrunc(row.address, 10, 6)}
             </span>
             <button
               onClick={() => onCopy(row.address)}

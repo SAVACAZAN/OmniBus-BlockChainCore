@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types/index";
@@ -29,11 +29,6 @@ const REFRESH_INTERVAL_MS = 30_000;
 function fmtOmni(sat: number): string {
   return (sat / SAT_PER_OMNI).toFixed(4);
 }
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
-
 interface ColdWalletEntry {
   address: string;
   label: string;
@@ -84,7 +79,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-mempool-blue" />
             <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-              History — {entry.label || shortAddr(entry.address)}
+              History — {entry.label || midTrunc(entry.address)}
             </h3>
           </div>
           <button
@@ -204,7 +199,7 @@ export function ColdWalletPanel() {
       await rpc.request_raw("coldwallet_add", [{ address: addr, label: addLabel.trim() }]);
       setAddAddress("");
       setAddLabel("");
-      showToast(`Watching address ${shortAddr(addr)}`);
+      showToast(`Watching address ${midTrunc(addr)}`);
       await refresh();
     } catch (e) {
       showToast(`Add failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -217,7 +212,7 @@ export function ColdWalletPanel() {
     try {
       await rpc.request_raw("coldwallet_remove", [{ address }]);
       setRemoveAddr(null);
-      showToast(`Removed ${shortAddr(address)}`);
+      showToast(`Removed ${midTrunc(address)}`);
       await refresh();
     } catch (e) {
       showToast(`Remove failed: ${e instanceof Error ? e.message : String(e)}`);
