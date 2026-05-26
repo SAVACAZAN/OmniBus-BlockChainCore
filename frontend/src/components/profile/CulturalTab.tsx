@@ -93,7 +93,7 @@ export function CulturalTab({
               <div className="text-xs text-mempool-text-dim italic">No POAPs yet</div>
             )}
             {poaps.map((p, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`poap-${i}`} className="flex gap-2 items-center">
                 {editable ? (
                   <>
                     <input
@@ -167,7 +167,7 @@ export function CulturalTab({
               <div className="text-xs text-mempool-text-dim italic">No notarized works</div>
             )}
             {notarized.map((n, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`notarized-${i}`} className="flex gap-2 items-center">
                 {editable ? (
                   <>
                     <input
@@ -244,7 +244,7 @@ export function CulturalTab({
             <div className="flex flex-wrap gap-1.5">
               {languages.map((l, i) => (
                 <span
-                  key={i}
+                  key={l}
                   className="inline-flex items-center gap-1 bg-mempool-bg border border-mempool-border rounded-full px-2 py-0.5 text-xs text-mempool-text"
                 >
                   {l}
@@ -292,7 +292,7 @@ export function CulturalTab({
           )}
           {badges.map((b, i) => (
             <span
-              key={i}
+              key={`badge-${i}`}
               className="inline-flex items-center bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/40 text-amber-300 rounded-full px-2 py-0.5 text-xs font-medium"
             >
               🏅 {b}
