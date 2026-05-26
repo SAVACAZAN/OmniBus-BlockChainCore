@@ -1,19 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import type { WsOraclePriceEvent } from "../../types";
+import type { WsOraclePriceEvent, BlockPriceSnapshot as PriceEntry } from "../../types";
 import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
-// ── Types ─────────────────────────────────────────────────────────────────
-
-interface PriceEntry {
-  exchange: string;
-  pair: string;
-  bidMicroUsd: number;
-  askMicroUsd: number;
-  timestampMs: number;
-  success: boolean;
-  stale: boolean;
-}
 
 interface AllPricesResponse {
   prices: PriceEntry[];

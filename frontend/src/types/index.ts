@@ -157,6 +157,7 @@ export interface BlockPriceSnapshot {
   askMicroUsd: number;
   timestampMs: number;
   success: boolean;
+  stale?: boolean;
 }
 
 export interface TransactionData {
