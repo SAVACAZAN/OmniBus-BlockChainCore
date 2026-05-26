@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { KIND_STYLE } from "../common/TxBadges";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
 
@@ -39,19 +40,6 @@ type AddressHistory = {
   totalSent: number;
 };
 
-const KIND_STYLE: Record<string, string> = {
-  coinbase: "bg-yellow-500/20 text-yellow-300",
-  faucet: "bg-cyan-500/20 text-cyan-300",
-  registrar: "bg-purple-500/20 text-purple-300",
-  exchange: "bg-blue-500/20 text-blue-300",
-  stake: "bg-green-500/20 text-green-300",
-  unstake:        "bg-amber-500/20 text-amber-300",
-  ns_claim:       "bg-violet-500/20 text-violet-300",
-  agent_register: "bg-indigo-500/20 text-indigo-300",
-  notarize:       "bg-rose-500/20 text-rose-300",
-  demo_grant:     "bg-pink-500/20 text-pink-300",
-  transfer:       "bg-gray-700/40 text-gray-300",
-};
 
 const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
 
