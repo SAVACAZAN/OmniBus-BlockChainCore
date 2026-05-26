@@ -293,6 +293,8 @@ function BlockPricesPanel() {
     return m;
   }, [blocks]);
 
+  const pairSummaryEntries = useMemo(() => Object.entries(pairSummary), [pairSummary]);
+
   return (
     <div className="space-y-4">
       {/* Controls */}
@@ -331,7 +333,7 @@ function BlockPricesPanel() {
       </div>
 
       {/* Latest prices summary */}
-      {Object.keys(pairSummary).length > 0 && (
+      {pairSummaryEntries.length > 0 && (
         <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
           <div className="px-3 py-2 border-b border-mempool-border">
             <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">
@@ -349,7 +351,7 @@ function BlockPricesPanel() {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(pairSummary).map(([key, v]) => {
+              {pairSummaryEntries.map(([key, v]) => {
                 const bid = v.lastBid / MICRO_PER_USD;
                 const ask = v.lastAsk / MICRO_PER_USD;
                 return (
@@ -763,7 +765,7 @@ export function OraclePricePanel() {
       )}
 
       {/* CEX prices strip */}
-      {Object.keys(cexPrices).length > 0 && (
+      {cexPriceEntries.length > 0 && (
         <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-mempool-bg border border-mempool-border">
           <span className="text-[9px] text-mempool-text-dim self-center uppercase tracking-wider mr-1">CEX:</span>
           {cexPriceEntries.map(([sym, price]) => (
