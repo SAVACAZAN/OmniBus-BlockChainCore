@@ -4818,11 +4818,24 @@ fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
 
     // op_return-tagged operations (extensible: add new prefixes here)
     if (tx.op_return.len > 0) {
-        if (std.mem.startsWith(u8, tx.op_return, "exchange:")) return "exchange";
-        if (std.mem.startsWith(u8, tx.op_return, "fill:")) return "exchange";
-        if (std.mem.startsWith(u8, tx.op_return, "stake:")) return "stake";
-        if (std.mem.startsWith(u8, tx.op_return, "unstake:")) return "unstake";
-        if (std.mem.startsWith(u8, tx.op_return, "demo:")) return "demo_grant";
+        if (std.mem.startsWith(u8, tx.op_return, "exchange:"))     return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "fill:"))         return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "open_order:"))   return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "place_order:"))  return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "close_order:"))  return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "cancel_order:")) return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "deposit:"))      return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "withdraw:"))     return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "stake:"))        return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "unstake:"))      return "unstake";
+        if (std.mem.startsWith(u8, tx.op_return, "delegate:"))     return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "undelegate:"))   return "unstake";
+        if (std.mem.startsWith(u8, tx.op_return, "ns_claim:"))     return "ns_claim";
+        if (std.mem.startsWith(u8, tx.op_return, "agent:register"))   return "agent_register";
+        if (std.mem.startsWith(u8, tx.op_return, "agent:unregister")) return "agent_register";
+        if (std.mem.startsWith(u8, tx.op_return, "notarize:"))     return "notarize";
+        if (std.mem.startsWith(u8, tx.op_return, "notarize_revoke:")) return "notarize";
+        if (std.mem.startsWith(u8, tx.op_return, "demo:"))         return "demo_grant";
     }
 
     return "transfer";

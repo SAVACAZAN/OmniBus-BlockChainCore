@@ -40,8 +40,11 @@ const KIND_DOT: Record<string, string> = {
   registrar:  "text-purple-300",
   exchange:   "text-blue-300",
   stake:      "text-green-300",
-  unstake:    "text-amber-300",
-  demo_grant: "text-pink-300",
+  unstake:        "text-amber-300",
+  ns_claim:       "text-violet-300",
+  agent_register: "text-indigo-300",
+  notarize:       "text-rose-300",
+  demo_grant:     "text-pink-300",
 };
 function KindBadge({ kind }: { kind?: string }) {
   if (!kind || kind === "transfer") return null;
