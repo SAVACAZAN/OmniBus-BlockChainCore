@@ -817,7 +817,7 @@ function StakeActivityTab() {
       // the same snapshot of chain state, minimising drift between "what the
       // history says" and "what getstake reports".
       const [histRaw, stakeResp] = await Promise.all([
-        rpc.request_raw("getaddresshistory", [effectiveAddress]),
+        rpc.getAddressHistory(effectiveAddress),
         rpc.getStake(effectiveAddress),
       ]);
       const hist = histRaw as AddressHistoryResp | null;

@@ -56,9 +56,7 @@ export function AddressDetail({
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r = (await rpc.request_raw("getaddresshistory", [
-          address,
-        ])) as AddressHistory;
+        const r = (await rpc.getAddressHistory(address)) as AddressHistory;
         if (!cancelled) {
           setData(r);
           setError(null);

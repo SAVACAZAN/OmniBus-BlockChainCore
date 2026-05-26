@@ -396,6 +396,31 @@ export class OmniBusRpcClient {
     }
   }
 
+  async getDailyActivity(address: string, days: number = 30): Promise<{
+    daily?: Array<{
+      dayIndex: number; date?: string; txCount: number; sent: number; received: number;
+      miningReward: number; feesBurned: number; stakeChange: number;
+    }>;
+    tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number;
+  } | null> {
+    try {
+      return await this.request("getdailyactivity", [{ address, days }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async listUnspent(address: string): Promise<{
+    utxos: Array<{ txid: string; vout: number; amount: number; height?: number }>;
+    total: number;
+  } | null> {
+    try {
+      return await this.request("listunspent", [address]);
+    } catch {
+      return null;
+    }
+  }
+
   async getRichList(limit: number = 100): Promise<{
     entries: Array<{
       rank: number; address: string; balance: number; isValidator: boolean;

@@ -236,9 +236,8 @@ export function WalletPage() {
       // path returned utxos[] for the unlock-session address only, leaving
       // the UTXO column empty whenever the user switched slots.
       try {
-        const ulist: any = await rpc.request_raw("listunspent", [activeAddress]);
-        if (Array.isArray(ulist?.utxos)) setUtxos(ulist.utxos);
-        else if (Array.isArray(ulist)) setUtxos(ulist);
+        const ulist = await rpc.listUnspent(activeAddress);
+        if (ulist?.utxos) setUtxos(ulist.utxos);
       } catch {}
     };
     void refresh();

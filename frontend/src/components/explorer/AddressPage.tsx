@@ -77,7 +77,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
     Promise.all([
       rpc.getAddressHistory(addr),
       rpc.getAddressBalance(addr),
-      rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[]; tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number } | null>,
+      rpc.getDailyActivity(addr, 30).catch(() => null) as Promise<{ daily?: DailyEntry[]; tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number } | null>,
       rpc.getNonce(addr).catch(() => null) as Promise<NonceInfo | null>,
     ])
       .then(([histData, balData, dailyData, nonceData]) => {
@@ -510,10 +510,10 @@ function UtxoPanel({ addr, onNavigate }: { addr: string; onNavigate: (h: string)
 
   useEffect(() => {
     setLoading(true);
-    rpc.request_raw("listunspent", [addr])
-      .then((r: any) => {
-        if (Array.isArray(r?.utxos)) {
-          setUtxos(r.utxos);
+    rpc.listUnspent(addr)
+      .then((r) => {
+        if (r?.utxos) {
+          setUtxos(r.utxos as unknown as Utxo[]);
           setTotal(r.total ?? 0);
         }
       })

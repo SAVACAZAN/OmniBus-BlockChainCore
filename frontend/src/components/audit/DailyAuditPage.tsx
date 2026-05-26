@@ -134,7 +134,7 @@ export function DailyAuditPage() {
       // (address_tx_index vs reputation manager) so there's no benefit to
       // serializing.
       const [dailyRaw, repRaw] = await Promise.all([
-        rpc.request_raw("getdailyactivity", [{ address: effectiveAddress, days }]),
+        rpc.getDailyActivity(effectiveAddress, days),
         rpc.getReputation(effectiveAddress),
       ]);
       const daily = dailyRaw as DailyActivityResp | null;
