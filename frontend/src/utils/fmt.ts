@@ -80,6 +80,23 @@ export function fmtUsd(microUsd: number, decimals?: number): string {
   });
 }
 
+const _omniFmt = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+});
+
+/**
+ * Convert satoshis to OMNI and format with locale-aware 2-4 significant decimals.
+ * Large values (≥ 1 OMNI) use toLocaleString 2–4 dp; small values use 6 dp.
+ * No unit suffix — append " OMNI" at the call site as needed.
+ */
+export function fmtOmni(sat: number): string {
+  const omni = sat / SAT_PER_OMNI;
+  if (omni >= 1) return _omniFmt.format(omni);
+  if (omni >= 0.000001) return omni.toFixed(6);
+  return omni.toFixed(9);
+}
+
 /**
  * Pick the right number of decimal places for a micro-USD price based on magnitude.
  * Small prices (< $0.01) get 6 decimals; large prices (>= $1) get 2.

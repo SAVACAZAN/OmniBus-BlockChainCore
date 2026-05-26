@@ -27,7 +27,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
@@ -110,19 +110,12 @@ type SortBy = "amount" | "rent" | "days";
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
 const intFmt = new Intl.NumberFormat("en-US");
 const repFmt = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
 function fmtRent(rentX100: number): string {
   return repFmt.format(rentX100 / 100);
 }

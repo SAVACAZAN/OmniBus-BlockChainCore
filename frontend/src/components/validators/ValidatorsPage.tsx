@@ -167,7 +167,7 @@ function tierFromStake(stake: number): Tier {
 }
 
 
-function fmtOmni(n: number): string {
+function fmtNum(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
@@ -437,7 +437,7 @@ function ValidatorListTab() {
                       {v.tier}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtOmni(v.stake_omni)}</td>
+                  <td className="px-3 py-2 text-right font-mono">{fmtNum(v.stake_omni)}</td>
                   <td className="px-3 py-2 text-right font-mono">
                     {v.uptime_pct.toFixed(2)}%
                   </td>
@@ -597,12 +597,12 @@ function StakingInfoLookup() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs">
           {[
             ["Status", info.status],
-            ["Total stake", fmtOmni(info.total_stake) + " OMNI"],
-            ["Self stake", fmtOmni(info.self_stake) + " OMNI"],
-            ["Delegated", fmtOmni(info.delegated_stake) + " OMNI"],
+            ["Total stake", fmtNum(info.total_stake) + " OMNI"],
+            ["Self stake", fmtNum(info.self_stake) + " OMNI"],
+            ["Delegated", fmtNum(info.delegated_stake) + " OMNI"],
             ["Uptime", info.uptime_pct.toFixed(2) + "%"],
             ["Blocks produced", String(info.blocks_produced)],
-            ["Total rewards", fmtOmni(info.total_rewards) + " OMNI"],
+            ["Total rewards", fmtNum(info.total_rewards) + " OMNI"],
             ["Commission", info.commission_pct + "%"],
             ["Slash count", String(info.slash_count)],
             ["Slash history", String(info.slash_history_count)],
@@ -718,7 +718,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         <ul className="space-y-2 text-sm">
           <ReqRow
             ok={stakedOk}
-            label={`≥100 OMNI staked (you have ${stake !== null ? fmtOmni(stake) : "—"})`}
+            label={`≥100 OMNI staked (you have ${stake !== null ? fmtNum(stake) : "—"})`}
           />
           <ReqRow ok={true} label="Node responds to RPC: yes" />
           <ReqRow ok={true} label="Heartbeat capability (browser auto-pings every 30s)" />
@@ -734,7 +734,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         </h3>
         <p className="text-sm text-gray-400 mb-2">
           Based on your current stake of{" "}
-          <span className="font-mono text-gray-200">{fmtOmni(stake ?? 0)} OMNI</span>, you would
+          <span className="font-mono text-gray-200">{fmtNum(stake ?? 0)} OMNI</span>, you would
           qualify as:
         </p>
         <div
@@ -760,7 +760,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
                   <td className="py-1 text-gray-300">
                     {t.note
                       ? t.note
-                      : `${fmtOmni(t.min)} – ${t.max ? fmtOmni(t.max) : "∞"} OMNI`}
+                      : `${fmtNum(t.min)} – ${t.max ? fmtNum(t.max) : "∞"} OMNI`}
                   </td>
                   <td className="py-1 text-gray-300">{TIER_MULT[t.tier]}×</td>
                 </tr>
@@ -1180,7 +1180,7 @@ function SlashingLogTab() {
                   {e.evidence_block_height}
                 </td>
                 <td className="px-3 py-2 text-right font-mono text-red-300">
-                  {fmtOmni(e.slash_amount_omni)}
+                  {fmtNum(e.slash_amount_omni)}
                 </td>
               </tr>
             ))}

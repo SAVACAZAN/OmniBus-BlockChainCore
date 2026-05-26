@@ -32,7 +32,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
@@ -44,15 +44,6 @@ const rpc = new OmniBusRpcClient();
 
 
 const intFmt = new Intl.NumberFormat("en-US");
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
-
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
-
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type DocType = "contract" | "certificate" | "receipt" | "identity" | "media" | "other";

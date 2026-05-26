@@ -29,7 +29,7 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, fmtOmni } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -84,15 +84,7 @@ type SortKey =
   | "stakeChange";
 type SortDir = "asc" | "desc";
 
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
 const intFmt = new Intl.NumberFormat("en-US");
-
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
 
 /** Convert tip block timestamp + day-window math to a real ISO date string. */
 function dayDate(d: DailyEntry, resp: DailyActivityResp | null): string {
