@@ -281,6 +281,31 @@ export default function AllPricesGrid() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
         />
+        {visibleRows.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["asset","quote_bucket","coinbase_bid_usd","coinbase_ask_usd","kraken_bid_usd","kraken_ask_usd","lcx_bid_usd","lcx_ask_usd"].join(","),
+                ...visibleRows.map((r) => {
+                  const fmtCell = (ex: Exchange) => {
+                    const c = r.cells[ex];
+                    if (!c || !c.success) return ",";
+                    return `${(c.bidMicroUsd / 1_000_000).toFixed(6)},${(c.askMicroUsd / 1_000_000).toFixed(6)}`;
+                  };
+                  return [r.base, r.bucket, fmtCell("Coinbase"), fmtCell("Kraken"), fmtCell("LCX")].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-prices-snapshot.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue whitespace-nowrap"
+          >
+            ⬇ CSV
+          </button>
+        )}
       </div>
 
       {!backendReady && loaded ? (
