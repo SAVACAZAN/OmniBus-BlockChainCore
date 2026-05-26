@@ -27,8 +27,6 @@ import {
   Plus,
   Unlock,
   RefreshCw,
-  Copy,
-  Check,
   AlertTriangle,
   Lock,
   ChevronDown,
@@ -37,6 +35,7 @@ import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
@@ -197,23 +196,6 @@ function signEscrowRefund(args: {
 
 // ── Shared UI helpers ─────────────────────────────────────────────────────
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    void navigator.clipboard.writeText(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
-  };
-  return (
-    <button
-      onClick={copy}
-      title="Copy"
-      className="ml-1 text-mempool-text-dim hover:text-mempool-blue transition-colors"
-    >
-      {copied ? <Check className="w-3 h-3 text-mempool-green" /> : <Copy className="w-3 h-3" />}
-    </button>
-  );
-}
 
 function WalletRequired() {
   return (

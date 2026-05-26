@@ -13,6 +13,7 @@
 import { useEffect, useState, useCallback } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { CopyButton } from "../common/CopyButton";
 
 const rpc = new OmniBusRpcClient();
 
@@ -155,32 +156,9 @@ function isMicaDiscloseResult(v: unknown): v is MicaDiscloseResult {
 
 // ── small helpers ─────────────────────────────────────────────────────────────
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).catch(() => undefined);
-}
-
 function ts(unix: number): string {
   if (unix === 0) return "—";
   return new Date(unix * 1000).toLocaleString();
-}
-
-// ── sub-components ────────────────────────────────────────────────────────────
-
-function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  const handle = () => {
-    copyToClipboard(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-  return (
-    <button
-      onClick={handle}
-      className="bg-mempool-blue text-white px-3 py-1 rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-transform"
-    >
-      {copied ? "Copied!" : label}
-    </button>
-  );
 }
 
 function Badge({ active, label }: { active: boolean; label: string }) {
@@ -228,7 +206,7 @@ function ProofDisplay({
           <span className="text-xs text-mempool-text-dim font-semibold uppercase tracking-wide">
             Merkle Proof
           </span>
-          <CopyButton text={jsonPayload} label="Copy JSON" />
+          <CopyButton text={jsonPayload} label="Copy JSON" variant="button" />
         </div>
         {proof.length === 0 ? (
           <span className="text-xs text-mempool-text-dim italic">No siblings (single-leaf tree)</span>
@@ -319,7 +297,7 @@ function TabDIDOBM({ address }: { address: string }) {
       <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-mempool-text">Decentralized Identifier (DID)</span>
-          {did && <CopyButton text={did.did} label="Copy DID" />}
+          {did && <CopyButton text={did.did} label="Copy DID" variant="button" />}
         </div>
         {did ? (
           <p
@@ -760,6 +738,7 @@ function TabMiCA({ address }: { address: string }) {
                 <CopyButton
                   text={JSON.stringify(att, null, 2)}
                   label="Copy Attestation"
+                  variant="button"
                 />
               </div>
             </div>
@@ -906,7 +885,7 @@ export function IdentityDIDPage() {
             <h2 className="text-lg font-bold text-mempool-text mb-1">OmniBus Identity</h2>
             <p className="text-xs text-mempool-text-dim font-mono break-all">{address}</p>
           </div>
-          <CopyButton text={address} label="Copy Address" />
+          <CopyButton text={address} label="Copy Address" variant="button" />
         </div>
       </div>
 

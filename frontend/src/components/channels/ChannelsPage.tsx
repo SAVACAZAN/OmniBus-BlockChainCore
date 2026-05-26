@@ -21,8 +21,6 @@ import type { WsNewBlockEvent } from "../../types";
 import {
   Zap,
   RefreshCw,
-  Copy,
-  Check,
   ArrowRight,
   ArrowLeft,
   AlertTriangle,
@@ -35,6 +33,7 @@ import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { CopyButton } from "../common/CopyButton";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
@@ -173,28 +172,6 @@ function Toast({ msg }: { msg: string }) {
     <div className="fixed bottom-4 right-4 bg-mempool-bg-elev border border-mempool-border rounded px-4 py-2 text-xs text-mempool-text font-mono shadow-lg z-50">
       {msg}
     </div>
-  );
-}
-
-// ── Copy button ───────────────────────────────────────────────────────────────
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const doCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  };
-  return (
-    <button
-      onClick={() => void doCopy()}
-      className="ml-1 p-1 rounded text-mempool-text-dim hover:text-mempool-blue"
-      title="Copy"
-    >
-      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-    </button>
   );
 }
 
