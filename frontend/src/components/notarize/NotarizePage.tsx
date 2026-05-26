@@ -34,6 +34,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
@@ -43,7 +44,6 @@ const rpc = new OmniBusRpcClient();
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const SAT_PER_OMNI = 1_000_000_000;
 
 const intFmt = new Intl.NumberFormat("en-US");
 const omniFmt = new Intl.NumberFormat("en-US", {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
@@ -8,7 +9,7 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
+const SAT = SAT_PER_OMNI;
 const MU  = 1_000_000;
 
 type WalletRow = {

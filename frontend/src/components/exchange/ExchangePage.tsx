@@ -7,6 +7,7 @@ import OmniBusRpcClient, {
   PairInfo,
   TradeFill,
 } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { DexBuyPanel } from "./DexBuyPanel";
@@ -27,7 +28,6 @@ import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 
 const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
 const MICRO_PER_USD = 1_000_000;
 
 type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account" | "intent";

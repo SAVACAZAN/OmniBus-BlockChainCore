@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types/index";
 import {
@@ -19,7 +20,7 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
+const SAT = SAT_PER_OMNI;
 
 interface BlockStat {
   height: number;

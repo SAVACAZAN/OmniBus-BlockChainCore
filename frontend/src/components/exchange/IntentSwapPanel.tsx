@@ -31,6 +31,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { hexToBytes, bytesToHex } from "../../api/exchange-sign";
 import { sha256 } from "@noble/hashes/sha2";
@@ -94,7 +95,7 @@ interface LocalIntent {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SAT = 1_000_000_000; // 1 OMNI in sats
+const SAT = SAT_PER_OMNI;
 
 const TAKER_CHAIN_OPTIONS: { label: string; value: number }[] = [
   { label: "OmniBus", value: 0 },

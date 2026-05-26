@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUnlocked, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { fetchUsdcBalance, fetchEvmBalance } from "../../api/multichain-balances";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 import { useActiveSlot } from "../../api/use-active-slot";
@@ -8,7 +9,7 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
+const SAT = SAT_PER_OMNI;
 const MU  = 1_000_000;
 
 function dec(token: string) {

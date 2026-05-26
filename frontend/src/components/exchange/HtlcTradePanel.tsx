@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import {
@@ -25,7 +26,7 @@ import {
 import { fetchUsdcBalance } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
+const SAT = SAT_PER_OMNI;
 
 // USDC contract on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";

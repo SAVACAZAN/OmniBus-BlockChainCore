@@ -29,11 +29,11 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ── Types matching backend `getdailyactivity` response ───────────────────
 
