@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -158,20 +159,20 @@ export function RecentTransactions() {
                     item.to ? (
                       <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
                         className="font-mono text-mempool-green hover:underline">
-                        → {midTrunc(item.to, 8, 6)}
+                        → <AddressLabel address={item.to} showEmoji truncate={{ left: 8, right: 6 }} />
                       </button>
                     ) : null
                   ) : (
                     <>
                       <button onClick={() => { window.location.hash = `#/address/${item.from}`; }}
                         className="font-mono hover:text-mempool-blue hover:underline transition-colors">
-                        {midTrunc(item.from, 8, 6)}
+                        <AddressLabel address={item.from} showEmoji truncate={{ left: 8, right: 6 }} />
                       </button>
                       {item.to ? (
                         <> &nbsp;→&nbsp;{" "}
                           <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
                             className="font-mono hover:text-mempool-blue hover:underline transition-colors">
-                            {midTrunc(item.to, 8, 6)}
+                            <AddressLabel address={item.to} showEmoji truncate={{ left: 8, right: 6 }} />
                           </button>
                         </>
                       ) : null}
