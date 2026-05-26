@@ -4,7 +4,7 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { satToOmni, midTrunc, fmtDuration, SAT_PER_OMNI } from "../../utils/fmt";
+import { satToOmni, midTrunc, fmtDuration } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   BarChart,
@@ -16,7 +16,6 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-const fmtSat = satToOmni;
 
 interface MempoolTx {
   txid: string;
@@ -60,6 +59,7 @@ export function MempoolPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [feeEst, setFeeEst] = useState<FeeEstimate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchErr, setFetchErr] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
   const [sortCol, setSortCol] = useState<"amount" | "fee" | "age" | null>("fee");
@@ -79,6 +79,7 @@ export function MempoolPage() {
   const wsBuffer = useRef<MempoolTx[]>([]);
 
   const fetchMempool = async () => {
+    setFetchErr(null);
     try {
       const [mempoolData, statsData, feeData, pendingData] = await Promise.allSettled([
         rpc.getMempoolTransactions(),
@@ -143,7 +144,9 @@ export function MempoolPage() {
           burnPct: f.burnPct ?? f.burn_pct ?? 0,
         });
       }
-    } catch {}
+    } catch (e: any) {
+      setFetchErr(e?.message || "Failed to load mempool");
+    }
     setLoading(false);
   };
 
@@ -366,7 +369,7 @@ export function MempoolPage() {
                     `"${t.txid}"`,
                     `"${t.from}"`,
                     `"${t.to}"`,
-                    (t.amount / SAT_PER_OMNI).toFixed(8),
+                    satToOmni(t.amount),
                     t.fee,
                     t.kind ?? "transfer",
                     t.scheme ?? "",
@@ -397,7 +400,7 @@ export function MempoolPage() {
                   className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
                   onClick={() => toggleSort("amount")}
                 >
-                  Amount {sortCol === "amount" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                  Amount (OMNI) {sortCol === "amount" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
                 </th>
                 <th
                   className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
@@ -419,6 +422,12 @@ export function MempoolPage() {
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim animate-pulse">
                     Loading mempool…
+                  </td>
+                </tr>
+              ) : fetchErr ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-red-400 text-xs font-mono">
+                    {fetchErr}
                   </td>
                 </tr>
               ) : pageTxs.length === 0 ? (
@@ -459,7 +468,7 @@ export function MempoolPage() {
                       ) : "—"}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-mempool-text">
-                      {fmtSat(tx.amount)}
+                      {satToOmni(tx.amount)}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono">
                       <FeeTag fee={tx.fee} />
